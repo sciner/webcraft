@@ -2,7 +2,7 @@ import { Vector} from "../../helpers.js";
 import {impl as alea} from '../../../vendors/alea.js';
 
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
-import type { TerrainMap2 } from "../biome3/terrain/map.js";
+import type { Biome3TerrainMap } from "../biome3/terrain/map.js";
 import type { TerrainMap, TerrainMapManager } from "../terrain_map.js";
 import type { ClusterManager } from "./manager.js";
 import type { BLOCK } from "../../blocks.js";
@@ -71,7 +71,7 @@ export class ClusterBase {
     /**
      * Set block
      */
-    setBlock(chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_id : int, rotate : Vector | null = null, extra_data : any | null = null, check_is_solid : boolean = false, destroy_fluid : boolean = false, candidate_for_cap_block : boolean = false, map? : TerrainMap2) : boolean {
+    setBlock(chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_id : int, rotate : Vector | null = null, extra_data : any | null = null, check_is_solid : boolean = false, destroy_fluid : boolean = false, candidate_for_cap_block : boolean = false, map? : Biome3TerrainMap) : boolean {
         if(x >= 0 && y >= 0 && z >= 0 && x < chunk.size.x && y < chunk.size.y && z < chunk.size.z) {
             // ok
         } else {

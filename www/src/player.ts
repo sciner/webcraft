@@ -14,7 +14,6 @@ import {ActionPlayerInfo, doBlockAction, WorldAction} from "./world_action.js";
 import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
 import { Effect } from "./block_type/effect.js";
-import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js";
 import { PlayerArm } from "./player_arm.js";
 import type { Renderer } from "./render.js";
@@ -1305,6 +1304,8 @@ export class Player implements IPlayer {
     getOverChunkBiomeId() {
         const chunk = this.getOverChunk()
         if(!chunk) return
+        const CHUNK_SIZE_X = chunk.size.x;
+        const CHUNK_SIZE_Z = chunk.size.z;
         const x = this.blockPos.x - this.chunkAddr.x * CHUNK_SIZE_X;
         const z = this.blockPos.z - this.chunkAddr.z * CHUNK_SIZE_Z;
         const cell_index = z * CHUNK_SIZE_X + x;

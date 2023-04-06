@@ -1,4 +1,4 @@
-import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_STATE } from "@client/chunk_const.js";
+import { CHUNK_STATE } from "@client/chunk_const.js";
 import { ServerClient } from "@client/server_client.js";
 import { DIRECTION, SIX_VECS, Vector, VectorCollector } from "@client/helpers.js";
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "@client/block_helpers.js";
@@ -76,7 +76,7 @@ class TickingBlock {
      * @returns true if success
      */
     setState(flat_pos_index: int): boolean {
-        this.pos.fromFlatChunkIndex(flat_pos_index).addSelf(this.#chunk.coord);
+        this.#chunk.chunkManager.grid.math.fromFlatChunkIndex(this.pos, flat_pos_index).addSelf(this.#chunk.coord);
         // this.tblock = this.#chunk.getBlock(this.pos);
         const tblock = this.tblock;
         if(!tblock) {
@@ -134,7 +134,7 @@ export class TickingBlockManager {
 
     // addTickingBlock
     add(pos_world: Vector): void {
-        const pos_index = pos_world.getFlatIndexInChunk()
+        const pos_index = this.#chunk.chunkManager.grid.math.getFlatIndexInChunk(pos_world)
         this.blockFlatIndices.add(pos_index);
         const chunk = this.#chunk
         if (chunk.load_state === CHUNK_STATE.READY) {
@@ -145,7 +145,7 @@ export class TickingBlockManager {
     // deleteTickingBlock
     delete(pos_world: IVector): void {
         const vec = TickingBlockManager.tmpDeleteVec.copyFrom(pos_world);
-        const pos_index = vec.getFlatIndexInChunk();
+        const pos_index = this.#chunk.chunkManager.grid.math.getFlatIndexInChunk(vec);
         this.blockFlatIndices.delete(pos_index);
         if(this.blockFlatIndices.size == 0) {
             this.#chunk.world.chunks.removeTickingChunk(this.#chunk.addr);
@@ -265,15 +265,15 @@ export class ServerChunk {
     }
 
     get maxBlockX() : int {
-        return this.coord.x + (CHUNK_SIZE_X - 1);
+        return this.coord.x + (this.size.x - 1);
     }
 
     get maxBlockY() : int {
-        return this.coord.y + (CHUNK_SIZE_Y - 1);
+        return this.coord.y + (this.size.y - 1);
     }
 
     get maxBlockZ() : int {
-        return this.coord.z + (CHUNK_SIZE_Z - 1);
+        return this.coord.z + (this.size.z - 1);
     }
 
     // Set chunk init state
@@ -1218,7 +1218,7 @@ export class ServerChunk {
         const bm = this.world.block_manager
         if(!ml.obj) ml.obj = {};
         pos = Vector.vectorify(pos);
-        ml.obj[(pos as Vector).getFlatIndexInChunk()] = item;
+        ml.obj[this.chunkManager.grid.math.getFlatIndexInChunk(pos as Vector)] = item;
         ml.compressed = null;
         ml.private_compressed = null;
         if(item) {
@@ -1255,6 +1255,7 @@ export class ServerChunk {
 
     // Random tick
     randomTick(tick_number : int, world_light, check_count : int) {
+        const {fromFlatChunkIndex, CHUNK_SIZE} = this.chunkManager.grid.math;
 
         if(this.load_state !== CHUNK_STATE.READY || !this.tblocks || this.randomTickingBlockCount <= 0) {
             return false;
@@ -1263,7 +1264,7 @@ export class ServerChunk {
         let tblock : TBlock;
 
         for (let i = 0; i < check_count; i++) {
-            _rnd_check_pos.fromFlatChunkIndex(Math.floor(Math.random() * CHUNK_SIZE));
+            fromFlatChunkIndex(_rnd_check_pos, Math.floor(Math.random() * CHUNK_SIZE));
             const block_id = this.tblocks.getBlockId(_rnd_check_pos.x, _rnd_check_pos.y, _rnd_check_pos.z);
             if(block_id > 0) {
                 const ticker = this.block_random_tickers[block_id];

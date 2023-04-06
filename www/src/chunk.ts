@@ -4,7 +4,6 @@ import type { TypedBlocks3 } from "./typed_blocks3.js";
 import {Sphere} from "./frustum.js";
 import {BLOCK, DBItemBlock, POWER_NO} from "./blocks.js";
 import {AABB} from './core/AABB.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
 import {ChunkLight} from "./light/ChunkLight.js";
 import type { Renderer } from "./render.js";
 import type BaseRenderer from "./renders/BaseRenderer.js";
@@ -53,7 +52,7 @@ export class Chunk {
         return this.chunkManager;
     }
 
-    constructor(addr, modify_list, chunkManager) {
+    constructor(addr, modify_list, chunkManager : ChunkManager) {
 
         this.addr = new Vector(addr); // относительные координаты чанка
         this.seed = chunkManager.getWorld().info.seed;
@@ -61,7 +60,7 @@ export class Chunk {
 
         //
         this.tblocks = null;
-        this.size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z); // размеры чанка
+        this.size = chunkManager.grid.chunkSize.clone(); // размеры чанка
         this.coord = this.addr.mul(this.size);
         this.id = this.addr.toHash();
 

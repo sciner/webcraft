@@ -1,14 +1,19 @@
 import { FLUID_STRIDE, FLUID_TYPE_MASK, OFFSET_FLUID, FLUID_LEVEL_MASK } from "./FluidConst.js";
 import { Vector } from "../helpers.js";
+import type { FluidChunk } from "./FluidChunk.js";
+import type { ChunkGrid } from "../core/ChunkGrid.js";
 
 const FLOWING_DIFF_TYPE_MASK_SHL = 2
 
 export class FluidChunkFlowing {
     [key: string]: any;
 
-    constructor(fluidChunk) {
+    grid: ChunkGrid
+
+    constructor(fluidChunk: FluidChunk) {
         this.fluidChunk = fluidChunk
         this.lastQueryId = null
+        this.grid = fluidChunk.dataChunk.grid
 
         /**
          * A Map of changes of floing blocks since the last call of
@@ -114,7 +119,7 @@ export class FluidChunkFlowing {
 
     deleteBoundsY(y_min, y_max) {
         this._delete(index => {
-            const y = Vector.yFromChunkIndex(index)
+            const y = this.grid.math.yFromChunkIndex(index)
             return y >= y_min && y <= y_max
         })
     }

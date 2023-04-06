@@ -18,6 +18,7 @@ import {ChunkGrid} from "../core/ChunkGrid.js";
 export class LightWorkerChunkManager {
     [key: string]: any;
 
+    grid: ChunkGrid;
     constructor(world : LightWorld) {
         this.chunks = new VectorCollector();
         this.list = [];
@@ -25,6 +26,7 @@ export class LightWorkerChunkManager {
         const INF = 1000000000;
         this.lightBase = new BaseChunk({grid: new ChunkGrid({chunkSize: new Vector(world.tech_info.chunk_size)}), size: new Vector(INF, INF, INF)})
             .setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
+        this.grid = this.lightBase.grid;
         this.chunkById = [null];
         this.activePotentialCenter = null;
         this.nextPotentialCenter = null;

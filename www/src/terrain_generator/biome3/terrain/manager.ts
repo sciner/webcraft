@@ -1,8 +1,7 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y } from "../../../chunk_const.js";
 import { alea } from "../../default.js";
 import { ArrayHelpers, Helpers, Vector } from "../../../helpers.js";
 import type { Biome, BiomeDirtLayer } from "./../biomes.js";
-import { TerrainMap2 } from "./map.js";
+import { Biome3TerrainMap } from "./map.js";
 import { TerrainMapCell } from "./map_cell.js";
 import { Aquifera, AquiferaParams } from "../aquifera.js";
 import { WATER_LEVEL, DensityParams, MapCellPreset, ClimateParams, DENSITY_AIR_THRESHOLD, BUILDING_MIN_Y_SPACE } from "./manager_vars.js";
@@ -164,7 +163,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
         const maps = super.generateAround(chunk, chunk_addr, smooth, generate_trees)
 
-        let center_map: TerrainMap2 = maps[4]
+        let center_map: Biome3TerrainMap = maps[4]
 
         // Smooth (for central and part of neighbours)
         if(smooth && !center_map.smoothed) {
@@ -267,7 +266,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
     /**
      * Calculate totsl density in block and return all variables
      */
-    calcDensity(xyz : Vector, cell, out_density_params : DensityParams | null, map : TerrainMap2) : DensityParams {
+    calcDensity(xyz : Vector, cell, out_density_params : DensityParams | null, map : Biome3TerrainMap) : DensityParams {
 
         let {relief, mid_level, dist_percent, op, density_coeff} = cell.preset;
 
@@ -404,7 +403,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
             const dirt_layer_blocks = dirt_layer.blocks;
             const dirt_layer_blocks_count = dirt_layer_blocks.length
             const local_water_line = WATER_LEVEL // density_params.local_water_line
-            
+
             if(not_air_count > 0 && dirt_layer_blocks_count > 1) {
                 if(xyz.y <= local_water_line) {
                     block_id = dirt_layer_blocks[dirt_layer_blocks_count - 1]
@@ -470,7 +469,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
         }
         return null
     }
-    
+
     /**
      * Return biome for coords and modify by preset
      */
@@ -496,6 +495,8 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
     // generate map
     generateMap(real_chunk, chunk, noisefn) {
+        const CHUNK_SIZE_X = chunk.size.x;
+        const CHUNK_SIZE_Y = chunk.size.y;
 
         if(!real_chunk.chunkManager) {
             throw 'error_no_chunk_manager'
@@ -506,7 +507,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
         const _density_params = new DensityParams(0, 0, 0, 0, 0, 0);
 
         // Result map
-        const map = new TerrainMap2(chunk, this.generator_options, this.noise2d);
+        const map = new Biome3TerrainMap(chunk, this.generator_options, this.noise2d);
 
         const doorSearchSize = new Vector(1, 2 * CHUNK_SIZE_Y, 1);
 

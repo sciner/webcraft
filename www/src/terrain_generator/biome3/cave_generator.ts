@@ -1,7 +1,7 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../../chunk_const.js";
 import { Mth, Vector } from "../../helpers.js";
 import { DensityParams, DENSITY_AIR_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "./terrain/manager_vars.js";
 import type { TerrainMapCell } from "../terrain_map.js";
+import type { ChunkGrid } from "../../core/ChunkGrid.js";
 
 export const BIOME3_CAVE_LAYERS = [
     {y: 76, octave1: 28.4 + 16, octave2: 28.4, width: 0.2, height: 16, shift: 64000},
@@ -31,13 +31,14 @@ const easeInOutExp = Mth.createBasicLUTFunction(-1, 1, 100, false,
     (y_perc: number) => easeInOut(1 - Math.abs(y_perc), exp)
 )
 
-export class CaveGenerator {
+export class Biome3CaveGenerator {
+    grid:           ChunkGrid
+    chunk_coord:    any
+    noisefn:        any
+    cave_layers:    any
 
-    chunk_coord : any
-    noisefn : any
-    cave_layers : any
-
-    constructor(chunk_coord : Vector, noisefn : any, cave_layers : any) {
+    constructor(grid: ChunkGrid, chunk_coord : Vector, noisefn : any, cave_layers : any) {
+        this.grid = grid;
         this.chunk_coord = new Vector(chunk_coord.x, 0, chunk_coord.z);
         this.noisefn = noisefn
         this.cave_layers = cave_layers
@@ -50,13 +51,15 @@ export class CaveGenerator {
 
 }
 
-export class CaveGeneratorRegular extends CaveGenerator {
+export class CaveGeneratorRegular extends Biome3CaveGenerator {
     [key: string]: any;
 
-    constructor(chunk_coord : Vector, noisefn : Function, cave_layers : any) {
+    constructor(grid: ChunkGrid, chunk_coord : Vector, noisefn : Function, cave_layers : any) {
 
-        super(chunk_coord, noisefn, cave_layers)
+        super(grid, chunk_coord, noisefn, cave_layers)
         this.layers = [];
+        const CHUNK_SIZE_X = grid.chunkSize.x;
+        const CHUNK_SIZE_Z = grid.chunkSize.z;
 
         for(let i = 0; i < cave_layers.length; i++) {
             const options = cave_layers[i];
@@ -87,7 +90,7 @@ export class CaveGeneratorRegular extends CaveGenerator {
 
     // Return cave point
     getPoint(xyz: Vector, map_cell: TerrainMapCell, in_ocean: boolean, density_params: DensityParams): number {
-
+        const CHUNK_SIZE_X = this.grid.chunkSize.x;
         const border_density = Mth.clamp(1 - xyz.y / (4 + (density_params.d3 + 1) * 3), 0, 1)
 
         // Sponge caves
@@ -129,12 +132,14 @@ export class CaveGeneratorRegular extends CaveGenerator {
 
 }
 
-export class CaveGeneratorBigCaves extends CaveGenerator {
+export class CaveGeneratorBigCaves extends Biome3CaveGenerator {
     [key: string]: any;
 
-    constructor(chunk_coord : Vector, noisefn : any, cave_layers : any) {
+    constructor(grid: ChunkGrid, chunk_coord : Vector, noisefn : any, cave_layers : any) {
 
-        super(chunk_coord, noisefn, cave_layers)
+        super(grid, chunk_coord, noisefn, cave_layers)
+        const CHUNK_SIZE_X = grid.chunkSize.x;
+        const CHUNK_SIZE_Z = grid.chunkSize.x;
 
         this.layers = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z)
 
@@ -183,7 +188,8 @@ export class CaveGeneratorBigCaves extends CaveGenerator {
 
     // Return cave point
     getPoint(xyz : Vector, map_cell, in_ocean : boolean, density_params : DensityParams) : float {
-
+        const CHUNK_SIZE_X = this.grid.chunkSize.x;
+        const CHUNK_SIZE_Z = this.grid.chunkSize.z;
         // Sponge caves
         const y_perc = (xyz.y - 20) / 60
         if(y_perc > -1 && y_perc < 1) {

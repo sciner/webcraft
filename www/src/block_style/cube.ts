@@ -1,8 +1,7 @@
 "use strict";
 
-import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix, TX_CNT, Color} from '../helpers.js';
-import {impl as alea} from "../../vendors/alea.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
+import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix, TX_CNT, Color, FastRandom} from '../helpers.js';
+import { MAX_CHUNK_SQUARE} from "../chunk_const.js";
 import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style, QuadPlane, TCalcSideParamsResult } from './default.js';
@@ -11,6 +10,7 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { BLOCK, BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import type { World } from '../world.js';
 
 const {mat4} = glMatrix;
 
@@ -87,12 +87,7 @@ const UP_AXES = [
 ];
 
 // Used for grass pseudo-random rotation
-const randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-const a = new alea('random_dirt_rotations');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = Math.round(a.double() * 100);
-}
-
+const randoms = new FastRandom('random_dirt_rotations', MAX_CHUNK_SQUARE, 100, true)
 const OVERLAY_TEXTURE_MATERIAL_KEYS = []
 
 export default class style {
@@ -114,7 +109,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const material = tblock.material;
         let width = material.width ? material.width : 1;
         let height = material.height ? material.height : 1;
@@ -323,8 +318,8 @@ export default class style {
         const leaves_tex = bm.calcTexture(material.texture, 'round');
         _lm_leaves.copyFrom(dirt_color);
         _lm_leaves.b = leaves_tex[3] * TX_CNT;
-        const r1 = (randoms[(z * 13 + x * 3 + y * 23) % randoms.length] | 0) / 100;
-        const r2 = (randoms[(z * 11 + x * 37 + y) % randoms.length] | 0) / 100;
+        const r1 = (randoms.double((z * 13 + x * 3 + y * 23)) | 0) / 100
+        const r2 = (randoms.double((z * 11 + x * 37 + y)) | 0) / 100
         // Shift the horizontal plane randomly, to prevent a visible big plane.
         // Alternate shift by 0.25 block up/down from the center + some random.
         leaves_planes[0].move.y = ((x + z) % 2 - 0.5) * 0.5 + (r2 - 0.5) * 0.3;
@@ -545,7 +540,7 @@ export default class style {
 
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
         if(material.random_rotate_up) {
-            const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
+            const rv = randoms.double(z * chunk.size.x + x + y * chunk.size.y) | 0
             if(block.id == bm.LILY_PAD.id) {
                 axes_down = UP_AXES[rv % 4];
                 flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX | QUAD_FLAGS.MASK_BIOME;

@@ -2,7 +2,6 @@ import type { Vector } from '../../helpers.js';
 import { Default_Terrain_Generator, alea, Default_Terrain_Map } from '../default.js';
 import { BLOCK } from '../../blocks.js';
 import { TREES } from '../../terrain_generator/biomes.js';
-import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../../chunk_const.js';
 import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 import { Biomes } from '../biome3/biomes.js';
@@ -42,6 +41,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         // setBlock
         const { cx, cy, cz, cw } = chunk.dataChunk;
+        const CHUNK_SIZE_X = chunk.size.x;
+        const CHUNK_SIZE_Z = chunk.size.z;
 
         // setBlock
         const setBlock = (x, y, z, block_id) => {
@@ -64,7 +65,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const getFlowerBlockId = () => {
             return random_flowers[(aleaRandom.double() * random_flowers.length) | 0]
         }
-        
+
 
         //
         const current_chunk_has_tree = chunk.addr.x % 2 == 0 && chunk.addr.z % 2 == 0

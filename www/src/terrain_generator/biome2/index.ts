@@ -1,4 +1,3 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../../chunk_const.js";
 import {Vector} from '../../helpers.js';
 import {BLOCK} from '../../blocks.js';
 import {GENERATOR_OPTIONS, TerrainMapManager} from "../terrain_map.js";
@@ -15,13 +14,6 @@ import type { WorkerWorld } from "../../worker/world.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import { ClusterPyramid } from "../cluster/pyramid.js";
 import { ClusterVilage } from "../cluster/vilage.js";
-
-// Randoms
-const randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-const a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
 
 // Terrain generator class
 export default class Terrain_Generator extends Demo_Map {
@@ -164,7 +156,7 @@ export default class Terrain_Generator extends Demo_Map {
 
                 xyz.set(x + chunk.coord.x, chunk.coord.y, z + chunk.coord.z);
 
-                const cell              = map.cells[z * CHUNK_SIZE_X + x];
+                const cell              = map.cells[z * chunk.size.x + x];
                 const biome             = cell.biome;
                 const value             = cell.value2;
                 const rnd               = aleaRandom.double();
@@ -272,7 +264,7 @@ export default class Terrain_Generator extends Demo_Map {
 
         // Hebrs and grass
         for(const [pos, blocks] of map.plants.entries()) {
-            const cell = map.cells[pos.z * CHUNK_SIZE_X + pos.x];
+            const cell = map.cells[pos.z * chunk.size.x + pos.x];
             if(cell.can_plant) {
                 for(let i = 0; i < blocks.length; i++) {
                     const block = blocks[i];
@@ -321,7 +313,7 @@ export default class Terrain_Generator extends Demo_Map {
 
         // Mines
         if(chunk.addr.y == 0) {
-            const mine = MineGenerator.getForCoord(this, chunk.coord);
+            const mine = MineGenerator.getForCoord(this, chunk.coord, chunk.size)
             mine.fillBlocks(chunk);
         }
 

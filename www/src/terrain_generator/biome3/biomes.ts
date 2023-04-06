@@ -122,6 +122,7 @@ class BambooGenerator extends ChunkGroundBlockGenerator {
 
     generate(xyz : Vector, chunk : ChunkWorkerChunk, random_seed : float) : [] | null {
         const bm = chunk.chunkManager.block_manager
+        const {worldPosToChunkIndex} = chunk.chunkManager.grid.math;
         const blockFlags = bm.flags
         const ids = chunk.tblocks.id
         let height = Math.floor(random_seed * (this.height.max - this.height.min)) + this.height.min
@@ -131,7 +132,7 @@ class BambooGenerator extends ChunkGroundBlockGenerator {
         for(let h = 0; h < height; h++) {
             _hvec.copyFrom(xyz)
             _hvec.y += h
-            const index = _hvec.worldPosToChunkIndex()
+            const index = worldPosToChunkIndex(_hvec)
             const block_id = ids[index]
             if(blockFlags[block_id] & BLOCK_FLAG.SOLID) {
                 height = h
@@ -205,7 +206,7 @@ export class Biome {
         //
         this.no_smooth_heightmap        = no_smooth_heightmap
         this.building_options           = building_options
-        // 
+        //
         this.is_desert                  = title.toLowerCase().indexOf('пустын') >= 0
         this.is_sand                    = this.is_desert || title.toLowerCase().indexOf('пляж') >= 0
         this.is_taiga                   = title.toLowerCase().indexOf('тайга') >= 0
@@ -353,7 +354,7 @@ export class Biomes {
         dirt_palette?:              DirtPalette,
         big_stone_blocks?:          IRiverBottomBlocks,
         fog_preset?:                IFogPreset) : Biome | null {
-        
+
         if(this.filter_biome_list.length > 0 && !this.filter_biome_list.includes(id)) {
             return null
         }
@@ -456,7 +457,7 @@ export class Biomes {
          * @type { Biome[] }
          */
         this.list = [];
-    
+
         // Снежные биомы
         const snow_dirt_layers = [
             new BiomeDirtLayer([BLOCK.SNOW_DIRT.id, BLOCK.DIRT.id, BLOCK.STONE.id]),
@@ -512,7 +513,7 @@ export class Biomes {
         // this.addBiome('Замерзшая река', 0. -0.2);
         // this.addBiome('Замерзший океан', 0. -0.1);
         // this.addBiome('Глубокий замерзший океан', 0.8, -0.1);
-    
+
         // Умеренные биомы
         this.addBiome(1, 'Равнины', 0.8, 0.4, undefined, {
             frequency: TREE_FREQUENCY / 12,
@@ -731,7 +732,7 @@ export class Biomes {
         this.addBiome(38, 'Лесистое плато пустоши', 2, 0);
         this.addBiome(166, 'Рельефное лесистое плато пустоши', 2, 0);
         // this.addBiome('Теплый океан', 0.8, 0.5);
-    
+
         /*
         this.addBiome('Пустоши нижнего мира', 2, 0);
         this.addBiome('Базальтовые дельты', 2, 0);
@@ -839,7 +840,7 @@ export class Biomes {
     }
 
     /**
-     * @param {ClimateParams} Params 
+     * @param {ClimateParams} Params
      * @returns { Biome }
      */
     getBiome(params) {

@@ -1,7 +1,7 @@
 "use strict";
 
 import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, fromMat3, QUAD_FLAGS, Color, blobToImage} from "./helpers.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z, INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
+import { INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
@@ -17,7 +17,7 @@ import { Mesh_Object_Stars } from "./mesh/object/stars.js";
 import { MeshManager } from "./mesh/manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
-import { Environment, FogPreset, FOG_PRESETS, PRESET_NAMES } from "./environment.js";
+import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { BLEND_MODES } from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
@@ -709,6 +709,7 @@ export class Renderer {
 
         const { renderBackend, player } = this;
         const { size, globalUniforms } = renderBackend;
+        const { chunkSize } = this.world.chunkManager.grid
 
         globalUniforms.resolution = [size.width, size.height];
         globalUniforms.localLigthRadius = 0;
@@ -717,7 +718,7 @@ export class Renderer {
         this.rain?.update(this.getWeather(), delta)
         globalUniforms.rainStrength = this.rain?.strength_val ?? 0
 
-        let chunkBlockDist = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X;
+        let chunkBlockDist = player.state.chunk_render_dist * chunkSize.x - chunkSize.x;
         let nightshift = 1.;
         let preset = PRESET_NAMES.NORMAL;
 
@@ -729,14 +730,14 @@ export class Renderer {
             const cm = this.world.chunkManager;
             const chunk = cm.getChunk(player.chunkAddr);
             if(chunk?.inited) {
-                const x = player.blockPos.x - player.chunkAddr.x * CHUNK_SIZE_X
-                const z = player.blockPos.z - player.chunkAddr.z * CHUNK_SIZE_Z
+                const x = player.blockPos.x - player.chunkAddr.x * chunkSize.x
+                const z = player.blockPos.z - player.chunkAddr.z * chunkSize.z
                 // const biome_id = player.getOverChunkBiomeId()
                 // const biome = biome_id > 0 ? player.world.chunkManager.biomes.byID.get(biome_id) : null
                 // if(biome.is_sand) {
                 //     return new Color(255, 255, 0, 1)
                 // }
-                const cell_index = z * CHUNK_SIZE_X + x;
+                const cell_index = z * chunkSize.x + x;
                 const x_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_R];
                 const y_pos = chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_WATER_COLOR_G];
                 return this.maskColorTex.getColorAt(x_pos, y_pos)
@@ -1058,7 +1059,7 @@ export class Renderer {
             if(rain) {
                 rain.destroy();
             }
-            rain = new Mesh_Object_Rain(this, this.weather_name, chunkManager);
+            rain = new Mesh_Object_Rain(this.world, this, this.weather_name, chunkManager);
             this.meshes.add(rain, 'weather');
             this.rain = rain
         }

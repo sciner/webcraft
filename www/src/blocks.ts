@@ -1,4 +1,3 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar, IndexedColor, ArrayHelpers } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
@@ -327,19 +326,6 @@ export class BLOCK {
         return val + (material.visible_for_ao ? 128 : 0);
     }
 
-    // This method doens't account for padding, returns incorrect result and shouldn't be used
-
-    // // Return flat index of chunk block
-    // static getIndex(x, y, z) {
-    //     if(x instanceof Vector || typeof x == 'object') {
-    //         y = x.y;
-    //         z = x.z;
-    //         x = x.x;
-    //     }
-    //     let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
-    //     return index;
-    // }
-
     /**
      * Returns a new simplified item (for inventory, drop item).
      * For blocks, use {@link convertBlockToDBItem} instead.
@@ -510,28 +496,6 @@ export class BLOCK {
             }
         }
         return resp;
-    }
-
-    //
-    static getBlockIndex(x : int | Vector, y : int, z : int, v : Vector = null) : Vector {
-        if (x instanceof Vector) {
-          y = x.y;
-          z = x.z;
-          x = x.x;
-        }
-
-        // функция евклидового модуля
-        const f = (n, m) => ((n % m) + m) % m;
-
-        if (v) {
-          v.x = f(x, CHUNK_SIZE_X);
-          v.y = f(y, CHUNK_SIZE_Y);
-          v.z = f(z, CHUNK_SIZE_Z);
-        } else {
-          v = new Vector(f(x, CHUNK_SIZE_X), f(y, CHUNK_SIZE_Y), f(z, CHUNK_SIZE_Z));
-        }
-
-        return v;
     }
 
     // Call before setBlock

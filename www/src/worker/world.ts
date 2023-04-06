@@ -1,7 +1,7 @@
 import { ChunkWorkerChunkManager, ChunkWorkerChunk } from "./chunk.js";
 import { VectorCollector, Vector, PerformanceTimer } from "../helpers.js";
 import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
-import type { TerrainMap2 } from "../terrain_generator/biome3/terrain/map.js";
+import type { Biome3TerrainMap } from "../terrain_generator/biome3/terrain/map.js";
 import type { BLOCK } from "../blocks.js";
 import type { DataChunk } from "../core/DataChunk";
 import type { ChunkGrid } from "../core/ChunkGrid.js";
@@ -347,7 +347,7 @@ class BuildVerticesResult {
     fluid_blocks:   any[]
     timers:         object
     tm:             number
-    map:            TerrainMap2
+    map:            Biome3TerrainMap
     dirt_colors:    Float32Array
 
     constructor(key: any, addr: Vector, vertices: any, gravity_blocks: any[], fluid_blocks: any[], timers: PerformanceTimer, tm: float) {

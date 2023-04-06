@@ -1,4 +1,3 @@
-import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../chunk_const.js";
 import { BLOCK_FLAG } from "../../constant.js";
 import { AABB } from "../../core/AABB.js";
 import { Vector, VectorCollector, VectorCardinalTransformer } from "../../helpers.js";
@@ -6,9 +5,16 @@ import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { ClusterBase } from "./base.js";
 import type { Building } from "./building.js";
 
-const _depth_blocks_buffer = new Array(CHUNK_SIZE)
-const _chunk_default_aabb = new AABB(0, 0, 0, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)
-const draw_indexes = new Array(CHUNK_SIZE)
+let _depth_blocks_buffer = new Array(1)
+let draw_indexes = new Array(1)
+
+function ensureSize(sz) {
+    if (_depth_blocks_buffer.length >= sz) {
+        return;
+    }
+    _depth_blocks_buffer = new Array(sz);
+    draw_indexes = new Array(sz);
+}
 
 //
 export class BlockDrawer {
@@ -21,13 +27,15 @@ export class BlockDrawer {
     }
 
     draw(cluster : ClusterBase, chunk : ChunkWorkerChunk, map? : any) {
-
         let blocks_setted = 0
+        const _chunk_default_aabb = chunk.chunkManager.grid.chunkDefaultAABB;
 
         if(this.list.length == 0) {
             return blocks_setted
         }
+        ensureSize(chunk.chunkManager.grid.math.CHUNK_SIZE);
 
+        const {relativePosToFlatIndexInChunk, fromFlatChunkIndex} = chunk.chunkManager.grid.math;
         const bm            = chunk.chunkManager.block_manager
         const pos           = new Vector(0, 0, 0)
         const two2map       = new VectorCollector()
@@ -48,7 +56,7 @@ export class BlockDrawer {
                 const item = blocks[i]
                 transformer.transform(item.move, pos)
                 if(_chunk_default_aabb.containsVec(pos)) {
-                    const index = pos.relativePosToFlatIndexInChunk()
+                    const index = relativePosToFlatIndexInChunk(pos)
                     if(_depth_blocks_buffer[index]) {
                         // check weight for replace
                         const new_id = item.block_id
@@ -70,7 +78,7 @@ export class BlockDrawer {
             const index = draw_indexes[i]
             const item = _depth_blocks_buffer[index]
             _depth_blocks_buffer[index] = null
-            pos.fromFlatChunkIndex(index)
+            fromFlatChunkIndex(pos, index)
             // delete block id fluid
             if(BLOCK.flags[item.block_id] & BLOCK_FLAG.FLUID) {
                 if(cluster.setBlock(chunk, pos.x, pos.y, pos.z, air_id, null, null, false, false, false, map)) {

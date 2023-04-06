@@ -1,13 +1,3 @@
-import {
-    CHUNK_CW,
-    CHUNK_CX,
-    CHUNK_CY,
-    CHUNK_CZ,
-    CHUNK_OUTER_SIZE_X, CHUNK_OUTER_SIZE_Y, CHUNK_OUTER_SIZE_Z, CHUNK_PADDING,
-    CHUNK_SIZE_X,
-    CHUNK_SIZE_Y,
-    CHUNK_SIZE_Z
-} from "../chunk_const.js";
 import {CubeSym} from "../core/CubeSym.js";
 import {Mth} from "./mth.js";
 import { DIRECTION } from "./helper_const.js";
@@ -111,7 +101,6 @@ export class Vector implements IVector {
 
     /**
      * Much faster than set() if we know the soure type.
-     * @param {Vector} vec
      */
     copyFrom(vec : IVector) : Vector {
         this.x = vec.x;
@@ -120,8 +109,6 @@ export class Vector implements IVector {
         return this;
     }
 
-    /**
-     */
     equal(vec: IVector) : boolean {
         return this.x === vec.x && this.y === vec.y && this.z === vec.z;
     }
@@ -370,9 +357,6 @@ export class Vector implements IVector {
         return this
     }
 
-    /**
-     * @return {Vector}
-     */
     toInt() : Vector {
         return new Vector(
             this.x | 0,
@@ -381,9 +365,6 @@ export class Vector implements IVector {
         );
     }
 
-    /**
-     * @return {Vector}
-     */
     clone() : Vector {
         return new Vector(
             this.x,
@@ -392,28 +373,14 @@ export class Vector implements IVector {
         );
     }
 
-    /**
-     * @return {number[]}
-     */
     toArray() : number[] {
         return [this.x, this.y, this.z];
     }
 
-    /**
-     * @return {string}
-     */
-    toString() {
+    toString() : string {
         return '(' + this.x + ',' + this.y + ',' + this.z + ')';
     }
 
-    /**
-     */
-    toChunkKey() : string {
-        return 'c_' + this.x + '_' + this.y + '_' + this.z;
-    }
-
-    /**
-     */
     toHash() : string {
         return this.x + ',' + this.y + ',' + this.z;
     }
@@ -429,16 +396,10 @@ export class Vector implements IVector {
         return Vector.toIntHash(this.x, this.y, this.z);
     }
 
-    /**
-     * @return {number}
-     */
-    norm() {
+    norm() : number {
         return this.length();
     }
 
-    /**
-     * @return {Vector}
-     */
     normalize() : Vector {
         return this.normal();
     }
@@ -458,9 +419,6 @@ export class Vector implements IVector {
         return new Vector(this.x + x, this.y + y, this.z + z);
     }
 
-    /**
-     * @return {Vector}
-     */
     floored() : Vector {
         return new Vector(
             Math.floor(this.x),
@@ -567,8 +525,6 @@ export class Vector implements IVector {
         return volx * voly * volz;
     }
 
-    /**
-     */
     copy(from: Vector | number[] | IVector) {
         if (from == null) {
             return this;
@@ -681,57 +637,6 @@ export class Vector implements IVector {
         return this;
     }
 
-    // Return flat index of chunk block
-    getFlatIndexInChunk() {
-        let x = this.x - Math.floor(this.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
-        let y = this.y - Math.floor(this.y / CHUNK_SIZE_Y) * CHUNK_SIZE_Y;
-        let z = this.z - Math.floor(this.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
-        return (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
-    }
-
-    relativePosToFlatIndexInChunk() : int {
-        return CHUNK_SIZE_X * (CHUNK_SIZE_Z * this.y + this.z) + this.x;
-    }
-
-    //
-    fromFlatChunkIndex(index : int) : Vector {
-        this.x = index % CHUNK_SIZE_X;
-        this.y = index / (CHUNK_SIZE_X * CHUNK_SIZE_Z) | 0;
-        this.z = (index % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - this.x) / CHUNK_SIZE_X;
-        return this;
-    }
-
-    fromChunkIndex(index) {
-        //Not implemented, and its fine, implementation is below
-        //TODO: move ALL such method to grid!
-        return this;
-    }
-
-    /** Returns true if a point relative to a chunk is inside the chunk (not in its padding). */
-    isRelativePosInChunk() {
-        return (this.x | this.y | this.z) >= 0 &&
-            this.x < CHUNK_SIZE_X && this.y < CHUNK_SIZE_Y && this.z < CHUNK_SIZE_Z
-    }
-
-    worldPosToChunkIndex() {
-        const x = this.x - Math.floor(this.x / CHUNK_SIZE_X) * CHUNK_SIZE_X;
-        const y = this.y - Math.floor(this.y / CHUNK_SIZE_Y) * CHUNK_SIZE_Y;
-        const z = this.z - Math.floor(this.z / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
-        return CHUNK_CX * x + CHUNK_CY * y + CHUNK_CZ * z + CHUNK_CW;
-    }
-
-    static relativePosToChunkIndex(x : int, y : int, z : int) : int {
-        return CHUNK_CX * x + CHUNK_CY * y + CHUNK_CZ * z + CHUNK_CW;
-    }
-
-    static relativePosToFlatIndexInChunk(x : int, y : int, z : int) : int {
-        return CHUNK_SIZE_X * (CHUNK_SIZE_Z * y + z) + x;
-    }
-
-    relativePosToChunkIndex() {
-        return CHUNK_CX * this.x + CHUNK_CY * this.y + CHUNK_CZ * this.z + CHUNK_CW;
-    }
-
     //
     fromHash(hash) {
         let temp = hash.split(',');
@@ -743,11 +648,8 @@ export class Vector implements IVector {
 
     /**
      * Return quaternion
-     * @param {float} angle
-     * @param {boolean} hz
-     * @returns
      */
-    rotationDegrees(angle, hz = true) {
+    rotationDegrees(angle : float, hz : boolean = true) : tupleFloat4 {
         if(hz) {
             angle *= (Math.PI / 180);
         }
@@ -760,42 +662,6 @@ export class Vector implements IVector {
         ];
     }
 
-}
-
-if (CHUNK_CX === 1) {
-    /*
-    CHUNK_CY = CHUNK_OUTER_SIZE_X * CHUNK_OUTER_SIZE_Z
-    CHUNK_CZ = CHUNK_OUTER_SIZE_X
-    */
-    Vector.prototype.fromChunkIndex = function(index: number): Vector {
-        this.x = index % CHUNK_OUTER_SIZE_X - CHUNK_PADDING;
-        index  = index / CHUNK_OUTER_SIZE_X | 0;
-        this.z = index % CHUNK_OUTER_SIZE_Z - CHUNK_PADDING;
-        this.y = (index / CHUNK_OUTER_SIZE_Z | 0) - CHUNK_PADDING;
-        return this;
-    }
-
-    Vector.yFromChunkIndex = function(index: number): number {
-        return (index / (CHUNK_OUTER_SIZE_X * CHUNK_OUTER_SIZE_Z) | 0) - CHUNK_PADDING
-    }
-} else if (CHUNK_CY === 1) {
-    /*
-    CHUNK_CZ = CHUNK_OUTER_SIZE_Y
-    CHUNK_CX = CHUNK_OUTER_SIZE_Y * CHUNK_OUTER_SIZE_Z
-    */
-    Vector.prototype.fromChunkIndex = function(index: number): Vector {
-        index = index | 0
-        const dividedByY = index / CHUNK_OUTER_SIZE_Y | 0
-        this.y = index - (dividedByY * CHUNK_OUTER_SIZE_Y) - CHUNK_PADDING
-        const dividedYZ = dividedByY / CHUNK_OUTER_SIZE_Z | 0
-        this.z = dividedByY - (dividedYZ * CHUNK_OUTER_SIZE_Z) - CHUNK_PADDING
-        this.x = dividedYZ - CHUNK_PADDING
-        return this
-    }
-
-    Vector.yFromChunkIndex = function(index: number): number {
-        return (index % CHUNK_OUTER_SIZE_Y) - CHUNK_PADDING
-    }
 }
 
 Vector.initStatics()
@@ -819,11 +685,7 @@ export let NORMALS = {
 };
 
 export class Vec3 extends Vector {
-    [key: string]: any;
 
-    /**
-     * @param vec
-     */
     add(vec: IVector) : Vec3 {
         this.x += vec.x;
         this.y += vec.y;
@@ -838,7 +700,6 @@ export class Vec3 extends Vector {
 }
 
 export class Vector4 {
-    [key: string]: any;
     x: number;
     y: number;
     height: number;

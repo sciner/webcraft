@@ -1,4 +1,5 @@
 import { ServerClient } from "@client/server_client.js";
+import type { ServerPlayer } from "server_player";
 
 export default class packet_reader {
 
@@ -13,7 +14,7 @@ export default class packet_reader {
     }
 
     // 
-    static async read(player, packet) {
+    static async read(player : ServerPlayer, packet) {
         player.changeRenderDist(parseInt(packet.data));
         return true;
     }

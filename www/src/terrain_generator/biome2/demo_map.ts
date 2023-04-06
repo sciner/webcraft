@@ -1,21 +1,12 @@
-import {CHUNK_SIZE_X,  CHUNK_SIZE_Z} from "../../chunk_const.js";
-import {Vector} from '../../helpers.js';
+import { MAX_CHUNK_SQUARE} from "../../chunk_const.js";
+import {FastRandom, Vector} from '../../helpers.js';
 import {BLOCK} from '../../blocks.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import { Default_Terrain_Generator } from "../default.js";
-import {alea} from "../default.js";
 
 const DEFAULT_CHEST_ROTATE = new Vector(3, 1, 0);
-
-// Randoms
-let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-let a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
-
-//
+const randoms = new FastRandom('demo_map', MAX_CHUNK_SQUARE)
 const vox_templates : Map<string, {chunk: any, palette: any}>= new Map()
 
 // Terrain generator class
@@ -176,7 +167,7 @@ export default class Demo_Map extends Default_Terrain_Generator {
         if(!is_floor && level == 0) {
             return BLOCK.LODESTONE.id;
         }
-        let rb = randoms[Math.abs(xyz.x + xyz.y + xyz.z) % randoms.length];
+        const rb = randoms.double(xyz.x + xyz.y + xyz.z)
         if(rb < .2) {
             return BLOCK.MOSS_BLOCK.id;
         } else if (rb < .8) {

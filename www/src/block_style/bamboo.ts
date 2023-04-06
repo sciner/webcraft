@@ -1,24 +1,20 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
-import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
+import { MAX_CHUNK_SQUARE } from "../chunk_const.js";
+import {DIRECTION, FastRandom, IndexedColor, Vector} from '../helpers.js';
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
-import {impl as alea} from "../../vendors/alea.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_TX_CNT } from "../constant.js";
 import type {BlockManager, FakeTBlock} from "../blocks.js";
 import type { TBlock } from "../typed_blocks3.js";
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from "../worker/chunk.js";
+import type { World } from "../world.js";
 
 const {mat4} = glMatrix;
 
 const STALK_WIDTH = 6/32;
 const TX_CNT = DEFAULT_TX_CNT;
 
-let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-let a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
+const randoms = new FastRandom('bamboo', MAX_CHUNK_SQUARE)
 
 const _temp_shift_pos = new Vector(0, 0, 0);
 
@@ -38,7 +34,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
         let x = 0;
         let y = 0;
@@ -48,8 +44,7 @@ export default class style {
         _temp_shift_pos.copyFrom(tblock.posworld).subSelf(tblock.tb.coord);
 
         // Random shift
-        const index = Math.abs(Math.round(_temp_shift_pos.x * CHUNK_SIZE_Z + _temp_shift_pos.z)) % 256;
-        const r = randoms[index] * 4/16 - 2/16;
+        const r = randoms.double(_temp_shift_pos.z * world.chunkManager.grid.chunkSize.x + _temp_shift_pos.x) * 4/16 - 2/16;
         x += 0.5 - 0.5 + r;
         z += 0.5 - 0.5 + r;
 
@@ -76,8 +71,7 @@ export default class style {
 
         // Random shift
         if(!no_random_pos) {
-            const index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
-            const r = randoms[index] * 4/16 - 2/16;
+            const r = randoms.double(z * chunk.size.x + x) * 4/16 - 2/16;
             x += 0.5 - 0.5 + r;
             z += 0.5 - 0.5 + r;
         }

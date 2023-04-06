@@ -1,17 +1,22 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../chunk_const.js";
+import type { ChunkGrid } from "../core/ChunkGrid.js";
 import { Vector } from "../helpers.js";
 
 const CAVE_LAYERS = [
-                        {y: 56, octave1: 28.4, octave2: 28.4, width: 0.12, height: 24, shift: 64000},
-                        {y: 32, octave1: 32, octave2: 7.11, width: 0.12, height: 48, shift: 48000},
-                        {y: 0, octave1: 32, octave2: 7.11, width: 0.12, height: 16, shift: 16000},
-                    ];
+    {y: 56, octave1: 28.4, octave2: 28.4, width: 0.12, height: 24, shift: 64000},
+    {y: 32, octave1: 32, octave2: 7.11, width: 0.12, height: 48, shift: 48000},
+    {y: 0, octave1: 32, octave2: 7.11, width: 0.12, height: 16, shift: 16000},
+]
 
-export class CaveGenerator {
-    [key: string]: any;
+export class Biome2CaveGenerator {
+    grid:           ChunkGrid
+    chunk_coord:    Vector
+    CHUNK_SIZE_X:   number
+    layers:         any[]
 
-    constructor(chunk_coord, noisefn) {
-
+    constructor(grid : ChunkGrid, chunk_coord : Vector, noisefn) {
+        this.grid = grid;
+        const CHUNK_SIZE_X = this.CHUNK_SIZE_X = grid.chunkSize.x;
+        const CHUNK_SIZE_Z = grid.chunkSize.z;
         this.chunk_coord = new Vector(chunk_coord.x, 0, chunk_coord.z);
         this.layers = [];
 
@@ -43,7 +48,8 @@ export class CaveGenerator {
     }
 
     // Return cave point
-    getPoint(xyz, map_cell, in_ocean) {
+    getPoint(xyz : Vector, map_cell, in_ocean : boolean = false) {
+        const CHUNK_SIZE_X = this.grid.chunkSize.x;
         const x = xyz.x - this.chunk_coord.x;
         const z = xyz.z - this.chunk_coord.z;
         for(let i = 0; i < CAVE_LAYERS.length; i++) {

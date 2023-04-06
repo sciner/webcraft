@@ -1,13 +1,15 @@
 import { GameMode } from "@client/game_mode.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 import { WorldGenerators } from "./world/generators.js";
+import type { DBGame } from "db/game.js";
+import { Vector } from "@client/helpers.js";
 
 const FLAG_SYSTEM_ADMIN = 256;
 
 // JSON API
 export class ServerAPI {
 
-    static getDb() {
+    static getDb() : DBGame {
         return Qubatch.db
     }
 
@@ -55,12 +57,27 @@ export class ServerAPI {
                     params.generator = { id: 'flat', options: {} }
                 }
 
+                const generator = WorldGenerators.validateAndFixOptions(params.generator);
+
+                // spawn pos
+                const pos_spawn = new Vector().copyFrom(generator.pos_spawn);
+                switch(generator?.id) {
+                    case 'city':
+                    case 'flat': {
+                        pos_spawn.setScalar(0, 2, 0)
+                        break
+                    }
+                    case 'city2': {
+                        pos_spawn.setScalar(3000, 8, 3000)
+                        break
+                    }
+                }
+  
                 const title       = params.title;
                 const seed        = params.seed;
-                const generator   = WorldGenerators.validateAndFixOptions(params.generator);
                 const game_mode   = params.game_mode ?? 'survival';
                 const session     = await ServerAPI.getDb().GetPlayerSession(session_id);
-                const world       = await ServerAPI.getDb().InsertNewWorld(session.user_id, generator, seed, title, game_mode);
+                const world       = await ServerAPI.getDb().InsertNewWorld(session.user_id, generator, seed, title, game_mode, pos_spawn);
                 Log.append('InsertNewWorld', {user_id: session.user_id, generator, seed, title, game_mode});
                 return world;
             }

@@ -6,7 +6,7 @@ import type { ClusterManager } from "../../cluster/manager";
 import type { Default_Terrain_Map } from "../../default";
 import type { Biome } from "../biomes";
 import type { TerrainMapManagerBase } from "../terrain/manager_base";
-import type { TerrainMap2 } from "../terrain/map";
+import type { Biome3TerrainMap } from "../terrain/map";
 
 /**
  * Generate underworld infinity air
@@ -41,7 +41,7 @@ export class Biome3LayerBase {
     /**
      * Plant chunk trees
      */
-    plantTrees(maps : TerrainMap2[], chunk : ChunkWorkerChunk) {
+    plantTrees(maps : Biome3TerrainMap[], chunk : ChunkWorkerChunk) {
         const bm = chunk.chunkManager.block_manager
         for(let i = 0; i < maps.length; i++) {
             const m = maps[i];

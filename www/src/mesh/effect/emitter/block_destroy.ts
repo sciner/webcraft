@@ -1,5 +1,4 @@
 import { LEAVES_COLORS } from "../../../block_style/cube.js";
-import { CHUNK_SIZE_X } from "../../../chunk_const.js";
 import { ChunkManager } from "../../../chunk_manager.js";
 import { BLOCK_FLAG, GRASS_PALETTE_OFFSET } from "../../../constant.js";
 import { DIRECTION, IndexedColor, QUAD_FLAGS, Vector } from "../../../helpers.js";
@@ -155,7 +154,7 @@ export default class emitter extends BaseEmitter {
             const blockFlags = bm.flags[block.id]
             if(blockFlags & BLOCK_FLAG.BIOME) {
                 _pos_floored.copyFrom(pos).flooredSelf();
-                const index = ((_pos_floored.z - chunk.coord.z) * CHUNK_SIZE_X + (_pos_floored.x - chunk.coord.x)) * 2;
+                const index = ((_pos_floored.z - chunk.coord.z) * chunk.size.x + (_pos_floored.x - chunk.coord.x)) * 2;
                 lm.set(chunk.dirt_colors[index], chunk.dirt_colors[index + 1], 0);
                 if(block.id == bm.GRASS_BLOCK.id || block.is_grass) {
                     lm.r += GRASS_PALETTE_OFFSET.x;

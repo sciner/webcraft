@@ -152,7 +152,7 @@ export class DBWorldFluid {
     async flushWorldFluidsList(fluids, world : ServerWorld) {
         const chunkManager = this.world.chunks;
         const fluidWorld = chunkManager?.fluidWorld;
-        const fluidByChunk = FluidWorld.separateWorldFluidByChunks(fluids);
+        const fluidByChunk = FluidWorld.separateWorldFluidByChunks(fluids, chunkManager.grid);
         const saveRows = [];
         for (let [chunk_addr, fluids] of fluidByChunk) {
             const chunk = chunkManager?.getOrRestore(chunk_addr);

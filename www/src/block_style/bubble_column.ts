@@ -5,6 +5,7 @@ import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { IndexedColor } from '../helpers.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import type { World } from '../world.js';
 
 export default class style {
     [key: string]: any;
@@ -20,7 +21,7 @@ export default class style {
         );
     }
 
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const aabb = new AABB();
         aabb.set(0, 0, 0, 1, 1, 1);
         return [aabb];

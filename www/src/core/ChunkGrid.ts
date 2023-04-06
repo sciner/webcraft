@@ -2,6 +2,7 @@ import type {DataChunk} from "./DataChunk.js";
 import { VectorCollector, Vector } from "../helpers.js";
 import {AABB} from "./AABB.js";
 import {Portal} from "./BaseChunk.js";
+import {ChunkGridMath, getCachedChunkGridMath} from "./ChunkGridMath.js";
 
 export const dx = [1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1];
 export const dy = [0, 0, 0, 0, 1, -1, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|*/ 1, 1, -1, -1, 1, 1, -1, -1];
@@ -23,16 +24,26 @@ export class ChunkGrid {
     innerMap = new VectorCollector<DataChunk>();
     chunkSize: Vector;
     chunkPadding: number;
+    math: ChunkGridMath;
+    outerSize: Vector;
+    chunkDefaultAABB: AABB;
 
     constructor(options : ChunkGridOptions) {
         let {chunkSize, chunkPadding} = options
         if(!chunkSize) {
-            // chunkSize = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)
             throw 'error_invalid_chunk_size'
         }
-        this.chunkSize = chunkSize
-        this.chunkPadding = chunkPadding ?? 1
+        this.chunkSize = new Vector().copyFrom(chunkSize)
+        const padding = this.chunkPadding = chunkPadding ?? 1
+        this.outerSize = this.outerSize = new Vector(chunkSize.x + padding * 2, chunkSize.y + padding * 2, chunkSize.z + padding * 2);
+        this.chunkDefaultAABB = new AABB(0, 0, 0, chunkSize.x, chunkSize.y, chunkSize.z);
+
         // TODO: index function should be baked in special cache!
+        this.math = getCachedChunkGridMath(chunkSize);
+    }
+
+    initSize(chunkSize) {
+
     }
 
     get(vec: Vector): DataChunk | null {

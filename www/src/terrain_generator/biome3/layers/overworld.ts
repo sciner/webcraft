@@ -1,7 +1,6 @@
 import { Vector } from "../../../helpers.js";
 import { MineGenerator } from "../../mine/mine_generator.js";
 import { DENSITY_AIR_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "../terrain/manager_vars.js";
-import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y } from "../../../chunk_const.js";
 import { AQUIFERA_UP_PADDING } from "../aquifera.js";
 import { WorldClientOreGenerator } from "../client_ore_generator.js";
 import { DungeonGenerator } from "../../dungeon.js";
@@ -14,7 +13,7 @@ import { ClusterManager } from "../../cluster/manager.js";
 import { ClusterVilage } from "../../cluster/vilage.js";
 import { ClusterStructures } from "../../cluster/structures.js";
 
-import type { TerrainMap2 } from "../terrain/map.js";
+import type { Biome3TerrainMap } from "../terrain/map.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type Terrain_Generator from "../index.js";
 import type { TerrainMapCell } from "../terrain/map_cell.js";
@@ -29,7 +28,14 @@ const DEFAULT_CLUSTER_LIST = [
 
 const BIG_STONE_DESNSITY = 0.6;
 const GROUND_PLACE_SIZE = 3
-const _ground_places = new Array(CHUNK_SIZE * GROUND_PLACE_SIZE)
+let _ground_places = new Array(1)
+
+function ensureSize(sz: number) {
+    if (_ground_places.length >= sz * GROUND_PLACE_SIZE) {
+        return;
+    }
+    _ground_places = new Array(sz * GROUND_PLACE_SIZE);
+}
 
 export default class Biome3LayerOverworld extends Biome3LayerBase {
 
@@ -68,7 +74,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
     }
 
-    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lowest : boolean, is_highest : boolean) : TerrainMap2 {
+    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lowest : boolean, is_highest : boolean) : Biome3TerrainMap {
 
         // Generate maps around chunk
         chunk.timers.start('generate_maps')
@@ -95,7 +101,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         // Mines
         chunk.timers.start('generate_mines')
         if(chunk.addr.y == 0) {
-            const mine = MineGenerator.getForCoord(this, chunk.coord)
+            const mine = MineGenerator.getForCoord(this, chunk.coord, chunk.size)
             mine.fillBlocks(chunk);
         }
         chunk.timers.stop()
@@ -130,21 +136,22 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         }
     }
 
-    generateOnGroundBlocks(maps : TerrainMap2[], chunk : ChunkWorkerChunk, rnd : alea) {
+    generateOnGroundBlocks(maps : Biome3TerrainMap[], chunk : ChunkWorkerChunk, rnd : alea) {
+        const {fromFlatChunkIndex, relativePosToChunkIndex, CHUNK_SIZE} = chunk.chunkManager.grid.math;
         const ids = chunk.tblocks.id
         const _vec = new Vector(0, 0, 0)
         const xyz = new Vector(0, 0, 0)
-        const map = chunk.map as TerrainMap2
+        const map = chunk.map as Biome3TerrainMap
         const bm = chunk.chunkManager.block_manager
         const blockFlags = bm.flags
+        ensureSize(CHUNK_SIZE)
 
         for(let i = 0; i < this.onground_place_index; i += GROUND_PLACE_SIZE) {
             const flat_index = _ground_places[i]
-            _vec.fromFlatChunkIndex(flat_index)
-            // const index = _vec.relativePosToChunkIndex()
+            fromFlatChunkIndex(_vec, flat_index)
             if(_vec.y < 1) continue
             _vec.y--
-            const under_index = _vec.relativePosToChunkIndex()
+            const under_index = relativePosToChunkIndex(_vec)
             _vec.y++
             const under_block_id = ids[under_index]
             if(!(blockFlags[under_block_id] & BLOCK_FLAG.SOLID)) {
@@ -230,7 +237,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                 }
             }
         }
-        
+
         for(let i = 0; i < this.slab_candidates.length; i += 3) {
             const xyz = this.slab_candidates[i]
             if(xyz) {
@@ -257,6 +264,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
     calcColumnNoiseSize(chunk : ChunkWorkerChunk) : Vector {
         let maxY = WATER_LEVEL
+        const CHUNK_SIZE_X = chunk.size.x;
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
                 const cell = chunk.map.cells[z * CHUNK_SIZE_X + x]
@@ -279,7 +287,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
     generateChunkData(chunk : ChunkWorkerChunk, seed : string, rnd : any) {
 
         const bm                        = chunk.chunkManager.block_manager
-        const map                       = chunk.map as TerrainMap2;
+        const map                       = chunk.map as Biome3TerrainMap;
         const xyz                       = new Vector(0, 0, 0);
         const xyz_temp                  = new Vector(0, 0, 0);
         const density_params            = new DensityParams(0, 0, 0, 0, 0, 0);
@@ -295,6 +303,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         const block_result              = new MapsBlockResult()
         const rand_lava                 = new alea('random_lava_source_' + this.seed)
         const map_manager               = this.maps as TerrainMapManager3
+        const {relativePosToFlatIndexInChunk_s} = chunk.chunkManager.grid.math;
 
         // generate densisiy values for column
         chunk.timers.start('generate_noise3d')
@@ -311,7 +320,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         //
         const plantGrass = (x : int, y : int, z : int, xyz : Vector, block_id : int, cell : TerrainMapCell, density_params : DensityParams) : boolean => {
             const plant_blocks = cell.genPlantOrGrass(x, y, z, xyz, chunk.size, block_id, rnd, density_params, chunk)
-            _ground_places[this.onground_place_index++] = Vector.relativePosToFlatIndexInChunk(x, y, z)
+            _ground_places[this.onground_place_index++] = relativePosToFlatIndexInChunk_s(x, y, z)
             _ground_places[this.onground_place_index++] = block_id
             _ground_places[this.onground_place_index++] = density_params
             if(plant_blocks) {
@@ -645,8 +654,9 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
     drawFluidSurface(chunk : ChunkWorkerChunk, cell : TerrainMapCell, x : int, y : int, z : int, xyz : Vector, local_fluid_block_id : int, dcaves_over : float, air_count : int, local_water_line : int, density_params : DensityParams, rnd : any) : boolean {
         const bm = this.block_manager
         let has_overfluid_block = false
+        const CHUNK_SIZE_Y = chunk.size.y;
         // if inside water
-        if(local_fluid_block_id == bm.STILL_WATER.id) {    
+        if(local_fluid_block_id == bm.STILL_WATER.id) {
             const {dist_percent, op} = cell.preset
             const {d1, d2, d3, d4} = density_params
             const hanging_foliage_block_id = cell.biome.blocks.hanging_foliage.id
@@ -684,12 +694,13 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         }
         return has_overfluid_block
     }
-    
+
     // Например льдины под поверхностью воды
     drawUnderFluidSurface(chunk : ChunkWorkerChunk, cell : TerrainMapCell, x : int, y : int, z : int, local_fluid_block_id : int, density_params : DensityParams) {
         const bm = this.block_manager
         const {dist_percent, op} = cell.preset;
         const {d1, d2, d3, d4} = density_params
+        const CHUNK_SIZE_Y = chunk.size.y;
         if(local_fluid_block_id == bm.STILL_WATER.id) {
             // если холодно, то рисуем рандомные льдины
             const water_cap_ice = (cell.temperature * 2 - 1 < 0) ? (d3 * .6 + d1 * .2 + d4 * .1) : 0;
