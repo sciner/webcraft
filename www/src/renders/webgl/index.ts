@@ -327,6 +327,8 @@ export default class WebGLRenderer extends BaseRenderer {
         this.cube = new GLCubeDrawer(this);
         this.chunk = new GLChunkDrawer(this);
         this.line = new GLLineDrawer(this);
+
+        this._writeBuffer = null;
     }
 
     async init(args) {
@@ -501,6 +503,15 @@ export default class WebGLRenderer extends BaseRenderer {
     endFrame() {
         // this.blitRenderTarget();
         // reset framebufer
+    }
+
+    hackWriteBuffer(buf) {
+        if (this._writeBuffer === buf) {
+            return;
+        }
+        this._writeBuffer = buf;
+        const {gl} = this;
+        gl.bindBuffer(gl.COPY_WRITE_BUFFER, buf);
     }
 
     /**

@@ -24,11 +24,12 @@ export class BigGeomBatchUpdate {
     pos: number = 0;
     copyPos: number = 0;
     strideFloats: number;
+    vao: WebGLVertexArrayObject = null;
 
-    constructor(strideFloats, heuristicSize = (1 << 13)) {
-        this.heuristicSize = heuristicSize;
+    constructor(strideFloats, heuristicSizeFloats = (1 << 15)) {
+        this.heuristicSize = Math.floor(heuristicSizeFloats / strideFloats);
         this.strideFloats = strideFloats;
-        this.ensureSize(heuristicSize);
+        this.ensureSize(this.heuristicSize);
     }
 
     ensureSize(instances: number) {
@@ -70,8 +71,11 @@ export class BigGeomBatchUpdate {
     }
 
     getBuf(context: BaseRenderer) {
+        const gl: WebGL2RenderingContext = context.gl;
         if (!this.buffer) {
-            this.buffer = context.createBuffer({usage: 'dynamic', data: this.data});
+            this.buffer = context.createBuffer({data: this.data});
+            (this.buffer as any).glType = gl.COPY_READ_BUFFER;
+            (this.buffer as any).glUsage = gl.DYNAMIC_DRAW;
         }
         if (this.pos > 0) {
             this.buffer.dirty = true;

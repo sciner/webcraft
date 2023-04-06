@@ -56,6 +56,17 @@ export class ChunkRenderList {
         return this.spiral.center;
     }
 
+    uploadBuffers(render: Renderer) {
+        let baseGeom = (this.bufferPool as any)?.baseGeometry;
+        if (baseGeom) {
+            baseGeom.bind(render.defaultShader);
+        }
+        baseGeom = (this.chunkManager.fluidWorld.mesher.renderPool as any)?.baseGeometry;
+        if (baseGeom) {
+            baseGeom.bind(render.defaultFluidShader);
+        }
+    }
+
     /**
      * highly optimized
      */

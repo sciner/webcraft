@@ -1,9 +1,11 @@
 import {TerrainSubGeometry} from "./TerrainSubGeometry.js";
 import {TerrainMultiGeometry} from "./TerrainMultiGeometry.js";
 import {GeometryPool} from "./GeometryPool.js";
+import type {BaseMultiGeometry} from "../geom/BaseMultiGeometry";
 
 export class Basic05GeometryPool extends GeometryPool {
     [key: string]: any;
+    baseGeometry: BaseMultiGeometry;
     constructor(context, {
         pageSize = 256,
         pageCount = 1000,

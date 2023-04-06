@@ -94,6 +94,7 @@ export class Renderer {
     options:                any
     globalUniforms:         any
     defaultShader:          any
+    defaultFluidShader:     any
     viewportWidth:          any
     viewportHeight:         any
     projMatrix:             any
@@ -255,6 +256,7 @@ export class Renderer {
         // Prepare base resource pack shader
         const rp                = BLOCK.resource_pack_manager.get('base');
         this.defaultShader      = rp.shader;
+        this.defaultFluidShader = rp.fluidShader;
 
         this.camera.renderType  = this.renderBackend.gl ? 'webgl' : 'webgpu';
         this.camera.width       = this.viewportWidth;
@@ -853,6 +855,7 @@ export class Renderer {
     draw(delta, args) {
         const { renderBackend, camera, player } = this;
         const { globalUniforms } = renderBackend;
+        const { renderList } = this.world.chunkManager;
 
         this.resetBefore();
 
@@ -883,6 +886,9 @@ export class Renderer {
 
         this.defaultShader.bind(true);
 
+        // upload important buffers here!
+        renderList.uploadBuffers(this);
+
         // layers??
         // maybe we will create a real layer group
         for(let transparent of [false, true]) {
@@ -891,7 +897,7 @@ export class Renderer {
             }
             for(let rp of BLOCK.resource_pack_manager.list.values()) {
                 // 2. Draw chunks
-                this.world.chunkManager.renderList.draw(this, rp, transparent);
+                renderList.draw(this, rp, transparent);
             }
             renderBackend.batch.flush();
             if(!transparent) {

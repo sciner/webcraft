@@ -7,6 +7,8 @@ export class WebGLBuffer extends BaseBuffer {
      */
     glLength = 0;
     buffer: WebGLBuffer = null;
+    glType = 0;
+    glUsage = 0;
 
     update() {
         if (this.bigLength > 0) {
@@ -20,11 +22,12 @@ export class WebGLBuffer extends BaseBuffer {
             this.buffer = gl.createBuffer();
         }
 
-        const type = this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
+        const type = this.glType || (this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER);
+        const usage = this.glUsage || (this.options.usage === 'static' ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW);
 
         gl.bindBuffer(type, this.buffer);
         if (this.glLength < this.data.byteLength) {
-            gl.bufferData(type, this.data, this.options.usage === 'static' ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW);
+            gl.bufferData(type, this.data, usage);
             this.glLength = this.data.byteLength
         } else {
             gl.bufferSubData(type, 0, this.data);
@@ -45,7 +48,7 @@ export class WebGLBuffer extends BaseBuffer {
             this.buffer = gl.createBuffer();
         }
         gl.bindBuffer(type, this.buffer);
-        gl.bufferData(type, this.bigLength, gl.STATIC_DRAW);
+        gl.bufferData(type, this.bigLength, gl.STATIC_COPY);
         if (oldBuf) {
             this.bigResize = true;
             gl.copyBufferSubData(gl.COPY_READ_BUFFER, type, 0, 0, this.glLength);
@@ -64,12 +67,13 @@ export class WebGLBuffer extends BaseBuffer {
             this.buffer = gl.createBuffer();
         }
 
-        const type = this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
+        const type = this.glType || (this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER);
+        const usage = this.glUsage || (this.options.usage === 'static' ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW);
 
         gl.bindBuffer(type, this.buffer);
 
         if (this.glLength < this.data.byteLength) {
-            gl.bufferData(type, this.data, this.options.usage === 'static' ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW);
+            gl.bufferData(type, this.data, usage);
             this.glLength = this.data.byteLength
         } else {
             gl.bufferSubData(type, 0, this.data, 0, len);
@@ -91,17 +95,21 @@ export class WebGLBuffer extends BaseBuffer {
             return;
         }
 
-        gl.bindBuffer(this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER, this.buffer);
+        const type = this.glType || (this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER);
+        gl.bindBuffer(type, this.buffer);
     }
 
     batchUpdate(updateBuffer: BaseBuffer, copies: Array<GeomCopyOperation>, count: number, stride: number) {
         const {gl} = this.context;
 
-        this.bind();
-        gl.bindBuffer(gl.COPY_READ_BUFFER, (updateBuffer as WebGLBuffer).buffer);
+        if (this.dirty) {
+            this.update();
+        }
+        //gl.bindBuffer(gl.COPY_READ_BUFFER, (updateBuffer as WebGLBuffer).buffer);
+        this.context.hackWriteBuffer(this.buffer);
         for (let i = 0; i < count; i++) {
             const op = copies[i];
-            gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.ARRAY_BUFFER,
+            gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER,
                 op.srcInstance * stride, op.destInstance * stride, op.size * stride);
         }
     }

@@ -698,6 +698,9 @@ export class GameClass {
         // but update can be called slowly
         if(this.hud.FPS.frames % 3 == 0) {
             this.render.update(delta, args);
+        } else {
+            // prepareRenderList should be called in anyway
+            this.world.chunkManager.updateRenderList();
         }
 
         // Draw world

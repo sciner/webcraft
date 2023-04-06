@@ -545,11 +545,7 @@ export class ChunkManager {
         // stat['Delete chunks'] = [(performance.now() - p), deleted_size]; p = performance.now();
 
         // Prepare render list
-        this.rendered_chunks.fact = 0;
-        if (!this.renderList.render) {
-            this.renderList.init(Qubatch.render);
-        }
-        this.renderList.prepareRenderList();
+        this.updateRenderList();
         // stat['Prepare render list'] = (performance.now() - p); p = performance.now();
 
         /*
@@ -568,7 +564,20 @@ export class ChunkManager {
         //    stat['Total'] = p2;
         //    console.table(stat);
         //}
+        return true;
 
+    }
+
+    updateRenderList() {
+        if(!this.update_chunks || !this.worker_inited || !this.nearby) {
+            return false;
+        }
+        this.rendered_chunks.fact = 0;
+        if (!this.renderList.render) {
+            this.renderList.init(Qubatch.render);
+        }
+        this.renderList.prepareRenderList();
+        return true;
     }
 
     get_block_chunk_addr: Vector = null;
