@@ -70,7 +70,7 @@ export class ServerPlayerVision {
     safePosWaitingChunks: any[];
     safeTeleportMargin: number;
     safeTeleportMarginY: number;
-    safePosInitialOverride: any;
+    safePosInitialOverride?: Vector | null;
     spiralCenter: Vector;
     waitSafeEntries: any[];
     waitEntries: any[];
