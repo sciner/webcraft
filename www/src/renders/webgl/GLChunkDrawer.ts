@@ -107,7 +107,12 @@ export class GLChunkDrawer extends ChunkDrawer {
                 );
                 context.stat.multidrawcalls++;
             } else {
-                // manual vertexAttribPointer
+                //Instance fetch requires 2910, but attribs only supply 0.
+                for (let i = 0; i < sz; i++) {
+                    baseGeom.attribBufferPointers(offsets[i]);
+                    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, counts[i]);
+                    context.stat.drawcalls++;
+                }
             }
         } else {
             // multi draw arrays
