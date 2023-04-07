@@ -221,7 +221,7 @@ export class SpiralGrid {
     setChunk(absAddr: Vector, chunk: any) {
         tempVec.copyFrom(absAddr).subSelf(this.center);
         let ind = this.size.arrayIndByVec(tempVec);
-        if (ind < 0) {
+        if (ind < 0 || !this.sortedNumByIndex) {
             return;
         }
         //TODO: events on add/remove here
