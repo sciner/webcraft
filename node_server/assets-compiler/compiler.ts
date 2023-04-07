@@ -148,7 +148,7 @@ export class Compiler {
         }
         block.style_name = block.bb?.model ?? block.style
         if (!block.bb) {
-            block.physics_style = block.style
+            block.physics_style ??= block.style
         }
     }
 

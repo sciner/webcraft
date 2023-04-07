@@ -1363,7 +1363,7 @@ export class BLOCK {
 
         if((!material.passable && !material.planting) || !for_physic) {
 
-            const styleVariant = BLOCK.styles.get(material.physics_style ?? material.style);
+            const styleVariant = BLOCK.styles.get(material.physics_style);
             if (styleVariant && styleVariant.aabb) {
                 shapes.push(...styleVariant.aabb(tblock, for_physic, world, neighbours, expanded))
             } else {
