@@ -19,15 +19,6 @@ const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface', 'decal1', 'decal2'];
 
-const CC = [
-    {x:  0, y:  1, z:  0},
-    {x:  0, y: -1, z:  0},
-    {x:  0, y:  0, z: -1},
-    {x:  0, y:  0, z:  1},
-    {x: -1, y:  0, z:  0},
-    {x:  1, y:  0, z:  0}
-];
-
 export class ChunkManagerState {
 
     stat = {

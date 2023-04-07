@@ -17,7 +17,7 @@ declare type scalar = number | string | boolean
 
 declare type tupleFloat6 = [number, number, number, number, number, number]
 declare type tupleFloat4 = [number, number, number, number]
-declare type tupleFloat3 = [number, number, number, number]
+declare type tupleFloat3 = [number, number, number]
 declare type tupleFloat2 = [number, number]
 type ConcatTuple<T1 extends unknown[], T2 extends unknown[]> = [...T1, ...T2]
 
