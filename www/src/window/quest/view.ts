@@ -51,11 +51,12 @@ export class QuestView extends Window {
         const lDesc = ql.getWindow('lDesc');
         const lblActions = ql.getWindow('lblActions');
         const lblRewards = ql.getWindow('lblRewards');
-        //
+        const slider = ql.getWindow('slider')
+                //
         lblTitle.text = quest.title
         lDesc.text = quest.description
 
-        for(let w of ql.list.values()) {
+        for(const w of ql.list.values()) {
             w.style.font.color = UI_THEME.base_font.color
         }
         lDesc.style.font.color = UI_THEME.second_text_color
