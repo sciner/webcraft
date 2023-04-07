@@ -47,6 +47,9 @@ export class TREES {
     static RED_MUSHROOM: BiomeTree
     static BROWN_MUSHROOM: BiomeTree
     static BIG_OAK: BiomeTree
+    static CORAL_TREE: BiomeTree
+    static CORAL_PAW: BiomeTree
+    static CORAL_MUSHROOM: BiomeTree
 
     static init() {
         if(TREES.BIRCH) {
@@ -59,7 +62,10 @@ export class TREES {
         TREES.JUNGLE            = new BiomeTree('JUNGLE_LOG', 'JUNGLE_LEAVES', 'jungle', {min: 1, max: 22}, undefined, true)
         TREES.RED_MUSHROOM      = new BiomeTree('MUSHROOM_STEM', 'RED_MUSHROOM_BLOCK', 'red_mushroom', {min: 5, max: 12})
         TREES.BROWN_MUSHROOM    = new BiomeTree('MUSHROOM_STEM', 'BROWN_MUSHROOM_BLOCK', 'brown_mushroom', {min: 5, max: 12})
-        TREES.BIG_OAK           = new BiomeTree('OAK_LOG', 'OAK_LEAVES', 'big_oak', {min: 20, max: 35})
+        TREES.BIG_OAK           = new BiomeTree('OAK_LOG', 'OAK_LEAVES', 'big_oak', {min: 20, max: 35}),
+        TREES.CORAL_TREE        = new BiomeTree('HORN_CORAL_BLOCK', 'OAK_LEAVES', 'coral_tree', {min: 0, max: 5}),
+        TREES.CORAL_PAW         = new BiomeTree('BRAIN_CORAL_BLOCK', 'OAK_LEAVES', 'coral_paw', {min: 0, max: 5})
+        TREES.CORAL_MUSHROOM    = new BiomeTree('FIRE_CORAL_BLOCK', 'OAK_LEAVES', 'coral_mushroom', {min: 0, max: 5})
         return true;
     }
 
