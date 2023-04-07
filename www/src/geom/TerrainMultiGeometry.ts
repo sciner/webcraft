@@ -1,5 +1,5 @@
-import {BaseMultiGeometry} from "../geom/BaseMultiGeometry.js";
-import {BigGeomBatchUpdate} from "../geom/big_geom_batch_update.js";
+import {BaseMultiGeometry} from "./BaseMultiGeometry.js";
+import {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
 
 export class TerrainMultiGeometry extends BaseMultiGeometry {
     static strideFloats = 16;

@@ -1,4 +1,4 @@
-import { GeometryTerrain16 } from "../geom/TerrainGeometry16.js";
+import { GeometryTerrain16 } from "./TerrainGeometry16.js";
 import type {IChunkVertexBuffer} from "../chunk";
 
 export class GeometryPool {

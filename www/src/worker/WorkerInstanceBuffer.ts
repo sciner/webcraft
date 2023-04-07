@@ -1,4 +1,4 @@
-import {Worker05SubGeometry} from "../light/Worker05GeometryPool.js";
+import {Worker05SubGeometry} from "../geom/Worker05GeometryPool.js";
 
 export class WorkerInstanceBuffer {
     [key: string]: any;

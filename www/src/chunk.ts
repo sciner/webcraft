@@ -8,7 +8,7 @@ import {ChunkLight} from "./light/ChunkLight.js";
 import type { Renderer } from "./render.js";
 import type BaseRenderer from "./renders/BaseRenderer.js";
 import type { ChunkManager } from "./chunk_manager.js";
-import {GeometryPool} from "./light/GeometryPool.js";
+import {GeometryPool} from "./geom/GeometryPool.js";
 import {ChunkMesh} from "./chunk_mesh.js";
 
 let global_uniqId = 0;

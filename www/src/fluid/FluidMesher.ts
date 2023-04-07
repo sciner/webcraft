@@ -1,8 +1,8 @@
-import {Worker05GeometryPool} from "../light/Worker05GeometryPool.js";
+import {Worker05GeometryPool} from "../geom/Worker05GeometryPool.js";
 import {FluidGeometryPool} from "./FluidGeometryPool.js";
 import {FluidInstanceBuffer} from "./FluidInstanceBuffer.js";
 import {buildFluidVertices} from "./FluidBuildVertices.js";
-import {GeometryPool} from "../light/GeometryPool.js";
+import {GeometryPool} from "../geom/GeometryPool.js";
 
 export class FluidMesher {
     [key: string]: any;

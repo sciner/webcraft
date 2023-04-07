@@ -1,11 +1,11 @@
-import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
-import {TrivialGeometryPool} from "./light/GeometryPool.js";
+import {Basic05GeometryPool} from "./geom/Basic05GeometryPool.js";
+import {TrivialGeometryPool} from "./geom/GeometryPool.js";
 import {IvanArray, Vector, SpiralGrid} from "./helpers.js";
-import {CubeTexturePool} from "./light/CubeTexturePool.js";
+import {CubeTexturePool} from "./geom/CubeTexturePool.js";
 import {CHUNK_GENERATE_MARGIN_Y} from "./chunk_const.js";
 import {GROUPS_NO_TRANSPARENT, GROUPS_TRANSPARENT} from "./chunk_manager.js";
 
-import type {GeometryPool} from "./light/GeometryPool.js";
+import type {GeometryPool} from "./geom/GeometryPool.js";
 import type {Chunk} from "./chunk.js";
 import type {ChunkManager} from "./chunk_manager.js";
 import type {Renderer} from "./render.js";

@@ -1,4 +1,4 @@
-import {Basic05GeometryPool} from "../light/Basic05GeometryPool.js";
+import {Basic05GeometryPool} from "../geom/Basic05GeometryPool.js";
 import {FluidMultiGeometry} from "./FluidMultiGeometry.js";
 
 export class FluidGeometryPool extends Basic05GeometryPool {

@@ -2,7 +2,7 @@ import { BLOCK, POWER_NO, DropItemVertices, FakeVertices } from "../blocks.js";
 import { PerformanceTimer, Vector } from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK, TypedBlocks3 } from "../typed_blocks3.js";
 import { AABB } from '../core/AABB.js';
-import { Worker05GeometryPool } from "../light/Worker05GeometryPool.js";
+import { Worker05GeometryPool } from "../geom/Worker05GeometryPool.js";
 import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { pushTransformed } from '../block_style/extruder.js';

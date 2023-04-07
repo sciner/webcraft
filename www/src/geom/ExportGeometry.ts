@@ -1,4 +1,4 @@
-import {Worker05GeometryPool} from "../light/Worker05GeometryPool.js";
+import {Worker05GeometryPool} from "./Worker05GeometryPool.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import {QUAD_FLAGS} from "../helpers.js";
 
