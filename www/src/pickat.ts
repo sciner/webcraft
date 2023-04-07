@@ -5,7 +5,7 @@ import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { Raycaster } from "./Raycaster.js";
 import { MOUSE } from "./constant.js";
-import {LineGeometry} from "./geom/LineGeometry.js";
+import {LineGeometry} from "./geom/line_geometry.js";
 import {AABB} from "./core/AABB.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Player } from "./player.js";

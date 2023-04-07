@@ -1,4 +1,4 @@
-import {ExportGeometry16} from "./ExportGeometry.js";
+import {ExportGeometry16} from "./export_geometry.js";
 import {Resources} from "../resources.js";
 import {BLOCK} from "../blocks.js";
 import { Helpers, Vector} from "../helpers.js";

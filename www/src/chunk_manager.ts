@@ -9,7 +9,7 @@ import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
 import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
 import { LIGHT_TYPE, WORKER_MESSAGE } from "./constant.js";
-import {ChunkExporter} from "./geom/ChunkExporter.js";
+import {ChunkExporter} from "./geom/chunk_exporter.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
 import {ChunkRenderList} from "./chunk_render_list.js";
 import type { World } from "./world.js";

@@ -25,7 +25,7 @@ import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAY
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { PACKED_CELL_LENGTH, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_WATER_COLOR_R } from "./fluid/FluidConst.js";
-import {LineGeometry} from "./geom/LineGeometry.js";
+import {LineGeometry} from "./geom/line_geometry.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { AABB } from "./core/AABB.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
