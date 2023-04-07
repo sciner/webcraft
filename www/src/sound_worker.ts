@@ -2,6 +2,8 @@ let soundMap = null
 let playerPos = null
 let playerPosTimeout = null
 
+const msg_queue = [] // Message queue
+
 const worker = {
     init: function () {
         if (typeof process !== 'undefined') {
@@ -27,26 +29,40 @@ worker.init()
 
 async function preLoad() {
     const module = await import('./volumetric_sound.js')
-    soundMap = new module.SoundMap()
-    soundMap.sendQueryFn = (query) => {
-        worker.postMessage(['query_chunks', query])
-    }
-    soundMap.sendResultFn = (result) => {
-        worker.postMessage(['result', result])
-    }
+    soundMap = new module.SoundMap(worker)
 }
 
 preLoad()
 
-async function onMessageFunc(msg) {
+async function onMessageFunc(msg : any) {
+
     if (!soundMap) {
-        return // still loading, skip this message
+        // still loading, queue it up and skip it
+        msg_queue.push(msg)
+        return
     }
+
+    while(msg_queue.length > 0) {
+        processMessage(msg_queue.shift())
+    }
+
+    processMessage(msg)
+
+}
+
+async function processMessage(msg : any) {
+
     msg = msg.data ?? msg
     const cmd = msg[0]
+    const args = msg[1]
+
     switch(cmd) {
-        case 'player_pos':
-            playerPos = msg[1]
+        case 'init': {
+            soundMap.init(args)
+            break
+        }
+        case 'player_pos': {
+            playerPos = args
             // Skip multiple 'player_pos' messages if there is a queue. We only need the last one.
             if (!playerPosTimeout) {
                 playerPosTimeout = setTimeout(() => {
@@ -55,8 +71,14 @@ async function onMessageFunc(msg) {
                 }, 1)
             }
             break
-        case 'flowing_diff':
-            soundMap.onFlowingDiff(msg[1])
+        }
+        case 'flowing_diff': {
+            soundMap.onFlowingDiff(args)
             break
+        }
+        default: {
+            throw 'error_unrecognized_soundworker_message'
+        }
     }
+
 }

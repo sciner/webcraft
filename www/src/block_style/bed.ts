@@ -1,13 +1,11 @@
-import {IndexedColor, DIRECTION, QUAD_FLAGS, Vector} from '../helpers.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
-import {impl as alea} from "../../vendors/alea.js";
+import { IndexedColor, DIRECTION, QUAD_FLAGS, Vector } from '../helpers.js';
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
-
+import type { World } from '../world.js';
 
 const {mat4} = glMatrix;
 
@@ -16,12 +14,6 @@ const MATTRESS_HEIGHT   = 12/32;
 const LEG_WIDTH         = 6/32;
 const LEG_HEIGHT        = 6/32;
 const HEIGHT            = MATTRESS_HEIGHT + LEG_HEIGHT;
-
-let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-let a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
 
 // Кровать
 export default class style {
@@ -39,7 +31,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         let aabb = new AABB();
         aabb.set(
             0 + .5 - WIDTH / 2,

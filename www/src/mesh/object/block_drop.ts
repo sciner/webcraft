@@ -5,6 +5,7 @@ import { MeshGroup } from '../group.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 import { MAX_DIST_FOR_PICKUP, PICKUP_OWN_DELAY_SECONDS } from '../../constant.js';
 import type { Player } from '../../player.js';
+import type { World } from '../../world.js';
 
 const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();
@@ -20,9 +21,10 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     mesh_group : MeshGroup
 
     // Constructor
-    constructor(gl, entity_id, items, pos, matrix?, pivot?, use_cache = false) {
+    constructor(world : World, gl, entity_id, items, pos, matrix?, pivot?, use_cache = false) {
 
         super(
+            world,
             new Vector(pos.x, pos.y, pos.z),
             new Vector(0, 0, 0)
         );

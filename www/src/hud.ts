@@ -1,6 +1,6 @@
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
-import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
+import {GeometryTerrain16} from "./geom/terrain_geometry_16.js";
 import { isMobileBrowser, Vector } from "./helpers.js";
 import {Resources} from "./resources.js";
 import { DRAW_HUD_INFO_DEFAULT, HUD_CONNECTION_WARNING_INTERVAL, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
@@ -72,7 +72,7 @@ class HUDWindow extends Window {
 
     constructor(wm, x, y, w, h) {
         super(x, y, w, h, 'hudwindow')
-        this.x *= this.zoom 
+        this.x *= this.zoom
         this.y *= this.zoom
         this.w *= this.zoom
         this.h *= this.zoom
@@ -448,12 +448,14 @@ export class HUD {
             }
 
             // Chunks inited
-            this.text += `\nChunks drawn: ${Math.round(cm.rendered_chunks.fact)} / ${cm.rendered_chunks.total} (${player.state.chunk_render_dist}) ${splash?.generate_terrain_time} ${splash?.loaded_chunks_count}`
+            const chunk_size_xz = world.info.tech_info.chunk_size.x
+            this.text += `\nChunks drawn: ${Math.round(cm.rendered_chunks.fact)} / ${cm.rendered_chunks.total} (${player.state.chunk_render_dist}x${chunk_size_xz}=${player.state.chunk_render_dist*chunk_size_xz}) ${splash?.generate_terrain_time}`
 
             // Quads and Lightmap
             let quads_length_total = cm.vertices_length_total;
             this.text += '\nQuads: ' + Math.round(render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
-                + ' / ' + Math.round(quads_length_total * GeometryTerrain16.strideFloats * 4 / 1024 / 1024) + 'Mb';
+                + ' / ' + Math.round(quads_length_total * GeometryTerrain16.strideFloats * 4 / 1024 / 1024) + 'Mb'
+                + ' / ' + Math.round( cm.renderList.bufferSizeBytes / 1024 / 1024) + 'Mb';
             this.text += '\nLightmap: ' + Math.round(cm.renderList.lightmap_count)
                 + ' / ' + Math.round(cm.renderList.lightmap_bytes / 1024 / 1024) + 'Mb';
 
@@ -473,13 +475,14 @@ export class HUD {
             }
 
             const desc = Qubatch.player.pickAt.targetDescription;
+            const {relativePosToFlatIndexInChunk, relativePosToChunkIndex} = world.chunkManager.grid.math
             this.block_text = null;
             if (this.draw_block_info && desc) {
                 this.block_text = 'Targeted block Id: ' + desc.block.id +
                     '\nName: ' + desc.material.name +
                     '\nStyle: ' + desc.material.style_name +
                     '\nWorld pos.: ' + desc.worldPos.toString() +
-                    `\nPos. in chunk: ${desc.posInChunk.toString()}, flat=${desc.posInChunk.relativePosToFlatIndexInChunk()},\n               ind=${desc.posInChunk.relativePosToChunkIndex()}` +
+                    `\nPos. in chunk: ${desc.posInChunk.toString()}, flat=${relativePosToFlatIndexInChunk(desc.posInChunk)},\n               ind=${relativePosToChunkIndex(desc.posInChunk)}` +
                     '\nChunk addr.: ' + desc.chunkAddr.toString();
                 if (desc.material.ticking) {
                     this.block_text += '\nTicking: ' + desc.material.ticking.type;
@@ -514,7 +517,11 @@ export class HUD {
         const playerBlockPos = player.getBlockPos();
         const biome_id = player.getOverChunkBiomeId()
         const biome = biome_id > 0 ? world.chunkManager.biomes.byID.get(biome_id) : null;
-        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h / ' + (biome?.title ?? biome_id);
+        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h'
+        if (player.game_mode.isSpectator()) {
+            this.text += ' (x'+ player.controlManager.spectator.speedMultiplier.toFixed(2) + ')'
+        }
+        this.text += ' / ' + (biome?.title ?? biome_id);
 
         if(!short_info) {
             const chunk = player.getOverChunk();
@@ -691,7 +698,7 @@ export class HUD {
                 angle = -angle
             }
             if (angle < -3 * Math.PI / 2) {
-                angle = -2 * Math.PI - angle 
+                angle = -2 * Math.PI - angle
             }
             let alpha = Math.round((1.37 - Math.abs(Math.atan(angle))) * 190).toString(16)
             if (alpha.length == 1) {

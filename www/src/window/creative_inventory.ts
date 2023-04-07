@@ -1,5 +1,5 @@
-import {Button, Label, TextEdit, Window} from "../ui/wm.js";
-import { CraftTableInventorySlot } from "./base_craft_window.js";
+import { Button, Label, TextEdit, Window, Slider } from "../ui/wm.js";
+import {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Enchantments } from "../enchantments.js";
 import { BLOCK_GROUP_TAG, INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, UI_THEME } from "../constant.js";
@@ -12,16 +12,17 @@ import type {TMouseEvent} from "../vendors/wm/wm.js";
 let tagsTranslationMap = {};
 
 class CreativeInventoryCollection extends Window {
-    [key: string]: any;
 
     slots : CraftTableInventorySlot[] = []
     xcnt : int = 0
     ycnt : int = 13
 
     //
-    constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, cell_size : float, slot_margin: float) {
-
+    constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, cell_size : float, slot_margin: float, parent: Window) {
+        
         super(x, y, w, h, id)
+
+        this.parent = parent
 
         // Ширина / высота слота
         this.cell_size = cell_size
@@ -50,7 +51,19 @@ class CreativeInventoryCollection extends Window {
         this.scrollY = Math.min(this.scrollY, 0)
         this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
         this.container.y = this.scrollY
+        this.parent.scrollbar.value = -this.scrollY
         this.updateVisibleSlots()
+    }
+
+    updateScroll(val) {
+        const sz    = this.cell_size
+        const szm   = sz + this.slot_margin
+        this.scrollY = val * szm
+        this.scrollY = Math.min(this.scrollY, 0)
+        this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
+        this.scrollY = Math.round(this.scrollY / szm) * szm
+        this.container.y = this.scrollY
+        this.updateVisibleSlots() 
     }
 
     updateVisibleSlots() {
@@ -74,7 +87,7 @@ class CreativeInventoryCollection extends Window {
                 .replaceAll('_', ' ')
                 .replace(/\s\s+/g, ' ')
         }
-        for(let b of BLOCK.getAll()) {
+        for(const b of BLOCK.getAll()) {
             if(b.id < 1 || !b.spawnable) {
                 continue
             }
@@ -228,15 +241,15 @@ class CreativeInventoryCollection extends Window {
 
 // CreativeInventoryWindow...
 export class CreativeInventoryWindow extends BlankWindow {
-    [key: string]: any;
 
-    collection : CreativeInventoryCollection
-    world       : World
-    inventory   : PlayerInventory
-
-    tagLevels : number = 0;
-    selectedTag: string = '';
-    tagButtons: Button[] = [];
+    collection:     CreativeInventoryCollection
+    world:          World
+    inventory:      PlayerInventory
+    scrollbar:      Slider
+    tagButtons:     Button[] = []
+    tagLevels:      number = 0
+    selectedTag:    string = ''
+    inventory_slots: CraftTableInventorySlot[]
 
     constructor(inventory: PlayerInventory) {
         super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCreativeInventory')
@@ -258,6 +271,7 @@ export class CreativeInventoryWindow extends BlankWindow {
         const sz = szm / 1.1
         this.cell_size = sz
         this.slot_margin = szm - sz
+        this.szm = this.cell_size + this.slot_margin
 
         // Создание слотов для блоков коллекций
         this.createCollectionSlots()
@@ -265,6 +279,18 @@ export class CreativeInventoryWindow extends BlankWindow {
         // Создание слотов для инвентаря
         this.createInventorySlots()
 
+        // скроллбар
+        this.scrollbar = new Slider((this.w - 22 * this.zoom), this.collection.y, 18 * this.zoom, this.collection.h, 'scroll')
+        this.scrollbar.min = 0
+        this.updateScrollbarMax()
+        this.scrollbar.onScroll = (value) => {
+            this.collection.updateScroll(-value/this.szm)
+        }
+        this.add(this.scrollbar)
+    }
+
+    updateScrollbarMax() {
+        this.scrollbar.max = this.collection.max_height - this.collection.h
     }
 
     //
@@ -278,10 +304,10 @@ export class CreativeInventoryWindow extends BlankWindow {
         const btnH = 25;
         const btnMargin = 10;
         const tagsMargin = (btnH + btnMargin) * this.tagLevels * this.zoom;
-        const h = (Math.floor((this.h - this.txtSearch.y - this.txtSearch.h - tagsMargin) / szm) - 1) * szm
+        const h = (Math.floor((this.h - this.txtSearch.y - this.txtSearch.h - tagsMargin - 5) / szm) - 1) * szm
         // calculate height of tags area
         this.ycnt = Math.ceil(h / szm)
-        this.collection = new CreativeInventoryCollection(16 * this.zoom, 45 * this.zoom + tagsMargin, w, h - this.slot_margin, 'wCollectionSlots', this.xcnt, this.ycnt, this.cell_size, this.slot_margin)
+        this.collection = new CreativeInventoryCollection(16 * this.zoom, 45 * this.zoom + tagsMargin, w, h - this.slot_margin, 'wCollectionSlots', this.xcnt, this.ycnt, this.cell_size, this.slot_margin, this)
         this.add(this.collection)
         this.collection.init()
         return this.collection
@@ -295,11 +321,11 @@ export class CreativeInventoryWindow extends BlankWindow {
             x,
             10 * this.zoom,
             // this.cell_size * 9,
-            this.w - x * 2,
+            this.w - x / 2 - 34 * this.zoom,
             25 * this.zoom,
             'txtSearch1',
             null,
-            'Type for search'
+            ''
         )
 
         txtSearch.word_wrap              = false
@@ -310,9 +336,6 @@ export class CreativeInventoryWindow extends BlankWindow {
 
         // style
         txtSearch.style.border.hidden       = false
-        // txtSearch.style.border.style     = 'inset'
-        // txtSearch.style.font.color          = '#ffffff'
-        // txtSearch.style.background.color = '#706f6c'
         txtSearch.style.padding.left        = 5 * this.zoom
         txtSearch.style.textAlign.vertical  = 'middle'
         this.add(txtSearch)
@@ -320,6 +343,7 @@ export class CreativeInventoryWindow extends BlankWindow {
 
         txtSearch.onChange = (text) => {
             this.collection.init(text, this.selectedTag)
+            this.updateScrollbarMax()
         }
 
         const tagAll = BLOCK_GROUP_TAG.ALL.slice(1);
@@ -400,7 +424,8 @@ export class CreativeInventoryWindow extends BlankWindow {
                     selectedTag.setActive();
                     this.selectedTag = selectedTag.text;
                 }
-                this.collection.init(this.txtSearch.text, this.selectedTag);
+                this.collection.init(this.txtSearch.text, this.selectedTag)
+                this.updateScrollbarMax()
             };
             button.onMouseEnter = () => super.onMouseEnter();
             button.onMouseLeave = () => super.onMouseLeave();
@@ -448,17 +473,16 @@ export class CreativeInventoryWindow extends BlankWindow {
         const sx          = 16 * this.zoom
         const sy          = this.collection.y + this.collection.h + 10 * this.zoom
         const xcnt        = 9
-        const init_x        = (this.w / 2 - sx) - (xcnt * szm) / 2
+        const init_x      = (this.w / 2 - sx) - (xcnt * szm) / 2
         for(let i = 0; i < xcnt; i++) {
             const lblSlot = new CraftTableInventorySlot(init_x + sx + (i % xcnt) * (szm), sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i)
             this.add(lblSlot)
             this.inventory_slots.push(lblSlot)
         }
     }
-
-    // Return inventory slots
-    getSlots() {
-        return this.inventory_slots;
+    
+    getCraftOrChestSlots(): CraftTableSlot[] {
+        return []
     }
 
     fixAndValidateSlots(context) {

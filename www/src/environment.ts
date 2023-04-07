@@ -5,13 +5,12 @@ import { Weather } from "./block_type/weather.js";
 import type { Renderer } from "./render.js";
 import type { CubeMesh } from "./renders/BaseRenderer.js";
 
-/**
- * @typedef {object} IFogPreset
- * @property {[number,number, number, number ] | Gradient | Color | IAnyColorRecordMap} color: ;
- * @property {[number,number, number, number ] | Gradient | Color | number | IAnyColorRecordMap} addColor
- * @property {number} density
- * @property {number} [illuminate]
- */
+export declare type IFogPreset = {
+    color:          [number,number, number, number ] | Gradient | Color | IAnyColorRecordMap,
+    addColor:       [number,number, number, number ] | Gradient | Color | number | IAnyColorRecordMap,
+    density:        number,
+    illuminate? :   number,
+}
 
 export const PRESET_NAMES = {
     NORMAL: 'normal',
@@ -26,8 +25,8 @@ const HORIZON_MAX_BRIGHTNES_PER_SECOND = 0.5;
 
 export class FogPreset {
     [key: string]: any;
+
     /**
-     *
      * @param {IFogPreset} [fogPreset]
      */
     constructor(fogPreset = null) {
@@ -225,7 +224,6 @@ export class Color {
     }
 
     /**
-     *
      * @param {Color} target
      * @param {number} factor
      * @param {Color } out
@@ -255,7 +253,6 @@ export class Color {
     }
 
     /**
-     *
      * @param {Color} from
      * @returns
      */
@@ -547,13 +544,15 @@ export const SETTINGS = {
 };
 
 export class Environment {
+    
+    static presets : {[key: string]: FogPreset} = {}
+    static _fogDirty: boolean = false
 
     skyBox :                CubeMesh
     context:                Renderer;
     rawInterpolatedFog:     number[];
     rawInterpolatedFogAdd:  number[];
     interpolatedClearValue: number[];
-    presets:                {};
     fogDensity:             number;
     chunkBlockDist:          number;
     sunDir:                 number[];
@@ -568,7 +567,6 @@ export class Environment {
     _fogInterpolationTime:  number;
     _computedFogRaw:        number[];
     _computedBrightness:    number;
-    _fogDirty:              boolean;
     _sunFactor:             number;
     _tasks:                 Map<any, any>;
     _interpolationRun:      boolean;
@@ -581,13 +579,10 @@ export class Environment {
         this.rawInterpolatedFog      = [0 ,0 ,0, 0];
         this.rawInterpolatedFogAdd   = [0 ,0 ,0, 0];
         this.interpolatedClearValue  = [0, 0, 0, 1]; // same as fog, but include brightness internally and always has alpha 1
-        /**
-         * @type {{[key: string] : FogPreset}}
-         */
-        this.presets = Object.entries(FOG_PRESETS).reduce((acc, [key, value]) => {
-            acc [key] = new FogPreset(value);
-            return acc;
-        },{});
+
+        for(const [key, value] of Object.entries(FOG_PRESETS)) {
+            Environment.registerFogPreset(key, value as IFogPreset)
+        }
 
         this.fogDensity = SETTINGS.fogDensity;
         this.chunkBlockDist = SETTINGS.chunkBlockDist;
@@ -612,20 +607,39 @@ export class Environment {
          */
         this._interpolatedPreset = null;
 
-        this._refLum = this.presets[PRESET_NAMES.NORMAL].eval(1).color.lum();
+        this._refLum = Environment.presets[PRESET_NAMES.NORMAL].eval(1).color.lum();
 
         // fog color before apply brightness factor
         this._computedFogRaw = [0,0,0,0];
 
         this._computedBrightness = 1;
 
-        this._fogDirty = false;
+        // this._fogDirty = false;
 
         // 0 - horizontal, 1 - top
         this._sunFactor = 1;
 
         this._tasks = new Map();
         this._interpolate(0);
+    }
+
+    static registerFogPreset(preset_id : string, preset : IFogPreset) {
+        Environment.presets[preset_id] = new FogPreset(preset);
+    }
+
+    static replacePresetColor(preset_name : string, color : any | null) {
+        if(color) {
+            const p = FOG_PRESETS[preset_name]
+            color.divideScalarSelf(255)
+            p.color[0] = color.r
+            p.color[1] = color.g
+            p.color[2] = color.b
+            p.addColor[0] = color.r
+            p.addColor[1] = color.g
+            p.addColor[2] = color.b
+            Environment.presets[preset_name] = new FogPreset(p)
+            Environment._fogDirty = true
+        }
     }
 
     get fullBrightness() {
@@ -636,7 +650,7 @@ export class Environment {
      * @returns {FogPreset}
      */
     get fogPresetRes() {
-        const p = this.presets[this._currentPresetName];
+        const p = Environment.presets[this._currentPresetName];
 
         return this._tasks.has('_interpolatedPreset')
             ? this._interpolatedPreset || p
@@ -654,7 +668,7 @@ export class Environment {
      * Set fog preset state
      */
     set fogPreset(v) {
-        if (!(v in this.presets)) {
+        if (!(v in Environment.presets)) {
             v = PRESET_NAMES.NORMAL;
         }
 
@@ -665,9 +679,9 @@ export class Environment {
         const from = this._currentPresetName;
 
         this._currentPresetName = v;
-        this._fogDirty = true;
+        Environment._fogDirty = true;
 
-        this._runInterpolation('_interpolatedPreset', this.presets[from], this.presets[v]);
+        this._runInterpolation('_interpolatedPreset', Environment.presets[from], Environment.presets[v]);
         this._interpolationRun = true;
     }
 
@@ -715,7 +729,7 @@ export class Environment {
         }
 
         this.brightness = value;
-        this._fogDirty = true;
+        Environment._fogDirty = true;
     }
 
     /**
@@ -747,7 +761,7 @@ export class Environment {
 
         this._sunFactor = factor;
 
-        this._fogDirty = true;
+        Environment._fogDirty = true;
     }
 
     _runInterpolation(key, from, to) {
@@ -793,7 +807,7 @@ export class Environment {
             if (t.done) {
                 this._taskDone(t);
             }
-            this._fogDirty = true;
+            Environment._fogDirty = true;
         }
     }
 
@@ -848,7 +862,7 @@ export class Environment {
     }
 
     updateFogState() {
-        if (!this._fogDirty) {
+        if (!Environment._fogDirty) {
             return;
         }
 
@@ -865,7 +879,7 @@ export class Environment {
 
         // we use computed preset as base
         // compute brightness realtive it
-        const base = this.presets[PRESET_NAMES.NORMAL];
+        const base = Environment.presets[PRESET_NAMES.NORMAL];
 
         base.eval(this._sunFactor);
 
@@ -887,7 +901,7 @@ export class Environment {
         this.rawInterpolatedFogAdd[3]  = fogAdd[3];
         this.interpolatedClearValue[3] = 1;
 
-        this._fogDirty = false;
+        Environment._fogDirty = false;
     }
 
     setEnvState ({
@@ -898,12 +912,12 @@ export class Environment {
         brightness = this.brightness
     }) {
         if (this.nightshift !== nightshift) {
-            this._fogDirty = true;
+            Environment._fogDirty = true;
         }
         this.nightshift = nightshift;
 
         if (this.fogDensity !== this.fogDensity) {
-            this._fogDirty = true;
+            Environment._fogDirty = true;
         }
         this.fogDensity = fogDensity;
 
@@ -912,7 +926,7 @@ export class Environment {
         }
 
         if (this.chunkBlockDist !== chunkBlockDist) {
-            this._fogDirty = true;
+            Environment._fogDirty = true;
             this._runInterpolation('chunkBlockDist', this.chunkBlockDist, chunkBlockDist);
         }
         this.chunkBlockDist = chunkBlockDist;

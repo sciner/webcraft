@@ -1,7 +1,6 @@
 import { Vector } from "../../../helpers.js";
 import { MineGenerator } from "../../mine/mine_generator.js";
 import { DENSITY_AIR_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "../terrain/manager_vars.js";
-import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Y } from "../../../chunk_const.js";
 import { AQUIFERA_UP_PADDING } from "../aquifera.js";
 import { WorldClientOreGenerator } from "../client_ore_generator.js";
 import { DungeonGenerator } from "../../dungeon.js";
@@ -14,7 +13,7 @@ import { ClusterManager } from "../../cluster/manager.js";
 import { ClusterVilage } from "../../cluster/vilage.js";
 import { ClusterStructures } from "../../cluster/structures.js";
 
-import type { TerrainMap2 } from "../terrain/map.js";
+import type { Biome3TerrainMap } from "../terrain/map.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type Terrain_Generator from "../index.js";
 import type { TerrainMapCell } from "../terrain/map_cell.js";
@@ -29,7 +28,14 @@ const DEFAULT_CLUSTER_LIST = [
 
 const BIG_STONE_DESNSITY = 0.6;
 const GROUND_PLACE_SIZE = 3
-const _ground_places = new Array(CHUNK_SIZE * GROUND_PLACE_SIZE)
+let _ground_places = new Array(1)
+
+function ensureSize(sz: number) {
+    if (_ground_places.length >= sz * GROUND_PLACE_SIZE) {
+        return;
+    }
+    _ground_places = new Array(sz * GROUND_PLACE_SIZE);
+}
 
 export default class Biome3LayerOverworld extends Biome3LayerBase {
 
@@ -40,7 +46,11 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
     slab_candidates:        any[]
     onground_place_index:   any
 
-    filter_biome_list:      int[] = [13, 140, 12, 30, 31, 158, 26, 1, 129, 4, 18, 132, 27, 28, 155, 156, 29, 159, 6, 134, 16, 21, 149, 22, 23, 151, 168, 169, 14, 15, 2, 17, 130, 35, 36, 163, 164, 37, 165, 39, 167, 38, 166]
+    filter_biome_list:      int[] = [
+        1, 2, 4, 6, 12, 13, 14, 15, 16, 17, 18, 21, 22, 23, 26, 27,
+        28, 29, 30, 31, 35, 36, 37, 38, 39, 129, 130, 132, 134, 140,
+        149, 151, 155, 156, 158, 159, 163, 164, 165, 166, 167, 168, 169
+    ]
 
     init(generator : Terrain_Generator, map_manager ?: any, cluster_list? : {chance: float, class: any}[]) : Biome3LayerOverworld {
 
@@ -52,7 +62,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         this.clusterManager = new ClusterManager(generator.world, generator.seed, this, cluster_list ?? DEFAULT_CLUSTER_LIST)
 
         if(!map_manager) {
-            map_manager = new TerrainMapManager3(seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
+            map_manager = new TerrainMapManager3(generator.world, seed, world_id, generator.noise2d, generator.noise3d, generator.block_manager, generator.options, this)
         }
 
         this.maps = map_manager
@@ -64,7 +74,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
     }
 
-    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lowest : boolean, is_highest : boolean) : TerrainMap2 {
+    generate(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lowest : boolean, is_highest : boolean) : Biome3TerrainMap {
 
         // Generate maps around chunk
         chunk.timers.start('generate_maps')
@@ -91,7 +101,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         // Mines
         chunk.timers.start('generate_mines')
         if(chunk.addr.y == 0) {
-            const mine = MineGenerator.getForCoord(this, chunk.coord)
+            const mine = MineGenerator.getForCoord(this, chunk.coord, chunk.size)
             mine.fillBlocks(chunk);
         }
         chunk.timers.stop()
@@ -126,21 +136,22 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         }
     }
 
-    generateOnGroundBlocks(maps : TerrainMap2[], chunk : ChunkWorkerChunk, rnd : alea) {
+    generateOnGroundBlocks(maps : Biome3TerrainMap[], chunk : ChunkWorkerChunk, rnd : alea) {
+        const {fromFlatChunkIndex, relativePosToChunkIndex, CHUNK_SIZE} = chunk.chunkManager.grid.math;
         const ids = chunk.tblocks.id
         const _vec = new Vector(0, 0, 0)
         const xyz = new Vector(0, 0, 0)
-        const map = chunk.map as TerrainMap2
+        const map = chunk.map as Biome3TerrainMap
         const bm = chunk.chunkManager.block_manager
         const blockFlags = bm.flags
+        ensureSize(CHUNK_SIZE)
 
         for(let i = 0; i < this.onground_place_index; i += GROUND_PLACE_SIZE) {
             const flat_index = _ground_places[i]
-            _vec.fromFlatChunkIndex(flat_index)
-            // const index = _vec.relativePosToChunkIndex()
+            fromFlatChunkIndex(_vec, flat_index)
             if(_vec.y < 1) continue
             _vec.y--
-            const under_index = _vec.relativePosToChunkIndex()
+            const under_index = relativePosToChunkIndex(_vec)
             _vec.y++
             const under_block_id = ids[under_index]
             if(!(blockFlags[under_block_id] & BLOCK_FLAG.SOLID)) {
@@ -226,7 +237,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                 }
             }
         }
-        
+
         for(let i = 0; i < this.slab_candidates.length; i += 3) {
             const xyz = this.slab_candidates[i]
             if(xyz) {
@@ -253,6 +264,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
     calcColumnNoiseSize(chunk : ChunkWorkerChunk) : Vector {
         let maxY = WATER_LEVEL
+        const CHUNK_SIZE_X = chunk.size.x;
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
                 const cell = chunk.map.cells[z * CHUNK_SIZE_X + x]
@@ -275,13 +287,14 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
     generateChunkData(chunk : ChunkWorkerChunk, seed : string, rnd : any) {
 
         const bm                        = chunk.chunkManager.block_manager
-        const map                       = chunk.map as TerrainMap2;
+        const map                       = chunk.map as Biome3TerrainMap;
         const xyz                       = new Vector(0, 0, 0);
         const xyz_temp                  = new Vector(0, 0, 0);
         const density_params            = new DensityParams(0, 0, 0, 0, 0, 0);
         const over_density_params       = new DensityParams(0, 0, 0, 0, 0, 0);
         const cluster                   = chunk.cluster; // 3D clusters
         const dirt_block_id             = bm.DIRT.id
+        const stone_block_id            = bm.STONE.id
         const grass_block_id            = bm.GRASS_BLOCK.id
         const sand_block_id             = bm.SAND.id
         const podzol_block_id           = bm.PODZOL.id
@@ -290,6 +303,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         const block_result              = new MapsBlockResult()
         const rand_lava                 = new alea('random_lava_source_' + this.seed)
         const map_manager               = this.maps as TerrainMapManager3
+        const {relativePosToFlatIndexInChunk_s} = chunk.chunkManager.grid.math;
 
         // generate densisiy values for column
         chunk.timers.start('generate_noise3d')
@@ -306,7 +320,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         //
         const plantGrass = (x : int, y : int, z : int, xyz : Vector, block_id : int, cell : TerrainMapCell, density_params : DensityParams) : boolean => {
             const plant_blocks = cell.genPlantOrGrass(x, y, z, xyz, chunk.size, block_id, rnd, density_params, chunk)
-            _ground_places[this.onground_place_index++] = Vector.relativePosToFlatIndexInChunk(x, y, z)
+            _ground_places[this.onground_place_index++] = relativePosToFlatIndexInChunk_s(x, y, z)
             _ground_places[this.onground_place_index++] = block_id
             _ground_places[this.onground_place_index++] = density_params
             if(plant_blocks) {
@@ -342,8 +356,8 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                 const cluster_cell          = has_cluster ? cluster.getCell(xyz.x, xyz.z) : null;
                 const big_stone_density     = this.calcBigStoneDensity(xyz, has_cluster);
 
-                const {dist_percent, op /*, relief, mid_level, radius, dist, density_coeff*/ } = cell.preset;
-                const hanging_foliage_block_id = cell.biome.blocks.hanging_foliage.id
+                // const {dist_percent, op /*, relief, mid_level, radius, dist, density_coeff*/ } = cell.preset;
+                // const hanging_foliage_block_id = cell.biome.blocks.hanging_foliage.id
 
                 let cluster_drawed = false;
                 let not_air_count = 0;
@@ -396,11 +410,9 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                         }
 
                         if(blockFlags[block_id] & BLOCK_FLAG.STONE) {
+                            // generating a small amount of ore on the surface of the walls
                             if(density < DENSITY_AIR_THRESHOLD + UNCERTAIN_ORE_THRESHOLD) {
-                                // generating a small amount of ore on the surface of the walls
                                 block_id = this.ore_generator.generate(xyz, block_id);
-                            } else {
-                                block_id = bm.UNCERTAIN_STONE.id
                             }
                         }
 
@@ -561,69 +573,18 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                             // если это уровень воды
                             if(xyz.y <= local_water_line) {
 
-                                let block_id = local_fluid_block_id;
+                                chunk.fluid.setFluidIndirect(x, y, z, local_fluid_block_id)
 
-                                // поверхность воды
                                 if(xyz.y == local_water_line) {
-
-                                    if(local_fluid_block_id == bm.STILL_WATER.id) {
-                                        // если холодно, то рисуем рандомные льдины
-                                        const water_cap_ice = (cell.temperature * 2 - 1 < 0) ? (d3 * .6 + d1 * .2 + d4 * .1) : 0;
-                                        if(water_cap_ice > .12) {
-                                            block_id = bm.ICE.id;
-                                            // в еще более рандомных случаях на льдине рисует пику
-                                            if(dist_percent < .7 && d1 > 0 && d3 > .65 && op.id != 'norm') {
-                                                const peekh = Math.floor(CHUNK_SIZE_Y * .75 * d3 * d4);
-                                                for(let ph = 0; ph < peekh; ph++) {
-                                                    chunk.setBlockIndirect(x, y + ph, z, block_id)
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    // if inside water
-                                    if(local_fluid_block_id == bm.STILL_WATER.id) {
-
-                                        // hanging foliage | свисающая столбом листва
-                                        if((d4 > .4 && d4 < .8) && air_count > 5 && air_count < CHUNK_SIZE_Y / 2) {
-                                            if(xyz.y == local_water_line) {
-                                                if(rnd.double() < .1) {
-                                                    for(let i = 0; i < 8 * d4 + 2; i++) {
-                                                        chunk.setBlockIndirect(x, y + air_count - i, z, hanging_foliage_block_id)
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        // water lily leaf on the water surface | лист кувшинки на водной глади
-                                        if(dcaves_over == 0 && cell.biome.is_swamp) {
-                                            if(rnd.double() < .07) {
-                                                chunk.setBlockIndirect(x, y + 1, z, bm.LILY_PAD.id)
-                                                has_overfluid_block = true
-                                            }
-                                        }
-
-                                    }
-
-                                    chunk.setBlockIndirect(x, y, z, block_id);
+                                    // поверхность воды
+                                    // льдины на поверхности воды / свисающие растения над водой и прочее
+                                    has_overfluid_block = this.drawFluidSurface(chunk, cell, x, y, z, xyz, local_fluid_block_id, dcaves_over, air_count, local_water_line, density_params, rnd)
                                 } else {
-                                    chunk.fluid.setFluidIndirect(x, y, z, block_id);
-
-                                    if(local_fluid_block_id == bm.STILL_WATER.id) {
-                                        // если холодно, то рисуем рандомные льдины
-                                        const water_cap_ice = (cell.temperature * 2 - 1 < 0) ? (d3 * .6 + d1 * .2 + d4 * .1) : 0;
-                                        if(water_cap_ice > .12) {
-                                            block_id = bm.ICE.id;
-                                            // в еще более рандомных случаях под льдиной рисуем пики
-                                            if(dist_percent < .7 && d1 > 0 && d3 > .65 && op.id != 'norm') {
-                                                const peekh = Math.floor(CHUNK_SIZE_Y * .5 * d3 * d4);
-                                                for(let ph = 0; ph < peekh; ph++) {
-                                                    chunk.setBlockIndirect(x, y - ph, z, block_id)
-                                                }
-                                            }
-                                        }
-                                    }
+                                    // под водой
+                                    // льдины под поверхностью воды
+                                    this.drawUnderFluidSurface(chunk, cell, x, y, z, local_fluid_block_id, density_params)
                                 }
+
                             }
 
                             // чтобы на самом нижнем уровне блоков чанка тоже росла трава
@@ -687,6 +648,73 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
         chunk.timers.stop()
 
+    }
+
+    // Например льдины на поверхности воды
+    drawFluidSurface(chunk : ChunkWorkerChunk, cell : TerrainMapCell, x : int, y : int, z : int, xyz : Vector, local_fluid_block_id : int, dcaves_over : float, air_count : int, local_water_line : int, density_params : DensityParams, rnd : any) : boolean {
+        const bm = this.block_manager
+        let has_overfluid_block = false
+        const CHUNK_SIZE_Y = chunk.size.y;
+        // if inside water
+        if(local_fluid_block_id == bm.STILL_WATER.id) {
+            const {dist_percent, op} = cell.preset
+            const {d1, d2, d3, d4} = density_params
+            const hanging_foliage_block_id = cell.biome.blocks.hanging_foliage.id
+            // 1. если холодно, то рисуем рандомные льдины
+            const water_cap_ice = (cell.temperature * 2 - 1 < 0) ? (d3 * .6 + d1 * .2 + d4 * .1) : 0;
+            if(water_cap_ice > .12) {
+                const block_id = bm.ICE.id
+                chunk.setBlockIndirect(x, y, z, block_id, undefined, undefined, undefined, undefined, false, true)
+                has_overfluid_block = true
+                // в еще более рандомных случаях на льдине рисует пику
+                if(dist_percent < .7 && d1 > 0 && d3 > .65 && op.id != 'norm') {
+                    const peekh = Math.floor(CHUNK_SIZE_Y * .75 * d3 * d4)
+                    for(let ph = 0; ph < peekh; ph++) {
+                        chunk.setBlockIndirect(x, y + ph, z, block_id)
+                    }
+                }
+            }
+            // 2. hanging foliage | свисающая столбом листва
+            if((d4 > .4 && d4 < .8) && air_count > 5 && air_count < CHUNK_SIZE_Y / 2) {
+                if(xyz.y == local_water_line) {
+                    if(rnd.double() < .1) {
+                        for(let i = 0; i < 8 * d4 + 2; i++) {
+                            chunk.setBlockIndirect(x, y + air_count - i, z, hanging_foliage_block_id)
+                        }
+                    }
+                }
+            }
+            // 3. water lily leaf on the water surface | лист кувшинки на водной глади
+            if(dcaves_over == 0 && cell.biome.is_swamp) {
+                if(rnd.double() < .07) {
+                    chunk.setBlockIndirect(x, y + 1, z, bm.LILY_PAD.id)
+                    has_overfluid_block = true
+                }
+            }
+        }
+        return has_overfluid_block
+    }
+
+    // Например льдины под поверхностью воды
+    drawUnderFluidSurface(chunk : ChunkWorkerChunk, cell : TerrainMapCell, x : int, y : int, z : int, local_fluid_block_id : int, density_params : DensityParams) {
+        const bm = this.block_manager
+        const {dist_percent, op} = cell.preset;
+        const {d1, d2, d3, d4} = density_params
+        const CHUNK_SIZE_Y = chunk.size.y;
+        if(local_fluid_block_id == bm.STILL_WATER.id) {
+            // если холодно, то рисуем рандомные льдины
+            const water_cap_ice = (cell.temperature * 2 - 1 < 0) ? (d3 * .6 + d1 * .2 + d4 * .1) : 0;
+            if(water_cap_ice > .12) {
+                // в еще более рандомных случаях под льдиной рисуем пики
+                if(dist_percent < .7 && d1 > 0 && d3 > .65 && op.id != 'norm') {
+                    const peekh = Math.floor(CHUNK_SIZE_Y * .5 * d3 * d4);
+                    const block_id = bm.ICE.id
+                    for(let ph = 0; ph < peekh; ph++) {
+                        chunk.setBlockIndirect(x, y - ph, z, block_id)
+                    }
+                }
+            }
+        }
     }
 
 }

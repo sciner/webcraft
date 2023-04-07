@@ -1,22 +1,21 @@
 import { ServerClient } from "@client/server_client.js";
 import type { ServerPlayer } from "../server_player.js";
+import type { Effects } from "@client/player.js";
 
 const MUL_TICK_SECONDS = 20;
 
 export class ServerPlayerEffects {
     player: ServerPlayer;
     world: any;
-    effects: any[] = [];
+    effects: Effects[]
 
     constructor(player : ServerPlayer) {
         this.player = player;
         this.world = player.world;
-    }
-    
-    load() {
-    }
-    
-    save() {
+        this.effects = player.state.effects
+        if (this.effects.length > 0) {
+            this.world.sendSelected([{ name: ServerClient.CMD_EFFECTS_STATE, data: { effects: this.effects}}], player); 
+        }
     }
 
     /*
@@ -72,13 +71,15 @@ export class ServerPlayerEffects {
         for (let i = 0; i < this.effects.length; i++) {
             if (this.effects[i].time >= 0) {
                 this.effects[i].time--;
+                if (this.effects[i].time % MUL_TICK_SECONDS == 0) {
+                    send = true
+                }
             } else {
                 this.effects.splice(i, 1);
                 send = true;
             }
         }
         if (send) {
-            // @todo пока тут проверям конец, потом перикунуть на клиент
            world.sendSelected([{ name: ServerClient.CMD_EFFECTS_STATE, data: { effects: this.effects}}], player);
         }
     }

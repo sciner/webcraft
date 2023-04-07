@@ -2,9 +2,10 @@ import { Vector} from "../../helpers.js";
 import {impl as alea} from '../../../vendors/alea.js';
 
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
-import type { TerrainMap2 } from "../biome3/terrain/map.js";
+import type { Biome3TerrainMap } from "../biome3/terrain/map.js";
 import type { TerrainMap, TerrainMapManager } from "../terrain_map.js";
 import type { ClusterManager } from "./manager.js";
+import type { BLOCK } from "../../blocks.js";
 
 export const NEAR_MASK_MAX_DIST = 10
 export const CLUSTER_PADDING    = 8
@@ -29,10 +30,19 @@ export class ClusterPoint {
 export class ClusterBase {
     [key: string]: any;
 
+    clusterManager: ClusterManager
+    block_manager:  BLOCK
+    randoms:        alea
+    r:              alea
+    is_empty:       boolean
+    max_height?:    int = null
+    max_dist:       int = NEAR_MASK_MAX_DIST
+    y_base:         int = 80
+    mask:           any
+
     constructor(clusterManager : ClusterManager, addr : Vector, size? : Vector) {
         this.clusterManager = clusterManager;
         this.block_manager  = clusterManager.world.block_manager
-        this.y_base         = 80;
         this.addr           = addr;
         this.size           = new Vector(clusterManager.size)
         this.coord          = addr.clone().multiplyVecSelf(this.size);
@@ -41,14 +51,14 @@ export class ClusterBase {
         this.r              = new alea(`cluster_r_${this.id}`).double();
         this.is_empty       = clusterManager.layer ? false : (this.addr.y != 0 || this.randoms.double() > 1/4);
         this.mask           = new Array(this.size.x * this.size.z);
-        this.max_height     = null;
-        this.max_dist       = NEAR_MASK_MAX_DIST;
         this.corner         = clusterManager.layer ? Math.floor(this.randoms.double() * 4) : undefined
     }
 
-    get generator() { return this.clusterManager.world.generator }
+    get generator() {
+        return this.clusterManager.world.generator
+    }
 
-    getMaskByWorldXZ(x, z) {
+    getMaskByWorldXZ(x : int, z : int) {
         x -= this.coord.x
         z -= this.coord.z
         const sizeX = this.size.x
@@ -61,7 +71,7 @@ export class ClusterBase {
     /**
      * Set block
      */
-    setBlock(chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_id : int, rotate : Vector | null = null, extra_data : any | null = null, check_is_solid : boolean = false, destroy_fluid : boolean = false, candidate_for_cap_block : boolean = false, map? : TerrainMap2) : boolean {
+    setBlock(chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_id : int, rotate : Vector | null = null, extra_data : any | null = null, check_is_solid : boolean = false, destroy_fluid : boolean = false, candidate_for_cap_block : boolean = false, map? : Biome3TerrainMap) : boolean {
         if(x >= 0 && y >= 0 && z >= 0 && x < chunk.size.x && y < chunk.size.y && z < chunk.size.z) {
             // ok
         } else {
@@ -101,19 +111,14 @@ export class ClusterBase {
 
     /**
      * Return block ID from pos
-     * @param { import("../../worker/chunk.js").ChunkWorkerChunk } chunk
-     * @param { int } x
-     * @param { int } y
-     * @param { int } z
-     * @returns {int}
      */
-    getBlock(chunk, x, y, z) {
+    getBlock(chunk : ChunkWorkerChunk, x : int, y : int, z : int) : int {
         const {cx, cy, cz, cw} = chunk.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
         return chunk.tblocks.id[index];
     }
 
-    resetNearMask() {
+    resetNearMask() : void {
         this.near_mask = new Array(this.size.x * this.size.z).fill(255)
     }
 
@@ -302,7 +307,7 @@ export class ClusterBase {
     }
 
     //
-    getCell(x : int, z : int) :any {
+    getCell(x : int, z : int) : any {
         if(this.is_empty) {
             return false;
         }

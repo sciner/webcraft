@@ -2,7 +2,6 @@ import { IndexedColor, Vector, Helpers } from '../../helpers.js';
 import { Default_Terrain_Map, Default_Terrain_Map_Cell } from '../default.js';
 import { BLOCK } from '../../blocks.js';
 import { noise, alea } from "../default.js";
-import { CHUNK_SIZE_Y } from '../../chunk_const.js';
 import {DungeonGenerator} from "../dungeon.js";
 import Demo_Map from '../biome2/demo_map.js';
 import { BiomeTree } from '../biomes.js';
@@ -91,7 +90,7 @@ export default class Terrain_Generator extends Demo_Map {
                                     first = false;
                                     let chance = rnd.double();
                                     if(rnd.double() < .5) {
-                                        if(rnd.double() < .2 && y < CHUNK_SIZE_Y - 3) {
+                                        if(rnd.double() < .2 && y < chunk.size.y - 3) {
                                             setBlock(x, y + 1, z, BLOCK.TALL_GRASS.id);
                                             setBlock(x, y + 2, z, BLOCK.TALL_GRASS.id, {is_head: true});
                                         } else {

@@ -1,13 +1,23 @@
-import {ExportGeometry16} from "./ExportGeometry.js";
+import {ExportGeometry16} from "./export_geometry.js";
 import {Resources} from "../resources.js";
 import {BLOCK} from "../blocks.js";
-import {chunkAddrToCoord, Helpers, Vector} from "../helpers.js";
+import { Helpers, Vector} from "../helpers.js";
 import {ExportFluidHelper} from "../fluid/ExportFluidHelper.js";
+import type { ChunkManager } from "../chunk_manager.js";
 
 export class ChunkExporter {
-    [key: string]: any;
+    // [key: string]: any;
+    chunkManager:   ChunkManager
+    outJson:        any
+    bufferViews:    any[];
+    matMap:         Map<any, any>;
+    texMap:         Map<any, any>;
+    promises:       any[];
+    accessors:      any[];
+    fluidExporter:  ExportFluidHelper;
+    terrain:        ExportGeometry16;
 
-    constructor(chunkManager) {
+    constructor(chunkManager : ChunkManager) {
         this.chunkManager = chunkManager;
 
         this.reset();
@@ -258,31 +268,26 @@ export class ChunkExporter {
         return ind;
     }
 
-    /**
-     *
-     * @param {Vector} camPos
-     * @param {string} name
-     * @returns
-     */
-    encode(camPos = new Vector(), name) {
+    encode(camPos : Vector = new Vector(), name : string) {
         // all floats will go here
         const terrain = this.terrain = new ExportGeometry16();
         terrain.palette = this.getPalette();
         terrain.innerConvertFluid = this.fluidExporter.innerConvertFluid.bind(terrain);
 
         let localPos = new Vector();
-        chunkAddrToCoord(Vector.toChunkAddr(camPos), localPos);
+        const grid = this.chunkManager.grid
+        grid.chunkAddrToCoord(grid.toChunkAddr(camPos), localPos);
 
         this.reset();
 
-        const {poses} = this.chunkManager;
+        const {spiral} = this.chunkManager.renderList;
         const {outJson} = this;
 
         let geomBvData = this.addBufferView();
         let indexBvData = this.addBufferView();
         let maxInstances = 0;
-        for (let i = 0; i < poses.length; i++) {
-            const chunk = poses[i];
+        for (let i = 0; i < spiral.entries.length; i++) {
+            const chunk = spiral.entries[i].chunk;
             if (!chunk.chunkManager) {
                 // destroyed!
                 continue;

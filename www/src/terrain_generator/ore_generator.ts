@@ -1,8 +1,8 @@
 import { alea } from "./default.js";
 import { BLOCK } from "../blocks.js";
-import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "../chunk_const.js";
 import { Vector } from "../helpers.js";
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import type { ChunkGrid } from "../core/ChunkGrid.js";
 
 // Ores
 const ORE_RANDOMS        : (OreRandom | null)[] = [];
@@ -33,9 +33,10 @@ class OreSource {
 // OreGenerator
 export class OreGenerator {
     [key: string]: any;
-
+    grid: ChunkGrid;
     //
-    constructor(seed, noisefn, noise3d, map) {
+    constructor(grid, seed, noisefn, noise3d, map) {
+        this.grid     = grid;
         this.seed     = seed;
         this.map      = map;
         this.noisefn  = noisefn;
@@ -50,6 +51,9 @@ export class OreGenerator {
         const aleaRandom        = new alea(seed + '_' + chunk_addr.toHash() + '_' + layer.id);
         const ores              : OreSource[] = [];
         const map               = this.map;
+
+        const CHUNK_SIZE_X = this.grid.chunkSize.x;
+        const CHUNK_SIZE_Z = this.grid.chunkSize.z;
         const CHUNK_SIZE_X_SM   = (CHUNK_SIZE_X - layer.max_ore_rad * 2);
         const CHUNK_SIZE_Z_SM   = (CHUNK_SIZE_Z - layer.max_ore_rad * 2);
 

@@ -5,10 +5,14 @@ import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { Raycaster } from "./Raycaster.js";
 import { MOUSE } from "./constant.js";
-import {LineGeometry} from "./geom/LineGeometry.js";
+import {LineGeometry} from "./geom/line_geometry.js";
 import {AABB} from "./core/AABB.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Player } from "./player.js";
+import type { World } from "./world.js";
+import type { Renderer } from "./render.js";
+import type { ChunkGrid } from "./core/ChunkGrid.js";
+import type { ChunkManager } from "./chunk_manager.js";
 
 const {mat4} = glMatrix;
 
@@ -27,8 +31,10 @@ export class PickAt {
     raycaster:          Raycaster
     chunk_addr:         Vector
     _temp_pos :         Vector = new Vector(0, 0, 0)
-    world:              any
-    render:             any
+    world:              World
+    render:             Renderer
+    chunk_manager:      ChunkManager
+    grid:               ChunkGrid
     targetDescription:  any = null
     visibleBlockHUD:    any = null
     onTarget:           Function
@@ -59,9 +65,11 @@ export class PickAt {
 
     private nextId = 0  // id of the next pickAt event, and the associated WorldAction
 
-    constructor(world, render, onTarget : Function, onInteractEntity : Function, onInteractFluid : Function) {
-        this.world = world
-        this.render = render
+    constructor(world : World, render : Renderer, onTarget : Function, onInteractEntity : Function, onInteractFluid : Function) {
+        this.world              = world
+        this.render             = render
+        this.chunk_manager      = world.chunkManager
+        this.grid               = world.chunkManager.grid
         this.onTarget           = onTarget // (block, target_event, elapsed_time) => {...};
         this.onInteractEntity   = onInteractEntity
         this.onInteractFluid    = onInteractFluid
@@ -274,8 +282,8 @@ export class PickAt {
             let a_pos = half.add(this.damage_block.pos);
 
             // Light
-            this.chunk_addr = Vector.toChunkAddr(this.damage_block.pos);
-            this.chunk = this.world.chunkManager.getChunk(this.chunk_addr);
+            this.chunk_addr = this.grid.toChunkAddr(this.damage_block.pos);
+            this.chunk = this.chunk_manager.getChunk(this.chunk_addr);
             if(this.chunk) {
                 mat4.translate(matrix, matrix,
                     [
@@ -389,13 +397,13 @@ export class PickAt {
             return;
         }
         this.targetDescription = {
-            worldPos: pos,
+            worldPos:   pos,
             posInChunk: pos.clone().subSelf(block.tb.dataChunk.pos),
-            chunkAddr: Vector.toChunkAddr(pos),
-            block: block.clonePOJO(),
-            material: block.material,
-            fluid: block.fluid
-        };
+            chunkAddr:  this.grid.toChunkAddr(pos),
+            block:      block.clonePOJO(),
+            material:   block.material,
+            fluid:      block.fluid
+        }
     }
 
     // createDamageBuffer...

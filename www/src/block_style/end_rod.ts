@@ -1,6 +1,4 @@
 import {calcRotateMatrix, DIRECTION, IndexedColor, Vector} from '../helpers.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
-import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
@@ -8,24 +6,15 @@ import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
-
+import type { World } from '../world.js';
 
 const {mat4} = glMatrix;
-
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
-
 const WIDTH =  4 / 16;
 const HEIGHT = 1 / 16;
-
 const WIDTH_STICK = 2/16;
 const HEIGHT_STICK = 15/16;
-
-let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-let a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
 
 // Горшок
 export default class style {
@@ -43,7 +32,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         let aabb = new AABB();
         aabb.set(
             0 + .5 - WIDTH / 2,

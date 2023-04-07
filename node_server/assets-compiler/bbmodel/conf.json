@@ -510,10 +510,7 @@
             "id": 39,
             "name": "BROWN_MUSHROOM",
             "bb": {
-                "model": "brown_mushroom",
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "model": "brown_mushroom"
             }
         },
         {

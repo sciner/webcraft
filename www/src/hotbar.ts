@@ -91,7 +91,7 @@ export class Hotbar {
     [key: string]: any
 
     sprites:                    Dict<MySprite> = {}
-    inventory:                  Inventory
+    inventory:                  PlayerInventory
     hotbar_atlas:               SpriteAtlas
     hud_atlas:                  SpriteAtlas
     hud_sprites:                Dict<MySprite> = {}

@@ -1,4 +1,3 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar, IndexedColor, ArrayHelpers } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
@@ -272,7 +271,7 @@ export class BLOCK {
         // See also isFluidId()
         this.addFlag(BLOCK_FLAG.FLUID, this.FLOWING_WATER.id, this.STILL_WATER.id, this.FLOWING_LAVA.id, this.STILL_LAVA.id, this.FLOOD_WATER.id, this.FLOOD_LAVA.id)
         // Taken from overworld.ts
-        this.addFlag(BLOCK_FLAG.STONE, this.STONE?.id, this.ANDESITE?.id, this.DIORITE?.id, this.GRANITE?.id)
+        this.addFlag(BLOCK_FLAG.STONE, this.STONE.id, this.ANDESITE.id, this.DIORITE.id, this.GRANITE.id, this.DEEPSLATE.id)
         //
         this.addFlag(BLOCK_FLAG.OPAQUE_FOR_NATURAL_SLAB, this.DIRT_PATH.id)
         //
@@ -326,19 +325,6 @@ export class BLOCK {
         }
         return val + (material.visible_for_ao ? 128 : 0);
     }
-
-    // This method doens't account for padding, returns incorrect result and shouldn't be used
-
-    // // Return flat index of chunk block
-    // static getIndex(x, y, z) {
-    //     if(x instanceof Vector || typeof x == 'object') {
-    //         y = x.y;
-    //         z = x.z;
-    //         x = x.x;
-    //     }
-    //     let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
-    //     return index;
-    // }
 
     /**
      * Returns a new simplified item (for inventory, drop item).
@@ -510,28 +496,6 @@ export class BLOCK {
             }
         }
         return resp;
-    }
-
-    //
-    static getBlockIndex(x : int | Vector, y : int, z : int, v : Vector = null) : Vector {
-        if (x instanceof Vector) {
-          y = x.y;
-          z = x.z;
-          x = x.x;
-        }
-
-        // функция евклидового модуля
-        const f = (n, m) => ((n % m) + m) % m;
-
-        if (v) {
-          v.x = f(x, CHUNK_SIZE_X);
-          v.y = f(y, CHUNK_SIZE_Y);
-          v.z = f(z, CHUNK_SIZE_Z);
-        } else {
-          v = new Vector(f(x, CHUNK_SIZE_X), f(y, CHUNK_SIZE_Y), f(z, CHUNK_SIZE_Z));
-        }
-
-        return v;
     }
 
     // Call before setBlock
@@ -794,7 +758,13 @@ export class BLOCK {
         return transparent;
     }
 
-    static isSolid(block) : boolean {
+    static parseBlockIsCap(block : IBlockMaterial) : boolean {
+        return !block.layering &&
+                (typeof block.width == 'undefined' && typeof block.height != 'undefined') &&
+                (block.style == DEFAULT_STYLE_NAME && block.group == 'regular')
+    }
+
+    static isSolid(block : IBlockMaterial) : boolean {
         if(block.id == 0) {
             return false
         }
@@ -923,7 +893,7 @@ export class BLOCK {
         block.is_button         = block.tags.includes('button');
         block.is_sapling        = block.tags.includes('sapling');
         block.is_battery        = ['car_battery'].includes(block?.item?.name);
-        block.is_layering       = !!block.layering;
+        block.is_layering       = !!block.layering
         block.is_grass          = block.is_grass || ['GRASS', 'TALL_GRASS', 'BURDOCK', 'WINDFLOWERS'].includes(block.name);
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
         block.is_dirt           = DIRT_BLOCK_NAMES.includes(block.name);
@@ -971,7 +941,8 @@ export class BLOCK {
         block.is_solid_for_fluid= ArrayHelpers.includesAny(block.tags, 'is_solid_for_fluid', 'stairs', 'log') ||
                                     ['wall', 'pane'].includes(block.style_name);
 
-        block.is_simple_qube    = this.isSimpleQube(block);
+        block.is_simple_qube    = this.isSimpleQube(block)
+        block.is_cap_block      = this.parseBlockIsCap(block)
         block.can_interact_with_hand = this.canInteractWithHand(block);
         const can_replace_by_tree = ['leaves', 'plant', 'dirt'].includes(block.material.id) || ['SNOW', 'SAND'].includes(block.name);
         block.can_replace_by_tree = can_replace_by_tree && !block.tags.includes('cant_replace_by_tree');
@@ -1118,12 +1089,10 @@ export class BLOCK {
         if(mat.id < 1 || !mat) {
             return false;
         }
-        const is_slab = !!mat.is_layering;
-        const is_bed = mat.style_name == 'bed';
-        const is_dirt = mat.tags.includes('dirt');
-        const is_carpet = mat.tags.includes('carpet');
-        const is_farmland = mat.name.indexOf('FARMLAND') == 0;
-        if(mat?.transparent && !is_slab && !is_bed && !is_dirt && !is_farmland && !is_carpet) {
+        const is_layering = mat.is_layering
+        const is_bed = mat.style_name == 'bed'
+        const is_dirt = mat.tags.includes('dirt')
+        if(mat?.transparent && !is_layering && !is_bed && !is_dirt) {
             return false;
         }
         return true;

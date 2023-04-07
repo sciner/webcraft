@@ -1,12 +1,12 @@
+import type Terrain_Generator from "../index";
 import type { BLOCK } from "../../../blocks";
 import type { Vector } from "../../../helpers";
 import type { ChunkWorkerChunk } from "../../../worker/chunk";
-import type { ClusterBase } from "../../cluster/base";
 import type { ClusterManager } from "../../cluster/manager";
 import type { Default_Terrain_Map } from "../../default";
 import type { Biome } from "../biomes";
 import type { TerrainMapManagerBase } from "../terrain/manager_base";
-import type { TerrainMap2 } from "../terrain/map";
+import type { Biome3TerrainMap } from "../terrain/map";
 
 /**
  * Generate underworld infinity air
@@ -16,10 +16,9 @@ export class Biome3LayerBase {
     noise3d:            Function
     block_manager:      BLOCK
     maps:               TerrainMapManagerBase // | Map<any, any>
-    generator:          any
+    generator:          Terrain_Generator
     clusterManager:     ClusterManager
     seed:               string
-    world:              any
     filter_biome_list:  int[] = []
 
     init(generator : any) : Biome3LayerBase {
@@ -42,7 +41,7 @@ export class Biome3LayerBase {
     /**
      * Plant chunk trees
      */
-    plantTrees(maps : TerrainMap2[], chunk : ChunkWorkerChunk) {
+    plantTrees(maps : Biome3TerrainMap[], chunk : ChunkWorkerChunk) {
         const bm = chunk.chunkManager.block_manager
         for(let i = 0; i < maps.length; i++) {
             const m = maps[i];
@@ -69,7 +68,7 @@ export class Biome3LayerBase {
                 }
 
                 // Draw tree blocks into chunk
-                this.generator.plantTree(this.world, tree, chunk, x, y, z, true);
+                this.generator.plantTree(this.generator.world, tree, chunk, x, y, z, true);
 
             }
         }

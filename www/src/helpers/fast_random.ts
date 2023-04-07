@@ -2,34 +2,38 @@ import {impl as alea} from "../../vendors/alea.js";
 
 // FastRandom...
 export class FastRandom {
-    [key: string]: any;
     int32s: any[];
     doubles: any[];
     index: number;
     cnt: any;
+    length: any;
 
     /**
      * @param seed : string
      * @param cnt : int
      */
-    constructor(seed : string, cnt : int) {
+    constructor(seed : string, cnt : int, mul : number = 1, round: boolean = false) {
         const a = new alea(seed);
         this.int32s = new Array(cnt);
         this.doubles = new Array(cnt);
         this.index = 0;
         this.cnt = cnt;
+        this.length = cnt;
         for(let i = 0; i < cnt; i++) {
-            this.int32s[i] = a.int32();
-            this.doubles[i] = a.double();
+            this.int32s[i] = a.int32() * mul
+            this.doubles[i] = a.double() * mul
+            if(round) {
+                this.doubles[i] = Math.round(this.doubles[i])
+            }
         }
     }
 
-    double(offset : number) : float {
+    double(offset : int) : float {
         offset = Math.abs(offset) % this.cnt;
         return this.doubles[offset];
     }
 
-    int32(offset : number) : int {
+    int32(offset : int) : int {
         offset = Math.abs(offset) % this.cnt;
         return this.int32s[offset];
     }

@@ -3,7 +3,6 @@ import { DEFAULT_FOV_NORMAL, Renderer, ZOOM_FACTOR } from "./render.js";
 import { AverageClockTimer, isMobileBrowser, Mth, Vector} from "./helpers.js";
 import { BLOCK } from "./blocks.js";
 import { Resources } from "./resources.js";
-import { ServerClient } from "./server_client.js";
 import { Sounds } from "./sounds.js";
 import { IKbOptions, Kb, KbEvent} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
@@ -47,6 +46,7 @@ export class GameSettings implements TWorldSettings {
     // control
     mouse_sensitivity:       float = 100
     forced_joystick_control: boolean = false
+    old_spectator_controls:  boolean = false
     // sound
     music_volume:            float = DEFAULT_MUSIC_VOLUME
     // resources

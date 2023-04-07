@@ -1,7 +1,6 @@
 import {impl as alea} from '../../vendors/alea.js';
 import {Vector, DIRECTION} from "../helpers.js";
 import {BLOCK} from '../blocks.js';
-import { CHUNK_SIZE, CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import { BLOCK_FLAG } from '../constant.js';
 
@@ -9,6 +8,7 @@ const _pos = new Vector(0, 0, 0);
 const _vec = new Vector(0, 0, 0);
 
 const HIDE_DUNGEON = false;
+const OPAQUE_NEIGHBOUR_POSES = [new Vector(-1, 0, 0), new Vector(1, 0, 0), new Vector(0, 0, -1), new Vector(0, 0, 1), new Vector(0, -1, 0)]
 
 export class DungeonGenerator {
     seed: any;
@@ -19,9 +19,10 @@ export class DungeonGenerator {
 
     add(chunk) {
         const random = new alea(this.seed + chunk.addr.toString());
+        const {fromFlatChunkIndex, CHUNK_SIZE} = chunk.chunkManager.grid.math;
         // 8 попыток установки
         for(let n = 0; n < 8; n++) {
-            _pos.fromFlatChunkIndex(Math.floor(random.double() * CHUNK_SIZE));
+            fromFlatChunkIndex(_pos, Math.floor(random.double() * CHUNK_SIZE));
             if(this.checkPosition(chunk, _pos.x, _pos.y, _pos.z)) {
                this.genDung(chunk, random, _pos.x, _pos.y, _pos.z);
                break;
@@ -37,7 +38,7 @@ export class DungeonGenerator {
     * Данж заброшенный колодец
     */
     genDungeonHole(chunk, alea, x, y, z) {
-        const biome = chunk.map.cells[z * CHUNK_SIZE_X + x].biome;
+        const biome = chunk.map.cells[z * chunk.chunkManager.grid.chunkSize.x + x].biome;
         // const up = this.getBlock(chunk, x, y, z);
         // console.debug('genDungeonHole: ' + up.posworld + ' ' + biome.title + ' ' + biome.id)
         // стандартные блоки
@@ -188,7 +189,6 @@ export class DungeonGenerator {
         this.genBoxNoAir(chunk, alea, x, y, z, 7, 5, 7, BLOCK.MOSSY_STONE_BRICKS, 0.5);
         this.genBoxNoAir(chunk, alea, x, y, z, 7, 5, 7, BLOCK.MOSS_BLOCK, 0.3);
         this.genBoxNoAir(chunk, alea, x, y + 1, z, 7, 1, 7, BLOCK.LODESTONE);
-        this.genBoxNoAir(chunk, alea, x, y, z, 7, 1, 7, BLOCK.STILL_WATER, 0.1);
         this.genBox(chunk, alea, x + 1, y + 1, z + 1, 5, 3, 5, BLOCK.AIR);
 
         this.genBox(chunk, alea, x + 6, y + 1, z + 3, 1, 3, 1, BLOCK.AIR);
@@ -202,6 +202,8 @@ export class DungeonGenerator {
         // Декор
         this.deleteWall(chunk, alea, x, y, z);
         this.setBlock(chunk, x + 6, y + 3, z + 3, BLOCK.IRON_BARS);
+
+        this.genIfOpaqueNeighbors(chunk, alea, x, y, z, 7, 1, 7, BLOCK.STILL_WATER, 0.1)
 
         const rotate = new Vector(DIRECTION.NORTH, 0, 0);
         this.setBlock(chunk, x + 10, y + 1, z + 1, BLOCK.CHEST, rotate, {generate: true, params: {source: 'treasure_room'}});
@@ -333,7 +335,46 @@ export class DungeonGenerator {
         }
     }
 
-    genBoxNoAir(chunk : ChunkWorkerChunk, alea, minX, minY, minZ, nX, nY, nZ, block = {id: 0}, chance = 1) {
+    // вставляет блок, если вокруг него все соседи solid блоки (чтобы если мы ставим блок воды, он не никуда выливался), также проверяется, чтобы сверху был воздух (опционально)
+    genIfOpaqueNeighbors(chunk : ChunkWorkerChunk, alea, minX : int, minY : int, minZ : int, nX : int, nY : int, nZ : int, block = {id: 0}, chance : float = 1, up_is_air : boolean = true) {
+        for (let x = minX; x < nX + minX; ++x) {
+            for (let y = minY; y < nY + minY; ++y) {
+                for (let z = minZ; z < nZ + minZ; ++z) {
+                    if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
+                        const is_chance = (chance == 1) ? true : alea.double() < chance
+                        if (is_chance) {
+                            let ok = true
+                            for(let p of OPAQUE_NEIGHBOUR_POSES) {
+                                const existing_block = this.getBlock(chunk, x + p.x, y + p.y, z + p.z)
+                                if(!existing_block || !(BLOCK.flags[existing_block.id] & BLOCK_FLAG.SOLID)) {
+                                    ok = false
+                                    break
+                                }
+                            }
+                            if(ok) {
+                                if(up_is_air) {
+                                    const existing_block = this.getBlock(chunk, x, y + 1, z)
+                                    if(!existing_block || existing_block.id != 0) {
+                                        ok = false
+                                    }
+                                }
+                                if(ok) {
+                                    if(BLOCK.flags[block.id] & BLOCK_FLAG.FLUID) {
+                                        chunk.tblocks.setBlockId(x, y, z, 0)
+                                        chunk.setBlockIndirect(x, y, z, block.id)
+                                    } else {
+                                        chunk.tblocks.setBlockId(x, y, z, block.id)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    genBoxNoAir(chunk : ChunkWorkerChunk, alea, minX : int, minY : int, minZ : int, nX : int, nY : int, nZ : int, block = {id: 0}, chance : float = 1) {
         for (let x = minX; x < nX + minX; ++x) {
             for (let y = minY; y < nY + minY; ++y) {
                 for (let z = minZ; z < nZ + minZ; ++z) {

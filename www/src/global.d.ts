@@ -17,12 +17,13 @@ declare type scalar = number | string | boolean
 
 declare type tupleFloat6 = [number, number, number, number, number, number]
 declare type tupleFloat4 = [number, number, number, number]
-declare type tupleFloat3 = [number, number, number, number]
+declare type tupleFloat3 = [number, number, number]
 declare type tupleFloat2 = [number, number]
 type ConcatTuple<T1 extends unknown[], T2 extends unknown[]> = [...T1, ...T2]
 
-declare type TypedArray = Uint8Array | Uint16Array | Uint32Array | Int8Array
-    | Int16Array | Int32Array | Uint8ClampedArray | Float32Array | Float64Array
+declare type TypedIntArray = Uint8Array | Uint16Array | Uint32Array | Int8Array
+    | Int16Array | Int32Array | Uint8ClampedArray
+declare type TypedArray = TypedIntArray | Float32Array | Float64Array
 declare type AnyArray = any[] | TypedArray
 
 /**
@@ -50,12 +51,24 @@ interface IVectorPoint extends IVector {
     point : IVector
 }
 
+interface IChunk {
+    addr: IVector
+    coord: IVector
+    size: IVector
+}
+
 interface TSideSet {}
 
 type TGeneratorInfo = {
-    id: string
-    cluster_size?: IVector
-    options: any
+    id:             string
+    cluster_size?:  IVector
+    options:        any
+    pos_spawn:      any
+    rules:          any
+}
+
+declare interface TWorldTechInfo {
+    chunk_size: IVector
 }
 
 declare interface TWorldInfo {
@@ -75,6 +88,7 @@ declare interface TWorldInfo {
     add_time:       int
     world_type_id:  int
     recovery:       binary
+    tech_info:      TWorldTechInfo
     calendar: {
         day_time: any,
         age: any
@@ -234,7 +248,7 @@ interface IBlockMaterial {
         id: int
         offset_pos: IVector
     }
-    layering: {
+    layering?: {
         height: float
         slab?: boolean
         full_block_name: string
@@ -317,6 +331,7 @@ interface IBlockMaterial {
     is_dynamic_light: boolean
     is_dirt: boolean
     is_layering: boolean
+    is_cap_block: boolean
     is_leaves: int // LEAVES_TYPE
     is_entity: boolean
     is_portal: boolean
@@ -349,8 +364,8 @@ interface IBlockMaterial {
     tags: string[]
     rotate: IVector
     aabb_size: IVector
-    width: float
-    height: float
+    width?: float
+    height?: float
     depth: float
     light_power: {r: float, g: float, b: float, a: float}
     light_power_number: number

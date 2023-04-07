@@ -1,4 +1,4 @@
-import {Worker05SubGeometry} from "../light/Worker05GeometryPool.js";
+import {WorkerSubGeometry} from "../geom/worker_geometry_pool.js";
 import {WorkerInstanceBuffer} from "../worker/WorkerInstanceBuffer.js";
 import {FluidSubGeometry} from "./FluidSubGeometry.js";
 

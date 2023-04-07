@@ -6,6 +6,7 @@ import { CD_ROT, CubeSym } from '../core/CubeSym.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import { BlockStyleRegInfo, default as default_style } from './default.js';
+import type { World } from '../world.js';
 
 const {mat4} = glMatrix;
 
@@ -31,7 +32,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const aabb = new AABB(
             0 + .5 - WIDTH / 2,
             0,

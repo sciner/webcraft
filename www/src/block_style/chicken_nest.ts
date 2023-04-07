@@ -1,13 +1,10 @@
 import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style } from './default.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
-
-
-const {mat4} = glMatrix;
+import type { World } from '../world.js';
 
 // гнездо для кур
 export default class style {
@@ -24,7 +21,7 @@ export default class style {
         );
     }
     
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const aabb = new AABB();
         aabb.set(0, 0, 0, 1, 0.13, 1);
         return [aabb]

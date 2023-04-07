@@ -1,4 +1,4 @@
-import {Helpers, getChunkAddr, Vector, ObjectHelpers} from "./helpers.js";
+import {Helpers, Vector, ObjectHelpers} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
@@ -14,7 +14,6 @@ import {ActionPlayerInfo, doBlockAction, WorldAction} from "./world_action.js";
 import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
 import { Effect } from "./block_type/effect.js";
-import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from "./chunk_const.js";
 import { PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js";
 import { PlayerArm } from "./player_arm.js";
 import type { Renderer } from "./render.js";
@@ -36,6 +35,12 @@ export type Indicators = {
     live: number
     food: number
     oxygen: number
+}
+
+export type Effects = {
+    id: number
+    time: number
+    level: number
 }
 
 export type PlayerStats = {
@@ -97,6 +102,7 @@ export type PlayerState = PlayerStateDynamicPart & {
     chunk_render_dist   : int
     game_mode ?         : string
     stats               : PlayerStats
+    effects             : Effects[]
 }
 
 export type PlayerStateUpdate = PlayerStateDynamicPart & {
@@ -259,11 +265,7 @@ export class Player implements IPlayer {
         return 0;
     }
 
-    /**
-     * @param { import("./world.js").World } world
-     * @param {*} cb
-     */
-    JoinToWorld(world, cb) {
+    JoinToWorld(world : World, cb : any) {
         this.world = world;
         //
         this.world.server.AddCmdListener([ServerClient.CMD_CONNECTED], (cmd) => {
@@ -303,7 +305,7 @@ export class Player implements IPlayer {
         this.#forward               = new Vector(0, 0, 0);
         this.blockPos               = this.getBlockPos().clone();
         this.blockPosO              = this.blockPos.clone();
-        this.chunkAddr              = Vector.toChunkAddr(this.pos);
+        this.chunkAddr              = this.world.chunkManager.grid.toChunkAddr(this.pos);
         // Rotate
         this.rotate                 = new Vector(0, 0, 0);
         this.#_rotateDegree         = new Vector(0, 0, 0);
@@ -466,7 +468,7 @@ export class Player implements IPlayer {
         if (!overChunk) {
             // some kind of race F8+R
             const blockPos = this.getBlockPos();
-            this.chunkAddr = getChunkAddr(blockPos.x, blockPos.y, blockPos.z, this.chunkAddr);
+            this.chunkAddr = this.world.chunkManager.grid.getChunkAddr(blockPos.x, blockPos.y, blockPos.z, this.chunkAddr);
             overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
         }
 
@@ -711,7 +713,7 @@ export class Player implements IPlayer {
             }
             this.mineTime = 0;
             const e_orig: ICmdPickatData = ObjectHelpers.deepClone(e);
-            const player: ActionPlayerInfo = {
+            const action_player_info: ActionPlayerInfo = {
                 radius: PLAYER_DIAMETER, // .radius is used as a diameter
                 height: this.height,
                 pos: this.lerpPos,
@@ -720,7 +722,7 @@ export class Player implements IPlayer {
                     user_id: this.session.user_id
                 }
             };
-            const [actions, pos] = await doBlockAction(e, this.world, player, this.currentInventoryItem);
+            const [actions, pos] = await doBlockAction(e, this.world, action_player_info, this.currentInventoryItem);
             if (actions) {
                 e_orig.snapshotId = this.world.history.makeSnapshot(pos);
                 if(e.createBlock && actions.blocks.list.length > 0) {
@@ -816,7 +818,7 @@ export class Player implements IPlayer {
         this.lerpPos = new Vector(vec);
         //
         this.blockPos = this.getBlockPos();
-        this.chunkAddr = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
+        this.chunkAddr = this.world.chunkManager.grid.getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
     }
 
     getFlying() {
@@ -840,7 +842,7 @@ export class Player implements IPlayer {
      */
     updateControl(): void {
         const cm = this.controlManager
-        cm.doClientTicks()
+        cm.update()
         this.pos.copyFrom(cm.getPos())
         cm.lerpPos(this.lerpPos)
     }
@@ -924,7 +926,7 @@ export class Player implements IPlayer {
             //
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
-                this.chunkAddr          = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
+                this.chunkAddr          = this.world.chunkManager.grid.getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
                 this.blockPosO          = this.blockPos;
             }
             // Внутри какого блока находится глаза
@@ -1309,6 +1311,8 @@ export class Player implements IPlayer {
     getOverChunkBiomeId() {
         const chunk = this.getOverChunk()
         if(!chunk) return
+        const CHUNK_SIZE_X = chunk.size.x;
+        const CHUNK_SIZE_Z = chunk.size.z;
         const x = this.blockPos.x - this.chunkAddr.x * CHUNK_SIZE_X;
         const z = this.blockPos.z - this.chunkAddr.z * CHUNK_SIZE_Z;
         const cell_index = z * CHUNK_SIZE_X + x;

@@ -1,38 +1,28 @@
-import { calcRotateMatrix, DIRECTION, Helpers, IndexedColor, StringHelpers, Vector } from '../helpers.js';
+import { calcRotateMatrix, DIRECTION, FastRandom, Helpers, IndexedColor, StringHelpers, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import { TBlock } from '../typed_blocks3.js';
 import { CubeSym } from '../core/CubeSym.js';
-
 import { BlockStyleRegInfo, TX_SIZE } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as cube_style } from '../block_style/cube.js';
 import { default as pot_style } from '../block_style/pot.js';
 import { default as cauldron_style } from '../block_style/cauldron.js';
 import { default as sign_style } from '../block_style/sign.js';
-
 import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js";
-import { CHUNK_SIZE_X, CHUNK_SIZE_Z } from '../chunk_const.js';
-import {impl as alea} from "../../vendors/alea.js";
+import { MAX_CHUNK_SQUARE } from '../chunk_const.js';
+import { BLOCK_FLAG } from '../constant.js';
 import type { BBModel_Model } from '../bbmodel/model.js';
 import type { Biome } from '../terrain_generator/biome3/biomes.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
-
+import type { World } from '../world.js';
 
 const { mat4, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
-
 const DEFAULT_AABB_SIZE = new Vector(12, 12, 12)
 const pivotObj = new Vector(0.5, .5, 0.5)
 const xyz = new Vector(0, 0, 0)
-
-// randoms
-const RANDOMS_COUNT = CHUNK_SIZE_X * CHUNK_SIZE_Z
-const randoms = new Array(RANDOMS_COUNT)
-const a = new alea('randoms')
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double()
-}
+const randoms = new FastRandom('bbmodel', MAX_CHUNK_SQUARE)
 
 class BBModel_TextureRule {
     /**
@@ -70,7 +60,7 @@ export default class style {
 
     /**
      */
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any, neighbours : any, expanded?: boolean) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
         const bb = tblock.material.bb
         const behavior = bb.behavior || bb.model.name
@@ -152,7 +142,7 @@ export default class style {
         z = xyz.z
 
         // calc rotate matrix
-        style.applyRotate(model, block, neighbours, matrix, x, y, z)
+        style.applyRotate(chunk, model, block, neighbours, matrix, x, y, z)
 
         //
         style.postBehavior(x, y, z, model, block, neighbours, pivot, matrix, biome, dirt_color, emmited_blocks)
@@ -201,7 +191,7 @@ export default class style {
 
     }
 
-    static applyRotate(model : BBModel_Model, tblock: TBlock | FakeTBlock, neighbours : any, matrix : imat4, x : int, y : int, z : int) {
+    static applyRotate(chunk : ChunkWorkerChunk, model : BBModel_Model, tblock: TBlock | FakeTBlock, neighbours : any, matrix : imat4, x : int, y : int, z : int) {
 
         const mat = tblock.material
         const bb = mat.bb
@@ -235,8 +225,7 @@ export default class style {
                             for(let axe of rot.axes) {
                                 switch(axe) {
                                     case 'y': {
-                                        const random_index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
-                                        mat4.rotateY(matrix, matrix, randoms[random_index] * (2 * Math.PI))
+                                        mat4.rotateY(matrix, matrix, randoms.double(Math.round(z * chunk.size.x + x)) * (2 * Math.PI))
                                         break
                                     }
                                     default: {
@@ -296,10 +285,22 @@ export default class style {
     static applyBehavior(model : BBModel_Model, chunk : ChunkWorkerChunk, tblock : TBlock | FakeTBlock, neighbours : any, matrix : imat4, biome : any, dirt_color : IndexedColor, vertices : float[], xyz : Vector) {
 
         const bm = style.block_manager
+        const blockFlags = bm.flags
         const emmited_blocks = []
         const mat = tblock.material
         const bb = mat.bb
         const behavior = bb.behavior || bb.model.name
+
+        if(!(tblock instanceof FakeTBlock) && behavior.endsWith('_ore')) {
+            const hide_groups = []
+            if(neighbours.NORTH && (blockFlags[neighbours.NORTH.id] & BLOCK_FLAG.SOLID)) hide_groups.push('north')
+            if(neighbours.SOUTH && (blockFlags[neighbours.SOUTH.id] & BLOCK_FLAG.SOLID)) hide_groups.push('south')
+            if(neighbours.WEST && (blockFlags[neighbours.WEST.id] & BLOCK_FLAG.SOLID)) hide_groups.push('west')
+            if(neighbours.EAST && (blockFlags[neighbours.EAST.id] & BLOCK_FLAG.SOLID)) hide_groups.push('east')
+            if(neighbours.UP && (blockFlags[neighbours.UP.id] & BLOCK_FLAG.SOLID)) hide_groups.push('up')
+            if(neighbours.DOWN && (blockFlags[neighbours.DOWN.id] & BLOCK_FLAG.SOLID)) hide_groups.push('down')
+            model.hideGroups(hide_groups)
+        }
 
         // 1.
         if(bb.set_state /* && !(tblock instanceof FakeTBlock) */) {

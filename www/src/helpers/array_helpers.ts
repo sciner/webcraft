@@ -1,5 +1,7 @@
 import {Mth} from "./mth.js";
 
+export type UintArrayConstructor = Uint8ArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor
+
 export class ArrayHelpers {
     static EMPTY = []
 
@@ -192,7 +194,7 @@ export class ArrayHelpers {
     }
 
     /** Returns the class of Uint primitive arrays that can hold value {@link maxValue} */
-    static uintArrayClassForMaxValue(maxValue : number) {
+    static uintArrayClassForMaxValue(maxValue : number): UintArrayConstructor {
         return maxValue <= 0xff
             ? Uint8Array
             : (maxValue <= 0xffff ? Uint16Array : Uint32Array)

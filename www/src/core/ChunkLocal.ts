@@ -1,6 +1,6 @@
 import { CubeSym } from './CubeSym.js';
 import { Vector } from '../helpers.js';
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk_const.js";
+import type { ChunkGrid } from "./ChunkGrid";
 
 export let PHYS_TYPE = {
 
@@ -10,7 +10,9 @@ const chunkPos = new Vector();
 
 export class ChunkLocal {
     [key: string]: any;
+    grid: ChunkGrid;
     constructor(w, h, d) {
+        this.grid = null;
         this.size = new Vector(w, h, d);
         this.offset = new Vector(w>>1, h>>1, d>>1);
         this.sym = 0;
@@ -33,6 +35,7 @@ export class ChunkLocal {
         this.pos.y = pos.y;
         this.pos.z = pos.z;
         this.sym = sym;
+        this.grid = chunkManager.grid;
         const symMat = CubeSym.matrices[this.sym];
 
         const { blockStart, blockCenter, blockFinish, size, offset } = this;
@@ -50,6 +53,10 @@ export class ChunkLocal {
     }
 
     readPhysData() {
+        const CHUNK_SIZE_X = this.grid.chunkSize.x;
+        const CHUNK_SIZE_Y = this.grid.chunkSize.y;
+        const CHUNK_SIZE_Z = this.grid.chunkSize.z;
+
         const { blockStart, blockFinish, size, offset, physData, chunkManager } = this;
         const symMat = CubeSym.matrices[this.sym];
         const whd = size.x * size.y * size.z;

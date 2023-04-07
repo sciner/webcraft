@@ -1,5 +1,6 @@
-import { getChunkAddr, Mth, Vector} from './helpers.js';
+import { Mth, Vector} from './helpers.js';
 import { AABB } from './core/AABB.js';
+import type { World } from './world.js';
 
 // AABBDrawable
 export class AABBDrawable extends AABB {
@@ -27,10 +28,12 @@ export type NetworkPhysicObjectState = {
 export class NetworkPhysicObject {
     [key: string]: any;
 
+    #world : World
     netBuffer: NetworkPhysicObjectState[]
 
-    constructor(pos, rotate) {
+    constructor(world : World, pos, rotate) {
 
+        this.#world         = world
         this._pos           = pos;
         this._prevPos       = new Vector(pos);
 
@@ -50,8 +53,6 @@ export class NetworkPhysicObject {
          */
         this.aabb = null;
 
-        this.world = null;
-
         this.tracked = false;
     }
 
@@ -60,7 +61,11 @@ export class NetworkPhysicObject {
     }
 
     get chunk_addr() {
-        return Vector.toChunkAddr(this.pos, this._chunk_addr);
+        return this.world.chunkManager.grid.toChunkAddr(this.pos, this._chunk_addr);
+    }
+
+    get world() : World {
+        return this.#world
     }
 
     set pos(v) {

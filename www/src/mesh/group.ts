@@ -5,10 +5,11 @@ import { AABB } from '../core/AABB.js';
 import type { BaseResourcePack } from '../base_resource_pack.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
-// World
-export const FakeWorld = {
+// Chunk
+export const FakeChunk = {
+    size: new Vector(16, 40, 16),
     chunkManager: {
-        getBlock: function(x, y, z) {
+        getBlock: function(x : int, y : int, z: int) {
             return new FakeTBlock(BLOCK.AIR.id);
         }
     }
@@ -134,7 +135,7 @@ export class MeshGroup {
             rp.pushVertices(
                 item.block,
                 mesh.vertices,
-                (FakeWorld as any) as ChunkWorkerChunk,
+                (FakeChunk as any) as ChunkWorkerChunk,
                 pos,
                 item.neighbours,
                 biome,
