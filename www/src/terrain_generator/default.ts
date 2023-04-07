@@ -1361,7 +1361,7 @@ export class Default_Terrain_Generator {
         let faces = [...Vector.DIRECTIONS]
         let index = xyz.x + xyz.y + xyz.z + tree.height
         const trunk = {id: tree.type.trunk}
-        const cardinal = faces[this.nextInt(index++, 5)]
+        const cardinal = faces[this.nextInt(index++, 4)]
         const size = this.nextInt(index++, 2) + 2
         const random = new alea('coral'+ xyz.toHash())
         ArrayHelpers.shuffle(faces, random.double)
