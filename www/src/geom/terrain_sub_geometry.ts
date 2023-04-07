@@ -1,4 +1,4 @@
-import type {BigGeomBatchUpdate} from "../geom/big_geom_batch_update.js";
+import type {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
 
 export class TerrainSubGeometry {
     [key: string]: any;

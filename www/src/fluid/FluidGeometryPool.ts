@@ -1,7 +1,7 @@
-import {Basic05GeometryPool} from "../light/Basic05GeometryPool.js";
-import {FluidMultiGeometry} from "./FluidMultiGeometry.js";
+import {BigGeometryPool} from "../geom/big_geometry_pool.js";
+import {FluidBigGeometry} from "./FluidBigGeometry.js";
 
-export class FluidGeometryPool extends Basic05GeometryPool {
+export class FluidGeometryPool extends BigGeometryPool {
     [key: string]: any;
     constructor(context, {
         pageSize = 256,
@@ -12,7 +12,7 @@ export class FluidGeometryPool extends Basic05GeometryPool {
     }
 
     initBaseGeometry() {
-        this.baseGeometry = new FluidMultiGeometry({
+        this.baseGeometry = new FluidBigGeometry({
             context: this.context, size: this.pageCount * this.pageSize
         })
     }

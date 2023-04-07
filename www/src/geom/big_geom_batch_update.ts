@@ -1,4 +1,3 @@
-import type {BaseMultiGeometry} from "./BaseMultiGeometry.js";
 import {SimplePool} from "../helpers/simple_pool.js";
 import type {BaseBuffer} from "../renders/BaseRenderer.js";
 import type BaseRenderer from "../renders/BaseRenderer.js";

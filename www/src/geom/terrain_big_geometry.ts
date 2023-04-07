@@ -1,14 +1,14 @@
-import {BaseMultiGeometry} from "../geom/BaseMultiGeometry.js";
-import {BigGeomBatchUpdate} from "../geom/big_geom_batch_update.js";
+import {BaseBigGeometry} from "./base_big_geometry.js";
+import {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
 
-export class TerrainMultiGeometry extends BaseMultiGeometry {
+export class TerrainBigGeometry extends BaseBigGeometry {
     static strideFloats = 16;
     static sortAss = (a, b) => {
         return a - b;
     };
 
     constructor({context = null, size = 128} = {}) {
-        super({context, size, strideFloats: TerrainMultiGeometry.strideFloats});
+        super({context, size, strideFloats: TerrainBigGeometry.strideFloats});
         this.batch = new BigGeomBatchUpdate(this.strideFloats);
         this.hasInstance = true;
     }

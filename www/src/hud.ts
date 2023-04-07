@@ -1,6 +1,6 @@
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
-import {GeometryTerrain16} from "./geom/TerrainGeometry16.js";
+import {GeometryTerrain16} from "./geom/terrain_geometry_16.js";
 import { isMobileBrowser, Vector } from "./helpers.js";
 import {Resources} from "./resources.js";
 import { DRAW_HUD_INFO_DEFAULT, HUD_CONNECTION_WARNING_INTERVAL, ONLINE_MAX_VISIBLE_IN_F3 } from "./constant.js";
