@@ -2,7 +2,7 @@ import { BLOCK, POWER_NO, DropItemVertices, FakeVertices } from "../blocks.js";
 import { PerformanceTimer, Vector } from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK, TypedBlocks3 } from "../typed_blocks3.js";
 import { AABB } from '../core/AABB.js';
-import { Worker05GeometryPool } from "../geom/Worker05GeometryPool.js";
+import { WorkerGeometryPool } from "../geom/worker_geometry_pool.js";
 import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { pushTransformed } from '../block_style/extruder.js';
@@ -38,7 +38,7 @@ export class ChunkWorkerChunkManager {
     destroyed:      boolean
     dataWorld:      DataWorld
     fluidWorld:     FluidWorld
-    verticesPool:   Worker05GeometryPool
+    verticesPool:   WorkerGeometryPool
     materialToId:   Map<any, any> = new Map()
     tech_info:      TWorldTechInfo
     grid:           ChunkGrid
@@ -63,7 +63,7 @@ export class ChunkWorkerChunkManager {
         this.dataWorld = new DataWorld(this);
         this.grid = this.dataWorld.grid
         this.fluidWorld = new FluidWorld(this);
-        this.verticesPool = new Worker05GeometryPool(null, {});
+        this.verticesPool = new WorkerGeometryPool(null, {});
     }
 
     // For compatibility with the client API

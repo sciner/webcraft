@@ -1,7 +1,7 @@
-import { GeometryTerrain16 } from "./TerrainGeometry16.js";
+import { GeometryTerrain16 } from "./terrain_geometry_16.js";
 import type {IChunkVertexBuffer} from "../chunk";
 
-export class GeometryPool {
+export class BaseGeometryPool {
     [key: string]: any;
     constructor(context) {
         this.context = context;
@@ -36,7 +36,7 @@ export class GeometryPool {
     }
 }
 
-export class TrivialGeometryPool extends GeometryPool {
+export class TrivialGeometryPool extends BaseGeometryPool {
     [key: string]: any;
     constructor(context) {
         super(context);

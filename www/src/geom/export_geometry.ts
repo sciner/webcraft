@@ -1,5 +1,4 @@
-import {Worker05GeometryPool} from "./Worker05GeometryPool.js";
-import GeometryTerrain from "../geometry_terrain.js";
+import {WorkerGeometryPool} from "./worker_geometry_pool.js";
 import {QUAD_FLAGS} from "../helpers.js";
 
 export class BaseExportGeometry {
@@ -10,7 +9,7 @@ export class BaseExportGeometry {
                 }) {
         this.vertexStrideFloats = vertexStrideFloats;
         this.instanceStrideFloats = instanceStrideFloats;
-        this.pool = new Worker05GeometryPool(null, {
+        this.pool = new WorkerGeometryPool(null, {
             pageSize: 256,
             pageCount: 0,
             instanceSize: this.instanceStrideFloats,

@@ -1,8 +1,8 @@
-import {Worker05GeometryPool} from "../geom/Worker05GeometryPool.js";
+import {WorkerGeometryPool} from "../geom/worker_geometry_pool.js";
 import {FluidGeometryPool} from "./FluidGeometryPool.js";
 import {FluidInstanceBuffer} from "./FluidInstanceBuffer.js";
 import {buildFluidVertices} from "./FluidBuildVertices.js";
-import {GeometryPool} from "../geom/GeometryPool.js";
+import {BaseGeometryPool} from "../geom/base_geometry_pool.js";
 
 export class FluidMesher {
     [key: string]: any;
@@ -10,7 +10,7 @@ export class FluidMesher {
         this.world = world;
         this.dirtyChunks = [];
         this.renderPool = null;
-        this.geometryPool = new Worker05GeometryPool(null, {
+        this.geometryPool = new WorkerGeometryPool(null, {
             instanceSize: 16,
             pageSize: 256,
         });
@@ -82,7 +82,7 @@ export class FluidMesher {
                 limit--;
                 serialized = this.serializeInstanceBuffers(fluidChunk);
             }
-            const instances = GeometryPool.getVerticesMapSize(serialized);
+            const instances = BaseGeometryPool.getVerticesMapSize(serialized);
             renderPool.prepareMem(instances);
             parentChunk.applyVertices('fluid', this.renderPool, serialized);
         }

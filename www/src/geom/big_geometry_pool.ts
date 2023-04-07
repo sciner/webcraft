@@ -1,8 +1,8 @@
-import {TerrainSubGeometry} from "./TerrainSubGeometry.js";
-import {TerrainMultiGeometry} from "./TerrainMultiGeometry.js";
-import {GeometryPool} from "./GeometryPool.js";
+import {TerrainSubGeometry} from "./terrain_sub_geometry.js";
+import {TerrainBigGeometry} from "./terrain_big_geometry.js";
+import {BaseGeometryPool} from "./base_geometry_pool.js";
 
-export class Basic05GeometryPool extends GeometryPool {
+export class BigGeometryPool extends BaseGeometryPool {
     [key: string]: any;
     constructor(context, {
         pageSize = 256,
@@ -25,7 +25,7 @@ export class Basic05GeometryPool extends GeometryPool {
     }
 
     initBaseGeometry() {
-        this.baseGeometry = new TerrainMultiGeometry({
+        this.baseGeometry = new TerrainBigGeometry({
             context: this.context, size: this.pageCount * this.pageSize
         })
     }
