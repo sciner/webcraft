@@ -232,8 +232,4 @@ export class InventoryWindow extends BaseCraftWindow {
 
     }
 
-    getSlots() {
-        return this.inventory_slots;
-    }
-
 }
