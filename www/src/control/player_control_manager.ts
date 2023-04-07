@@ -424,7 +424,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             // Don't process more than PHYSICS_MAX_TICKS_PROCESSED. The server will correct us if we're wrong.
             const skipPhysicsTicks = physicsTicks - PHYSICS_MAX_TICKS_PROCESSED
             if (skipPhysicsTicks > 0) {
-                this.logger.log(`skipping ${skipPhysicsTicks} ticks`)
+                this.logger.log('skipping', `skipping ${skipPhysicsTicks} ticks`)
                 const skippedTicksData = new ClientPlayerTickData()
                 skippedTicksData.initInputFrom(this, this.knownPhysicsTicks, skipPhysicsTicks)
                 skippedTicksData.initContextFrom(this)
@@ -505,7 +505,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         if (exData == null) {
             // It happens e.g. when the browser window was closed. The client is severely behind the server.
             // A server may also send a correction ahead of time when player's position is changed outside the control
-            this.logger.log('applying correction without existing data')
+            this.logger.log('without_existing', 'applying correction without existing data')
             // put the date into the data queue
             const data = new ClientPlayerTickData()
             data.status = PLAYER_TICK_DATA_STATUS.SENT
