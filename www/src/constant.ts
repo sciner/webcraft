@@ -5,6 +5,14 @@ export enum LIGHT_TYPE {
     RTX     = 2,
 }
 
+// Global chunk geometry mode
+export enum CHUNK_GEOMETRY_MODE {
+    AUTO             = 0,
+    ONE_PER_CHUNK    = 1,
+    BIG_MULTIDRAW    = 2,
+    BIG_NO_MULTIDRAW = 3,
+}
+
 export const FAST = false
 
 export const INGAME_MAIN_WIDTH              = 772

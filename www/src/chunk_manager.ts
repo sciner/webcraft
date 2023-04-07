@@ -345,6 +345,7 @@ export class ChunkManager {
         const settings = world.settings;
 
         this.use_light                = settings.use_light != LIGHT_TYPE.NO;
+        console.log(settings.chunk_geometry_mode)
         this.worker_counter           = this.use_light ? 2 : 1;
 
         const msg: TChunkWorkerMessageInit = {
