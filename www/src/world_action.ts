@@ -1152,7 +1152,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
             }
 
             // Некоторые блоки можно ставить только на что-то сверху
-            if(!!mat_block.is_layering && !mat_block.layering.slab && pos.n.y != 1) {
+            if(mat_block.is_layering && !mat_block.layering.slab && pos.n.y != 1) {
                 console.error('mat_block.is_layering');
                 return [null, pos];
             }
@@ -2678,21 +2678,21 @@ function useBoneMeal(e, world, pos, player, world_block, world_material, mat_blo
 // "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
 function increaseLayering(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     //
-    const pos_n = pos.n;
+    const pos_n = pos.n
     if(pos_n.y == 0) {
-        return false;
+        return false
     }
-    pos = new Vector(pos);
+    pos = new Vector().copyFrom(pos)
     //
     const block_touched = world.getBlock(pos);
-    if((block_touched?.id == mat_block.id) && !!mat_block.is_layering) {
+    if((block_touched?.id == mat_block.id) && mat_block.is_layering) {
         // ok
     } else {
         pos.x += pos_n.x;
         pos.y += pos_n.y;
         pos.z += pos_n.z;
         const block_on_posn = world.getBlock(pos);
-        if((block_on_posn?.id == mat_block.id) && !!mat_block.is_layering) {
+        if((block_on_posn?.id == mat_block.id) && mat_block.is_layering) {
             // pos.n.y = 1;
             extra_data = block_on_posn.extra_data;
             world_block = block_on_posn;
@@ -2703,7 +2703,7 @@ function increaseLayering(e, world, pos, player, world_block, world_material, ma
     }
     //
     if(!world_material.layering) {
-        return false;
+        return false
     }
     //
     const layering = world_material.layering;

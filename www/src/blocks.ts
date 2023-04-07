@@ -758,7 +758,13 @@ export class BLOCK {
         return transparent;
     }
 
-    static isSolid(block) : boolean {
+    static parseBlockIsCap(block : IBlockMaterial) : boolean {
+        return !block.layering &&
+                (typeof block.width == 'undefined' && typeof block.height != 'undefined') &&
+                (block.style == DEFAULT_STYLE_NAME && block.group == 'regular')
+    }
+
+    static isSolid(block : IBlockMaterial) : boolean {
         if(block.id == 0) {
             return false
         }
@@ -887,7 +893,7 @@ export class BLOCK {
         block.is_button         = block.tags.includes('button');
         block.is_sapling        = block.tags.includes('sapling');
         block.is_battery        = ['car_battery'].includes(block?.item?.name);
-        block.is_layering       = !!block.layering;
+        block.is_layering       = !!block.layering
         block.is_grass          = block.is_grass || ['GRASS', 'TALL_GRASS', 'BURDOCK', 'WINDFLOWERS'].includes(block.name);
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
         block.is_dirt           = DIRT_BLOCK_NAMES.includes(block.name);
@@ -935,7 +941,8 @@ export class BLOCK {
         block.is_solid_for_fluid= ArrayHelpers.includesAny(block.tags, 'is_solid_for_fluid', 'stairs', 'log') ||
                                     ['wall', 'pane'].includes(block.style_name);
 
-        block.is_simple_qube    = this.isSimpleQube(block);
+        block.is_simple_qube    = this.isSimpleQube(block)
+        block.is_cap_block      = this.parseBlockIsCap(block)
         block.can_interact_with_hand = this.canInteractWithHand(block);
         const can_replace_by_tree = ['leaves', 'plant', 'dirt'].includes(block.material.id) || ['SNOW', 'SAND'].includes(block.name);
         block.can_replace_by_tree = can_replace_by_tree && !block.tags.includes('cant_replace_by_tree');
@@ -1082,12 +1089,10 @@ export class BLOCK {
         if(mat.id < 1 || !mat) {
             return false;
         }
-        const is_slab = !!mat.is_layering;
-        const is_bed = mat.style_name == 'bed';
-        const is_dirt = mat.tags.includes('dirt');
-        const is_carpet = mat.tags.includes('carpet');
-        const is_farmland = mat.name.indexOf('FARMLAND') == 0;
-        if(mat?.transparent && !is_slab && !is_bed && !is_dirt && !is_farmland && !is_carpet) {
+        const is_layering = mat.is_layering
+        const is_bed = mat.style_name == 'bed'
+        const is_dirt = mat.tags.includes('dirt')
+        if(mat?.transparent && !is_layering && !is_bed && !is_dirt) {
             return false;
         }
         return true;
