@@ -208,8 +208,6 @@ export default class style {
         let planes = null
         planes = material.planes || (is_agriculture ? AGRICULTURE_PLANES : (is_tall_grass ? (block.hasTag('is_tall_grass_3') ? TALL_GRASS_3_PLANES : TALL_GRASS_PLANES) : DEFAULT_PLANES));
 
-        
-
         // Sunflower
         if (material.name == 'SUNFLOWER') {
             dy = 0;
@@ -258,7 +256,6 @@ export default class style {
 
         if(block.hasTag('angle_facet')) {
             planes = ANGLE_FACET
-            console.log(planes)
         }
 
         for(let j = 0; j < loops; j++) {
@@ -268,20 +265,19 @@ export default class style {
                 if (!isNaN((plane as any).dir)) {
                     texture = bm.calcMaterialTexture(material, (plane as any).dir);
                 }
-
                 _pl.translate = plane.translate
-                _pl.size     = plane.size;
-                _pl.uv       = plane.uv as tupleFloat2;
-                _pl.rot      = plane.rot as Vector;
-                _pl.lm       = style.lm;
-                _pl.pos      = _vec.set(
+                _pl.size      = plane.size;
+                _pl.uv        = plane.uv as tupleFloat2;
+                _pl.rot       = plane.rot as Vector;
+                _pl.lm        = style.lm;
+                _pl.pos       = _vec.set(
                     x + dx + (plane.move?.x || 0),
                     y + dy + (plane.move?.y || 0) + j,
                     z + dz + (plane.move?.z || 0)
                 );
-                _pl.matrix   = matrix;
-                _pl.flag     = flag;
-                _pl.texture  = texture;
+                _pl.matrix    = matrix;
+                _pl.flag      = flag;
+                _pl.texture   = texture;
                 default_style.pushPlane(vertices, _pl);
             }
         }

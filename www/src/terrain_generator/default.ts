@@ -86,17 +86,19 @@ export class Default_Terrain_Generator {
         this.tree_styles.set('stump', this.plantStump.bind(this)) // пенёк
         this.tree_styles.set('tundra_stone', this.plantTundraStone.bind(this)) // камень тундры
         this.tree_styles.set('birch', this.plantOak.bind(this)) // берёза
-        this.tree_styles.set('oak', this.plantCoralPaw.bind(this)) // корал//this.plantOak.bind(this)) // дуб
+        this.tree_styles.set('oak', this.plantOak.bind(this)) // дуб
         this.tree_styles.set('wood', this.plantOak.bind(this)) // просто дерево
         this.tree_styles.set('red_mushroom', this.plantRedMushroom.bind(this)) // красный гриб
         this.tree_styles.set('brown_mushroom', this.plantBrownMushroom.bind(this)) // коричневый (плоский) гриб
-        this.tree_styles.set('acacia', this.plantCoralTree.bind(this)) // акация
-        this.tree_styles.set('spruce', this.plantCoralMushroom.bind(this)) // ель
+        this.tree_styles.set('acacia', this.plantAcacia.bind(this)) // акация
+        this.tree_styles.set('spruce', this.plantSpruce.bind(this)) // ель
         this.tree_styles.set('jungle', this.plantJungle.bind(this)) // тропическое дерево
         this.tree_styles.set('big_oak', this.plantBigOak.bind(this)) // большой дуб
         this.tree_styles.set('chorus', this.plantChorus.bind(this)) // растение хоруса
         this.tree_styles.set('peak', this.plantPeak.bind(this)) // пика
-        this.tree_styles.set('coral', this.plantCoralTree.bind(this)) // корал
+        this.tree_styles.set('coral_tree', this.plantCoralTree.bind(this)) // корал дерево
+        this.tree_styles.set('coral_paw', this.plantCoralPaw.bind(this)) // корал бокс
+        this.tree_styles.set('coral_mushroom', this.plantCoralMushroom.bind(this)) // корал лапа
     }
 
     async init() : Promise<boolean> {
@@ -1300,87 +1302,39 @@ export class Default_Terrain_Generator {
 
     // Дерево коралл
     plantCoralTree(world : any, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
-        const setCoral = (position, sh = 0)=> {
-            const top = random.nextInt(10)
-            if (top == 0) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  leaves, false)
-            } else if (top == 1) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.SEAGRASS.id}, false)
-            } else if (top == 2) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.BUBBLE_CORAL.id}, false)
-            } else if (top == 3) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.FIRE_CORAL.id}, false)
-            } else if (top == 4) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.BRAIN_CORAL.id}, false)
-            } else if (top == 5) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.HORN_CORAL.id}, false)
-            }
-        }
         const trunk = {id: BLOCK.HORN_CORAL_BLOCK.id}
-        const leaves = {id: BLOCK.BRAIN_CORAL.id}
-        const faces = []
-        const x = 0
-        const y = -1
-        const z = 0
         const random = new alea('coral' + xyz.toHash())
-        const pos = new Vector(x, y, z)
-        if (random.nextBool()) {
-            faces.push(Vector.XN)
-        }
-        if (random.nextBool()) {
-            faces.push(Vector.XP)
-        }
-        if (random.nextBool()) {
-            faces.push(Vector.ZN)
-        }
-        if (random.nextBool()) {
-            faces.push(Vector.ZP)
-        }
+        const pos = new Vector(0, -1, 0)
         const height = random.nextInt(3) + 1
         for (let i = 0; i < height; i++) {
             pos.addSelf(Vector.YP)
-            setTreeBlock(tree, pos.x, pos.y, pos.z, trunk, true)
+            this.placeCoralBlock(tree, pos, trunk, random, setTreeBlock)
         }
+        let faces = Vector.DIRECTIONS
+        faces.sort(() => random.double() - .5)
+        const size = random.nextInt(3) + 2
+        faces = faces.slice(0, size)
         for (const face of faces) {
             const position = pos.clone().addSelf(face)
             const size = random.nextInt(5) + 2
             let n = 0
             for (let i = 0; i < size; i++) {
-                setTreeBlock(tree, position.x, position.y, position.z, trunk, true)
+                this.placeCoralBlock(tree, position, trunk, random, setTreeBlock)
                 n++
                 position.addSelf(Vector.YP)
                 if (i == 0 || n >= 2 && random.double() < .25) {
-                    //setTreeBlock(tree, position.x, position.y, position.z,  trunk, false)
-                    setCoral(position)
+                    this.placeCoralBlock(tree, position, trunk, random, setTreeBlock)
                     position.addSelf(face)
                     n = 0
                 }
             }
-            setTreeBlock(tree, position.x, position.y, position.z,  trunk, true)
-            setCoral(position, 1)
+            this.placeCoralBlock(tree, position, trunk, random, setTreeBlock)
         }
     }
 
     // Дерево коралл
     plantCoralMushroom(world : any, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
-        const setCoral = (position, sh = 0)=> {
-            const top = random.nextInt(10)
-            if (top == 0) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  leaves, false)
-            } else if (top == 1) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.SEAGRASS.id}, false)
-            } else if (top == 2) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.BUBBLE_CORAL.id}, false)
-            } else if (top == 3) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.FIRE_CORAL.id}, false)
-            } else if (top == 4) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.BRAIN_CORAL.id}, false)
-            } else if (top == 5) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.HORN_CORAL.id}, false)
-            }
-        }
         const trunk = {id: BLOCK.HORN_CORAL_BLOCK.id}
-        const leaves = {id: BLOCK.BRAIN_CORAL.id}
         const random = new alea('coral' + xyz.toHash())
         const max_x = random.nextInt(3) + 3
         const max_y = random.nextInt(3) + 3
@@ -1389,11 +1343,8 @@ export class Default_Terrain_Generator {
         for (let x = 0; x <= max_x; ++x) {
             for (let y = 0; y <= max_y; y++) {
                 for (let z = 0; z <= max_z; z++) {
-                    if ((x != 0 && x != max_x || y != 0 && y != max_y) && (z != 0 && z != max_z || y != 0 && y != max_y) && (x != 0 && x != max_x || z != 0 && z != max_z) && (x == 0 || x == max_x || y == 0 || y == max_y || z == 0 || z == max_z) && random.double() >= .1) {
-                        setTreeBlock(tree, x, y - shift, z,  trunk, true)
-                        if (y == max_y) {
-                            setCoral(new Vector(x, y - shift, z), 1)
-                        }
+                    if ((x != 0 && x != max_x || y != 0 && y != max_y) && (z != 0 && z != max_z || y != 0 && y != max_y) && (x != 0 && x != max_x || z != 0 && z != max_z) && (x == 0 || x == max_x || y == 0 || y == max_y || z == 0 || z == max_z) && random.double() >= .2) {
+                        this.placeCoralBlock(tree, new Vector(x, y - shift, z), trunk, random, setTreeBlock)
                     }
                 }
             }
@@ -1402,47 +1353,20 @@ export class Default_Terrain_Generator {
 
     // Дерево коралл
     plantCoralPaw(world : any, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
-        const setCoral = (position, sh = 0)=> {
-            const top = random.nextInt(10)
-            if (top == 0) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  leaves, false)
-            } else if (top == 1) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.SEAGRASS.id}, false)
-            } else if (top == 2) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.BUBBLE_CORAL.id}, false)
-            } else if (top == 3) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.FIRE_CORAL.id}, false)
-            } else if (top == 4) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.BRAIN_CORAL.id}, false)
-            } else if (top == 5) {
-                setTreeBlock(tree, position.x, position.y + sh, position.z,  {id: BLOCK.HORN_CORAL.id}, false)
-            }
-        }
         const trunk = {id: BLOCK.HORN_CORAL_BLOCK.id}
-        const leaves = {id: BLOCK.BRAIN_CORAL.id}
-        const cardinal = [Vector.XN, Vector.XP, Vector.ZN, Vector.ZP]
-        const faces = []
+        let faces = Vector.DIRECTIONS
         const random = new alea('coral' + xyz.toHash())
-        const start_dir = cardinal[random.nextInt(4)]
-        if (random.nextBool()) {
-            faces.push(Vector.XN)
-        }
-        if (random.nextBool()) {
-            faces.push(Vector.XP)
-        }
-        if (random.nextBool()) {
-            faces.push(Vector.ZN)
-        }
-        if (random.nextBool()) {
-            faces.push(Vector.ZP)
-        }
+        const cardinal = faces[random.nextInt(4)]
+        faces.sort(() => random.double() - .5)
+        const size = random.nextInt(2) + 2
+        faces = faces.slice(0, size)
         for (const face of faces) {
             const position = new Vector(0, -1, 0).add(face)
             const count = random.nextInt(3) + 1
             let direction = null
             let chance = 0
-            if (face.equal(start_dir)) {
-                direction = start_dir.clone()
+            if (face.equal(cardinal)) {
+                direction = cardinal.clone()
                 chance = random.nextInt(4) + 2
             } else {
                 position.addSelf(Vector.YP)
@@ -1451,7 +1375,7 @@ export class Default_Terrain_Generator {
             }
 
             for (let l = 0; l < count; l++) {
-                setTreeBlock(tree, position.x, position.y, position.z,  trunk, true)
+                this.placeCoralBlock(tree, position, trunk, random, setTreeBlock)
                 position.addSelf(direction)
             }
 
@@ -1459,12 +1383,81 @@ export class Default_Terrain_Generator {
             position.addSelf(Vector.YP)
 
             for (let l = 0; l < chance; l++) {
-                position.addSelf(start_dir)
-                setTreeBlock(tree, position.x, position.y, position.z,  trunk, true)
-                setCoral(position, 1)
+                position.addSelf(cardinal)
+                this.placeCoralBlock(tree, position, trunk, random, setTreeBlock)
                 if (random.double() < .25) {
                     position.addSelf(Vector.YP)
                 }
+            }
+        }
+    }
+
+    // Кусок коралла
+    placeCoralBlock(tree : any, position : Vector, trunk : any, random : any, setTreeBlock: ISetTreeBlock) {
+        const getCorallId = () => {
+            switch(random.nextInt(5)) {
+                case 0: {
+                    return BLOCK.TUBE_CORAL.id
+                }
+                case 1: {
+                    return BLOCK.BRAIN_CORAL.id
+                }
+                case 2: {
+                    return BLOCK.BUBBLE_CORAL.id
+                }
+                case 3: {
+                    return BLOCK.FIRE_CORAL.id
+                }
+                case 4: {
+                    return BLOCK.HORN_CORAL.id
+                }
+            }
+        }
+        const getCorallFanId = () => {
+            switch(random.nextInt(5)) {
+                case 0: {
+                    return BLOCK.TUBE_CORAL_FAN.id
+                }
+                case 1: {
+                    return BLOCK.BRAIN_CORAL_FAN.id
+                }
+                case 2: {
+                    return BLOCK.BUBBLE_CORAL_FAN.id
+                }
+                case 3: {
+                    return BLOCK.FIRE_CORAL_FAN.id
+                }
+                case 4: {
+                    return BLOCK.HORN_CORAL_FAN.id
+                }
+            }
+        }
+        setTreeBlock(tree, position.x, position.y, position.z, trunk, true)
+        if (random.double() < .25) {
+            const id = getCorallId()
+            setTreeBlock(tree, position.x, position.y + 1, position.z, {id: id}, false)
+        } else if (random.double() < .05) {
+            setTreeBlock(tree, position.x, position.y + 1, position.z, {id: BLOCK.SEAGRASS.id}, false)
+        }
+        // боковые гарни
+        for (const face of Vector.DIRECTIONS) {
+            if (random.double() < .2) {
+                const id = getCorallFanId()
+                const pos = position.add(face)
+                let rotate = new Vector(0, 0, 0)
+                if (face.equal(Vector.XN)) {
+                    rotate.x = 22
+                }
+                if (face.equal(Vector.XP)) {
+                    rotate.x = 13
+                }
+                if (face.equal(Vector.ZN)) {
+                    rotate.x = 7
+                }
+                if (face.equal(Vector.ZP)) {
+                    rotate.x = 18
+                }
+                setTreeBlock(tree, pos.x, pos.y, pos.z, {id: id}, false, rotate)
             }
         }
     }
