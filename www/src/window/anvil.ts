@@ -52,10 +52,6 @@ class AnvilSlot extends CraftTableSlot {
         ct.updateResult();
     }
 
-    getInventory() {
-        return this.ct.inventory
-    }
-
 }
 
 //

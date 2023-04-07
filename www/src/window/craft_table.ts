@@ -156,8 +156,4 @@ export class CraftTable extends BaseCraftWindow {
 
     }
 
-    getSlots() {
-        return this.craft.slots;
-    }
-
 }

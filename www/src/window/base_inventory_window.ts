@@ -6,6 +6,7 @@ import type {Pointer, TMouseEvent} from "../vendors/wm/wm.js";
 import type {World} from "../world.js";
 import type {ServerClient} from "../server_client.js";
 import type {GameClass} from "../game.js";
+import type {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
 
 export class BaseInventoryWindow extends BlankWindow {
     [key: string]: any;
@@ -14,6 +15,7 @@ export class BaseInventoryWindow extends BlankWindow {
     server ?    : ServerClient
     inventory   : PlayerInventory
     drag        : Pointer
+    inventory_slots : CraftTableInventorySlot[]
 
     constructor(x, y, w, h, id, title, text, inventory: PlayerInventory) {
 
@@ -41,9 +43,9 @@ export class BaseInventoryWindow extends BlankWindow {
         this.fixAndValidateSlots('onInventorySetState')
     }
 
-    // Return inventory slots
-    getSlots() {
-        return this.inventory_slots
+    /** @return craft or chest slots (i.e. any slots except inventory), if they exist */
+    getCraftOrChestSlots(): CraftTableSlot[] {
+        return []   // override in subclasses
     }
 
     /**

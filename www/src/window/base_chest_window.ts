@@ -1,7 +1,7 @@
 import { ArrayHelpers, ObjectHelpers, Vector } from "../helpers.js";
 import { BLOCK } from "../blocks.js";
 import { Button, Label } from "../ui/wm.js";
-import { CraftTableInventorySlot } from "./base_craft_window.js";
+import {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
 import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX,
@@ -14,18 +14,17 @@ import { Lang } from "../lang.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
 import type { TBlock } from "../typed_blocks3.js";
 
-const SHIFT_Y = 0
-
 class ChestConfirmData {
     chestSessionId: string
-    chest: { pos: Vector, slots: {} }
-    secondChest: { pos: Vector, slots: {} }
-    inventory_slots: any[]
+    chest: { pos: Vector, slots: Dict<IInventoryItem> }
+    secondChest: { pos: Vector, slots: Dict<IInventoryItem> }
+    inventory_slots: IInventoryItem[]
     change: any
 }
 
 export class BaseChestWindow extends BaseInventoryWindow {
-    [key: string]: any;
+
+    chest: { slots: CraftTableInventorySlot[] }
 
     constructor(x, y, w, h, id, title, text, inventory, options) {
 
@@ -370,7 +369,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
     // Очистка слотов сундука от предметов
     clear() {
         for(let slot of this.chest.slots) {
-            slot.item = null
+            slot.clear()
         }
     }
 
@@ -489,7 +488,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
 
     }
 
-    getSlots() {
+    getCraftOrChestSlots(): CraftTableSlot[] {
         return this.chest.slots;
     }
 
