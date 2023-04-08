@@ -9,6 +9,7 @@ import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
 import type {ArmorState, PlayerHands, PlayerStateUpdate, TSittingState, TSleepState} from "./player.js";
 import type { NetworkPhysicObjectState } from "./network_physic_object.js";
+import type { World } from "./world.js";
 
 const { quat } = glMatrix;
 const SWING_DURATION = 6;
@@ -131,8 +132,8 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     sitting?: false | TSittingState
     sleep?: false | TSleepState
 
-    constructor(props) {
-        super({type: 'player', skin: '1', ...props});
+    constructor(props, world : World) {
+        super({type: 'player', skin: '1', ...props}, world);
 
         this.height = PLAYER_HEIGHT;
         this.width = PLAYER_WIDTH;
@@ -232,7 +233,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         let item;
 
         try {
-            item = new Mesh_Object_Block_Drop(null, null, [block], Vector.ZERO);
+            item = new Mesh_Object_Block_Drop(this.world, null, null, [block], Vector.ZERO);
         } catch(e) {
             console.error(e)
         }
@@ -337,7 +338,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
 
         this.updateArmSwingProgress(delta);
-        if (!this.isRenderable) {
+        if (!this.isRenderable(render)) {
             return;
         }
 
@@ -355,10 +356,10 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         if (this.sleep) {
             // Еесли игрок лежит подвинем ник игрока
             this.nametag.position[1] = 0.2
-            this.nametag.position[2] = head_y + 0.4 
+            this.nametag.position[2] = head_y + 0.4
         } else {
             this.nametag.position[2] = head_y + ((!this.armor.head) ? 0.6 : 0.8);
-            this.nametag.position[1] = 0  
+            this.nametag.position[1] = 0
         }
 
         const d = camPos.distance(this.pos);
@@ -483,7 +484,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
     }
 
-    draw(render, camPos, delta) {
+    draw(render : Renderer, camPos : Vector, delta : float) {
         if(this.isAlive == false) {
             return;
         }

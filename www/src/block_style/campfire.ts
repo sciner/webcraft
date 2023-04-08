@@ -1,27 +1,16 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
 import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector} from '../helpers.js';
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
-import {impl as alea} from "../../vendors/alea.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_TX_CNT } from "../constant.js";
 import type { BlockManager, FakeTBlock } from "../blocks.js";
 import type { TBlock } from "../typed_blocks3.js";
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from "../worker/chunk.js";
+import type { World } from '../world.js';
 
 const {mat4} = glMatrix;
-
 const TX_CNT = DEFAULT_TX_CNT;
-
 const PLANKS_HEIGHT = 8/32;
-
-let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-let a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
-
-const _temp_shift_pos = new Vector(0, 0, 0);
 
 // Костёр
 export default class style {
@@ -39,7 +28,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         let y = 0;
         let aabb = new AABB();
         const w = 1;

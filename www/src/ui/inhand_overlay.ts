@@ -4,6 +4,7 @@ import { Camera } from "../camera.js";
 import { NOT_SPAWNABLE_BUT_INHAND_BLOCKS } from "../constant.js";
 import {Helpers, Mth, Vector} from "../helpers.js";
 import Mesh_Object_Block_Drop from "../mesh/object/block_drop.js";
+import type { World } from "../world.js";
 
 class ItemUseAnimation {
     [key: string]: any;
@@ -56,7 +57,9 @@ export function swapMatrixYZ(matrix) {
 export class InHandOverlay {
     [key: string]: any;
 
-    constructor (skinId, render) {
+    world : World
+
+    constructor (world : World, skinId, render) {
 
         // overlay camera
         this.camera = new Camera({
@@ -80,6 +83,7 @@ export class InHandOverlay {
         this.changAnimationTime = 0;
 
         this.wasEating = false;
+        this.world = world;
     }
 
     reconstructInHandItem(block) {
@@ -112,7 +116,7 @@ export class InHandOverlay {
             if(mat.inventory?.scale) {
                 mat4.scale(m, m, [mat.inventory?.scale, mat.inventory?.scale, mat.inventory?.scale]);
             }
-            this.inHandItemMesh = new Mesh_Object_Block_Drop(null, null, [block], Vector.ZERO, m);
+            this.inHandItemMesh = new Mesh_Object_Block_Drop(this.world, null, null, [block], Vector.ZERO, m);
         } catch(e) {
             console.log(e);
             //

@@ -1,46 +1,52 @@
-import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
-import {TrivialGeometryPool} from "./light/GeometryPool.js";
+import {BigGeometryPool} from "./geom/big_geometry_pool.js";
+import {TrivialGeometryPool} from "./geom/base_geometry_pool.js";
 import {IvanArray, Vector, SpiralGrid} from "./helpers.js";
-import {CubeTexturePool} from "./light/CubeTexturePool.js";
-import {CHUNK_GENERATE_MARGIN_Y, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk_const.js";
+import {CubeTexturePool} from "./light/cube_texture_pool.js";
+import {CHUNK_GENERATE_MARGIN_Y} from "./chunk_const.js";
 import {GROUPS_NO_TRANSPARENT, GROUPS_TRANSPARENT} from "./chunk_manager.js";
 
-import type {GeometryPool} from "./light/GeometryPool.js";
+import type {BaseGeometryPool} from "./geom/base_geometry_pool.js";
 import type {Chunk} from "./chunk.js";
 import type {ChunkManager} from "./chunk_manager.js";
 import type {Renderer} from "./render.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
+import type {ChunkMesh} from "./chunk_mesh.js";
+import {SpiralCulling} from "./render_tree/spiral_culling.js";
 
-const MAX_APPLY_VERTICES_COUNT  = 20;
+const MAX_APPLY_VERTICES_COUNT = 20;
 
 export class ChunkRenderList {
-    bufferPool : GeometryPool = null;
+    bufferPool: BaseGeometryPool = null;
     chunkManager: ChunkManager;
 
-    listByResourcePack: Map<string, Map<string, Map<string, IvanArray>>> = new Map();
+    listByResourcePack: Map<string, Map<string, Map<string, IvanArray<ChunkMesh>>>> = new Map();
+    meshLists: IvanArray<ChunkMesh>[] = [];
     prev_render_dist = -1;
     spiral = new SpiralGrid();
+    culling = new SpiralCulling(this.spiral);
 
     constructor(chunkManager: ChunkManager) {
         this.chunkManager = chunkManager;
     }
 
     render: Renderer;
+
     init(render: Renderer) {
         const {chunkManager} = this;
         this.render = render;
         if (render.renderBackend.multidrawBaseExt) {
-            this.bufferPool = new Basic05GeometryPool(render.renderBackend, {});
+            this.bufferPool = new BigGeometryPool(render.renderBackend, {});
         } else {
             this.bufferPool = new TrivialGeometryPool(render.renderBackend);
         }
         chunkManager.fluidWorld.mesher.initRenderPool(render.renderBackend);
 
         const {lightProps} = this;
+        const {chunkSize} = this.chunkManager.grid
         this.lightPool = new CubeTexturePool(render.renderBackend, {
-            defWidth: CHUNK_SIZE_X + 2,
-            defHeight: CHUNK_SIZE_Z + 2,
-            defDepth: (CHUNK_SIZE_Y + 2) * lightProps.depthMul,
+            defWidth: chunkSize.x + 2,
+            defHeight: chunkSize.z + 2,
+            defDepth: (chunkSize.y + 2) * lightProps.depthMul,
             type: lightProps.texFormat,
             filter: 'linear',
         });
@@ -49,11 +55,27 @@ export class ChunkRenderList {
     get centerChunkAddr() {
         return this.spiral.center;
     }
+
+    get bufferSizeBytes() {
+        return this.bufferPool?.baseGeometry?.buffer?.bigLength || 0;
+    }
+
+    uploadBuffers(render: Renderer) {
+        let baseGeom = (this.bufferPool as any)?.baseGeometry;
+        if (baseGeom) {
+            baseGeom.bind(render.defaultShader);
+        }
+        baseGeom = (this.chunkManager.fluidWorld.mesher.renderPool as any)?.baseGeometry;
+        if (baseGeom) {
+            baseGeom.bind(render.defaultFluidShader);
+        }
+    }
+
     /**
      * highly optimized
      */
     prepareRenderList() {
-        const {chunkManager, render, spiral} = this;
+        const {chunkManager, render, spiral, culling} = this;
 
         const player = render.player;
         const chunk_render_dist = player.state.chunk_render_dist;
@@ -88,32 +110,30 @@ export class ChunkRenderList {
         /**
          * please dont re-assign renderList entries
          */
-        const {listByResourcePack} = this;
-        for (let v of listByResourcePack.values()) {
-            for (let v2 of v.values()) {
-                for (let v3 of v2.values()) {
-                    v3.clear();
-                }
-            }
+        const {meshLists} = this;
+        for (let i = 0; i < meshLists.length; i++) {
+            meshLists[i].clear();
         }
-        //
 
-        for(let i = 0; i < spiral.entries.length; i++) {
-            const chunk = spiral.entries[i].chunk as Chunk
+        culling.update(render.frustum, chunkManager.dataWorld.grid.chunkSize);
+
+        const {cullIDs, entries} = spiral;
+        const cullID = render.cullID = culling.updateID;
+        let cnt = 0;
+
+        for (let i = 0; i < entries.length; i++) {
+            if (cullIDs[i] !== cullID) {
+                continue;
+            }
+            cnt++;
+            const chunk = entries[i].chunk as Chunk
             if (!chunk || !chunk.chunkManager) {
                 // destroyed!
                 continue;
             }
+            chunk.cullID = cullID;
             // actualize light
-            if (!chunk.dirty || chunk.need_apply_vertices) {
-                chunk.prepareRender(render.renderBackend);
-            }
-            if(chunk.vertices_length === 0 && !chunk.need_apply_vertices) {
-                continue;
-            }
-            if(!chunk.updateInFrustum(render)) {
-                continue;
-            }
+            chunk.prepareRender(render.renderBackend);
             if (chunk.need_apply_vertices) {
                 if (this.bufferPool.checkHeuristicSize(chunk.vertices_args_size)) {
                     this.bufferPool.prepareMem(chunk.vertices_args_size);
@@ -121,49 +141,50 @@ export class ChunkRenderList {
                     chunk.applyChunkWorkerVertices();
                 }
             }
-            if(chunk.vertices_length === 0) {
+            if (chunk.vertices_length === 0) {
                 continue;
             }
-            for(let i = 0; i < chunk.verticesList.length; i++) {
+            for (let i = 0; i < chunk.verticesList.length; i++) {
                 let v = chunk.verticesList[i];
-                let rpl = v.rpl;
-                if (!rpl) {
-                    let key1 = v.resource_pack_id;
-                    let key2 = v.material_group;
-                    let key3 = v.material_shader;
-                    if (!v.buffer) {
-                        continue;
-                    }
-                    let rpList = listByResourcePack.get(key1);
-                    if (!rpList) {
-                        listByResourcePack.set(key1, rpList = new Map());
-                    }
-                    let groupList = rpList.get(key2);
-                    if (!groupList) {
-                        rpList.set(key2, groupList = new Map());
-                    }
-                    if (!groupList.get(key3)) {
-                        groupList.set(key3, new IvanArray());
-                    }
-                    rpl = v.rpl = groupList.get(key3);
-                }
-                rpl.push(chunk);
-                rpl.push(v);
+                v.rpl.push(v);
                 chunk.rendered = 0;
             }
         }
+        /*if (performance.now() % 1000 < 10) {
+            console.log(`culling found ${cnt} chunks`);
+        }*/
     }
 
     chunkAlive(chunk: Chunk) {
         this.spiral.setChunk(chunk.addr, chunk);
     }
 
+    addChunkMesh(v: ChunkMesh) {
+        let key1 = v.resource_pack_id;
+        let key2 = v.material_group;
+        let key3 = v.material_shader;
+        let rpList = this.listByResourcePack.get(key1);
+        if (!rpList) {
+            this.listByResourcePack.set(key1, rpList = new Map());
+        }
+        let groupList = rpList.get(key2);
+        if (!groupList) {
+            rpList.set(key2, groupList = new Map());
+        }
+        if (!groupList.get(key3)) {
+            const ia = new IvanArray();
+            groupList.set(key3, ia);
+            this.meshLists.push(ia);
+        }
+        v.rpl = groupList.get(key3);
+    }
+
     /**
      * Draw level chunks
      */
-    draw(render : Renderer, resource_pack : BaseResourcePack, transparent : boolean) {
+    draw(render: Renderer, resource_pack: BaseResourcePack, transparent: boolean) {
         const {chunkManager} = this;
-        if(!chunkManager.worker_inited || !chunkManager.nearby) {
+        if (!chunkManager.worker_inited || !chunkManager.nearby) {
             return;
         }
         const rpList = this.listByResourcePack.get(resource_pack.id);
@@ -171,7 +192,7 @@ export class ChunkRenderList {
             return true;
         }
         let groups = transparent ? GROUPS_TRANSPARENT : GROUPS_NO_TRANSPARENT;
-        for(let group of groups) {
+        for (let group of groups) {
             const groupList = rpList.get(group);
             if (!groupList) {
                 continue;
@@ -183,21 +204,19 @@ export class ChunkRenderList {
 
                 if (!mat.opaque && mat.shader.fluidFlags) {
                     // REVERSED!!!
-                    for (let i = count - 2; i >= 0; i -= 2) {
-                        const chunk = arr[i] as Chunk;
-                        const vertices = arr[i + 1];
-                        chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
-                        if (!chunk.rendered) {
+                    for (let i = count - 1; i >= 0; i--) {
+                        arr[i].draw(render.renderBackend, resource_pack, group, mat);
+                        const chunk = arr[i].chunk;
+                        if (chunk.rendered === 0) {
                             chunkManager.rendered_chunks.fact++;
                         }
                         chunk.rendered++;
                     }
                 } else {
-                    for (let i = 0; i < count; i += 2) {
-                        const chunk = arr[i];
-                        const vertices = arr[i + 1];
-                        chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
-                        if (!chunk.rendered) {
+                    for (let i = 0; i < count; i++) {
+                        arr[i].draw(render.renderBackend, resource_pack, group, mat);
+                        const chunk = arr[i].chunk;
+                        if (chunk.rendered === 0) {
                             chunkManager.rendered_chunks.fact++;
                         }
                         chunk.rendered++;

@@ -1,17 +1,19 @@
-import {TerrainSubGeometry} from "./TerrainSubGeometry.js";
-import {TerrainMultiGeometry} from "./TerrainMultiGeometry.js";
-import {GeometryPool} from "./GeometryPool.js";
+import {TerrainSubGeometry} from "./terrain_sub_geometry.js";
+import {TerrainBigGeometry} from "./terrain_big_geometry.js";
+import {BaseGeometryPool} from "./base_geometry_pool.js";
 
-export class Basic05GeometryPool extends GeometryPool {
+export class BigGeometryPool extends BaseGeometryPool {
     [key: string]: any;
     constructor(context, {
         pageSize = 256,
         pageCount = 1000,
-        growCoeff = 1.5
+        growCoeff = 2.0,
+        growMaxPageInc = 8000,
     }) {
         super(context)
 
         this.growCoeff = growCoeff;
+        this.growMaxPageInc = growMaxPageInc;
         this.pageCount = pageCount;
         this.pageSize = pageSize;
         this.freePages = [];
@@ -23,7 +25,7 @@ export class Basic05GeometryPool extends GeometryPool {
     }
 
     initBaseGeometry() {
-        this.baseGeometry = new TerrainMultiGeometry({
+        this.baseGeometry = new TerrainBigGeometry({
             context: this.context, size: this.pageCount * this.pageSize
         })
     }
@@ -31,7 +33,7 @@ export class Basic05GeometryPool extends GeometryPool {
     grow() {
         const {pageSize, growCoeff, freePages} = this;
         const prevSize = this.pageCount;
-        const newSize = this.pageCount = Math.ceil(prevSize * growCoeff);
+        const newSize = this.pageCount = Math.min(prevSize + this.growMaxPageInc, Math.ceil(prevSize * growCoeff));
         this.baseGeometry.resize(newSize * pageSize);
         for (let i = newSize - 1; i >= prevSize; i--) {
             freePages.push(i);

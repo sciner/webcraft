@@ -1,12 +1,13 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
+import { MAX_CHUNK_SQUARE} from "../chunk_const.js";
 import {BLOCK} from '../blocks.js';
-import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, getChunkAddr, IndexedColor } from '../helpers.js';
+import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, IndexedColor, ArrayHelpers } from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
 import { WorldAction } from "../world_action.js";
 import type { ChunkWorkerChunk } from "../worker/chunk.js";
 import type { TerrainMapCell } from "./terrain_map.js";
 import { CD_ROT } from "../core/CubeSym.js";
+import type { WorkerWorld } from "../worker/world.js";
 
 declare type ISetTreeBlock = (tree : any, x : int, y : int, z : int, block_type : any, force_replace : boolean, rotate? : IVector, extra_data? : any) => any
 
@@ -26,19 +27,21 @@ const _cache = {} as {[key: string] : any}
 
 //
 export class Default_Terrain_Map {
-    [key: string]: any;
+    chunk: IChunk;
+    options: any;
+    cells: any;
 
     constructor(addr : Vector, size : Vector, coord : Vector, options : any, cells) {
-        this.chunk = {addr, size, coord};
-        this.options = options;
-        this.cells = cells;
+        this.chunk = {addr, size, coord} as IChunk
+        this.options = options
+        this.cells = cells
     }
 
     /**
      * Return map cell
      */
     getCell(x : int, z : int) : TerrainMapCell {
-        return this.cells[z * CHUNK_SIZE_X + x]
+        return this.cells[z * this.chunk.size.x + x]
     }
 
 }
@@ -46,41 +49,33 @@ export class Default_Terrain_Map {
 //
 export class Default_Terrain_Generator {
 
-    seed: string
-    voxel_buildings: any[];
-    noise2d: any;
-    noise3d: any;
-    world_id: string;
-    options: any;
-    x: number;
-    xyz_temp: Vector;
-    xyz_temp_find: Vector;
-    xyz_temp_coord: Vector;
-    _chunk_addr: Vector;
-    _block_pos: Vector;
-    temp_block: { id: number; };
-    temp_tblock: any;
-    tree_styles: Map<any, any>;
-    seed_int: number;
-    fastRandoms: FastRandom;
+    seed:               string
+    voxel_buildings:    any[] = []
+    x:                  number = 0
+    noise2d:            any
+    noise3d:            any
+    world_id:           string
+    options:            any
+
+    xyz_temp:           Vector = new Vector(0, 0, 0);
+    xyz_temp_find:      Vector = new Vector(0, 0, 0);
+    xyz_temp_coord:     Vector = new Vector(0, 0, 0);
+    _chunk_addr:        Vector = new Vector(0, 0, 0);
+    _block_pos:         Vector = new Vector(0, 0, 0);
+
+    temp_block:         { id: number } = {id: 0}
+    temp_tblock:        any = null
+    tree_styles:        Map<any, any> = new Map()
+    seed_int:           number
+    fastRandoms:        FastRandom
 
     constructor(seed : string, world_id? : string, options?, noise2d? : any, noise3d? : any) {
-        this.voxel_buildings = [];
-        this.setSeed(seed);
         this.noise2d        = noise2d ?? noise.simplex2;
         this.noise3d        = noise3d ?? noise.simplex3;
         this.world_id       = world_id;
         this.options        = options;
-        this.x              = 0;
-        this.xyz_temp       = new Vector(0, 0, 0);
-        this.xyz_temp_find  = new Vector(0, 0, 0);
-        this.xyz_temp_coord = new Vector(0, 0, 0);
-        this._chunk_addr    = new Vector(0, 0, 0);
-        this._block_pos     = new Vector(0, 0, 0);
-        this.temp_block     = {id: 0};
-        this.temp_tblock    = null;
+        this.setSeed(seed);
         // Tree styles
-        this.tree_styles = new Map()
         this.tree_styles.set('cactus', this.plantCactus.bind(this)) // кактус
         this.tree_styles.set('bamboo', this.plantBamboo.bind(this)) // бамбук
         this.tree_styles.set('stump', this.plantStump.bind(this)) // пенёк
@@ -96,17 +91,20 @@ export class Default_Terrain_Generator {
         this.tree_styles.set('big_oak', this.plantBigOak.bind(this)) // большой дуб
         this.tree_styles.set('chorus', this.plantChorus.bind(this)) // растение хоруса
         this.tree_styles.set('peak', this.plantPeak.bind(this)) // пика
+        this.tree_styles.set('coral_tree', this.plantCoralTree.bind(this)) // корал дерево
+        this.tree_styles.set('coral_paw', this.plantCoralPaw.bind(this)) // корал бокс
+        this.tree_styles.set('coral_mushroom', this.plantCoralMushroom.bind(this)) // корал лапа
     }
 
     async init() : Promise<boolean> {
-        return true;
+        return true
     }
 
     async setSeed(seed : string) {
-        this.seed = seed;
-        this.seed_int = parseInt(this.seed);
-        noise.seed(this.seed);
-        this.fastRandoms = new FastRandom(this.seed, CHUNK_SIZE_X * CHUNK_SIZE_Z);
+        this.seed = seed
+        this.seed_int = parseInt(this.seed)
+        noise.seed(this.seed)
+        this.fastRandoms = new FastRandom(this.seed, MAX_CHUNK_SQUARE)
     }
 
     //
@@ -154,8 +152,8 @@ export class Default_Terrain_Generator {
     }
 
     // plantTree...
-    plantTree(world, tree, chunk, x, y, z, check_chunk_size = true) {
-        
+    plantTree(world : WorkerWorld, tree, chunk, x: int, y: int, z: int, check_chunk_size = true) {
+
         const type = tree.type;
         const style_func = this.tree_styles.get(type.style)
 
@@ -191,10 +189,16 @@ export class Default_Terrain_Generator {
         } else if(first_time_generation) {
             // if first time calling plant for this tree
             style_func(world, tree, xyz, (tree, x, y, z, block_type, force_replace, rotate, extra_data) => {
+                if(tree.type.underwater) {
+                    // TODO: need to check local_water_level
+                    if(xyz.y + y >= world.generator.options.WATER_LEVEL) {
+                        return
+                    }
+                }
                 x += orig_xyz.x
                 y += orig_xyz.y
                 z += orig_xyz.z
-                this.setTreeBlock(tree, chunk, x, y, z, block_type, force_replace, rotate, extra_data)
+                this.setTreeBlock(world, tree, chunk, x, y, z, block_type, force_replace, rotate, extra_data)
             });
         }
 
@@ -215,22 +219,24 @@ export class Default_Terrain_Generator {
     }
 
     //
-    setTreeBlock(tree, chunk, x : int, y : int, z : int, block_type : any, force_replace : boolean = false, rotate : Vector, extra_data : any) {
+    setTreeBlock(world : WorkerWorld, tree, chunk, x : int, y : int, z : int, block_type : any, force_replace : boolean = false, rotate : Vector, extra_data : any) {
 
         const ax = chunk.coord.x + x
         const ay = chunk.coord.y + y
         const az = chunk.coord.z + z
+        const grid = world.chunkManager.grid
+        const chunk_size = chunk.size
 
-        this._chunk_addr = getChunkAddr(ax, ay, az, this._chunk_addr)
+        this._chunk_addr = grid.getChunkAddr(ax, ay, az, this._chunk_addr)
         let c = tree.chunks.get(this._chunk_addr)
         if(!c) {
             c = {blocks: new SimpleQueue()}
             tree.chunks.set(this._chunk_addr, c)
         }
 
-        const cx = ax - Math.floor(ax / CHUNK_SIZE_X) * CHUNK_SIZE_X;
-        const cy = ay - Math.floor(ay / CHUNK_SIZE_Y) * CHUNK_SIZE_Y;
-        const cz = az - Math.floor(az / CHUNK_SIZE_Z) * CHUNK_SIZE_Z;
+        const cx = ax - Math.floor(ax / chunk_size.x) * chunk_size.x
+        const cy = ay - Math.floor(ay / chunk_size.y) * chunk_size.y
+        const cz = az - Math.floor(az / chunk_size.z) * chunk_size.z
         const block_id = block_type.id
 
         const block = {cx, cy, cz, block_id, force_replace, rotate, extra_data}
@@ -250,9 +256,11 @@ export class Default_Terrain_Generator {
                     if(rotate || extra_data) {
                         tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data)
                     }
+                    return true
                 }
             }
         }
+        return false
     }
 
     // Кактус
@@ -1016,14 +1024,18 @@ export class Default_Terrain_Generator {
     }
 
     // Большой дуб
-    plantBigOak(world : any, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
-
+    plantBigOak(world : WorkerWorld, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
         const x = 0
         const y = 0
         const z = 0
 
         // высоту нужно принудительно контроллировать, чтобы она не стала выше высоты 1 чанка
-        const height = Math.min(CHUNK_SIZE_Y - 12, tree.height); // рандомная высота дерева, переданная из генератор
+        const height = Math.min(Math.max(world.chunkManager.grid.chunkSize.y - 12, 0), tree.height) // рандомная высота дерева, переданная из генератора
+        if(height < 1) {
+            console.warn('error_to_low_chunk_size')
+            return
+        }
+
         const getRandom = createFastRandom('tree_big' + xyz.toHash(), 128)
 
         // рисуем корни
@@ -1293,7 +1305,174 @@ export class Default_Terrain_Generator {
 
         }
 
+    }
 
+    nextInt(index: number, val: number) {
+        return ((this.fastRandoms.int32(index) & 0x7FFFFFFF) % val)
+    }
+
+    // Дерево коралл
+    plantCoralTree(world : any, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
+        const trunk = {id: tree.type.trunk}
+        let index = xyz.x + xyz.y + xyz.z + tree.height
+        const pos = new Vector(0, -1, 0)
+        const height = this.nextInt(index++, 3) + 1
+        for (let i = 0; i < height; i++) {
+            pos.addSelf(Vector.YP)
+            this.placeCoralBlock(tree, pos, trunk, index++, setTreeBlock)
+        }
+        let faces = [...Vector.DIRECTIONS]
+        const random = new alea('coral_'+ xyz.toHash())
+        ArrayHelpers.shuffle(faces, random.double)
+        const size = this.nextInt(index++, 3) + 2
+        faces = faces.slice(0, size)
+        for (const face of faces) {
+            const position = pos.clone().addSelf(face)
+            const size = this.nextInt(index++, 5) + 2
+            let n = 0
+            for (let i = 0; i < size; i++) {
+                this.placeCoralBlock(tree, position, trunk, index++, setTreeBlock)
+                position.addSelf(Vector.YP)
+                n++
+                if (i == 0 || n >= 2 && this.fastRandoms.double(index++) < .25) {
+                    this.placeCoralBlock(tree, position, trunk, index, setTreeBlock)
+                    position.addSelf(face)
+                    n = 0
+                }
+            }
+            this.placeCoralBlock(tree, position, trunk, index++, setTreeBlock)
+        }
+    }
+
+    // Дерево коралл
+    plantCoralMushroom(world : any, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
+        let index = xyz.x + xyz.y + xyz.z + tree.height
+        const trunk = {id: tree.type.trunk}
+        const max_x = this.nextInt(index++, 3) + 3
+        const max_y = this.nextInt(index++, 3) + 3
+        const max_z = this.nextInt(index++, 3) + 3
+        const shift = this.nextInt(index++, 3) + 1
+        for (let x = 0; x <= max_x; x++) {
+            for (let y = 0; y <= max_y; y++) {
+                for (let z = 0; z <= max_z; z++) {
+                    if ((x != 0 && x != max_x || y != 0 && y != max_y) && (z != 0 && z != max_z || y != 0 && y != max_y) && (x != 0 && x != max_x || z != 0 && z != max_z) && (x == 0 || x == max_x || y == 0 || y == max_y || z == 0 || z == max_z) && this.fastRandoms.double(index++) >= .2) {
+                        this.placeCoralBlock(tree, new Vector(x, y - shift, z), trunk, index++, setTreeBlock)
+                    }
+                }
+            }
+        }
+    }
+
+    // Дерево коралл
+    plantCoralPaw(world : any, tree : any, xyz : Vector, setTreeBlock : ISetTreeBlock) {
+        let faces = [...Vector.DIRECTIONS]
+        let index = xyz.x + xyz.y + xyz.z + tree.height
+        const trunk = {id: tree.type.trunk}
+        const cardinal = faces[this.nextInt(index++, 4)]
+        const size = this.nextInt(index++, 2) + 2
+        const random = new alea('coral'+ xyz.toHash())
+        ArrayHelpers.shuffle(faces, random.double)
+        faces = faces.slice(0, size)
+        for (const face of faces) {
+            const position = new Vector(0, -1, 0).add(face)
+            const count = this.nextInt(index++, 2) + 1
+            let direction = null
+            let chance = 0
+            if (face.equal(cardinal)) {
+                direction = cardinal.clone()
+                chance = this.nextInt(index++, 4) + 2
+            } else {
+                position.addSelf(Vector.YP)
+                direction = this.fastRandoms.double(index++) > .5 ? face : Vector.YP
+                chance = this.nextInt(index++, 4) + 3
+            }
+
+            for (let l = 0; l < count; l++) {
+                this.placeCoralBlock(tree, position, trunk, index++, setTreeBlock)
+                position.addSelf(direction)
+            }
+
+            position.addSelf(direction.mulScalar(-1))
+            position.addSelf(Vector.YP)
+
+            for (let l = 0; l < chance; l++) {
+                position.addSelf(cardinal)
+                this.placeCoralBlock(tree, position, trunk, index++, setTreeBlock)
+                if (this.fastRandoms.double(index++) < .25) {
+                    position.addSelf(Vector.YP)
+                }
+            }
+        }
+    }
+
+    // Кусок коралла
+    placeCoralBlock(tree : any, position : Vector, trunk : any, index : number, setTreeBlock: ISetTreeBlock) {
+        const getCorallId = () => {
+            const id = this.nextInt(index++, 5)
+            switch(id) {
+                case 0: {
+                    return BLOCK.TUBE_CORAL.id
+                }
+                case 1: {
+                    return BLOCK.BRAIN_CORAL.id
+                }
+                case 2: {
+                    return BLOCK.BUBBLE_CORAL.id
+                }
+                case 3: {
+                    return BLOCK.FIRE_CORAL.id
+                }
+                case 4: {
+                    return BLOCK.HORN_CORAL.id
+                }
+            }
+        }
+        const getCorallFanId = () => {
+            const id = this.nextInt(index++, 5)
+            switch(id) {
+                case 0: {
+                    return BLOCK.TUBE_CORAL_FAN.id
+                }
+                case 1: {
+                    return BLOCK.BRAIN_CORAL_FAN.id
+                }
+                case 2: {
+                    return BLOCK.BUBBLE_CORAL_FAN.id
+                }
+                case 3: {
+                    return BLOCK.FIRE_CORAL_FAN.id
+                }
+                case 4: {
+                    return BLOCK.HORN_CORAL_FAN.id
+                }
+            }
+        }
+        setTreeBlock(tree, position.x, position.y, position.z, trunk, true)
+        const chance = this.fastRandoms.double(index++)
+        if (chance < .05) {
+            setTreeBlock(tree, position.x, position.y + 1, position.z, {id: BLOCK.SEAGRASS.id}, false)
+        } else if (chance < .25) {
+            const id = getCorallId()
+            setTreeBlock(tree, position.x, position.y + 1, position.z, {id: id}, false)
+        }
+        // боковые гарни
+        for (const face of Vector.DIRECTIONS) {
+            if (this.fastRandoms.double(index++) < .02) {
+                const id = getCorallFanId()
+                const pos = position.add(face)
+                let rotate = new Vector(0, 0, 0)
+                if (face.equal(Vector.XN)) {
+                    rotate.x = CD_ROT.EAST
+                } else if (face.equal(Vector.XP)) {
+                    rotate.x = CD_ROT.WEST
+                } else if (face.equal(Vector.ZN)) {
+                    rotate.x = CD_ROT.NORTH
+                } else if (face.equal(Vector.ZP)) {
+                    rotate.x = CD_ROT.SOUTH
+                }
+                setTreeBlock(tree, pos.x, pos.y, pos.z, {id: id}, false, rotate)
+            }
+        }
     }
     
     makeLeavesExtraData(xyz : Vector) {

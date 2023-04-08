@@ -1,14 +1,14 @@
-import {IndexedColor, DIRECTION, QUAD_FLAGS, Vector, calcRotateMatrix } from '../helpers.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk_const.js";
-import {impl as alea} from "../../vendors/alea.js";
+import {IndexedColor, DIRECTION, QUAD_FLAGS, Vector, calcRotateMatrix, FastRandom } from '../helpers.js';
+import { MAX_CHUNK_SQUARE} from "../chunk_const.js";
 import { CubeSym } from '../core/CubeSym.js';
 import {AABB} from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style, QuadPlane, TX_SIZE} from './default.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import { DEFAULT_DIRT_PALETTE, DEFAULT_GRASS_PALETTE, GRASS_COLOR_SHIFT_FACTOR, GRASS_PALETTE_OFFSET } from '../constant.js';
+import { DEFAULT_GRASS_PALETTE, GRASS_COLOR_SHIFT_FACTOR, GRASS_PALETTE_OFFSET } from '../constant.js';
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import type { World } from '../world.js';
 
 const {mat4} = glMatrix;
 
@@ -45,19 +45,17 @@ const SUNFLOWER_PLANES = [
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, Math.PI / 8], "move": {"x": 0.098, "y": 0, "z": 0}, "dir": DIRECTION.SOUTH}
 ];
 
-const DEFAULT_AABB_SIZE = new Vector(12, 12, 12);
+const ANGLE_FACET = [
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, Math.PI / 3], "move": {"x": 0, "y": 0, "z": 0}, "translate": {"x": -6.7, "y": 4, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, -Math.PI / 3], "move": {"x": 0, "y": 0, "z": 0}, "translate": {"x": 6.7, "y": 4, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [Math.PI / 2, Math.PI / 6, Math.PI / 2],  "translate": {"x": -6.7, "y": 4, "z": 0}},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [-Math.PI / 2, Math.PI / 6, -Math.PI / 2],  "translate": {"x": 6.7, "y": 4, "z": 0}}
+]
 
+const DEFAULT_AABB_SIZE = new Vector(12, 12, 12);
 const aabb = new AABB();
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
-
-const RANDOMS_COUNT = CHUNK_SIZE_X * CHUNK_SIZE_Z;
-const randoms = new Array(RANDOMS_COUNT);
-const a = new alea('random_plants_position');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = a.double();
-}
-
-//
+const randoms = new FastRandom('planting', MAX_CHUNK_SQUARE)
 const _pl = new QuadPlane()
 const _vec = new Vector(0, 0, 0);
 
@@ -78,7 +76,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
         const aabb_size = tblock.material.aabb_size || DEFAULT_AABB_SIZE;
         aabb.set(0, 0, 0, 0, 0, 0)
@@ -135,9 +133,9 @@ export default class style {
         const is_flower = block.hasTag('flower');
         const is_agriculture = block.hasTag('agriculture');
         const is_grass = material.is_grass;
-        const random_index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
+        const random_index = (z * chunk.size.x + x) % randoms.length
 
-        let texture = bm.calcMaterialTexture(material, texture_dir, null, null, block, undefined, randoms[random_index]);
+        let texture = bm.calcMaterialTexture(material, texture_dir, null, null, block, undefined, randoms.double(random_index));
 
         let dx = 0, dy = 0, dz = 0;
         let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
@@ -171,13 +169,13 @@ export default class style {
         matrix = calcRotateMatrix(material, block.rotate, cardinal_direction, matrix);
         if(material.planting && !block.hasTag('no_random_pos')) {
             if(is_grass || is_flower) {
-                dx = randoms[random_index] * 12/16 - 6/16;
-                dz = randoms[RANDOMS_COUNT - random_index] * 12/16 - 6/16;
-                // dy -= .2 * randoms[random_index];
+                dx = randoms.double(random_index) * 12/16 - 6/16;
+                dz = randoms.double(randoms.length - random_index) * 12/16 - 6/16;
+                // dy -= .2 * randoms.double(random_index)
                 if(!matrix) {
                     matrix = mat4.create();
                 }
-                mat4.rotateY(matrix, matrix, Math.PI*2 * randoms[random_index]);
+                mat4.rotateY(matrix, matrix, Math.PI*2 * randoms.double(random_index));
             }
         }
 
@@ -198,7 +196,8 @@ export default class style {
         }
 
         // Planes
-        let planes = material.planes || (is_agriculture ? AGRICULTURE_PLANES : (is_tall_grass ? (block.hasTag('is_tall_grass_3') ? TALL_GRASS_3_PLANES : TALL_GRASS_PLANES) : DEFAULT_PLANES));
+        let planes = null
+        planes = material.planes || (is_agriculture ? AGRICULTURE_PLANES : (is_tall_grass ? (block.hasTag('is_tall_grass_3') ? TALL_GRASS_3_PLANES : TALL_GRASS_PLANES) : DEFAULT_PLANES));
 
         // Sunflower
         if (material.name == 'SUNFLOWER') {
@@ -246,6 +245,10 @@ export default class style {
             }
         }
 
+        if(block.hasTag('angle_facet')) {
+            planes = ANGLE_FACET
+        }
+
         for(let j = 0; j < loops; j++) {
             for(let i = 0; i < planes.length; i++) {
                 const plane = planes[i];
@@ -253,18 +256,19 @@ export default class style {
                 if (!isNaN((plane as any).dir)) {
                     texture = bm.calcMaterialTexture(material, (plane as any).dir);
                 }
-                _pl.size     = plane.size;
-                _pl.uv       = plane.uv as tupleFloat2;
-                _pl.rot      = plane.rot as Vector;
-                _pl.lm       = style.lm;
-                _pl.pos      = _vec.set(
+                _pl.translate = plane.translate
+                _pl.size      = plane.size;
+                _pl.uv        = plane.uv as tupleFloat2;
+                _pl.rot       = plane.rot as Vector;
+                _pl.lm        = style.lm;
+                _pl.pos       = _vec.set(
                     x + dx + (plane.move?.x || 0),
                     y + dy + (plane.move?.y || 0) + j,
                     z + dz + (plane.move?.z || 0)
                 );
-                _pl.matrix   = matrix;
-                _pl.flag     = flag;
-                _pl.texture  = texture;
+                _pl.matrix    = matrix;
+                _pl.flag      = flag;
+                _pl.texture   = texture;
                 default_style.pushPlane(vertices, _pl);
             }
         }

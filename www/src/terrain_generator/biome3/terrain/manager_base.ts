@@ -1,17 +1,20 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../../../chunk_const.js";
 import { Vector, VectorCollector } from "../../../helpers.js";
 import { Biomes } from "./../biomes.js";
-import { TerrainMap2 } from "./map.js";
+import { Biome3TerrainMap } from "./map.js";
 
 import type { BLOCK } from "../../../blocks.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type { Biome3LayerBase } from "../layers/base.js";
+import type { WorkerWorld } from "../../../worker/world.js";
 
 //
 const _temp_chunk = {
     addr: new Vector(),
     coord: new Vector(),
-    size: new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)
+    size: new Vector(),
+    chunkManager: {
+        grid: null
+    }
 };
 
 export class TerrainMapManagerBase implements ITerrainMapManager {
@@ -26,11 +29,13 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
     generator_options:      any
     float_seed:             any
     layer:                  Biome3LayerBase
+    world:                  WorkerWorld
 
     static _temp_vec3 = Vector.ZERO.clone()
     static _temp_vec3_delete = Vector.ZERO.clone()
 
-    constructor(seed : string, world_id : string, noise2d : Function, noise3d : Function, block_manager : BLOCK, generator_options, layer : Biome3LayerBase) {
+    constructor(world: WorkerWorld, seed : string, world_id : string, noise2d : Function, noise3d : Function, block_manager : BLOCK, generator_options, layer : Biome3LayerBase) {
+        this.world = world;
         this.seed = seed;
         this.world_id = world_id;
         this.noise2d = noise2d;
@@ -58,7 +63,7 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
         return this.maps_cache.get(addr);
     }
 
-    generateMapOrReturnFromCache(real_chunk, chunk, noisefn) : TerrainMap2 {
+    generateMapOrReturnFromCache(real_chunk, chunk, noisefn) : Biome3TerrainMap {
 
         const cached = this.maps_cache.get(chunk.addr);
         if(cached) {
@@ -76,7 +81,7 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
     generateMap(real_chunk : any, chunk : ChunkWorkerChunk, noisefn) {
 
         // Result map
-        const map = new TerrainMap2(chunk, this.generator_options, this.noise2d)
+        const map = new Biome3TerrainMap(chunk, this.generator_options, this.noise2d)
         // const biome = this.biomes.byID.get(500)
 
         // const cell = new TerrainMapCell(80, 0, 0, null, 0)
@@ -88,7 +93,7 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
         // map.cells = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z).fill(cell)
 
         return map
-    
+
     }
 
     generateAround(chunk : ChunkWorkerChunk, chunk_addr : Vector, smooth : boolean = false, generate_trees : boolean = false) : any[] {
@@ -96,7 +101,8 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
         const rad        = generate_trees ? 2 : 1
         const noisefn    = this.noise2d
         const maps       = []
-
+        const grid = _temp_chunk.chunkManager.grid = chunk.chunkManager.grid;
+        _temp_chunk.size.copyFrom(grid.chunkSize);
         for(let x = -rad; x <= rad; x++) {
             for(let z = -rad; z <= rad; z++) {
                 TerrainMapManagerBase._temp_vec3.set(x, -chunk_addr.y, z);

@@ -1,8 +1,7 @@
 "use strict";
 
-import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix, TX_CNT, Color} from '../helpers.js';
-import {impl as alea} from "../../vendors/alea.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk_const.js";
+import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix, TX_CNT, Color, FastRandom} from '../helpers.js';
+import { MAX_CHUNK_SQUARE} from "../chunk_const.js";
 import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style, QuadPlane, TCalcSideParamsResult } from './default.js';
@@ -11,6 +10,7 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { BLOCK, BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import type { World } from '../world.js';
 
 const {mat4} = glMatrix;
 
@@ -87,12 +87,7 @@ const UP_AXES = [
 ];
 
 // Used for grass pseudo-random rotation
-const randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
-const a = new alea('random_dirt_rotations');
-for(let i = 0; i < randoms.length; i++) {
-    randoms[i] = Math.round(a.double() * 100);
-}
-
+const randoms = new FastRandom('random_dirt_rotations', MAX_CHUNK_SQUARE, 100, true)
 const OVERLAY_TEXTURE_MATERIAL_KEYS = []
 
 export default class style {
@@ -114,7 +109,7 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : any = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
+    static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const material = tblock.material;
         let width = material.width ? material.width : 1;
         let height = material.height ? material.height : 1;
@@ -236,39 +231,59 @@ export default class style {
     /**
      * Can draw face
      */
-    static canDrawFace(block : any, neighbour : any, drawAllSides : boolean, dir : int) {
-        if(!neighbour) {
-            return true;
+    static canDrawFace(block : any,  neighbour : any, drawAllSides : boolean, dir : int) {
+        if(!neighbour || neighbour.id == 0) {
+            return true
         }
 
-        const bmat = block.material;
-        const nmat = neighbour.material;
+        const bmat = block.material
+        const nmat = neighbour.material
 
-        if(nmat.is_solid && (dir == DIRECTION.DOWN || dir == DIRECTION.UP)) {
-            if(bmat.is_layering) {
-                const point = block.extra_data?.point
-                if(point) {
-                    if(point.y < .5) {
-                        return dir != DIRECTION.DOWN
-                    } else {
-                        return dir != DIRECTION.UP
+        if(nmat.is_solid) {
+            if(dir == DIRECTION.DOWN || dir == DIRECTION.UP) {
+                if(bmat.is_layering) {
+                    const point = block.extra_data?.point
+                    if(point) {
+                        if(point.y < .5) {
+                            return dir != DIRECTION.DOWN
+                        } else {
+                            return dir != DIRECTION.UP
+                        }
                     }
+                    return dir != DIRECTION.DOWN
                 }
-                return true
+            }
+            if(bmat.is_layering || bmat.is_cap_block) {
+                return false
+            }
+        } else if(nmat.is_cap_block && bmat.is_cap_block) {
+            if(nmat.height >= bmat.height) {
+                return false
             }
         }
 
-        let resp = drawAllSides || (nmat && nmat.transparent);
-        if(resp) {
-            if(block.id == neighbour.id && bmat.selflit) {
-                resp = false;
-            } else if(bmat.is_water && nmat.is_water) {
-                return false;
-            } else if(nmat.id == bmat.id && bmat.layering && !block.extra_data) {
-                return false;
+        if(bmat.is_solid && dir == DIRECTION.UP) {
+            if(nmat.is_layering) {
+                const point = neighbour.extra_data?.point
+                if(!point || point.y < .5) {
+                    return false
+                }
+            } else if(nmat.is_cap_block) {
+                return false
             }
         }
-        return resp;
+
+        let can_draw = drawAllSides || (nmat && nmat.transparent);
+        if(can_draw) {
+            if(block.id == neighbour.id && bmat.selflit) {
+                return false
+            } else if(nmat.id == bmat.id && bmat.layering && !block.extra_data) {
+                return false
+            }
+        }
+
+        return can_draw
+
     }
 
     // calculateBlockSize...
@@ -316,8 +331,8 @@ export default class style {
         const leaves_tex = bm.calcTexture(material.texture, 'round');
         _lm_leaves.copyFrom(dirt_color);
         _lm_leaves.b = leaves_tex[3] * TX_CNT;
-        const r1 = (randoms[(z * 13 + x * 3 + y * 23) % randoms.length] | 0) / 100;
-        const r2 = (randoms[(z * 11 + x * 37 + y) % randoms.length] | 0) / 100;
+        const r1 = (randoms.double((z * 13 + x * 3 + y * 23)) | 0) / 100
+        const r2 = (randoms.double((z * 11 + x * 37 + y)) | 0) / 100
         // Shift the horizontal plane randomly, to prevent a visible big plane.
         // Alternate shift by 0.25 block up/down from the center + some random.
         leaves_planes[0].move.y = ((x + z) % 2 - 0.5) * 0.5 + (r2 - 0.5) * 0.3;
@@ -330,6 +345,7 @@ export default class style {
             }
         }
         for(let i = 0; i < leaves_planes.length; i++) {
+            if(block instanceof FakeTBlock && i == 0) continue
             const plane = leaves_planes[i];
             // fill object
             _pl.size     = plane.size;
@@ -351,12 +367,12 @@ export default class style {
     // Pushes the vertices necessary for rendering a specific block into the array.
     static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
+        const material = block.material
+
         // Pot
         if(block.hasTag('into_pot')) {
-            return style.putIntoPot(vertices, block.material, pivot, matrix, _center.set(x, y, z), biome, dirt_color);
+            return style.putIntoPot(vertices, block.material, pivot, matrix, _center.set(x, y, z), biome, dirt_color)
         }
-
-        const material              = block.material;
 
         // Beautiful leaves
         const sheared = (block?.extra_data?.sheared) ? block?.extra_data?.sheared : false;
@@ -364,35 +380,15 @@ export default class style {
             return style.makeLeaves(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex)
         }
 
-        const bm                    = style.block_manager
-        const no_anim               = material.is_simple_qube || !material.texture_animations;
-        const cavity_id             = (material.is_log && !(block instanceof FakeTBlock)) ? block.extra_data?.cavity : null // for tree logs
+        let width   = 1
+        let height  = 1
+        let depth   = 1
 
-        let emmited_blocks
-        let width                   = 1;
-        let height                  = 1;
-        let depth                   = 1;
-        let autoUV                  = true;
-        let axes_up                 = null;
-        let axes_down               = null;
-        let lm                      = _lm_grass.copyFrom(IndexedColor.WHITE);
-        let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0;
-        let sideFlags               = flags;
-        let upFlags                 = flags;
-        const sides                 = {} as IBlockSides;
-
-        let DIRECTION_UP            = DIRECTION.UP
-        let DIRECTION_DOWN          = DIRECTION.DOWN
-        let DIRECTION_BACK          = DIRECTION.BACK
-        let DIRECTION_RIGHT         = DIRECTION.RIGHT
-        let DIRECTION_FORWARD       = DIRECTION.FORWARD
-        let DIRECTION_LEFT          = DIRECTION.LEFT
-
-        if(!material.is_simple_qube) {
-            const sz = style.calculateBlockSize(block, neighbours);
-            width = sz.width;
-            height = sz.height;
-            depth = sz.depth;
+        if(!material.is_simple_qube && !material.is_solid) {
+            const sz = style.calculateBlockSize(block, neighbours)
+            width = sz.width
+            height = sz.height
+            depth = sz.depth
         }
 
         //
@@ -406,6 +402,27 @@ export default class style {
         if(!canDrawUP && !canDrawDOWN && !canDrawSOUTH && !canDrawNORTH && !canDrawWEST && !canDrawEAST) {
             return;
         }
+
+        const bm                    = style.block_manager
+        const no_anim               = material.is_simple_qube || !material.texture_animations
+        const cavity_id             = (material.is_log && !(block instanceof FakeTBlock)) ? block.extra_data?.cavity : null // for tree logs
+        const sides                 = {} as IBlockSides
+
+        let emmited_blocks:         [] = undefined
+        let autoUV                  = true
+        let axes_up                 = null
+        let axes_down               = null
+        let lm                      = _lm_grass.copyFrom(IndexedColor.WHITE)
+        let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0
+        let sideFlags               = flags
+        let upFlags                 = flags
+
+        let DIRECTION_UP            = DIRECTION.UP
+        let DIRECTION_DOWN          = DIRECTION.DOWN
+        let DIRECTION_BACK          = DIRECTION.BACK
+        let DIRECTION_RIGHT         = DIRECTION.RIGHT
+        let DIRECTION_FORWARD       = DIRECTION.FORWARD
+        let DIRECTION_LEFT          = DIRECTION.LEFT
 
         if(material.is_simple_qube) {
 
@@ -537,7 +554,7 @@ export default class style {
 
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
         if(material.random_rotate_up) {
-            const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
+            const rv = randoms.double(z * chunk.size.x + x + y * chunk.size.y) | 0
             if(block.id == bm.LILY_PAD.id) {
                 axes_down = UP_AXES[rv % 4];
                 flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX | QUAD_FLAGS.MASK_BIOME;

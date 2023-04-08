@@ -75,6 +75,8 @@ export const CubeSym = {
     }
 }
 
+Object.freeze(CubeSym)
+
 const tmp = new Float32Array(9);
 
 function fill(startIndex, finishIndex, current) {

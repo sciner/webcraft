@@ -1,5 +1,4 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from '@client/chunk_const.js';
-import { getChunkAddr, Vector, VectorCollector } from '@client/helpers.js';
+import { Vector, VectorCollector } from '@client/helpers.js';
 import { Mob } from "../../mob.js";
 import type { ServerChunk } from '../../server_chunk.js';
 import { SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS } from '../../server_constant.js';
@@ -96,7 +95,7 @@ export class DBWorldMob {
     _cacheMob(id: int, is_active: int | boolean, x: float = null, y: float = null, z: float = null): void {
 
         const old_chunk_addr = this._addrByMobId.get(id);
-        const new_chunk_addr = is_active && getChunkAddr(x, y, z, tmpAddr);
+        const new_chunk_addr = is_active && this.world.chunkManager.grid.getChunkAddr(x, y, z, tmpAddr);
 
         if(old_chunk_addr) {
             if(new_chunk_addr && old_chunk_addr.equal(new_chunk_addr)) {
@@ -131,7 +130,7 @@ export class DBWorldMob {
     }
 
     // initChunksAddrWithMobs
-    async initChunksWithMobs() {
+    async initChunksWithMobs(chunk_size : Vector) {
         // keys = addresses of chunks with active mobs in DB
         // valus = the number of active mobs in DB in this chunk
         this._activeMobsInChunkCount = new VectorCollector();
@@ -144,9 +143,9 @@ export class DBWorldMob {
         this._previouslyOccupiedAddrs = [];
 
         let rows = await this.conn.all(`SELECT id, x, y, z /*, is_active DISTINCT
-            cast(x / ${CHUNK_SIZE_X} as int) - (x / ${CHUNK_SIZE_X} < cast(x / ${CHUNK_SIZE_X} as int)) AS x,
-            cast(y / ${CHUNK_SIZE_Y} as int) - (y / ${CHUNK_SIZE_Y} < cast(y / ${CHUNK_SIZE_Y} as int)) AS y,
-            cast(z / ${CHUNK_SIZE_Z} as int) - (z / ${CHUNK_SIZE_Z} < cast(z / ${CHUNK_SIZE_Z} as int)) AS z
+            cast(x / ${chunk_size.x} as int) - (x / ${chunk_size.x} < cast(x / ${chunk_size.x} as int)) AS x,
+            cast(y / ${chunk_size.y} as int) - (y / ${chunk_size.y} < cast(y / ${chunk_size.y} as int)) AS y,
+            cast(z / ${chunk_size.z} as int) - (z / ${chunk_size.z} < cast(z / ${chunk_size.z} as int)) AS z
             */
         FROM entity
         WHERE is_active = 1`);

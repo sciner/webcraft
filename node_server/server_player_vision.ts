@@ -1,8 +1,10 @@
-import {getChunkAddr, SpiralEntry, SpiralGenerator, Vector, VectorCollector} from "@client/helpers.js";
-import {ALLOW_NEGATIVE_Y, CHUNK_GENERATE_MARGIN_Y, CHUNK_STATE} from "@client/chunk_const.js";
+import {SpiralEntry, SpiralGenerator, Vector, VectorCollector} from "@client/helpers.js";
+import { CHUNK_GENERATE_MARGIN_Y, CHUNK_STATE} from "@client/chunk_const.js";
 import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
 import { NEARBY_FLAGS } from "@client/packet_compressor.js";
 import {ServerChunk} from "./server_chunk.js";
+import type { ServerPlayer } from "server_player.js";
+import type { ChunkGrid } from "@client/core/ChunkGrid.js";
 
 const PLAYER_CHUNK_QUEUE_SIZE = 20;
 
@@ -63,12 +65,12 @@ export class NearbyCollector {
 }
 
 export class ServerPlayerVision {
-    player: any;
+    player: ServerPlayer;
     nearbyChunks: NearbyCollector;
     safePosWaitingChunks: any[];
     safeTeleportMargin: number;
     safeTeleportMarginY: number;
-    safePosInitialOverride: any;
+    safePosInitialOverride?: Vector | null;
     spiralCenter: Vector;
     waitSafeEntries: any[];
     waitEntries: any[];
@@ -77,8 +79,12 @@ export class ServerPlayerVision {
     spiralWaiting: number;
     spiralRadius: number;
     extraRadius: number;
-    constructor(player) {
+    grid: ChunkGrid
+    tempVec = new Vector()
+
+    constructor(player : ServerPlayer) {
         this.player = player;
+        this.grid = player.world.chunkManager.grid
 
         this.nearbyChunks = new NearbyCollector();
 
@@ -193,14 +199,14 @@ export class ServerPlayerVision {
     }
 
     // forces chunks visible to the player to load, and return their list
-    queryVisibleChunks(posOptioanl, chunk_render_dist = 0) {
+    queryVisibleChunks(posOptional, chunk_render_dist = 0) {
         const {player} = this;
         let list = [];
-        const pos = posOptioanl || player.state.pos;
-        const chunk_addr = Vector.toChunkAddr(pos);
-        chunk_render_dist = chunk_render_dist || player.safeTeleportMargin;
+        const pos = posOptional || player.state.pos;
+        const chunk_addr = this.grid.toChunkAddr(pos);
+        chunk_render_dist = chunk_render_dist || this.safeTeleportMargin;
         const margin            = Math.max(chunk_render_dist + 1, 1);
-        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, player.safeTeleportMarginY, margin)).entries;
+        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, this.safeTeleportMarginY, margin)).entries;
         // Find new chunks
         for(let i = 0; i < spiral_moves_3d.length; i++) {
             const entry = new SpiralEntry().copyTranslate(spiral_moves_3d[i], chunk_addr);
@@ -315,12 +321,11 @@ export class ServerPlayerVision {
         return nearbyChunks.added.length + nearbyChunks.deleted.length > 0;
     }
 
-    tempVec = new Vector()
-
-    preTick(force) {
+    preTick(force: boolean = false) : void {
         const {player, tempVec} = this;
-        player.chunk_addr = Vector.toChunkAddr(player.state.pos);
-        Vector.getChunkCenterByAddr(this.spiralCenter, tempVec).subSelf(player.state.pos);
+        const grid = player.world.chunkManager.grid
+        player.chunk_addr = grid.toChunkAddr(player.state.pos);
+        grid.getChunkCenterByAddr(this.spiralCenter, tempVec).subSelf(player.state.pos);
         if (force || !player.chunk_addr.equal(this.spiralCenter)
             && (Math.abs(tempVec.x) >= 16 || Math.abs(tempVec.z) >= 16 || Math.abs(tempVec.y) >= 30)) {
             this.genSpiral();

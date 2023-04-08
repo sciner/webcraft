@@ -54,6 +54,11 @@ export class Plane {
 		return this;
 	}
 
+	copyFrom(plane) {
+		this.copy(plane);
+		return this;
+	}
+
 	normalize() {
 		// Note: will lead to a divide by zero if the plane is invalid.
 		const inverseNormalLength = 1.0 / this.normal.length();
@@ -143,7 +148,7 @@ export class Plane {
 Plane.prototype.isPlane = true;
 
 class Frustum {
-    [key: string]: any;
+	planes: Plane[];
 
 	constructor( p0 = new Plane(), p1 = new Plane(), p2 = new Plane(), p3 = new Plane(), p4 = new Plane(), p5 = new Plane() ) {
 		this.planes = [ p0, p1, p2, p3, p4, p5 ];
@@ -243,12 +248,7 @@ class Frustum {
 }
 
 export class FrustumProxy extends Frustum {
-    [key: string]: any;
-
-	constructor() {
-		super();
-		this.camPos = new Vector(0, 0, 0);
-	}
+	camPos = new Vector();
 
 	//
 	setFromProjectionMatrix(matrix, camPos?) {

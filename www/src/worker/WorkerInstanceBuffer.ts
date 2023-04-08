@@ -1,4 +1,4 @@
-import {Worker05SubGeometry} from "../light/Worker05GeometryPool.js";
+import {WorkerSubGeometry} from "../geom/worker_geometry_pool.js";
 
 export class WorkerInstanceBuffer {
     [key: string]: any;
@@ -20,7 +20,7 @@ export class WorkerInstanceBuffer {
 
     initGeom() {
         this.cacheVertices = this.vertices;
-        this.vertices = new Worker05SubGeometry({
+        this.vertices = new WorkerSubGeometry({
             pool: this.geometryPool,
             chunkDataId: this.chunkDataId
         })

@@ -6,8 +6,8 @@ import { Raycaster } from "@client/Raycaster.js";
 import { PlayerEvent } from "./player_event.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
-import { ALLOW_NEGATIVE_Y, CHUNK_SIZE_Y } from "@client/chunk_const.js";
-import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, MOUSE, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_STATUS } from "@client/constant.js";
+import { ALLOW_NEGATIVE_Y, MAX_RENDER_DIST_IN_BLOCKS } from "@client/chunk_const.js";
+import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_STATUS, DEFAULT_RENDER_DISTANCE } from "@client/constant.js";
 import { WorldPortal, WorldPortalWait } from "@client/portal.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { ServerPlayerEffects } from "./player/effects.js";
@@ -115,6 +115,7 @@ export class ServerPlayer extends Player {
     conn: any;
     savingPromise?: Promise<void>
     lastSentPacketTime = Infinity   // performance.now()
+    _world_edit_copy: any
 
     // These flags show what must be saved to DB
     static DB_DIRTY_FLAG_INVENTORY     = 0x1;
@@ -150,16 +151,14 @@ export class ServerPlayer extends Player {
             id: 0,
             time: 0
         };
-        this.vision                 = new ServerPlayerVision(this);
-        this.effects                = new ServerPlayerEffects(this);
-        this.damage                 = new ServerPlayerDamage(this);
+
         this.mining_time_old        = 0; // время последнего разрушения блока
         // null, or an array of POJO postitions of 1 or 2 chests that this player is currently working with
-        this.currentChests          = null;
+        this.currentChests          = null
 
-        this.timer_reload = performance.now();
-
+        this.timer_reload = performance.now()
         this._aabb = new AABB()
+
     }
 
     init(init_info: PlayerInitInfo): void {
@@ -186,6 +185,7 @@ export class ServerPlayer extends Player {
             await this.world.db.changeGameMode(this, mode.id);
         };
         this.controlManager = new ServerPlayerControlManager(this as any)
+        this.effects = new ServerPlayerEffects(this);
     }
 
     /** Closes the player's session after encountering an unrecoverable error. */
@@ -229,14 +229,7 @@ export class ServerPlayer extends Player {
         });
     }
 
-    /**
-     *
-     * @param {string} session_id
-     * @param {string} skin
-     * @param {WebSocket} conn
-     * @param {ServerWorld} world
-     */
-    async onJoin(session_id, skin_id, conn, world) {
+    async onJoin(session_id : string, skin_id : int, conn : any, world : ServerWorld) {
 
         if (EMULATED_PING) {
             console.log('Connect user with emulated ping:', EMULATED_PING);
@@ -247,15 +240,17 @@ export class ServerPlayer extends Player {
 
         this.conn               = conn;
         this.world              = world;
-        this.raycaster          = new Raycaster(world);
-        this.session_id         = session_id;
-        this.skin               = await Qubatch.db.skins.getUserSkin(session.user_id, skin_id);
+        this.raycaster          = new Raycaster(world)
+        this.vision             = new ServerPlayerVision(this)
+        this.damage             = new ServerPlayerDamage(this)
+        this.session_id         = session_id
+        this.skin               = await Qubatch.db.skins.getUserSkin(session.user_id, skin_id)
         //
         conn.player = this;
         conn.on('message', this.onMessage.bind(this));
         //
         conn.on('close', async (e) => {
-            this.world.onLeave(this);
+            this.world.onLeave(this)
         });
         //
         this.sendPackets([{
@@ -317,12 +312,12 @@ export class ServerPlayer extends Player {
         if(!this.conn) {
             return false;
         }
-        this.vision.leave();
+        this.vision?.leave()
         // remove events handler
-        PlayerEvent.removeHandler(this.session.user_id);
+        PlayerEvent.removeHandler(this.session.user_id)
         // close previous connection
-        this.conn.close(1000, 'error_multiconnection');
-        delete(this.conn);
+        this.conn.close(1000, 'error_multiconnection')
+        delete(this.conn)
     }
 
     // Нанесение урона игроку
@@ -396,13 +391,14 @@ export class ServerPlayer extends Player {
      * Change render dist
      * 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109),
      * 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
-     * @param {int} value
      */
-    changeRenderDist(value) {
+    changeRenderDist(value : int) {
         if(Number.isNaN(value)) {
-            value = 4;
+            value = DEFAULT_RENDER_DISTANCE;
         }
-        value = Mth.clamp(value, 2, this.isAdmin() ? 32 : 16)
+        // TODO: if server admin allow set big values
+        const max_render_dist = Math.round(MAX_RENDER_DIST_IN_BLOCKS / this.world.chunkManager.grid.chunkSize.x)
+        value = Mth.clamp(value, 2, max_render_dist)
         if (this.state.chunk_render_dist != value) {
             this.state.chunk_render_dist = value;
             this.netDirtyFlags |= ServerPlayer.NET_DIRTY_FLAG_RENDER_DISTANCE;
@@ -413,20 +409,20 @@ export class ServerPlayer extends Player {
 
     // Update hands material
     updateHands() {
-        let inventory = this.inventory;
+        const inventory = this.inventory;
         if(!this.state.hands) {
             // it's ok to typecast here, because we set left and right below
             this.state.hands = {} as PlayerHands;
         }
         //
-        let makeHand = (material) => {
+        const makeHand = (material) => {
             return {
                 id: material ? material.id : null
             };
         };
         // Get materials
-        let left_hand_material = inventory.current.index2 >= 0 ? inventory.items[inventory.current.index2] : null;
-        let right_hand_material = inventory.items[inventory.current.index];
+        const left_hand_material = inventory.current.index2 >= 0 ? inventory.items[inventory.current.index2] : null;
+        const right_hand_material = inventory.items[inventory.current.index];
         this.state.hands.left = makeHand(left_hand_material);
         this.state.hands.right = makeHand(right_hand_material);
     }
@@ -648,7 +644,8 @@ export class ServerPlayer extends Player {
             // teleport
         let initialPos = this.vision.safePosInitialOverride || this.state.pos_spawn;
         this.vision.safePosInitialOverride = null;
-        const safePos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin);
+        const initialUndergroundAllowed = initialPos.equal(this.state.pos_spawn); // can't use === here, it may be a clone with the same value
+        const safePos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin, initialUndergroundAllowed);
         this.sendTeleport(safePos, 'spawn');
     }
 
@@ -853,7 +850,7 @@ export class ServerPlayer extends Player {
             const portal_type = WorldPortal.getPortalTypeByID(params.portal.type);
             if(portal_type) {
                 const y_diff = Math.abs(this.state.pos.y - portal_type.y);
-                if(y_diff < CHUNK_SIZE_Y * 2) {
+                if(y_diff < this.world.chunkManager.grid.chunkSize.y * 2) {
                     // @todo what can i do if player make portal to current level?
                 }
                 new_pos = new Vector(this.state.pos).flooredSelf();
@@ -877,6 +874,7 @@ export class ServerPlayer extends Player {
                 this.vision.teleportSafePos(new_pos);
             } else {
                 teleported_player.wait_portal = new WorldPortalWait(
+                    world.chunkManager.grid,
                     teleported_player.state.pos.clone().addScalarSelf(0, this.height / 2, 0),
                     new_pos,
                     params

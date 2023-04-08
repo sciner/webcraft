@@ -1,4 +1,4 @@
-import {Helpers, getChunkAddr, Vector, VectorCollector, VectorCollectorFlat, Mth} from "./helpers.js";
+import {Helpers, Vector, VectorCollector, VectorCollectorFlat, Mth} from "./helpers.js";
 import {Chunk} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
@@ -8,24 +8,16 @@ import { decompressNearby, NEARBY_FLAGS } from "./packet_compressor.js";
 import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
 import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
-import { LIGHT_TYPE } from "./constant.js";
-import {ChunkExporter} from "./geom/ChunkExporter.js";
+import { LIGHT_TYPE, WORKER_MESSAGE } from "./constant.js";
+import {ChunkExporter} from "./geom/chunk_exporter.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
 import {ChunkRenderList} from "./chunk_render_list.js";
 import type { World } from "./world.js";
+import type { ChunkGrid } from "./core/ChunkGrid.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface', 'decal1', 'decal2'];
-
-const CC = [
-    {x:  0, y:  1, z:  0},
-    {x:  0, y: -1, z:  0},
-    {x:  0, y:  0, z: -1},
-    {x:  0, y:  0, z:  1},
-    {x: -1, y:  0, z:  0},
-    {x:  1, y:  0, z:  0}
-];
 
 export class ChunkManagerState {
 
@@ -129,6 +121,8 @@ export class ChunkManager {
     worldId = 'CLIENT';
     destruct_chunks_queue: any = null;
     use_light = false;
+    tech_info: TWorldTechInfo
+    grid: ChunkGrid
 
     constructor(world: World) {
 
@@ -137,12 +131,6 @@ export class ChunkManager {
         this.#world                     = world;
         this.draw_debug_grid            = world.settings.chunks_draw_debug_grid;
         this.cluster_draw_debug_grid    = world.settings.cluster_draw_debug_grid;
-
-        // rendering
-        this.dataWorld              = new DataWorld(this);
-        this.fluidWorld             = new FluidWorld(this);
-        this.fluidWorld.mesher      = new FluidMesher(this.fluidWorld);
-        this.biomes                 = new Biomes(null);
 
         if (navigator.userAgent.indexOf('Firefox') > -1 || globalThis.useGenWorkers) {
             this.worker = new Worker('./js-bundles/chunk_worker_bundle.js');
@@ -170,14 +158,16 @@ export class ChunkManager {
                 this.list = [];
             },
             send: function() {
+                const player_state = Qubatch.player.state
+                const grid = that.grid
                 if(this.list.length > 0) {
                     //
                     that.postWorkerMessage(['destructChunk', this.list]);
                     //
                     that.postWorkerMessage(['destroyMap', {
                         players: [{
-                            chunk_render_dist: Qubatch.player.state.chunk_render_dist,
-                            chunk_addr: Vector.toChunkAddr(Qubatch.player.state.pos)
+                            chunk_render_dist: player_state.chunk_render_dist,
+                            chunk_addr: grid.toChunkAddr(player_state.pos)
                         }]
                     }]);
                     //
@@ -190,8 +180,15 @@ export class ChunkManager {
 
     init() {
 
-        const world                   = this.#world;
-        const that                    = this;
+        const world                 = this.#world;
+        const that                  = this;
+
+        this.tech_info              = world.info.tech_info
+        this.dataWorld              = new DataWorld(this);
+        this.fluidWorld             = new FluidWorld(this);
+        this.fluidWorld.mesher      = new FluidMesher(this.fluidWorld);
+        this.biomes                 = new Biomes(null);
+        this.grid                   = this.dataWorld.grid
 
         // Add listeners for server commands
         world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(decompressNearby(cmd.data))});
@@ -218,20 +215,26 @@ export class ChunkManager {
         world.server.AddCmdListener([ServerClient.CMD_FLUID_DELTA], (cmd) => {
             this.setChunkFluidDelta(new Vector(cmd.data.addr), Uint8Array.from(atob(cmd.data.buf), c => c.charCodeAt(0)));
         });
+
         //
+        const dummy = BLOCK.DUMMY
         this.DUMMY = {
-            id: BLOCK.DUMMY.id,
-            shapes: [],
-            properties: BLOCK.DUMMY,
-            material: BLOCK.DUMMY,
+            id:             dummy.id,
+            properties:     dummy,
+            material:       dummy,
+            shapes:         [],
             getProperties: function() {
                 return this.material;
             }
-        };
+        }
+
         this.AIR = {
             id: BLOCK.AIR.id,
             properties: BLOCK.AIR
-        };
+        }
+
+        const grid = this.grid
+
         // Message received from worker
         this.worker.onmessage = function(e) {
             let cmd = e.data[0];
@@ -284,7 +287,7 @@ export class ChunkManager {
                 case 'add_beacon_ray': {
                     const meshes = Qubatch.render.meshes;
                     args.pos = new Vector(args.pos);
-                    meshes.addForChunk(Vector.toChunkAddr(args.pos), new Mesh_Object_BeaconRay(args), 'beacon/' + args.pos.toHash());
+                    meshes.addForChunk(grid.toChunkAddr(args.pos), new Mesh_Object_BeaconRay(args, world), 'beacon/' + args.pos.toHash());
                     break;
                 }
                 case 'del_beacon_ray': {
@@ -336,17 +339,18 @@ export class ChunkManager {
         this.worker_counter           = this.use_light ? 2 : 1;
 
         const msg: TChunkWorkerMessageInit = {
-            generator: world_info.generator,
-            world_seed: world_info.seed,
-            world_guid: world_info.guid,
-            settings,
-            is_server: false,
-            // bbmodels,
-            resource_cache: Helpers.getCache()
+            generator:          world_info.generator,
+            world_seed:         world_info.seed,
+            world_guid:         world_info.guid,
+            is_server:          false,
+            settings:           settings,
+            resource_cache:     Helpers.getCache(),
+            world_tech_info:    world_info.tech_info
         }
-        this.postWorkerMessage(['init', msg]);
+        this.postWorkerMessage([WORKER_MESSAGE.CHUNK_WORKER_INIT, msg]);
 
-        this.postLightWorkerMessage(['init', null]);
+        this.postLightWorkerMessage([WORKER_MESSAGE.LIGHT_WORKER_INIT, null])
+        this.postLightWorkerMessage([WORKER_MESSAGE.LIGHT_WORKER_INIT_WORLD, world_info])
         this.postLightWorkerMessage([
             'genLayerParams',
             {
@@ -566,7 +570,7 @@ export class ChunkManager {
             z = x.z;
             x = x.x;
         }
-        this.get_block_chunk_addr = getChunkAddr(x as any, y, z, this.get_block_chunk_addr);
+        this.get_block_chunk_addr = this.grid.getChunkAddr(x as any, y, z, this.get_block_chunk_addr);
         let chunk = this.chunks.get(this.get_block_chunk_addr);
         if(chunk) {
             return chunk.getBlock(x, y, z, v);
@@ -575,9 +579,9 @@ export class ChunkManager {
     }
 
     // setBlock
-    setBlock(x, y, z, block, is_modify, power, rotate, entity_id, extra_data, action_id) {
+    setBlock(x : int, y : int, z : int, block, is_modify, power, rotate, entity_id, extra_data, action_id) {
         // определяем относительные координаты чанка
-        let chunkAddr = getChunkAddr(x, y, z);
+        let chunkAddr = this.grid.getChunkAddr(x, y, z);
         // обращаемся к чанку
         let chunk = this.getChunk(chunkAddr);
         // если чанк найден

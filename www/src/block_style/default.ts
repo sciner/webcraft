@@ -70,7 +70,7 @@ export class QuadPlane implements IPlane {
     pos: Vector
     matrix: imat4
     flag: int = 0
-
+    translate: Vector 
 }
 
 //

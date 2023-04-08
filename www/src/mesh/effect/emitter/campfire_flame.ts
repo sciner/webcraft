@@ -1,8 +1,10 @@
-import { getChunkAddr, IndexedColor, Vector } from "../../../helpers.js";
+import { IndexedColor, Vector } from "../../../helpers.js";
 import { DEFAULT_EFFECT_MATERIAL_KEY, getEffectTexture } from "../../effect.js";
+import type { MeshManager } from "../../manager.js";
 import { Mesh_Effect_Particle } from "../particle.js";
+import { BaseEmitter } from "./base.js";
 
-export default class emitter {
+export default class emitter extends BaseEmitter {
     [key: string]: any;
 
     static textures = [
@@ -10,11 +12,13 @@ export default class emitter {
         [0, 4], [1, 4], [2, 4], [3, 4]
     ];
 
-    constructor(pos, args) {
+    constructor(mesh_manager : MeshManager, pos, args) {
+
+        super(mesh_manager, pos, args)
+
         this.max_distance   = 128;
         this.pp             = IndexedColor.WHITE.clone().pack();
-        this.pos            = pos;
-        this.chunk_addr     = Vector.toChunkAddr(this.pos);
+        this.chunk_addr     = mesh_manager.world.chunkManager.grid.toChunkAddr(this.pos);
         this.material_key   = DEFAULT_EFFECT_MATERIAL_KEY;
         const m             = this.material_key.split('/');
         const resource_pack = Qubatch.world.block_manager.resource_pack_manager.get(m[0]);

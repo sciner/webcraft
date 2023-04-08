@@ -510,10 +510,7 @@
             "id": 39,
             "name": "BROWN_MUSHROOM",
             "bb": {
-                "model": "brown_mushroom",
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "model": "brown_mushroom"
             }
         },
         {
@@ -2012,6 +2009,10 @@
             "id": 649,
             "name": "MOB_SPAWN",
             "group": "doubleface_transparent",
+            "inventory": {
+                "scale": 0.75,
+                "move": {"x": 0, "y": 0, "z": -0.275}
+            },
             "bb": {
                 "model": "mob_spawn",
                 "rotate": {"type": "cardinal_direction"}

@@ -373,9 +373,9 @@ function isDeepObject(obj) {
     return out;
 }
 
-export class IvanArray {
+export class IvanArray<T=any> {
 
-    arr: any[];
+    arr: T[];
     count: number;
     constructor() {
         this.arr = [];
@@ -390,7 +390,7 @@ export class IvanArray {
         }
     }
 
-    push(elem) {
+    push(elem: T) {
         this.arr[this.count++] = elem;
     }
 }

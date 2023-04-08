@@ -1,9 +1,8 @@
 import { BLOCK, POWER_NO, DropItemVertices, FakeVertices } from "../blocks.js";
-import { getChunkAddr, PerformanceTimer, Vector, VectorCollector } from "../helpers.js";
+import { PerformanceTimer, Vector } from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK, TypedBlocks3 } from "../typed_blocks3.js";
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE_X_M1, CHUNK_SIZE_Y_M1, CHUNK_SIZE_Z_M1 } from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
-import { Worker05GeometryPool } from "../light/Worker05GeometryPool.js";
+import { WorkerGeometryPool } from "../geom/worker_geometry_pool.js";
 import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { pushTransformed } from '../block_style/extruder.js';
@@ -15,6 +14,7 @@ import type { Default_Terrain_Map_Cell } from "../terrain_generator/default.js"
 import type { WorkerWorld } from "./world.js";
 import type { FluidChunk } from "../fluid/FluidChunk.js";
 import {BLOCK_FLAG, NO_TICK_BLOCKS} from "../constant.js";
+import type { ChunkGrid } from "../core/ChunkGrid.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
@@ -31,15 +31,23 @@ class MaterialBuf {
 
 // ChunkManager
 export class ChunkWorkerChunkManager {
-    [key: string]: any;
 
-    block_manager: BLOCK
-    world: WorkerWorld
+    DUMMY:          { id: any; shapes: any[]; properties: any; material: any; getProperties: () => any; canReplace: () => boolean; }
+    block_manager:  BLOCK
+    world:          WorkerWorld
+    destroyed:      boolean
+    dataWorld:      DataWorld
+    fluidWorld:     FluidWorld
+    verticesPool:   WorkerGeometryPool
+    materialToId:   Map<any, any> = new Map()
+    tech_info:      TWorldTechInfo
+    grid:           ChunkGrid
 
     constructor(world: WorkerWorld) {
         this.world = world;
         this.destroyed = false;
         this.block_manager = BLOCK
+        this.tech_info = world.tech_info
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
             shapes: [],
@@ -53,10 +61,9 @@ export class ChunkWorkerChunkManager {
             }
         };
         this.dataWorld = new DataWorld(this);
+        this.grid = this.dataWorld.grid
         this.fluidWorld = new FluidWorld(this);
-        this.verticesPool = new Worker05GeometryPool(null, {});
-
-        this.materialToId = new Map();
+        this.verticesPool = new WorkerGeometryPool(null, {});
     }
 
     // For compatibility with the client API
@@ -72,7 +79,7 @@ export class ChunkWorkerChunkManager {
     // Возвращает блок по абсолютным координатам
     getBlock(x, y, z) {
         // определяем относительные координаты чанка
-        const chunkAddr = getChunkAddr(x, y, z);
+        const chunkAddr = this.world.chunkManager.grid.getChunkAddr(x, y, z);
         // обращаемся к чанку
         const chunk = this.getChunk(chunkAddr);
         // если чанк найден
@@ -86,21 +93,54 @@ export class ChunkWorkerChunkManager {
 }
 
 // Chunk
-export class ChunkWorkerChunk {
-    [key: string]: any;
+export class ChunkWorkerChunk implements IChunk {
 
-    fluid : FluidChunk
-    timers : PerformanceTimer = new PerformanceTimer()
-    chunkManager: ChunkWorkerChunkManager
-    tblocks: TypedBlocks3
-    coord: Vector
+    fluid:                      FluidChunk
+    timers:                     PerformanceTimer = new PerformanceTimer()
+    chunkManager:               ChunkWorkerChunkManager
+    tblocks:                    TypedBlocks3
+    coord:                      Vector
+    addr:                       Vector
+    size:                       Vector
+    id:                         any
+
+    layer?:                     any
+    cluster?:                   any
+    dataChunk?:                 any
+    dataId?:                    any
+    uniqId?:                    any
+
+    emitted_blocks:             Map<any, any>
+    temp_vec:                   Vector
+    aabb:                       AABB
+    vertexBuffers:              Map<any, any>
+    serializedVertices:         any
+    inited:                     boolean
+    buildVerticesInProgress:    boolean
+    totalPages:                 number
+    inQueue:                    boolean
+    queueDist:                  number
+    genValue:                   number
+    vertices_length:            number
+    vertices:                   Map<any, any>
+    dirty:                      boolean
+    fluid_blocks:               any[]
+    gravity_blocks:             any[]
+    map:                        any
+    key:                        any
+    modify_list:                any
+    tm:                         number
+    destroyed:                  boolean
+
+    static neibMat = [null, null, null, null, null, null];
+    static removedEntries = [];
 
     constructor(chunkManager : ChunkWorkerChunkManager, args) {
         this.chunkManager   = chunkManager;
         Object.assign(this, args);
         this.addr           = new Vector(this.addr.x, this.addr.y, this.addr.z);
-        this.size           = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
-        this.coord          = new Vector(this.addr.x * CHUNK_SIZE_X, this.addr.y * CHUNK_SIZE_Y, this.addr.z * CHUNK_SIZE_Z);
+        this.size           = new Vector().copyFrom(chunkManager.grid.chunkSize);
+        this.coord          = this.addr.mul(chunkManager.grid.chunkSize);
         this.id             = this.addr.toHash();
         this.emitted_blocks = new Map();
         this.temp_vec       = new Vector(0, 0, 0);
@@ -202,6 +242,7 @@ export class ChunkWorkerChunk {
         if(!ml) {
             return;
         }
+        const {fromFlatChunkIndex, relativePosToChunkIndex} = this.chunkManager.grid.math;
         // uncompress
         if(ml.obj) {
             ml = ml.obj;
@@ -220,9 +261,9 @@ export class ChunkWorkerChunk {
             const flatIndex = parseInt(k)
             const m = ml[flatIndex];
             if(!m) continue;
-            pos.fromFlatChunkIndex(flatIndex);
+            fromFlatChunkIndex(pos, flatIndex);
             if(m.id < 1) {
-                const index = pos.relativePosToChunkIndex()
+                const index = relativePosToChunkIndex(pos)
                 ids[index] = 0
                 this.tblocks.deleteExtraInGenerator(index)
                 continue;
@@ -239,6 +280,7 @@ export class ChunkWorkerChunk {
         if (!this.world.is_server || NO_TICK_BLOCKS) {
             return null
         }
+        const {fromChunkIndex, isRelativePosInChunk, getFlatIndexInChunk} = this.chunkManager.grid.math;
         this.timers.start('scanTickingBlocks')
         const bm = this.world.block_manager
         const flagsById = bm.flags
@@ -259,8 +301,8 @@ export class ChunkWorkerChunk {
             }
 
             // find the relative block pos; check if it isn't in the chunk padding
-            pos.fromChunkIndex(index)
-            if (!pos.isRelativePosInChunk()) {
+            fromChunkIndex(pos, index)
+            if (!isRelativePosInChunk(pos)) {
                 continue
             }
 
@@ -273,7 +315,7 @@ export class ChunkWorkerChunk {
                 // don't add tickers without extra_data because that's how it's checked in TickingBlock.setState()
                 if (extra_data && !extra_data.notick) {
                     pos.addSelf(this.coord) // convert to the world coordinate system
-                    tickerFlatIndices.push(pos.getFlatIndexInChunk())
+                    tickerFlatIndices.push(getFlatIndexInChunk(pos))
                 }
             }
         }
@@ -284,8 +326,8 @@ export class ChunkWorkerChunk {
     /** Returns the index of the bottom of a column of blocks */
     getColumnIndex(localX: number, localZ: number): number {
         const { cx, cz, cw } = this.tblocks.dataChunk
-        if ((localX | localZ | (CHUNK_SIZE_X_M1 - localX) | (CHUNK_SIZE_Z_M1 - localZ)) < 0) {
-            throw new Error()
+        if (!this.chunkManager.grid.math.isRelativePosInChunk_s(localX, 0, localZ)) {
+            throw new Error();
         }
         return cx * localX + cz * localZ + cw
     }
@@ -320,6 +362,7 @@ export class ChunkWorkerChunk {
 
     // setBlock
     setBlock(x, y, z, orig_type, is_modify, power, rotate, entity_id, extra_data) {
+        const {getFlatIndexInChunk, getBlockIndex} = this.chunkManager.grid.math;
         //TODO: take liquid into account
         // fix rotate
         if(rotate && typeof rotate === 'object') {
@@ -342,9 +385,9 @@ export class ChunkWorkerChunk {
                 power:  power,
                 rotate: rotate
             };
-            this.modify_list[this.temp_vec.getFlatIndexInChunk()] = modify_item;
+            this.modify_list[getFlatIndexInChunk(this.temp_vec)] = modify_item;
         }
-        BLOCK.getBlockIndex(this.temp_vec, null, null, this.temp_vec);
+        getBlockIndex(this.temp_vec.x, this.temp_vec.y, this.temp_vec.z, this.temp_vec);
         x = this.temp_vec.x;
         y = this.temp_vec.y;
         z = this.temp_vec.z;
@@ -527,18 +570,16 @@ export class ChunkWorkerChunk {
         }
     }
 
-    isWater(id) {
+    isWater(id : int) : boolean {
         return id == 200 || id == 202;
     }
-
-    static neibMat = [null, null, null, null, null, null];
-    static removedEntries = [];
 
     // buildVertices
     buildVertices({ enableCache }) {
         if (!this.dirty || !this.tblocks || !this.coord) {
             return false;
         }
+        const CHUNK_SIZE_X = this.chunkManager.grid.chunkSize.x;
 
         // Create map of lowest blocks that are still lit
         let tm = performance.now();

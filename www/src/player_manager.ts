@@ -42,9 +42,7 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
             username:       data.username,
             type:           data.type || 'player',
             health:         data.health
-        });
-
-        player.world = this.world;
+        }, this.world);
 
         this.list.set(data.id, player);
         this.setState(cmd);
