@@ -977,6 +977,15 @@ export class TBlock {
         return this.fluid === 0 || material === BLOCK.BUBBLE_COLUMN
     }
 
+    hasOxygenAt(worldPos: IVector): boolean {
+        const material = this.material
+        if (!material.has_oxygen) {
+            return false
+        }
+        return worldPos.y > this.getFluidLevel(worldPos.x, worldPos.z) ||
+            material === BLOCK.BUBBLE_COLUMN
+    }
+
     //
     get pos() : Vector {
         return this.vec;
