@@ -141,7 +141,7 @@ export class SpiralSize {
     }
 
     arrayIndByVec(dvec: IVector) {
-        if (Math.abs(dvec.y) > this.marginVec.y || Math.abs(dvec.z) > this.marginVec.z) {
+        if (!this.radByYZ || Math.abs(dvec.y) > this.marginVec.y || Math.abs(dvec.z) > this.marginVec.z) {
             return -1;
         }
         let yz = dvec.y * this.depth + dvec.z + this.dw;
