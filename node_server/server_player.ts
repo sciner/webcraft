@@ -644,7 +644,8 @@ export class ServerPlayer extends Player {
             // teleport
         let initialPos = this.vision.safePosInitialOverride || this.state.pos_spawn;
         this.vision.safePosInitialOverride = null;
-        const safePos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin);
+        const initialUndergroundAllowed = initialPos.equal(this.state.pos_spawn); // can't use === here, it may be a clone with the same value
+        const safePos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin, initialUndergroundAllowed);
         this.sendTeleport(safePos, 'spawn');
     }
 
