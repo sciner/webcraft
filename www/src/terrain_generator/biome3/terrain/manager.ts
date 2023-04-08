@@ -555,6 +555,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
                 const preset = this.getPreset(xyz);
                 const cell = {river_point, preset};
 
+                // TODO: if it underwater building we need decrease y_base value
                 xyz.y = map.cluster.y_base
                 this.noise3d.generate4(xyz, doorSearchSize)
 

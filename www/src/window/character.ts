@@ -181,10 +181,6 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         ct.add(this.lblPlayerBox)
     }
 
-    getSlots() {
-        return this.inventory_slots;
-    }
-
     createArmorSlots(sz : float) {
 
         const ct = this;

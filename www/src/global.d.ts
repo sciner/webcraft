@@ -17,7 +17,7 @@ declare type scalar = number | string | boolean
 
 declare type tupleFloat6 = [number, number, number, number, number, number]
 declare type tupleFloat4 = [number, number, number, number]
-declare type tupleFloat3 = [number, number, number, number]
+declare type tupleFloat3 = [number, number, number]
 declare type tupleFloat2 = [number, number]
 type ConcatTuple<T1 extends unknown[], T2 extends unknown[]> = [...T1, ...T2]
 
@@ -248,7 +248,7 @@ interface IBlockMaterial {
         id: int
         offset_pos: IVector
     }
-    layering: {
+    layering?: {
         height: float
         slab?: boolean
         full_block_name: string
@@ -331,6 +331,7 @@ interface IBlockMaterial {
     is_dynamic_light: boolean
     is_dirt: boolean
     is_layering: boolean
+    is_cap_block: boolean
     is_leaves: int // LEAVES_TYPE
     is_entity: boolean
     is_portal: boolean
@@ -363,8 +364,8 @@ interface IBlockMaterial {
     tags: string[]
     rotate: IVector
     aabb_size: IVector
-    width: float
-    height: float
+    width?: float
+    height?: float
     depth: float
     light_power: {r: float, g: float, b: float, a: float}
     light_power_number: number

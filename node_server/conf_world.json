@@ -28,7 +28,8 @@
         "brewing",
         "dripstone",
         "chorus",
-        "hopper"
+        "hopper",
+        "coral"
     ],
     "random_tickers": [
         "grass_block"

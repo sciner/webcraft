@@ -1,7 +1,7 @@
 import { FAST } from "./constant.js";
 
 export const MAX_CHUNK_SQUARE               = 32 * 32
-export const OLD_CHUNK_SIZE                 = {x: 16, y: 40, z: 16}
+export const OLD_CHUNK_SIZE                 = Object.freeze({x: 16, y: 40, z: 16})
 export const CH_SZ_X                        = OLD_CHUNK_SIZE.x
 export const CH_SZ_Y                        = OLD_CHUNK_SIZE.y
 export const CH_SZ_Z                        = OLD_CHUNK_SIZE.z

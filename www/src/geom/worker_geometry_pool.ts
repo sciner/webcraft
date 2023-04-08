@@ -1,6 +1,6 @@
-import {GeometryPool} from "./GeometryPool.js";
+import {BaseGeometryPool} from "./base_geometry_pool.js";
 
-export class Worker05GeometryPool extends GeometryPool {
+export class WorkerGeometryPool extends BaseGeometryPool {
     [key: string]: any;
     constructor(context, {
         pageSize = 256,
@@ -16,7 +16,7 @@ export class Worker05GeometryPool extends GeometryPool {
         this.freePageStack = [];
         this.freePageCount = pageCount;
         for (let i = 0; i < pageCount; i++) {
-            const page = new Worker05GeometryPage({
+            const page = new WorkerGeometryPage({
                 sizeQuads: this.pageSize,
                 instanceSize: this.instanceSize
             });
@@ -27,7 +27,7 @@ export class Worker05GeometryPool extends GeometryPool {
 
     allocPage() {
         if (this.freePageCount === 0) {
-            const page = new Worker05GeometryPage({
+            const page = new WorkerGeometryPage({
                 sizeQuads: this.pageSize,
                 instanceSize: this.instanceSize
             });
@@ -40,7 +40,7 @@ export class Worker05GeometryPool extends GeometryPool {
     }
 }
 
-export class Worker05GeometryPage {
+export class WorkerGeometryPage {
     [key: string]: any;
     constructor({sizeQuads = 256, instanceSize = 16}) {
         this.sizeQuads = sizeQuads;
@@ -55,7 +55,7 @@ export class Worker05GeometryPage {
     }
 }
 
-export class Worker05SubGeometry {
+export class WorkerSubGeometry {
     [key: string]: any;
     constructor({pool, chunkDataId}) {
         this.pool = pool;

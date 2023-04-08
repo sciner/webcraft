@@ -9,7 +9,7 @@ import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
 import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
 import { LIGHT_TYPE, WORKER_MESSAGE } from "./constant.js";
-import {ChunkExporter} from "./geom/ChunkExporter.js";
+import {ChunkExporter} from "./geom/chunk_exporter.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
 import {ChunkRenderList} from "./chunk_render_list.js";
 import type { World } from "./world.js";
@@ -18,15 +18,6 @@ import type { ChunkGrid } from "./core/ChunkGrid.js";
 const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface', 'decal1', 'decal2'];
-
-const CC = [
-    {x:  0, y:  1, z:  0},
-    {x:  0, y: -1, z:  0},
-    {x:  0, y:  0, z: -1},
-    {x:  0, y:  0, z:  1},
-    {x: -1, y:  0, z:  0},
-    {x:  1, y:  0, z:  0}
-];
 
 export class ChunkManagerState {
 

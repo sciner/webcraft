@@ -25,7 +25,7 @@ import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAY
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { PACKED_CELL_LENGTH, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_WATER_COLOR_R } from "./fluid/FluidConst.js";
-import {LineGeometry} from "./geom/LineGeometry.js";
+import {LineGeometry} from "./geom/line_geometry.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { AABB } from "./core/AABB.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
@@ -66,28 +66,25 @@ class DrawMobsStat {
 
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
-    obstacle_pos:           any = new Vector(0, 0, 0)
-    draw_mobs_stat:         DrawMobsStat = new DrawMobsStat()
-    debugGeom:              LineGeometry
-    xrMode:                 boolean
-    canvas:                 any
-    testLightOn:            boolean
-    crosshairOn:            boolean
-    sunDir:                 number[]
-    frustum:                FrustumProxy
-    step_side:              number
-    clouds:                 Mesh_Object_Clouds
-    rainTim:                any
-    prevCamPos:             Vector
-    prevCamRotate:          Vector
-    frame:                  number
+    obstacle_pos:           any                 = new Vector(0, 0, 0)
+    draw_mobs_stat:         DrawMobsStat        = new DrawMobsStat()
+    frustum:                FrustumProxy        = new FrustumProxy()
+    xrMode:                 boolean             = false
+    testLightOn:            boolean             = false
+    crosshairOn:            boolean             = true
+    sunDir:                 tupleFloat3         = [0.9593, 1.0293, 0.6293] // [0.7, 1.0, 0.85];
+    camera_mode:            CAMERA_MODE         = CAMERA_MODE.SHOOTER
+    step_side:              number              = 0
+    frame:                  number              = 0
+    clouds?:                Mesh_Object_Clouds
+    rain?:                  Mesh_Object_Rain
     env:                    Environment
-    camera_mode:            CAMERA_MODE
-    rain:                   any
     renderBackend:          WebGLRenderer
     meshes:                 MeshManager
     camera:                 Camera
-    inHandOverlay:          any
+    debugGeom:              LineGeometry
+    inHandOverlay?:         any
+    canvas:                 any
     drop_item_meshes:       any[]
     settings:               any
     videoCardInfoCache:     any
@@ -115,22 +112,9 @@ export class Renderer {
     cullID = 0;
 
     constructor(qubatchRenderSurfaceId : string) {
-        this.xrMode             = false;
         this.canvas             = document.getElementById(qubatchRenderSurfaceId);
-        this.canvas.renderer    = this;
-        this.testLightOn        = false;
-        this.crosshairOn        = true;
-        this.sunDir             = [0.9593, 1.0293, 0.6293]; // [0.7, 1.0, 0.85];
-        this.frustum            = new FrustumProxy();
-        this.step_side          = 0;
-        this.clouds             = null;
-        this.rainTim            = null;
-        this.prevCamPos         = new Vector(0, 0, 0);
-        this.prevCamRotate      = new Vector(0, 0, 0);
-        this.frame              = 0;
-        this.env                = new Environment(this);
-        this.camera_mode        = CAMERA_MODE.SHOOTER;
-        this.rain               = null
+        this.canvas.renderer    = this
+        this.env                = new Environment(this)
 
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
@@ -149,8 +133,6 @@ export class Renderer {
             max: RENDER_DISTANCE,
             scale: 0.05, // ortho scale
         });
-
-        this.inHandOverlay = null;
 
         //
         this.drop_item_meshes = Array(4096); // new Map();
@@ -753,7 +735,6 @@ export class Renderer {
                 chunkBlockDist = 8;
 
                 Environment.replacePresetColor(preset, getPlayerBlockColor())
-
 
             } else if(player.eyes_in_block.name == 'NETHER_PORTAL') {
                 preset = PRESET_NAMES.NETHER_PORTAL;

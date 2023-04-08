@@ -8,7 +8,7 @@ import {ChunkLight} from "./light/ChunkLight.js";
 import type { Renderer } from "./render.js";
 import type BaseRenderer from "./renders/BaseRenderer.js";
 import type { ChunkManager } from "./chunk_manager.js";
-import {GeometryPool} from "./light/GeometryPool.js";
+import {BaseGeometryPool} from "./geom/base_geometry_pool.js";
 import {ChunkMesh} from "./chunk_mesh.js";
 
 let global_uniqId = 0;
@@ -153,7 +153,7 @@ export class Chunk {
     // onVerticesGenerated ... Webworker callback method
     onVerticesGenerated(args) {
         this.vertices_args = args;
-        this.vertices_args_size = GeometryPool.getVerticesMapSize(args.vertices);
+        this.vertices_args_size = BaseGeometryPool.getVerticesMapSize(args.vertices);
         this.need_apply_vertices = true;
 
         if (!this.firstTimeBuilt && this.fluid) {

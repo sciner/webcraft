@@ -12,6 +12,8 @@ import { getBlockImage } from "./tools/blocks.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import type { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Resources } from "../resources.js";
+import type {Hotbar} from "../hotbar.js";
+import type {CreativeInventoryWindow} from "./creative_inventory.js";
 
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55'
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF'
@@ -63,10 +65,16 @@ export class HelpSlot extends Label {
 
 }
 
+export type TCraftTableSlotContext = BaseInventoryWindow | CreativeInventoryWindow | Hotbar
+
 export class CraftTableSlot extends SimpleBlockSlot {
     [key: string]: any;
 
-    constructor(x, y, w, h, id, title, text, ct, slot_index) {
+    declare parent: TCraftTableSlotContext
+    ct: TCraftTableSlotContext
+    slot_index: int
+
+    constructor(x: float, y: float, w: float, h: float, id: string, title: string, text: string, ct: TCraftTableSlotContext, slot_index: int) {
         super(x, y, w, h, id, null, '')
         this.ct = ct
         this.setSlotIndex(slot_index)
@@ -333,7 +341,10 @@ export class CraftTableResultSlot extends CraftTableSlot {
 
 export class CraftTableInventorySlot extends CraftTableSlot {
 
-    constructor(x : float, y : float, w : float, h : float, id : string, title : string, text : string, ct : any, slot_index : int, options : object = null) {
+    prev_mousedown_time = -Infinity
+    prev_mousedown_button: int
+
+    constructor(x : float, y : float, w : float, h : float, id : string, title : string, text : string, ct : TCraftTableSlotContext, slot_index : int, options : object = null) {
 
         super(x, y, w, h, id, title, text, ct, slot_index)
 
@@ -371,14 +382,12 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                     // It gives the same result in chest_manager.js: applyClientChange()
                     if(dropItem.count < max_stack_count) {
                         let need_count = max_stack_count - dropItem.count
-                        // проверить крафт слоты
-                        const slots = this.parent.getSlots()
                         const list = [];
-                        for(let i in slots) {
-                            const item = slots[i]?.item
-                            if (InventoryComparator.itemsEqualExceptCount(item, dropItem) &&
-                                item.count != max_stack_count
-                            ) {
+                        // проверить крафт слоты или слоты сундука
+                        const craftSlots = this.parent.getCraftOrChestSlots()
+                        for(let i = 0; i < craftSlots.length; i++) {
+                            const item = craftSlots[i]?.item
+                            if (InventoryComparator.itemsEqualExceptCount(item, dropItem)) {
                                 list.push({chest: 1, index: i, item: item})
                             }
                         }
@@ -386,9 +395,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         const inventory_items = player.inventory.items
                         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; ++i) {
                             const item = inventory_items[i];
-                            if (InventoryComparator.itemsEqualExceptCount(item, dropItem) &&
-                                item.count != max_stack_count
-                            ) {
+                            if (InventoryComparator.itemsEqualExceptCount(item, dropItem)) {
                                 list.push({chest: 0, index: i, item: item})
                             }
                         }
@@ -413,7 +420,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                                 item = null
                             }
                             if (v.chest) {
-                                slots[v.index].setItem(item, e)
+                                craftSlots[v.index].setItem(item, e)
                             } else {
                                 player.inventory.setItem(v.index, item)
                             }
@@ -509,7 +516,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         if (this.ct.loading) {
                             break; // prevent spreading to the slots that are not ready
                         }
-                        let targetList = e.target.is_chest_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots()
+                        let targetList = e.target.is_chest_slot ? this.parent.inventory_slots : this.parent.getCraftOrChestSlots()
                         this.appendToList(targetItem, targetList)
                         this.setItem(targetItem, e)
                         this.parent.lastChange.type = INVENTORY_CHANGE_SHIFT_SPREAD
@@ -517,7 +524,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         break
                     }
                     case 'frmCraft': {
-                        let targetList = e.target.is_craft_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots()
+                        let targetList = e.target.is_craft_slot ? this.parent.inventory_slots : this.parent.getCraftOrChestSlots()
                         this.appendToList(targetItem, targetList)
                         this.setItem(targetItem, e)
                         this.ct.fixAndValidateSlots('CraftTableInventorySlot frmCraft')
@@ -688,17 +695,16 @@ export class ArmorSlot extends CraftTableInventorySlot {
         return mat?.item?.name == 'armor' && (mat.armor.slot == this.slot_index)
     }
 
-    getInventory() {
-        return this.ct.inventory;
-    }
-
 }
 
 export class BaseCraftWindow extends BaseInventoryWindow {
 
-    inventory_slots : CraftTableInventorySlot[]
     lblResultSlot   : CraftTableResultSlot
     craft ?         : { slots: CraftTableSlot[] }
+
+    getCraftOrChestSlots(): CraftTableSlot[] {
+        return this.craft?.slots ?? []
+    }
 
     /**
     * Итоговый слот (то, что мы получим)

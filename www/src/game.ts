@@ -3,7 +3,6 @@ import { DEFAULT_FOV_NORMAL, Renderer, ZOOM_FACTOR } from "./render.js";
 import { AverageClockTimer, isMobileBrowser, Mth, Vector} from "./helpers.js";
 import { BLOCK } from "./blocks.js";
 import { Resources } from "./resources.js";
-import { ServerClient } from "./server_client.js";
 import { Sounds } from "./sounds.js";
 import { IKbOptions, Kb, KbEvent} from "./kb.js";
 import { Hotbar } from "./hotbar.js";

@@ -3,16 +3,17 @@ import { BLOCK_FLAG, DEFAULT_DIRT_PALETTE, GRASS_PALETTE_OFFSET, FAST } from '..
 import { Environment, IFogPreset } from '../../environment.js';
 import { IndexedColor, Mth, Vector } from '../../helpers.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
-import { BiomeTree, TREES } from '../biomes.js';
+import { BiomeTree, IBiomeTree, TREES } from '../biomes.js';
 import { DensityParams, WATER_LEVEL } from './terrain/manager_vars.js';
 
-const CACTUS_MIN_HEIGHT     = 2;
-const CACTUS_MAX_HEIGHT     = 5;
-const TREE_MIN_HEIGHT       = 4;
-const TREE_MAX_HEIGHT       = 8;
-const TREE_FREQUENCY        = 0.015 * 32 * (FAST ? 1/4 : 1); // 0.48
-const PLANTS_FREQUENCY      = 0.015 * (FAST ? 1/8 : 1);
-const GRASS_FREQUENCY       = 0.015 * (FAST ? 1/8 : 1);
+const CACTUS_MIN_HEIGHT         = 2;
+const CACTUS_MAX_HEIGHT         = 5;
+const TREE_MIN_HEIGHT           = 4;
+const TREE_MAX_HEIGHT           = 8;
+const TREE_FREQUENCY            = 0.015 * 32 * (FAST ? 1/4 : 1); // 0.48
+const UNDERWATER_TREE_FREQUENCY = FAST ? 1/4 : 1
+const PLANTS_FREQUENCY          = 0.015 * (FAST ? 1/8 : 1);
+const GRASS_FREQUENCY           = 0.015 * (FAST ? 1/8 : 1);
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS
 const DEFAULT_WATER_COLOR = IndexedColor.WATER
@@ -77,6 +78,11 @@ const DEFAULT_GRASS = {
         {percent: .005, blocks: [{name: 'LILAC'}, {name: 'LILAC', extra_data: {is_head: true}}]},
         // {percent: .01, blocks: [{name: 'ROSE_BUSH'}, {name: 'ROSE_BUSH', extra_data: {is_head: true}}]},
     ]
+}
+
+export declare type ITreeList = {
+    frequency: float
+    list: IBiomeTree[]
 }
 
 export class BiomeDirtLayer {
@@ -164,7 +170,8 @@ export class Biome {
     big_stone_blocks:           IRiverBottomBlocks
     blocks?:                    { [key: string]: IBlockMaterial; } = {}
 
-    trees:                      any
+    trees:                      ITreeList
+    underwater_trees:           ITreeList
     plants:                     any
     grass:                      any
     ground_block_generators:    ChunkGroundBlockGenerator[]
@@ -186,7 +193,7 @@ export class Biome {
     hanging_foliage_block_id:   any
     fog_preset_name?:           string
 
-    constructor(id : int, title : string, temperature : float, humidity : float, dirt_layers : any[], trees : any, plants : any, grass : any, dirt_color : IndexedColor, water_color : IndexedColor, ground_block_generators? : ChunkGroundBlockGenerator[], no_smooth_heightmap : boolean = false, building_options? : any, river_bottom_blocks ?: IRiverBottomBlocks, big_stone_blocks ?: IRiverBottomBlocks, blocks ?: { [key: string]: string; }, dirt_palette? : DirtPalette, fog_preset? : IFogPreset) {
+    constructor(id : int, title : string, temperature : float, humidity : float, dirt_layers : any[], trees : any, plants : any, grass : any, dirt_color : IndexedColor, water_color : IndexedColor, ground_block_generators? : ChunkGroundBlockGenerator[], no_smooth_heightmap : boolean = false, building_options? : any, river_bottom_blocks ?: IRiverBottomBlocks, big_stone_blocks ?: IRiverBottomBlocks, blocks ?: { [key: string]: string; }, dirt_palette? : DirtPalette, fog_preset? : IFogPreset, underwater_trees? : ITreeList) {
         this.id                         = id
         this.title                      = title
         this.temperature                = temperature
@@ -197,6 +204,7 @@ export class Biome {
         this.big_stone_blocks           = big_stone_blocks
         //
         this.trees                      = trees
+        this.underwater_trees           = underwater_trees
         this.plants                     = plants
         this.grass                      = grass
         this.ground_block_generators    = ground_block_generators
@@ -342,7 +350,7 @@ export class Biomes {
         temperature:                float,
         humidity:                   float,
         dirt_layers? :              any[],
-        trees?:                     any,
+        trees?:                     ITreeList,
         plants?:                    any,
         grass?:                     any,
         dirt_color?:                IndexedColor,
@@ -353,7 +361,8 @@ export class Biomes {
         blocks?:                    { [key: string]: string; },
         dirt_palette?:              DirtPalette,
         big_stone_blocks?:          IRiverBottomBlocks,
-        fog_preset?:                IFogPreset) : Biome | null {
+        fog_preset?:                IFogPreset,
+        underwater_trees?:          ITreeList) : Biome | null {
 
         if(this.filter_biome_list.length > 0 && !this.filter_biome_list.includes(id)) {
             return null
@@ -386,6 +395,22 @@ export class Biomes {
                 ]
             };
         }
+        // Underwater trees
+        if(typeof underwater_trees == 'undefined') {
+            const DEFAULT_UNDERWATER_TREES = {
+                frequency: 0,
+                list: []
+            }
+            const TROPIC_UNDERWATER_TREES = {
+                frequency: UNDERWATER_TREE_FREQUENCY,
+                list: [
+                    {...TREES.CORAL_PAW, percent: .333},
+                    {...TREES.CORAL_MUSHROOM, percent: .333},
+                    {...TREES.CORAL_TREE, percent: .334},
+                ]
+            }
+            underwater_trees = title.includes('жунгл') ? TROPIC_UNDERWATER_TREES : DEFAULT_UNDERWATER_TREES;
+        }
         // plants
         if(typeof plants == 'undefined') {
             plants = DEFAULT_PLANTS
@@ -416,8 +441,12 @@ export class Biomes {
             }
         }
         //
-        if(trees?.list) {
-            for(let tree of trees.list) {
+        for(let list of [trees?.list, underwater_trees?.list]) {
+            if(!list) {
+                continue
+            }
+            for(let tree of list) {
+                tree.underwater = !!tree.underwater
                 if(tree.trunk) {
                     const trunk_block = BLOCK.fromId(tree.trunk)
                     if(!trunk_block) throw 'invalid_trunk_block'
@@ -437,7 +466,7 @@ export class Biomes {
         dirt_color = dirt_color ?? DEFAULT_DIRT_COLOR
         water_color = water_color ?? DEFAULT_WATER_COLOR
         const no_smooth_heightmap = true;
-        const biome = new Biome(id, title, temperature, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, ground_block_generators, no_smooth_heightmap, building_options, river_bottom_blocks, big_stone_blocks, blocks, dirt_palette, fog_preset)
+        const biome = new Biome(id, title, temperature, humidity, dirt_layers, trees, plants, grass, dirt_color, water_color, ground_block_generators, no_smooth_heightmap, building_options, river_bottom_blocks, big_stone_blocks, blocks, dirt_palette, fog_preset, underwater_trees)
         this.list.push(biome);
         this.byName.set(title, biome);
         this.byID.set(biome.id, biome);
