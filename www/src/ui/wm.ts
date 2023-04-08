@@ -52,6 +52,10 @@ function appendLayout(layout) {
                     control = new Button(x, y, w, h, id, cl?.title, cl?.text)
                     break
                 }
+                case 'Slider': {
+                    control = new Slider(x, y, h, w, id)
+                    break
+                }
             }
         }
         if(control) {
