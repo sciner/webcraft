@@ -189,6 +189,12 @@ export class Default_Terrain_Generator {
         } else if(first_time_generation) {
             // if first time calling plant for this tree
             style_func(world, tree, xyz, (tree, x, y, z, block_type, force_replace, rotate, extra_data) => {
+                if(tree.type.underwater) {
+                    // TODO: need to check local_water_level
+                    if(xyz.y + y >= world.generator.options.WATER_LEVEL) {
+                        return
+                    }
+                }
                 x += orig_xyz.x
                 y += orig_xyz.y
                 z += orig_xyz.z
