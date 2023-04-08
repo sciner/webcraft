@@ -80,12 +80,9 @@ export class TraversableRenderer {
 
     drawTraversed(node, parent, render, traversable) {
         if('visible' in node && !node.visible) {
-            return;
-        }
-        if (!node.terrainGeometry) {
             return true;
         }
-        if (node?.armor && !node.material) {
+        if (!node.terrainGeometry) {
             return true;
         }
         if (node.material && traversable.lightTex) {
@@ -845,14 +842,10 @@ export class MobModel extends NetworkPhysicObject {
                 }
                 this.detonation_started_info = null;
             }
-
-            this.setArmor();
-
-            this.setSkin();
-
+            this.setSkin()
+            this.setArmor()
             // run render
-            this.renderer.drawLayer(render, this, ignore_roots);
-
+            this.renderer.drawLayer(render, this, ignore_roots)
         }
 
     }
@@ -939,19 +932,8 @@ export class MobModel extends NetworkPhysicObject {
                 const texture = this.getTexture(render, image);
                 this.textures.set(title, texture);
             }
-            const scene = ModelBuilder.loadModel(armor);
-            scene[0].children[0].armor = true;
-            scene[0].children[1].armor = true;
-            scene[0].children[1].children[0].armor = true;
-            scene[0].children[1].children[1].armor = true;
-            scene[0].children[1].children[2].armor = true;
-            scene[0].children[1].children[3].armor = true;
-            scene[0].children[1].children[4].armor = true;
-            scene[0].children[1].children[2].children[0].armor = true;
-            scene[0].children[1].children[3].children[0].armor = true;
-            this.sceneTree[1] = scene[0];
         }
-        this.animator.prepare(this);
+        this.animator.prepare(this)
     }
 
     postLoad(render : Renderer, tree : SceneNode) {
@@ -978,8 +960,8 @@ export class MobModel extends NetworkPhysicObject {
 
     // установка армора
     setArmor() {
-        if (!this.sceneTree[1]) {
-            return;
+        if (!this.textures.has('test')) {
+            return
         }
         const armor = (this.extra_data?.armor) ? this.extra_data.armor : this.armor;
         if (!armor) {
@@ -987,45 +969,53 @@ export class MobModel extends NetworkPhysicObject {
         }
         if (armor.head != this.prev.head) {
             if (armor.head) {
-                const item = BLOCK.fromId(armor.head);
-                this.sceneTree[1].children[0].material = (armor.head == 273) ? this.textures.get('turtle_layer_1') : this.textures.get(item.material.id +'_layer_1');
+                const item = BLOCK.fromId(armor.head)
+                this.sceneTree[0].findNode('bone11').visible = false
+                this.sceneTree[0].findNode('bone12').visible = false
+                this.sceneTree[0].findNode('bone5').visible = false
+                this.sceneTree[0].findNode('helmet').material = this.textures.get('test')
             } else {
-                this.sceneTree[1].children[0].material = null;
+                this.sceneTree[0].findNode('bone11').visible = true
+                this.sceneTree[0].findNode('bone12').visible = true
+                this.sceneTree[0].findNode('bone5').visible = true
+                this.sceneTree[0].findNode('helmet').material = null
             }
-            this.prev.head = armor.head;
+            this.prev.head = armor.head
         }
         if (armor.body != this.prev.body) {
             if (armor.body) {
                 const item = BLOCK.fromId(armor.body);
-                this.sceneTree[1].children[1].material = this.textures.get(item.material.id +'_layer_1');
+                this.sceneTree[0].findNode('chestplate').material = this.textures.get('test')
+                this.sceneTree[0].findNode('chestplate4').material = this.textures.get('test')
+                this.sceneTree[0].findNode('chestplate3').material = this.textures.get('test')
             } else {
-                this.sceneTree[1].children[1].material = null;
+                this.sceneTree[0].findNode('chestplate4').material = null
+                this.sceneTree[0].findNode('chestplate3').material = null
+                this.sceneTree[0].findNode('chestplate').material = null
             }
-            this.sceneTree[1].children[1].children[0].material = this.sceneTree[1].children[1].material;
-            this.sceneTree[1].children[1].children[1].material = this.sceneTree[1].children[1].material;
             this.prev.body = armor.body;
         }
         if (armor.leg != this.prev.leg) {
             if (armor.leg) {
-                const item = BLOCK.fromId(armor.leg);
-                this.sceneTree[1].children[1].children[2].material = this.textures.get(item.material.id +'_layer_2');
-                this.sceneTree[1].children[1].children[3].material = this.textures.get(item.material.id +'_layer_2');
-                this.sceneTree[1].children[1].children[4].material = this.textures.get(item.material.id +'_layer_2');
+                const item = BLOCK.fromId(armor.leg)
+                this.sceneTree[0].findNode('pants').material = this.textures.get('test')
+                this.sceneTree[0].findNode('pants3').material = this.textures.get('test')
+                this.sceneTree[0].findNode('pants2').material = this.textures.get('test')
             } else {
-                this.sceneTree[1].children[1].children[2].material = null;
-                this.sceneTree[1].children[1].children[3].material = null;
-                this.sceneTree[1].children[1].children[4].material = null;
+                this.sceneTree[0].findNode('pants').material = null
+                this.sceneTree[0].findNode('pants3').material = null
+                this.sceneTree[0].findNode('pants2').material = null
             }
             this.prev.leg = armor.leg;
         }
         if (armor.boot != this.prev.boot) {
             if (armor.boot) {
                 const item = BLOCK.fromId(armor.boot);
-                this.sceneTree[1].children[1].children[2].children[0].material = this.textures.get(item.material.id +'_layer_1');
-                this.sceneTree[1].children[1].children[3].children[0].material = this.textures.get(item.material.id +'_layer_1');
+                this.sceneTree[0].findNode('boots').material = this.textures.get('test')
+                this.sceneTree[0].findNode('boots2').material = this.textures.get('test')
             } else {
-                this.sceneTree[1].children[1].children[2].children[0].material = null;
-                this.sceneTree[1].children[1].children[3].children[0].material = null;
+                this.sceneTree[0].findNode('boots').material = null
+                this.sceneTree[0].findNode('boots2').material = null
             }
             this.prev.boot = armor.boot;
         }
