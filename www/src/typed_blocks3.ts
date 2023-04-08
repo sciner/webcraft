@@ -970,13 +970,11 @@ export class TBlock {
     }
 
     get has_oxygen() : boolean {
-        if(!this.material.has_oxygen) {
+        const material = this.material
+        if (!material.has_oxygen) {
             return false;
         }
-        if(this.id == 0 && this.fluid > 0) {
-            return false;
-        }
-        return true;
+        return this.fluid === 0 || material === BLOCK.BUBBLE_COLUMN
     }
 
     //
