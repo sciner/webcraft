@@ -391,6 +391,17 @@ interface ITerrainMapManager {
     calcBiome(center_coord : IVector, preset : any) : any
 }
 
+interface IPickatEventPos {
+    x:          float
+    y:          float
+    z:          float
+    mob:        any
+    player:     any
+    aabb?:      any
+    n:          IVector
+    block_id:   int
+}
+
 interface IPickatEvent {
     button_id:          number  // always MOUSE.BUTTON_RIGHT === 3
     cloneBlock:         boolean
@@ -400,7 +411,7 @@ interface IPickatEvent {
     interactMobID?:     int
     interactPlayerID?:  int
     number:             int
-    pos:                {x : float, y : float, z: float, mob: any, player: any, aabb?: any, n: IVector, block_id: int}
+    pos:                IPickatEventPos
     shiftKey:           boolean
     start_time:         float
 }
