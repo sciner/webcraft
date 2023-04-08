@@ -188,6 +188,7 @@ export default class style {
             }
             style.lm.r += GRASS_PALETTE_OFFSET.x
             style.lm.g += GRASS_PALETTE_OFFSET.y
+            if(!biome.grass_palette) debugger
             const palette = biome.grass_palette
             style.lm.r = style.lm.r - DEFAULT_GRASS_PALETTE.x + palette.x
             style.lm.g = style.lm.g - DEFAULT_GRASS_PALETTE.y + palette.y

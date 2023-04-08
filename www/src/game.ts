@@ -395,7 +395,7 @@ export class GameClass {
                     }
                     if(e.keyCode == KEY.ESC) {
                         if(!e.down) {
-                            if(hud.frmMainMenu.visible || hud.wm.getWindow('frmInGameMain').visible) {
+                            if(hud.frmMainMenu.visible || hud.wm.getWindow('frmInGameMain').visible ) {
                                 hud.wm.closeAll()
                                 Qubatch.setupMousePointer(false)
                                 return true

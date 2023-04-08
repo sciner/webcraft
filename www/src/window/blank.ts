@@ -25,8 +25,8 @@ export class BlankWindow extends Window {
                     } catch(e) {
                         console.error(e)
                     }
+                    return true
                 }
-                return true
             }
         }
         return super.onKeyEvent(e)

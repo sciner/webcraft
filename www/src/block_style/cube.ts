@@ -239,6 +239,10 @@ export default class style {
         const bmat = block.material
         const nmat = neighbour.material
 
+        if(bmat.is_cap_block && dir == DIRECTION.UP) {
+            return true
+        }
+
         if(nmat.is_solid) {
             if(dir == DIRECTION.DOWN || dir == DIRECTION.UP) {
                 if(bmat.is_layering) {
@@ -253,7 +257,7 @@ export default class style {
                     return dir != DIRECTION.DOWN
                 }
             }
-            if(bmat.is_layering || bmat.is_cap_block) {
+            if(bmat.is_layering) {
                 return false
             }
         } else if(nmat.is_cap_block && bmat.is_cap_block) {

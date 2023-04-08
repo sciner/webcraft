@@ -1,11 +1,12 @@
 import { IndexedColor, Vector } from '../../helpers.js';
-import { Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from '../default.js';
+import { Default_Terrain_Generator, Default_Terrain_Map } from '../default.js';
 import { BLOCK } from '../../blocks.js';
 import { CubeSym } from '../../core/CubeSym.js';
 import { noise, alea } from "../default.js";
 import type { WorkerWorld } from '../../worker/world.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 import { BLOCK_FLAG } from '../../constant.js';
+import { BIOMES } from '../biomes.js';
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -37,6 +38,8 @@ const AMETHYST_CLUSTER_CHANCE   = 0.1;
 // Генерация пещер нижнего мира
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
+    biome: any
+
     constructor(world : WorkerWorld, seed, world_id, options) {
         super(seed, world_id, options);
         this.setSeed(seed);
@@ -50,6 +53,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         if(!aleaRandom) {
             aleaRandom = new alea(`${this.seed}/${chunk.id}`);
+        }
+
+        if(!this.biome) {
+            this.biome = BIOMES.GRASSLAND
         }
 
         const {CHUNK_SIZE}          = chunk.chunkManager.grid.math;
@@ -269,9 +276,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             const cell = {
                 dirt_color: DEFAULT_DIRT_COLOR,
                 water_color: DEFAULT_WATER_COLOR,
-                biome: new Default_Terrain_Map_Cell({
-                code: 'bottom_caves'
-            })};
+                biome: this.biome
+            }
 
             return new Default_Terrain_Map(
                 chunk.addr,
