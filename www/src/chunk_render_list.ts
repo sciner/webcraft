@@ -12,6 +12,7 @@ import type {Renderer} from "./render.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
 import type {ChunkMesh} from "./chunk_mesh.js";
 import {SpiralCulling} from "./render_tree/spiral_culling.js";
+import {CHUNK_GEOMETRY_MODE} from "./constant.js";
 
 const MAX_APPLY_VERTICES_COUNT = 20;
 
@@ -34,10 +35,34 @@ export class ChunkRenderList {
     init(render: Renderer) {
         const {chunkManager} = this;
         this.render = render;
-        if (render.renderBackend.multidrawBaseExt) {
-            this.bufferPool = new BigGeometryPool(render.renderBackend, {});
+
+        /**
+         * geom mode AUTO logic
+         */
+        let geomMode = chunkManager.getWorld().settings.chunk_geometry_mode;
+        if (geomMode === CHUNK_GEOMETRY_MODE.AUTO) {
+            if (render.renderBackend.multidrawBaseExt) {
+                geomMode = CHUNK_GEOMETRY_MODE.BIG_MULTIDRAW;
+            } else {
+                geomMode = CHUNK_GEOMETRY_MODE.ONE_PER_CHUNK;
+            }
         } else {
+            if (geomMode === CHUNK_GEOMETRY_MODE.BIG_MULTIDRAW) {
+                // fallback if no support
+                if (!render.renderBackend.multidrawBaseExt) {
+                    geomMode = CHUNK_GEOMETRY_MODE.BIG_NO_MULTIDRAW;
+                }
+            } else
+            if (geomMode === CHUNK_GEOMETRY_MODE.BIG_NO_MULTIDRAW) {
+                // testing mode, act like there's no multidraw support
+                render.renderBackend.multidrawBaseExt = null;
+            }
+        }
+
+        if (geomMode === CHUNK_GEOMETRY_MODE.ONE_PER_CHUNK) {
             this.bufferPool = new TrivialGeometryPool(render.renderBackend);
+        } else {
+            this.bufferPool = new BigGeometryPool(render.renderBackend, {});
         }
         chunkManager.fluidWorld.mesher.initRenderPool(render.renderBackend);
 
