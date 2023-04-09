@@ -761,6 +761,7 @@ export class BLOCK {
     static parseBlockIsCap(block : IBlockMaterial) : boolean {
         return !block.layering &&
                 (typeof block.width == 'undefined' && typeof block.height != 'undefined') &&
+                (!block.can_rotate) &&
                 (block.style == DEFAULT_STYLE_NAME && block.group == 'regular')
     }
 
