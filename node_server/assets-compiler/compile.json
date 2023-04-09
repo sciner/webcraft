@@ -8959,6 +8959,10 @@
                 "slot": 39,
                 "durability": 276,
                 "damage": 0
+            },
+            "model": {
+               "geo": "test_armor",
+               "texture": "base" 
             }
         },
         {
@@ -9142,6 +9146,10 @@
                 "slot": 39,
                 "durability": 55,
                 "damage": 1
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "leather_layer_1" 
             }
         },
         {
@@ -9158,6 +9166,10 @@
                 "slot": 39,
                 "durability": 165,
                 "damage": 2
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "chainmail_layer_1" 
             }
         },
         {
@@ -9174,6 +9186,10 @@
                 "slot": 39,
                 "durability": 165,
                 "damage": 2
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "iron_layer_1" 
             }
         },
         {
@@ -9190,6 +9206,10 @@
                 "slot": 39,
                 "durability": 363,
                 "damage": 3
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "diamond_layer_1" 
             }
         },
         {
@@ -9206,6 +9226,10 @@
                 "slot": 39,
                 "durability": 77,
                 "damage": 2
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "gold_layer_1" 
             }
         },
         {
@@ -9222,6 +9246,10 @@
                 "slot": 39,
                 "durability": 407,
                 "damage": 3
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "netherite_layer_1" 
             }
         },
         {
@@ -9238,6 +9266,10 @@
                 "slot": 38,
                 "durability": 80,
                 "damage": 3
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "leather_layer_1" 
             }
         },
         {
@@ -9254,6 +9286,10 @@
                 "slot": 38,
                 "durability": 240,
                 "damage": 5
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "chainmail_layer_1" 
             }
         },
         {
@@ -9270,6 +9306,10 @@
                 "slot": 38,
                 "durability": 240,
                 "damage": 6
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "iron_layer_1" 
             }
         },
         {
@@ -9286,6 +9326,10 @@
                 "slot": 38,
                 "durability": 528,
                 "damage": 8
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "diamond_layer_1" 
             }
         },
         {
@@ -9302,6 +9346,10 @@
                 "slot": 38,
                 "durability": 112,
                 "damage": 5
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "gold_layer_1" 
             }
         },
         {
@@ -9318,6 +9366,10 @@
                 "slot": 38,
                 "durability": 592,
                 "damage": 8
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "netherite_layer_1" 
             }
         },
         {
@@ -9334,6 +9386,10 @@
                 "slot": 37,
                 "durability": 80,
                 "damage": 2
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "leather_layer_1" 
             }
         },
         {
@@ -9350,6 +9406,10 @@
                 "slot": 37,
                 "durability": 240,
                 "damage": 4
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "chainmail_layer_1" 
             }
         },
         {
@@ -9366,6 +9426,10 @@
                 "slot": 37,
                 "durability": 240,
                 "damage": 5
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "iron_layer_1" 
             }
         },
         {
@@ -9382,6 +9446,10 @@
                 "slot": 37,
                 "durability": 528,
                 "damage": 6
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "diamond_layer_1" 
             }
         },
         {
@@ -9398,6 +9466,10 @@
                 "slot": 37,
                 "durability": 112,
                 "damage": 3
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "gold_layer_1" 
             }
         },
         {
@@ -9414,6 +9486,10 @@
                 "slot": 37,
                 "durability": 592,
                 "damage": 6
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "netherite_layer_1" 
             }
         },
         {
@@ -9430,6 +9506,10 @@
                 "slot": 36,
                 "durability": 65,
                 "damage": 1
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "leather_layer_1" 
             }
         },
         {
@@ -9446,6 +9526,10 @@
                 "slot": 36,
                 "durability": 195,
                 "damage": 1
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "chainmail_layer_1" 
             }
         },
         {
@@ -9462,6 +9546,10 @@
                 "slot": 36,
                 "durability": 195,
                 "damage": 2
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "iron_layer_1" 
             }
         },
         {
@@ -9478,6 +9566,10 @@
                 "slot": 36,
                 "durability": 429,
                 "damage": 3
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "diamond_layer_1" 
             }
         },
         {
@@ -9494,6 +9586,10 @@
                 "slot": 36,
                 "durability": 91,
                 "damage": 1
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "gold_layer_1" 
             }
         },
         {
@@ -9510,6 +9606,10 @@
                 "slot": 36,
                 "durability": 481,
                 "damage": 3
+            },
+            "model": {
+                "geo": "armor",
+                "texture": "netherite_layer_1" 
             }
         },
         {

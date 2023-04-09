@@ -268,6 +268,10 @@ interface IBlockMaterial {
         durability: number
         damage: number
     }
+    model: {
+        geo: string,
+        texture: string
+    }
     seeds: {
         result: {
             incomplete: object[]

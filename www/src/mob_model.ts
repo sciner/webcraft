@@ -528,7 +528,8 @@ export class MobModel extends NetworkPhysicObject {
         this.height                     = 0;
         this.sneak                      = 0;
         this.body_rotate                = 0;
-        this.textures                   = new Map();
+        this.textures                   = new Map()
+        this.models                     = new Map()
 
         Object.assign(this, props);
 
@@ -572,6 +573,8 @@ export class MobModel extends NetworkPhysicObject {
             boot: null,
             skin: null
         };
+
+        this.loaded = false
     }
 
     isRenderable(render: Renderer) {
@@ -904,7 +907,6 @@ export class MobModel extends NetworkPhysicObject {
         if (!this.sceneTree) {
             return null;
         }
-
         let image;
         if (this.type.startsWith('player')) {
             image = await asset.getPlayerSkin(this.skin.file);
@@ -922,17 +924,21 @@ export class MobModel extends NetworkPhysicObject {
         }
         // если игрок зомби или скелет, загружаем броню для них
         if (this.type.startsWith('player') || this.type == 'zombie' || this.type == 'skeleton') {
-            const armor = await Resources.getModelAsset('armor');
-            if (!armor) {
-                console.log("Can't locate armor model");
-                return null;
-            }
-            for (const title in armor.skins) {
-                const image = await armor.getSkin(title);
-                const texture = this.getTexture(render, image);
-                this.textures.set(title, texture);
+            for (const name of ['test_armor', 'armor']) {
+                const model = await Resources.getModelAsset(name);
+                if (!model) {
+                    console.log("Can't locate " + name + " model")
+                    return null
+                }
+                for (const skin in model.skins) {
+                    const image = await model.getSkin(skin)
+                    const texture = this.getTexture(render, image)
+                    this.textures.set(name + '_' + skin, texture)
+                }
+                this.models.set(name, ModelBuilder.loadModel(model)[0])
             }
         }
+        this.loaded = true
         this.animator.prepare(this)
     }
 
@@ -960,7 +966,7 @@ export class MobModel extends NetworkPhysicObject {
 
     // установка армора
     setArmor() {
-        if (!this.textures.has('test')) {
+        if (!this.loaded) {
             return
         }
         const armor = (this.extra_data?.armor) ? this.extra_data.armor : this.armor;
@@ -970,30 +976,26 @@ export class MobModel extends NetworkPhysicObject {
         if (armor.head != this.prev.head) {
             if (armor.head) {
                 const item = BLOCK.fromId(armor.head)
-                this.sceneTree[0].findNode('bone11').visible = false
-                this.sceneTree[0].findNode('bone12').visible = false
-                this.sceneTree[0].findNode('bone5').visible = false
-                this.sceneTree[0].findNode('helmet').material = this.textures.get('test')
+                const helmet = this.models.get(item.model.geo).findNode('helmet')
+                helmet.material = this.textures.get(item.model.geo + '_' + item.model.texture)
+                this.sceneTree[0].findNode('head').replaceChild('helmet', helmet)
+                this.sceneTree[0].findNode('hair').setVisible(false)
             } else {
-                this.sceneTree[0].findNode('bone11').visible = true
-                this.sceneTree[0].findNode('bone12').visible = true
-                this.sceneTree[0].findNode('bone5').visible = true
-                this.sceneTree[0].findNode('helmet').material = null
+                this.sceneTree[0].findNode('hair').setVisible(true)
+                this.sceneTree[0].findNode('head').replaceChild('helmet', null)
             }
             this.prev.head = armor.head
         }
         if (armor.body != this.prev.body) {
             if (armor.body) {
-                const item = BLOCK.fromId(armor.body);
-                this.sceneTree[0].findNode('chestplate').material = this.textures.get('test')
-                this.sceneTree[0].findNode('chestplate4').material = this.textures.get('test')
-                this.sceneTree[0].findNode('chestplate3').material = this.textures.get('test')
+                const item = BLOCK.fromId(armor.body)
+                const chestplate = this.models.get(item.model.geo).findNode('chestplate')
+                chestplate.material = this.textures.get(item.model.geo + '_' + item.model.texture)
+                this.sceneTree[0].findNode('body').replaceChild('chestplate', chestplate)
             } else {
-                this.sceneTree[0].findNode('chestplate4').material = null
-                this.sceneTree[0].findNode('chestplate3').material = null
-                this.sceneTree[0].findNode('chestplate').material = null
+                this.sceneTree[0].findNode('body').replaceChild('chestplate', null)
             }
-            this.prev.body = armor.body;
+            this.prev.body = armor.body
         }
         if (armor.leg != this.prev.leg) {
             if (armor.leg) {

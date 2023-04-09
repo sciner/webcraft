@@ -66,6 +66,42 @@ export class SceneNode {
         child.parent = this;
     }
 
+    setVisible(val) {
+        const setVisable = (children) => {
+            for (const child of children) {
+                child.visible = val
+                child.updateMatrix()
+                if (child.children) {
+                    setVisable(child.children)
+                }
+            }
+        }
+        this.visible = val
+        setVisable(this.children)
+    }
+
+    replaceChild(name, child) {
+        const node = this.findNode(name)
+        if (!node) {
+            if (child) {
+                child.parent = this
+                this.children.push(child)
+                return true
+            }
+            return false
+        }
+        const index = this.children.indexOf(node)
+        if (index === -1) {
+            return false
+        }
+        this.children.splice(index, 1)
+        if (child) {
+            child.parent = this
+            this.children.push(child)
+        }
+        return true
+    }
+
     removeChild(child) {
         const index = this.children.indexOf(child);
 
@@ -87,7 +123,7 @@ export class SceneNode {
             return null;
         }
 
-        for (let child of this.children) {
+        for (const child of this.children) {
             if (child.name.toLowerCase() === name.toLowerCase()) {
                 return child;
             }

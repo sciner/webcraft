@@ -3,7 +3,7 @@
         "armor": {
             "type": "json",
             "geom": "json/armor.geo.json",
-            "baseSkin": "test",
+            "baseSkin": "chainmail_layer_1",
             "skins": {
                 "chainmail_layer_1": "textures/armor/chainmail_layer_1.png",
                 "chainmail_layer_2": "textures/armor/chainmail_layer_2.png",
@@ -20,7 +20,14 @@
                 "test": "textures/armor/test_armor.png"
             }
         },
-
+        "test_armor": {
+            "type": "json",
+            "geom": "json/helm.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/armor/test_armor.png"
+            }
+        },
         "goat": {
             "type": "json",
             "geom": "json/goat.geo.json",
