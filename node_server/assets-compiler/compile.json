@@ -1710,6 +1710,7 @@
                 "id": "glass"
             },
             "tags": [
+                "is_solid_for_fluid",
                 "glass",
                 "no_drop_ao"
             ]

@@ -4,12 +4,20 @@ import { ServerClient } from "@client/server_client.js";
 import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "@client/fluid/FluidConst.js";
 import { WorldEditBuilding } from "@client/plugins/worldedit/building.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
+import { DBItemBlock } from "@client/blocks.js";
 import type { ServerWorld } from "server_world";
 import type { ChunkGrid } from "@client/core/ChunkGrid";
 import type { ServerChat } from "server_chat";
 
-const MAX_SET_BLOCK         = 250000 * 4;
-const MAX_BLOCKS_PER_PASTE  = 10000;
+const MAX_SET_BLOCK         = 250000 * 4
+const MAX_BLOCKS_PER_PASTE  = 10000
+const QUBOID_SET_COMMANDS = ['/set', '/walls', '/faces'];
+
+enum QUBOID_SET_TYPE {
+    FILL = 1,
+    WALLS = 2,
+    FACES = 3,
+}
 
 export default class WorldEdit {
     id: number;
@@ -103,6 +111,8 @@ export default class WorldEdit {
         this.commands.set('/walls', this.cmd_set);
         this.commands.set('/faces', this.cmd_set);
         this.commands.set('/replace', this.cmd_replace);
+        this.commands.set('/drain', this.cmd_drain);
+        this.commands.set('/drown', this.cmd_drown);
         this.commands.set('/schem', this.cmd_schematic);
         this.commands.set('/schematic', this.cmd_schematic);
         this.commands.set('/clearclipboard', this.cmd_clearclipboard);
@@ -242,18 +252,13 @@ export default class WorldEdit {
 
     /**
      * Set block in region
-     * @param {*} chat
-     * @param {*} player
-     * @param {*} cmd
-     * @param {*} args
      */
     async cmd_set(chat, player, cmd, args) {
-        const types = ['/set', '/walls', '/faces'];
-        const quboid_fill_type_id = types.indexOf(cmd) + 1;
-        const qi = this.getCuboidInfo(player);
-        args = chat.parseCMD(args, ['string', 'string']);
-        const palette = this.createBlocksPalette(args[1]);
-        await this.fillQuboid(chat, player, qi, palette, quboid_fill_type_id);
+        const quboid_set_type_id = QUBOID_SET_COMMANDS.indexOf(cmd) + 1
+        const qi = this.getCuboidInfo(player)
+        args = chat.parseCMD(args, ['string', 'string'])
+        const palette = this.createBlocksPalette(args[1])
+        await this.fillQuboid(chat, player, qi, palette, quboid_set_type_id)
     }
 
     /**
@@ -472,7 +477,7 @@ export default class WorldEdit {
             chat.world.actions_queue.add(null, actions);
         }
         const affected_count_formatted = affected_count.toLocaleString('us');
-        const msg = `${affected_count_formatted} block(s) affected`;
+        const msg = `blocks_changed|${affected_count_formatted}`;
         const pn = Math.round((performance.now() - pn_set) * 10) / 10;
         const blocks_per_sec = Math.round(affected_count / (pn / 1000));
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
@@ -480,21 +485,92 @@ export default class WorldEdit {
         console.log(`world_edit: cmd_paste time: ${pn} ms, chunks: ${actions_list.size}; blocks_per_sec: ${blocks_per_sec}`);
     }
 
+    // осушить
+    async cmd_drain(chat : ServerChat, player, cmd, args) {
+        return this.cmd_replace(chat, player, cmd, [null, 'water', 'air'], true)
+    }
+
+    // затопить
+    async cmd_drown(chat : ServerChat, player, cmd, args) {
+        const qi = this.getCuboidInfo(player)
+        this.checkQuboidAffectedBlocksLimit(qi, QUBOID_SET_TYPE.FILL)
+        const bm = chat.world.block_manager
+        const water_block = bm.fromName('STILL_WATER')
+        const newBlockFluidId = isFluidId(water_block.id)
+        args = chat.parseCMD(args, ['string', 'string']);
+        // const palette = this.createBlocksPalette(args[1])
+        const pn_set        = performance.now()
+        const grid          = chat.world.chunkManager.grid
+        const bpos          = new Vector(0, 0, 0)
+        const item_air      = new DBItemBlock(0)
+        const chunk_addr    = new Vector(0, 0, 0)
+        const chunk_addr_o  = new Vector(Infinity, Infinity, Infinity)
+        let actions         = new WorldAction(null, null, true, false)
+        //
+        let chunk           = null
+        let affected_count  = 0;
+        //
+        for(let x = 0; x < qi.volx; x++) {
+            for(let y = 0; y < qi.voly; y++) {
+                for(let z = 0; z < qi.volz; z++) {
+                    bpos.set(qi.pos1.x + x * qi.signx, qi.pos1.y + y * qi.signy, qi.pos1.z + z * qi.signz)
+                    grid.toChunkAddr(bpos, chunk_addr)
+                    if(!chunk_addr_o.equal(chunk_addr)) {
+                        chunk_addr_o.set(chunk_addr.x, chunk_addr.y, chunk_addr.z)
+                        chunk = chat.world.chunks.get(chunk_addr)
+                        if(!chunk) {
+                            throw 'error_chunk_not_loaded'
+                        }
+                    }
+                    if(affected_count % MAX_BLOCKS_PER_PASTE == 0) {
+                        chat.world.actions_queue.add(null, actions);
+                        actions = new WorldAction(null, null, true, false);
+                    }
+                    const block = chunk.getBlock(bpos)
+                    const mat = block.material
+                    let is_solid_for_fluid = mat.is_solid_for_fluid
+                    if(is_solid_for_fluid) {
+                        if(mat.id == bm.SNOW.id) {
+                            is_solid_for_fluid = false
+                            actions.addBlocks([
+                                {
+                                    pos: bpos.clone(), 
+                                    item: item_air, 
+                                    action_id: ServerClient.BLOCK_ACTION_CREATE
+                                }
+                            ])
+                        }
+                    }
+                    if(!is_solid_for_fluid) {
+                        affected_count++;
+                        actions.addFluids([bpos.x, bpos.y, bpos.z, newBlockFluidId])
+                    }
+                }
+            }
+        }
+        chat.world.actions_queue.add(null, actions);
+        chat.sendSystemChatMessageToSelectedPlayers(`blocks_changed|${affected_count}`, [player.session.user_id]);
+        console.log('world_edit.drown_quboid time took: ' + (performance.now() - pn_set));
+    }
+
     /**
      * Replace blocks in region to another
      */
-    async cmd_replace(chat : ServerChat, player, cmd, args) {
+    async cmd_replace(chat : ServerChat, player, cmd, args, drain: boolean = false) {
+        const pn_set        = performance.now()
         const grid          = chat.world.chunkManager.grid
-        const qi            = this.getCuboidInfo(player);
-        const repl_blocks   = this.createBlocksPalette(args[1]);
-        const palette       = this.createBlocksPalette(args[2]);
-        let chunk_addr      = new Vector(0, 0, 0);
-        let chunk_addr_o    = new Vector(Infinity, Infinity, Infinity);
-        let bpos            = new Vector(0, 0, 0);
-        let chunk           = null;
-        let affected_count  = 0;
-        const pn_set        = performance.now();
-        const actions = new WorldAction(null, null, true, false);
+        const qi            = this.getCuboidInfo(player)
+        const repl_blocks   = this.createBlocksPalette(args[1])
+        const palette       = this.createBlocksPalette(args[2])
+        const actions       = new WorldAction(null, null, true, false)
+        const item_air      = new DBItemBlock(0)
+        const chunk_addr    = new Vector(0, 0, 0)
+        const chunk_addr_o  = new Vector(Infinity, Infinity, Infinity)
+        const bpos          = new Vector(0, 0, 0)
+        //
+        let chunk           = null
+        let affected_count  = 0
+        //
         for(let x = 0; x < qi.volx; x++) {
             for(let y = 0; y < qi.voly; y++) {
                 for(let z = 0; z < qi.volz; z++) {
@@ -503,7 +579,7 @@ export default class WorldEdit {
                         qi.pos1.y + y * qi.signy,
                         qi.pos1.z + z * qi.signz
                     );
-                    chunk_addr = grid.toChunkAddr(bpos, chunk_addr);
+                    grid.toChunkAddr(bpos, chunk_addr);
                     if(!chunk_addr_o.equal(chunk_addr)) {
                         chunk_addr_o.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                         chunk = chat.world.chunks.get(chunk_addr);
@@ -511,64 +587,85 @@ export default class WorldEdit {
                             throw 'error_chunk_not_loaded';
                         }
                     }
-                    let block = chunk.getBlock(bpos);
-                    let mat = block.material;
+                    const old_block = chunk.getBlock(bpos)
+                    const mat = old_block.material
                     if(mat.is_entity) {
-                        continue;
+                        continue
                     }
-                    if(block.id < 0) {
-                        throw 'error_error_get_block';
+                    if(old_block.id < 0) {
+                        throw 'error_error_get_block'
                     }
                     for(let rb of repl_blocks.blocks) {
                         let replace = false;
-                        // TODO: make this automatic (#water)
                         if(rb.is_fluid) {
-                            const fluidValue = block.fluid;
-                            if(mat.id == 0 && fluidValue > 0) {
-                                if((fluidValue & FLUID_TYPE_MASK) == FLUID_WATER_ID) {
-                                    replace = true;
-                                } else if((fluidValue & FLUID_TYPE_MASK) == FLUID_LAVA_ID) {
-                                    replace = true;
+                            const oldBlockFluidValue = old_block.fluid
+                            if(oldBlockFluidValue > 0) {
+                                const is_water = (oldBlockFluidValue & FLUID_TYPE_MASK) === FLUID_WATER_ID
+                                const is_lava = (oldBlockFluidValue & FLUID_TYPE_MASK) === FLUID_LAVA_ID
+                                const candidate_to_replace = (is_water && rb.is_water) || (is_lava && rb.is_lava)
+                                if(mat.id == 0) {
+                                    replace = candidate_to_replace
+                                } else if(drain) {
+                                    replace = candidate_to_replace
                                 }
                             }
                         } else {
-                            replace = mat.id == rb.block_id;
+                            replace = mat.id == rb.block_id
                         }
                         if(replace) {
-                            actions.addBlocks([
-                                {
-                                    pos: bpos.clone(), 
-                                    item: palette.nextAsItem(), 
-                                    action_id: ServerClient.BLOCK_ACTION_CREATE
+                            const new_block = palette.nextAsItem()
+                            const newBlockFluidId = isFluidId(new_block.id)
+                            if (newBlockFluidId) {
+                                actions.addFluids([bpos.x, bpos.y, bpos.z, newBlockFluidId])
+                                actions.addBlocks([
+                                    {
+                                        pos: bpos.clone(), 
+                                        item: item_air, 
+                                        action_id: ServerClient.BLOCK_ACTION_CREATE
+                                    }
+                                ])
+                            } else {
+                                if(!drain) {
+                                    actions.addBlocks([
+                                        {
+                                            pos: bpos.clone(), 
+                                            item: new_block, 
+                                            action_id: ServerClient.BLOCK_ACTION_CREATE
+                                        }
+                                    ])
                                 }
-                            ]);
-                            affected_count++;
-                            break;
+                                // if old block contain water
+                                if(rb.is_fluid) {
+                                    actions.addFluids([bpos.x, bpos.y, bpos.z, 0])
+                                }
+                            }
+                            affected_count++
+                            break
                         }
                     }
                 }
             }
         }
         //
-        chat.world.actions_queue.add(null, actions);
-        let msg = `${affected_count} block(s) affected`;
+        chat.world.actions_queue.add(null, actions)
+        let msg = `blocks_changed|${affected_count}`
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
         console.log('world_edit.replace time took: ' + (performance.now() - pn_set));
     }
 
     //
-    checkQuboidAffectedBlocksLimit(qi, quboid_fill_type_id) {
+    checkQuboidAffectedBlocksLimit(qi, quboid_set_type_id : QUBOID_SET_TYPE) {
         let total_count = qi.volume;
         const size = new Vector(qi.volx, qi.voly, qi.volz);
         const WALL_WIDTH = 1;
-        switch(quboid_fill_type_id) {
+        switch(quboid_set_type_id) {
             // full
-            case 1: {
+            case QUBOID_SET_TYPE.FILL: {
                 // do nothing
                 break;
             }
             // only walls
-            case 2: {
+            case QUBOID_SET_TYPE.WALLS: {
                 size.x -= WALL_WIDTH * 2;
                 size.z -= WALL_WIDTH * 2;
                 if(size.x > 0 && size.y > 0 && size.z > 0) {
@@ -577,7 +674,7 @@ export default class WorldEdit {
                 break;
             }
             // only faces
-            case 3: {
+            case QUBOID_SET_TYPE.FACES: {
                 size.x -= WALL_WIDTH * 2;
                 size.y -= WALL_WIDTH * 2;
                 size.z -= WALL_WIDTH * 2;
@@ -593,41 +690,55 @@ export default class WorldEdit {
     }
 
     //
-    async fillQuboid(chat, player, qi, palette, quboid_fill_type_id) {
-        const pn_set = performance.now();
-        let actions = new WorldAction(null, null, true, false);
-        let affected_count = 0;
-        this.checkQuboidAffectedBlocksLimit(qi, quboid_fill_type_id);
+    async fillQuboid(chat : ServerChat, player, qi, palette, quboid_set_type_id : QUBOID_SET_TYPE) {
+        const pn_set        = performance.now()
+        const grid          = chat.world.chunkManager.grid
+        const bpos          = new Vector(0, 0, 0)
+        const item_air      = new DBItemBlock(0)
+        const chunk_addr    = new Vector(0, 0, 0)
+        const chunk_addr_o  = new Vector(Infinity, Infinity, Infinity)
+        let actions         = new WorldAction(null, null, true, false)
+        //
+        let chunk           = null
+        let affected_count  = 0;
+        this.checkQuboidAffectedBlocksLimit(qi, quboid_set_type_id)
         //
         for(let x = 0; x < qi.volx; x++) {
             for(let y = 0; y < qi.voly; y++) {
                 for(let z = 0; z < qi.volz; z++) {
-                    switch(quboid_fill_type_id) {
-                        // full
-                        case 1: {
+                    switch(quboid_set_type_id) {
+                        // fill
+                        case QUBOID_SET_TYPE.FILL: {
                             // do nothing
                             break;
                         }
                         // only walls
-                        case 2: {
+                        case QUBOID_SET_TYPE.WALLS: {
                             if((x > 0 && y >= 0 && z > 0) && (x < qi.volx - 1 && y < qi.voly && z < qi.volz - 1)) {
                                 continue;
                             }
                             break;
                         }
                         // only faces
-                        case 3: {
+                        case QUBOID_SET_TYPE.FACES: {
                             if((x > 0 && y > 0 && z > 0) && (x < qi.volx - 1 && y < qi.voly - 1 && z < qi.volz - 1)) {
                                 continue;
                             }
                             break;
                         }
                     }
+                    bpos.set(qi.pos1.x + x * qi.signx, qi.pos1.y + y * qi.signy, qi.pos1.z + z * qi.signz)
+                    grid.toChunkAddr(bpos, chunk_addr)
+                    if(!chunk_addr_o.equal(chunk_addr)) {
+                        chunk_addr_o.set(chunk_addr.x, chunk_addr.y, chunk_addr.z)
+                        chunk = chat.world.chunks.get(chunk_addr)
+                        if(!chunk) {
+                            throw 'error_chunk_not_loaded'
+                        }
+                    }
+                    const old_block = chunk.getBlock(bpos)
+                    // const mat = old_block.material
                     affected_count++;
-                    const bpos = new Vector(qi.pos1.x, qi.pos1.y, qi.pos1.z);
-                    bpos.x += x * qi.signx;
-                    bpos.y += y * qi.signy;
-                    bpos.z += z * qi.signz;
                     if(affected_count % MAX_BLOCKS_PER_PASTE == 0) {
                         chat.world.actions_queue.add(null, actions);
                         actions = new WorldAction(null, null, true, false);
@@ -635,15 +746,23 @@ export default class WorldEdit {
                     const item = palette.nextAsItem();
                     const fluidId = isFluidId(item.id);
                     if (fluidId) {
-                        actions.addFluids([bpos.x, bpos.y, bpos.z, fluidId]);
+                        actions.addFluids([bpos.x, bpos.y, bpos.z, fluidId])
+                        actions.addBlocks([{pos: bpos.clone(), item: item_air, action_id: ServerClient.BLOCK_ACTION_CREATE}])
                     } else {
-                        actions.addBlocks([{pos: bpos, item, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+                        // need to clear old water values
+                        if(old_block) {
+                            const oldBlockFluidValue = old_block.fluid
+                            if(oldBlockFluidValue > 0) {
+                                actions.addFluids([bpos.x, bpos.y, bpos.z, 0])
+                            }
+                        }
+                        actions.addBlocks([{pos: bpos.clone(), item, action_id: ServerClient.BLOCK_ACTION_CREATE}])
                     }
                 }
             }
         }
         chat.world.actions_queue.add(null, actions);
-        chat.sendSystemChatMessageToSelectedPlayers(`${affected_count} blocks changed`, [player.session.user_id]);
+        chat.sendSystemChatMessageToSelectedPlayers(`blocks_changed|${affected_count}`, [player.session.user_id]);
         console.log('world_edit.fill_quboid time took: ' + (performance.now() - pn_set));
     }
 
@@ -689,10 +808,16 @@ export default class WorldEdit {
             } else {
                 name = a;
             }
+            if(name.toLowerCase() == 'water') {
+                name = 'still_water'
+            }
+            if(name.toLowerCase() == 'lava') {
+                name = 'still_lava'
+            }
             blockChances.push({
                 chance: chance,
                 name: name
-            });
+            })
         }
         // Check names and validate blocks
         const fake_orientation = new Vector(0, 1, 0);
@@ -716,12 +841,11 @@ export default class WorldEdit {
             if(b.can_rotate) {
                 item.rotate = fake_orientation;
             }
-            item.block_id = block_id;
+            item.block_id = block_id
+            item.is_fluid = b.is_fluid
+            item.is_lava = b.is_lava
+            item.is_water = b.is_water
             item.name = b.name;
-            // TODO: make this automatic (#water)
-            item.is_fluid = b.is_fluid;
-            item.is_water = b.is_water;
-            item.is_lava = b.is_fluid && !b.is_water;
         }
         // Random fill
         let max = 0;
@@ -746,18 +870,18 @@ export default class WorldEdit {
                 }
                 throw 'Proportional fill pattern';
             },
-            nextAsItem: function() {
-                const next = this.next();
+            nextAsItem: function() : DBItemBlock {
+                const next = this.next()
                 const resp = {
                     id: next.block_id
                 } as IBlockItem;
                 if(next.extra_data) {
-                    resp.extra_data = next.extra_data;
+                    resp.extra_data = next.extra_data
                 }
                 if(next.rotate) {
-                    resp.rotate = next.rotate;
+                    resp.rotate = next.rotate
                 }
-                return resp;
+                return resp
             }
         };
     }
