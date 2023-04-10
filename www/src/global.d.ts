@@ -215,10 +215,27 @@ interface IPlane {
     rot: tupleFloat3 | IVector
 }
 
+interface IBlockSame {
+    id: string
+    properties: int
+}
+
 interface IBlockMaterialTicking {
     type: string
     max_stage?: number
     times_per_stage?: number
+}
+
+interface IBlockChance {
+    block_id?: int
+    name?: string
+    chance: float
+    rotate: any
+    is_fluid: boolean
+    is_lava: boolean
+    is_water: boolean
+    extra_data: any
+    material: IBlockMaterial
 }
 
 interface IBlockMaterial {
@@ -229,6 +246,7 @@ interface IBlockMaterial {
     style_name: string
     support_style: string
     sham_block_name: string
+    same?: IBlockSame
     inventory_style: any
     group: string
     passable: number
