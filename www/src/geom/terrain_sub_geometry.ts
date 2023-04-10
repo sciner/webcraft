@@ -7,6 +7,7 @@ export class TerrainSubGeometry {
         this.pool = pool;
         this.glOffsets = [];
         this.glCounts = [];
+        this.batchPos = 0;
         this.pages = [];
         this.sizeQuads = sizeQuads;
         this.sizePages = sizePages;
@@ -31,7 +32,7 @@ export class TerrainSubGeometry {
         const {pageSize} = this.pool;
         this.sizeQuads = this.size = vertices[0];
         glOffsets.length = glCounts.length = 0;
-        let pos = batch.pos;
+        let pos = this.batchPos = batch.pos;
         for (let i = 0; i < this.sizePages; i++) {
             const floatBuffer = new Float32Array(vertices[i + 1]);
             const sz = floatBuffer.length / baseGeometry.strideFloats;

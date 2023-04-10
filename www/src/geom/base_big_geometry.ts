@@ -5,9 +5,6 @@ import type WebGLRenderer from "../renders/webgl";
 
 export class BaseBigGeometry {
     static strideFloats = 10;
-    static sortAss = (a, b) => {
-        return a - b;
-    };
 
     batch: BigGeomBatchUpdate = null;
 

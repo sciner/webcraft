@@ -1,7 +1,7 @@
-import {BaseBigGeometry} from "../geom/base_big_geometry.js";
-import {BigGeomBatchUpdate} from "../geom/big_geom_batch_update.js";
+import type {GeometryVaoOptions} from "../geom/base_geometry_vao.js";
+import {BaseGeometryVao} from "../geom/base_geometry_vao.js";
 
-export class FluidBigGeometry extends BaseBigGeometry {
+export class FluidBigGeometry extends BaseGeometryVao {
     static strideFloats = 16;
     static vertexPerInstance = 4;
     static indexPerInstance = 6;
@@ -9,13 +9,12 @@ export class FluidBigGeometry extends BaseBigGeometry {
     vertexPerInstance: number;
     indexPerInstance: number;
 
-    constructor({context = null, size = 128} = {}) {
-        super({
-            context, size, strideFloats: FluidBigGeometry.strideFloats});
+    constructor(options: GeometryVaoOptions) {
+        options.strideFloats = options.strideFloats ?? 16;
+        super(options);
         this.vertexPerInstance = FluidBigGeometry.vertexPerInstance;
         this.indexPerInstance = FluidBigGeometry.indexPerInstance;
         this.hasInstance = false;
-        this.batch = new BigGeomBatchUpdate(this.strideFloats, 1 << 11);
         this.createIndex();
     }
 
@@ -36,18 +35,6 @@ export class FluidBigGeometry extends BaseBigGeometry {
             this.indexBuffer.data = this.indexData;
         }
     }
-
-    resize(newSize) {
-        super.resize(newSize);
-        this.createIndex();
-    }
-
-    // in uint a_chunkId;
-    // in uint a_fluidId;
-    // in uint a_flags;
-    // in vec3 a_position;
-    // in vec2 a_uv;
-    // in vec2 a_biome;
 
     createVao() {
         const {attribs, gl} = this;
@@ -79,5 +66,4 @@ export class FluidBigGeometry extends BaseBigGeometry {
         gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 2 * 4);
         gl.vertexAttribPointer(attribs.a_height, 1, gl.FLOAT, false, stride, 3 * 4);
     }
-
 }

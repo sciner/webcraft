@@ -1,12 +1,12 @@
-import {BaseBigGeometry} from "./base_big_geometry.js";
-import {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
+import type {GeometryVaoOptions} from "./base_geometry_vao.js";
+import {BaseGeometryVao} from "./base_geometry_vao.js";
 
-export class TerrainBigGeometry extends BaseBigGeometry {
+export class TerrainBigGeometry extends BaseGeometryVao {
     static strideFloats = 16;
 
-    constructor({context = null, size = 128} = {}) {
-        super({context, size, strideFloats: TerrainBigGeometry.strideFloats});
-        this.batch = new BigGeomBatchUpdate(this.strideFloats);
+    constructor(options: GeometryVaoOptions) {
+        options.strideFloats = options.strideFloats ?? 16;
+        super(options);
         this.hasInstance = true;
     }
 
