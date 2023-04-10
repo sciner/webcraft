@@ -1,9 +1,8 @@
-import { SimplePool } from "../helpers/simple_pool.js";
 import type { BaseBigGeometry } from "./base_big_geometry";
 import type {BaseGeometryVao} from "./base_geometry_vao";
 import type {TerrainSubGeometry} from "./terrain_sub_geometry";
 import {IvanArray} from "../helpers.js";
-import {GL_BUFFER_LOCATION, VAO_BUFFER_TYPE} from "./base_geometry_vao";
+import {GL_BUFFER_LOCATION} from "./base_geometry_vao";
 
 export interface IGeomCopyOperation {
     batchStart: number;
@@ -13,7 +12,7 @@ export interface IGeomCopyOperation {
 
 export class BigGeomBatchUpdate {
     copies = new IvanArray<TerrainSubGeometry>(); // from, to, dest
-    instCount: number = 0;
+    instCount = 0;
     strideFloats: number;
     baseGeom: BaseBigGeometry;
     vao: BaseGeometryVao;
@@ -23,7 +22,7 @@ export class BigGeomBatchUpdate {
         this.baseGeom = baseGeom;
         this.vao = baseGeom.dynamicDraw;
         this.data = this.vao.data;
-        this.strideFloats = this.baseGeom.staticDraw.strideFloats;
+        this.strideFloats = this.baseGeom.strideFloats;
     }
 
     ensureSize(instances: number) {
@@ -54,8 +53,8 @@ export class BigGeomBatchUpdate {
         copies.count = 0;
     }
 
-    flipInstCount: number = 0;
-    flipCopyCount: number = 0;
+    flipInstCount = 0;
+    flipCopyCount = 0;
 
     flip() {
         const {flipCopyCount, copies, flipInstCount, data, strideFloats} = this;

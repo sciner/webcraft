@@ -95,7 +95,7 @@ export class BaseGeometryVao {
      * Only bind for drawing, no actual upload!
      * @param shader
      */
-    bindForDraw(shader) {
+    bindForDraw() {
         this.drawBindCount++;
         this.gl.bindVertexArray(this.vao);
         if (this.hasInstance && !this.context.multidrawBaseExt) {

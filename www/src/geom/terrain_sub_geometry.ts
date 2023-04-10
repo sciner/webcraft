@@ -1,10 +1,10 @@
 import type {BigGeomBatchUpdate, IGeomCopyOperation} from "./big_geom_batch_update.js";
 import type {BaseBigGeometry} from "./base_big_geometry";
-import type {BaseGeometryPool} from "./base_geometry_pool";
+import type {BigGeometryPool} from "./big_geometry_pool";
 
 export class TerrainSubGeometry implements IGeomCopyOperation {
     baseGeometry: BaseBigGeometry;
-    pool: BaseGeometryPool;
+    pool: BigGeometryPool;
     glOffsets: number[] = [];
     glCounts: number[] = [];
     batchStart = 0;
@@ -16,7 +16,7 @@ export class TerrainSubGeometry implements IGeomCopyOperation {
     constructor({baseGeometry, pool, sizeQuads = 0, sizePages = 0}) {
         this.baseGeometry = baseGeometry;
         this.pool = pool;
-        this.batchStart = 0;
+        this.batchStart = -1;
         this.pages = [];
         this.sizeQuads = sizeQuads;
         this.sizePages = sizePages;

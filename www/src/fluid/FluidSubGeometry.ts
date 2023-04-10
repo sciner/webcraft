@@ -2,7 +2,6 @@ import {WorkerSubGeometry} from "../geom/worker_geometry_pool.js";
 import {FluidBigGeometry} from "./FluidBigGeometry.js";
 
 export class FluidSubGeometry extends WorkerSubGeometry {
-    [key: string]: any;
     constructor(params) {
         super(params);
     }
@@ -18,7 +17,7 @@ export class FluidSubGeometry extends WorkerSubGeometry {
         const blockId = (this.chunkDataId << 16) | blockIndex;
 
         const data = this.lastPage.data, uint32Data = this.lastPage.uint32Data;
-        let ind = (this.lastPage.filled++) * FluidBigGeometry.strideFloats;
+        let ind = (this.lastPage.filled++) * this.baseGeometry.strideFloats;
         this.filled++;
 
         // gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.FLOAT, false, stride, 0 * 4);

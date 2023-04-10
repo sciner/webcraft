@@ -12,14 +12,8 @@ export interface BigGeometryOptions {
 }
 
 export class BaseBigGeometry {
-    static strideFloats = 10;
-
-    batch: BigGeomBatchUpdate = null;
     staticSize: number;
     dynamicSize: number;
-
-    staticDraw: BaseGeometryVao = null;
-    dynamicDraw: BaseGeometryVao = null;
 
     indexData: Int32Array = null;
     indexBuffer: BaseBuffer = null;
@@ -37,14 +31,21 @@ export class BaseBigGeometry {
         this.createGeom();
     }
 
+    strideFloats: number;
+    staticDraw: BaseGeometryVao;
+    dynamicDraw: BaseGeometryVao;
+    batch: BigGeomBatchUpdate;
+
     createGeom() {
         this.staticDraw = new this.geomClass({size: this.staticSize, bufferType: VAO_BUFFER_TYPE.BIG});
         this.dynamicDraw = new this.geomClass({size: this.dynamicSize, bufferType: VAO_BUFFER_TYPE.DYNAMIC});
         this.batch = new BigGeomBatchUpdate(this);
+        this.strideFloats = this.staticDraw.strideFloats;
     }
 
     bind() {
         const geom = this.staticDraw;
+        geom.bindForDraw();
         if (geom.hasInstance && !this.context.multidrawBaseExt) {
             geom.buffer.bind();
         }

@@ -82,7 +82,7 @@ export class ChunkRenderList {
     }
 
     get bufferSizeBytes() {
-        return this.bufferPool?.baseGeometry?.buffer?.bigLength || 0;
+        return this.bufferPool?.bufferSizeBytes;
     }
 
     uploadBuffers(render: Renderer) {

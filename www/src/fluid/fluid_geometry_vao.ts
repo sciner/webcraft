@@ -1,7 +1,7 @@
 import type {GeometryVaoOptions} from "../geom/base_geometry_vao.js";
 import {BaseGeometryVao} from "../geom/base_geometry_vao.js";
 
-export class FluidBigGeometry extends BaseGeometryVao {
+export class FluidGeometryVao extends BaseGeometryVao {
     static strideFloats = 16;
     static vertexPerInstance = 4;
     static indexPerInstance = 6;
@@ -12,28 +12,9 @@ export class FluidBigGeometry extends BaseGeometryVao {
     constructor(options: GeometryVaoOptions) {
         options.strideFloats = options.strideFloats ?? 16;
         super(options);
-        this.vertexPerInstance = FluidBigGeometry.vertexPerInstance;
-        this.indexPerInstance = FluidBigGeometry.indexPerInstance;
+        this.vertexPerInstance = FluidGeometryVao.vertexPerInstance;
+        this.indexPerInstance = FluidGeometryVao.indexPerInstance;
         this.hasInstance = false;
-        this.createIndex();
-    }
-
-    createIndex() {
-        const size = this.size;
-        const indexData = this.indexData = new Int32Array(size * 6);
-
-        for (let i = 0; i < size; i++) {
-            indexData[i * 6] = i * 4;
-            indexData[i * 6 + 1] = i * 4 + 1;
-            indexData[i * 6 + 2] = i * 4 + 2;
-            indexData[i * 6 + 3] = i * 4;
-            indexData[i * 6 + 4] = i * 4 + 2;
-            indexData[i * 6 + 5] = i * 4 + 3;
-        }
-
-        if (this.indexBuffer) {
-            this.indexBuffer.data = this.indexData;
-        }
     }
 
     createVao() {
@@ -49,13 +30,6 @@ export class FluidBigGeometry extends BaseGeometryVao {
         this.buffer.bind();
 
         this.attribBufferPointers();
-
-        this.indexBuffer = this.context.createBuffer({
-            data: this.indexData,
-            usage: 'static',
-            index: true
-        });
-        this.indexBuffer.bind();
     }
 
     attribBufferPointers() {
