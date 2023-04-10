@@ -82,6 +82,9 @@ export class BaseBigGeometry {
 
         // multi upload!
         if (this.uploadID === this.updateID) {
+            if (this.hasInstance && !this.context.multidrawBaseExt) {
+                this.buffer.bind();
+            }
             return;
         }
         this.uploadID = this.updateID;

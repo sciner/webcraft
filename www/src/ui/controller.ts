@@ -328,6 +328,15 @@ let gameCtrl = async function($scope : any, $timeout : any) {
                 $scope.settings.form.use_light = item.id;
             }
         },
+        chunkGeometryMode: {
+            list: [{id: 0, name: 'Auto'}, {id: 1, name: 'One per chunk'}, {id: 2, name: 'Big (multidraw)'}, {id: 3, name: 'Big (no multidraw)'}],
+            get current() {
+                return this.list[$scope.settings.form.chunk_geometry_mode];
+            },
+            set current(item) {
+                $scope.settings.form.chunk_geometry_mode = item.id;
+            }
+        },
         save: function() {
             this.form.save()
             $scope.current_window.show('main');
