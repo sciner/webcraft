@@ -9,6 +9,7 @@ export class FluidBigGeometry extends BaseBigGeometry {
 
     createGeom() {
         this.geomClass = FluidGeometryVao;
+        super.createGeom();
     }
 
     upload(shader) {

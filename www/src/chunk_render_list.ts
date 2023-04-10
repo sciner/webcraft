@@ -88,11 +88,11 @@ export class ChunkRenderList {
     uploadBuffers(render: Renderer) {
         let baseGeom = (this.bufferPool as any)?.baseGeometry;
         if (baseGeom) {
-            baseGeom.bind(render.defaultShader);
+            baseGeom.upload(render.defaultShader);
         }
         baseGeom = (this.chunkManager.fluidWorld.mesher.renderPool as any)?.baseGeometry;
         if (baseGeom) {
-            baseGeom.bind(render.defaultFluidShader);
+            baseGeom.upload(render.defaultFluidShader);
         }
     }
 

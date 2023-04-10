@@ -176,10 +176,10 @@ export class BaseBuffer {
         return this._data;
     }
 
-    bind() {
+    bind(loc?: number) {
     }
 
-    update() {
+    update(loc?: number) {
         this.dirty = false;
     }
 
@@ -191,7 +191,7 @@ export class BaseBuffer {
 
     }
 
-    batchUpdate(copies: IvanArray<IGeomCopyOperation>, stride: number) {
+    batchUpdate(updBuffer: BaseBuffer, copies: IvanArray<IGeomCopyOperation>, stride: number) {
     }
 
     destroy() {

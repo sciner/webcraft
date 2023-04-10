@@ -22,6 +22,10 @@ export class TerrainSubGeometry implements IGeomCopyOperation {
         this.sizePages = sizePages;
     }
 
+    get baseVao() {
+        return this.batchStart >= 0 ? this.baseGeometry.dynamicDraw : this.baseGeometry.staticDraw;
+    }
+
     setDataBatch(batch: BigGeomBatchUpdate, vertices: any) {
         const {baseGeometry, pages, glOffsets, glCounts} = this;
         const {strideFloats} = baseGeometry.dynamicDraw;

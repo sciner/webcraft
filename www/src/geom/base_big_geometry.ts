@@ -1,8 +1,8 @@
 import {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
 import type {BaseBuffer} from "../renders/BaseRenderer.js";
 import type WebGLRenderer from "../renders/webgl";
-import type {BaseGeometryVao} from "./base_geometry_vao";
-import {GL_BUFFER_LOCATION} from "./base_geometry_vao";
+import type {BaseGeometryVao} from "./base_geometry_vao.js";
+import {GL_BUFFER_LOCATION} from "./base_geometry_vao.js";
 import {VAO_BUFFER_TYPE} from "./base_geometry_vao.js";
 
 export interface BigGeometryOptions {
@@ -39,8 +39,8 @@ export class BaseBigGeometry {
     createGeom() {
         this.staticDraw = new this.geomClass({size: this.staticSize, bufferType: VAO_BUFFER_TYPE.BIG});
         this.dynamicDraw = new this.geomClass({size: this.dynamicSize, bufferType: VAO_BUFFER_TYPE.DYNAMIC});
-        this.batch = new BigGeomBatchUpdate(this);
         this.strideFloats = this.staticDraw.strideFloats;
+        this.batch = new BigGeomBatchUpdate(this);
     }
 
     bind() {
@@ -57,7 +57,8 @@ export class BaseBigGeometry {
             this.context = shader.context;
             // when WebGL
             this.gl = shader.context.gl;
-            this.staticDraw.init(shader);
+            staticDraw.init(shader);
+            dynamicDraw.init(shader);
         }
 
         staticDraw.bindForUpload();
@@ -67,8 +68,8 @@ export class BaseBigGeometry {
         }
         if (this.useDoubleBuffer) {
         } else {
-            batch.bindDynamic(GL_BUFFER_LOCATION.COPY_READ_BUFFER);
-            staticDraw.buffer.batchUpdate(batch.copies, staticDraw.stride);
+            batch.updDynamic();
+            staticDraw.buffer.batchUpdate(batch.vao.buffer, batch.copies, staticDraw.stride);
             batch.reset();
         }
         if (this.indexBuffer) {

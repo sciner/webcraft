@@ -2,7 +2,7 @@ import type { BaseBigGeometry } from "./base_big_geometry";
 import type {BaseGeometryVao} from "./base_geometry_vao";
 import type {TerrainSubGeometry} from "./terrain_sub_geometry";
 import {IvanArray} from "../helpers.js";
-import {GL_BUFFER_LOCATION} from "./base_geometry_vao";
+import {GL_BUFFER_LOCATION} from "./base_geometry_vao.js";
 
 export interface IGeomCopyOperation {
     batchStart: number;
@@ -47,8 +47,8 @@ export class BigGeomBatchUpdate {
         this.instCount = 0;
         const {copies} = this;
         for (let i = 0; i < copies.count; i++) {
-            copies[i].batchStart = -1;
-            copies[i] = null;
+            copies.arr[i].batchStart = -1;
+            copies.arr[i] = null;
         }
         copies.count = 0;
     }
@@ -64,11 +64,11 @@ export class BigGeomBatchUpdate {
             return;
         }
         for (let i = 0; i < flipCopyCount; i++) {
-            copies[i].batchPos = -1;
+            copies.arr[i].batchStart = -1;
         }
         for (let i = flipCopyCount; i < copies.count; i++) {
-            const copy = copies[i - flipCopyCount] = copies[i];
-            copy.batchPos -= flipInstCount;
+            const copy = copies.arr[i - flipCopyCount] = copies.arr[i];
+            copy.batchStart -= flipInstCount;
         }
         copies.decCount(flipCopyCount);
         this.flipCopyCount = copies.count;
@@ -78,8 +78,7 @@ export class BigGeomBatchUpdate {
         this.flipInstCount = this.instCount;
     }
 
-    bindDynamic(loc = GL_BUFFER_LOCATION.ARRAY_BUFFER) {
-        this.vao.data = this.data.slice(0, this.instCount * this.strideFloats);
-        this.vao.bindForUpload(loc);
+    updDynamic() {
+        this.vao.buffer.data = this.data.slice(0, this.instCount * this.strideFloats);
     }
 }

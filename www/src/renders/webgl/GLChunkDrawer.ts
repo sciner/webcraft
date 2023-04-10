@@ -36,11 +36,11 @@ export class GLChunkDrawer extends ChunkDrawer {
         }
         let gl = context.gl;
 
-        if (geom.baseGeometry) {
-            if (this.curBase !== geom.baseGeometry
+        if (geom.baseVao) {
+            if (this.curBase !== geom.baseVao
                 || this.curMat !== material) {
                 this.flush();
-                this.curBase = geom.baseGeometry;
+                this.curBase = geom.baseVao;
                 this.curMat = material;
                 material.bind();
                 this.curBase.bind(material.shader);
@@ -66,7 +66,7 @@ export class GLChunkDrawer extends ChunkDrawer {
         }
         let {elements, context, offsets, offsetsInt, counts} = this;
         let sz = 0;
-        let baseGeom = elements[0].baseGeometry;
+        let baseVao = elements[0].baseVao;
         for (let i = 0; i < this.count; i++) {
             const geom = elements[i];
             elements[i] = null;
@@ -77,13 +77,18 @@ export class GLChunkDrawer extends ChunkDrawer {
                 offsets = this.offsets;
                 counts = this.counts;
             }
-            for (let j = 0; j < len; j++) {
-                offsets[sz] = geom.glOffsets[j];
-                counts[sz] = geom.glCounts[j];
-                if ((offsets[sz] + counts[sz]) * baseGeom.stride > baseGeom.buffer.glLength) {
-                    console.log("glOffsets problem");
+            if (geom.batchStart >= 0) {
+                offsets[sz] = geom.batchStart;
+                counts[sz] = geom.sizeQuads;
+            } else {
+                for (let j = 0; j < len; j++) {
+                    offsets[sz] = geom.glOffsets[j];
+                    counts[sz] = geom.glCounts[j];
+                    if ((offsets[sz] + counts[sz]) * baseVao.stride > baseVao.buffer.glLength) {
+                        console.log("glOffsets problem");
+                    }
+                    sz++;
                 }
-                sz++;
             }
             context.stat.drawquads += geom.sizeQuads;
         }
@@ -95,7 +100,7 @@ export class GLChunkDrawer extends ChunkDrawer {
         const mdb = context.multidrawBaseExt, md = context.multidrawExt, gl = context.gl;
         const {arrZeros, arrSixes} = this;
 
-        if (baseGeom.hasInstance) {
+        if (baseVao.hasInstance) {
             if (mdb) {
                 mdb.multiDrawArraysInstancedBaseInstanceWEBGL(
                     gl.TRIANGLES,
@@ -109,27 +114,27 @@ export class GLChunkDrawer extends ChunkDrawer {
             } else {
                 //Instance fetch requires 2910, but attribs only supply 0.
                 for (let i = 0; i < sz; i++) {
-                    baseGeom.attribBufferPointers(offsets[i]);
+                    baseVao.attribBufferPointers(offsets[i]);
                     gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, counts[i]);
                     context.stat.drawcalls++;
                 }
             }
         } else {
             // multi draw arrays
-            if (baseGeom.indexBuffer) {
+            if (baseVao.hasIndex) {
                 for (let j = 0; j < sz; j++) {
-                    offsets[j] *= baseGeom.indexPerInstance * 4;
-                    counts[j] *= baseGeom.indexPerInstance;
+                    offsets[j] *= baseVao.indexPerInstance * 4;
+                    counts[j] *= baseVao.indexPerInstance;
                 }
             } else {
                 for (let j = 0; j < sz; j++) {
-                    offsets[j] *= baseGeom.vertexPerInstance;
-                    counts[j] *= baseGeom.vertexPerInstance;
+                    offsets[j] *= baseVao.vertexPerInstance;
+                    counts[j] *= baseVao.vertexPerInstance;
                 }
             }
 
             if (md) {
-                if (baseGeom.indexBuffer) {
+                if (baseVao.indexBuffer) {
                     md.multiDrawElementsWEBGL(
                         gl.TRIANGLES,
                         counts, 0,
@@ -147,7 +152,7 @@ export class GLChunkDrawer extends ChunkDrawer {
                 }
                 context.stat.multidrawcalls++;
             } else {
-                if (baseGeom.indexBuffer) {
+                if (baseVao.indexBuffer) {
                     for (let i = 0; i < sz; i++) {
                         gl.drawElements(gl.TRIANGLES, counts[i], gl.UNSIGNED_INT, offsets[i]);
                         context.stat.drawcalls++;

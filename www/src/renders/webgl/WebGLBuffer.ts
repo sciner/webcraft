@@ -11,7 +11,7 @@ export class WebGLBuffer extends BaseBuffer {
     buffer: WebGLBuffer = null;
     glTrySubData = true;
 
-    update() {
+    update(loc?: number) {
         if (this.bigLength > 0) {
             this.updateBig();
             return;
@@ -23,14 +23,14 @@ export class WebGLBuffer extends BaseBuffer {
             this.buffer = gl.createBuffer();
         }
 
-        const type = this.glType || (this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER);
+        loc = loc ?? (this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER)
 
-        gl.bindBuffer(type, this.buffer);
+        gl.bindBuffer(loc, this.buffer);
         if (this.glLength < this.data.byteLength || !this.glTrySubData) {
-            gl.bufferData(type, this.data, this.options.usage === 'static' ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW);
+            gl.bufferData(loc, this.data, this.options.usage === 'static' ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW);
             this.glLength = this.data.byteLength
         } else {
-            gl.bufferSubData(type, 0, this.data);
+            gl.bufferSubData(loc, 0, this.data);
         }
 
         super.update();
@@ -67,7 +67,7 @@ export class WebGLBuffer extends BaseBuffer {
             this.buffer = gl.createBuffer();
         }
 
-        const type = this.glType || (this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER);
+        const type = this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
 
         gl.bindBuffer(type, this.buffer);
 
@@ -81,7 +81,7 @@ export class WebGLBuffer extends BaseBuffer {
         super.update();
     }
 
-    bind() {
+    bind(loc?: number) {
         const {
             /**
              * @type {WebGL2RenderingContext}
@@ -89,20 +89,23 @@ export class WebGLBuffer extends BaseBuffer {
             gl
         } = this.context;
 
+        loc = loc ?? (this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER)
+
         if (this.dirty || !this.buffer) {
-            this.update();
+            this.update(loc);
             return;
         }
 
-        gl.bindBuffer(this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER, this.buffer);
+        gl.bindBuffer(loc, this.buffer);
     }
 
-    batchUpdate(copies: IvanArray<any>, stride: number) {
+    batchUpdate(updBuffer: BaseBuffer, copies: IvanArray<any>, stride: number) {
         const {gl} = this.context;
 
         this.bind();
+        updBuffer.bind(gl.COPY_READ_BUFFER);
         for (let i = 0; i < copies.count; i++) {
-            const op = copies[i];
+            const op = copies.arr[i];
             let batchPos = op.batchStart;
             const len = op.glCounts.length;
             for (let j = 0; j < len; j++) {

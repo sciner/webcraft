@@ -1,6 +1,6 @@
 import type BaseRenderer from "../renders/BaseRenderer.js";
 import type {BaseBuffer} from "../renders/BaseRenderer.js";
-import GeometryTerrain from "../geometry_terrain";
+import GeometryTerrain from "../geometry_terrain.js";
 
 export enum VAO_BUFFER_TYPE {
     NONE = 0,
@@ -38,14 +38,15 @@ export class BaseGeometryVao {
     vao: WebGLVertexArrayObject = null;
     buffers: BaseBuffer[] = [];
     hasInstance = false;
+    hasIndex = false;
 
     constructor({size = 128, strideFloats = 0, bufferType = VAO_BUFFER_TYPE.BIG}: GeometryVaoOptions) {
         this.strideFloats = strideFloats;
         this.stride = this.strideFloats * 4;
         this.size = size;
         this.bufferType = bufferType;
-        if (bufferType === VAO_BUFFER_TYPE.BIG) {
-            this.data = new Float32Array(this.strideFloats);
+        if (bufferType !== VAO_BUFFER_TYPE.BIG) {
+            this.data = new Float32Array(size * this.strideFloats);
         }
     }
 
@@ -58,10 +59,18 @@ export class BaseGeometryVao {
         // when WebGL
         this.gl = shader.context.gl;
 
-        this.buffer = this.context.createBuffer({
-            usage: 'dynamic',
-            bigLength: this.size * this.stride,
-        });
+        if (this.bufferType == VAO_BUFFER_TYPE.BIG) {
+            this.buffer = this.context.createBuffer({
+                usage: 'static',
+                bigLength: this.size * this.stride,
+            });
+        } else {
+            this.buffer = this.context.createBuffer({
+                usage: 'dynamic',
+                data: this.data,
+            });
+        }
+
         (this.buffer as any).glTrySubData = true;
         // this.data = null;
 
@@ -79,6 +88,7 @@ export class BaseGeometryVao {
     resize(instances) {
         if (this.bufferType === VAO_BUFFER_TYPE.BIG) {
             this.buffer.bigLength = instances * this.stride;
+            this.buffer.dirty = true;
         } else {
             const oldData = this.data;
             this.data = new Float32Array(instances * this.strideFloats);
@@ -101,6 +111,10 @@ export class BaseGeometryVao {
         if (this.hasInstance && !this.context.multidrawBaseExt) {
             this.buffer.bind();
         }
+    }
+
+    bind() {
+        this.bindForDraw();
     }
 
     bindForUpload(bufferType = GL_BUFFER_LOCATION.ARRAY_BUFFER) {
