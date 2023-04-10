@@ -338,7 +338,7 @@ export default class WorldEdit {
         if(!chat.world.admins.checkIsAdmin(player)) {
             throw 'error_not_permitted';
         }
-        args = chat.parseCMD(args, ['string', 'string', 'string']);
+        args = chat.parseCMD(args, ['string', 'string|float', 'string|float']);
         await this.building.onCmd(chat, player, cmd, args);
     }
 

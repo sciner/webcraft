@@ -2,31 +2,44 @@
 * https://github.com/PrismarineJS/prismarine-physics
 **/
 
-import {Vec3, Vector} from "../helpers.js";
+import {Vector} from "../helpers.js";
 import {BLOCK} from "../blocks.js";
 import {Physics, PlayerState} from "./index.js";
-import {Resources} from "../resources.js";
-import {FLUID_TYPE_MASK, FLUID_LEVEL_MASK, FLUID_WATER_ID, FLUID_LAVA_ID} from "../fluid/FluidConst.js";
 import {TBlock} from "../typed_blocks3.js";
 import {PlayerControl} from "../control/player_control.js";
 import {PHYSICS_INTERVAL_MS} from "../constant.js";
 import {PLAYER_CONTROL_TYPE} from "../control/player_control.js";
 import type {PlayerTickData} from "../control/player_tick_data.js";
+import type {World} from "../world.js";
+import type {Effects} from "../player.js";
 
 export const PHYSICS_TIMESTEP = PHYSICS_INTERVAL_MS / 1000;
 export const DEFAULT_SLIPPERINESS = 0.6;
 
+export type TPrismarineEffects = {
+    effects?: Effects[]
+}
+
+export type TPrismarineOptions = {
+    baseSpeed           ? : float   // how much height can the bot step on without jump
+    playerHeight        ? : float
+    stepHeight          ? : float
+    defaultSlipperiness ? : float
+    playerHalfWidth     ? : float
+    effects             ? : TPrismarineEffects
+}
+
 // FakeWorld
-class FakeWorld {
+export class FakeWorld {
     static mcData: any;
-    world: any;
+    world: World;
     block_pos: Vector;
     _pos: Vector;
     _localPos: Vector;
     tblock: TBlock;
     chunkAddr: Vector;
 
-    static getMCData(world) {
+    static getMCData(world: World) {
         if(this.mcData) {
             return this.mcData;
         }
@@ -56,7 +69,7 @@ class FakeWorld {
         return this.mcData;
     }
 
-    constructor(world) {
+    constructor(world: World) {
         this.world = world;
         this.block_pos = new Vector(0, 0, 0);
         this._pos = new Vector(0, 0, 0);
@@ -75,20 +88,17 @@ class FakeWorld {
         _pos.copyFrom(pos).flooredSelf();
         const cnunk_manager = this.world.chunkManager
         const chunk = cnunk_manager.getChunk(cnunk_manager.grid.toChunkAddr(_pos, this.chunkAddr));
-        if (!chunk) {
-            return new FakeBlock(null, -1, 0, shapesEmpty);
+        if (!chunk || !chunk.isReady()) {
+            // previously new FakeBlock(null, -1, 0, shapesEmpty) on server, null on client
+            return null
         }
         _localPos.set(_pos.x - chunk.coord.x, _pos.y - chunk.coord.y, _pos.z - chunk.coord.z);
-        if(!chunk.tblocks) {
-            return null;
-        }
         chunk.tblocks.get(_localPos, tblock);
         const id = tblock.id;
         const fluid = tblock.fluid;
-        let shapes = tblock.shapes;
-        let clonedPos = null;
+        let shapes: tupleFloat6[] | null = tblock.shapes // it's always null
+        let clonedPos = this._pos.clone();
         if (shapes === null) {
-            clonedPos = this._pos.clone();
             shapes = (id > 0) ? BLOCK.getShapes(this._pos, tblock, this.world, true, false) : shapesEmpty;
         }
         if(!return_tblock) tblock = null
@@ -96,61 +106,21 @@ class FakeWorld {
     }
 }
 
-const fakeMat = { is_water : false }
-const fakeMatWater = { is_water : true }
-const fakeProps = {};
 const shapesEmpty = [];
 
 export class FakeBlock {
-    position: any;
-    id: any;
-    type: any;
-    material: { is_water: boolean; };
-    metadata: number;
-    shapes: any;
-    tblock: any;
+    position: Vector
+    id      : int
+    fluid   : int
+    shapes  : tupleFloat6[]
+    tblock? : TBlock
 
-    constructor(pos, id, fluid, shapes, tblock?) {
-        this.position = pos;
-        this.id = this.type = id;
-        this.material = fakeMat;
-        this.metadata = 0;
-        this.shapes = shapes;
+    constructor(pos: Vector, id: int, fluid: int, shapes: tupleFloat6[], tblock?: TBlock) {
+        this.position = pos
+        this.id = id
+        this.shapes = shapes
         this.tblock = tblock
-        if (id === 0 && fluid > 0) {
-            const tp = (fluid & FLUID_TYPE_MASK);
-            if (tp === FLUID_WATER_ID) {
-                this.id = this.type = BLOCK.STILL_WATER.id;
-                this.metadata = fluid & FLUID_LEVEL_MASK;
-                this.material = fakeMatWater;
-            } else if (tp === FLUID_LAVA_ID) {
-                this.id = this.type = BLOCK.STILL_LAVA.id;
-            }
-        }
-    }
-
-    getProperties() {
-        return fakeProps;
-    }
-}
-
-// It's used only during initialization
-function FakePlayer(pos, effects) {
-    return {
-        entity: {
-            position: pos,
-            velocity: new Vec3(0, 0, 0),
-            onGround: false,
-            isInWater: false,
-            isInLava: false,
-            isInWeb: false,
-            isCollidedHorizontally: false,
-            isCollidedVertically: false,
-            yaw: 0,
-            effects: effects
-        },
-        jumpTicks: 0,
-        jumpQueued: false
+        this.fluid = fluid
     }
 }
 
@@ -161,20 +131,17 @@ export class PrismarinePlayerControl extends PlayerControl {
         jumpQueued: false,
         jumpTicks: 0
     }
-    world: FakeWorld;
-    physics: any; // { scale: any; gravity: number; flyinGravity: number; flyingYSpeed: number; flyingInertiaMultiplyer: number; airdrag: number; yawSpeed: number; pitchSpeed: number; sprintSpeed: number; sneakSpeed: number; swimDownDrag: { down: number; maxDown: number; }; stepHeight: any; negligeableVelocity: number; soulsandSpeed: number; honeyblockSpeed: number; honeyblockJumpSpeed: number; ladderMaxSpeed: number; ladderClimbSpeed: number; playerHalfWidth: any; playerHeight: any; waterInertia: number; lavaInertia: number; liquidAcceleration: number; airborneInertia: number; airborneAcceleration: number; defaultSlipperiness: any; outOfLiquidImpulse: number; autojumpCooldown: number; bubbleColumnSurfaceDrag: { down: number; maxDown: number; up: number; maxUp: number; }; bubbleColumnDrag: { down: number; maxDown: number; up: number; maxUp: number; }; slowFalling: number; speedEffect: number; slowEffect: number; };
+    physics: Physics;
     timeAccumulator: number;
     physicsEnabled: boolean;
 
-    constructor(world, pos: Vector, options) {
+    constructor(world: World, pos: Vector, options: TPrismarineOptions) {
         super()
         const mcData            = FakeWorld.getMCData(world);
-        this.world              = new FakeWorld(world);
-        this.physics            = Physics(mcData, this.world, options);
-        const fakePlayer        = FakePlayer(pos, options.effects);
+        this.physics            = world.physics ??= new Physics(mcData, new FakeWorld(world), options);
         this.timeAccumulator    = 0;
         this.physicsEnabled     = true;
-        this.player_state = new PlayerState(fakePlayer, this.controls, mcData, Resources.physics.features, options.baseSpeed);
+        this.player_state       = new PlayerState(pos, options, this.controls);
     }
 
     get type()              { return PLAYER_CONTROL_TYPE.PRISMARINE }
@@ -186,7 +153,8 @@ export class PrismarinePlayerControl extends PlayerControl {
         return player_state.control.sneak && player_state.onGround
     }
 
-    get playerHeight(): float { return this.physics.playerHeight }
+    get playerHeight(): float       { return this.player_state.options.playerHeight }
+    get playerHalfWidth(): float    { return this.player_state.options.playerHalfWidth }
 
     // https://github.com/PrismarineJS/mineflayer/blob/436018bde656225edd29d09f6ed6129829c3af42/lib/plugins/physics.js
     tick(deltaSeconds) {
@@ -194,7 +162,7 @@ export class PrismarinePlayerControl extends PlayerControl {
         let ticks = 0;
         while(this.timeAccumulator >= PHYSICS_TIMESTEP) {
             if (this.physicsEnabled) {
-                this.physics.simulatePlayer(this.player_state, this.world)
+                this.physics.simulatePlayer(this.player_state)
                 // bot.emit('physicsTick')
             }
             // updatePosition(PHYSICS_TIMESTEP);
@@ -222,7 +190,7 @@ export class PrismarinePlayerControl extends PlayerControl {
 
     simulatePhysicsTick(): void {
         if (this.physicsEnabled) {
-            this.physics.simulatePlayer(this.player_state, this.world)
+            this.physics.simulatePlayer(this.player_state)
         }
     }
 

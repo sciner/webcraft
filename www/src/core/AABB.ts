@@ -46,15 +46,14 @@ export const PLANES = {
 }
 
 export class AABB {
-    [key: string]: any;
-    x_min: any;
-    y_min: any;
-    z_min: any;
-    x_max: any;
-    y_max: any;
-    z_max: any;
-    _size: any;
-    _center: any;
+    x_min: number;
+    y_min: number;
+    z_min: number;
+    x_max: number;
+    y_max: number;
+    z_max: number;
+    private _size?: Vector;
+    private _center?: Vector;
 
     constructor(xMin? : number, yMin? : number, zMin? : number, xMax? : number, yMax? : number, zMax? : number) {
         this.x_min = xMin || 0
@@ -65,7 +64,7 @@ export class AABB {
         this.z_max = zMax || 0
     }
 
-    reset() {
+    reset() : this {
         this.x_min = Infinity;
         this.y_min = Infinity;
         this.z_min = Infinity;
@@ -75,10 +74,7 @@ export class AABB {
         return this;
     }
 
-    /**
-     * @type {Vector}
-     */
-    get size() {
+    get size() : Vector {
         this._size = this._size || new Vector(0,0,0);
 
         this._size.x = this.width;
@@ -88,19 +84,19 @@ export class AABB {
         return this._size;
     }
 
-    get width() {
+    get width() : number {
         return this.x_max - this.x_min;
     }
 
-    get height() {
+    get height() : number {
         return this.y_max - this.y_min;
     }
 
-    get depth() {
+    get depth() : number {
         return this.z_max - this.z_min;
     }
 
-    get center() {
+    get center() : Vector {
         this._center = this._center ||  new Vector(0,0,0);
         this._center.set(
             this.x_min + this.width / 2,
@@ -112,10 +108,10 @@ export class AABB {
     }
 
     clone() : AABB {
-        return new AABB().copyFrom(this);
+        return new AABB(this.x_min, this.y_min, this.z_min, this.x_max, this.y_max, this.z_max)
     }
 
-    copyFrom(aabb : AABB) : AABB {
+    copyFrom(aabb : AABB) : this {
         this.x_min = aabb.x_min;
         this.x_max = aabb.x_max;
         this.y_min = aabb.y_min;
@@ -125,7 +121,8 @@ export class AABB {
         return this;
     }
 
-    pad(padding : number) : AABB {
+    /** See also {@link expand} */
+    pad(padding : number) : this {
         this.x_min -= padding;
         this.x_max += padding;
         this.y_min -= padding;
@@ -135,7 +132,7 @@ export class AABB {
         return this;
     }
 
-    set(xMin : number, yMin : number, zMin : number, xMax : number, yMax : number, zMax : number) {
+    set(xMin : number, yMin : number, zMin : number, xMax : number, yMax : number, zMax : number): this {
         this.x_min = xMin;
         this.y_min = yMin;
         this.z_min = zMin;
@@ -145,7 +142,7 @@ export class AABB {
         return this;
     }
 
-    setBottomHeightRadius(vec, height, radius) {
+    setBottomHeightRadius(vec : IVector, height : number, radius : number) : this {
         return this.set(
             vec.x - radius,
             vec.y,
@@ -155,7 +152,7 @@ export class AABB {
             vec.z + radius);
     }
 
-    setCornerSize(corner, size) {
+    setCornerSize(corner : IVector, size : IVector) : this {
         this.x_min = corner.x;
         this.y_min = corner.y;
         this.z_min = corner.z;
@@ -165,7 +162,7 @@ export class AABB {
         return this;
     }
 
-    setIntersect(aabb1 : AABB, aabb2 : AABB = this) : AABB {
+    setIntersect(aabb1 : AABB, aabb2 : AABB = this) : this {
         this.x_min = Math.max(aabb1.x_min, aabb2.x_min);
         this.x_max = Math.min(aabb1.x_max, aabb2.x_max);
         this.y_min = Math.max(aabb1.y_min, aabb2.y_min);
@@ -179,7 +176,7 @@ export class AABB {
         return this.x_min >= this.x_max && this.y_min >= this.y_max && this.z_min >= this.z_max;
     }
 
-    applyMatrix(matrix : imat3, pivot : IVector) : AABB {
+    applyMatrix(matrix : imat3, pivot : IVector) : this {
         if (pivot) {
             this.x_min -= pivot.x;
             this.y_min -= pivot.y;
@@ -246,7 +243,7 @@ export class AABB {
     /**
      * rotated around 0
      */
-    rotate(sym : int, pivot : IVector) : AABB {
+    rotate(sym : int, pivot : IVector) : this {
         if (sym === 0) {
             return this;
         }
@@ -266,7 +263,7 @@ export class AABB {
         return target;
     }
 
-    fromArray(source : number[] = []) : AABB {
+    fromArray(source : number[] = []) : this {
         this.x_min = source[0];
         this.y_min = source[1];
         this.z_min = source[2];
@@ -278,7 +275,7 @@ export class AABB {
         return this;
     }
 
-    translate(x : number, y : number, z : number) : AABB {
+    translate(x : number, y : number, z : number) : this {
         this.x_min += x;
         this.x_max += x;
         this.y_min += y;
@@ -288,11 +285,11 @@ export class AABB {
         return this;
     }
 
-    translateByVec(vec : IVector) {
+    translateByVec(vec : IVector) : this {
         return this.translate(vec.x, vec.y, vec.z);
     }
 
-    addPoint(x : number, y : number, z : number) : AABB {
+    addPoint(x : number, y : number, z : number) : this {
         if(x < this.x_min) this.x_min = x;
         if(x > this.x_max) this.x_max = x;
         if(y < this.y_min) this.y_min = y;
@@ -302,8 +299,11 @@ export class AABB {
         return this;
     }
 
-    // Expand same for all sides
-    expand(x : number, y : number, z : number) : AABB {
+    /**
+     * Expand same for all sides
+     * See also {@link pad}
+     */
+    expand(x : number, y : number, z : number) : this {
         this.x_min -= x;
         this.x_max += x;
         this.y_min -= y;
@@ -313,14 +313,24 @@ export class AABB {
         return this;
     }
 
-    addSelfTranslatedByVec(vec : IVector) : AABB {
+    floor() : this {
+        this.x_min = Math.floor(this.x_min)
+        this.y_min = Math.floor(this.y_min)
+        this.z_min = Math.floor(this.z_min)
+        this.x_max = Math.floor(this.x_max)
+        this.y_max = Math.floor(this.y_max)
+        this.z_max = Math.floor(this.z_max)
+        return this
+    }
+
+    addSelfTranslatedByVec(vec : IVector) : this {
         if (vec.x > 0) this.x_max += vec.x; else this.x_min += vec.x;
         if (vec.y > 0) this.y_max += vec.y; else this.y_min += vec.y;
         if (vec.z > 0) this.z_max += vec.z; else this.z_min += vec.z;
         return this;
     }
 
-    div(value : number) : AABB {
+    div(value : number) : this {
         this.x_min /= value;
         this.x_max /= value;
         this.y_min /= value;

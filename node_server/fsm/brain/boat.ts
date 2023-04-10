@@ -1,8 +1,8 @@
 import { FSMBrain } from "../brain.js";
-import { BLOCK } from "../../../www/src/blocks.js";
-import { Vector } from "../../../www/src/helpers.js";
-import { WorldAction } from "../../../www/src/world_action.js";
-import { EnumDamage } from "../../../www/src/enums/enum_damage.js";
+import { BLOCK } from "@client/blocks.js";
+import { Vector } from "@client/helpers.js";
+import { WorldAction } from "@client/world_action.js";
+import type { EnumDamage } from "@client/enums/enum_damage.js";
 
 export class Brain extends FSMBrain {
 

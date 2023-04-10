@@ -148,9 +148,6 @@ export class WorldMobManager {
     spawn(player: ServerPlayer, params: MobSpawnParams): boolean {
         const world = this.world;
         try {
-            if (!world.admins.checkIsAdmin(player)) {
-                throw 'error_not_permitted';
-            }
             this.create(params);
             return true;
         } catch (e) {

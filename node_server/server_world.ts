@@ -40,6 +40,7 @@ import type { TBlock } from "@client/typed_blocks3.js";
 import type { ServerPlayer } from "./server_player.js";
 import type { Indicators, PlayerConnectData, PlayerSkin } from "@client/player.js";
 import type {TRandomTickerFunction, TTickerFunction} from "./server_chunk.js";
+import type {Physics} from "@client/prismarine-physics/index.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -87,6 +88,7 @@ export class ServerWorld implements IWorld {
     givePriorityToSavingFluids: any;
     /** An immutable shared instance of {@link getDefaultPlayerIndicators} */
     defaultPlayerIndicators: Indicators
+    physics?: Physics
 
     constructor(block_manager : BLOCK) {
         this.temp_vec = new Vector();
