@@ -4351,7 +4351,7 @@
             },
             "tags": [
                 "is_hanging_plant",
-                "destroy_to_up"
+                "destroy_to_down"
             ],
             "light_power": {
                 "r": 255,
@@ -10700,7 +10700,7 @@
             },
             "tags": [
                 "is_hanging_plant",
-                "destroy_to_up"
+                "destroy_to_down"
             ],
             "light_power": {
                 "r": 255,

@@ -508,10 +508,10 @@ class DestroyBlocks {
             }
         }
         // Destroy chain blocks to down
-        if(tblock.material.destroy_to_down) {
+        if(tblock.material.tags.includes('destroy_to_down')) {
             let npos = tblock.posworld.add(Vector.YN);
             let nblock = world.getBlock(npos);
-            if(nblock && tblock.material.destroy_to_down.indexOf(nblock.material.name) >= 0) {
+            if(nblock && tblock.material.name == nblock.material.name) {
                 this.add(nblock, pos);
             }
         }
