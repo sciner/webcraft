@@ -35,9 +35,14 @@ export class Music_Compiler {
      * Recursively processes subfolders.
      * @return { boolean } true if anything has been changed
      */
-    async syncDirectory(srcDir, dstDir, filter = (fileName) => true) {
+    async syncDirectory(srcDir : string, dstDir : string, filter = (fileName) => true) : Promise<boolean> {
 
         srcDir = path.resolve(srcDir)
+        dstDir = path.resolve(dstDir)
+
+        if (!fs.existsSync(dstDir)) {
+            await mkdirp(dstDir)
+        }
 
         if (!fs.existsSync(srcDir)) {
             console.log(`Music directory ${srcDir} not found`)
@@ -61,7 +66,10 @@ export class Music_Compiler {
         }
 
         let changed = false
-        await mkdirp(dstDir)
+
+        if (!fs.existsSync(dstDir)) {
+            await mkdirp(dstDir)
+        }
         const srcFiles = await readdirExt(srcDir).catch(err => {
             console.error(err)
             throw `Can't read ${srcDir}`
