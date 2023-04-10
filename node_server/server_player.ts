@@ -80,13 +80,12 @@ export class ServerPlayer extends Player {
     damage: ServerPlayerDamage;
     wait_portal: WorldPortalWait | null;
     //@ts-expect-error
-    world: ServerWorld
+    declare world: ServerWorld
+    declare effects: ServerPlayerEffects
     //@ts-expect-error
-    effects: ServerPlayerEffects
+    declare inventory: ServerPlayerInventory;
     //@ts-expect-error
-    inventory: ServerPlayerInventory;
-    //@ts-expect-error
-    controlManager: ServerPlayerControlManager
+    declare controlManager: ServerPlayerControlManager
     private prev_world_data: Dict
 
     #forward : Vector;

@@ -8,7 +8,7 @@ import type { Player } from "@client/player.js";
 export class ServerPlayerInventory extends Inventory {
 
     //@ts-expect-error
-    player: ServerPlayer
+    declare player: ServerPlayer
 
     constructor(player : ServerPlayer, state : TInventoryState) {
         super(player as unknown as Player, state)
