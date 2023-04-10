@@ -38,7 +38,7 @@ export class BaseGeometryVao {
     vao: WebGLVertexArrayObject = null;
     buffers: BaseBuffer[] = [];
     hasInstance = false;
-    hasIndex = false;
+    indexBuffer?: BaseBuffer = null;
 
     constructor({size = 128, strideFloats = 0, bufferType = VAO_BUFFER_TYPE.BIG}: GeometryVaoOptions) {
         this.strideFloats = strideFloats;
@@ -111,6 +111,7 @@ export class BaseGeometryVao {
         if (this.hasInstance && !this.context.multidrawBaseExt) {
             this.buffer.bind();
         }
+        this.indexBuffer?.bind();
     }
 
     bind() {

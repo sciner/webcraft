@@ -77,6 +77,7 @@ export class BaseBigGeometry {
         }
         if (staticDraw.buffer.bigResize) {
             staticDraw.buffer.bigResize = false;
+            // shader.bind();
             staticDraw.attribBufferPointers();
         }
     }

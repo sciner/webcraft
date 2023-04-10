@@ -20,6 +20,8 @@ export class FluidBigGeometry extends BaseBigGeometry {
                 usage: 'static',
                 index: true
             });
+            this.staticDraw.indexBuffer = this.indexBuffer;
+            this.dynamicDraw.indexBuffer = this.indexBuffer;
         }
     }
 

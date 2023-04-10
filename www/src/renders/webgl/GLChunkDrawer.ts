@@ -121,7 +121,7 @@ export class GLChunkDrawer extends ChunkDrawer {
             }
         } else {
             // multi draw arrays
-            if (baseVao.hasIndex) {
+            if (baseVao.indexBuffer) {
                 for (let j = 0; j < sz; j++) {
                     offsets[j] *= baseVao.indexPerInstance * 4;
                     counts[j] *= baseVao.indexPerInstance;

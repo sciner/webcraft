@@ -15,7 +15,6 @@ export class FluidGeometryVao extends BaseGeometryVao {
         this.vertexPerInstance = FluidGeometryVao.vertexPerInstance;
         this.indexPerInstance = FluidGeometryVao.indexPerInstance;
         this.hasInstance = false;
-        this.hasIndex = true;
     }
 
     createVao() {
