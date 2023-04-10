@@ -441,17 +441,13 @@ export class WorldChestManager {
             const list = [];
             for(let i in srvChest) {
                 const item = srvChest[i];
-                if (InventoryComparator.itemsEqualExceptCount(item, cliDrag) &&
-                    item.count < maxStack
-                ) {
+                if (InventoryComparator.itemsEqualExceptCount(item, cliDrag)) {
                     list.push({chest: 1, index: parseFloat(i), item: item});
                 }
             }
             for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; ++i) {
                 const item = srvInv[i];
-                if (item && InventoryComparator.itemsEqualExceptCount(item, cliDrag) &&
-                    item.count < maxStack
-                ) {
+                if (item && InventoryComparator.itemsEqualExceptCount(item, cliDrag)) {
                     list.push({chest: 0, index: i, item: item});
                 }
             }

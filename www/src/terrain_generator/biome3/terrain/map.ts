@@ -1,6 +1,6 @@
 import { alea } from "../../default.js";
 import { Helpers, Vector } from "../../../helpers.js";
-import { TREE_MARGIN, TREE_BETWEEN_DIST, TREE_MIN_Y_SPACE, MAX_TREES_PER_CHUNK, DENSITY_AIR_THRESHOLD } from "./manager_vars.js";
+import { TREE_MARGIN, TREE_BETWEEN_DIST, TREE_MIN_Y_SPACE, MAX_TREES_PER_CHUNK, DENSITY_AIR_THRESHOLD, TREE_PLANT_ATTEMPTS } from "./manager_vars.js";
 import { TerrainMap } from "../../terrain_map.js";
 import { BIOME3_CAVE_LAYERS, CaveGeneratorBigCaves, CaveGeneratorRegular } from "../cave_generator.js";
 import { DensityParams } from "./manager_vars.js";
@@ -10,6 +10,7 @@ import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type { ClusterBase } from "../../cluster/base.js";
 import type { TerrainMapManager3 } from "./manager.js";
 import type { Aquifera } from "../aquifera.js";
+import type { Biome } from "../biomes.js";
 
 export class Biome3TerrainMap extends TerrainMap {
     aquifera:           Aquifera
@@ -28,7 +29,7 @@ export class Biome3TerrainMap extends TerrainMap {
         this.CHUNK_SIZE_X = chunk.size.x;
     }
 
-    addTree(chunk : IChunk, cluster : ClusterBase, aleaRandom, rnd : float, x : int, y : int, z : int, biome : any) : boolean{
+    addTree(chunk : IChunk, cluster : ClusterBase, aleaRandom : alea, rnd : float, x : int, y : int, z : int, biome : Biome, underwater : boolean = false) : boolean{
         const CHUNK_SIZE_X = chunk.size.x;
         const CHUNK_SIZE_Z = chunk.size.z;
         const index = z * CHUNK_SIZE_X + x;
@@ -58,25 +59,27 @@ export class Biome3TerrainMap extends TerrainMap {
             z + chunk.coord.z
         )
 
-        let s = 0;
-        let r = rnd / biome.trees.frequency;
+        const trees = underwater ? biome.underwater_trees : biome.trees
 
-        for(let type of biome.trees.list) {
+        let s = 0;
+        let r = rnd / trees.frequency;
+
+        for(let type of trees.list) {
             s += type.percent;
             if(r < s) {
                 if(!cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.z, TREE_MARGIN)) {
-                    break;
+                    break
                 }
-                const rand_height = aleaRandom.double();
+                const rand_height = aleaRandom.double()
                 const height = Helpers.clamp(Math.round(rand_height * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
-                const rad = Math.max(Math.trunc(height / 2), 2);
+                const rad = Math.max(Math.trunc(height / 2), 2)
                 const pos = new Vector(x, y, z)
                 this.trees.push({height, rad, type, pos, biome})
-                return true;
+                return true
             }
         }
 
-        return false;
+        return false
 
     }
 
@@ -96,7 +99,7 @@ export class Biome3TerrainMap extends TerrainMap {
         const treeSearchSize    = new Vector(1, CHUNK_SIZE_Y + 1, 1);
         const density_params    = new DensityParams(0, 0, 0, 0, 0, 0);
 
-        for(let i = 0; i < 8; i++) {
+        for(let i = 0; i < TREE_PLANT_ATTEMPTS; i++) {
 
             // generate coord exclude near chunk borders
             const x = Math.floor((CHUNK_SIZE_X - 2) * aleaRandom.double()) + 1;
@@ -106,24 +109,32 @@ export class Biome3TerrainMap extends TerrainMap {
 
             const river_point = manager.makeRiverPoint(xyz.x, xyz.z);
             const cell = this.cells[z * CHUNK_SIZE_X + x];
-            const biome = cell.biome;
+            const biome = cell.biome as Biome
             const rnd = aleaRandom.double();
 
-            if(rnd <= biome.trees.frequency) {
+            let prev_underwater = false
+
+            if(rnd <= biome.trees.frequency || rnd <= biome.underwater_trees.frequency) {
                 let free_height = 0;
-                xyz.y = map.cluster.y_base;
+                const tree_y_base = map.cluster.y_base - 20 // вычитание для подводных деревьев
+                xyz.y = tree_y_base
                 manager.noise3d.generate4(xyz, treeSearchSize);
                 for(let y = CHUNK_SIZE_Y; y >= 0; y--) {
-                    xyz.y = map.cluster.y_base + y;
+                    xyz.y = tree_y_base + y
+                    const underwater = xyz.y < map.cluster.y_base
                     const preset = manager.getPreset(xyz);
-                    const {d1, d2, d3, d4, density} = manager.calcDensity(xyz, {river_point, preset}, density_params, map);
+                    const {density} = manager.calcDensity(xyz, {river_point, preset}, density_params, map)
+                    if(prev_underwater !== underwater) {
+                        free_height = 0
+                    } 
+                    prev_underwater = underwater
                     // если это камень
                     if(density > DENSITY_AIR_THRESHOLD) {
                         if(free_height >= TREE_MIN_Y_SPACE) {
                             xyz.y++
                             manager.calcDensity(xyz, {river_point, preset}, density_params, map)
-                            if(xyz.y > density_params.local_water_line) {
-                                if(this.addTree(chunk, cluster, aleaRandom, rnd, x, xyz.y, z, biome)) {
+                            if(underwater || xyz.y > density_params.local_water_line) {
+                                if(this.addTree(chunk, cluster, aleaRandom, rnd, x, xyz.y, z, biome, underwater)) {
                                     if(this.trees.length == MAX_TREES_PER_CHUNK) {
                                         break;
                                     }

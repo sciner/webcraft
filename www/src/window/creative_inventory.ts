@@ -1,5 +1,5 @@
 import { Button, Label, TextEdit, Window, Slider } from "../ui/wm.js";
-import { CraftTableInventorySlot } from "./base_craft_window.js";
+import {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Enchantments } from "../enchantments.js";
 import { BLOCK_GROUP_TAG, INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, UI_THEME } from "../constant.js";
@@ -249,6 +249,7 @@ export class CreativeInventoryWindow extends BlankWindow {
     tagButtons:     Button[] = []
     tagLevels:      number = 0
     selectedTag:    string = ''
+    inventory_slots: CraftTableInventorySlot[]
 
     constructor(inventory: PlayerInventory) {
         super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCreativeInventory')
@@ -479,10 +480,9 @@ export class CreativeInventoryWindow extends BlankWindow {
             this.inventory_slots.push(lblSlot)
         }
     }
-
-    // Return inventory slots
-    getSlots() {
-        return this.inventory_slots;
+    
+    getCraftOrChestSlots(): CraftTableSlot[] {
+        return []
     }
 
     fixAndValidateSlots(context) {

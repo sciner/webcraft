@@ -1,10 +1,10 @@
 import { IndexedColor, Vector, Helpers } from '../../helpers.js';
-import { Default_Terrain_Map, Default_Terrain_Map_Cell } from '../default.js';
+import { Default_Terrain_Map } from '../default.js';
 import { BLOCK } from '../../blocks.js';
 import { noise, alea } from "../default.js";
 import {DungeonGenerator} from "../dungeon.js";
 import Demo_Map from '../biome2/demo_map.js';
-import { BiomeTree } from '../biomes.js';
+import { BIOMES, BiomeTree } from '../biomes.js';
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
@@ -27,14 +27,17 @@ export default class Terrain_Generator extends Demo_Map {
 
         const { cx, cy, cz, cw } = chunk.dataChunk;
 
+        if(!this.biome) {
+            this.biome = BIOMES.GRASSLAND
+        }
+
         //
         const generateMap = () => {
             const cell = {
                 dirt_color: DEFAULT_DIRT_COLOR,
                 water_color: DEFAULT_WATER_COLOR,
-                biome: new Default_Terrain_Map_Cell({
-                code: 'bottom_caves'
-            })};
+                biome: this.biome
+            }
             return new Default_Terrain_Map(
                 chunk.addr,
                 chunk.size,

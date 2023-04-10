@@ -41,6 +41,7 @@ import type { ServerPlayer } from "./server_player.js";
 import type { Indicators, PlayerConnectData, PlayerSkin } from "@client/player.js";
 import type {TRandomTickerFunction, TTickerFunction} from "./server_chunk.js";
 import type {Physics} from "@client/prismarine-physics/index.js";
+import { ChunkGrid } from "@client/core/ChunkGrid.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -145,7 +146,7 @@ export class ServerWorld implements IWorld {
         this.worldChunkFlags = new WorldChunkFlags(this);
         this.dbActor        = new WorldDBActor(this);
 
-        const madeBuildings = await this.makeBuildingsWorld();
+        const madeBuildings = await this.makeBuildingsWorld(this.info);
 
         if (!madeBuildings) {
             await this.dbActor.crashRecovery();
@@ -222,7 +223,7 @@ export class ServerWorld implements IWorld {
         return this.info.world_type_id == WORLD_TYPE_BUILDING_SCHEMAS
     }
 
-    async makeBuildingsWorld() : Promise<boolean> {
+    async makeBuildingsWorld(info : TWorldInfo) : Promise<boolean> {
 
         if(!this.isBuildingWorld()) {
             return false
@@ -231,7 +232,7 @@ export class ServerWorld implements IWorld {
         // flush database
         await this.db.flushWorld()
 
-        const grid = this.chunkManager.grid
+        const grid = new ChunkGrid({chunkSize: new Vector(info.tech_info.chunk_size)})
         const blocks = [];
         const chunks_addr = new VectorCollector()
         const block_air = {id: 0}
@@ -240,7 +241,7 @@ export class ServerWorld implements IWorld {
         const block_num1 = {id: 209}
         const block_num2 = {id: 210}
 
-        const addBlock = (pos, item) => {
+        const addBlock = (pos : Vector, item) => {
             blocks.push({pos, item})
             chunks_addr.set(grid.toChunkAddr(pos), true);
         }
@@ -297,7 +298,7 @@ export class ServerWorld implements IWorld {
 
         // store modifiers in db
         let t = performance.now()
-        await this.db.chunks.bulkInsertWorldModify(blocks)
+        await this.db.chunks.bulkInsertWorldModify(blocks, undefined, null, grid)
         console.log('Building: store modifiers in db ...', performance.now() - t)
 
         // compress chunks in db

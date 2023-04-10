@@ -1,4 +1,4 @@
-import { Button, Label, Window } from "../ui/wm.js";
+import { Label, Window } from "../ui/wm.js";
 import { BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
 import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
 import type { SpriteAtlas } from "../core/sprite_atlas.js";
@@ -12,7 +12,6 @@ const SHIFT_Y = 15
 
 // CraftTable
 export class CraftTable extends BaseCraftWindow {
-    [key: string]: any;
 
     frmRecipe : RecipeWindow
     hud_atlas : SpriteAtlas
@@ -103,13 +102,14 @@ export class CraftTable extends BaseCraftWindow {
             this.add(form)
         }
 
+        this.frmRecipe.ignore_esc = true
+        this.frmRecipe.assignCraftWindow(this)
+        this.frmRecipe.show()
+
         // this.inventory.player.inventory.recipes.frmRecipe.visible = false
         Qubatch.releaseMousePointer()
         this.setHelperSlots(null)
         super.onShow(args)
-
-        this.frmRecipe.assignCraftWindow(this)
-        this.frmRecipe.show()
 
     }
 
@@ -154,10 +154,6 @@ export class CraftTable extends BaseCraftWindow {
             ct.add(this.craft.slots[i] = lblSlot)
         }
 
-    }
-
-    getSlots() {
-        return this.craft.slots;
     }
 
 }

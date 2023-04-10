@@ -45,7 +45,7 @@ export class WebGLBuffer extends BaseBuffer {
             this.buffer = gl.createBuffer();
         }
         gl.bindBuffer(type, this.buffer);
-        gl.bufferData(type, this.bigLength, gl.STATIC_DRAW);
+        gl.bufferData(type, this.bigLength, gl.STATIC_COPY);
         if (oldBuf) {
             this.bigResize = true;
             gl.copyBufferSubData(gl.COPY_READ_BUFFER, type, 0, 0, this.glLength);

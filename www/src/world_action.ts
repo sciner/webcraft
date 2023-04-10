@@ -1152,7 +1152,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
             }
 
             // Некоторые блоки можно ставить только на что-то сверху
-            if(!!mat_block.is_layering && !mat_block.layering.slab && pos.n.y != 1) {
+            if(mat_block.is_layering && !mat_block.layering.slab && pos.n.y != 1) {
                 console.error('mat_block.is_layering');
                 return [null, pos];
             }
@@ -1642,8 +1642,8 @@ function sitDown(e, world, pos : Vector, player : ActionPlayerInfo, world_block,
     if (!is_chair && !is_stool && !is_slab && !is_stairs) {
         return false
     }
-    // проверям это верхняя или нмжняя половинка полублока
-    if ((is_slab || is_stairs) && (world_block.extra_data?.point?.y > .5)) {
+    // проверям это верхняя или нижняя половинка полублока
+    if ((is_slab || is_stairs) && ((world_block.extra_data?.point?.y > .5) || current_inventory_item != null)) {
         return false
     }
     // выходим из обработки, если клеим шерсть
@@ -2304,9 +2304,8 @@ function restrictPlanting(e, world, pos, player, world_block, world_material, ma
             return true
         }
         if(![BLOCK.DIRT.id, BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id].includes(underBlock.id)) {
-            return true;
+            return true
         }
-        return false;
     }
     // дикие семена
     if(mat_block.id == BLOCK.SWEET_BERRY_BUSH.id && [BLOCK.PODZOL.id, BLOCK.COARSE_DIRT.id, BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
@@ -2678,21 +2677,21 @@ function useBoneMeal(e, world, pos, player, world_block, world_material, mat_blo
 // "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
 function increaseLayering(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     //
-    const pos_n = pos.n;
+    const pos_n = pos.n
     if(pos_n.y == 0) {
-        return false;
+        return false
     }
-    pos = new Vector(pos);
+    pos = new Vector().copyFrom(pos)
     //
     const block_touched = world.getBlock(pos);
-    if((block_touched?.id == mat_block.id) && !!mat_block.is_layering) {
+    if((block_touched?.id == mat_block.id) && mat_block.is_layering) {
         // ok
     } else {
         pos.x += pos_n.x;
         pos.y += pos_n.y;
         pos.z += pos_n.z;
         const block_on_posn = world.getBlock(pos);
-        if((block_on_posn?.id == mat_block.id) && !!mat_block.is_layering) {
+        if((block_on_posn?.id == mat_block.id) && mat_block.is_layering) {
             // pos.n.y = 1;
             extra_data = block_on_posn.extra_data;
             world_block = block_on_posn;
@@ -2703,7 +2702,7 @@ function increaseLayering(e, world, pos, player, world_block, world_material, ma
     }
     //
     if(!world_material.layering) {
-        return false;
+        return false
     }
     //
     const layering = world_material.layering;

@@ -395,8 +395,8 @@ export class Player implements IPlayer {
         });
         // pickAt
         this.pickAt = new PickAt(this.world, this.render, async (e : IPickatEvent, times : float, number : int) => {
-            return await this.onPickAtTarget(e, times, number)
-        }, async (e : IPickatEvent) => {
+            return this.onPickAtTarget(e, times, number)
+        }, (e : IPickatEvent) => {
             const instrument = this.getCurrentInstrument()
             const speed = instrument?.speed ? instrument.speed : 1
             const time = e.start_time - this.timer_attack
@@ -427,7 +427,7 @@ export class Player implements IPlayer {
                     data: e
                 });
             }
-        }, (bPos) => {
+        }, (bPos: IPickatEventPos) => {
             // onInteractFluid
             const e = this.pickAt.damage_block.event as IPickatEvent
             const hand_current_item = this.inventory.current_item;
@@ -658,7 +658,7 @@ export class Player implements IPlayer {
     }
 
     // onPickAtTarget
-    async onPickAtTarget(e : IPickatEvent, times : float, number : int) {
+    async onPickAtTarget(e : IPickatEvent, times : float, number : int): Promise<boolean> {
 
         this.inMiningProcess = true;
         this.inhand_animation_duration = (e.destroyBlock ? 1 : 2.5) * RENDER_DEFAULT_ARM_HIT_PERIOD;

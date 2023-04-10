@@ -61,8 +61,8 @@ export class FakeWorld {
                 ladder:         BLOCK.LADDER,
                 vine:           BLOCK.VINE,
                 honey_block:    null,
-                seagrass:       null,
-                kelp:           null,
+                seagrass:       BLOCK.SEAGRASS,
+                kelp:           BLOCK.KELP,
                 bubble_column:  BLOCK.BUBBLE_COLUMN
             }
         };

@@ -1,14 +1,14 @@
-import {BaseMultiGeometry} from "../geom/BaseMultiGeometry.js";
-import {BigGeomBatchUpdate} from "../geom/big_geom_batch_update.js";
+import {BaseBigGeometry} from "./base_big_geometry.js";
+import {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
 
-export class TerrainMultiGeometry extends BaseMultiGeometry {
+export class TerrainBigGeometry extends BaseBigGeometry {
     static strideFloats = 16;
     static sortAss = (a, b) => {
         return a - b;
     };
 
     constructor({context = null, size = 128} = {}) {
-        super({context, size, strideFloats: TerrainMultiGeometry.strideFloats});
+        super({context, size, strideFloats: TerrainBigGeometry.strideFloats});
         this.batch = new BigGeomBatchUpdate(this.strideFloats);
         this.hasInstance = true;
     }
@@ -47,15 +47,16 @@ export class TerrainMultiGeometry extends BaseMultiGeometry {
         gl.vertexAttribPointer(attribs.a_quad, 2, gl.FLOAT, false, 2 * 4, 0);
     }
 
-    attribBufferPointers() {
+    attribBufferPointers(offsetInstances= 0) {
         const {attribs, gl, stride} = this;
-        gl.vertexAttribPointer(attribs.a_position, 3, gl.FLOAT, false, stride, 0);
-        gl.vertexAttribPointer(attribs.a_axisX, 3, gl.FLOAT, false, stride, 3 * 4);
-        gl.vertexAttribPointer(attribs.a_axisY, 3, gl.FLOAT, false, stride, 6 * 4);
-        gl.vertexAttribPointer(attribs.a_uvCenter, 2, gl.FLOAT, false, stride, 9 * 4);
-        gl.vertexAttribPointer(attribs.a_uvSize, 2, gl.FLOAT, false, stride, 11 * 4);
-        gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 13 * 4);
-        gl.vertexAttribIPointer(attribs.a_flags, 1, gl.UNSIGNED_INT, stride, 14 * 4);
-        gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.FLOAT, false, stride, 15 * 4);
+        let offset = offsetInstances * stride;
+        gl.vertexAttribPointer(attribs.a_position, 3, gl.FLOAT, false, stride, offset + 0);
+        gl.vertexAttribPointer(attribs.a_axisX, 3, gl.FLOAT, false, stride, offset + 3 * 4);
+        gl.vertexAttribPointer(attribs.a_axisY, 3, gl.FLOAT, false, stride, offset + 6 * 4);
+        gl.vertexAttribPointer(attribs.a_uvCenter, 2, gl.FLOAT, false, stride, offset + 9 * 4);
+        gl.vertexAttribPointer(attribs.a_uvSize, 2, gl.FLOAT, false, stride, offset + 11 * 4);
+        gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, offset + 13 * 4);
+        gl.vertexAttribIPointer(attribs.a_flags, 1, gl.UNSIGNED_INT, stride, offset + 14 * 4);
+        gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.FLOAT, false, stride, offset + 15 * 4);
     }
 }

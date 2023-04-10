@@ -6,6 +6,7 @@ import type { Biome3TerrainMap } from "../biome3/terrain/map.js";
 import type { TerrainMap, TerrainMapManager } from "../terrain_map.js";
 import type { ClusterManager } from "./manager.js";
 import type { BLOCK } from "../../blocks.js";
+import { WATER_LEVEL } from "../biome3/terrain/manager_vars.js";
 
 export const NEAR_MASK_MAX_DIST = 10
 export const CLUSTER_PADDING    = 8
@@ -37,10 +38,11 @@ export class ClusterBase {
     is_empty:       boolean
     max_height?:    int = null
     max_dist:       int = NEAR_MASK_MAX_DIST
-    y_base:         int = 80
+    y_base:         int = WATER_LEVEL
     mask:           any
 
     constructor(clusterManager : ClusterManager, addr : Vector, size? : Vector) {
+        this.y_base         = clusterManager.world.generator.options.WATER_LEVEL
         this.clusterManager = clusterManager;
         this.block_manager  = clusterManager.world.block_manager
         this.addr           = addr;

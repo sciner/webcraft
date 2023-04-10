@@ -3,9 +3,9 @@ import {BLEND_MODES} from "./renders/BaseRenderer.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
-import { Raycaster } from "./Raycaster.js";
+import {Raycaster, RaycasterResult} from "./Raycaster.js";
 import { MOUSE } from "./constant.js";
-import {LineGeometry} from "./geom/LineGeometry.js";
+import {LineGeometry} from "./geom/line_geometry.js";
 import {AABB} from "./core/AABB.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Player } from "./player.js";
@@ -26,6 +26,10 @@ export interface ICmdPickatData extends IPickatEvent {
     extra_data ?        : any
 }
 
+type PickAtOnTarget         = (e: IPickatEvent, times: float, number: int) => Promise<boolean>
+type PickAtOnInteractEntity = (IPickatEvent) => void
+type PickAtOnInteractFluid  = (IPickatEventPos) => boolean
+
 export class PickAt {
     
     raycaster:          Raycaster
@@ -37,9 +41,9 @@ export class PickAt {
     grid:               ChunkGrid
     targetDescription:  any = null
     visibleBlockHUD:    any = null
-    onTarget:           Function
-    onInteractEntity:   any
-    onInteractFluid:    any
+    onTarget:           PickAtOnTarget
+    onInteractEntity:   PickAtOnInteractEntity
+    onInteractFluid:    PickAtOnInteractFluid
     modelMatrix:        any
     empty_matrix:       any
     material_target:    any
@@ -65,7 +69,7 @@ export class PickAt {
 
     private nextId = 0  // id of the next pickAt event, and the associated WorldAction
 
-    constructor(world : World, render : Renderer, onTarget : Function, onInteractEntity : Function, onInteractFluid : Function) {
+    constructor(world : World, render : Renderer, onTarget : PickAtOnTarget, onInteractEntity : PickAtOnInteractEntity, onInteractFluid : PickAtOnInteractFluid) {
         this.world              = world
         this.render             = render
         this.chunk_manager      = world.chunkManager
@@ -99,7 +103,9 @@ export class PickAt {
         this.target_block.geom.defColor = 0xFF000000
     }
 
-    get(pos : IVector, callback : Function, pickat_distance : number, view_vector?, ignore_transparent? : boolean, return_fluid? : boolean) {
+    get(pos : IVector, callback : ((res: RaycasterResult | null) => void) | null = null,
+        pickat_distance : number, view_vector?: IVector, ignore_transparent? : boolean, return_fluid? : boolean
+    ): RaycasterResult | null {
         const render = this.render;
         pos = this._temp_pos.copyFrom(pos);
         // view_vector = null;
@@ -172,25 +178,22 @@ export class PickAt {
     }
 
     // update...
-    update(pos, pickat_distance, view_vector) {
+    update(pos: IVector, pickat_distance: number, view_vector: IVector): void {
 
         // Get actual pick-at block
         let bPos = this.get(pos, null, pickat_distance, view_vector, false);
 
-        this.updateTargetDescription(bPos);
-
-        // Detect interact with fluid
-        if(bPos && bPos.fluidLeftTop) {
-            if(this.onInteractFluid && this.onInteractFluid instanceof Function) {
-                if(this.onInteractFluid(bPos.fluidLeftTop)) {
-                    return false;
-                }
-            }
-        }
-
         let target_block = this.target_block;
         let damage_block = this.damage_block;
-        target_block.visible = !!bPos && !bPos.mob;
+        target_block.visible = !!bPos?.point && !bPos.mob && !bPos.player;
+
+        this.updateTargetDescription(target_block.visible ? bPos : null);
+
+        // Detect interact with fluid
+        if (bPos?.fluidLeftTop && this.onInteractFluid(bPos.fluidLeftTop)) {
+            return
+        }
+
         if(bPos && bPos.point) {
             if(bPos.player || bPos.mob) {
                 if(this.onInteractEntity instanceof Function) {
@@ -385,12 +388,12 @@ export class PickAt {
     }
 
     // for HUD
-    updateTargetDescription(pos) {
-        if (!Qubatch.hud.isDrawingBlockInfo()) {
+    updateTargetDescription(pos_: IVector | null) {
+        if (!Qubatch.hud.isDrawingBlockInfo() || !pos_) {
             this.targetDescription =null;
             return;
         }
-        pos = Vector.vectorify(pos);
+        const pos = Vector.vectorify(pos_);
         const block = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
         if (block.id === BLOCK.DUMMY.id || block.id === BLOCK.AIR.id) {
             this.targetDescription = null;

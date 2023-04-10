@@ -3,7 +3,7 @@ import type {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
 import type {BaseBuffer} from "../renders/BaseRenderer.js";
 import type WebGLRenderer from "../renders/webgl";
 
-export class BaseMultiGeometry {
+export class BaseBigGeometry {
     static strideFloats = 10;
     static sortAss = (a, b) => {
         return a - b;
@@ -82,6 +82,9 @@ export class BaseMultiGeometry {
 
         // multi upload!
         if (this.uploadID === this.updateID) {
+            if (this.hasInstance && !this.context.multidrawBaseExt) {
+                this.buffer.bind();
+            }
             return;
         }
         this.uploadID = this.updateID;

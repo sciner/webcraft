@@ -16,18 +16,24 @@ export function newTypedBlocks(coord : Vector, grid: ChunkGrid) : TypedBlocks3 {
 export const MASK_VERTEX_MOD = 128;
 export const MASK_VERTEX_PACK = 127;
 
-export const CC = [
-    {x:  0, y:  1, z:  0, name: 'UP'},
-    {x:  0, y: -1, z:  0, name: 'DOWN'},
-    {x:  0, y:  0, z: -1, name: 'SOUTH'},
-    {x:  0, y:  0, z:  1, name: 'NORTH'},
-    {x: -1, y:  0, z:  0, name: 'WEST'},
-    {x:  1, y:  0, z:  0, name: 'EAST'}
-];
+export const CC = Object.freeze([
+    Object.freeze({x:  0, y:  1, z:  0, name: 'UP'}),
+    Object.freeze({x:  0, y: -1, z:  0, name: 'DOWN'}),
+    Object.freeze({x:  0, y:  0, z: -1, name: 'SOUTH'}),
+    Object.freeze({x:  0, y:  0, z:  1, name: 'NORTH'}),
+    Object.freeze({x: -1, y:  0, z:  0, name: 'WEST'}),
+    Object.freeze({x:  1, y:  0, z:  0, name: 'EAST'}),
+])
 
 // BlockNeighbours
 export class BlockNeighbours {
-    [key: string]: any;
+    pcnt: number;
+    UP: any;
+    DOWN: any;
+    SOUTH: any;
+    NORTH: any;
+    WEST: any;
+    EAST: any;
 
     constructor() {
         this.pcnt   = 6;
@@ -964,13 +970,11 @@ export class TBlock {
     }
 
     get has_oxygen() : boolean {
-        if(!this.material.has_oxygen) {
+        const material = this.material
+        if (!material.has_oxygen) {
             return false;
         }
-        if(this.id == 0 && this.fluid > 0) {
-            return false;
-        }
-        return true;
+        return this.fluid === 0 || material === BLOCK.BUBBLE_COLUMN
     }
 
     //

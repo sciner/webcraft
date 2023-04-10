@@ -494,49 +494,45 @@ export function pushTransformed(
  */
 export function pushAABB(vertices : Float32Array | any[], aabb : AABB, pivot: Vector | IVector | number[] | null = null, matrix: null | imat4 = null, sides: TSideSet, center: IVector) {
 
-    matrix = matrix || defaultMatrix;
-    center = center || defalutCenter;
-    pivot  = pivot  || defaultPivot;
+    matrix = matrix || defaultMatrix
+    center = center || defalutCenter
+    pivot  = pivot  || defaultPivot
 
-    const lm_default      = IndexedColor.WHITE;
-    const globalFlags     = 0;
-    const x               = center.x;
-    const y               = center.y;
-    const z               = center.z;
+    const lm_default      = IndexedColor.WHITE
+    const globalFlags     = 0
+    const x               = center.x
+    const y               = center.y
+    const z               = center.z
 
     _size[0] = aabb.width;
     _size[1] = aabb.depth; // fucking flipped ZY
     _size[2] = aabb.height;
 
     // distance from center to minimal position
-    _dist[0] = aabb.x_min - x;
-    _dist[1] = aabb.z_min - z; // fucking flipped ZY
-    _dist[2] = aabb.y_min - y;
+    _dist[0] = aabb.x_min - x
+    _dist[1] = aabb.z_min - z // fucking flipped ZY
+    _dist[2] = aabb.y_min - y
 
     for(const key in sides) {
 
-        if (!(key in PLANES)) {
-            continue;
+        const side = sides[key]
+
+        if(!side) {
+            continue
         }
 
-        const {
-            /*axes,*/ /*offset*/ flip
-        } = PLANES[key];
+        const { /*axes,*/ /*offset*/ flip } = PLANES[key]
+        const { uv, flag = 0, anim = 0, autoUV = true, rawColor } = side
+        const lm = side.lm || lm_default
+        const axes = side.axes || PLANES[key].axes
+        const offset = side.offset || PLANES[key].offset
 
-        const {
-            uv, flag = 0, anim = 0, autoUV = true, rawColor
-        } = sides[key];
+        let uvSize0: number
+        let uvSize1: number
 
-        const lm = sides[key].lm || lm_default;
-        const axes = sides[key].axes || PLANES[key].axes;
-        const offset = sides[key].offset || PLANES[key].offset;
-
-        let uvSize0;
-        let uvSize1;
-
-        let r = lm.r;
-        let g = lm.g;
-        let b = anim || lm.b;
+        let r = lm.r
+        let g = lm.g
+        let b = anim || lm.b
 
         if (rawColor) {
             r = rawColor[0];
@@ -557,7 +553,7 @@ export function pushAABB(vertices : Float32Array | any[], aabb : AABB, pivot: Ve
         let sz2 = _size[2]
 
         pushTransformed(
-            vertices, sides[key].matrix || matrix, pivot,
+            vertices, side.matrix || matrix, pivot,
             // center
             x, z, y,
             // offset
@@ -579,7 +575,7 @@ export function pushAABB(vertices : Float32Array | any[], aabb : AABB, pivot: Ve
             IndexedColor.packArg(r, g, b),
             // flags
             globalFlags | flag
-        );
+        )
         
     }
 

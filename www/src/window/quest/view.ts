@@ -18,7 +18,7 @@ export class QuestView extends Window {
     [key: string]: any;
 
     //
-    constructor(x, y, w, h, id, title?, text?) {
+    constructor(x, y, w, h, id, parent: Window, title?, text?) {
 
         super(x, y, w, h, id, title, text);
 
@@ -27,6 +27,7 @@ export class QuestView extends Window {
         this.wheel_scroll = 36 * this.zoom;
         this.style.background.color = '#ffffff22';
         this.style.border.hidden = true;
+        this.parent = parent
 
         this.clip()
 
@@ -42,20 +43,27 @@ export class QuestView extends Window {
         this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.wheel_scroll
         this.scrollY = Helpers.clamp(this.scrollY, min_scroll, 0)
         this.container.y = this.scrollY
+        this.parent.scrollbar.value = -this.scrollY
+    }
+
+    updateScroll(val) {
+        const min_scroll = Math.min(this.h - this.container.h, 0)
+        this.scrollY = val * this.wheel_scroll
+        this.scrollY = Helpers.clamp(this.scrollY, min_scroll, 0)
+        this.container.y = this.scrollY
     }
 
     show(quest) {
-
         const ql = this.getWindow('questViewLayout');
         const lblTitle = ql.getWindow('lblTitle');
         const lDesc = ql.getWindow('lDesc');
         const lblActions = ql.getWindow('lblActions');
         const lblRewards = ql.getWindow('lblRewards');
-        //
+                //
         lblTitle.text = quest.title
         lDesc.text = quest.description
 
-        for(let w of ql.list.values()) {
+        for(const w of ql.list.values()) {
             w.style.font.color = UI_THEME.base_font.color
         }
         lDesc.style.font.color = UI_THEME.second_text_color
@@ -110,6 +118,8 @@ export class QuestView extends Window {
 
         ql.refresh()
 
+        this.updateScroll(0)
+        this.parent.scrollbar.max = this.container.h -this.h
     }
 
 }

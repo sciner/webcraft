@@ -1,4 +1,4 @@
-import { ToggleButton } from "../ui/wm.js";
+import { Slider, ToggleButton } from "../ui/wm.js";
 import { ServerClient } from "../server_client.js";
 import { QuestMenu } from "./quest/menu.js";
 import { QuestView } from "./quest/view.js";
@@ -26,10 +26,10 @@ export class QuestWindow extends BlankWindow {
             for(let i = 0; i < cmd.data.length; i++) {
                 const group = cmd.data[i];
                 group.title = Lang.getTranslateFromJSON(group.title);
-                for(let quest of group.quests) {
+                for(const quest of group.quests) {
                     quest.title = Lang.getTranslateFromJSON(quest.title);
-                    quest.description = Lang.getTranslateFromJSON(quest.description);
-                    for(let action of quest.actions) {
+                    quest.description = Lang.getTranslateFromJSON(quest.description)
+                    for(const action of quest.actions) {
                         action.title = Lang.getTranslateFromJSON(action.title);
                         action.description = Lang.getTranslateFromJSON(action.description);
                     }
@@ -55,7 +55,7 @@ export class QuestWindow extends BlankWindow {
     }
 
     setData(data) {
-
+        
         this.data = data;
         this.updateActive();
 
@@ -63,47 +63,57 @@ export class QuestWindow extends BlankWindow {
             return this.groups.update(data)
         }
 
+        const padding = 16 * this.zoom
+
+        this.scrollbar = new Slider((this.w - 22 * this.zoom), padding, 18 * this.zoom, this.h - padding * 4, 'scroll')
+        this.scrollbar.min = 0
+        this.scrollbar.onScroll = (value) => {
+            this.quest_view.updateScroll(-value / this.quest_view.wheel_scroll)
+        }
+        this.add(this.scrollbar)
+
         this.groups = new QuestMenu(
-            16 * this.zoom,
+            padding,
             5 * this.zoom,
             250 * this.zoom,
-            this.h - (45 + 20) * this.zoom,
+            this.h - padding * 4,
             'wGroups'
         );
         this.groups.init(data);
         this.add(this.groups);
-
         //
         this.quest_view = new QuestView(
-            (this.groups.x + this.groups.w + 16 * this.zoom),
-            15 * this.zoom,
-            (this.w - this.groups.w - (16 * 3) * this.zoom),
-            this.h - (45 + 20) * this.zoom,
-            'qView'
-        );
+            (this.groups.x + this.groups.w + padding),
+            padding,
+            (this.w - this.groups.w - padding * 2.5 - this.scrollbar.w),
+            this.h - padding * 4,
+            'qView',
+            this
+        )
         this.add(this.quest_view);
-
-        //
         this.groups.setViewer(this.quest_view);
 
         // Auto show first actual quest
         let last_complete_group = null
         let first_inprogress_group = null
-        for(let tb of this.groups.list.values()) {
+        for(const tb of this.groups.list.values()) {
             if(tb instanceof ToggleButton) {
-                if(tb.quest.is_completed) last_complete_group = tb
-                if(!tb.quest.is_completed && !first_inprogress_group) first_inprogress_group = tb
+                if(tb.quest.is_completed) {
+                    last_complete_group = tb
+                }
+                if(!tb.quest.is_completed && !first_inprogress_group) {
+                    first_inprogress_group = tb
+                }
             }
         }
         (first_inprogress_group || last_complete_group)?.onMouseDown(null)
-
     }
 
     updateActive() {
         let quest_in_progress = null;
         let quest_new = null;
-        for(let g of Qubatch.hud.wm.getWindow('frmInGameMain').getTab('frmQuests').form.data) {
-            for(let q of g.quests) {
+        for(const g of Qubatch.hud.wm.getWindow('frmInGameMain').getTab('frmQuests').form.data) {
+            for(const q of g.quests) {
                 // console.log(q.title, q.is_completed, q.in_progress);
                 if(q.in_progress && !quest_in_progress) {
                     quest_in_progress = q;
@@ -113,7 +123,7 @@ export class QuestWindow extends BlankWindow {
                 }
             }
         }
-        this.active = quest_in_progress || quest_new;
+        this.active = quest_in_progress || quest_new
     }
 
 }

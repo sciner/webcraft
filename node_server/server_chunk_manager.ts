@@ -592,7 +592,7 @@ export class ServerChunkManager {
 
     // Returns the horizontally closest safe position for a player.
     // If there are no such positions, returns initialPos.
-    findSafePos(initialPos : Vector, chunk_render_dist : int) : Vector {
+    findSafePos(initialPos : Vector, chunk_render_dist : int, initialUndergroundAllowed: boolean) : Vector {
         let startTime = performance.now();
         var bestPos = initialPos;
         var bestDistSqr = Infinity;
@@ -602,7 +602,7 @@ export class ServerChunkManager {
         if (initialChunk == null) {
             return initialPos;
         }
-        const chunks = [];
+        const chunks: ServerChunk[] = [];
         for(let chunk of this.getAround(pos, chunk_render_dist)) {
             chunks.push(chunk);
         }
@@ -626,7 +626,8 @@ export class ServerChunkManager {
             return d != 0 ? d : b.addr.y - a.addr.y;
         });
 
-        function findSafeFloor(chunkIndex, x, z) {
+        // It changes bestDistSqr - that's the result
+        function findSafeFloor(chunkIndex: int, x: int, z: int, topY: int | null): void {
             var chunk = chunks[chunkIndex];
             var topChunkAddr = chunk.addr;
             const pos = new Vector(x, 0, z);
@@ -634,9 +635,25 @@ export class ServerChunkManager {
             var matPlus2 = _this.DUMMY.material;
             var matPlus1 = _this.DUMMY.material;
             // for each chunk of the column
-            do {
+            while(chunk.addr.x === topChunkAddr.x && chunk.addr.z === topChunkAddr.z) {
+                let maxBlockY = chunk.maxBlockY
+                if (topY != null) {
+                     if(topY < chunk.coord.y) {
+                         // skip the chunk
+                         if (++chunkIndex >= chunks.length)
+                             return
+                         chunk = chunks[chunkIndex]
+                         continue
+                     } else if (topY <= maxBlockY) {
+                         maxBlockY = topY
+                         pos.y = topY + 1
+                         matPlus1 = chunk.getMaterial(pos, null, null, true)
+                         pos.y = topY + 2
+                         matPlus2 = chunk.getMaterial(pos, null, null, true)
+                     }
+                }
                 // for each floor block
-                for(pos.y = chunk.maxBlockY; pos.y >= chunk.coord.y; --pos.y) {
+                for(pos.y = maxBlockY; pos.y >= chunk.coord.y; --pos.y) {
                     const mat = chunk.getMaterial(pos);
                     // This is the top-most block that looks like some floor.
                     // We don't check any flors below that to avoid spawning in a cave.
@@ -669,15 +686,15 @@ export class ServerChunkManager {
                     matPlus1 = mat;
                 }
                 // go to the chunk below
-                ++chunkIndex;
-                if (chunkIndex >= chunks.length)
+                if (++chunkIndex >= chunks.length)
                     return;
                 chunk = chunks[chunkIndex];
-            } while(chunk.addr.x === topChunkAddr.x && chunk.addr.z === topChunkAddr.z)
+            }
         }
         // check the initial pos
         pos.copyFrom(initialPos).flooredSelf();
-        findSafeFloor(0, pos.x, pos.z);
+        const initialTopY = initialUndergroundAllowed ? pos.y : null
+        findSafeFloor(0, pos.x, pos.z, initialTopY);
         if (bestDistSqr < Infinity) {
             // Don't log fast calls, they take a few ms.
             return bestPos;
@@ -692,7 +709,7 @@ export class ServerChunkManager {
             // for each colum of blocks
             for(var x = chunk.coord.x; x <= chunk.maxBlockX; x += dxz) {
                 for(var z = chunk.coord.z; z <= chunk.maxBlockZ; z += dxz) {
-                    findSafeFloor(topChunkIndex, x, z);
+                    findSafeFloor(topChunkIndex, x, z, null);
                 }
             }
             /* We find not a globally closest safe position, but a safe position closest

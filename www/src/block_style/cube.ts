@@ -231,46 +231,63 @@ export default class style {
     /**
      * Can draw face
      */
-    static canDrawFace(block : any, neighbour : any, drawAllSides : boolean, dir : int) {
-        if(!neighbour) {
-            return true;
+    static canDrawFace(block : any,  neighbour : any, drawAllSides : boolean, dir : int, width: float, height: float) {
+        if(!neighbour || neighbour.id == 0) {
+            return true
         }
 
-        const bmat = block.material;
-        const nmat = neighbour.material;
+        const bmat = block.material
+        const nmat = neighbour.material
 
-        if(nmat.is_solid && (dir == DIRECTION.DOWN || dir == DIRECTION.UP)) {
-            if(bmat.is_layering) {
-                const point = block.extra_data?.point
-                if(point) {
-                    if(point.y < .5) {
-                        return dir != DIRECTION.DOWN
-                    } else {
-                        return dir != DIRECTION.UP
+        if(bmat.is_cap_block && dir == DIRECTION.UP) {
+            return true
+        }
+
+        if(nmat.is_solid) {
+            if(dir == DIRECTION.DOWN || dir == DIRECTION.UP) {
+                if(bmat.is_layering) {
+                    const point = block.extra_data?.point
+                    if(point) {
+                        if(point.y < .5) {
+                            return dir != DIRECTION.DOWN
+                        } else {
+                            return dir != DIRECTION.UP
+                        }
                     }
+                    return dir != DIRECTION.DOWN
                 }
-                return dir != DIRECTION.DOWN
+            }
+            if(bmat.is_layering) {
+                return false
+            }
+        } else if(nmat.is_cap_block && bmat.is_cap_block) {
+            if(nmat.height >= height) {
+                return false
             }
         }
 
-        if(bmat.is_solid && nmat.is_layering && (dir == DIRECTION.UP)) {
-            const point = block.extra_data?.point
-            if(!point || point.y < .5) {
-                return dir != DIRECTION.UP
+        if(bmat.is_solid && dir == DIRECTION.UP) {
+            if(nmat.is_layering) {
+                const point = neighbour.extra_data?.point
+                if(!point || point.y < .5) {
+                    return false
+                }
+            } else if(nmat.is_cap_block) {
+                return false
             }
         }
 
-        let resp = drawAllSides || (nmat && nmat.transparent);
-        if(resp) {
+        let can_draw = drawAllSides || (nmat && nmat.transparent);
+        if(can_draw) {
             if(block.id == neighbour.id && bmat.selflit) {
-                resp = false;
-            } else if(bmat.is_water && nmat.is_water) {
-                return false;
+                return false
             } else if(nmat.id == bmat.id && bmat.layering && !block.extra_data) {
-                return false;
+                return false
             }
         }
-        return resp;
+
+        return can_draw
+
     }
 
     // calculateBlockSize...
@@ -304,7 +321,7 @@ export default class style {
                 height = block.extra_data?.height || height;
             }
         } else if(material.is_dirt) {
-            if(up_mat && (!up_mat.transparent || up_mat.is_fluid || neighbours.UP.material.is_dirt)) {
+            if(up_mat && (!up_mat.transparent || up_mat.is_fluid || neighbours.UP.material.is_cap_block)) {
                 height = 1;
             }
         }
@@ -354,12 +371,12 @@ export default class style {
     // Pushes the vertices necessary for rendering a specific block into the array.
     static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
+        const material = block.material
+
         // Pot
         if(block.hasTag('into_pot')) {
-            return style.putIntoPot(vertices, block.material, pivot, matrix, _center.set(x, y, z), biome, dirt_color);
+            return style.putIntoPot(vertices, block.material, pivot, matrix, _center.set(x, y, z), biome, dirt_color)
         }
-
-        const material              = block.material;
 
         // Beautiful leaves
         const sheared = (block?.extra_data?.sheared) ? block?.extra_data?.sheared : false;
@@ -367,22 +384,42 @@ export default class style {
             return style.makeLeaves(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex)
         }
 
-        const bm                    = style.block_manager
-        const no_anim               = material.is_simple_qube || !material.texture_animations;
-        const cavity_id             = (material.is_log && !(block instanceof FakeTBlock)) ? block.extra_data?.cavity : null // for tree logs
-        const sides                 = {} as IBlockSides;
+        let width   = 1
+        let height  = 1
+        let depth   = 1
 
-        let emmited_blocks
-        let width                   = 1;
-        let height                  = 1;
-        let depth                   = 1;
-        let autoUV                  = true;
-        let axes_up                 = null;
-        let axes_down               = null;
-        let lm                      = _lm_grass.copyFrom(IndexedColor.WHITE);
-        let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0;
-        let sideFlags               = flags;
-        let upFlags                 = flags;
+        if(!material.is_simple_qube && !material.is_solid) {
+            const sz = style.calculateBlockSize(block, neighbours)
+            width = sz.width
+            height = sz.height
+            depth = sz.depth
+        }
+
+        //
+        const drawAllSides = (width != 1 || height != 1) && !material.is_water;
+        let canDrawUP = height < 1 || style.canDrawFace(block, neighbours.UP, drawAllSides, DIRECTION.UP, width, height)
+        let canDrawDOWN = style.canDrawFace(block, neighbours.DOWN, drawAllSides, DIRECTION.DOWN, width, height)
+        let canDrawSOUTH = style.canDrawFace(block, neighbours.SOUTH, drawAllSides, DIRECTION.SOUTH, width, height)
+        let canDrawNORTH = style.canDrawFace(block, neighbours.NORTH, drawAllSides, DIRECTION.NORTH, width, height)
+        let canDrawWEST = style.canDrawFace(block, neighbours.WEST, drawAllSides, DIRECTION.WEST, width, height)
+        let canDrawEAST = style.canDrawFace(block, neighbours.EAST, drawAllSides, DIRECTION.EAST, width, height)
+        if(!canDrawUP && !canDrawDOWN && !canDrawSOUTH && !canDrawNORTH && !canDrawWEST && !canDrawEAST) {
+            return;
+        }
+
+        const bm                    = style.block_manager
+        const no_anim               = material.is_simple_qube || !material.texture_animations
+        const cavity_id             = (material.is_log && !(block instanceof FakeTBlock)) ? block.extra_data?.cavity : null // for tree logs
+        const sides                 = {} as IBlockSides
+
+        let emmited_blocks:         [] = undefined
+        let autoUV                  = true
+        let axes_up                 = null
+        let axes_down               = null
+        let lm                      = _lm_grass.copyFrom(IndexedColor.WHITE)
+        let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0
+        let sideFlags               = flags
+        let upFlags                 = flags
 
         let DIRECTION_UP            = DIRECTION.UP
         let DIRECTION_DOWN          = DIRECTION.DOWN
@@ -390,25 +427,6 @@ export default class style {
         let DIRECTION_RIGHT         = DIRECTION.RIGHT
         let DIRECTION_FORWARD       = DIRECTION.FORWARD
         let DIRECTION_LEFT          = DIRECTION.LEFT
-
-        if(!material.is_simple_qube) {
-            const sz = style.calculateBlockSize(block, neighbours);
-            width = sz.width;
-            height = sz.height;
-            depth = sz.depth;
-        }
-
-        //
-        const drawAllSides = (width != 1 || height != 1) && !material.is_water;
-        let canDrawUP = height < 1 || style.canDrawFace(block, neighbours.UP, drawAllSides, DIRECTION.UP);
-        let canDrawDOWN = style.canDrawFace(block, neighbours.DOWN, drawAllSides, DIRECTION.DOWN);
-        let canDrawSOUTH = style.canDrawFace(block, neighbours.SOUTH, drawAllSides, DIRECTION.SOUTH);
-        let canDrawNORTH = style.canDrawFace(block, neighbours.NORTH, drawAllSides, DIRECTION.NORTH);
-        let canDrawWEST = style.canDrawFace(block, neighbours.WEST, drawAllSides, DIRECTION.WEST);
-        let canDrawEAST = style.canDrawFace(block, neighbours.EAST, drawAllSides, DIRECTION.EAST);
-        if(!canDrawUP && !canDrawDOWN && !canDrawSOUTH && !canDrawNORTH && !canDrawWEST && !canDrawEAST) {
-            return;
-        }
 
         if(material.is_simple_qube) {
 
@@ -506,25 +524,22 @@ export default class style {
             }
 
             // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
-            let replace_side_tex = false;
-            if(material.is_dirt && ('height' in material)) {
+            let replace_all_sides_texture_with_down = false
+            if(material.is_dirt && material.is_cap_block && height == 1) {
                 // если поставить блок над земляной тропинкой, то земляная тропинка превратится в визуально блок DIRT
-                const up_mat = neighbours.UP?.material;
-                if(up_mat && (!up_mat.transparent || up_mat.is_fluid || (up_mat.id == bm.DIRT_PATH.id))) {
-                    replace_side_tex = true;
-                }
+                replace_all_sides_texture_with_down = true
             } else if(material.name == 'SANDSTONE') {
                 const up_mat = neighbours.UP?.material;
                 if(up_mat && up_mat.name == 'SANDSTONE') {
-                    replace_side_tex = true;
+                    replace_all_sides_texture_with_down = true
                 }
             }
-            if(replace_side_tex) {
-                DIRECTION_UP        = DIRECTION.DOWN;
-                DIRECTION_BACK      = DIRECTION.DOWN;
-                DIRECTION_RIGHT     = DIRECTION.DOWN;
-                DIRECTION_FORWARD   = DIRECTION.DOWN;
-                DIRECTION_LEFT      = DIRECTION.DOWN;
+            if(replace_all_sides_texture_with_down) {
+                DIRECTION_UP        = DIRECTION.DOWN
+                DIRECTION_BACK      = DIRECTION.DOWN
+                DIRECTION_RIGHT     = DIRECTION.DOWN
+                DIRECTION_FORWARD   = DIRECTION.DOWN
+                DIRECTION_LEFT      = DIRECTION.DOWN
                 flags = 0
                 sideFlags = 0
                 upFlags = 0

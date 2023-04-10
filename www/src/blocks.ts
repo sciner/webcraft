@@ -9,10 +9,9 @@ import type { TBlock } from "./typed_blocks3.js";
 import type { World } from "./world.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
 
-export const TRANS_TEX                      = [4, 12];
-export const WATER_BLOCKS_ID                = [200, 202, 415];
-export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
-export const POWER_NO                       = 0;
+export const TRANS_TEX                      = [4, 12]
+export const INVENTORY_STACK_DEFAULT_SIZE   = 64
+export const POWER_NO                       = 0
 
 // Свойства, которые могут сохраняться в БД
 export const BLOCK_DB_PROPS                 = ['power', 'entity_id', 'extra_data', 'rotate'] // for reference only, unused. See BLOCK.convertBlockToDBItem.
@@ -20,7 +19,12 @@ export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'e
 export const NO_DESTRUCTABLE_BLOCKS         = ['BEDROCK', 'STILL_WATER']
 export const DIRT_BLOCK_NAMES               = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET']
 
-const AIR_BLOCK_STRINGIFIED = '{"id":0}';
+const AIR_BLOCK_STRINGIFIED = '{"id":0}'
+
+export enum BLOCK_SAME_PROPERTY {
+    EXTRA_DATA = 1,
+    ROTATE = 2,
+}
 
 /**
  * Normally if there is any extra data, it's retained when a block is placed, otherwise
@@ -60,6 +64,12 @@ export let NEIGHB_BY_SYM = {};
 
 export class DBItemBlock {
     [key: string]: any;
+    id: int
+    // extra_data?  : any
+    // rotate?      : Vector
+    // waterlogged? : boolean
+    // entity_id?   : string
+    // power?       : float
 
     constructor(id : int, extra_data? : any) {
         this.id = id
@@ -718,7 +728,7 @@ export class BLOCK {
         if('group' in block) return block.group;
         // make vertices array
         if (block.is_fluid) {
-            if (WATER_BLOCKS_ID.includes(block.id)) {
+            if (block.is_water) {
                 group = 'doubleface_transparent';
             } else {
                 group = 'doubleface';
@@ -758,7 +768,14 @@ export class BLOCK {
         return transparent;
     }
 
-    static isSolid(block) : boolean {
+    static parseBlockIsCap(block : IBlockMaterial) : boolean {
+        return !block.layering &&
+                (typeof block.width == 'undefined' && typeof block.height != 'undefined') &&
+                (!block.can_rotate) &&
+                (block.style == DEFAULT_STYLE_NAME && block.group == 'regular')
+    }
+
+    static isSolid(block : IBlockMaterial) : boolean {
         if(block.id == 0) {
             return false
         }
@@ -881,15 +898,17 @@ export class BLOCK {
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
         block.draw_only_down    = block.tags.includes('draw_only_down');
         block.transparent       = this.parseBlockTransparent(block);
-        block.is_water          = !!block.is_fluid && WATER_BLOCKS_ID.includes(block.id);
+        block.is_water          = block.is_fluid && block.material.id == 'water'
+        block.is_lava           = block.is_fluid && block.material.id == 'lava'
         block.is_jukebox        = block.tags.includes('jukebox');
         block.is_mushroom_block = block.tags.includes('mushroom_block');
         block.is_button         = block.tags.includes('button');
         block.is_sapling        = block.tags.includes('sapling');
         block.is_battery        = ['car_battery'].includes(block?.item?.name);
-        block.is_layering       = !!block.layering;
+        block.is_layering       = !!block.layering
         block.is_grass          = block.is_grass || ['GRASS', 'TALL_GRASS', 'BURDOCK', 'WINDFLOWERS'].includes(block.name);
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
+        block.same              = this.calcBlockSame(block)
         block.is_dirt           = DIRT_BLOCK_NAMES.includes(block.name);
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
@@ -932,10 +951,10 @@ export class BLOCK {
         block.is_log            = block.tags.includes('log')
         block.is_solid          = this.isSolid(block);
         block.is_flower         = this.isFlower(block);
-        block.is_solid_for_fluid= ArrayHelpers.includesAny(block.tags, 'is_solid_for_fluid', 'stairs', 'log') ||
-                                    ['wall', 'pane'].includes(block.style_name);
-
-        block.is_simple_qube    = this.isSimpleQube(block);
+        block.is_solid_for_fluid= block.is_solid || ArrayHelpers.includesAny(block.tags, 'is_solid_for_fluid', 'stairs', 'log') ||
+                                    ['wall', 'pane'].includes(block.style_name)
+        block.is_simple_qube    = this.isSimpleQube(block)
+        block.is_cap_block      = this.parseBlockIsCap(block)
         block.can_interact_with_hand = this.canInteractWithHand(block);
         const can_replace_by_tree = ['leaves', 'plant', 'dirt'].includes(block.material.id) || ['SNOW', 'SAND'].includes(block.name);
         block.can_replace_by_tree = can_replace_by_tree && !block.tags.includes('cant_replace_by_tree');
@@ -1047,6 +1066,73 @@ export class BLOCK {
         }
     }
 
+    //
+    static calcBlockSame(block : IBlockMaterial) : IBlockSame {
+        let resp : IBlockSame = null
+        if(block.tags.includes('stairs')) {
+            resp = {
+                id: 'stairs',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.layering?.slab) {
+            resp = {
+                id: 'slab',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA,
+            } as IBlockSame
+        } else if(block.tags.includes('door')) {
+            resp = {
+                id: 'door',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('trapdoor')) {
+            resp = {
+                id: 'trapdoor',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('button')) {
+            resp = {
+                id: 'button',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('bed')) {
+            resp = {
+                id: 'bed',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('sign')) {
+            resp = {
+                id: 'sign',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('banner')) {
+            resp = {
+                id: 'banner',
+                properties: BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('log')) {
+            resp = {
+                id: 'log',
+                properties: BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.style_name == 'candle') {
+            resp = {
+                id: 'candle',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA,
+            } as IBlockSame
+        } else if(block.style_name == 'chair') {
+            resp = {
+                id: 'chair',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.style_name == 'stool') {
+            resp = {
+                id: 'stool',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        }
+        return resp
+    }
+
     static invisibleForCam(block) : boolean {
         return  block.is_portal ||
                 (block.passable > 0) ||
@@ -1082,12 +1168,10 @@ export class BLOCK {
         if(mat.id < 1 || !mat) {
             return false;
         }
-        const is_slab = !!mat.is_layering;
-        const is_bed = mat.style_name == 'bed';
-        const is_dirt = mat.tags.includes('dirt');
-        const is_carpet = mat.tags.includes('carpet');
-        const is_farmland = mat.name.indexOf('FARMLAND') == 0;
-        if(mat?.transparent && !is_slab && !is_bed && !is_dirt && !is_farmland && !is_carpet) {
+        const is_layering = mat.is_layering
+        const is_bed = mat.style_name == 'bed'
+        const is_dirt = mat.tags.includes('dirt')
+        if(mat?.transparent && !is_layering && !is_bed && !is_dirt) {
             return false;
         }
         return true;

@@ -5,6 +5,14 @@ export enum LIGHT_TYPE {
     RTX     = 2,
 }
 
+// Global chunk geometry mode
+export enum CHUNK_GEOMETRY_MODE {
+    AUTO             = 0,
+    ONE_PER_CHUNK    = 1,
+    BIG_MULTIDRAW    = 2,
+    BIG_NO_MULTIDRAW = 3,
+}
+
 export const FAST = false
 
 export const INGAME_MAIN_WIDTH              = 772
@@ -26,17 +34,17 @@ export const BODY_ROTATE_SPEED              = 7;
 export const HEAD_MAX_ROTATE_ANGLE          = 45; // in degree
 
 // Dirt and grass
-export const GRASS_PALETTE_OFFSET           = {x : 128, y : 0}; // (in px) offset in mask_color.png for grass palette
-export const DEFAULT_DIRT_PALETTE           = {x: 0, y : 256, w: 128, h : 128, noise_range: 10} as DirtPalette // noise_range is mix dirt colors on every block with random value
-export const DEFAULT_GRASS_PALETTE          = {x: 128, y : 256, w: 128, h : 128, noise_range: 0} as DirtPalette
+export const GRASS_PALETTE_OFFSET           = Object.freeze({x : 128, y : 0}) // (in px) offset in mask_color.png for grass palette
+export const DEFAULT_DIRT_PALETTE           = Object.freeze({x: 0, y : 256, w: 128, h : 128, noise_range: 10}) as DirtPalette // noise_range is mix dirt colors on every block with random value
+export const DEFAULT_GRASS_PALETTE          = Object.freeze({x: 128, y : 256, w: 128, h : 128, noise_range: 0}) as DirtPalette
 export const DIRT_PALETTE_SIZE              = 128
 export const GRASS_COLOR_SHIFT_FACTOR       = 6
 
 export const DEFAULT_TX_CNT                 = 64;
 export const DEFAULT_TX_SIZE                = 32;
 export const DEFAULT_ATLAS_SIZE             = DEFAULT_TX_CNT * DEFAULT_TX_SIZE;
-export const COVER_STYLE_SIDES              = ['up', 'down', 'south', 'north', 'west', 'east'];
-export const NOT_SPAWNABLE_BUT_INHAND_BLOCKS= ['BEDROCK'];
+export const COVER_STYLE_SIDES              = Object.freeze(['up', 'down', 'south', 'north', 'west', 'east'])
+export const NOT_SPAWNABLE_BUT_INHAND_BLOCKS= Object.freeze(['BEDROCK'])
 export const ITEM_LABEL_MAX_LENGTH          = 19;
 export const DEFAULT_STYLE_NAME             = 'cube'
 export const DEFAULT_RENDER_DISTANCE        = 5

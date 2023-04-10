@@ -16,16 +16,26 @@ export class Vector implements IVector {
 
     static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
     static DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP]
-
     static SHAPE_PIVOT = new Vector(.5, .5, .5);
-
     // Ading these values sequentially to the same Vector is the same as setting it to each of SIX_DIRECTIONS
     static SIX_DIRECTIONS_CUMULATIVE = [this.XN];
+
     static initStatics() {
         for(var i = 1; i < 6; ++i) {
             this.SIX_DIRECTIONS_CUMULATIVE.push(
                 this.SIX_DIRECTIONS[i].sub(this.SIX_DIRECTIONS[i - 1]));
         }
+        Object.freeze(Vector.XN)
+        Object.freeze(Vector.XP)
+        Object.freeze(Vector.YN)
+        Object.freeze(Vector.YP)
+        Object.freeze(Vector.ZN)
+        Object.freeze(Vector.ZP)
+        Object.freeze(Vector.ZERO)
+        Object.freeze(Vector.SIX_DIRECTIONS)
+        Object.freeze(Vector.DIRECTIONS)
+        Object.freeze(Vector.SHAPE_PIVOT)
+        Object.freeze(Vector.SIX_DIRECTIONS_CUMULATIVE)
     }
 
     static ZERO_AND_SIX_DIRECTIONS = [this.ZERO].concat(this.SIX_DIRECTIONS);
@@ -683,6 +693,15 @@ export let NORMALS = {
     UP: new Vector(0, 1, 0),
     DOWN: new Vector(0, -1, 0),
 };
+
+// Freeze
+for(let k in SIX_VECS) {
+    Object.freeze(SIX_VECS[k])
+}
+
+for(let k in NORMALS) {
+    Object.freeze(NORMALS[k])
+}
 
 export class Vector4 {
     x: number;

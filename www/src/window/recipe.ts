@@ -7,11 +7,11 @@ import type { RecipeManager } from "../recipes.js";
 import { Resources } from "../resources.js";
 import { UI_THEME } from "../constant.js";
 import { Lang } from "../lang.js";
+import type { SpriteAtlas } from "../core/sprite_atlas.js";
 
 export class RecipeSlot extends Window {
-    [key: string]: any;
 
-    // hud_atlas : SpriteAtlas
+    hud_atlas : SpriteAtlas
 
     constructor(x : int, y : int, w : int, h : int, id : string, title : string | null, text : string | null, recipe : any, block : any, ct? : Window) {
 
@@ -81,7 +81,7 @@ export class RecipeSlot extends Window {
 // RecipeWindow...
 export class RecipeWindow extends BlankWindow {
 
-    // hud_atlas : SpriteAtlas
+    hud_atlas : SpriteAtlas
     slot_margin : float
     cell_size : float
     slots_x : float

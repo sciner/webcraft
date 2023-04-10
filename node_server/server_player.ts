@@ -80,13 +80,12 @@ export class ServerPlayer extends Player {
     damage: ServerPlayerDamage;
     wait_portal: WorldPortalWait | null;
     //@ts-expect-error
-    world: ServerWorld
+    declare world: ServerWorld
+    declare effects: ServerPlayerEffects
     //@ts-expect-error
-    effects: ServerPlayerEffects
+    declare inventory: ServerPlayerInventory;
     //@ts-expect-error
-    inventory: ServerPlayerInventory;
-    //@ts-expect-error
-    controlManager: ServerPlayerControlManager
+    declare controlManager: ServerPlayerControlManager
     private prev_world_data: Dict
 
     #forward : Vector;
@@ -644,7 +643,8 @@ export class ServerPlayer extends Player {
             // teleport
         let initialPos = this.vision.safePosInitialOverride || this.state.pos_spawn;
         this.vision.safePosInitialOverride = null;
-        const safePos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin);
+        const initialUndergroundAllowed = initialPos.equal(this.state.pos_spawn); // can't use === here, it may be a clone with the same value
+        const safePos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin, initialUndergroundAllowed);
         this.sendTeleport(safePos, 'spawn');
     }
 

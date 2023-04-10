@@ -1,22 +1,23 @@
-import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
-import {TrivialGeometryPool} from "./light/GeometryPool.js";
+import {BigGeometryPool} from "./geom/big_geometry_pool.js";
+import {TrivialGeometryPool} from "./geom/base_geometry_pool.js";
 import {IvanArray, Vector, SpiralGrid} from "./helpers.js";
-import {CubeTexturePool} from "./light/CubeTexturePool.js";
+import {CubeTexturePool} from "./light/cube_texture_pool.js";
 import {CHUNK_GENERATE_MARGIN_Y} from "./chunk_const.js";
 import {GROUPS_NO_TRANSPARENT, GROUPS_TRANSPARENT} from "./chunk_manager.js";
 
-import type {GeometryPool} from "./light/GeometryPool.js";
+import type {BaseGeometryPool} from "./geom/base_geometry_pool.js";
 import type {Chunk} from "./chunk.js";
 import type {ChunkManager} from "./chunk_manager.js";
 import type {Renderer} from "./render.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
 import type {ChunkMesh} from "./chunk_mesh.js";
 import {SpiralCulling} from "./render_tree/spiral_culling.js";
+import {CHUNK_GEOMETRY_MODE} from "./constant.js";
 
 const MAX_APPLY_VERTICES_COUNT = 20;
 
 export class ChunkRenderList {
-    bufferPool: GeometryPool = null;
+    bufferPool: BaseGeometryPool = null;
     chunkManager: ChunkManager;
 
     listByResourcePack: Map<string, Map<string, Map<string, IvanArray<ChunkMesh>>>> = new Map();
@@ -34,10 +35,34 @@ export class ChunkRenderList {
     init(render: Renderer) {
         const {chunkManager} = this;
         this.render = render;
-        if (render.renderBackend.multidrawBaseExt) {
-            this.bufferPool = new Basic05GeometryPool(render.renderBackend, {});
+
+        /**
+         * geom mode AUTO logic
+         */
+        let geomMode = chunkManager.getWorld().settings.chunk_geometry_mode;
+        if (geomMode === CHUNK_GEOMETRY_MODE.AUTO) {
+            if (render.renderBackend.multidrawBaseExt) {
+                geomMode = CHUNK_GEOMETRY_MODE.BIG_MULTIDRAW;
+            } else {
+                geomMode = CHUNK_GEOMETRY_MODE.ONE_PER_CHUNK;
+            }
         } else {
+            if (geomMode === CHUNK_GEOMETRY_MODE.BIG_MULTIDRAW) {
+                // fallback if no support
+                if (!render.renderBackend.multidrawBaseExt) {
+                    geomMode = CHUNK_GEOMETRY_MODE.BIG_NO_MULTIDRAW;
+                }
+            } else
+            if (geomMode === CHUNK_GEOMETRY_MODE.BIG_NO_MULTIDRAW) {
+                // testing mode, act like there's no multidraw support
+                render.renderBackend.multidrawBaseExt = null;
+            }
+        }
+
+        if (geomMode === CHUNK_GEOMETRY_MODE.ONE_PER_CHUNK) {
             this.bufferPool = new TrivialGeometryPool(render.renderBackend);
+        } else {
+            this.bufferPool = new BigGeometryPool(render.renderBackend, {});
         }
         chunkManager.fluidWorld.mesher.initRenderPool(render.renderBackend);
 

@@ -164,6 +164,7 @@ export class SpectatorPlayerControl extends PlayerControl {
 
         // copy player's input to this control
         this.tmpTickData.initInputFrom(controlManager, 1, 1)
+        this.tmpTickData.initContextFrom(controlManager)
         this.tmpTickData.applyInputTo(controlManager, this)
 
         // Use the old spectator, if it's enabled
