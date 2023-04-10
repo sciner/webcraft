@@ -1,7 +1,7 @@
 import type {GeometryVaoOptions} from "./base_geometry_vao.js";
 import {BaseGeometryVao} from "./base_geometry_vao.js";
 
-export class TerrainBigGeometry extends BaseGeometryVao {
+export class TerrainGeometryVao extends BaseGeometryVao {
     static strideFloats = 16;
 
     constructor(options: GeometryVaoOptions) {

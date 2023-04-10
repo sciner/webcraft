@@ -1,80 +1,86 @@
-import {SimplePool} from "../helpers/simple_pool.js";
-import type {BaseBuffer} from "../renders/BaseRenderer.js";
-import type BaseRenderer from "../renders/BaseRenderer.js";
+import { SimplePool } from "../helpers/simple_pool.js";
+import type { BaseBigGeometry } from "./base_big_geometry";
+import type {BaseGeometryVao} from "./base_geometry_vao";
+import type {TerrainSubGeometry} from "./terrain_sub_geometry";
+import {IvanArray} from "../helpers.js";
+import {GL_BUFFER_LOCATION, VAO_BUFFER_TYPE} from "./base_geometry_vao";
 
-export class GeomCopyOperation {
-    srcInstance: number;
-    destInstance: number;
-    size: number;
-    reset() {
-        this.srcInstance = 0;
-        this.destInstance = 0;
-        this.size = 0;
-    }
-
-    static pool = new SimplePool(GeomCopyOperation);
+export interface IGeomCopyOperation {
+    batchStart: number;
+    glOffsets: number[];
+    glCounts: number[];
 }
 
 export class BigGeomBatchUpdate {
-    data: Float32Array = null;
-    buffer: BaseBuffer = null;
-    copies: Array<GeomCopyOperation> = []; // from, to, dest
-    heuristicSize: number = 0;
-    pos: number = 0;
-    copyPos: number = 0;
+    copies = new IvanArray<TerrainSubGeometry>(); // from, to, dest
+    instCount: number = 0;
     strideFloats: number;
+    baseGeom: BaseBigGeometry;
+    vao: BaseGeometryVao;
+    data: Float32Array;
 
-    constructor(strideFloats, heuristicSize = (1 << 13)) {
-        this.heuristicSize = heuristicSize;
-        this.strideFloats = strideFloats;
-        this.ensureSize(heuristicSize);
+    constructor(baseGeom: BaseBigGeometry) {
+        this.baseGeom = baseGeom;
+        this.vao = baseGeom.dynamicDraw;
+        this.data = this.vao.data;
+        this.strideFloats = this.baseGeom.staticDraw.strideFloats;
     }
 
     ensureSize(instances: number) {
-        if (this.data && instances * this.strideFloats <= this.data.length) {
+        let sz = this.vao.size;
+        if (sz >= instances) {
             return;
         }
-        const oldData = this.data;
-        this.data = new Float32Array(instances * this.strideFloats);
-        if (oldData) {
-            this.data.set(oldData, 0);
+        while (sz < instances) {
+            sz *= 2;
         }
-        if (this.buffer) {
-            this.buffer.data = this.data;
-        }
+        this.vao.resize(sz);
+        this.data = this.vao.data;
     }
 
     addArrayBuffer(ab: ArrayBuffer) {
         const f32 = new Float32Array(ab);
-        this.data.set(f32, this.pos * this.strideFloats);
-        this.pos += f32.length / this.strideFloats;
-    }
-
-    addCopy(srcInstance, destInstance, size: number) {
-        let op = GeomCopyOperation.pool.alloc();
-        op.srcInstance = srcInstance;
-        op.destInstance = destInstance;
-        op.size = size;
-        this.copies[this.copyPos++] = op;
+        this.data.set(f32, this.instCount * this.strideFloats);
+        this.instCount += f32.length / this.strideFloats;
     }
 
     reset() {
-        this.pos = 0;
-        const {copies, copyPos} = this;
-        this.copyPos = 0;
-        for (let i = 0; i < copyPos; i++) {
-            GeomCopyOperation.pool.free(copies[i]);
+        this.instCount = 0;
+        const {copies} = this;
+        for (let i = 0; i < copies.count; i++) {
+            copies[i].batchStart = -1;
             copies[i] = null;
         }
+        copies.count = 0;
     }
 
-    getBuf(context: BaseRenderer) {
-        if (!this.buffer) {
-            this.buffer = context.createBuffer({usage: 'dynamic', data: this.data});
+    flipInstCount: number = 0;
+    flipCopyCount: number = 0;
+
+    flip() {
+        const {flipCopyCount, copies, flipInstCount, data, strideFloats} = this;
+        if (flipCopyCount === 0) {
+            this.flipCopyCount = copies.count;
+            this.flipInstCount = this.instCount;
+            return;
         }
-        if (this.pos > 0) {
-            this.buffer.dirty = true;
+        for (let i = 0; i < flipCopyCount; i++) {
+            copies[i].batchPos = -1;
         }
-        return this.buffer;
+        for (let i = flipCopyCount; i < copies.count; i++) {
+            const copy = copies[i - flipCopyCount] = copies[i];
+            copy.batchPos -= flipInstCount;
+        }
+        copies.decCount(flipCopyCount);
+        this.flipCopyCount = copies.count;
+
+        data.copyWithin(0, flipInstCount * strideFloats, this.instCount * strideFloats);
+        this.instCount -= flipInstCount;
+        this.flipInstCount = this.instCount;
+    }
+
+    bindDynamic(loc = GL_BUFFER_LOCATION.ARRAY_BUFFER) {
+        this.vao.data = this.data.slice(0, this.instCount * this.strideFloats);
+        this.vao.bindForUpload(loc);
     }
 }

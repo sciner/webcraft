@@ -8,6 +8,12 @@ export enum VAO_BUFFER_TYPE {
     DYNAMIC = 2
 }
 
+export enum GL_BUFFER_LOCATION {
+    COPY_READ_BUFFER = 36662,
+    COPY_WRITE_BUFFER = 36662,
+    ARRAY_BUFFER = 34962,
+}
+
 export interface GeometryVaoOptions {
     context?: BaseRenderer,
     size?: number,
@@ -26,9 +32,8 @@ export class BaseGeometryVao {
     attribs: any = null;
     gl: WebGL2RenderingContext = null;
 
-    indexData: Int32Array;
+    data: Float32Array = null;
     buffer: BaseBuffer = null;
-    indexBuffer: BaseBuffer = null;
     quad: BaseBuffer = null;
     vao: WebGLVertexArrayObject = null;
     buffers: BaseBuffer[] = [];
@@ -39,49 +44,80 @@ export class BaseGeometryVao {
         this.stride = this.strideFloats * 4;
         this.size = size;
         this.bufferType = bufferType;
+        if (bufferType === VAO_BUFFER_TYPE.BIG) {
+            this.data = new Float32Array(this.strideFloats);
+        }
     }
 
+    init(shader) {
+        if (this.context) {
+            return;
+        }
+        this.attribs = shader;
+        this.context = shader.context;
+        // when WebGL
+        this.gl = shader.context.gl;
+
+        this.buffer = this.context.createBuffer({
+            usage: 'dynamic',
+            bigLength: this.size * this.stride,
+        });
+        (this.buffer as any).glTrySubData = true;
+        // this.data = null;
+
+        if (this.hasInstance) {
+            this.quad = GeometryTerrain.bindQuad(this.context, true);
+            this.buffers = [
+                this.buffer,
+                this.quad
+            ];
+        }
+
+        this.createVao();
+    }
+
+    resize(instances) {
+        if (this.bufferType === VAO_BUFFER_TYPE.BIG) {
+            this.buffer.bigLength = instances * this.stride;
+        } else {
+            const oldData = this.data;
+            this.data = new Float32Array(instances * this.strideFloats);
+            this.data.set(oldData, 0);
+            this.buffer.data = this.data;
+        }
+    }
+
+    drawBindCountSync: number = 0;
+    drawBindCount: number = 0;
+    drawSync: WebGLSync = null;
+
     /**
-     * Only bind, no upload!
-     * bind is handled is special of geometry itself
+     * Only bind for drawing, no actual upload!
      * @param shader
      */
-    bind(shader) {
-        if (shader) {
-            this.attribs = shader;
-            this.context = shader.context;
-            // when WebGL
-            this.gl = shader.context.gl;
+    bindForDraw(shader) {
+        this.drawBindCount++;
+        this.gl.bindVertexArray(this.vao);
+        if (this.hasInstance && !this.context.multidrawBaseExt) {
+            this.buffer.bind();
         }
+    }
 
-        if (!this.buffer) {
-            this.buffer = this.context.createBuffer({
-                usage: 'dynamic',
-                bigLength: this.size * this.stride,
-            });
-            // this.data = null;
+    bindForUpload(bufferType = GL_BUFFER_LOCATION.ARRAY_BUFFER) {
+        (this.buffer as any).glType = bufferType;
+        this.buffer.bind();
+    }
 
-            if (this.hasInstance) {
-                this.quad = GeometryTerrain.bindQuad(this.context, true);
-                this.buffers = [
-                    this.buffer,
-                    this.quad
-                ];
-            } else {
-                //TODO
-            }
+    checkFence() {
+        if (this.drawBindCount === this.drawBindCountSync) {
+            return;
         }
-
-        const {gl} = this;
-
-        if (gl) {
-            if (!this.vao) {
-                this.createVao();
-                return;
-            }
-
-            gl.bindVertexArray(this.vao);
+        this.drawBindCount = this.drawBindCountSync;
+        const { gl } = this;
+        if (this.drawSync) {
+            gl.deleteSync(this.drawSync);
         }
+        this.drawSync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
 
     createVao() {
@@ -90,5 +126,20 @@ export class BaseGeometryVao {
 
     attribBufferPointers(offsetInstances= 0) {
         // override!
+    }
+
+    destroy() {
+        // we not destroy it, it shared
+        this.quad = null;
+
+        if (this.buffer) {
+            this.buffer.destroy();
+            this.buffer = null;
+        }
+
+        if (this.vao) {
+            this.gl.deleteVertexArray(this.vao);
+            this.vao = null;
+        }
     }
 }

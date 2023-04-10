@@ -390,6 +390,14 @@ export class IvanArray<T=any> {
         }
     }
 
+    decCount(cnt) {
+        const { count, arr } = this;
+        this.count -= cnt;
+        for (let i = this.count; i < count; i++) {
+            arr[i] = null;
+        }
+    }
+
     push(elem: T) {
         this.arr[this.count++] = elem;
     }
