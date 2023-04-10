@@ -332,6 +332,7 @@ interface IBlockMaterial {
     is_simple_qube: boolean
     is_solid: boolean
     is_water: boolean
+    is_lava: boolean
     is_dynamic_light: boolean
     is_dirt: boolean
     is_layering: boolean

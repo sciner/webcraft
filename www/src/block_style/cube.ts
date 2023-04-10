@@ -231,13 +231,17 @@ export default class style {
     /**
      * Can draw face
      */
-    static canDrawFace(block : any,  neighbour : any, drawAllSides : boolean, dir : int) {
+    static canDrawFace(block : any,  neighbour : any, drawAllSides : boolean, dir : int, width: float, height: float) {
         if(!neighbour || neighbour.id == 0) {
             return true
         }
 
         const bmat = block.material
         const nmat = neighbour.material
+
+        if(bmat.is_cap_block && dir == DIRECTION.UP) {
+            return true
+        }
 
         if(nmat.is_solid) {
             if(dir == DIRECTION.DOWN || dir == DIRECTION.UP) {
@@ -253,11 +257,11 @@ export default class style {
                     return dir != DIRECTION.DOWN
                 }
             }
-            if(bmat.is_layering || bmat.is_cap_block) {
+            if(bmat.is_layering) {
                 return false
             }
         } else if(nmat.is_cap_block && bmat.is_cap_block) {
-            if(nmat.height >= bmat.height) {
+            if(nmat.height >= height) {
                 return false
             }
         }
@@ -317,7 +321,7 @@ export default class style {
                 height = block.extra_data?.height || height;
             }
         } else if(material.is_dirt) {
-            if(up_mat && (!up_mat.transparent || up_mat.is_fluid || neighbours.UP.material.is_dirt)) {
+            if(up_mat && (!up_mat.transparent || up_mat.is_fluid || neighbours.UP.material.is_cap_block)) {
                 height = 1;
             }
         }
@@ -393,12 +397,12 @@ export default class style {
 
         //
         const drawAllSides = (width != 1 || height != 1) && !material.is_water;
-        let canDrawUP = height < 1 || style.canDrawFace(block, neighbours.UP, drawAllSides, DIRECTION.UP);
-        let canDrawDOWN = style.canDrawFace(block, neighbours.DOWN, drawAllSides, DIRECTION.DOWN);
-        let canDrawSOUTH = style.canDrawFace(block, neighbours.SOUTH, drawAllSides, DIRECTION.SOUTH);
-        let canDrawNORTH = style.canDrawFace(block, neighbours.NORTH, drawAllSides, DIRECTION.NORTH);
-        let canDrawWEST = style.canDrawFace(block, neighbours.WEST, drawAllSides, DIRECTION.WEST);
-        let canDrawEAST = style.canDrawFace(block, neighbours.EAST, drawAllSides, DIRECTION.EAST);
+        let canDrawUP = height < 1 || style.canDrawFace(block, neighbours.UP, drawAllSides, DIRECTION.UP, width, height)
+        let canDrawDOWN = style.canDrawFace(block, neighbours.DOWN, drawAllSides, DIRECTION.DOWN, width, height)
+        let canDrawSOUTH = style.canDrawFace(block, neighbours.SOUTH, drawAllSides, DIRECTION.SOUTH, width, height)
+        let canDrawNORTH = style.canDrawFace(block, neighbours.NORTH, drawAllSides, DIRECTION.NORTH, width, height)
+        let canDrawWEST = style.canDrawFace(block, neighbours.WEST, drawAllSides, DIRECTION.WEST, width, height)
+        let canDrawEAST = style.canDrawFace(block, neighbours.EAST, drawAllSides, DIRECTION.EAST, width, height)
         if(!canDrawUP && !canDrawDOWN && !canDrawSOUTH && !canDrawNORTH && !canDrawWEST && !canDrawEAST) {
             return;
         }
@@ -520,25 +524,22 @@ export default class style {
             }
 
             // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
-            let replace_side_tex = false;
-            if(material.is_dirt && ('height' in material)) {
+            let replace_all_sides_texture_with_down = false
+            if(material.is_dirt && material.is_cap_block && height == 1) {
                 // если поставить блок над земляной тропинкой, то земляная тропинка превратится в визуально блок DIRT
-                const up_mat = neighbours.UP?.material;
-                if(up_mat && (!up_mat.transparent || up_mat.is_fluid || (up_mat.id == bm.DIRT_PATH.id))) {
-                    replace_side_tex = true;
-                }
+                replace_all_sides_texture_with_down = true
             } else if(material.name == 'SANDSTONE') {
                 const up_mat = neighbours.UP?.material;
                 if(up_mat && up_mat.name == 'SANDSTONE') {
-                    replace_side_tex = true;
+                    replace_all_sides_texture_with_down = true
                 }
             }
-            if(replace_side_tex) {
-                DIRECTION_UP        = DIRECTION.DOWN;
-                DIRECTION_BACK      = DIRECTION.DOWN;
-                DIRECTION_RIGHT     = DIRECTION.DOWN;
-                DIRECTION_FORWARD   = DIRECTION.DOWN;
-                DIRECTION_LEFT      = DIRECTION.DOWN;
+            if(replace_all_sides_texture_with_down) {
+                DIRECTION_UP        = DIRECTION.DOWN
+                DIRECTION_BACK      = DIRECTION.DOWN
+                DIRECTION_RIGHT     = DIRECTION.DOWN
+                DIRECTION_FORWARD   = DIRECTION.DOWN
+                DIRECTION_LEFT      = DIRECTION.DOWN
                 flags = 0
                 sideFlags = 0
                 upFlags = 0

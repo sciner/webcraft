@@ -347,14 +347,14 @@ export class SchematicReader {
             // lantern (подвешен)
             if('hanging' in props) {
                 if(!new_block.rotate) {
-                    new_block.rotate = {x: 0, y: 0.9, z: 0};
+                    new_block.rotate = new Vector(0, 0.9, 0)
                 }
                 new_block.rotate.y = props.hanging ? -1 : 1;
             }
             // banner
             if('rotation' in props) {
                 if(!new_block.rotate) {
-                    new_block.rotate = {x: 0, y: 1, z: 0};
+                    new_block.rotate = new Vector(0, 1, 0)
                 }
                 new_block.rotate.x = (((parseInt(props.rotation) + 8) % 16) / 16) * 4;
             }

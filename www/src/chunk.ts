@@ -1,11 +1,9 @@
 import { Vector } from "./helpers.js";
 import {newTypedBlocks} from "./typed_blocks3.js";
 import type { TypedBlocks3 } from "./typed_blocks3.js";
-import {Sphere} from "./frustum.js";
 import {BLOCK, DBItemBlock, POWER_NO} from "./blocks.js";
 import {AABB} from './core/AABB.js';
 import {ChunkLight} from "./light/ChunkLight.js";
-import type { Renderer } from "./render.js";
 import type BaseRenderer from "./renders/BaseRenderer.js";
 import type { ChunkManager } from "./chunk_manager.js";
 import {BaseGeometryPool} from "./geom/base_geometry_pool.js";
