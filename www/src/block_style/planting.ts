@@ -108,7 +108,7 @@ export default class style {
         const is_tall_grass = block.hasTag('is_tall_grass')
 
         // Get texture
-        let texture_dir = DIRECTION.DOWN;
+        let texture_dir : DIRECTION | string = DIRECTION.DOWN
         if(block.hasTag('is_tall_plant')) {
             const top_id = neighbours.UP?.id;
             const bottom_id = neighbours.DOWN?.id;
@@ -135,7 +135,7 @@ export default class style {
         const is_grass = material.is_grass;
         const random_index = (z * chunk.size.x + x) % randoms.length
 
-        let texture = bm.calcMaterialTexture(material, texture_dir, null, null, block, undefined, randoms.double(random_index));
+        let texture = bm.calcMaterialTexture(material, texture_dir, null, null, block, undefined, randoms.double(random_index))
 
         let dx = 0, dy = 0, dz = 0;
         let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;

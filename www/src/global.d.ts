@@ -322,6 +322,7 @@ interface IBlockMaterial {
     material: IBlockMiningMaterial
     material_key: string
     texture: any
+    hanging_textures?: string[]
     texture_overlays: any
     texture_animations: any
     multiply_color: IColor
