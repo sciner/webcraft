@@ -49,6 +49,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
     constructor(player: ServerPlayer) {
         super(player as any as Player)
         // super constructor doesn't call these methods correctly, so call them here
+        this.physicsSessionId = -1 // revert to what it was before the super constructor
         const pos = new Vector(player.sharedProps.pos)
         this.updateCurrentControlType(false)
         this.startNewPhysicsSession(pos)
