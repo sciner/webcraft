@@ -67,17 +67,10 @@ export class SceneNode {
     }
 
     setVisible(val) {
-        const setVisable = (children) => {
-            for (const child of children) {
-                child.visible = val
-                child.updateMatrix()
-                if (child.children) {
-                    setVisable(child.children)
-                }
-            }
-        }
         this.visible = val
-        setVisable(this.children)
+        for (const child of this.children) {
+            child.setVisible(val)
+        }
     }
 
     replaceChild(name, child) {

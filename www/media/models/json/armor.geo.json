@@ -15,14 +15,14 @@
 					"name": "helmet",
 					"pivot": [0, 24, 0],
 					"cubes": [
-						{"origin": [-4, 24, -4], "size": [8, 8, 8], "inflate": 0.8, "uv": [0, 0]}
+						{"origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [0, 0]}
 					]
 				},
 				{
 					"name": "chestplate",
 					"pivot": [0, 24, 0],
 					"cubes": [
-						{"origin": [-4, 12, -2], "size": [8, 12, 4], "inflate": 0.32, "uv": [16, 16]}
+						{"origin": [-4, 12, -2], "size": [8, 12, 4], "uv": [16, 16]}
 					]
 				},
                 {
