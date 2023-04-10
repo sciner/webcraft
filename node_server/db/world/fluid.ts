@@ -152,7 +152,8 @@ export class DBWorldFluid {
     async flushWorldFluidsList(fluids, world : ServerWorld) {
         const chunkManager = this.world.chunks;
         const fluidWorld = chunkManager?.fluidWorld;
-        const fluidByChunk = FluidWorld.separateWorldFluidByChunks(fluids, chunkManager.grid);
+        const grid = chunkManager?.dataWorld?.grid ?? new ChunkGrid({chunkSize: new Vector(world.info.tech_info.chunk_size)})
+        const fluidByChunk = FluidWorld.separateWorldFluidByChunks(fluids, grid);
         const saveRows = [];
         for (let [chunk_addr, fluids] of fluidByChunk) {
             const chunk = chunkManager?.getOrRestore(chunk_addr);
@@ -163,7 +164,6 @@ export class DBWorldFluid {
                 fluidChunk.databaseID = fluidChunk.updateID;
             } else {
                 //TODO: bulk read
-                const grid = chunkManager?.dataWorld?.grid ?? new ChunkGrid({chunkSize: new Vector(world.info.tech_info.chunk_size)})
                 fluidChunk = FluidWorld.getOfflineFluidChunk(grid, chunk_addr,
                     await this.loadChunkFluid(chunk_addr), fluids);
             }

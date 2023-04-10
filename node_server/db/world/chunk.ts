@@ -5,6 +5,7 @@ import { BulkSelectQuery, preprocessSQL, runBulkQuery, all, get, run } from "../
 import type { BlocksPatch } from "./ChunkDBActor"
 import type { ChunkRecord, ServerChunk } from "../../server_chunk"
 import type { ServerWorld } from "../../server_world.js";
+import type { ChunkGrid } from "@client/core/ChunkGrid.js";
 
 const REBUILD_MODIFIERS_SUBQUERY =
     `json_group_object(
@@ -168,10 +169,11 @@ export class DBWorldChunk {
      * @param {Number} dt
      * @param {Number} user_id - used if rows[i].user_id is null.
      */
-    async bulkInsertWorldModify(rows, dt = unixTime(), user_id = null) {
-        const {getFlatIndexInChunk} = this.world.chunks.grid.math;
+    async bulkInsertWorldModify(rows, dt = unixTime(), user_id = null, grid? : ChunkGrid) {
+        grid = this.world.chunks?.grid ?? grid
+        const {getFlatIndexInChunk} = grid.math;
         const jsonRows = rows.map(row => {
-            const chunk_addr = row.chunk_addr ?? this.world.chunks.grid.toChunkAddr(row.pos, tmpAddr);
+            const chunk_addr = row.chunk_addr ?? grid.toChunkAddr(row.pos, tmpAddr);
             const index = getFlatIndexInChunk(tmpVector.copyFrom(row.pos));
             return [
                 row.user_id ?? user_id,

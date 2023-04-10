@@ -1089,6 +1089,36 @@ export class BLOCK {
                 id: 'trapdoor',
                 properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
             } as IBlockSame
+        } else if(block.tags.includes('button')) {
+            resp = {
+                id: 'button',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('bed')) {
+            resp = {
+                id: 'bed',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('sign')) {
+            resp = {
+                id: 'sign',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('banner')) {
+            resp = {
+                id: 'banner',
+                properties: BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('log')) {
+            resp = {
+                id: 'log',
+                properties: BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.style_name == 'candle') {
+            resp = {
+                id: 'candle',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA,
+            } as IBlockSame
         } else if(block.style_name == 'chair') {
             resp = {
                 id: 'chair',
