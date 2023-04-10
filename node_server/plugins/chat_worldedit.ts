@@ -4,7 +4,7 @@ import { ServerClient } from "@client/server_client.js";
 import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "@client/fluid/FluidConst.js";
 import { WorldEditBuilding } from "@client/plugins/worldedit/building.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
-import { DBItemBlock } from "@client/blocks.js";
+import { BLOCK_SAME_PROPERTY, DBItemBlock } from "@client/blocks.js";
 import type { ServerWorld } from "server_world";
 import type { ChunkGrid } from "@client/core/ChunkGrid";
 import type { ServerChat } from "server_chat";
@@ -587,36 +587,36 @@ export default class WorldEdit {
                             throw 'error_chunk_not_loaded';
                         }
                     }
-                    const old_block = chunk.getBlock(bpos)
-                    const mat = old_block.material
-                    if(mat.is_entity) {
-                        continue
+                    const prev_block = chunk.getBlock(bpos)
+                    if(!prev_block || prev_block.id < 0) {
+                        throw 'error_get_block'
                     }
-                    if(old_block.id < 0) {
-                        throw 'error_error_get_block'
+                    const prev_block_mat = prev_block.material
+                    if(prev_block_mat.is_entity) {
+                        continue
                     }
                     for(let rb of repl_blocks.blocks) {
                         let replace = false;
                         if(rb.is_fluid) {
-                            const oldBlockFluidValue = old_block.fluid
+                            const oldBlockFluidValue = prev_block.fluid
                             if(oldBlockFluidValue > 0) {
                                 const is_water = (oldBlockFluidValue & FLUID_TYPE_MASK) === FLUID_WATER_ID
                                 const is_lava = (oldBlockFluidValue & FLUID_TYPE_MASK) === FLUID_LAVA_ID
                                 const candidate_to_replace = (is_water && rb.is_water) || (is_lava && rb.is_lava)
-                                if(mat.id == 0) {
+                                if(prev_block_mat.id == 0) {
                                     replace = candidate_to_replace
                                 } else if(drain) {
                                     replace = candidate_to_replace
                                 }
                             }
                         } else {
-                            replace = mat.id == rb.block_id
+                            replace = prev_block_mat.id == rb.block_id
                         }
                         if(replace) {
-                            const new_block = palette.nextAsItem()
-                            const newBlockFluidId = isFluidId(new_block.id)
-                            if (newBlockFluidId) {
-                                actions.addFluids([bpos.x, bpos.y, bpos.z, newBlockFluidId])
+                            const new_item = palette.nextAsItem(prev_block)
+                            const new_item_fluid_id = isFluidId(new_item.id)
+                            if (new_item_fluid_id) {
+                                actions.addFluids([bpos.x, bpos.y, bpos.z, new_item_fluid_id])
                                 actions.addBlocks([
                                     {
                                         pos: bpos.clone(), 
@@ -629,7 +629,7 @@ export default class WorldEdit {
                                     actions.addBlocks([
                                         {
                                             pos: bpos.clone(), 
-                                            item: new_block, 
+                                            item: new_item, 
                                             action_id: ServerClient.BLOCK_ACTION_CREATE
                                         }
                                     ])
@@ -795,8 +795,8 @@ export default class WorldEdit {
     createBlocksPalette(args) {
         const bm = this.world.block_manager
         args = new String(args);
-        const blocks = args.trim().split(',');
-        const blockChances = [];
+        const blocks = args.trim().split(',')
+        const blockChances : IBlockChance[] = []
         // Parse blocks pattern
         for(let a of blocks) {
             let chance = 1;
@@ -814,38 +814,42 @@ export default class WorldEdit {
             if(name.toLowerCase() == 'lava') {
                 name = 'still_lava'
             }
+            let block_id = null
+            if(isNaN(name)) {
+                name = name.toUpperCase()
+            } else {
+                block_id = parseInt(name)
+                name = null
+            }
             blockChances.push({
+                block_id: block_id,
+                name: name,
                 chance: chance,
-                name: name
-            })
+            } as IBlockChance)
         }
         // Check names and validate blocks
-        const fake_orientation = new Vector(0, 1, 0);
+        const fake_orientation = new Vector(0, 1, 0)
         const fake_pos = {...new Vector(0, 0, 0), n: new Vector(0, 0, 0)};
         for(let item of blockChances) {
-            let b = null;
-            if(isNaN(item.name)) {
-                b = bm.fromName(item.name.toUpperCase());
-            } else {
-                b = bm.fromId(parseInt(item.name));
-            }
-            if(!b || b.id < 0) throw 'error_invalid_block';
-            if(b.deprecated) throw 'error_block_is_deprecated';
+            const b = item.name ? bm.fromName(item.name) : bm.fromId(item.block_id)
+            if(!b || b.id < 0) throw 'error_invalid_block'
+            if(b.deprecated) throw 'error_block_is_deprecated'
             if(b.item || b.next_part || b.previous_part || ['extruder', 'text', 'painting'].indexOf(b.style_name) >= 0) throw 'error_this_block_cannot_be_setted';
             //
             const block_id = b.id;
             const extra_data = bm.makeExtraData(b, fake_pos, fake_orientation, null);
             if(extra_data) {
-                item.extra_data = extra_data;
+                item.extra_data = extra_data
             }
             if(b.can_rotate) {
-                item.rotate = fake_orientation;
+                item.rotate = fake_orientation
             }
             item.block_id = block_id
             item.is_fluid = b.is_fluid
             item.is_lava = b.is_lava
             item.is_water = b.is_water
-            item.name = b.name;
+            item.material = b
+            item.name = b.name
         }
         // Random fill
         let max = 0;
@@ -865,12 +869,12 @@ export default class WorldEdit {
                 const r = Math.random();
                 for(let block of this.blocks) {
                     if (r <= block.chance) {
-                        return block;
+                        return block
                     }
                 }
-                throw 'Proportional fill pattern';
+                throw 'error_proportional_fill_pattern'
             },
-            nextAsItem: function() : DBItemBlock {
+            nextAsItem: function(prev? : any) : DBItemBlock {
                 const next = this.next()
                 const resp = {
                     id: next.block_id
@@ -881,6 +885,29 @@ export default class WorldEdit {
                 if(next.rotate) {
                     resp.rotate = next.rotate
                 }
+                if(prev) {
+                    if(prev.material.same && next.material.same) {
+                        // Copy properties if block same type with previous
+                        if(prev.material.same.id == next.material.same.id) {
+                            const same = prev.material.same
+                            // 1. copy extra_data
+                            if((same.properties & BLOCK_SAME_PROPERTY.EXTRA_DATA) == BLOCK_SAME_PROPERTY.EXTRA_DATA) {
+                                const prev_extra_data = prev.extra_data
+                                if(prev_extra_data) {
+                                    resp.extra_data = JSON.parse(JSON.stringify(prev_extra_data))
+                                }
+                            }
+                            // 2. copy rotate
+                            if((same.properties & BLOCK_SAME_PROPERTY.ROTATE) == BLOCK_SAME_PROPERTY.ROTATE) {
+                                const prev_rotate = prev.rotate
+                                if(prev_rotate) {
+                                    resp.rotate = new Vector().copyFrom(prev_rotate)
+                                }
+                            }
+                        }
+                    }
+                }
+                //
                 return resp
             }
         };

@@ -21,6 +21,11 @@ export const DIRT_BLOCK_NAMES               = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB'
 
 const AIR_BLOCK_STRINGIFIED = '{"id":0}'
 
+export enum BLOCK_SAME_PROPERTY {
+    EXTRA_DATA = 1,
+    ROTATE = 2,
+}
+
 /**
  * Normally if there is any extra data, it's retained when a block is placed, otherwise
  * {@link BLOCK.makeExtraData} is called, see {@link doBlockAction}.
@@ -903,6 +908,7 @@ export class BLOCK {
         block.is_layering       = !!block.layering
         block.is_grass          = block.is_grass || ['GRASS', 'TALL_GRASS', 'BURDOCK', 'WINDFLOWERS'].includes(block.name);
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
+        block.same              = this.calcBlockSame(block)
         block.is_dirt           = DIRT_BLOCK_NAMES.includes(block.name);
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
@@ -1058,6 +1064,43 @@ export class BLOCK {
         if(block.id > this.max_id) {
             this.max_id = block.id;
         }
+    }
+
+    //
+    static calcBlockSame(block : IBlockMaterial) : IBlockSame {
+        let resp : IBlockSame = null
+        if(block.tags.includes('stairs')) {
+            resp = {
+                id: 'stairs',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.layering?.slab) {
+            resp = {
+                id: 'slab',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA,
+            } as IBlockSame
+        } else if(block.tags.includes('door')) {
+            resp = {
+                id: 'door',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('trapdoor')) {
+            resp = {
+                id: 'trapdoor',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.style_name == 'chair') {
+            resp = {
+                id: 'chair',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.style_name == 'stool') {
+            resp = {
+                id: 'stool',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        }
+        return resp
     }
 
     static invisibleForCam(block) : boolean {
