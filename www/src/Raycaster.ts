@@ -15,20 +15,25 @@ const startBlock = new Vector(0, 0, 0);
 const _tempVec3c = new Vector(0, 0, 0)
 
 export class RaycasterResult {
-    [key: string]: any;
+
+    mob         : any = null
+    player      : any = null
+    aabb        : AABB | null
+    n           : Vector | null
+    block_id    : int
+    x           = 0
+    y           = 0
+    z           = 0
+    point       : IVector | null = null
+    fluidLeftTop: IVectorPoint | null = null
+    fluidVal    = 0
 
     /**
      */
-    constructor(pos : Vector | null = null, leftTop : Vector | null = null, side : Vector | null = null, aabb? : AABB, block_id : int = 0) {
-        this.mob      = null;
-        this.player   = null;
-        this.aabb     = aabb || null;
-        this.n        = side || 0; // TODO: Fix it
+    constructor(pos : Vector | null = null, leftTop : Vector | null = null, side : Vector | null = null, aabb : AABB | null = null, block_id : int = 0) {
+        this.aabb     = aabb;
+        this.n        = side;
         this.block_id = block_id || 0;
-        this.x        = 0;
-        this.y        = 0;
-        this.z        = 0;
-        this.point    = 0;
         if (pos) {
             this.x = leftTop.x;
             this.y = leftTop.y;
@@ -40,8 +45,6 @@ export class RaycasterResult {
                 this.point.z = Math.round(this.point.z * point_precision) / point_precision;
             }
         }
-        this.fluidLeftTop = null;
-        this.fluidVal = 0;
     }
 
     distance(vec) {
@@ -71,14 +74,10 @@ export class Raycaster {
         this._blk = new Vector(0, 0, 0);
     }
 
-    /**
-     * @param {Vector} pos
-     * @param {number[]} invViewMatrix
-     * @param {number} distance
-     * @param {*} callback
-     * @returns {null | RaycasterResult}
-     */
-    getFromView(pos, invViewMatrix, distance, callback, ignore_transparent, return_fluid) {
+    getFromView(pos: IVector, invViewMatrix: number[], distance: float,
+                callback: ((res: RaycasterResult | null) => void) | null = null,
+                ignore_transparent: boolean = false, return_fluid: boolean = false
+    ): RaycasterResult | null {
         this._dir.x = -invViewMatrix[8];
         this._dir.y = -invViewMatrix[10];
         this._dir.z = -invViewMatrix[9];
@@ -198,7 +197,10 @@ export class Raycaster {
         return resp;
     }
 
-    get(origin : Vector | IVector, dir : Vector, pickat_distance : number, callback? : Function, ignore_transparent : boolean = false, return_fluid : boolean = false) : RaycasterResult | null {
+    get(origin : IVector, dir : IVector, pickat_distance : number,
+        callback : ((res: RaycasterResult | null) => void) | null = null,
+        ignore_transparent : boolean = false, return_fluid : boolean = false
+    ) : RaycasterResult | null {
 
         // const origin_block_pos = new Vector(origin).flooredSelf();
 
