@@ -57,7 +57,18 @@ export class Physics {
     // Flying
     private readonly flyinGravity       = 0.06
     private readonly flyingYSpeed       = Math.fround(0.42 / 2) * this.scale
+    /* Old code:
     private readonly flyingInertiaMultiplyer = 1.5
+
+    New code:
+    these values are the same that have been computed when flying a player in a creative mode:
+    DEFAULT_SLIPPERINES = 0.6
+    <initail_initia> = DEFAULT_SLIPPERINES * 0.91
+    flyingInertia = <initail_initia> * flyingInertiaMultiplyer
+    flyingAcceleration = 0.1 * (0.1627714 / (<initail_initia> * <initail_initia> * <initail_initia>))
+    */
+    private readonly flyingInertia      = 0.819
+    private readonly flyingAcceleration = 0.1
     //
     private readonly airdrag            = Math.fround(1 - 0.02) // actually (1 - drag)
     private readonly pitchSpeed         = 3.0
@@ -67,9 +78,9 @@ export class Physics {
         down: 0.05,
         maxDown: -0.5
     }
-    private readonly floatsDrag = {  // плавучесть, например, лодки
-        up: 0.03,
-        maxUp: 0.3,
+    private readonly floatDrag = {  // плавучесть, например, лодки
+        up: 0.05,
+        maxUp: 0.5,
         friction: 0.4
     }
     private readonly negligeableVelocity = 0.003 // actually 0.005 for 1.8, but seems fine
@@ -498,19 +509,14 @@ export class Physics {
             let acceleration = this.airborneAcceleration
             let inertia = this.airborneInertia
             const blockUnder = this.world.getBlock(pos.offset(0, -1, 0))
-            // @fix Если проверять землю, то если бежать, то в прыжке сильно падает скорость
-            // if (entity.onGround && blockUnder) {
-            if (blockUnder) {
+
+            if (entity.flying) {
+                inertia         = this.flyingInertia
+                acceleration    = this.flyingAcceleration
+            } else if (entity.onGround && blockUnder) {
                 inertia = (this.blockSlipperiness[blockUnder.id] || options.defaultSlipperiness) * 0.91
                 acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
             }
-
-
-            if (vel.horizontalLength()) {
-                console.log(vel.horizontalLength(), blockUnder != null, inertia)
-            }
-
-
 
             if (entity.control.pitch) {
                 acceleration *= this.pitchSpeed;
@@ -550,7 +556,6 @@ export class Physics {
                 if(entity.flying) {
                     vel.y -= (this.flyinGravity);
                     vel.y = Math.max(vel.y, 0);
-                    inertia *= this.flyingInertiaMultiplyer;
                 } else {
                     vel.y -= this.gravity * gravityMultiplier
                 }
@@ -583,27 +588,27 @@ export class Physics {
             vel.y *= verticalInertia
             const liquidGravity = (entity.isInWater ? this.waterGravity : this.lavaGravity) * gravityMultiplier
 
-            const floatsSubmergedHeight = entity.floatsSubmergedHeight
-            if (floatsSubmergedHeight != null) {
-                const floatsDrag = this.floatsDrag
-                // It's not physically accurate buoyancy simulation, but it returns the object to its floatsSubmergedHeight
-                const aboveEquilibrium = floatsSubmergedHeight - entity.submergedHeight
+            const floatSubmergedHeight = options.floatSubmergedHeight
+            if (floatSubmergedHeight != null) {
+                const floatDrag = this.floatDrag
+                // It's not physically accurate buoyancy simulation, but it returns the object to its floatSubmergedHeight
+                const aboveEquilibrium = floatSubmergedHeight - entity.submergedHeight
                 if (aboveEquilibrium > 0) {
                     // it's too high, it should fall down
                     if (vel.y > -aboveEquilibrium) {
                         // increase the fall speed, but no more than necessary to reach equilibrium
-                        const gravityPercent = entity.submergedHeight / floatsSubmergedHeight
+                        const gravityPercent = entity.submergedHeight / floatSubmergedHeight
                         vel.y = Math.max(vel.y - liquidGravity * gravityPercent, -aboveEquilibrium)
                     }
                 } else {
                     // it's too low, it should float up
                     if (vel.y < -aboveEquilibrium) {
                         // increase the ascension speed, but no more than necessary to reach equilibrium
-                        vel.y = Math.min(floatsDrag.maxUp, vel.y + floatsDrag.up, -aboveEquilibrium)
+                        vel.y = Math.min(floatDrag.maxUp, vel.y + floatDrag.up, -aboveEquilibrium)
                     }
                 }
                 // fade oscillations if it's close to equilibrium
-                const friction = Mth.lerp(Math.abs(aboveEquilibrium), floatsDrag.friction, 0)
+                const friction = Mth.lerp(Math.abs(aboveEquilibrium), floatDrag.friction, 0)
                 vel.y *= (1 - friction)
             } else {
                 vel.y -= liquidGravity
@@ -955,10 +960,6 @@ export class PlayerState implements IPlayerControlState {
     slowFalling: number;
     depthStrider: float;
     passable?: float
-
-    cantJump?: boolean
-    /** If it's defined, the object floats, and this value is its height below the surface. */
-    floatsSubmergedHeight?: float
 
     constructor(pos: Vector, options: TPrismarineOptions, control: IPlayerControls) {
 

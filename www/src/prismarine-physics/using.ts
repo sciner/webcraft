@@ -27,6 +27,8 @@ export type TPrismarineOptions = {
     defaultSlipperiness ? : float
     playerHalfWidth     ? : float
     effects             ? : TPrismarineEffects
+    /** If it's defined, the object floats, and this value is its height below the surface. */
+    floatSubmergedHeight? : float
 }
 
 // FakeWorld

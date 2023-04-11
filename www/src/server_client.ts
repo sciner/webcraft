@@ -98,7 +98,7 @@ export class ServerClient {
 	static CMD_DROP_ITEM_DELETED        = 77;
 	static CMD_DROP_ITEM_UPDATE         = 78;
     static CMD_DROP_ITEM_FULL_UPDATE    = 109;
-	static CMD_DROP_ITEM                = 86;
+	static CMD_DROP_ITEM                = 86; // p->s (throw an item from a hand)
 	static CMD_DROP_ITEM_PICKUP         = 99;
 
     // Use items
