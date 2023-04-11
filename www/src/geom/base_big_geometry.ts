@@ -24,7 +24,7 @@ export class BaseBigGeometry {
 
     geomClass: new (options:any) => BaseGeometryVao;
 
-    constructor({staticSize = 128, dynamicSize = 128, useDoubleBuffer = false} : BigGeometryOptions) {
+    constructor({staticSize = 128, dynamicSize = 128, useDoubleBuffer = true} : BigGeometryOptions) {
         this.staticSize = staticSize;
         this.dynamicSize = dynamicSize;
         this.useDoubleBuffer = useDoubleBuffer;

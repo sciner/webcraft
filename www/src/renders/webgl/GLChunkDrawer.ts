@@ -77,7 +77,7 @@ export class GLChunkDrawer extends ChunkDrawer {
                 offsets = this.offsets;
                 counts = this.counts;
             }
-            if (geom.batchStart >= 0) {
+            if (geom.isDynamic) {
                 offsets[sz] = geom.batchStart;
                 counts[sz] = geom.sizeQuads;
                 if ((offsets[sz] + counts[sz]) * baseVao.stride > baseVao.buffer.glLength) {
