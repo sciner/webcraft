@@ -102,6 +102,7 @@
         "cmd_load_chest",
         "cmd_pickat_action",
         "cmd_ping",
+        "cmd_queued_ping",
         "cmd_player_control_session",
         "cmd_player_control_update",
         "cmd_quest_get_enabled",
