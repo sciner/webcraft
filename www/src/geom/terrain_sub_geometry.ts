@@ -15,6 +15,7 @@ export class TerrainSubGeometry implements IGeomCopyOperation {
     sizePages: number;
     destroyed = false;
     size: number = 0;
+
     constructor({baseGeometry, pool, sizeQuads = 0, sizePages = 0}) {
         this.baseGeometry = baseGeometry;
         this.pool = pool;
@@ -22,10 +23,6 @@ export class TerrainSubGeometry implements IGeomCopyOperation {
         this.pages = [];
         this.sizeQuads = sizeQuads;
         this.sizePages = sizePages;
-    }
-
-    get baseVao() {
-        return this.isDynamic ? this.baseGeometry.dynamicDraw : this.baseGeometry.staticDraw;
     }
 
     setDataBatch(batch: BigGeomBatchUpdate, vertices: any) {
