@@ -24,7 +24,7 @@ export class BaseBigGeometry {
 
     geomClass: new (options:any) => BaseGeometryVao;
 
-    constructor({staticSize = 128, dynamicSize = 128, useDoubleBuffer = true} : BigGeometryOptions) {
+    constructor({staticSize = 128, dynamicSize = 128, useDoubleBuffer = false} : BigGeometryOptions) {
         this.staticSize = staticSize;
         this.dynamicSize = dynamicSize;
         this.useDoubleBuffer = useDoubleBuffer;
@@ -80,8 +80,6 @@ export class BaseBigGeometry {
             if (staticCopy.isReadyForUpload()) {
                 staticCopy.buffer.batchUpdate(batch.vao.buffer, batch.copies, staticDraw.stride);
                 this.flip();
-            } else {
-                console.log("not ready for upload yet");
             }
         } else {
             staticDraw.buffer.batchUpdate(batch.vao.buffer, batch.copies, staticDraw.stride);
@@ -93,6 +91,9 @@ export class BaseBigGeometry {
     }
 
     checkFence() {
+        if (!this.useDoubleBuffer) {
+            return;
+        }
         this.staticDraw.checkFence();
         this.staticCopy.checkFence();
     }

@@ -48,8 +48,7 @@ export class BigGeomBatchUpdate {
         this.instCount = 0;
         const {copies} = this;
         for (let i = 0; i < copies.count; i++) {
-            copies.arr[i].batchStart = -1;
-            copies.arr[i] = null;
+            copies.arr[i].isDynamic = false;
         }
         copies.count = 0;
     }
