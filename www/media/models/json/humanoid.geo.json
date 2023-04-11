@@ -456,7 +456,7 @@
 				{
 					"name": "LeftArmItemPlace",
 					"parent": "bone3",
-					"pivot": [4.375, 10.05, -0.275],
+					"pivot": [4.375, 9.3, -1.275],
 					"rotation": [90, 0, 0]
 				},
 				{
@@ -537,7 +537,7 @@
 				{
 					"name": "RightArmItemPlace",
 					"parent": "bone4",
-					"pivot": [-4.375, 10.05, -0.275],
+					"pivot": [-4.375, 9.3, -1.275],
 					"rotation": [90, 0, 0]
 				},
 				{

@@ -7,7 +7,7 @@ import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
-import type {ArmorState, PlayerHands, PlayerStateUpdate, TSittingState, TSleepState} from "./player.js";
+import type {ArmorState, PlayerHands, TSittingState, TSleepState} from "./player.js";
 import type { NetworkPhysicObjectState } from "./network_physic_object.js";
 import type { World } from "./world.js";
 
@@ -248,33 +248,42 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             break;
         }
 
-        const orient = name === 'LeftArm' ? -1 : 1;
+        const is_left_arm = name === 'LeftArm'
+        const orient = is_left_arm ? -1 : 1
+        const bb_display = block.bb?.model?.json?.display
+        const bbmodel_hand = (is_left_arm ? bb_display?.thirdperson_lefthand : bb_display?.thirdperson_righthand) ?? {}
 
-        if(block.name == 'IRON_SWORD') {
-            const display = block.bb.model.json.display.thirdperson_righthand    
-            const scale = [1, 1, 1]
-            const translation = [
-                -0.2734375, // внутрь туловища / от туловища
-                -0.0172 + .25, // вдоль руки
-                0.628 + 0.275 // над рукой
-            ]
-            const pivot = [0, 0, 0]
-            // 0. pivot
-            slot.holder.pivot.set(pivot)
-            // 1. translation [7.25, -7.5, 0]
-            if(display.translation) {
-                translation[0] += display.translation[0] / 16
-                translation[1] += display.translation[1] / 16
-                translation[2] += display.translation[2] / 16
+        if(bb_display) {
+            let orig_slot_position = slot.holder.orig_position // внутрь туловища / от туловища; вдоль руки; над рукой
+            if(!orig_slot_position) {
+                orig_slot_position = slot.holder.orig_position = slot.holder.position
+                orig_slot_position[2] += .5
             }
-            slot.holder.position.set(translation)
-            // 2. rotation [-90, 45, 90]
-            if(display.rotation) {
-                const r = display.rotation
-                quat.fromEuler(slot.holder.quat, r[0], r[1], r[2])
+            const base = {
+                scale: [1, 1, 1],
+                pivot: [0, 0, -.5],
+                rotation: [0, 0, 0],
+                translation: orig_slot_position
             }
-            // 3. scale [1.2, 1.2, 1.2]
-            slot.holder.scale.set(display.scale ?? scale)
+            // 1. translation (1 = 1/16)
+            if(bbmodel_hand.translation) {
+                base.translation[0] += bbmodel_hand.translation[0] / 16
+                base.translation[1] += bbmodel_hand.translation[2] / 16
+                base.translation[2] += bbmodel_hand.translation[1] / 16
+            }
+            slot.holder.position.set(base.translation)
+            // 2. pivot
+            slot.holder.pivot.set(base.pivot)
+            // 3. rotation (в грудусах -180...180)
+            if(bbmodel_hand.rotation) {
+                const r = base.rotation
+                r[0] -= bbmodel_hand.rotation[0]
+                r[1] += bbmodel_hand.rotation[2]
+                r[2] += bbmodel_hand.rotation[1]
+                quat.fromEuler(slot.holder.quat, r[0], r[1], r[2], 'xyz')
+            }
+            // 4. scale
+            slot.holder.scale.set(bbmodel_hand.scale ?? base.scale)
         } else {
             let { scale = 0.3 } = props
             // mc steve model
@@ -298,7 +307,6 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             slot.holder.scale.set([scale, scale, scale]);
         }
 
-        // slot.holder.pivot.set([0, 0, scale / 2]);
         slot.holder.updateMatrix();
     }
 
