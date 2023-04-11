@@ -1379,8 +1379,8 @@ export class Renderer {
                 cam_pos_new.moveToSelf(cam_rotate, d);
                 if(!player.game_mode.isSpectator()) {
                     // raycast from eyes to cam
-                    const bPos = player.pickAt.get(player.getEyePos(), null, Math.max(player.game_mode.getPickatDistance() * 2, d), view_vector, true) as any;
-                    if(bPos && player._block_pos.distance(bPos) >= 1) {
+                    const bPos = player.pickAt.get(player.getEyePos(), null, Math.max(player.game_mode.getPickatDistance() * 2, d), view_vector, true)
+                    if(bPos?.point && player._block_pos.distance(bPos) >= 1) {
                         this.obstacle_pos.set(bPos.x, bPos.y, bPos.z).addSelf(bPos.point);
                         let dist1 = pos.distance(cam_pos_new);
                         let dist2 = pos.distance(this.obstacle_pos);
