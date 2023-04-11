@@ -8,13 +8,14 @@ import {
 } from "@client/constant.js";
 import type {ServerPlayer} from "../server_player.js";
 import {DONT_VALIDATE_AFTER_MODE_CHANGE_MS, PLAYER_EXHAUSTION_PER_BLOCK, SERVER_SEND_CMD_MAX_INTERVAL,
-    SERVER_UNCERTAINTY_MS, WAKEUP_MOVEMENT_DISTANCE} from "../server_constant.js";
+    SERVER_UNCERTAINTY_SECONDS, WAKEUP_MOVEMENT_DISTANCE} from "../server_constant.js";
 import {ServerClient} from "@client/server_client.js";
 import {ArrayHelpers, MonotonicUTCDate, SimpleQueue, Vector} from "@client/helpers.js";
 import {ServerPlayerTickData} from "./server_player_tick_data.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketReader, PlayerControlSessionPacket} from "@client/control/player_control_packets.js";
 import type {PlayerTickData} from "@client/control/player_tick_data.js";
 import type {Player} from "@client/player.js";
+import {LimitedLogger} from "@client/helpers/limited_logger.js";
 
 const MAX_ACCUMULATED_DISTANCE_INCREMENT = 1.0 // to handle sudden big pos changes (if they ever happen)
 const MAX_CLIENT_QUEUE_LENGTH = MAX_PACKET_LAG_SECONDS * 1000 / PHYSICS_INTERVAL_MS | 0 // a protection against memory leaks if there is garbage input
@@ -46,8 +47,15 @@ export class ServerPlayerControlManager extends PlayerControlManager {
     private accumulatedSleepSittingDistance = 0
     private lastCmdSentTime = performance.now()
 
+    private logger = new LimitedLogger('Control: ', 5000, (key, username) => `@${username} `, DEBUG_LOG_PLAYER_CONTROL)
+
     constructor(player: ServerPlayer) {
         super(player as any as Player)
+        // super constructor doesn't call these methods correctly, so call them here
+        this.physicsSessionId = -1 // revert to what it was before the super constructor
+        const pos = new Vector(player.sharedProps.pos)
+        this.updateCurrentControlType(false)
+        this.startNewPhysicsSession(pos)
     }
 
     get serverPlayer(): ServerPlayer { return this.player as any as ServerPlayer }
@@ -125,9 +133,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         // check if it's for the current session
         const [header, ticksData] = reader.readPacket(buf)
         if (header.physicsSessionId !== this.physicsSessionId) {
-            if (DEBUG_LOG_PLAYER_CONTROL) {
-                console.log(`Control ${this.username}: skipping physics session ${header.physicsSessionId} !== ${this.physicsSessionId}`)
-            }
+            this.log('skip_session', `skipping physics session ${header.physicsSessionId} !== ${this.physicsSessionId}`)
             return // it's from the previous session. Ignore it.
         }
 
@@ -153,7 +159,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
      * It executes player's input, and processes changes that are not a direct result of the player's input, e.g.
      * - if the player is lagging too much, do the old player ticks even without knowing the input
      * - detect external position/velocity/sleep/etc. changes and send a correction
-     * @see SERVER_UNCERTAINTY_MS
+     * @see SERVER_UNCERTAINTY_SECONDS
      */
     tick(): void {
         if (this.player.status !== PLAYER_STATUS.ALIVE || !this.physicsSessionInitialized) {
@@ -169,7 +175,8 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         this.applyPlayerStateToControl()
 
         // do ticks for severely lagging clients without their input
-        let hasNewData = this.doServerTicks(physicsTickNow - Math.floor(SERVER_UNCERTAINTY_MS / PHYSICS_INTERVAL_MS))
+        let hasNewData = this.doServerTicks(physicsTickNow - Math.floor(SERVER_UNCERTAINTY_SECONDS * 1000 / PHYSICS_INTERVAL_MS))
+
         let processedClientData = false
         while(clientDataQueue.length) {
             const clientData = clientDataQueue.getFirst()
@@ -258,9 +265,9 @@ export class ServerPlayerControlManager extends PlayerControlManager {
                 if (clientDataMatches) {
                     DEBUG_LOG_PLAYER_CONTROL_DETAIL && console.log(`    simulation matches ${newData}`)
                 } else if (contextEqual) {
-                    DEBUG_LOG_PLAYER_CONTROL && console.log(`    simulation doesn't match ${clientData} ${newData}`)
+                    this.log('simulation_differs', () => `    simulation doesn't match ${clientData} ${newData}`)
                 } else {
-                    DEBUG_LOG_PLAYER_CONTROL && console.log(`    simulation context doesn't match ${newData}`)
+                    this.log('simulation_context_differs', () => `    simulation context doesn't match ${newData}`)
                 }
             } else {
                 newData.copyOutputFrom(clientData)
@@ -286,7 +293,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
                 }
             } else {
                 if (DEBUG_LOG_PLAYER_CONTROL_DETAIL || DEBUG_LOG_PLAYER_CONTROL && processedClientData) {
-                    console.log(`Control ${this.username}: sending correction`)
+                    this.log('corrrection', `Control ${this.username}: sending correction`)
                 }
                 this.sendCorrection()
             }
@@ -312,9 +319,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
 
         const skipPhysicsTicks = physicsTicks - PHYSICS_MAX_TICKS_PROCESSED
         if (skipPhysicsTicks > 0) {
-            if (DEBUG_LOG_PLAYER_CONTROL) {
-                console.log(`Control ${this.username}: skipping ${skipPhysicsTicks} ticks`)
-            }
+            this.log('skip_ticks', `skipping ${skipPhysicsTicks} ticks`)
             this.knownPhysicsTicks += skipPhysicsTicks
             physicsTicks = PHYSICS_MAX_TICKS_PROCESSED
             // these skipped ticks become the last data
@@ -325,7 +330,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         }
 
         if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-            console.log(`Control ${this.username}: simulate ${physicsTicks} ticks without client's input`)
+            this.log('without_input', `simulate ${physicsTicks} ticks without client's input`)
         }
 
         if (this.current === this.spectator) {
@@ -337,9 +342,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             if (this.simulate(this.lastData, newData)) {
                 this.knownPhysicsTicks = tickMustBeKnown
             } else {
-                if (DEBUG_LOG_PLAYER_CONTROL) {
-                    console.log(`   simulation without client's input failed`)
-                }
+                this.log('withou_input_failed', `   simulation without client's input failed`)
             }
         }
 
@@ -508,5 +511,9 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             this.accumulatedExhaustionDistance -= accumulatedIntDistance
             player.addExhaustion(PLAYER_EXHAUSTION_PER_BLOCK * accumulatedIntDistance)
         }
+    }
+
+    private log(key: string, msg: string | (() => string)) {
+        this.logger.log(key, this.username, msg)
     }
 }

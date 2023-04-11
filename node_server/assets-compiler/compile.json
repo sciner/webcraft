@@ -4339,8 +4339,8 @@
             "composter_chance": 0.65
         },
         {
-            "id": 601,
-            "name": "CAVE_VINE_PART1",
+            "id": 604,
+            "name": "CAVE_VINE",
             "passable": 1,
             "transparent": true,
             "spawnable": false,
@@ -4349,64 +4349,37 @@
             "material": {
                 "id": "plant"
             },
-            "destroy_to_down": ["CAVE_VINE_PART1", "CAVE_VINE_PART2", "CAVE_VINE_PART3", "CAVE_VINE_PART4"],
-            "texture": "./textures/cave_vines_plant.png"
-        },
-        {
-            "id": 602,
-            "name": "CAVE_VINE_PART2",
-            "passable": 1,
-            "transparent": true,
-            "spawnable": false,
-            "style": "planting",
-            "drop_item": {"name": "CAVE_VINE_BERRY", "count": 1},
-            "sound": "madcraft:block.cave_vine",
-            "material": {
-                "id": "plant"
-            },
+            "tags": [
+                "is_hanging_plant",
+                "destroy_to_down"
+            ],
             "light_power": {
                 "r": 255,
                 "g": 235,
                 "b": 35,
                 "a": 200
             },
-            "destroy_to_down": ["CAVE_VINE_PART1", "CAVE_VINE_PART2", "CAVE_VINE_PART3", "CAVE_VINE_PART4"],
-            "texture": "./textures/cave_vines_plant_lit.png"
-        },
-        {
-            "id": 603,
-            "name": "CAVE_VINE_PART3",
-            "passable": 1,
-            "transparent": true,
-            "spawnable": false,
-            "style": "planting",
-            "sound": "madcraft:block.cave_vine",
-            "material": {
-                "id": "plant"
+            "texture": {
+                "side": "./textures/cave_vines_plant.png"
             },
-            "destroy_to_down": ["CAVE_VINE_PART1", "CAVE_VINE_PART2", "CAVE_VINE_PART3", "CAVE_VINE_PART4"],
-            "texture": "./textures/cave_vines.png"
-        },
-        {
-            "id": 604,
-            "name": "CAVE_VINE_PART4",
-            "passable": 1,
-            "transparent": true,
-            "spawnable": false,
-            "style": "planting",
-            "drop_item": {"name": "CAVE_VINE_BERRY", "count": 1},
-            "sound": "madcraft:block.cave_vine",
-            "material": {
-                "id": "plant"
-            },
-            "light_power": {
-                "r": 255,
-                "g": 235,
-                "b": 35,
-                "a": 164
-            },
-            "destroy_to_down": ["CAVE_VINE_PART1", "CAVE_VINE_PART2", "CAVE_VINE_PART3", "CAVE_VINE_PART4"],
-            "texture": "./textures/cave_vines_lit.png"
+            "hanging_textures": [
+                {
+                    "ripe": [
+                        "./textures/cave_vines_plant_lit.png"
+                    ],
+                    "noripe": [
+                        "./textures/cave_vines_plant.png"
+                    ]
+                },
+                {
+                    "ripe": [
+                        "./textures/cave_vines_lit.png"
+                    ],
+                    "noripe": [
+                        "./textures/cave_vines.png"
+                    ]
+                }
+            ]
         },
         {
             "id": 605,
@@ -10713,6 +10686,60 @@
                 "angle_facet"
             ],
             "texture": "block/dead_horn_coral_fan.png"
+        },
+        {
+            "id": 308,
+            "name": "GLOWING_HANGING_LIANA",
+            "passable": 1,
+            "transparent": true,
+            "spawnable": false,
+            "style": "planting",
+            "sound": "madcraft:block.cave_vine",
+            "material": {
+                "id": "plant"
+            },
+            "tags": [
+                "is_hanging_plant",
+                "destroy_to_down"
+            ],
+            "light_power": {
+                "r": 255,
+                "g": 235,
+                "b": 35,
+                "a": 200
+            },
+            "texture": {
+                "side": "./textures/glowing_hanging_liana/glowingplant_base.png"
+            },
+            "hanging_textures": [
+                {
+                    "ripe": [
+                        "./textures/glowing_hanging_liana/glowingplant_base_b.png"
+                    ],
+                    "noripe": [
+                        "./textures/glowing_hanging_liana/glowingplant_base.png",
+                        "./textures/glowing_hanging_liana/glowingplant_base_s.png"
+                    ]
+                },
+                {
+                    "ripe": [
+                        "./textures/glowing_hanging_liana/glowingplant_body_b.png"
+                    ],
+                    "noripe": [
+                        "./textures/glowing_hanging_liana/glowingplant_body.png",
+                        "./textures/glowing_hanging_liana/glowingplant_body_s.png"
+                    ]
+                },
+                {
+                    "ripe": [
+                        "./textures/glowing_hanging_liana/glowingplant_head_b.png"
+                    ],
+                    "noripe": [
+                        "./textures/glowing_hanging_liana/glowingplant_head.png",
+                        "./textures/glowing_hanging_liana/glowingplant_head_s.png"
+                    ]
+                }
+            ]
         }
     ]
 }

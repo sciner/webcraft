@@ -21,6 +21,7 @@ import type { DBItemBlock } from "@client/blocks";
 import type { ChunkDBActor } from "./db/world/ChunkDBActor.js";
 
 const _rnd_check_pos = new Vector(0, 0, 0);
+const tmpRandomTickerTBlock = new TBlock()
 
 export interface ServerModifyList {
     compressed?         : BLOB
@@ -213,7 +214,6 @@ export class ServerChunk {
     options:                            {}                          = {};
     tblocks:                            TypedBlocks3;
     ticking_blocks:                     TickingBlockManager;
-    block_random_tickers:               TRandomTickerFunction[];
     mobGenerator:                       MobGenerator;
     delayedCalls:                       DelayedCalls;
     dbActor:                            ChunkDBActor;
@@ -244,7 +244,6 @@ export class ServerChunk {
         this.coord                      = this.addr.mul(this.size);
         this.uniqId                     = ++global_uniqId;
         this.ticking_blocks             = new TickingBlockManager(this);
-        this.block_random_tickers       = this.getChunkManager().block_random_tickers;
         // World mobs generator
         if(world.getGeneratorOptions('auto_generate_mobs', false)) {
             this.mobGenerator = new MobGenerator(this);
@@ -1254,22 +1253,22 @@ export class ServerChunk {
     }
 
     // Random tick
-    randomTick(tick_number : int, world_light, check_count : int) {
+    randomTick(tick_number : int, world_light : int , check_count : int): boolean {
         const {fromFlatChunkIndex, CHUNK_SIZE} = this.chunkManager.grid.math;
 
         if(this.load_state !== CHUNK_STATE.READY || !this.tblocks || this.randomTickingBlockCount <= 0) {
             return false;
         }
 
-        let tblock : TBlock;
+        const block_random_tickers = this.chunkManager.block_random_tickers;
 
         for (let i = 0; i < check_count; i++) {
             fromFlatChunkIndex(_rnd_check_pos, Math.floor(Math.random() * CHUNK_SIZE));
             const block_id = this.tblocks.getBlockId(_rnd_check_pos.x, _rnd_check_pos.y, _rnd_check_pos.z);
             if(block_id > 0) {
-                const ticker = this.block_random_tickers[block_id];
+                const ticker = block_random_tickers[block_id];
                 if(ticker) {
-                    tblock = this.tblocks.get(_rnd_check_pos, tblock);
+                    const tblock = this.tblocks.get(_rnd_check_pos, tmpRandomTickerTBlock);
                     ticker.call(this, this.world, this.getActions(), world_light, tblock);
                 }
             }

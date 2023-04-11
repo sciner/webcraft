@@ -1089,6 +1089,36 @@ export class BLOCK {
                 id: 'trapdoor',
                 properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
             } as IBlockSame
+        } else if(block.tags.includes('button')) {
+            resp = {
+                id: 'button',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('bed')) {
+            resp = {
+                id: 'bed',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('sign')) {
+            resp = {
+                id: 'sign',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('banner')) {
+            resp = {
+                id: 'banner',
+                properties: BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('log')) {
+            resp = {
+                id: 'log',
+                properties: BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.style_name == 'candle') {
+            resp = {
+                id: 'candle',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA,
+            } as IBlockSame
         } else if(block.style_name == 'chair') {
             resp = {
                 id: 'chair',
@@ -1187,15 +1217,28 @@ export class BLOCK {
 
         const tx_cnt = force_tex?.tx_cnt || material.tx_cnt;
         let texture = force_tex || mat_texture;
-        // Stages
-        if(block && material.stage_textures && block && block.extra_data) {
-            if('stage' in block.extra_data) {
-                let stage = block.extra_data.stage;
-                stage = Math.max(stage, 0);
-                stage = Math.min(stage, material.stage_textures.length - 1);
-                texture = material.stage_textures[stage];
+
+        // Stages and parts
+        if(block && block.extra_data) {
+            const ed = block.extra_data
+            if(material.stage_textures) {
+                if('stage' in ed) {
+                    let stage = ed.stage
+                    stage = Math.max(stage, 0)
+                    stage = Math.min(stage, material.stage_textures.length - 1)
+                    texture = material.stage_textures[stage]
+                }
+            } else if(material.hanging_textures) {
+                if('part' in ed) {
+                    const part_index = ed.part
+                    const part = material.hanging_textures[part_index]
+                    if(!part) debugger
+                    const part_ripped = ed.ripe ? part.ripe : part.noripe
+                    texture = part_ripped[Math.floor(random_double * part_ripped.length)]
+                }
             }
         }
+
         // Mushroom block
         if(material.is_mushroom_block) {
             let t = block?.extra_data?.t;

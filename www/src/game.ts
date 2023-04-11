@@ -507,7 +507,7 @@ export class GameClass {
                         if(!e.down) {
                             if(e.shiftKey) {
                                 player.pickAt.get(player.pos, (pos) => {
-                                    if(pos !== false) {
+                                    if (pos) {
                                         if(pos.n.x != 0) pos.x += pos.n.x;
                                         if(pos.n.z != 0) pos.z += pos.n.z;
                                         if(pos.n.y != 0) {

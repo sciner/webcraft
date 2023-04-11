@@ -19,6 +19,7 @@ import {PlayerControlCorrectionPacket, PlayerControlPacketWriter, PlayerControlS
 import {CHUNK_STATE} from "../chunk_const.js";
 import {PlayerSpeedLoggerMode, PlayerSpeedLogger} from "./player_speed_logger.js";
 import type { ChunkGrid } from "../core/ChunkGrid.js";
+import {LimitedLogger} from "../helpers/limited_logger.js";
 
 const tmpAddr = new Vector()
 const DEBUG_LOG_SPEED = false
@@ -226,6 +227,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     private skipFreeCamSneakInput = false // used to skip pressing SHIFT after switching to freeCamp
     private freeCamPos = new Vector()
     private speedLogger = DEBUG_LOG_SPEED ? new PlayerSpeedLogger(DEBUG_LOG_SPEED_MODE) : null
+    private logger = new LimitedLogger('Control: ', 1000, null, DEBUG_LOG_PLAYER_CONTROL)
     /**
      * It contains data for all recent physics ticks (at least, those that are possibly not known to the server).
      * If a server sends a correction to an earlier tick, it's used to repeat the movement in the later ticks.
@@ -422,9 +424,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             // Don't process more than PHYSICS_MAX_TICKS_PROCESSED. The server will correct us if we're wrong.
             const skipPhysicsTicks = physicsTicks - PHYSICS_MAX_TICKS_PROCESSED
             if (skipPhysicsTicks > 0) {
-                if (DEBUG_LOG_PLAYER_CONTROL) {
-                    console.error(`Control: skipping ${skipPhysicsTicks} ticks`)
-                }
+                this.logger.log('skipping', `skipping ${skipPhysicsTicks} ticks`)
                 const skippedTicksData = new ClientPlayerTickData()
                 skippedTicksData.initInputFrom(this, this.knownPhysicsTicks, skipPhysicsTicks)
                 skippedTicksData.initContextFrom(this)
@@ -505,9 +505,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         if (exData == null) {
             // It happens e.g. when the browser window was closed. The client is severely behind the server.
             // A server may also send a correction ahead of time when player's position is changed outside the control
-            if (DEBUG_LOG_PLAYER_CONTROL) {
-                console.warn('Control: applying correction without existing data')
-            }
+            this.logger.log('without_existing', 'applying correction without existing data')
             // put the date into the data queue
             const data = new ClientPlayerTickData()
             data.status = PLAYER_TICK_DATA_STATUS.SENT

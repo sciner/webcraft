@@ -116,15 +116,30 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     // Moss and vine
                                     if(humidity > MOSS_HUMIDITY) {
                                         if(stalactite_height == 5 + Math.round((humidity - MOSS_HUMIDITY) * (1 / MOSS_HUMIDITY) * 20)) {
-                                            if(aleaRandom.double() < .3) {
+                                            let vine_r = aleaRandom.double()
+                                            if(vine_r < .3) {
+                                                // const block = vine_r > .15 ? BLOCK.CAVE_VINE : BLOCK.GLOWING_HANGING_LIANA
+                                                const block = BLOCK.GLOWING_HANGING_LIANA
+                                                const parts_count = block.hanging_textures.length
                                                 for(let yy = 0; yy < stalactite_height; yy++) {
-                                                    let vine_id = null;
+                                                    let r = Math.round(aleaRandom.double() * 100)
+                                                    let vine_part = 0
                                                     if(yy == stalactite_height - 1) {
-                                                        vine_id = BLOCK.CAVE_VINE_PART3.id + (x + z + y + yy) % 2;
-                                                    } else {
-                                                        vine_id = BLOCK.CAVE_VINE_PART1.id + (aleaRandom.double() < .2 ? 1 : 0);
+                                                        vine_part = parts_count - 1
+                                                    } else if(yy > 0) {
+                                                        const middle_parts_count = parts_count - 2
+                                                        if(middle_parts_count < 1) {
+                                                            vine_part = 0
+                                                        } else {
+                                                            vine_part = 1 + (r % middle_parts_count)
+                                                        }
                                                     }
-                                                    chunk.setBlockIndirect(x, y_start - yy, z, vine_id);
+                                                    const ripe = r < 33
+                                                    const extra_data = {
+                                                        part: vine_part,
+                                                        ripe: ripe,
+                                                    }
+                                                    chunk.setBlockIndirect(x, y_start - yy, z, block.id, undefined, extra_data)
                                                 }
                                             }
                                             // reset stalactite

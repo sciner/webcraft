@@ -4,7 +4,7 @@ import {DropItemManager} from "./drop_item_manager.js";
 import {PlayerManager} from "./player_manager.js";
 import {ServerClient} from "./server_client.js";
 import { Lang } from "./lang.js";
-import { Vector } from "./helpers.js";
+import { SimpleQueue, Vector } from "./helpers.js";
 import { ChestHelpers } from "./block_helpers.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { MOUSE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
@@ -20,7 +20,7 @@ export class World implements IWorld {
     [key: string]: any;
 
     static MIN_LATENCY = 60;
-    static TIME_SYNC_PERIOD = 10000;
+    static TIME_SYNC_PERIOD = 5000;
     latency: number = 0;
     info?: TWorldInfo | null;
     serverTimeShift: number = 0;
@@ -34,6 +34,8 @@ export class World implements IWorld {
     server?: ServerClient;
     hello?: IChatCommand;
     history = new WorldHistory(this);
+    private lastMeasuredQueudLag = 0
+    private unansweredQueudLagTimes = new SimpleQueue<number>()
 
     constructor(settings : TWorldSettings, block_manager : BLOCK) {
 
@@ -61,12 +63,26 @@ export class World implements IWorld {
         return Date.now() - this.serverTimeShift || 0;
     }
 
+    get serverQueueLag(): number {
+        let res = this.lastMeasuredQueudLag
+        const lastUnanswered = this.unansweredQueudLagTimes.getFirst()
+        if (lastUnanswered != null) {
+            res = Math.max(res, performance.now() - lastUnanswered)
+        }
+        return Math.round(res)
+    }
+
     queryTimeSync() {
         if(!this.server) {
             throw 'error_server_not_inited'
         }
         // SERVER MUST answer ASAP, because this is required for time-syncing
         this.server.Send({name: ServerClient.CMD_SYNC_TIME, data: {clientTime: Date.now()}});
+
+        // Measure the actual game lag in the commands queue
+        const now = Math.floor(performance.now())
+        this.server.Send({name: ServerClient.CMD_QUEUED_PING, data: now})
+        this.unansweredQueudLagTimes.push(now)
 
         setTimeout(() => this.queryTimeSync(), World.TIME_SYNC_PERIOD);
     }
@@ -82,6 +98,15 @@ export class World implements IWorld {
 
         this.latency         = latency;
         this.serverTimeShift = timeLag;
+    }
+
+    private onQueudPing(cmd: INetworkMessage<number>): void {
+        const now = performance.now()
+        this.lastMeasuredQueudLag = now - cmd.data
+        const queue = this.unansweredQueudLagTimes
+        while(queue.length && queue.getFirst() <= cmd.data) {
+            queue.shift()
+        }
     }
 
     // Create server client and connect to world
@@ -113,6 +138,8 @@ export class World implements IWorld {
             });
 
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
+
+            this.server.AddCmdListener([ServerClient.CMD_QUEUED_PING], this.onQueudPing.bind(this))
 
             this.server.AddCmdListener([ServerClient.CMD_SET_WEATHER], (cmd : IChatCommand) => {
                 Qubatch.render.setWeather(cmd.data, this.chunkManager);
