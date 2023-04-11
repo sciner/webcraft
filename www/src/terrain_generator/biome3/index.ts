@@ -59,7 +59,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // this.n3d = createNoise3D(new alea(seed))
 
         this.layers = new Biome3LayerManager(this, [
-            {type: 'lava', bottom: -5, up: -4},
+            {type: 'bottom_caves', bottom: -50, up: -4},
+            {type: 'lava', bottom: -4, up: -4},
             {type: 'underworld', bottom: -4, up: 0},
             {type: 'overworld', bottom: 0, up: 7},
             {type: 'end', bottom: 17, up: 22}
