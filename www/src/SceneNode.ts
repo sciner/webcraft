@@ -53,8 +53,8 @@ export class SceneNode {
     setChild(child) {
         child.parent = this.parent
         this.children = child.children
-        this.material = child.material
         this.terrainGeometry = child.terrainGeometry
+        this.setMaterial(child.material)
         this.setVisible(true)
     }
 
@@ -72,6 +72,13 @@ export class SceneNode {
         this.children.push(child);
 
         child.parent = this;
+    }
+
+    setMaterial(val) {
+        this.material = val
+        for (const child of this.children) {
+            child.setMaterial(val)
+        }
     }
 
     setVisible(val) {
