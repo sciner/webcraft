@@ -924,7 +924,7 @@ export class MobModel extends NetworkPhysicObject {
         }
         // если игрок зомби или скелет, загружаем броню для них
         if (this.type.startsWith('player') || this.type == 'zombie' || this.type == 'skeleton') {
-            for (const name of ['test_armor', 'armor']) {
+            for (const name of ['armor', 'scrap']) {
                 const model = await Resources.getModelAsset(name);
                 if (!model) {
                     console.log("Can't locate " + name + " model")
@@ -977,47 +977,71 @@ export class MobModel extends NetworkPhysicObject {
             if (armor.head) {
                 const item = BLOCK.fromId(armor.head)
                 const helmet = this.models.get(item.model.geo).findNode('helmet')
+                console.log(item.model.geo + '_' + item.model.texture)
                 helmet.material = this.textures.get(item.model.geo + '_' + item.model.texture)
-                this.sceneTree[0].findNode('head').replaceChild('helmet', helmet)
+                this.sceneTree[0].findNode('helmet').setChild(helmet)
                 this.sceneTree[0].findNode('hair').setVisible(false)
+
             } else {
                 this.sceneTree[0].findNode('hair').setVisible(true)
-                this.sceneTree[0].findNode('head').replaceChild('helmet', null)
+                this.sceneTree[0].findNode('helmet').setVisible(false)
             }
             this.prev.head = armor.head
         }
         if (armor.body != this.prev.body) {
             if (armor.body) {
                 const item = BLOCK.fromId(armor.body)
+                const material = this.textures.get(item.model.geo + '_' + item.model.texture)
                 const chestplate = this.models.get(item.model.geo).findNode('chestplate')
-                chestplate.material = this.textures.get(item.model.geo + '_' + item.model.texture)
-                this.sceneTree[0].findNode('body').replaceChild('chestplate', chestplate)
+                const chestplate4 = this.models.get(item.model.geo).findNode('chestplate4')
+                const chestplate3 = this.models.get(item.model.geo).findNode('chestplate3')
+                chestplate.material = material
+                chestplate4.material = material
+                chestplate3.material = material
+                this.sceneTree[0].findNode('chestplate').setChild(chestplate)
+                this.sceneTree[0].findNode('chestplate').material = material
+                this.sceneTree[0].findNode('chestplate4').setChild(chestplate4)
+                this.sceneTree[0].findNode('chestplate3').setChild(chestplate3)
             } else {
-                this.sceneTree[0].findNode('body').replaceChild('chestplate', null)
+                this.sceneTree[0].findNode('chestplate').setVisible(false)
+                this.sceneTree[0].findNode('chestplate3').setVisible(false)
+                this.sceneTree[0].findNode('chestplate4').setVisible(false)
             }
             this.prev.body = armor.body
         }
         if (armor.leg != this.prev.leg) {
             if (armor.leg) {
                 const item = BLOCK.fromId(armor.leg)
-                this.sceneTree[0].findNode('pants').material = this.textures.get('test')
-                this.sceneTree[0].findNode('pants3').material = this.textures.get('test')
-                this.sceneTree[0].findNode('pants2').material = this.textures.get('test')
+                const material = this.textures.get(item.model.geo + '_' + item.model.texture)
+                const pants = this.models.get(item.model.geo).findNode('pants')
+                const pants3 = this.models.get(item.model.geo).findNode('pants3')
+                const pants2 = this.models.get(item.model.geo).findNode('pants2')
+                pants.material = material
+                pants3.material = material
+                pants2.material = material
+                this.sceneTree[0].findNode('pants').setChild(pants)
+                this.sceneTree[0].findNode('pants2').setChild(pants2)
+                this.sceneTree[0].findNode('pants3').setChild(pants3)
             } else {
-                this.sceneTree[0].findNode('pants').material = null
-                this.sceneTree[0].findNode('pants3').material = null
-                this.sceneTree[0].findNode('pants2').material = null
+                this.sceneTree[0].findNode('pants').setVisible(false)
+                this.sceneTree[0].findNode('pants2').setVisible(false)
+                this.sceneTree[0].findNode('pants3').setVisible(false)
             }
             this.prev.leg = armor.leg;
         }
         if (armor.boot != this.prev.boot) {
             if (armor.boot) {
-                const item = BLOCK.fromId(armor.boot);
-                this.sceneTree[0].findNode('boots').material = this.textures.get('test')
-                this.sceneTree[0].findNode('boots2').material = this.textures.get('test')
+                const item = BLOCK.fromId(armor.boot)
+                const material = this.textures.get(item.model.geo + '_' + item.model.texture)
+                const boots = this.models.get(item.model.geo).findNode('boots')
+                const boots2 = this.models.get(item.model.geo).findNode('boots2')
+                boots.material = material
+                boots2.material = material
+                this.sceneTree[0].findNode('bone').replaceChild('boots', boots)
+                this.sceneTree[0].findNode('bone2').replaceChild('boots2', boots2)
             } else {
-                this.sceneTree[0].findNode('boots').material = null
-                this.sceneTree[0].findNode('boots2').material = null
+                this.sceneTree[0].findNode('bone').replaceChild('boots', null)
+                this.sceneTree[0].findNode('bone2').replaceChild('boots2', null)
             }
             this.prev.boot = armor.boot;
         }

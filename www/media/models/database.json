@@ -20,12 +20,12 @@
                 "test": "textures/armor/test_armor.png"
             }
         },
-        "test_armor": {
+		"scrap": {
             "type": "json",
-            "geom": "json/helm.geo.json",
+            "geom": "json/scrap.geo.json",
             "baseSkin": "base",
             "skins": {
-                "base": "textures/armor/test_armor.png"
+                "base": "textures/armor/scrap_armor_gold.png"
             }
         },
         "goat": {

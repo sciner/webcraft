@@ -9202,8 +9202,8 @@
                 "damage": 2
             },
             "model": {
-                "geo": "armor",
-                "texture": "gold_layer_1" 
+                "geo": "scrap",
+                "texture": "base" 
             }
         },
         {
@@ -9322,8 +9322,8 @@
                 "damage": 5
             },
             "model": {
-                "geo": "armor",
-                "texture": "gold_layer_1" 
+                "geo": "scrap",
+                "texture": "base" 
             }
         },
         {
@@ -9442,8 +9442,8 @@
                 "damage": 3
             },
             "model": {
-                "geo": "armor",
-                "texture": "gold_layer_1" 
+                "geo": "scrap",
+                "texture": "base" 
             }
         },
         {
@@ -9562,8 +9562,8 @@
                 "damage": 1
             },
             "model": {
-                "geo": "armor",
-                "texture": "gold_layer_1" 
+                "geo": "scrap",
+                "texture": "base" 
             }
         },
         {

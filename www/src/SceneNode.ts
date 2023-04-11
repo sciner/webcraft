@@ -50,6 +50,14 @@ export class SceneNode {
         return this.terrainGeometry;
     }
 
+    setChild(child) {
+        child.parent = this.parent
+        this.children = child.children
+        this.material = child.material
+        this.terrainGeometry = child.terrainGeometry
+        this.setVisible(true)
+    }
+
     addChild(child) {
         if (child.parent === this) {
             return;
@@ -72,7 +80,7 @@ export class SceneNode {
             child.setVisible(val)
         }
     }
-
+    
     replaceChild(name, child) {
         const node = this.findNode(name)
         if (!node) {
