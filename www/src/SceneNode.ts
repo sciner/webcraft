@@ -50,8 +50,9 @@ export class SceneNode {
         return this.terrainGeometry;
     }
 
-    setChild(child) {
+    setChild(child, material) {
         child.parent = this.parent
+        child.material = material
         this.children = child.children
         this.terrainGeometry = child.terrainGeometry
         this.setMaterial(child.material)
