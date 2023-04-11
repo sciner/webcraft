@@ -108,7 +108,12 @@ export class BaseGeometryVao {
     bindForDraw() {
         this.drawBindCount++;
         this.gl.bindVertexArray(this.vao);
-        if (this.hasInstance && !this.context.multidrawBaseExt) {
+        if (this.buffer.bigResize) {
+            this.buffer.bigResize = false;
+            // shader.bind();
+            this.buffer.bind();
+            this.attribBufferPointers();
+        } else if (this.hasInstance && !this.context.multidrawBaseExt) {
             this.buffer.bind();
         }
         this.indexBuffer?.bind();

@@ -75,11 +75,6 @@ export class BaseBigGeometry {
         if (this.indexBuffer) {
             this.indexBuffer.bind();
         }
-        if (staticDraw.buffer.bigResize) {
-            staticDraw.buffer.bigResize = false;
-            // shader.bind();
-            staticDraw.attribBufferPointers();
-        }
     }
 
     resize(newSize) {
