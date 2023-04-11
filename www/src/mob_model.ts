@@ -979,9 +979,9 @@ export class MobModel extends NetworkPhysicObject {
                 const material = this.textures.get(item.model.geo + '_' + item.model.texture)
                 const helmet = this.models.get(item.model.geo).findNode('helmet')
                 if (helmet && material) {
-                    this.sceneTree[0].findNode('helmet').setChild(helmet, material)
+                    this.sceneTree[0].findNode('helmet')?.setChild(helmet, material)
                 }
-                this.sceneTree[0].findNode('hair').setVisible(true)
+                this.sceneTree[0].findNode('hair')?.setVisible(true)
             } else {
                 this.sceneTree[0].findNode('hair')?.setVisible(true)
                 this.sceneTree[0].findNode('helmet')?.setVisible(false)
@@ -995,20 +995,30 @@ export class MobModel extends NetworkPhysicObject {
                 const material = this.textures.get(item.model.geo + '_' + item.model.texture)
                 const chestplate = this.models.get(item.model.geo).findNode('chestplate')
                 if (chestplate && material) {
-                    this.sceneTree[0].findNode('chestplate').setChild(chestplate, material)
+                    this.sceneTree[0].findNode('chestplate')?.setChild(chestplate, material)
+                }
+                const chestplate2 = this.models.get(item.model.geo).findNode('chestplate2')
+                if (chestplate2 && material) {
+                    this.sceneTree[0].findNode('chestplate2')?.setChild(chestplate2, material)
                 }
                 const chestplate3 = this.models.get(item.model.geo).findNode('chestplate3')
                 if (chestplate3 && material) {
-                    this.sceneTree[0].findNode('chestplate3').setChild(chestplate3, material)
+                    this.sceneTree[0].findNode('chestplate3')?.setChild(chestplate3, material)
                 }
                 const chestplate4 = this.models.get(item.model.geo).findNode('chestplate4')
                 if (chestplate4 && material) {
-                    this.sceneTree[0].findNode('chestplate4').setChild(chestplate4, material)
+                    this.sceneTree[0].findNode('chestplate4')?.setChild(chestplate4, material)
+                }
+                const chestplate5 = this.models.get(item.model.geo).findNode('chestplate5')
+                if (chestplate5 && material) {
+                    this.sceneTree[0].findNode('chestplate5')?.setChild(chestplate5, material)
                 }
             } else {
                 this.sceneTree[0].findNode('chestplate')?.setVisible(false)
+                this.sceneTree[0].findNode('chestplate2')?.setVisible(false)
                 this.sceneTree[0].findNode('chestplate3')?.setVisible(false)
                 this.sceneTree[0].findNode('chestplate4')?.setVisible(false)
+                this.sceneTree[0].findNode('chestplate5')?.setVisible(false)
             }
             this.prev.body = armor.body
         }
@@ -1018,15 +1028,15 @@ export class MobModel extends NetworkPhysicObject {
                 const material = this.textures.get(item.model.geo + '_' + item.model.texture)
                 const pants = this.models.get(item.model.geo).findNode('pants')
                 if (pants && material) {
-                    this.sceneTree[0].findNode('pants').setChild(pants, material)
+                    this.sceneTree[0].findNode('pants')?.setChild(pants, material)
                 }
                 const pants2 = this.models.get(item.model.geo).findNode('pants2')
                 if (pants2 && material) {
-                    this.sceneTree[0].findNode('pants2').setChild(pants2, material)
+                    this.sceneTree[0].findNode('pants2')?.setChild(pants2, material)
                 }
                 const pants3 = this.models.get(item.model.geo).findNode('pants3')
                 if (pants3 && material) {
-                    this.sceneTree[0].findNode('pants3').setChild(pants3, material)
+                    this.sceneTree[0].findNode('pants3')?.setChild(pants3, material)
                 }
             } else {
                 this.sceneTree[0].findNode('pants')?.setVisible(false)
@@ -1041,11 +1051,11 @@ export class MobModel extends NetworkPhysicObject {
                 const material = this.textures.get(item.model.geo + '_' + item.model.texture)
                 const boots = this.models.get(item.model.geo).findNode('boots')
                 if (boots && material) {
-                    this.sceneTree[0].findNode('boots').setChild(boots, material)
+                    this.sceneTree[0].findNode('boots')?.setChild(boots, material)
                 }
                 const boots2 = this.models.get(item.model.geo).findNode('boots2')
                 if (boots2 && material) {
-                    this.sceneTree[0].findNode('boots2').setChild(boots2, material)
+                    this.sceneTree[0].findNode('boots2')?.setChild(boots2, material)
                 }
             } else {
                 this.sceneTree[0].findNode('boots')?.setVisible(false)
