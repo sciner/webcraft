@@ -67,9 +67,6 @@ export class BigGeomBatchUpdate {
             this.flipInstCount = this.instCount;
             return;
         }
-        for (let i = flipCopyCount; i < copies.count; i++) {
-            copies.arr[i - flipCopyCount] = copies.arr[i];
-        }
         copies.shiftCount(flipCopyCount);
         this.flipCopyCount = copies.count;
 
