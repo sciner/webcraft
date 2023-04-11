@@ -23,9 +23,12 @@
 		"scrap": {
             "type": "json",
             "geom": "json/scrap.geo.json",
-            "baseSkin": "base",
+            "baseSkin": "iron",
             "skins": {
-                "base": "textures/armor/scrap_armor_iron.png"
+                "iron": "textures/armor/scrap_armor_iron.png",
+                "gold": "textures/armor/scrap_armor_gold.png",
+                "copper": "textures/armor/scrap_armor_copper.png",
+                "diamond": "textures/armor/scrap_armor_diamond.png"
             }
         },
         "goat": {

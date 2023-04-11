@@ -9142,8 +9142,8 @@
                 "damage": 2
             },
             "model": {
-                "geo": "armor",
-                "texture": "chainmail_layer_1" 
+                "geo": "scrap",
+                "texture": "copper" 
             }
         },
         {
@@ -9162,8 +9162,8 @@
                 "damage": 2
             },
             "model": {
-                "geo": "armor",
-                "texture": "iron_layer_1" 
+                "geo": "scrap",
+                "texture": "iron" 
             }
         },
         {
@@ -9182,8 +9182,8 @@
                 "damage": 3
             },
             "model": {
-                "geo": "armor",
-                "texture": "diamond_layer_1" 
+                "geo": "scrap",
+                "texture": "diamond" 
             }
         },
         {
@@ -9203,7 +9203,7 @@
             },
             "model": {
                 "geo": "scrap",
-                "texture": "base" 
+                "texture": "gold" 
             }
         },
         {
@@ -9262,8 +9262,8 @@
                 "damage": 5
             },
             "model": {
-                "geo": "armor",
-                "texture": "chainmail_layer_1" 
+                "geo": "scrap",
+                "texture": "cooper" 
             }
         },
         {
@@ -9282,8 +9282,8 @@
                 "damage": 6
             },
             "model": {
-                "geo": "armor",
-                "texture": "iron_layer_1" 
+                "geo": "scrap",
+                "texture": "iron" 
             }
         },
         {
@@ -9302,8 +9302,8 @@
                 "damage": 8
             },
             "model": {
-                "geo": "armor",
-                "texture": "diamond_layer_1" 
+                "geo": "scrap",
+                "texture": "diamond" 
             }
         },
         {
@@ -9323,7 +9323,7 @@
             },
             "model": {
                 "geo": "scrap",
-                "texture": "base" 
+                "texture": "gold" 
             }
         },
         {
@@ -9363,7 +9363,7 @@
             },
             "model": {
                 "geo": "armor",
-                "texture": "leather_layer_1" 
+                "texture": "leather_layer_2" 
             }
         },
         {
@@ -9382,8 +9382,8 @@
                 "damage": 4
             },
             "model": {
-                "geo": "armor",
-                "texture": "chainmail_layer_1" 
+                "geo": "scrap",
+                "texture": "copper" 
             }
         },
         {
@@ -9402,8 +9402,8 @@
                 "damage": 5
             },
             "model": {
-                "geo": "armor",
-                "texture": "iron_layer_1" 
+                "geo": "scrap",
+                "texture": "iron" 
             }
         },
         {
@@ -9422,8 +9422,8 @@
                 "damage": 6
             },
             "model": {
-                "geo": "armor",
-                "texture": "diamond_layer_1" 
+                "geo": "scrap",
+                "texture": "diamond" 
             }
         },
         {
@@ -9443,7 +9443,7 @@
             },
             "model": {
                 "geo": "scrap",
-                "texture": "base" 
+                "texture": "gold" 
             }
         },
         {
@@ -9463,7 +9463,7 @@
             },
             "model": {
                 "geo": "armor",
-                "texture": "netherite_layer_1" 
+                "texture": "netherite_layer_2" 
             }
         },
         {
@@ -9502,8 +9502,8 @@
                 "damage": 1
             },
             "model": {
-                "geo": "armor",
-                "texture": "chainmail_layer_1" 
+                "geo": "scrap",
+                "texture": "copper" 
             }
         },
         {
@@ -9522,8 +9522,8 @@
                 "damage": 2
             },
             "model": {
-                "geo": "armor",
-                "texture": "iron_layer_1" 
+                "geo": "scrap",
+                "texture": "iron" 
             }
         },
         {
@@ -9542,8 +9542,8 @@
                 "damage": 3
             },
             "model": {
-                "geo": "armor",
-                "texture": "diamond_layer_1" 
+                "geo": "scrap",
+                "texture": "diamond" 
             }
         },
         {
@@ -9563,7 +9563,7 @@
             },
             "model": {
                 "geo": "scrap",
-                "texture": "base" 
+                "texture": "gold" 
             }
         },
         {

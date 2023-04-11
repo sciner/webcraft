@@ -976,14 +976,17 @@ export class MobModel extends NetworkPhysicObject {
         if (armor.head != this.prev.head) {
             if (armor.head) {
                 const item = BLOCK.fromId(armor.head)
+                const material = this.textures.get(item.model.geo + '_' + item.model.texture)
                 const helmet = this.models.get(item.model.geo).findNode('helmet')
-                helmet.material = this.textures.get(item.model.geo + '_' + item.model.texture)
-                this.sceneTree[0].findNode('helmet').setChild(helmet)
+                if (helmet && material) {
+                    this.sceneTree[0].findNode('helmet').setChild(helmet, material)
+                }
                 this.sceneTree[0].findNode('hair').setVisible(true)
             } else {
-                this.sceneTree[0].findNode('hair').setVisible(true)
-                this.sceneTree[0].findNode('helmet').setVisible(false)
+                this.sceneTree[0].findNode('hair')?.setVisible(true)
+                this.sceneTree[0].findNode('helmet')?.setVisible(false)
             }
+            
             this.prev.head = armor.head
         }
         if (armor.body != this.prev.body) {
@@ -991,18 +994,21 @@ export class MobModel extends NetworkPhysicObject {
                 const item = BLOCK.fromId(armor.body)
                 const material = this.textures.get(item.model.geo + '_' + item.model.texture)
                 const chestplate = this.models.get(item.model.geo).findNode('chestplate')
-                const chestplate4 = this.models.get(item.model.geo).findNode('chestplate4')
+                if (chestplate && material) {
+                    this.sceneTree[0].findNode('chestplate').setChild(chestplate, material)
+                }
                 const chestplate3 = this.models.get(item.model.geo).findNode('chestplate3')
-                chestplate.material = material
-                chestplate4.material = material
-                chestplate3.material = material
-                this.sceneTree[0].findNode('chestplate').setChild(chestplate)
-                this.sceneTree[0].findNode('chestplate4').setChild(chestplate4)
-                this.sceneTree[0].findNode('chestplate3').setChild(chestplate3)
+                if (chestplate3 && material) {
+                    this.sceneTree[0].findNode('chestplate3').setChild(chestplate3, material)
+                }
+                const chestplate4 = this.models.get(item.model.geo).findNode('chestplate4')
+                if (chestplate4 && material) {
+                    this.sceneTree[0].findNode('chestplate4').setChild(chestplate4, material)
+                }
             } else {
-                this.sceneTree[0].findNode('chestplate').setVisible(false)
-                this.sceneTree[0].findNode('chestplate3').setVisible(false)
-                this.sceneTree[0].findNode('chestplate4').setVisible(false)
+                this.sceneTree[0].findNode('chestplate')?.setVisible(false)
+                this.sceneTree[0].findNode('chestplate3')?.setVisible(false)
+                this.sceneTree[0].findNode('chestplate4')?.setVisible(false)
             }
             this.prev.body = armor.body
         }
@@ -1011,18 +1017,21 @@ export class MobModel extends NetworkPhysicObject {
                 const item = BLOCK.fromId(armor.leg)
                 const material = this.textures.get(item.model.geo + '_' + item.model.texture)
                 const pants = this.models.get(item.model.geo).findNode('pants')
-                const pants3 = this.models.get(item.model.geo).findNode('pants3')
+                if (pants && material) {
+                    this.sceneTree[0].findNode('pants').setChild(pants, material)
+                }
                 const pants2 = this.models.get(item.model.geo).findNode('pants2')
-                pants.material = material
-                pants3.material = material
-                pants2.material = material
-                this.sceneTree[0].findNode('pants').setChild(pants)
-                this.sceneTree[0].findNode('pants2').setChild(pants2)
-                this.sceneTree[0].findNode('pants3').setChild(pants3)
+                if (pants2 && material) {
+                    this.sceneTree[0].findNode('pants2').setChild(pants2, material)
+                }
+                const pants3 = this.models.get(item.model.geo).findNode('pants3')
+                if (pants3 && material) {
+                    this.sceneTree[0].findNode('pants3').setChild(pants3, material)
+                }
             } else {
-                this.sceneTree[0].findNode('pants').setVisible(false)
-                this.sceneTree[0].findNode('pants2').setVisible(false)
-                this.sceneTree[0].findNode('pants3').setVisible(false)
+                this.sceneTree[0].findNode('pants')?.setVisible(false)
+                this.sceneTree[0].findNode('pants2')?.setVisible(false)
+                this.sceneTree[0].findNode('pants3')?.setVisible(false)
             }
             this.prev.leg = armor.leg;
         }
@@ -1031,14 +1040,16 @@ export class MobModel extends NetworkPhysicObject {
                 const item = BLOCK.fromId(armor.boot)
                 const material = this.textures.get(item.model.geo + '_' + item.model.texture)
                 const boots = this.models.get(item.model.geo).findNode('boots')
+                if (boots && material) {
+                    this.sceneTree[0].findNode('boots').setChild(boots, material)
+                }
                 const boots2 = this.models.get(item.model.geo).findNode('boots2')
-                boots.material = material
-                boots2.material = material
-                this.sceneTree[0].findNode('boots').setChild(boots)
-                this.sceneTree[0].findNode('boots2').setChild(boots2)
+                if (boots2 && material) {
+                    this.sceneTree[0].findNode('boots2').setChild(boots2, material)
+                }
             } else {
-                this.sceneTree[0].findNode('boots').setVisible(false)
-                this.sceneTree[0].findNode('boots2').setVisible(false)
+                this.sceneTree[0].findNode('boots')?.setVisible(false)
+                this.sceneTree[0].findNode('boots2')?.setVisible(false)
             }
             this.prev.boot = armor.boot;
         }
