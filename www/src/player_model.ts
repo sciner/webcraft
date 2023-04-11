@@ -189,9 +189,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             return;
         }
 
-        let {
-            id, scale = 0.3
-        } = props;
+        let {id} = props
 
         id = typeof id !== 'number' ? -1 : id;
 
@@ -230,7 +228,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             return;
         }
 
-        let item;
+        let item: any = null
 
         try {
             item = new Mesh_Object_Block_Drop(this.world, null, null, [block], Vector.ZERO);
@@ -251,28 +249,55 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
 
         const orient = name === 'LeftArm' ? -1 : 1;
-        
-        // mc steve model
-        if (block.diagonal) {
-            scale *= 1.2;
-            quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
+
+        if(block.name == 'IRON_SWORD') {
+            const display = block.bb.model.json.display.thirdperson_righthand    
+            const scale = [1, 1, 1]
+            const translation = [
+                -0.2734375, // внутрь туловища / от туловища
+                -0.0172 + .25, // вдоль руки
+                0.628 + 0.275 // над рукой
+            ]
+            const pivot = [0, 0, 0]
+            // 0. pivot
+            slot.holder.pivot.set(pivot)
+            // 1. translation [7.25, -7.5, 0]
+            if(display.translation) {
+                translation[0] += display.translation[0] / 16
+                translation[1] += display.translation[1] / 16
+                translation[2] += display.translation[2] / 16
+            }
+            slot.holder.position.set(translation)
+            // 2. rotation [-90, 45, 90]
+            if(display.rotation) {
+                const r = display.rotation
+                quat.fromEuler(slot.holder.quat, r[0], r[1], r[2])
+            }
+            // 3. scale [1.2, 1.2, 1.2]
+            slot.holder.scale.set(display.scale ?? scale)
         } else {
-            quat.fromEuler(slot.holder.quat, 20, 0, -20);
+            let { scale = 0.3 } = props
+            // mc steve model
+            if (block.diagonal) {
+                scale *= 1.2;
+                quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
+            } else {
+                quat.fromEuler(slot.holder.quat, 20, 0, -20);
+            }
+            // new model
+            if (block.diagonal) {
+                scale *= 1.2;
+                // quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
+                // quat.fromEuler(slot.holder.quat, globalThis.xyz.x * orient, globalThis.xyz.y, 90 + globalThis.xyz.z * orient);
+                quat.fromEuler(slot.holder.quat, 0 * orient, -50, 90 + 0 * orient);
+                slot.holder.pivot.set([.035, -.07, .35]);
+            } else {
+                quat.fromEuler(slot.holder.quat, 20, 0, -20);
+                slot.holder.pivot.set([0, 0, scale / 2]);
+            }
+            slot.holder.scale.set([scale, scale, scale]);
         }
 
-        // new model
-        if (block.diagonal) {
-            scale *= 1.2;
-            // quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
-            // quat.fromEuler(slot.holder.quat, globalThis.xyz.x * orient, globalThis.xyz.y, 90 + globalThis.xyz.z * orient);
-            quat.fromEuler(slot.holder.quat, 0 * orient, -50, 90 + 0 * orient);
-            slot.holder.pivot.set([.035, -.07, .35]);
-        } else {
-            quat.fromEuler(slot.holder.quat, 20, 0, -20);
-            slot.holder.pivot.set([0, 0, scale / 2]);
-        }
-
-        slot.holder.scale.set([scale, scale, scale]);
         // slot.holder.pivot.set([0, 0, scale / 2]);
         slot.holder.updateMatrix();
     }

@@ -2119,7 +2119,7 @@
             }
         },
         {
-            "_id": 608,
+            "id": 608,
             "name": "IRON_SWORD",
             "bb": {
                 "model": "iron_sword"
