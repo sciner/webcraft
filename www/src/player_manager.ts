@@ -31,7 +31,7 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
     }
 
     // addPlayer
-    add(cmd: {data: PlayerStateUpdate, time: number}) {
+    add(cmd: {data: PlayerStateUpdate, time: number}) : PlayerModel {
         const data = cmd.data;
         const player = new PlayerModel({
             id:             data.id,
@@ -47,6 +47,7 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
         this.list.set(data.id, player);
         this.setState(cmd);
         player.netBuffer.length = 0;
+        return player
     }
 
     /**

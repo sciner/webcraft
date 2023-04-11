@@ -735,7 +735,7 @@ export class MobModel extends NetworkPhysicObject {
 
         // ignore_roots
         const ignore_roots = [];
-        if(this.type == 'sheep' && this.extra_data?.is_shaered) {
+        if(this.type == 'sheep' && this.extra_data?.is_sheared) {
             ignore_roots.push('geometry.sheep.v1.8:geometry.sheep.sheared.v1.8');
         }
 
