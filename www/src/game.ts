@@ -7,7 +7,7 @@ import { Sounds } from "./sounds.js";
 import { IKbOptions, Kb, KbEvent} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
 import { Tracker_Player } from "./tracker_player.js";
-import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS, DEFAULT_MUSIC_VOLUME, LIGHT_TYPE, DEFAULT_RENDER_DISTANCE, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT } from "./constant.js";
+import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS, DEFAULT_MUSIC_VOLUME, LIGHT_TYPE, DEFAULT_RENDER_DISTANCE, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, CHUNK_GEOMETRY_MODE } from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
@@ -57,6 +57,7 @@ export class GameSettings implements TWorldSettings {
     base_ambient_light_level:float = 100
     // quality
     use_light:               int = LIGHT_TYPE.RTX
+    chunk_geometry_mode:     int = CHUNK_GEOMETRY_MODE.AUTO
     beautiful_leaves:        boolean = true
     leaf_fall:               boolean = true
     draw_improved_blocks:    boolean = true
@@ -506,7 +507,7 @@ export class GameClass {
                         if(!e.down) {
                             if(e.shiftKey) {
                                 player.pickAt.get(player.pos, (pos) => {
-                                    if(pos !== false) {
+                                    if (pos) {
                                         if(pos.n.x != 0) pos.x += pos.n.x;
                                         if(pos.n.z != 0) pos.z += pos.n.z;
                                         if(pos.n.y != 0) {

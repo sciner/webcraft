@@ -439,24 +439,48 @@ export class Compiler {
                     }
                 }
 
-                // stage textures (eg. seeds)
-                if(block?.stage_textures) {
-                    const spritesheet = spritesheet_storage.getSpritesheet('default');
-                    for(let i in block.stage_textures) {
-                        const value = block.stage_textures[i];
+                const processTextureList = async (spritesheet : any, texture_list: string[]) : Promise<any[]> => {
+                    const resp = []
+                    for(let i in texture_list) {
+                        const value = texture_list[i]
                         const img = await spritesheet.loadTex(value, DEFAULT_TEXTURE_SUFFIXES);
-                        let tex = spritesheet.textures.get(value);
+                        let tex = spritesheet.textures.get(value)
                         if(!tex) {
-                            tex = {pos: spritesheet.findPlace(block, 1, 1)};
-                            spritesheet.drawTexture(img.texture, tex.pos.x, tex.pos.y);
+                            tex = {pos: spritesheet.findPlace(block, 1, 1)}
+                            spritesheet.drawTexture(img.texture, tex.pos.x, tex.pos.y)
                             // spritesheet.drawTexture(img.n || this.default_n, tex.pos.x, tex.pos.y, false, null, null, this.options.n_texture_id);
                             for(let suffix of DEFAULT_TEXTURE_SUFFIXES) {
                                 const key = suffix.key
-                                await spritesheet.drawTexture(img[key], tex.pos.x, tex.pos.y, false, null, null, `_${key}`);
+                                await spritesheet.drawTexture(img[key], tex.pos.x, tex.pos.y, false, null, null, `_${key}`)
                             }
-                            spritesheet.textures.set(value, tex);
+                            spritesheet.textures.set(value, tex)
                         }
-                        block.stage_textures[i] = [tex.pos.x, tex.pos.y];
+                        resp[i] = [tex.pos.x, tex.pos.y]
+                    }
+                    return resp
+                }
+
+                // stage textures (eg. seeds)
+                for(let texture_property_name of ['stage_textures']) {
+                    if(texture_property_name in block) {
+                        const spritesheet = spritesheet_storage.getSpritesheet('default')
+                        const texture_list = block[texture_property_name]
+                        block[texture_property_name] = await processTextureList(spritesheet, texture_list)
+                    }
+                }
+
+                // hanging textures (eg. liana)
+                for(let texture_property_name of ['hanging_textures']) {
+                    if(texture_property_name in block) {
+                        const spritesheet = spritesheet_storage.getSpritesheet('default')
+                        const parts = block[texture_property_name]
+                        for(let part_index in parts) {
+                            const part = parts[part_index]
+                            for(const key in part) {
+                                const list = part[key]
+                                part[key] = await processTextureList(spritesheet, list)
+                            }
+                        }
                     }
                 }
 

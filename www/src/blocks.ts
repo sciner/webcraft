@@ -21,6 +21,11 @@ export const DIRT_BLOCK_NAMES               = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB'
 
 const AIR_BLOCK_STRINGIFIED = '{"id":0}'
 
+export enum BLOCK_SAME_PROPERTY {
+    EXTRA_DATA = 1,
+    ROTATE = 2,
+}
+
 /**
  * Normally if there is any extra data, it's retained when a block is placed, otherwise
  * {@link BLOCK.makeExtraData} is called, see {@link doBlockAction}.
@@ -903,6 +908,7 @@ export class BLOCK {
         block.is_layering       = !!block.layering
         block.is_grass          = block.is_grass || ['GRASS', 'TALL_GRASS', 'BURDOCK', 'WINDFLOWERS'].includes(block.name);
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
+        block.same              = this.calcBlockSame(block)
         block.is_dirt           = DIRT_BLOCK_NAMES.includes(block.name);
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
@@ -1060,6 +1066,73 @@ export class BLOCK {
         }
     }
 
+    //
+    static calcBlockSame(block : IBlockMaterial) : IBlockSame {
+        let resp : IBlockSame = null
+        if(block.tags.includes('stairs')) {
+            resp = {
+                id: 'stairs',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.layering?.slab) {
+            resp = {
+                id: 'slab',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA,
+            } as IBlockSame
+        } else if(block.tags.includes('door')) {
+            resp = {
+                id: 'door',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('trapdoor')) {
+            resp = {
+                id: 'trapdoor',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('button')) {
+            resp = {
+                id: 'button',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('bed')) {
+            resp = {
+                id: 'bed',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('sign')) {
+            resp = {
+                id: 'sign',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('banner')) {
+            resp = {
+                id: 'banner',
+                properties: BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.tags.includes('log')) {
+            resp = {
+                id: 'log',
+                properties: BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.style_name == 'candle') {
+            resp = {
+                id: 'candle',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA,
+            } as IBlockSame
+        } else if(block.style_name == 'chair') {
+            resp = {
+                id: 'chair',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        } else if(block.style_name == 'stool') {
+            resp = {
+                id: 'stool',
+                properties: BLOCK_SAME_PROPERTY.EXTRA_DATA | BLOCK_SAME_PROPERTY.ROTATE,
+            } as IBlockSame
+        }
+        return resp
+    }
+
     static invisibleForCam(block) : boolean {
         return  block.is_portal ||
                 (block.passable > 0) ||
@@ -1144,15 +1217,28 @@ export class BLOCK {
 
         const tx_cnt = force_tex?.tx_cnt || material.tx_cnt;
         let texture = force_tex || mat_texture;
-        // Stages
-        if(block && material.stage_textures && block && block.extra_data) {
-            if('stage' in block.extra_data) {
-                let stage = block.extra_data.stage;
-                stage = Math.max(stage, 0);
-                stage = Math.min(stage, material.stage_textures.length - 1);
-                texture = material.stage_textures[stage];
+
+        // Stages and parts
+        if(block && block.extra_data) {
+            const ed = block.extra_data
+            if(material.stage_textures) {
+                if('stage' in ed) {
+                    let stage = ed.stage
+                    stage = Math.max(stage, 0)
+                    stage = Math.min(stage, material.stage_textures.length - 1)
+                    texture = material.stage_textures[stage]
+                }
+            } else if(material.hanging_textures) {
+                if('part' in ed) {
+                    const part_index = ed.part
+                    const part = material.hanging_textures[part_index]
+                    if(!part) debugger
+                    const part_ripped = ed.ripe ? part.ripe : part.noripe
+                    texture = part_ripped[Math.floor(random_double * part_ripped.length)]
+                }
             }
         }
+
         // Mushroom block
         if(material.is_mushroom_block) {
             let t = block?.extra_data?.t;

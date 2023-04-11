@@ -12,5 +12,9 @@ document.addEventListener('DOMContentLoaded', function () {
 		select: '#settings-select-light',
 		showSearch: false,
 	})
+    new SlimSelect({
+		select: '#settings-select-chunk_geometry_mode',
+		showSearch: false,
+	})
 	//
 }, false);

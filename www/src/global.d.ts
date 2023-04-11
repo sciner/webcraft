@@ -108,6 +108,7 @@ interface TWorldSettings extends TBlocksSettings {
     chunks_draw_debug_grid: boolean
     cluster_draw_debug_grid: boolean
     use_light: number
+    chunk_geometry_mode: number
     leaf_fall: boolean
 }
 
@@ -215,10 +216,27 @@ interface IPlane {
     rot: tupleFloat3 | IVector
 }
 
+interface IBlockSame {
+    id: string
+    properties: int
+}
+
 interface IBlockMaterialTicking {
     type: string
     max_stage?: number
     times_per_stage?: number
+}
+
+interface IBlockChance {
+    block_id?: int
+    name?: string
+    chance: float
+    rotate: any
+    is_fluid: boolean
+    is_lava: boolean
+    is_water: boolean
+    extra_data: any
+    material: IBlockMaterial
 }
 
 interface IBlockMaterial {
@@ -229,6 +247,7 @@ interface IBlockMaterial {
     style_name: string
     support_style: string
     sham_block_name: string
+    same?: IBlockSame
     inventory_style: any
     group: string
     passable: number
@@ -307,6 +326,7 @@ interface IBlockMaterial {
     material: IBlockMiningMaterial
     material_key: string
     texture: any
+    hanging_textures?: string[]
     texture_overlays: any
     texture_animations: any
     multiply_color: IColor
@@ -396,6 +416,17 @@ interface ITerrainMapManager {
     calcBiome(center_coord : IVector, preset : any) : any
 }
 
+interface IPickatEventPos {
+    x:          float
+    y:          float
+    z:          float
+    mob:        any
+    player:     any
+    aabb?:      any
+    n:          IVector
+    block_id:   int
+}
+
 interface IPickatEvent {
     button_id:          number  // always MOUSE.BUTTON_RIGHT === 3
     cloneBlock:         boolean
@@ -405,7 +436,7 @@ interface IPickatEvent {
     interactMobID?:     int
     interactPlayerID?:  int
     number:             int
-    pos:                {x : float, y : float, z: float, mob: any, player: any, aabb?: any, n: IVector, block_id: int}
+    pos:                IPickatEventPos
     shiftKey:           boolean
     start_time:         float
 }

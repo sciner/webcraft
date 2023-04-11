@@ -429,6 +429,10 @@
                         <p>{{Lang.use_light}}</p>
                         <select class="slim-select" id="settings-select-light" ng-options="item as item.name for item in settings.lightMode.list" ng-model="settings.lightMode.current"></select>
                     </div>
+                    <div class="input-group">
+                        <p>{{Lang.chunk_geometry_mode}}</p>
+                        <select class="slim-select" id="settings-select-chunk_geometry_mode" ng-options="item as item.name for item in settings.chunkGeometryMode.list" ng-model="settings.chunkGeometryMode.current"></select>
+                    </div>
                 </div>
                 <div class="interface">
                     <h1>{{Lang.interface}}</h1>
