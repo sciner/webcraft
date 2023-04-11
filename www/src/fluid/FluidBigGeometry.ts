@@ -26,10 +26,16 @@ export class FluidBigGeometry extends BaseBigGeometry {
             }
             this.dynamicDraw.indexBuffer = this.indexBuffer;
         }
+        if (this.dynamicDraw.size * 6 > this.indexData.length) {
+            this.createIndex();
+        }
     }
 
     createIndex() {
         const size = Math.max(this.staticSize, this.dynamicDraw.size);
+        if (this.indexData && this.indexData.length === size * 6) {
+            return;
+        }
         const indexData = this.indexData = new Int32Array(size * 6);
 
         for (let i = 0; i < size; i++) {
