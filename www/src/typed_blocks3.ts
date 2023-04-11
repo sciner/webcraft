@@ -982,7 +982,8 @@ export class TBlock {
         if (!material.has_oxygen) {
             return false
         }
-        return worldPos.y > this.getFluidLevel(worldPos.x, worldPos.z) ||
+        return !this.isWater ||    // lava has oxygen, like in Minecraft
+            worldPos.y > this.getFluidLevel(worldPos.x, worldPos.z) ||
             material === BLOCK.BUBBLE_COLUMN
     }
 
