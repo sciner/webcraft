@@ -8,6 +8,7 @@ export class TerrainSubGeometry implements IGeomCopyOperation {
     glOffsets: number[] = [];
     glCounts: number[] = [];
     batchStart = 0;
+    copyId = -1;
     pages: number[] = [];
     sizeQuads: number;
     sizePages: number;
@@ -32,6 +33,7 @@ export class TerrainSubGeometry implements IGeomCopyOperation {
         const {pageSize} = this.pool;
         this.sizeQuads = this.size = vertices[0];
         glOffsets.length = glCounts.length = 0;
+        const inBatch = this.batchStart >= 0;
         this.batchStart = batch.instCount;
         for (let i = 0; i < this.sizePages; i++) {
             const floatBuffer = new Float32Array(vertices[i + 1]);
@@ -44,7 +46,9 @@ export class TerrainSubGeometry implements IGeomCopyOperation {
             }
             batch.addArrayBuffer(floatBuffer);
         }
-        batch.copies.push(this);
+        if (!inBatch) {
+            batch.copies.push(this);
+        }
     }
 
     destroy() {

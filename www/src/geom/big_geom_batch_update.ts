@@ -8,6 +8,7 @@ export interface IGeomCopyOperation {
     batchStart: number;
     glOffsets: number[];
     glCounts: number[];
+    copyId: number;
 }
 
 export class BigGeomBatchUpdate {
@@ -58,19 +59,18 @@ export class BigGeomBatchUpdate {
 
     flip() {
         const {flipCopyCount, copies, flipInstCount, data, strideFloats} = this;
+        for (let i = 0; i < copies.count; i++) {
+            copies.arr[i].batchStart = -1;
+        }
         if (flipCopyCount === 0) {
             this.flipCopyCount = copies.count;
             this.flipInstCount = this.instCount;
             return;
         }
-        for (let i = 0; i < flipCopyCount; i++) {
-            copies.arr[i].batchStart = -1;
-        }
         for (let i = flipCopyCount; i < copies.count; i++) {
-            const copy = copies.arr[i - flipCopyCount] = copies.arr[i];
-            copy.batchStart -= flipInstCount;
+            copies.arr[i - flipCopyCount] = copies.arr[i];
         }
-        copies.decCount(flipCopyCount);
+        copies.shiftCount(flipCopyCount);
         this.flipCopyCount = copies.count;
 
         data.copyWithin(0, flipInstCount * strideFloats, this.instCount * strideFloats);

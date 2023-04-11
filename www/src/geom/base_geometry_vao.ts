@@ -71,7 +71,7 @@ export class BaseGeometryVao {
             });
         }
 
-        (this.buffer as any).glTrySubData = true;
+        (this.buffer as any).glTrySubData = false;
         // this.data = null;
 
         if (this.hasInstance) {
@@ -95,6 +95,7 @@ export class BaseGeometryVao {
             this.data.set(oldData, 0);
             this.buffer.data = this.data;
         }
+        this.size = instances;
     }
 
     drawBindCountSync: number = 0;
@@ -113,7 +114,7 @@ export class BaseGeometryVao {
             // shader.bind();
             this.buffer.bind();
             this.attribBufferPointers();
-        } else if (this.hasInstance && !this.context.multidrawBaseExt) {
+        } else if (this.buffer.dirty || this.hasInstance && !this.context.multidrawBaseExt) {
             this.buffer.bind();
         }
         this.indexBuffer?.bind();
@@ -121,11 +122,6 @@ export class BaseGeometryVao {
 
     bind() {
         this.bindForDraw();
-    }
-
-    bindForUpload(bufferType = GL_BUFFER_LOCATION.ARRAY_BUFFER) {
-        (this.buffer as any).glType = bufferType;
-        this.buffer.bind();
     }
 
     checkFence() {
@@ -138,6 +134,11 @@ export class BaseGeometryVao {
             gl.deleteSync(this.drawSync);
         }
         this.drawSync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+    }
+
+    isReadyForUpload() {
+        const { gl } = this;
+        return !this.drawSync || gl.getSyncParameter(this.drawSync, gl.SYNC_STATUS) === gl.SIGNALED;
     }
 
     createVao() {

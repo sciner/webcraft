@@ -80,6 +80,10 @@ export class GLChunkDrawer extends ChunkDrawer {
             if (geom.batchStart >= 0) {
                 offsets[sz] = geom.batchStart;
                 counts[sz] = geom.sizeQuads;
+                if ((offsets[sz] + counts[sz]) * baseVao.stride > baseVao.buffer.glLength) {
+                    console.log("glOffsets problem");
+                }
+                sz++;
             } else {
                 for (let j = 0; j < len; j++) {
                     offsets[sz] = geom.glOffsets[j];

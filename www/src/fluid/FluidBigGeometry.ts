@@ -21,12 +21,15 @@ export class FluidBigGeometry extends BaseBigGeometry {
                 index: true
             });
             this.staticDraw.indexBuffer = this.indexBuffer;
+            if (this.staticCopy) {
+                this.staticCopy.indexBuffer = this.indexBuffer;
+            }
             this.dynamicDraw.indexBuffer = this.indexBuffer;
         }
     }
 
     createIndex() {
-        const size = this.staticSize;
+        const size = Math.max(this.staticSize, this.dynamicDraw.size);
         const indexData = this.indexData = new Int32Array(size * 6);
 
         for (let i = 0; i < size; i++) {

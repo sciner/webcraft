@@ -2,6 +2,8 @@ import {BaseBuffer} from "../BaseRenderer.js";
 import type {IGeomCopyOperation} from "../../geom/big_geom_batch_update.js";
 import type {IvanArray} from "../../helpers";
 
+let globalCopyId = 0;
+
 export class WebGLBuffer extends BaseBuffer {
     /**
      * length of last uploaded buffer to webgl, in bytes
@@ -104,8 +106,13 @@ export class WebGLBuffer extends BaseBuffer {
 
         this.bind();
         updBuffer.bind(gl.COPY_READ_BUFFER);
+        const copyId = ++globalCopyId;
         for (let i = 0; i < copies.count; i++) {
             const op = copies.arr[i];
+            if (op.copyId === copyId) {
+                continue;
+            }
+            op.copyId = copyId;
             let batchPos = op.batchStart;
             const len = op.glCounts.length;
             for (let j = 0; j < len; j++) {
