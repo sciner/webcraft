@@ -8,6 +8,7 @@ export class TerrainSubGeometry implements IGeomCopyOperation {
     glOffsets: number[] = [];
     glCounts: number[] = [];
     batchStart = 0;
+    isDynamic = false;
     copyId = -1;
     pages: number[] = [];
     sizeQuads: number;
@@ -24,7 +25,7 @@ export class TerrainSubGeometry implements IGeomCopyOperation {
     }
 
     get baseVao() {
-        return this.batchStart >= 0 ? this.baseGeometry.dynamicDraw : this.baseGeometry.staticDraw;
+        return this.isDynamic ? this.baseGeometry.dynamicDraw : this.baseGeometry.staticDraw;
     }
 
     setDataBatch(batch: BigGeomBatchUpdate, vertices: any) {
@@ -33,7 +34,6 @@ export class TerrainSubGeometry implements IGeomCopyOperation {
         const {pageSize} = this.pool;
         this.sizeQuads = this.size = vertices[0];
         glOffsets.length = glCounts.length = 0;
-        const inBatch = this.batchStart >= 0;
         this.batchStart = batch.instCount;
         for (let i = 0; i < this.sizePages; i++) {
             const floatBuffer = new Float32Array(vertices[i + 1]);
@@ -46,7 +46,8 @@ export class TerrainSubGeometry implements IGeomCopyOperation {
             }
             batch.addArrayBuffer(floatBuffer);
         }
-        if (!inBatch) {
+        if (!this.isDynamic) {
+            this.isDynamic = true;
             batch.copies.push(this);
         }
     }

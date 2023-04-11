@@ -57,12 +57,43 @@ export class BigGeomBatchUpdate {
     flipInstCount = 0;
     flipCopyCount = 0;
 
+    checkInvariant() {
+        const {flipCopyCount, copies, flipInstCount, data, strideFloats} = this;
+        for (let i = 0; i < flipCopyCount; i++) {
+            const copy = copies.arr[i];
+            if (copy.isDynamic) {
+                let find = -1;
+                for (let j = flipCopyCount; j < copies.count; j++) {
+                    if (copies.arr[j] === copy) {
+                        find = j;
+                        break;
+                    }
+                }
+                if (find < 0) {
+                    console.log("WTF");
+                }
+            }
+        }
+        let maxBatch = 0;
+        const start = copies.count > flipInstCount ? flipInstCount: 0;
+        for (let i = start; i < copies.count; i++) {
+            const copy = copies.arr[i];
+            maxBatch = Math.max(maxBatch, copy.batchStart + copy.sizeQuads);
+        }
+        if (maxBatch !== this.instCount) {
+            console.log("InstCount balance failed");
+        }
+    }
+
+
     flip() {
         const {flipCopyCount, copies, flipInstCount, data, strideFloats} = this;
-        for (let i = 0; i < copies.count; i++) {
-            copies.arr[i].batchStart = -1;
+        //this.checkInvariant();
+        for (let i = flipCopyCount; i < copies.count; i++) {
+            copies.arr[i].batchStart -= flipInstCount;
+            copies.arr[i].isDynamic = false;
         }
-        if (flipCopyCount === 0) {
+        if (flipInstCount === 0) {
             this.flipCopyCount = copies.count;
             this.flipInstCount = this.instCount;
             return;
@@ -73,6 +104,7 @@ export class BigGeomBatchUpdate {
         data.copyWithin(0, flipInstCount * strideFloats, this.instCount * strideFloats);
         this.instCount -= flipInstCount;
         this.flipInstCount = this.instCount;
+        //this.checkInvariant();
     }
 
     updDynamic() {
