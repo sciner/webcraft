@@ -109,6 +109,8 @@ export class FakeWorld {
 }
 
 const shapesEmpty = [];
+const tmpPrevPos = new Vector()
+const tmpAddr = new Vector()
 
 export class FakeBlock {
     position: Vector
@@ -127,6 +129,7 @@ export class FakeBlock {
 }
 
 export class PrismarinePlayerControl extends PlayerControl {
+    world: World
     declare player_state: PlayerState;
     private partialStateBackup = {
         vel: new Vector(),
@@ -139,6 +142,7 @@ export class PrismarinePlayerControl extends PlayerControl {
 
     constructor(world: World, pos: Vector, options: TPrismarineOptions) {
         super()
+        this.world              = world
         const mcData            = FakeWorld.getMCData(world);
         this.physics            = world.physics ??= new Physics(mcData, new FakeWorld(world), options);
         this.timeAccumulator    = 0;
@@ -158,8 +162,27 @@ export class PrismarinePlayerControl extends PlayerControl {
     get playerHeight(): float       { return this.player_state.options.playerHeight }
     get playerHalfWidth(): float    { return this.player_state.options.playerHalfWidth }
 
+    tick(deltaSeconds: float) {
+        // check if the chunk is ready (it doesn't guarantee correctness, neighbouring chunk may be missing)
+        const pos = this.getPos()
+        this.world.chunkManager.grid.getChunkAddr(pos.x, pos.y, pos.z, tmpAddr)
+        const chunk = this.world.chunkManager.getChunk(tmpAddr)
+        if (!chunk?.isReady()) {
+            return
+        }
+
+        // try tick, and if it throws, restore state and do nothing
+        tmpPrevPos.copyFrom(pos)
+        this.backupPartialState()
+        try {
+            this.tickInner(deltaSeconds)
+        } catch (e) {
+            this.restorePartialState(tmpPrevPos)
+        }
+    }
+
     // https://github.com/PrismarineJS/mineflayer/blob/436018bde656225edd29d09f6ed6129829c3af42/lib/plugins/physics.js
-    tick(deltaSeconds) {
+    private tickInner(deltaSeconds) {
         this.timeAccumulator += deltaSeconds;
         let ticks = 0;
         while(this.timeAccumulator >= PHYSICS_TIMESTEP) {
