@@ -16,7 +16,6 @@ import {MonotonicUTCDate} from "../helpers.js";
 import {ClientPlayerTickData, PLAYER_TICK_DATA_STATUS, PLAYER_TICK_MODE, PlayerTickData} from "./player_tick_data.js";
 import {ServerClient} from "../server_client.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketWriter, PlayerControlSessionPacket} from "./player_control_packets.js";
-import {CHUNK_STATE} from "../chunk_const.js";
 import {PlayerSpeedLoggerMode, PlayerSpeedLogger} from "./player_speed_logger.js";
 import type { ChunkGrid } from "../core/ChunkGrid.js";
 import {LimitedLogger} from "../helpers/limited_logger.js";
@@ -174,7 +173,7 @@ export abstract class PlayerControlManager {
                 const pos = player_state.pos
                 grid.getChunkAddr(pos.x, pos.y, pos.z, tmpAddr)
                 const chunk = this.player.world.chunkManager.getChunk(tmpAddr)
-                if (!chunk || (chunk.load_state != null && chunk.load_state !== CHUNK_STATE.READY)) {
+                if (!chunk?.isReady()) {
                     pc.restorePartialState(prevPos)
                     return false
                 }
