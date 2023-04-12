@@ -1,3 +1,6 @@
+import type {ServerChat} from "../server_chat.js";
+import type {ServerPlayer} from "../server_player.js";
+
 export default class Chat_Gamerule {
 
     static targets = ['chat'];
@@ -6,14 +9,12 @@ export default class Chat_Gamerule {
 
     onWorld(world) {}
 
-    onChat(chat) {
-        chat.onCmd(async (player, cmd, args) => {
+    onChat(chat: ServerChat) {
+        chat.onCmd(async (player: ServerPlayer, cmd: string, args: string[]) => {
             switch(cmd) {
                 case '/gamerule': {
                     const world = player.world;
-                    if(!world.admins.checkIsAdmin(player)) {
-                        throw 'error_not_permitted';
-                    }
+                    chat.checkIsAdmin(player)
                     //
                     args = chat.parseCMD(args, ['string', 'string', 'string']);
                     if(args.length > 1) {

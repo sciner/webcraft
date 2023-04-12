@@ -703,21 +703,6 @@ for(let k in NORMALS) {
     Object.freeze(NORMALS[k])
 }
 
-export class Vec3 extends Vector {
-
-    add(vec: IVector) : Vec3 {
-        this.x += vec.x;
-        this.y += vec.y;
-        this.z += vec.z;
-        return this
-    }
-
-    offset(x: number, y: number, z: number) : Vec3 {
-        return new Vec3(this.x + x, this.y + y, this.z + z);
-    }
-
-}
-
 export class Vector4 {
     x: number;
     y: number;
