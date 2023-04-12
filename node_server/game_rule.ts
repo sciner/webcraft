@@ -45,7 +45,7 @@ export class GameRule {
     }
 
     // Set world game rule value
-    async setValue(rule_code, value) {
+    async setValue(rule_code: string, strValue: string): Promise<boolean> {
 
         if(!(rule_code in this.default_rules)) {
             throw 'error_incorrect_rule_code';
@@ -55,13 +55,14 @@ export class GameRule {
         const current_rules = world.info.rules;
         const default_rule = this.default_rules[rule_code];
 
+        let value: any
         switch(default_rule.type) {
             case 'boolean': {
-                value = this.parseBoolValue(value);
+                value = this.parseBoolValue(strValue);
                 break;
             }
             case 'int': {
-                value = this.parseIntValue(value);
+                value = this.parseIntValue(strValue);
                 if('min' in default_rule) {
                     if(value < default_rule.min) throw `error_invalid_rule_range_min|${default_rule.min}`;
                 }
@@ -119,7 +120,7 @@ export class GameRule {
     }
 
     //
-    parseBoolValue(value) {
+    parseBoolValue(value: string): boolean {
         value = value.toLowerCase().trim();
         if(['true', 'false'].indexOf(value) < 0) {
             throw 'error_invalid_value_type';
@@ -128,9 +129,9 @@ export class GameRule {
     }
 
     //
-    parseIntValue(value) {
-        value = parseInt(value);
-        if (isNaN(value) || !isFinite(value)) {
+    parseIntValue(strValue: string): int {
+        const value = parseInt(strValue);
+        if (isNaN(value) || !isFinite(value) || Math.round(value) !== value) {
             throw 'error_invalid_value_type';
         }
         return value;

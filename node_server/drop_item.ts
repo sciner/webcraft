@@ -1,12 +1,12 @@
 import { Vector, unixTime, ObjectHelpers } from "@client/helpers.js";
-import { PrismarinePlayerControl } from "@client/prismarine-physics/using.js";
+import {PrismarinePlayerControl, TPrismarineOptions} from "@client/prismarine-physics/using.js";
 import {ServerClient} from "@client/server_client.js";
-import {PrismarineServerFakeChunkManager} from "./PrismarineServerFakeChunkManager.js";
 import type { ServerWorld } from "./server_world.js";
 import type { DropItemPacket } from "@client/drop_item_manager.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js"
 import type { BulkDropItemsRow } from "./db/world.js"
 import { InventoryComparator } from "@client/inventory_comparator.js";
+import type {World} from "@client/world.js";
 
 export const MOTION_MOVED = 0;  // It moved OR it lacks a chunk
 export const MOTION_JUST_STOPPED = 1;
@@ -129,11 +129,9 @@ export class DropItem {
         }
     }
 
-    createPlayerControl(options : object) : PrismarinePlayerControl {
-        const world = this.getWorld();
-        return new PrismarinePlayerControl({
-            chunkManager: new PrismarineServerFakeChunkManager(world)
-        }, this.pos, options);
+    createPlayerControl(options : TPrismarineOptions) : PrismarinePlayerControl {
+        const world = this.getWorld() as any as World;
+        return new PrismarinePlayerControl(world, this.pos, options);
     }
 
     /**

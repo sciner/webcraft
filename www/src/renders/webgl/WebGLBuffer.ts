@@ -1,16 +1,21 @@
 import {BaseBuffer} from "../BaseRenderer.js";
-import type {GeomCopyOperation} from "../../geom/big_geom_batch_update.js";
+import type {IGeomCopyOperation} from "../../geom/big_geom_batch_update.js";
+import type {IvanArray} from "../../helpers";
+
+let globalCopyId = 0;
 
 export class WebGLBuffer extends BaseBuffer {
     /**
      * length of last uploaded buffer to webgl, in bytes
      */
     glLength = 0;
+    glType = 0;
     buffer: WebGLBuffer = null;
+    glTrySubData = true;
 
-    update() {
+    update(loc?: number) {
         if (this.bigLength > 0) {
-            this.updateBig();
+            this.updateBig(loc);
             return;
         }
 
@@ -20,22 +25,22 @@ export class WebGLBuffer extends BaseBuffer {
             this.buffer = gl.createBuffer();
         }
 
-        const type = this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
+        loc = loc ?? (this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER)
 
-        gl.bindBuffer(type, this.buffer);
-        if (this.glLength < this.data.byteLength) {
-            gl.bufferData(type, this.data, this.options.usage === 'static' ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW);
+        gl.bindBuffer(loc, this.buffer);
+        if (this.glLength < this.data.byteLength || !this.glTrySubData) {
+            gl.bufferData(loc, this.data, this.options.usage === 'static' ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW);
             this.glLength = this.data.byteLength
         } else {
-            gl.bufferSubData(type, 0, this.data);
+            gl.bufferSubData(loc, 0, this.data);
         }
 
         super.update();
     }
 
-    updateBig() {
+    updateBig(loc?: number) {
         const { gl } = this.context;
-        const type = this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
+        loc = loc ?? (this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER);
         let oldBuf: WebGLBuffer = null;
         if (this.glLength > 0) {
             oldBuf = this.buffer;
@@ -44,11 +49,11 @@ export class WebGLBuffer extends BaseBuffer {
         } else {
             this.buffer = gl.createBuffer();
         }
-        gl.bindBuffer(type, this.buffer);
-        gl.bufferData(type, this.bigLength, gl.STATIC_COPY);
+        gl.bindBuffer(loc, this.buffer);
+        gl.bufferData(loc, this.bigLength, gl.STATIC_COPY);
         if (oldBuf) {
             this.bigResize = true;
-            gl.copyBufferSubData(gl.COPY_READ_BUFFER, type, 0, 0, this.glLength);
+            gl.copyBufferSubData(gl.COPY_READ_BUFFER, loc, 0, 0, this.glLength);
             gl.deleteBuffer(oldBuf);
         }
         this.glLength = this.bigLength;
@@ -78,7 +83,7 @@ export class WebGLBuffer extends BaseBuffer {
         super.update();
     }
 
-    bind() {
+    bind(loc?: number) {
         const {
             /**
              * @type {WebGL2RenderingContext}
@@ -86,23 +91,38 @@ export class WebGLBuffer extends BaseBuffer {
             gl
         } = this.context;
 
+        loc = loc ?? (this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER)
+
         if (this.dirty || !this.buffer) {
-            this.update();
+            this.update(loc);
             return;
         }
 
-        gl.bindBuffer(this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER, this.buffer);
+        gl.bindBuffer(loc, this.buffer);
     }
 
-    batchUpdate(updateBuffer: BaseBuffer, copies: Array<GeomCopyOperation>, count: number, stride: number) {
+    batchUpdate(updBuffer: BaseBuffer, copies: IvanArray<any>, stride: number) {
         const {gl} = this.context;
 
-        this.bind();
-        gl.bindBuffer(gl.COPY_READ_BUFFER, (updateBuffer as WebGLBuffer).buffer);
-        for (let i = 0; i < count; i++) {
-            const op = copies[i];
-            gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.ARRAY_BUFFER,
-                op.srcInstance * stride, op.destInstance * stride, op.size * stride);
+        const loc = gl.COPY_WRITE_BUFFER;
+        this.bind(loc);
+        updBuffer.bind(gl.COPY_READ_BUFFER);
+        const copyId = ++globalCopyId;
+        for (let i = 0; i < copies.count; i++) {
+            const op = copies.arr[i];
+            if (op.copyId === copyId) {
+                continue;
+            }
+            op.copyId = copyId;
+            let batchPos = op.batchStart;
+            const len = op.glCounts.length;
+            for (let j = 0; j < len; j++) {
+                const offset = op.glOffsets[j];
+                const count = op.glCounts[j];
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, loc,
+                    batchPos * stride, offset * stride, count * stride);
+                batchPos += count;
+            }
         }
     }
 

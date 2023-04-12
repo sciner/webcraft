@@ -1,34 +1,23 @@
+import type {FSMBrain} from "./brain.js";
+import type {Mob} from "../mob.js";
+
 export class Brains {
-    list: Map<any, any>;
+
+    list = new Map<string, typeof FSMBrain>()
 
     constructor() {
-        /**
-         * @type {Map<string, FSMBrain>}
-         */
-        this.list = new Map();
     }
 
-    /**
-     * @param {string} type 
-     * @param {*} module 
-     */
-    add(type, module) {
+    add(type: string, module: typeof FSMBrain): void {
         this.list.set(type, module);
     }
 
-    /**
-     * @param {string} type 
-     * @param {*} mob 
-     * @returns {FSMBrain}
-     */
-    get(type, mob) {
-        let c = null;
-        if(this.list.has(type)) {
-            c = this.list.get(type);
-        } else {
-            c = this.list.get('default');
-        }
+    get(type: string, mob: Mob): FSMBrain {
+        const c = this.list.get(type) ?? this.list.get('default');
         return new c(mob);
     }
 
+    getArrayOfNames(): string[] {
+        return Array.from(this.list.keys())
+    }
 }

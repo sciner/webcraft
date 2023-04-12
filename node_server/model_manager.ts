@@ -1,7 +1,7 @@
 import {Resources} from "@client/resources.js";
 
 export class ModelManager {
-    list: Map<any, any>;
+    list: Map<string, any>;
 
     constructor() {}
     

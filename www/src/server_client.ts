@@ -18,6 +18,7 @@ export class ServerClient {
     static CMD_PONG                     = 4; // server -> player
     static CMD_SYNC_TIME                = 5; // two side
     static CMD_NOTHING                  = 111; // server -> player. It does nothing. It's sent periodically if no other commnas have been sent for a fwe seconds.
+    static CMD_QUEUED_PING              = 117 // two-seides. A clinet pings, the server queues it, then replies. It measures the actual the game lag.
 	static CMD_ERROR                    = 7; // server -> player (some error)
     static CMD_CHANGE_RENDER_DIST       = 10; // player -> server
     static CMD_CONNECT                  = 34; // player -> server
@@ -98,7 +99,7 @@ export class ServerClient {
 	static CMD_DROP_ITEM_DELETED        = 77;
 	static CMD_DROP_ITEM_UPDATE         = 78;
     static CMD_DROP_ITEM_FULL_UPDATE    = 109;
-	static CMD_DROP_ITEM                = 86;
+	static CMD_DROP_ITEM                = 86; // p->s (throw an item from a hand)
 	static CMD_DROP_ITEM_PICKUP         = 99;
 
     // Use items
@@ -113,7 +114,7 @@ export class ServerClient {
 
     static CMD_BUILDING_SCHEMA_ADD      = 107;
 
-    // NEXT UNUSED COMMAND INDEX        = 117
+    // NEXT UNUSED COMMAND INDEX        = 118
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;

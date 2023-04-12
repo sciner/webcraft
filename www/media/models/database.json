@@ -31,6 +31,14 @@
                 "diamond": "textures/armor/scrap_armor_diamond.png"
             }
         },
+        "boat": {
+            "type": "json",
+            "geom": "json/boat.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/boat/boat_oak.png"
+            }
+        },
         "goat": {
             "type": "json",
             "geom": "json/goat.geo.json",

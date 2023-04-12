@@ -122,13 +122,17 @@ class HUDWindow extends Window {
             this.progressbar.visible = false
             this.kb_tips.visible = false
             //
-            const sinceLastPacket = performance.now() - Qubatch.world.server.lastPacketReceivedTime
-            if (sinceLastPacket > HUD_CONNECTION_WARNING_INTERVAL) {
+            const game = Qubatch as GameClass
+            const sinceLastPacket = performance.now() - game.world.server.lastPacketReceivedTime
+            const serverQueueLag = game.world.serverQueueLag
+            if (Math.max(sinceLastPacket, serverQueueLag) > HUD_CONNECTION_WARNING_INTERVAL) {
                 this.noConnectionWarning.visible = true
                 if(this.noConnectionWarning.w != width) {
                     this.noConnectionWarning.w = width
                 }
-                this.noConnectionWarning.text = Lang[`no_connection|${sinceLastPacket * 0.001 | 0}`]
+                this.noConnectionWarning.text = sinceLastPacket > HUD_CONNECTION_WARNING_INTERVAL
+                    ? Lang[`no_connection|${(sinceLastPacket * 0.001).toFixed(1)}`]
+                    : Lang[`high_server_queue_lag|${(serverQueueLag * 0.001).toFixed(1)}`]
             }
         }
         if(this.lbl_loading.w != width || this.lbl_loading.h != height) {
@@ -434,7 +438,7 @@ export class HUD {
             }
 
             // LAG
-            this.text += '\nLAG: ' + Math.round(player.world.latency) + 'ms';
+            this.text += `\nLAG: ${Math.round(world.latency)}ms / ${world.serverQueueLag}ms`;
 
             // Day time
             const time = world.getTime();

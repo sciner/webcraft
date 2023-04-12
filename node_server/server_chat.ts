@@ -18,6 +18,8 @@ export class ServerChat {
     onCmdCallbacks: CmdCallback[];
     onCmdCallbacksByName = new Map<string, CmdCallback[]>();
 
+    static XYZ_HELP = '<x>, <y>, <z> can be: ~ (it means empty), +<number> (it means relative to the player, e.g. +-5)'
+
     constructor(world : ServerWorld) {
         this.world = world;
         this.onCmdCallbacks = [];
@@ -111,14 +113,18 @@ export class ServerChat {
         }
     }
 
+    checkIsAdmin(player: ServerPlayer): void {
+        if (!this.world.admins.checkIsAdmin(player)) {
+            throw 'error_not_permitted'
+        }
+    }
+
     // runCmd
     async runCmd(player: ServerPlayer, original_text: string) {
         const {fromFlatChunkIndex} = this.world.chunks.grid.math;
         const that = this
         function checkIsAdmin() {
-            if(!that.world.admins.checkIsAdmin(player)) {
-                throw 'error_not_permitted';
-            }
+            that.checkIsAdmin(player)
         }
 
         const world = this.world
@@ -230,25 +236,28 @@ export class ServerChat {
                         '/admin (list | add <username> | remove <username>)',
                         '/time (add <int> | set (<int>|day|midnight|night|noon))',
                         '/gamerule [<name> [<value>]]',
+                        '/spawnmob <x> <y> <z> <type> [<skin>]',
                         'Server stats:',
                         '  /tps [chunk|mob|<mob_name>]',
                         '  /tps2 [chunk|mob|mobtype|<mob_name>] [recent]',
                         '  /sysstat',
                         '  /netstat (in|out|all) [off|count|size|reset]',
                         '  /astat [recent]',
-                        '/shutdown [gentle|force]'
+                        '/shutdown [gentle|force]',
+                        ServerChat.XYZ_HELP
                     ]
                 } else {
                     commands = [
                         '/weather (' + Weather.NAMES.join(' | ') + ')',
                         '/gamemode [world] (survival | creative | adventure | spectator | get)',
-                        '/tp -> teleport',
-                        '/stp -> safe teleport',
+                        '/tp ([@<teleported_username>] @<target_username> | <place_name> | <x> <y> <z>) -> teleport',
+                        '/stp -> safe teleport, same arguments as /tp',
                         '/spawnpoint',
                         '/seed',
                         '/give <item> [<count>]',
                         '/kill (me|mobs)',
-                        '/help [admin]'
+                        '/help [admin]',
+                        ServerChat.XYZ_HELP
                     ]
                 }
                 this.sendSystemChatMessageToSelectedPlayers('!lang\n' + commands.join('\n'), player);
@@ -316,8 +325,8 @@ export class ServerChat {
             case '/stp': {
                 const safe = (args[0] == '/stp');
                 if(args.length == 4) {
-                    args = this.parseCMD(args, ['string', '?float', '?float', '?float']);
-                    const pos = new Vector(args[1] ?? player.state.pos.x, args[2] ?? player.state.pos.y, args[3] ?? player.state.pos.z);
+                    args = this.parseCMD(args, ['string', 'x', 'y', 'z'], player);
+                    const pos = new Vector(args[1], args[2], args[3]);
                     player.teleport({place_id: null, pos: pos, safe: safe});
                 } else if (args.length == 2) {
                     args = this.parseCMD(args, ['string', 'string']);
@@ -541,34 +550,33 @@ export class ServerChat {
                 break;
             }
             case '/spawnmob': {
-                args = this.parseCMD(args, ['string', '?float', '?float', '?float', 'string', 'string']);
+                checkIsAdmin()
+                if (args.length < 5) {
+                    const spawnMobHelp = '!lang/spawnmob <x> <y> <z> <type> [<skin>]\n' +
+                        `  <type> values: ${world.brains.getArrayOfNames().join(', ')}\n` +
+                        `  ${ServerChat.XYZ_HELP}`
+                    this.sendSystemChatMessageToSelectedPlayers(spawnMobHelp, player)
+                    break
+                }
+                args = this.parseCMD(args, ['string', 'x', 'y', 'z', 'string', '?string'], player);
+                const type = args[4]
+                if (!world.brains.list.has(type)) {
+                    this.sendSystemChatMessageToSelectedPlayers(`!langUnknown mob type ${type}`, player, false)
+                    break
+                }
                 // @ParamMobAdd
                 const params = new MobSpawnParams(
-                    player.state.pos.clone(),
+                    new Vector(args[1], args[2], args[3]),
                     new Vector(0, 0, player.state.rotate.z),
-                    args[4],
-                    args[5],
+                    type,
+                    args[5] ?? 'base',
                 )
-                // x
-                if (args[1] !== null) {
-                    params.pos.x = args[1];
-                }
-                // y
-                if (args[2] !== null) {
-                    params.pos.y = args[2];
-                }
-                // z
-                if (args[3] !== null) {
-                    params.pos.z = args[3];
-                }
                 // spawn
-                this.world.mobs.spawn(player, params);
-               break;
+                world.mobs.spawn(player, params)
+                break;
             }
             case '/stairs': {
-                if(!this.world.admins.checkIsAdmin(player)) {
-                    throw 'error_not_permitted';
-                }
+                checkIsAdmin()
                 const pos = player.state.pos.floored();
                 const bm = this.world.block_manager
                 const cd = bm.getCardinalDirection(player.rotateDegree.clone());
@@ -610,15 +618,16 @@ export class ServerChat {
             }
             case '/clear':
             default: {
+                let ok = false;
                 const registeredCallbacks = this.onCmdCallbacksByName.get(cmd)
                 if (registeredCallbacks) {
                     for(const plugin_callback of registeredCallbacks) {
                         if (await plugin_callback(player, cmd, args)) {
+                            ok = true
                             break
                         }
                     }
                 }
-                let ok = false;
                 for(let plugin_callback of this.onCmdCallbacks) {
                     if(await plugin_callback(player, cmd, args)) {
                         ok = true;
@@ -634,68 +643,88 @@ export class ServerChat {
     }
 
     /**
+     * Supported formats:
+     * - 'int', '?int', 'float', '?float'
+     * - 'string' - either string or undefined
+     * - 'string|float' - the same semantics as old 'string' - if it's a number, it's parsed as a number
+     * - 'x', 'y', 'z', '?x', '?y', '?z' - similar to 'float' and '?float', but have an additional feature:
+     *   if '+' is before the number, then it's relative to the player's position.
      * @returns {(number | string | null)[]} - parsed arguments. To avoid re-writing a lot of code,
      *  we declare the result as any[]
      */
-    parseCMD(args: string[], format: string[]): any[] {
+    parseCMD(args: string[], format: string[], player?: ServerPlayer): any[] {
+
+        function parseArgFloat(arg: string): float | null {
+            let value = parseFloat(arg);
+            if (isNaN(value)) {
+                if (format[i].startsWith('?') && arg === '~') {
+                    value = null
+                } else {
+                    throw 'Invalid arg pos = ' + i;
+                }
+            }
+            return value
+        }
+
+        function parseArgCoord(arg: string, playerCoord?: float): float | null {
+            if (playerCoord == null) {
+                throw "player is not defined. Don't forget the 3rd argument in parseCMD."
+            }
+            if (arg === '~') {
+                return format[i].startsWith('?') ? null : playerCoord
+            }
+            return arg[0] === '+'
+                ? playerCoord + parseArgFloat(arg.substring(1))
+                : parseArgFloat(arg)
+        }
+
         let resp = [];
         //if (args.length != format.length) {
         //    throw 'error_invalid_arguments_count';
         //}
-        for(let i in args) {
+        let i: int
+        for(i = 0; i < args.length; i++) {
             let ch = args[i];
+            let value: any
             switch (format[i]) {
-                case 'int': {
-                    let value = parseInt(ch);
+                case 'int':
+                case '?int':
+                    value = parseInt(ch);
                     if (isNaN(value)) {
-                        throw 'Invalid arg pos = ' + i;
-                    }
-                    resp.push(value);
-                    break;
-                }
-                case '?int': {
-                    let value = parseInt(ch);
-                    if (isNaN(value)) {
-                        if (ch == '~') {
-                            resp.push(null);
+                        if (format[i].startsWith('?') && ch == '~') {
+                            value = null
                         } else {
                             throw 'Invalid arg pos = ' + i;
                         }
-                    } else {
-                        resp.push(value);
                     }
                     break;
-                }
-                case 'float': {
-                    let value = parseFloat(ch);
-                    if (isNaN(value)) {
-                        throw 'Invalid arg pos = ' + i;
-                    }
-                    resp.push(value);
-                    break;
-                }
-                case '?float': {
-                    let value = parseFloat(ch);
-                    if (isNaN(value)) {
-                        if (ch == '~') {
-                            resp.push(null);
-                        } else {
-                            throw 'Invalid arg pos = ' + i;
-                        }
-                    } else {
-                        resp.push(value);
-                    }
-                    break;
-                }
-                case 'string': {
-                    if (isNaN(ch as any)) {
-                        resp.push(ch);
-                    } else {
-                        resp.push(parseFloat(ch));
-                    }
-                    break;
-                }
+                case 'float':
+                case '?float':
+                    value = parseArgFloat(ch)
+                    break
+                case 'x':
+                case '?x':
+                    value = parseArgCoord(ch, player?.state.pos.x)
+                    break
+                case 'y':
+                case '?y':
+                    value = parseArgCoord(ch, player?.state.pos.y)
+                    break
+                case 'z':
+                case '?z':
+                    value = parseArgCoord(ch, player?.state.pos.z)
+                    break
+                case 'string|float': // that mode was formerly 'string'
+                    value = isNaN(ch as any) || !isFinite(ch as any)
+                        ? ch
+                        : parseFloat(ch)
+                    break
+                case 'string':
+                    value = ch
+                    break
+                default: throw `Unknown argument format ${format[i]}`
             }
+            resp.push(value)
         }
         return resp;
     }

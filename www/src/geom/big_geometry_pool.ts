@@ -1,9 +1,15 @@
 import {TerrainSubGeometry} from "./terrain_sub_geometry.js";
 import {TerrainBigGeometry} from "./terrain_big_geometry.js";
 import {BaseGeometryPool} from "./base_geometry_pool.js";
+import type {BaseBigGeometry} from "./base_big_geometry";
 
 export class BigGeometryPool extends BaseGeometryPool {
-    [key: string]: any;
+    growCoeff: number;
+    growMaxPageInc: number;
+    pageCount: number;
+    pageSize: number;
+    freePages: number[];
+    baseGeometry: BaseBigGeometry;
     constructor(context, {
         pageSize = 256,
         pageCount = 1000,
@@ -26,8 +32,13 @@ export class BigGeometryPool extends BaseGeometryPool {
 
     initBaseGeometry() {
         this.baseGeometry = new TerrainBigGeometry({
-            context: this.context, size: this.pageCount * this.pageSize
+            staticSize: this.pageCount * this.pageSize,
+            dynamicSize: 1 << 14,
         })
+    }
+
+    get bufferSizeBytes() {
+        return this.baseGeometry.staticDraw.buffer.bigLength;
     }
 
     grow() {
@@ -78,13 +89,14 @@ export class BigGeometryPool extends BaseGeometryPool {
      * @param instances
      */
     checkHeuristicSize(instances) {
-        const {pos, heuristicSize} = this.baseGeometry.batch;
+        const heuristicSize = this.baseGeometry.dynamicSize;
+        const pos = this.baseGeometry.batch.instCount;
         return pos <= heuristicSize / 10 || pos + instances <= heuristicSize;
     }
 
     prepareMem(instances: number) {
         const {batch} = this.baseGeometry;
-        batch.ensureSize(batch.pos + instances);
+        batch.ensureSize(batch.instCount + instances);
     }
 
     dealloc(buffer) {

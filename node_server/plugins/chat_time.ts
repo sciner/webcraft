@@ -26,7 +26,7 @@ export default class Chat_Time {
         chat.onCmd(async (player, cmd, args) => {
             switch(cmd) {
                 case '/time': {
-                    args = chat.parseCMD(args, ['string', 'string', 'string']);
+                    args = chat.parseCMD(args, ['string', 'string', 'string|float']);
                     if(args.length == 3) {
                         const world = player.world;
                         if(!world.admins.checkIsAdmin(player)) {
