@@ -84,25 +84,38 @@ export class BigGeomBatchUpdate {
         }
     }
 
+    postFlipInstCount = 0;
+    postFlipCopyCount = 0;
+
+    preFlip() {
+        this.postFlipInstCount = this.instCount;
+        this.postFlipCopyCount = this.copies.count;
+    }
 
     flip() {
-        const {flipCopyCount, copies, flipInstCount, data, strideFloats} = this;
+        const {flipCopyCount, copies, flipInstCount, data, strideFloats,
+            postFlipInstCount, postFlipCopyCount} = this;
         //this.checkInvariant();
         for (let i = flipCopyCount; i < copies.count; i++) {
             copies.arr[i].batchStart -= flipInstCount;
-            copies.arr[i].isDynamic = false;
+            copies.arr[i].isDynamic = i >= postFlipCopyCount;
+            for (let j = i+1; j < copies.count;j++) {
+                if (copies.arr[j] === copies.arr[i]) {
+                    console.log("invariant fail");
+                }
+            }
         }
         if (flipInstCount === 0) {
-            this.flipCopyCount = copies.count;
-            this.flipInstCount = this.instCount;
+            this.flipCopyCount = postFlipCopyCount;
+            this.flipInstCount = postFlipInstCount;
             return;
         }
         copies.shiftCount(flipCopyCount);
-        this.flipCopyCount = copies.count;
+        this.flipCopyCount = postFlipCopyCount - flipCopyCount;
 
         data.copyWithin(0, flipInstCount * strideFloats, this.instCount * strideFloats);
         this.instCount -= flipInstCount;
-        this.flipInstCount = this.instCount;
+        this.flipInstCount = postFlipInstCount - flipInstCount;
         //this.checkInvariant();
     }
 

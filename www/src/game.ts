@@ -697,9 +697,9 @@ export class GameClass {
         // or update without draw
         // like XR, it quiery frame more that 60 fps (90, 120) and we shpuld render each frame
         // but update can be called slowly
-        if(this.hud.FPS.frames % 3 == 0) {
+        // if(this.hud.FPS.frames % 3 == 0) {
             this.render.update(delta, args);
-        }
+        // }
 
         // Draw world
         this.render.draw(delta, args);

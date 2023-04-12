@@ -101,6 +101,7 @@ export class BaseGeometryVao {
     drawBindCountSync: number = 0;
     drawBindCount: number = 0;
     drawSync: WebGLSync = null;
+    copyFlag = false;
 
     /**
      * Only bind for drawing, no actual upload!
@@ -125,7 +126,7 @@ export class BaseGeometryVao {
     }
 
     checkFence() {
-        if (this.drawBindCountSync === this.drawBindCount) {
+        if (this.drawBindCountSync === this.drawBindCount && !this.copyFlag) {
             return;
         }
         this.drawBindCountSync = this.drawBindCount;
@@ -136,9 +137,10 @@ export class BaseGeometryVao {
         this.drawSync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
 
-    isReadyForUpload() {
+    isSynced() {
         const { gl } = this;
-        return !this.drawSync || gl.getSyncParameter(this.drawSync, gl.SYNC_STATUS) === gl.SIGNALED;
+        return !this.drawSync ||
+            gl.getSyncParameter(this.drawSync, gl.SYNC_STATUS) === gl.SIGNALED;
     }
 
     createVao() {
