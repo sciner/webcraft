@@ -293,7 +293,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
                 base.rotation.set([0 * orient, -50, 90 + 0 * orient])
                 base.pivot.set([.035, -.07, .35])
             } else {
-                base.rotation.set([20, 0, -20])
+                base.rotation.set([0, 0, -30])
                 base.pivot.set([0, 0, scale / 2])
             }
             base.scale.set([scale, scale, scale])
