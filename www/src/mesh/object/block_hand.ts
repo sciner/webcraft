@@ -1,6 +1,7 @@
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js";
 import { decodeCubes, fillCube } from "../../bedrockJsonParser.js";
 import { Vector } from "../../helpers.js";
+import type { Renderer } from "../../render.js";
 import { Resources } from "../../resources.js";
 
 const {mat4} = glMatrix;
@@ -108,10 +109,8 @@ export class Particle_Hand {
      * Push draw task directly without any pre-computation.
      * Any matrix updates should be applied manually
      * Allow prepend matrix to modelMatrix
-     * @param {Rendere} render
-     * @param {mat4} prePendMatrix
      */
-    drawDirectly(render, prePendMatrix = null) {
+    drawDirectly(render : Renderer, prePendMatrix : imat4 = null) {
         if (!this.buffer || !this.material) {
             return;
         }
