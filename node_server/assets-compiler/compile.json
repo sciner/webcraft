@@ -5659,6 +5659,7 @@
             "id": 1419,
             "name": "BONE",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/bone.png",
             "item": {"name": "bone"},
             "material": {
