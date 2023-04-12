@@ -1,8 +1,11 @@
 import {BLOCK} from "../blocks.js";
 import {DIRECTION, IndexedColor, QUAD_FLAGS} from "../helpers.js";
-import { FLUID_SOLID16, FLUID_OPAQUE16, FLUID_TYPE_MASK, FLUID_TYPE_SHIFT, PACKED_CELL_LENGTH, PACKET_CELL_WATER_COLOR_R, PACKET_CELL_WATER_COLOR_G } from "./FluidConst.js";
+import { FLUID_SOLID16, FLUID_OPAQUE16, FLUID_TYPE_MASK, FLUID_TYPE_SHIFT, PACKED_CELL_LENGTH, PACKET_CELL_WATER_COLOR_R, PACKET_CELL_WATER_COLOR_G, FLUID_LEVEL_MASK } from "./FluidConst.js";
+import type {FluidChunk} from "./FluidChunk.js";
 
 export const fluidMaterials = [];
+
+const tmpNeib = [0, 0, 0, 0, 0, 0];
 
 class FluidMaterial {
     [key: string]: any;
@@ -121,14 +124,11 @@ function mc_calculateAverageHeight(fluidType, cellH, neib1h, neib2h, neib3, neib
 
 /**
  * can be used for physics
- * @param fluidChunk
- * @param index
- * @param relX
- * @param relZ
- * @returns {number}
+ * @param relX from 0 to 1
+ * @param relZ from 0 to 1
+ * @returns from 0 to 1
  */
-export function calcFluidLevel(fluidChunk, index, relX, relZ) {
-    const { cx, cy, cz, cw } = fluidChunk.parentChunk.tblocks.dataChunk;
+export function calcFluidLevel(fluidChunk: FluidChunk, index: int, relX: float, relZ: float): float {
     const { uint16View } = fluidChunk;
     const fluid16 = uint16View[index];
     const fluidType = fluid16 & FLUID_TYPE_MASK;
@@ -136,7 +136,12 @@ export function calcFluidLevel(fluidChunk, index, relX, relZ) {
     if (fluidId < 0) {
         return 0;
     }
-    const neib = [0, 0, 0, 0, 0, 0];
+    const fluidMask = fluid16 & FLUID_LEVEL_MASK
+    if (fluidMask === 0 || fluidMask >= 8) {
+        return 1;
+    }
+    const { cx, cy, cz, cw } = fluidChunk.parentChunk.tblocks.dataChunk;
+    const neib = tmpNeib;
     neib[0] = uint16View[index + cy];
     neib[1] = uint16View[index - cy];
     neib[2] = uint16View[index - cz];
