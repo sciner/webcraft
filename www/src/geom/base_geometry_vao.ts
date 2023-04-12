@@ -125,10 +125,10 @@ export class BaseGeometryVao {
     }
 
     checkFence() {
-        if (this.drawBindCount === this.drawBindCountSync) {
+        if (this.drawBindCountSync === this.drawBindCount) {
             return;
         }
-        this.drawBindCount = this.drawBindCountSync;
+        this.drawBindCountSync = this.drawBindCount;
         const { gl } = this;
         if (this.drawSync) {
             gl.deleteSync(this.drawSync);

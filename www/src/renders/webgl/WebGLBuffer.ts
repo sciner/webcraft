@@ -15,7 +15,7 @@ export class WebGLBuffer extends BaseBuffer {
 
     update(loc?: number) {
         if (this.bigLength > 0) {
-            this.updateBig();
+            this.updateBig(loc);
             return;
         }
 
@@ -38,9 +38,9 @@ export class WebGLBuffer extends BaseBuffer {
         super.update();
     }
 
-    updateBig() {
+    updateBig(loc?: number) {
         const { gl } = this.context;
-        const type = this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
+        loc = loc ?? (this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER);
         let oldBuf: WebGLBuffer = null;
         if (this.glLength > 0) {
             oldBuf = this.buffer;
@@ -49,11 +49,11 @@ export class WebGLBuffer extends BaseBuffer {
         } else {
             this.buffer = gl.createBuffer();
         }
-        gl.bindBuffer(type, this.buffer);
-        gl.bufferData(type, this.bigLength, gl.STATIC_COPY);
+        gl.bindBuffer(loc, this.buffer);
+        gl.bufferData(loc, this.bigLength, gl.STATIC_COPY);
         if (oldBuf) {
             this.bigResize = true;
-            gl.copyBufferSubData(gl.COPY_READ_BUFFER, type, 0, 0, this.glLength);
+            gl.copyBufferSubData(gl.COPY_READ_BUFFER, loc, 0, 0, this.glLength);
             gl.deleteBuffer(oldBuf);
         }
         this.glLength = this.bigLength;
@@ -104,7 +104,8 @@ export class WebGLBuffer extends BaseBuffer {
     batchUpdate(updBuffer: BaseBuffer, copies: IvanArray<any>, stride: number) {
         const {gl} = this.context;
 
-        this.bind();
+        const loc = gl.COPY_WRITE_BUFFER;
+        this.bind(loc);
         updBuffer.bind(gl.COPY_READ_BUFFER);
         const copyId = ++globalCopyId;
         for (let i = 0; i < copies.count; i++) {
@@ -118,7 +119,7 @@ export class WebGLBuffer extends BaseBuffer {
             for (let j = 0; j < len; j++) {
                 const offset = op.glOffsets[j];
                 const count = op.glCounts[j];
-                gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.ARRAY_BUFFER,
+                gl.copyBufferSubData(gl.COPY_READ_BUFFER, loc,
                     batchPos * stride, offset * stride, count * stride);
                 batchPos += count;
             }
