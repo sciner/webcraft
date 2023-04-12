@@ -184,6 +184,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
     }
 
+    // Draw inhand item
     changeSlotEntry(name : string, props) {
         if (!name || !props) {
             return;
@@ -222,7 +223,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             return;
         }
 
-        const block = BLOCK.fromId(id);
+        const block = BLOCK.fromId(id)
 
         if(!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name)) {
             return;
@@ -234,10 +235,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             item = new Mesh_Object_Block_Drop(this.world, null, null, [block], Vector.ZERO);
         } catch(e) {
             console.error(e)
-        }
-
-        if (!item) {
-            return;
+            return
         }
 
         // slot.holder.terrainGeometry = item.buffer;
@@ -248,67 +246,66 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             break;
         }
 
-        const is_left_arm = name === 'LeftArm'
-        const orient = is_left_arm ? -1 : 1
-        const bb_display = block.bb?.model?.json?.display
-        const bbmodel_hand = (is_left_arm ? bb_display?.thirdperson_lefthand : bb_display?.thirdperson_righthand) ?? {}
+        const is_left_arm        = name === 'LeftArm'
+        const orient             = is_left_arm ? -1 : 1
+        const bb_display         = block.bb?.model?.json?.display
+        const bbmodel_hand       = (is_left_arm ? bb_display?.thirdperson_lefthand : bb_display?.thirdperson_righthand) ?? {}
+        const orig_slot_position = slot.holder.orig_position || (slot.holder.orig_position = new Float32Array(slot.holder.position))
+
+        const base = {
+            scale:      new Float32Array([1, 1, 1]),
+            position:   new Float32Array(orig_slot_position), // внутрь туловища / от туловища; вдоль руки; над рукой
+            pivot:      new Float32Array([0, 0, -.5]),
+            rotation:   new Float32Array([0, 0, 0]),
+        }
 
         if(bb_display || !!block.bb) {
-            let orig_slot_position = slot.holder.orig_position // внутрь туловища / от туловища; вдоль руки; над рукой
-            if(!orig_slot_position) {
-                slot.holder.orig_position = [...slot.holder.position]
-                slot.holder.orig_position[2] += .5
-                orig_slot_position = slot.holder.orig_position
-            }
-            const base = {
-                scale: [1, 1, 1],
-                pivot: [0, 0, -.5],
-                rotation: [0, 0, 0],
-                translation: [...orig_slot_position]
-            }
-            // 1. translation (1 = 1/16)
+            // 1. position (1 = 1/16)
+            base.position[2] += .5
             if(bbmodel_hand.translation) {
-                base.translation[0] += bbmodel_hand.translation[0] / 16
-                base.translation[1] += bbmodel_hand.translation[2] / 16
-                base.translation[2] += bbmodel_hand.translation[1] / 16
+                base.position[0] += bbmodel_hand.translation[0] / 16
+                base.position[1] += bbmodel_hand.translation[2] / 16
+                base.position[2] += bbmodel_hand.translation[1] / 16
             }
-            slot.holder.position.set(base.translation)
             // 2. pivot
-            slot.holder.pivot.set(base.pivot)
-            // 3. rotation (в грудусах -180...180)
+            // 3. rotation (в градусах -180...180)
             if(bbmodel_hand.rotation) {
-                const r = base.rotation
-                r[0] -= bbmodel_hand.rotation[0]
-                r[1] += bbmodel_hand.rotation[2]
-                r[2] += bbmodel_hand.rotation[1]
-                quat.fromEuler(slot.holder.quat, r[0], r[1], r[2], 'xyz')
+                base.rotation[0] -= bbmodel_hand.rotation[0]
+                base.rotation[1] += bbmodel_hand.rotation[2]
+                base.rotation[2] += bbmodel_hand.rotation[1]
             }
             // 4. scale
-            slot.holder.scale.set(bbmodel_hand.scale ?? base.scale)
+            if(bbmodel_hand.scale) {
+                base.scale.set(bbmodel_hand.scale)
+            }
         } else {
             let { scale = 0.3 } = props
             // mc steve model
-            if (block.diagonal) {
-                scale *= 1.2;
-                quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
-            } else {
-                quat.fromEuler(slot.holder.quat, 20, 0, -20);
-            }
+            // if (block.diagonal) {
+            //     scale *= 1.2;
+            //     base.rotation.set([10 * orient, -70, 90 + 10 * orient])
+            // } else {
+            //     base.rotation.set([20, 0, -20])
+            // }
             // new model
             if (block.diagonal) {
-                scale *= 1.2;
-                // quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
-                // quat.fromEuler(slot.holder.quat, globalThis.xyz.x * orient, globalThis.xyz.y, 90 + globalThis.xyz.z * orient);
-                quat.fromEuler(slot.holder.quat, 0 * orient, -50, 90 + 0 * orient);
-                slot.holder.pivot.set([.035, -.07, .35]);
+                scale *= 1.2
+                base.rotation.set([0 * orient, -50, 90 + 0 * orient])
+                base.pivot.set([.035, -.07, .35])
             } else {
-                quat.fromEuler(slot.holder.quat, 20, 0, -20);
-                slot.holder.pivot.set([0, 0, scale / 2]);
+                base.rotation.set([20, 0, -20])
+                base.pivot.set([0, 0, scale / 2])
             }
-            slot.holder.scale.set([scale, scale, scale]);
+            base.scale.set([scale, scale, scale])
         }
 
-        slot.holder.updateMatrix();
+        // apply modifies
+        slot.holder.pivot.set(base.pivot)
+        slot.holder.scale.set(base.scale)
+        slot.holder.position.set(base.position)
+        quat.fromEuler(slot.holder.quat, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
+        slot.holder.updateMatrix()
+
     }
 
     itsMe() {
