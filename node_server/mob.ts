@@ -148,8 +148,8 @@ export class Mob {
         this.chunk_addr_o   = world.chunkManager.grid.toChunkAddr(this.pos);
         this.#forward       = new Vector(0, 1, 0);
         this.#brain         = world.brains.get(this.type, this);
-        this.width          = this.#brain.pc.physics.playerHalfWidth * 2;
-        this.height         = this.#brain.pc.physics.playerHeight;
+        this.width          = this.#brain.pc.playerHalfWidth * 2;
+        this.height         = this.#brain.pc.playerHeight;
 
         // Сохраним моба в глобальном хранилище, чтобы не пришлось искать мобов по всем чанкам
         world.mobs.add(this);

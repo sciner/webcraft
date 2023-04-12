@@ -1,15 +1,15 @@
 import { FSMStack } from "./stack.js";
-import { PrismarinePlayerControl } from "@client/prismarine-physics/using.js";
+import {PrismarinePlayerControl, TPrismarineOptions} from "@client/prismarine-physics/using.js";
 import { Vector } from "@client/helpers.js";
 import { ServerClient } from "@client/server_client.js";
 import { Raycaster } from "@client/Raycaster.js";
-import { PrismarineServerFakeChunkManager } from "../PrismarineServerFakeChunkManager.js";
 import type { Mob } from "../mob.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
 // import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import { WorldAction } from "@client/world_action.js";
 import type {MobControlParams} from "@client/control/player_control.js";
+import type {World} from "@client/world.js";
 
 const MUL_1_SEC = 20;
 
@@ -91,13 +91,10 @@ export class FSMBrain {
         }
     }
 
-    createPlayerControl(brain: FSMBrain, options): PrismarinePlayerControl {
+    createPlayerControl(brain: FSMBrain, options: TPrismarineOptions): PrismarinePlayerControl {
         const mob = brain.mob;
-        const world = mob.getWorld();
-        options.effects
-        return new PrismarinePlayerControl({
-            chunkManager: new PrismarineServerFakeChunkManager(world)
-        }, mob.pos, options);
+        const world = mob.getWorld() as any as World;
+        return new PrismarinePlayerControl(world, mob.pos, options);
     }
 
     // Send current mob state to players

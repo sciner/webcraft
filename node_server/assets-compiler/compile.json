@@ -1072,23 +1072,23 @@
             "name": "BIRCH_LEAVES",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "drop_item": [ 
+            "drop_item": [
                 {
-                    "name": "BIRCH_SAPLING", 
-                    "count": 1, 
+                    "name": "BIRCH_SAPLING",
+                    "count": 1,
                     "chance": 0.05
                 },
                 {
-                    "name": "STICK", 
+                    "name": "STICK",
                     "count": {
                         "min": 1,
                         "max": 2
-                    }, 
+                    },
                     "chance": 0.02
                 },
                 {
-                    "name": "APPLE", 
-                    "count": 1, 
+                    "name": "APPLE",
+                    "count": 1,
                     "chance": 0.005
                 }
             ],
@@ -1111,23 +1111,23 @@
             "name": "OAK_LEAVES",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "drop_item": [ 
+            "drop_item": [
                 {
-                    "name": "OAK_SAPLING", 
-                    "count": 1, 
+                    "name": "OAK_SAPLING",
+                    "count": 1,
                     "chance": 0.05
                 },
                 {
-                    "name": "STICK", 
+                    "name": "STICK",
                     "count": {
                         "min": 1,
                         "max": 2
-                    }, 
+                    },
                     "chance": 0.02
                 },
                 {
-                    "name": "APPLE", 
-                    "count": 1, 
+                    "name": "APPLE",
+                    "count": 1,
                     "chance": 0.005
                 }
             ],
@@ -1153,23 +1153,23 @@
             "name": "ACACIA_LEAVES",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "drop_item": [ 
+            "drop_item": [
                 {
-                    "name": "ACACIA_SAPLING", 
-                    "count": 1, 
+                    "name": "ACACIA_SAPLING",
+                    "count": 1,
                     "chance": 0.05
                 },
                 {
-                    "name": "STICK", 
+                    "name": "STICK",
                     "count": {
                         "min": 1,
                         "max": 2
-                    }, 
+                    },
                     "chance": 0.02
                 },
                 {
-                    "name": "APPLE", 
-                    "count": 1, 
+                    "name": "APPLE",
+                    "count": 1,
                     "chance": 0.005
                 }
             ],
@@ -1192,23 +1192,23 @@
             "name": "SPRUCE_LEAVES",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "drop_item": [ 
+            "drop_item": [
                 {
-                    "name": "SPRUCE_SAPLING", 
-                    "count": 1, 
+                    "name": "SPRUCE_SAPLING",
+                    "count": 1,
                     "chance": 0.05
                 },
                 {
-                    "name": "STICK", 
+                    "name": "STICK",
                     "count": {
                         "min": 1,
                         "max": 2
-                    }, 
+                    },
                     "chance": 0.02
                 },
                 {
-                    "name": "APPLE", 
-                    "count": 1, 
+                    "name": "APPLE",
+                    "count": 1,
                     "chance": 0.005
                 }
             ],
@@ -1231,23 +1231,23 @@
             "name": "DARK_OAK_LEAVES",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "drop_item": [ 
+            "drop_item": [
                 {
-                    "name": "DARK_OAK_SAPLING", 
-                    "count": 1, 
+                    "name": "DARK_OAK_SAPLING",
+                    "count": 1,
                     "chance": 0.05
                 },
                 {
-                    "name": "STICK", 
+                    "name": "STICK",
                     "count": {
                         "min": 1,
                         "max": 2
-                    }, 
+                    },
                     "chance": 0.02
                 },
                 {
-                    "name": "APPLE", 
-                    "count": 1, 
+                    "name": "APPLE",
+                    "count": 1,
                     "chance": 0.005
                 }
             ],
@@ -1269,23 +1269,23 @@
             "name": "JUNGLE_LEAVES",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "drop_item": [ 
+            "drop_item": [
                 {
-                    "name": "JUNGLE_SAPLING", 
-                    "count": 1, 
+                    "name": "JUNGLE_SAPLING",
+                    "count": 1,
                     "chance": 0.05
                 },
                 {
-                    "name": "STICK", 
+                    "name": "STICK",
                     "count": {
                         "min": 1,
                         "max": 2
-                    }, 
+                    },
                     "chance": 0.02
                 },
                 {
-                    "name": "APPLE", 
-                    "count": 1, 
+                    "name": "APPLE",
+                    "count": 1,
                     "chance": 0.005
                 }
             ],
@@ -3575,7 +3575,7 @@
             "planting": false,
             "sound": "madcraft:block.cloth",
             "coocked_item": {
-                "name": "GREEN_DYE", 
+                "name": "GREEN_DYE",
                 "count": 1
             },
             "material": {
@@ -10134,7 +10134,7 @@
                 "b": 255,
                 "a": 140
             }
-        }, 
+        },
         {
             "id": 1048,
             "name": "HOPPER",
@@ -10173,7 +10173,19 @@
                 "slots": 5
             },
             "is_entity": true
-        }, 
+        },
+        {
+            "id": 1049,
+            "name": "OAK_BOAT",
+            "style": "extruder",
+            "texture": "item/oak_boat.png",
+            "item": {
+                "name": "boat"
+            },
+            "material": {
+                "id": "stone"
+            }
+        },
         {
             "id": 1057,
             "name": "TUBE_CORAL_BLOCK",
@@ -10182,12 +10194,12 @@
                 "id": "stone"
             },
             "texture": "block/tube_coral_block.png",
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_TUBE_CORAL_BLOCK"
                 }
             ]
-        }, 
+        },
         {
             "id": 1058,
             "name": "DEAD_TUBE_CORAL_BLOCK",
@@ -10196,7 +10208,7 @@
                 "id": "stone"
             },
             "texture": "block/dead_tube_coral_block.png"
-        }, 
+        },
         {
             "id": 1059,
             "name": "BUBBLE_CORAL_BLOCK",
@@ -10205,12 +10217,12 @@
                 "id": "stone"
             },
             "texture": "block/bubble_coral_block.png",
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_BUBBLE_CORAL_BLOCK"
                 }
             ]
-        }, 
+        },
         {
             "id": 1060,
             "name": "DEAD_BUBBLE_CORAL_BLOCK",
@@ -10219,7 +10231,7 @@
                 "id": "stone"
             },
             "texture": "block/dead_bubble_coral_block.png"
-        }, 
+        },
         {
             "id": 1061,
             "name": "BRAIN_CORAL_BLOCK",
@@ -10228,12 +10240,12 @@
                 "id": "stone"
             },
             "texture": "block/brain_coral_block.png",
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_BRAIN_CORAL_BLOCK"
                 }
             ]
-        }, 
+        },
         {
             "id": 1062,
             "name": "DEAD_BRAIN_CORAL_BLOCK",
@@ -10242,7 +10254,7 @@
                 "id": "stone"
             },
             "texture": "block/dead_brain_coral_block.png"
-        }, 
+        },
         {
             "id": 1063,
             "name": "FIRE_CORAL_BLOCK",
@@ -10251,12 +10263,12 @@
                 "id": "stone"
             },
             "texture": "block/fire_coral_block.png",
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_FIRE_CORAL_BLOCK"
                 }
             ]
-        }, 
+        },
         {
             "id": 1064,
             "name": "DEAD_FIRE_CORAL_BLOCK",
@@ -10265,7 +10277,7 @@
                 "id": "stone"
             },
             "texture": "block/dead_fire_coral_block.png"
-        }, 
+        },
         {
             "id": 1065,
             "name": "HORN_CORAL_BLOCK",
@@ -10274,12 +10286,12 @@
                 "id": "stone"
             },
             "texture": "block/horn_coral_block.png",
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_HORN_CORAL_BLOCK"
                 }
             ]
-        }, 
+        },
         {
             "id": 1066,
             "name": "DEAD_HORN_CORAL_BLOCK",
@@ -10288,7 +10300,7 @@
                 "id": "stone"
             },
             "texture": "block/dead_horn_coral_block.png"
-        }, 
+        },
         {
             "id": 1067,
             "name": "TUBE_CORAL",
@@ -10303,13 +10315,13 @@
                 "doubleface",
                 "in_water_plant"
             ],
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_TUBE_CORAL"
                 }
             ],
             "texture": "block/tube_coral.png"
-        }, 
+        },
         {
             "id": 1068,
             "name": "DEAD_TUBE_CORAL",
@@ -10324,7 +10336,7 @@
                 "doubleface"
             ],
             "texture": "block/dead_tube_coral.png"
-        }, 
+        },
         {
             "id": 1069,
             "name": "BRAIN_CORAL",
@@ -10339,13 +10351,13 @@
                 "doubleface",
                 "in_water_plant"
             ],
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_BRAIN_CORAL"
                 }
             ],
             "texture": "block/brain_coral.png"
-        }, 
+        },
         {
             "id": 1070,
             "name": "DEAD_BRAIN_CORAL",
@@ -10361,7 +10373,7 @@
                 "in_water_plant"
             ],
             "texture": "block/dead_brain_coral.png"
-        }, 
+        },
         {
             "id": 1071,
             "name": "BUBBLE_CORAL",
@@ -10376,13 +10388,13 @@
                 "doubleface",
                 "in_water_plant"
             ],
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_BUBBLE_CORAL"
                 }
             ],
             "texture": "block/bubble_coral.png"
-        }, 
+        },
         {
             "id": 1072,
             "name": "DEAD_BUBBLE_CORAL",
@@ -10398,7 +10410,7 @@
                 "in_water_plant"
             ],
             "texture": "block/dead_bubble_coral.png"
-        }, 
+        },
         {
             "id": 1073,
             "name": "FIRE_CORAL",
@@ -10413,13 +10425,13 @@
                 "doubleface",
                 "in_water_plant"
             ],
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_FIRE_CORAL"
                 }
             ],
             "texture": "block/fire_coral.png"
-        }, 
+        },
         {
             "id": 1074,
             "name": "DEAD_FIRE_CORAL",
@@ -10435,7 +10447,7 @@
                 "in_water_plant"
             ],
             "texture": "block/dead_fire_coral.png"
-        }, 
+        },
         {
             "id": 1075,
             "name": "HORN_CORAL",
@@ -10450,13 +10462,13 @@
                 "doubleface",
                 "in_water_plant"
             ],
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_HORN_CORAL"
                 }
             ],
             "texture": "block/horn_coral.png"
-        }, 
+        },
         {
             "id": 1076,
             "name": "DEAD_HORN_CORAL",
@@ -10472,7 +10484,7 @@
                 "in_water_plant"
             ],
             "texture": "block/dead_horn_coral.png"
-        }, 
+        },
         {
             "id": 1077,
             "name": "TUBE_CORAL_FAN",
@@ -10490,13 +10502,13 @@
                 "rotate_by_pos_n",
                 "angle_facet"
             ],
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_TUBE_CORAL_FAN"
                 }
             ],
             "texture": "block/tube_coral_fan.png"
-        }, 
+        },
         {
             "id": 1078,
             "name": "DEAD_TUBE_CORAL_FAN",
@@ -10515,7 +10527,7 @@
                 "angle_facet"
             ],
             "texture": "block/dead_tube_coral_fan.png"
-        }, 
+        },
         {
             "id": 1079,
             "name": "BRAIN_CORAL_FAN",
@@ -10533,13 +10545,13 @@
                 "rotate_by_pos_n",
                 "angle_facet"
             ],
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_BRAIN_CORAL_FAN"
                 }
             ],
             "texture": "block/brain_coral_fan.png"
-        }, 
+        },
         {
             "id": 1080,
             "name": "DEAD_BRAIN_CORAL_FAN",
@@ -10558,7 +10570,7 @@
                 "angle_facet"
             ],
             "texture": "block/dead_brain_coral_fan.png"
-        }, 
+        },
         {
             "id": 1081,
             "name": "BUBBLE_CORAL_FAN",
@@ -10576,13 +10588,13 @@
                 "rotate_by_pos_n",
                 "angle_facet"
             ],
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_BUBBLE_CORAL_FAN"
                 }
             ],
             "texture": "block/bubble_coral_fan.png"
-        }, 
+        },
         {
             "id": 1082,
             "name": "DEAD_BUBBLE_CORAL_FAN",
@@ -10601,7 +10613,7 @@
                 "angle_facet"
             ],
             "texture": "block/dead_bubble_coral_fan.png"
-        }, 
+        },
         {
             "id": 1083,
             "name": "FIRE_CORAL_FAN",
@@ -10619,13 +10631,13 @@
                 "rotate_by_pos_n",
                 "angle_facet"
             ],
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_FIRE_CORAL_FAN"
                 }
             ],
             "texture": "block/fire_coral_fan.png"
-        }, 
+        },
         {
             "id": 1084,
             "name": "DEAD_FIRE_CORAL_FAN",
@@ -10644,7 +10656,7 @@
                 "angle_facet"
             ],
             "texture": "block/dead_fire_coral_fan.png"
-        }, 
+        },
         {
             "id": 1085,
             "name": "HORN_CORAL_FAN",
@@ -10662,13 +10674,13 @@
                 "rotate_by_pos_n",
                 "angle_facet"
             ],
-            "drop_item": [ 
+            "drop_item": [
                 {
                     "name": "DEAD_HORN_CORAL_FAN"
                 }
             ],
             "texture": "block/horn_coral_fan.png"
-        }, 
+        },
         {
             "id": 1086,
             "name": "DEAD_HORN_CORAL_FAN",

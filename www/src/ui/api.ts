@@ -1,12 +1,22 @@
+import type {UIApp} from "./app.js";
+
+export type API_Client_Callback<T = any> = (T) => void
+
 export class API_Client {
-    [key: string]: any;
+
+    api_url: string
 
     constructor(api_url = '') {
         this.api_url = api_url;
     }
 
     // Организует вызов API, обработку ответа и вызов callback-функции
-    async call(App, url, data, callback, callback_error, callback_progress, callback_final) {
+    async call(App: UIApp, url: string, data: any,
+               callback?: API_Client_Callback | null,
+               callback_error?: API_Client_Callback | null,
+               callback_progress?: API_Client_Callback | null,
+               callback_final?: API_Client_Callback | null
+    ): Promise<any> {
         let session         = App?.getSession();
         let sessionID       = session ? session.session_id : null;
         url                 = this.api_url + url;
@@ -34,7 +44,7 @@ export class API_Client {
             delete(options.headers['Content-Type']);
         }
         // Response
-        const response = await fetch(url, options)
+        return fetch(url, options)
             .then((res) => res.json())
             .then(result => {
                 if (result.error) {
@@ -59,14 +69,22 @@ export class API_Client {
                 if (callback_final && callback_final instanceof Function) {
                     callback_final(result);
                 }
-            })
-        .catch(error => {
+                return result
+            },
+        error => {
             console.log(error);
             if (error.response) {
                 //get HTTP error code
                 console.log(error.reponse.status)
             } else {
                 console.log(error.message)
+            }
+            const fakeResult = { status: 'error' }
+            if (callback_error && callback_error instanceof Function) {
+                callback_error(fakeResult)
+            }
+            if (callback_final && callback_final instanceof Function) {
+                callback_final(fakeResult)
             }
         })
     }

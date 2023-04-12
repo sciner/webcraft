@@ -4,6 +4,7 @@ import {Inventory, TInventoryState, TInventoryStateChangeMessage} from "@client/
 import { ServerClient } from "@client/server_client.js";
 import { ServerPlayer } from "./server_player.js";
 import type { Player } from "@client/player.js";
+import {DROP_ITEM_HORIZONTAL_VELOCITY, DROP_ITEM_VERTICAL_VELOCITY, THROW_ITEM_ADD_VERTICAL_VELOCITY, THROW_ITEM_VELOCITY} from "./server_constant.js";
 
 export class ServerPlayerInventory extends Inventory {
 
@@ -97,7 +98,7 @@ export class ServerPlayerInventory extends Inventory {
                         const yaw = params.throw_yaw
                         const mergedThrownItems = InventoryComparator.groupToSimpleItems(params.thrown_items).values()
                         for(const item of mergedThrownItems) {
-                            this.createDropItem([item], yaw != null, yaw)
+                            this.createDropItem([item], yaw ? THROW_ITEM_VELOCITY : 0, yaw)
                         }
                     }
                     // apply new
@@ -122,31 +123,31 @@ export class ServerPlayerInventory extends Inventory {
         this.send();
     }
 
-    private createDropItem(items: IInventoryItem[], thrown: boolean, yaw?: float): void {
+    private createDropItem(items: IInventoryItem[], throwVelocity?: float, yaw?: float): void {
         const player = this.player
         yaw ??= player.state.rotate.z
         const pos = player.state.pos.clone()
-        const velocity = this.temp_vec
+        let horizontalVelocity, verticalVelocity: float
 
-        if (thrown) {
+        if (throwVelocity) {
+            const pitch         = player.state.rotate.x
+            horizontalVelocity  = throwVelocity * Math.cos(pitch)
+            verticalVelocity    = throwVelocity * Math.sin(pitch) + THROW_ITEM_ADD_VERTICAL_VELOCITY
             pos.addScalarSelf(0, player.height * .4, 0)
-            velocity.set(
-                Math.sin(yaw),
-                .5,
-                Math.cos(yaw)
-            ).normSelf()
         } else {
+            horizontalVelocity  = DROP_ITEM_HORIZONTAL_VELOCITY
+            verticalVelocity    = DROP_ITEM_VERTICAL_VELOCITY
             pos.addScalarSelf(
                 -Math.sin(yaw) * .15 + (Math.random() - 0.5) * .5,
                 player.height * .4,
                 -Math.cos(yaw) * .15 + (Math.random() - 0.5) * .5,
             )
-            velocity.set(
-                Math.sin(yaw) * .5,
-                .5,
-                Math.cos(yaw) * .5,
-            )
         }
+        const velocity = this.temp_vec.set(
+            horizontalVelocity * Math.sin(yaw),
+            verticalVelocity,
+            horizontalVelocity * Math.cos(yaw)
+        )
         player.world.createDropItems(player, pos, items, velocity, true)
     }
 
@@ -155,7 +156,7 @@ export class ServerPlayerInventory extends Inventory {
         if(!this.current_item) {
             return false;
         }
-        this.createDropItem([{...this.current_item, count: 1}], true)
+        this.createDropItem([{...this.current_item, count: 1}], THROW_ITEM_VELOCITY)
         if(this.current_item.count == 1) {
             this.setItem(this.current.index, null);
         } else {
@@ -188,7 +189,7 @@ export class ServerPlayerInventory extends Inventory {
             return false;
         }
         console.log(this.player.state)
-        this.createDropItem([item], false)
+        this.createDropItem([item], 0)
         this.items[slot_index] = null;
         return true;
     }

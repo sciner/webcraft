@@ -14,6 +14,7 @@ import { WorldHistory } from "./history.js";
 import type { WorldAction } from "./world_action.js";
 import type { Player } from "./player.js";
 import type {ICmdPickatData} from "./pickat.js";
+import type {Physics} from "./prismarine-physics/index.js";
 
 // World container
 export class World implements IWorld {
@@ -34,6 +35,7 @@ export class World implements IWorld {
     server?: ServerClient;
     hello?: IChatCommand;
     history = new WorldHistory(this);
+    physics?: Physics
     private lastMeasuredQueudLag = 0
     private unansweredQueudLagTimes = new SimpleQueue<number>()
 

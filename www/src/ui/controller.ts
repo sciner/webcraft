@@ -1,6 +1,6 @@
 /// <reference path="../global-client.d.ts" />
 
-import { Helpers, isMobileBrowser, Vector } from '../helpers.js';
+import {CLIENT_MAX_SYNC_TIME_TWO_SIDED_LAG, Helpers, isMobileBrowser, MonotonicUTCDate, TApiSyncTimeResponse, Vector} from '../helpers.js';
 import { UIApp } from './app.js';
 import { TexturePackManager } from './texture_pack-manager.js';
 import { SkinManager } from './skin-manager.js';
@@ -524,6 +524,30 @@ let gameCtrl = async function($scope : any, $timeout : any) {
         $scope.loading_completed = true;
     }
 
+    $scope.syncTime = function() {
+        $scope.App.SyncTime((resp: TApiSyncTimeResponse) => {
+            const twoSidedLag = MonotonicUTCDate.nowWithoutExternalCorrection() - resp.clientUTCDate
+            if (twoSidedLag > CLIENT_MAX_SYNC_TIME_TWO_SIDED_LAG) {
+                console.warn('Lag is too high to synchronize time: ', Math.round(twoSidedLag))
+                $scope.syncTime()
+            } else {
+                const diff = Math.round(resp.serverUTCDate - (resp.clientUTCDate + twoSidedLag * 0.5))
+                MonotonicUTCDate.setExternalCorrection(diff)
+                console.log(`Time difference with server: ${diff} ms`)
+                $scope.onMyGamesLoadedOrTimeSynchronized()
+            }
+        }, (err) => {
+            // try until we succeed
+            setTimeout(() => { $scope.syncTime() }, 1000)
+        })
+    }
+
+    $scope.onMyGamesLoadedOrTimeSynchronized = function() {
+        if (!$scope.mygames.loading && MonotonicUTCDate.externalCorrectionInitialized) {
+            $scope.loadingComplete()
+        }
+    }
+
     // My games
     $scope.mygames = {
         list: [],
@@ -539,6 +563,7 @@ let gameCtrl = async function($scope : any, $timeout : any) {
             }
             const that = this;
             that.loading = true;
+            $scope.syncTime();
             $scope.App.MyWorlds({}, (worlds) => {
                 $timeout(() => {
                     that.list = worlds;
@@ -555,7 +580,7 @@ let gameCtrl = async function($scope : any, $timeout : any) {
                     }*/
                     that.enterWorld.joinToWorldIfNeed();
                     that.loading = false;
-                    $scope.loadingComplete();
+                    $scope.onMyGamesLoadedOrTimeSynchronized();
                 });
             });
         },

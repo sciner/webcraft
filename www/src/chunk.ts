@@ -8,6 +8,7 @@ import type BaseRenderer from "./renders/BaseRenderer.js";
 import type { ChunkManager } from "./chunk_manager.js";
 import {BaseGeometryPool} from "./geom/base_geometry_pool.js";
 import {ChunkMesh} from "./chunk_mesh.js";
+import {CHUNK_STATE} from "./chunk_const.js";
 
 let global_uniqId = 0;
 
@@ -164,6 +165,11 @@ export class Chunk {
         if (!this.dirt_colors) {
             this.dirt_colors = args.dirt_colors;
         }
+    }
+
+    /** Compatibility with server API */
+    isReady() : boolean {
+        return this.tblocks != null
     }
 
     getDataTextureOffset() {
