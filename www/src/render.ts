@@ -905,6 +905,7 @@ export class Renderer {
                 }
             }
         }
+        renderList.checkFence();
 
         const overChunk = player.getOverChunk();
         if (overChunk) {

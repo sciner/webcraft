@@ -1,8 +1,8 @@
-import {Color, Mth, Vector} from '../helpers.js';
+import {Color, IvanArray, Mth, Vector} from '../helpers.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import {BatchSystem} from "./batch/BatchSystem.js";
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
-import type {GeomCopyOperation} from "../geom/big_geom_batch_update.js";
+import type {IGeomCopyOperation} from "../geom/big_geom_batch_update.js";
 
 const {mat4} = glMatrix;
 
@@ -176,10 +176,10 @@ export class BaseBuffer {
         return this._data;
     }
 
-    bind() {
+    bind(loc?: number) {
     }
 
-    update() {
+    update(loc?: number) {
         this.dirty = false;
     }
 
@@ -191,7 +191,7 @@ export class BaseBuffer {
 
     }
 
-    batchUpdate(updateBuffer: BaseBuffer, copies: Array<GeomCopyOperation>, count: number, stride: number) {
+    batchUpdate(updBuffer: BaseBuffer, copies: IvanArray<IGeomCopyOperation>, stride: number) {
     }
 
     destroy() {

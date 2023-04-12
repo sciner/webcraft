@@ -82,19 +82,31 @@ export class ChunkRenderList {
     }
 
     get bufferSizeBytes() {
-        return this.bufferPool?.baseGeometry?.buffer?.bigLength || 0;
+        return this.bufferPool?.bufferSizeBytes;
     }
 
     uploadBuffers(render: Renderer) {
         let baseGeom = (this.bufferPool as any)?.baseGeometry;
         if (baseGeom) {
-            baseGeom.bind(render.defaultShader);
+            baseGeom.upload(render.defaultShader);
         }
         baseGeom = (this.chunkManager.fluidWorld.mesher.renderPool as any)?.baseGeometry;
         if (baseGeom) {
-            baseGeom.bind(render.defaultFluidShader);
+            baseGeom.upload(render.defaultFluidShader);
         }
     }
+
+    checkFence() {
+        let baseGeom = (this.bufferPool as any)?.baseGeometry;
+        if (baseGeom) {
+            baseGeom.checkFence();
+        }
+        baseGeom = (this.chunkManager.fluidWorld.mesher.renderPool as any)?.baseGeometry;
+        if (baseGeom) {
+            baseGeom.checkFence();
+        }
+    }
+
 
     /**
      * highly optimized

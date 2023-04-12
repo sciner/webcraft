@@ -390,6 +390,17 @@ export class IvanArray<T=any> {
         }
     }
 
+    shiftCount(cnt) {
+        const { count, arr } = this;
+        this.count -= cnt;
+        for (let i = cnt; i < count; i++) {
+            arr[i - cnt] = arr[i];
+        }
+        for (let i = this.count; i < count; i++) {
+            arr[i] = null;
+        }
+    }
+
     push(elem: T) {
         this.arr[this.count++] = elem;
     }

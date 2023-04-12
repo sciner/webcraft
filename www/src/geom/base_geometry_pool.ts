@@ -2,7 +2,7 @@ import { GeometryTerrain16 } from "./terrain_geometry_16.js";
 import type {IChunkVertexBuffer} from "../chunk";
 
 export class BaseGeometryPool {
-    [key: string]: any;
+    context: any;
     constructor(context) {
         this.context = context;
     }
@@ -25,6 +25,10 @@ export class BaseGeometryPool {
     prepareMem(instances: number) {
     }
 
+    get bufferSizeBytes() {
+        return 0;
+    }
+
     static getVerticesMapSize(vertices: Dict<IChunkVertexBuffer>) {
         let res = 0;
         for (let v of Object.values(vertices)) {
@@ -37,7 +41,6 @@ export class BaseGeometryPool {
 }
 
 export class TrivialGeometryPool extends BaseGeometryPool {
-    [key: string]: any;
     constructor(context) {
         super(context);
     }
