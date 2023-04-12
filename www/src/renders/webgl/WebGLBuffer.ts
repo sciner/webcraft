@@ -9,7 +9,6 @@ export class WebGLBuffer extends BaseBuffer {
      * length of last uploaded buffer to webgl, in bytes
      */
     glLength = 0;
-    glType = 0;
     buffer: WebGLBuffer = null;
     glTrySubData = true;
 

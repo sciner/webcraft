@@ -2,7 +2,6 @@ import {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
 import type {BaseBuffer} from "../renders/BaseRenderer.js";
 import type WebGLRenderer from "../renders/webgl";
 import type {BaseGeometryVao} from "./base_geometry_vao.js";
-import {GL_BUFFER_LOCATION} from "./base_geometry_vao.js";
 import {VAO_BUFFER_TYPE} from "./base_geometry_vao.js";
 
 export interface BigGeometryOptions {
@@ -22,9 +21,9 @@ export class BaseBigGeometry {
     gl: WebGL2RenderingContext = null;
     useDoubleBuffer = false;
 
-    geomClass: new (options:any) => BaseGeometryVao;
+    geomClass: new (options: any) => BaseGeometryVao;
 
-    constructor({staticSize = 128, dynamicSize = 128, useDoubleBuffer = true} : BigGeometryOptions) {
+    constructor({staticSize = 128, dynamicSize = 128, useDoubleBuffer = true}: BigGeometryOptions) {
         this.staticSize = staticSize;
         this.dynamicSize = dynamicSize;
         this.useDoubleBuffer = useDoubleBuffer;
@@ -55,11 +54,21 @@ export class BaseBigGeometry {
         }
     }
 
+    flipCount = 0;
+
     flip() {
+        this.flipCount++;
+        // if (!this.indexBuffer) {
+        //     console.log(`FLIP ${this.flipCount}`);
+        // }
         const t = this.staticDraw;
         this.staticDraw = this.staticCopy;
         this.staticCopy = t;
         this.batch.flip();
+
+        if (this.staticCopy.size < this.staticSize) {
+            this.staticCopy?.resize(this.staticSize);
+        }
     }
 
     upload(shader) {
@@ -75,7 +84,9 @@ export class BaseBigGeometry {
         if (batch.instCount === 0) {
             return;
         }
-        batch.updDynamic();
+        if (dynamicDraw.buffer?.dirty) {
+            batch.updDynamic();
+        }
         if (this.useDoubleBuffer) {
             if (staticCopy.isSynced()) {
                 if (staticCopy.copyFlag) {
@@ -85,7 +96,7 @@ export class BaseBigGeometry {
                     staticCopy.copyFlag = true;
                     staticCopy.buffer.batchUpdate(batch.vao.buffer, batch.copies, staticDraw.stride);
                     batch.preFlip();
-                    staticCopy.checkFence();
+                    staticCopy.checkFence(true);
                 }
             }
         } else {
@@ -107,8 +118,9 @@ export class BaseBigGeometry {
 
     resize(newSize) {
         this.staticSize = newSize;
-        this.staticDraw.resize(newSize);
-        this.staticCopy?.resize(newSize);
+        if (!this.staticCopy?.copyFlag) {
+            this.staticCopy.resize(newSize);
+        }
         console.debug(`multigeometry resize ${newSize}`);
     }
 

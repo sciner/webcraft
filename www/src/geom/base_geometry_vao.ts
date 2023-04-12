@@ -8,12 +8,6 @@ export enum VAO_BUFFER_TYPE {
     DYNAMIC = 2
 }
 
-export enum GL_BUFFER_LOCATION {
-    COPY_READ_BUFFER = 36662,
-    COPY_WRITE_BUFFER = 36662,
-    ARRAY_BUFFER = 34962,
-}
-
 export interface GeometryVaoOptions {
     context?: BaseRenderer,
     size?: number,
@@ -125,8 +119,8 @@ export class BaseGeometryVao {
         this.bindForDraw();
     }
 
-    checkFence() {
-        if (this.drawBindCountSync === this.drawBindCount && !this.copyFlag) {
+    checkFence(force = false) {
+        if (this.drawBindCountSync === this.drawBindCount && !force) {
             return;
         }
         this.drawBindCountSync = this.drawBindCount;

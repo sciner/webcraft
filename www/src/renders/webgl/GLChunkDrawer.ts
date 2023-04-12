@@ -38,7 +38,7 @@ export class GLChunkDrawer extends ChunkDrawer {
 
         const baseGeom = geom.baseGeometry;
         if (baseGeom) {
-            const vao = geom.isDynamic ? baseGeom.dynamicDraw : baseGeom.staticDraw;
+            const vao = geom.batchStatus > 0 ? baseGeom.dynamicDraw : baseGeom.staticDraw;
             if (this.curVao !== vao
                 || this.curMat !== material) {
                 this.flush();

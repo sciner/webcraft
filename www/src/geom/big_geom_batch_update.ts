@@ -2,7 +2,6 @@ import type { BaseBigGeometry } from "./base_big_geometry";
 import type {BaseGeometryVao} from "./base_geometry_vao";
 import type {TerrainSubGeometry} from "./terrain_sub_geometry";
 import {IvanArray} from "../helpers.js";
-import {GL_BUFFER_LOCATION} from "./base_geometry_vao.js";
 
 export interface IGeomCopyOperation {
     batchStart: number;
@@ -42,13 +41,16 @@ export class BigGeomBatchUpdate {
         const f32 = new Float32Array(ab);
         this.data.set(f32, this.instCount * this.strideFloats);
         this.instCount += f32.length / this.strideFloats;
+        if (this.vao.buffer) {
+            this.vao.buffer.dirty = true;
+        }
     }
 
     reset() {
         this.instCount = 0;
         const {copies} = this;
         for (let i = 0; i < copies.count; i++) {
-            copies.arr[i].isDynamic = false;
+            copies.arr[i].batchStatus = 0;
         }
         copies.count = 0;
     }
@@ -57,12 +59,22 @@ export class BigGeomBatchUpdate {
     flipCopyCount = 0;
 
     checkInvariant() {
-        const {flipCopyCount, copies, flipInstCount, data, strideFloats} = this;
-        for (let i = 0; i < flipCopyCount; i++) {
+        const {flipCopyCount, copies, flipInstCount, postFlipCopyCount} = this;
+        for (let i = 0; i < copies.count; i++) {
             const copy = copies.arr[i];
-            if (copy.batchStatus) {
+            let st = 0;
+            if (i >= flipCopyCount) {
+                st++;
+                if (i >= postFlipCopyCount) {
+                    st++;
+                }
+            }
+            if (copy.batchStatus < st) {
+                console.log("WTF");
+            }
+            if (copy.batchStatus > st) {
                 let find = -1;
-                for (let j = flipCopyCount; j < copies.count; j++) {
+                for (let j = i + 1; j < copies.count; j++) {
                     if (copies.arr[j] === copy) {
                         find = j;
                         break;
@@ -73,7 +85,10 @@ export class BigGeomBatchUpdate {
                 }
             }
         }
-        for (let i = flipCopyCount; i < copies.count; i++) {
+        for (let i = flipCopyCount; i < postFlipCopyCount; i++) {
+            if (!copies.arr[i]) {
+                console.log("WTF2");
+            } else
             if (!copies.arr[i].batchStatus) {
                 console.log("WTF");
             }
@@ -102,10 +117,7 @@ export class BigGeomBatchUpdate {
     flip() {
         const {flipCopyCount, copies, flipInstCount, data, strideFloats,
             postFlipInstCount, postFlipCopyCount} = this;
-        this.checkInvariant();
-        if (copies.count > postFlipCopyCount) {
-            console.log("postflip");
-        }
+        // this.checkInvariant();
         for (let i = flipCopyCount; i < postFlipCopyCount; i++) {
             copies.arr[i].batchStart -= flipInstCount;
             copies.arr[i].batchStatus--;
@@ -117,13 +129,12 @@ export class BigGeomBatchUpdate {
             }
         }
         if (flipInstCount === 0) {
-            if (this.flipCopyCount > 0) {
-                console.log("WTF");
-            }
             this.flipCopyCount = postFlipCopyCount;
             this.flipInstCount = postFlipInstCount;
+            this.postFlipInstCount = this.instCount;
+            this.postFlipCopyCount = this.copies.count;
             this.flipStatus = 1;
-            this.checkInvariant();
+            // this.checkInvariant();
             return;
         }
         copies.shiftCount(flipCopyCount);
@@ -132,10 +143,11 @@ export class BigGeomBatchUpdate {
         data.copyWithin(0, flipInstCount * strideFloats, this.instCount * strideFloats);
         this.instCount -= flipInstCount;
         this.flipInstCount = postFlipInstCount - flipInstCount;
-        this.checkInvariant();
 
+        this.postFlipInstCount = this.instCount;
+        this.postFlipCopyCount = this.copies.count;
         this.flipStatus = 1;
-
+        // this.checkInvariant();
         this.updDynamic();
     }
 
