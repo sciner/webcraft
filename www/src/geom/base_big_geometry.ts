@@ -1,132 +1,113 @@
-import GeometryTerrain from "../geometry_terrain.js";
-import type {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
+import {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
 import type {BaseBuffer} from "../renders/BaseRenderer.js";
 import type WebGLRenderer from "../renders/webgl";
+import type {BaseGeometryVao} from "./base_geometry_vao.js";
+import {GL_BUFFER_LOCATION} from "./base_geometry_vao.js";
+import {VAO_BUFFER_TYPE} from "./base_geometry_vao.js";
+
+export interface BigGeometryOptions {
+    staticSize?: number;
+    dynamicSize?: number;
+    useDoubleBuffer?: boolean;
+}
 
 export class BaseBigGeometry {
-    static strideFloats = 10;
-    static sortAss = (a, b) => {
-        return a - b;
-    };
+    staticSize: number;
+    dynamicSize: number;
 
-    batch: BigGeomBatchUpdate = null;
-
-    updateID = 0;
-    uploadID = -1;
-    strideFloats: number;
-    stride: number;
-    context: WebGLRenderer;
-    size: number;
-    indexData: Int32Array;
-    buffer: BaseBuffer = null;
+    indexData: Int32Array = null;
     indexBuffer: BaseBuffer = null;
-    quad: BaseBuffer = null;
-    vao: WebGLVertexArrayObject = null;
-    buffers: BaseBuffer[] = [];
-    hasInstance = false;
-    gl: WebGL2RenderingContext;
-    attribs: any;
 
-    constructor({context = null, size = 128, strideFloats = 0} = {}) {
-        this.strideFloats = strideFloats;
-        this.stride = this.strideFloats * 4;
-        this.context = context;
-        this.size = size;
+    context: WebGLRenderer;
+    gl: WebGL2RenderingContext = null;
+    useDoubleBuffer = false;
+
+    geomClass: new (options:any) => BaseGeometryVao;
+
+    constructor({staticSize = 128, dynamicSize = 128, useDoubleBuffer = false} : BigGeometryOptions) {
+        this.staticSize = staticSize;
+        this.dynamicSize = dynamicSize;
+        this.useDoubleBuffer = useDoubleBuffer;
+        this.createGeom();
     }
 
-    createVao() {
-        // override!
-    }
-    attribBufferPointers() {
-        // override!
+    strideFloats: number;
+    staticDraw: BaseGeometryVao;
+    staticCopy: BaseGeometryVao;
+    dynamicDraw: BaseGeometryVao;
+    batch: BigGeomBatchUpdate;
+
+    createGeom() {
+        this.staticDraw = new this.geomClass({size: this.staticSize, bufferType: VAO_BUFFER_TYPE.BIG});
+        if (this.useDoubleBuffer) {
+            this.staticCopy = new this.geomClass({size: this.staticSize, bufferType: VAO_BUFFER_TYPE.BIG});
+        }
+        this.dynamicDraw = new this.geomClass({size: this.dynamicSize, bufferType: VAO_BUFFER_TYPE.DYNAMIC});
+        this.strideFloats = this.staticDraw.strideFloats;
+        this.batch = new BigGeomBatchUpdate(this);
     }
 
-    bind(shader) {
-        if (shader) {
-            this.attribs = shader;
+    bind() {
+        const geom = this.staticDraw;
+        geom.bindForDraw();
+        if (geom.hasInstance && !this.context.multidrawBaseExt) {
+            geom.buffer.bind();
+        }
+    }
+
+    flip() {
+        const t = this.staticDraw;
+        this.staticDraw = this.staticCopy;
+        this.staticCopy = t;
+        this.batch.flip();
+    }
+
+    upload(shader) {
+        const {batch, staticDraw, staticCopy, dynamicDraw} = this;
+        if (!this.context) {
             this.context = shader.context;
             // when WebGL
             this.gl = shader.context.gl;
+            staticDraw.init(shader);
+            staticCopy?.init(shader);
+            dynamicDraw.init(shader);
         }
-
-        if (!this.buffer) {
-            this.buffer = this.context.createBuffer({
-                usage: 'static',
-                bigLength: this.size * this.stride,
-            });
-            // this.data = null;
-
-            if (this.hasInstance) {
-                this.quad = GeometryTerrain.bindQuad(this.context, true);
-                this.buffers = [
-                    this.buffer,
-                    this.quad
-                ];
-            } else {
-                //TODO
-            }
-        }
-
-
-        const {gl} = this;
-
-        if (gl) {
-            if (!this.vao) {
-                this.createVao();
-                this.uploadID = this.updateID;
-                return;
-            }
-
-            gl.bindVertexArray(this.vao);
-        }
-
-        // multi upload!
-        if (this.uploadID === this.updateID) {
-            if (this.hasInstance && !this.context.multidrawBaseExt) {
-                this.buffer.bind();
-            }
+        if (batch.instCount === 0) {
             return;
         }
-        this.uploadID = this.updateID;
-        if (this.batch.copyPos > 0) {
-            const batchBuf = this.batch.getBuf(this.context);
-            batchBuf.updatePartial(this.batch.pos * this.strideFloats);
-            this.buffer.batchUpdate(batchBuf, this.batch.copies, this.batch.copyPos, this.stride);
-            this.batch.reset();
+        batch.updDynamic();
+        if (this.useDoubleBuffer) {
+            if (staticCopy.isReadyForUpload()) {
+                staticCopy.buffer.batchUpdate(batch.vao.buffer, batch.copies, staticDraw.stride);
+                this.flip();
+            }
         } else {
-            this.buffer.bind();
-        }
-        if (this.buffer.bigResize) {
-            this.buffer.bigResize = false;
-            this.attribBufferPointers();
+            staticDraw.buffer.batchUpdate(batch.vao.buffer, batch.copies, staticDraw.stride);
+            batch.reset();
         }
         if (this.indexBuffer) {
             this.indexBuffer.bind();
         }
     }
 
-    resize(newSize) {
-        this.size = newSize;
-        this.updateID++;
-        if (this.buffer) {
-            this.buffer.dirty = true;
-            this.buffer.bigLength = this.size * this.stride;
+    checkFence() {
+        if (!this.useDoubleBuffer) {
+            return;
         }
+        this.staticDraw.checkFence();
+        this.staticCopy.checkFence();
+    }
+
+    resize(newSize) {
+        this.staticSize = newSize;
+        this.staticDraw.resize(newSize);
+        this.staticCopy?.resize(newSize);
         console.debug(`multigeometry resize ${newSize}`);
     }
 
     destroy() {
-        // we not destroy it, it shared
-        this.quad = null;
-
-        if (this.buffer) {
-            this.buffer.destroy();
-            this.buffer = null;
-        }
-
-        if (this.vao) {
-            this.gl.deleteVertexArray(this.vao);
-            this.vao = null;
-        }
+        // its shared, should never be called
+        this.staticDraw.destroy();
+        this.dynamicDraw.destroy();
     }
 }

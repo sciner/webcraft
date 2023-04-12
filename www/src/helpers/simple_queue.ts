@@ -4,8 +4,8 @@
  * push() is not fully compatible with Array: it doesn't support multiple arguments.
  */
 export class SimpleQueue<T = any> {
-    arr: T[];
-    left = 0;
+    private arr: T[];
+    private left = 0;
     length = 0; // the number of actually used elements
 
     constructor() {
