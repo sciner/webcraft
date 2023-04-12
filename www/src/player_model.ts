@@ -253,17 +253,18 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         const bb_display = block.bb?.model?.json?.display
         const bbmodel_hand = (is_left_arm ? bb_display?.thirdperson_lefthand : bb_display?.thirdperson_righthand) ?? {}
 
-        if(bb_display) {
+        if(bb_display || !!block.bb) {
             let orig_slot_position = slot.holder.orig_position // внутрь туловища / от туловища; вдоль руки; над рукой
             if(!orig_slot_position) {
-                orig_slot_position = slot.holder.orig_position = slot.holder.position
-                orig_slot_position[2] += .5
+                slot.holder.orig_position = [...slot.holder.position]
+                slot.holder.orig_position[2] += .5
+                orig_slot_position = slot.holder.orig_position
             }
             const base = {
                 scale: [1, 1, 1],
                 pivot: [0, 0, -.5],
                 rotation: [0, 0, 0],
-                translation: orig_slot_position
+                translation: [...orig_slot_position]
             }
             // 1. translation (1 = 1/16)
             if(bbmodel_hand.translation) {
