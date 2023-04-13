@@ -67,12 +67,12 @@ export class BBModel_Preview {
         this.render.player = player
 
         // Init blocks
-        // const blockTask = BLOCK.init(world.settings)
-        // await Promise.all([blockTask])
-        BLOCK.reset()
-        BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK)
-        await BLOCK.resource_pack_manager.init(world.settings)
-        BLOCK.reset()
+        const blockTask = BLOCK.init(world.settings)
+        await Promise.all([blockTask])
+        // BLOCK.reset()
+        // BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK)
+        // await BLOCK.resource_pack_manager.init(world.settings)
+        // BLOCK.reset()
 
         world.players = new PlayerManager(world)
         world.mobs = new MobManager(world)
