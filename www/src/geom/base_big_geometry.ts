@@ -91,10 +91,13 @@ export class BaseBigGeometry {
             if (staticCopy.isSynced()) {
                 if (staticCopy.copyFlag) {
                     staticCopy.copyFlag = false;
+                    // let tempCnt = batch.copies.count;
+                    // batch.copies.count = batch.postFlipInstCount;
+                    staticCopy.buffer.batchUpdate(batch.vao.copyBuffer, batch.copies, staticDraw.stride);
+                    // batch.copies.count = tempCnt;
                     this.flip();
                 } else {
                     staticCopy.copyFlag = true;
-                    staticCopy.buffer.batchUpdate(batch.vao.buffer, batch.copies, staticDraw.stride);
                     batch.preFlip();
                     staticCopy.checkFence(true);
                 }

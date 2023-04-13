@@ -112,6 +112,7 @@ export class BigGeomBatchUpdate {
         this.postFlipInstCount = this.instCount;
         this.postFlipCopyCount = this.copies.count;
         this.flipStatus = 2;
+        this.vao.doCopy();
     }
 
     flip() {

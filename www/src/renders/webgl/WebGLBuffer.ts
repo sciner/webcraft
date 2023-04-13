@@ -118,6 +118,7 @@ export class WebGLBuffer extends BaseBuffer {
             for (let j = 0; j < len; j++) {
                 const offset = op.glOffsets[j];
                 const count = op.glCounts[j];
+                // gl.bufferSubData(loc, offset * stride, updBuffer._data, batchPos * stride / 4, count * stride / 4);
                 gl.copyBufferSubData(gl.COPY_READ_BUFFER, loc,
                     batchPos * stride, offset * stride, count * stride);
                 batchPos += count;
