@@ -373,31 +373,38 @@ export class InHandOverlay {
         if(block) {
             const bb_display         = block.bb?.model?.json?.display
             const bbmodel_hand       = (false ? bb_display?.firstperson_lefthand : bb_display?.firstperson_righthand) ?? null // {}
-            if(false && bb_display && bbmodel_hand) {
-                base.position[0] += 1 // лево/право
-                base.position[1] += .5 // высота
-                base.rotation[2] += 180 // поворот
+            if(bb_display && bbmodel_hand) {
+                base.position[0] -= 1.75 // право/лево
+                base.position[1] += 0.85 // вниз/вверх
+                base.position[2] += 1.0  // на себя/от себя
+                if(block.diagonal) {
+                    base.position[1] += .25
+                }
+                // rotation
+                base.rotation[1] += 180 // поворот
                 // 1. position (1 = 1/16)
-                // base.position[2] += .5
                 if(bbmodel_hand.translation) {
                     base.position[0] += bbmodel_hand.translation[0] / 16
-                    base.position[1] += bbmodel_hand.translation[2] / 16
-                    base.position[2] += bbmodel_hand.translation[1] / 16
+                    base.position[1] += bbmodel_hand.translation[1] / 16
+                    base.position[2] += bbmodel_hand.translation[2] / 16
                 }
                 // 2. pivot
                 // 3. rotation (в градусах -180...180)
                 if(bbmodel_hand.rotation) {
                     base.rotation[0] -= bbmodel_hand.rotation[0]
-                    base.rotation[1] += bbmodel_hand.rotation[2]
-                    base.rotation[2] += bbmodel_hand.rotation[1]
+                    base.rotation[1] += bbmodel_hand.rotation[1]
+                    base.rotation[2] += bbmodel_hand.rotation[2]
                 }
                 // 4. scale
                 if(bbmodel_hand.scale) {
                     base.scale.set(bbmodel_hand.scale)
                 }
                 quat.fromEuler(q, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
-                mat4.fromRotationTranslationScaleOrigin(modelMatrix, q, base.position, base.scale, base.pivot);
-                // mat4.multiply(modelMatrix, modelMatrix, m)
+                mat4.fromRotationTranslationScaleOrigin(m, q, base.position, base.scale, base.pivot)
+                mat4.multiply(modelMatrix, modelMatrix, m)
+
+                swapMatrixYZ(modelMatrix)
+
                 return
             } else {
                 base.position.set([.5, 0, 0])
