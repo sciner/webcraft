@@ -34,7 +34,6 @@ export class RendererBBModel {
     renderBackend:          WebGLRenderer
     meshes:                 MeshManager
     camera:                 Camera
-    debugGeom:              LineGeometry
     canvas:                 any
     settings:               any
     options:                any = {FOV_WIDE_FACTOR, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING_FACTOR, FOV_FLYING_CHANGE_SPEED}
@@ -55,7 +54,7 @@ export class RendererBBModel {
 
         this.canvas             = document.getElementById(qubatchRenderSurfaceId)
         this.canvas.renderer    = this
-        this.env                = new Environment(this)
+        this.env                = new Environment(this as any)
 
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
@@ -204,9 +203,9 @@ export class RendererBBModel {
             fogColor : this.env.interpolatedClearValue
         });
 
-        this.env.draw(this)
+        this.env.draw(this as any)
         this.defaultShader.bind(true)
-        this.meshes.draw(this, delta, player.lerpPos)
+        this.meshes.draw(this as any, delta, player.lerpPos)
         // this.debugGeom.draw(renderBackend)
         // this.defaultShader.bind()
         renderBackend.endPass()
@@ -219,7 +218,7 @@ export class RendererBBModel {
         if(!model) {
             return null
         }
-        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name, doubleface)
+        const bbmodel = new Mesh_Object_BBModel(this as any, pos, rotate, model, animation_name, doubleface)
         bbmodel.setAnimation(animation_name)
         return this.meshes.add(bbmodel, key)
     }

@@ -7,13 +7,12 @@ import { Resources } from "../resources.js"
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import { BLOCK } from "../blocks.js"
 import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js"
-import { ShaderPreprocessor } from "../renders/ShaderPreprocessor.js"
 
 const {mat4} = glMatrix;
 
 export class BBModel_Preview {
 
-    #_stop:         boolean = false
+    #_active:       boolean = false
     render:         RendererBBModel
     m4:             any = mat4.create()
     prev_time:      float = performance.now()
@@ -26,6 +25,10 @@ export class BBModel_Preview {
         if(this.render) {
             return
         }
+
+        this.#_active = true
+
+        let p = performance.now()
 
         this.render = new RendererBBModel('bbmodel_preview')
         const renderBackend = this.render.renderBackend
@@ -85,28 +88,31 @@ export class BBModel_Preview {
         // Start render loop
         this.preLoop = this.preLoop.bind(this)
         this.preLoop()
+        console.debug(performance.now() - p)
 
     }
 
     stop() {
-        this.#_stop = true
-        // BLOCK.resource_pack_manager.list.clear()
-        // BLOCK.list = new Map()
-        this.render.renderBackend.destroy();
-        for(let rp of BLOCK.resource_pack_manager.list.values()) {
-            rp.killRender()
+        if(this.#_active) {
+            this.#_active = false
+            // BLOCK.resource_pack_manager.list.clear()
+            // BLOCK.list = new Map()
+            this.render.renderBackend.destroy();
+            for(let rp of BLOCK.resource_pack_manager.list.values()) {
+                rp.killRender()
+            }
         }
     }
 
     preLoop() {
 
-        if(this.#_stop) {
+        if(!this.#_active) {
             return
         }
 
         this.render.camera.set(this.render.camPos, this.camRot, this.m4)
 
-        // this.mesh.rotate.z =  performance.now() / 1000 * 2 // Math.PI * 1.15
+        this.mesh.rotate.z =  performance.now() / 1000 * 2 // Math.PI * 1.15
 
         const delta = performance.now() - this.prev_time
         this.render.draw(delta, undefined)
