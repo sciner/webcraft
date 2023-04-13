@@ -28,7 +28,7 @@ export class MobManager {
 
         render = render ?? Qubatch.render
 
-        for(let name of ['pig']) {
+        for(let name of ['pig', 'humanoid']) {
             const model = Resources._bbmodels.get(`mob/${name}`)
             const mesh = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
             mesh.parts = {
