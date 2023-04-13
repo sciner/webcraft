@@ -105,10 +105,10 @@ export class RendererBBModel {
             }
         }
 
-        if(!settings || !settings?.disable_env) {
-            this.env.init(this)
-            this.env.setBrightness(1)
-        }
+        // if(!settings || !settings?.disable_env) {
+        //     this.env.init(this)
+        //     this.env.setBrightness(1)
+        // }
 
         renderBackend.resize(this.canvas.width, this.canvas.height)
 
