@@ -29,7 +29,7 @@ export class BBModel_Preview {
 
         this.render = new RendererBBModel('bbmodel_preview')
         const renderBackend = this.render.renderBackend
-  
+
         // load resources
         await Resources.preload({
             imageBitmap:    true,
@@ -92,6 +92,7 @@ export class BBModel_Preview {
         this.#_stop = true
         // BLOCK.resource_pack_manager.list.clear()
         // BLOCK.list = new Map()
+        this.render.renderBackend.destroy();
         for(let rp of BLOCK.resource_pack_manager.list.values()) {
             rp.killRender()
         }
