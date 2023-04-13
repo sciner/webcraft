@@ -93,17 +93,19 @@ export class BaseBigGeometry {
                     staticCopy.copyFlag = false;
                     // let tempCnt = batch.copies.count;
                     // batch.copies.count = batch.postFlipInstCount;
-                    staticCopy.buffer.batchUpdate(batch.vao.copyBuffer, batch.copies, staticDraw.stride);
+                    staticCopy.buffer.batchUpdate(batch.vao.copyBuffer, batch.copyOps, staticDraw.stride);
                     // batch.copies.count = tempCnt;
                     this.flip();
                 } else {
                     staticCopy.copyFlag = true;
                     batch.preFlip();
+                    dynamicDraw.doCopy();
                     staticCopy.checkFence(true);
                 }
             }
         } else {
-            staticDraw.buffer.batchUpdate(batch.vao.buffer, batch.copies, staticDraw.stride);
+            batch.preFlip();
+            staticDraw.buffer.batchUpdate(batch.vao.buffer, batch.copyOps, staticDraw.stride);
             batch.reset();
         }
         if (this.indexBuffer) {

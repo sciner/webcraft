@@ -2,12 +2,30 @@ import type { BaseBigGeometry } from "./base_big_geometry";
 import type {BaseGeometryVao} from "./base_geometry_vao";
 import type {TerrainSubGeometry} from "./terrain_sub_geometry";
 import {IvanArray} from "../helpers.js";
+import {SimplePool} from "../helpers/simple_pool.js";
 
-export interface IGeomCopyOperation {
-    batchStart: number;
-    glOffsets: number[];
-    glCounts: number[];
-    copyId: number;
+/**
+ * stores instance indexes
+ */
+export class GeomCopyOperation {
+    src: number;
+    dst: number;
+    count: number;
+
+    reset() {
+        this.src = 0;
+        this.dst = 0;
+        this.count = 0;
+    }
+
+    set(src: number, dst: number, count: number) {
+        this.src = src;
+        this.dst = dst;
+        this.count = count;
+        return this;
+    }
+
+    static pool = new SimplePool<GeomCopyOperation>(GeomCopyOperation);
 }
 
 export class BigGeomBatchUpdate {
@@ -17,6 +35,7 @@ export class BigGeomBatchUpdate {
     baseGeom: BaseBigGeometry;
     vao: BaseGeometryVao;
     data: Float32Array;
+    copyOps = new IvanArray<GeomCopyOperation>();
 
     constructor(baseGeom: BaseBigGeometry) {
         this.baseGeom = baseGeom;
@@ -48,11 +67,15 @@ export class BigGeomBatchUpdate {
 
     reset() {
         this.instCount = 0;
-        const {copies} = this;
+        const {copies, copyOps} = this;
         for (let i = 0; i < copies.count; i++) {
             copies.arr[i].batchStatus = 0;
         }
-        copies.count = 0;
+        copies.clear();
+        for (let i = 0; i < copyOps.count; i++) {
+            GeomCopyOperation.pool.free(copyOps.arr[i]);
+        }
+        copyOps.clear();
     }
 
     flipInstCount = 0;
@@ -112,7 +135,23 @@ export class BigGeomBatchUpdate {
         this.postFlipInstCount = this.instCount;
         this.postFlipCopyCount = this.copies.count;
         this.flipStatus = 2;
-        this.vao.doCopy();
+
+        const {flipCopyCount, copies, copyOps} = this;
+        for (let i = 0; i < copyOps.count; i++) {
+            GeomCopyOperation.pool.free(copyOps.arr[i]);
+        }
+        copyOps.clear();
+        for (let i = 0; i < copies.count; i++) {
+            const copy = copies.arr[i];
+            if (copy.batchStatus > 0 && i < flipCopyCount) {
+                continue;
+            }
+            let pos = copy.batchStart;
+            for (let j = 0; j < copy.glCounts.length; j++) {
+                copyOps.push(GeomCopyOperation.pool.alloc().set(pos, copy.glOffsets[j], copy.glCounts[j]));
+                pos += copy.glCounts[j];
+            }
+        }
     }
 
     flip() {
