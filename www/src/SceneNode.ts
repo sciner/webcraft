@@ -50,6 +50,15 @@ export class SceneNode {
         return this.terrainGeometry;
     }
 
+    setChild(child, material) {
+        child.parent = this.parent
+        child.material = material
+        this.children = child.children
+        this.terrainGeometry = child.terrainGeometry
+        this.setMaterial(child.material)
+        this.setVisible(true)
+    }
+
     addChild(child) {
         if (child.parent === this) {
             return;
@@ -64,6 +73,42 @@ export class SceneNode {
         this.children.push(child);
 
         child.parent = this;
+    }
+
+    setMaterial(val) {
+        this.material = val
+        for (const child of this.children) {
+            child.setMaterial(val)
+        }
+    }
+
+    setVisible(val) {
+        this.visible = val
+        for (const child of this.children) {
+            child.setVisible(val)
+        }
+    }
+    
+    replaceChild(name, child) {
+        const node = this.findNode(name)
+        if (!node) {
+            if (child) {
+                child.parent = this
+                this.children.push(child)
+                return true
+            }
+            return false
+        }
+        const index = this.children.indexOf(node)
+        if (index === -1) {
+            return false
+        }
+        this.children.splice(index, 1)
+        if (child) {
+            child.parent = this
+            this.children.push(child)
+        }
+        return true
     }
 
     removeChild(child) {
@@ -87,7 +132,7 @@ export class SceneNode {
             return null;
         }
 
-        for (let child of this.children) {
+        for (const child of this.children) {
             if (child.name.toLowerCase() === name.toLowerCase()) {
                 return child;
             }

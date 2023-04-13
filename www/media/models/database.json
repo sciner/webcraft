@@ -16,10 +16,21 @@
                 "leather_layer_1": "textures/armor/leather_layer_1.png",
                 "leather_layer_2": "textures/armor/leather_layer_2.png",
                 "turtle_layer_1": "textures/armor/turtle_layer_1.png",
-                "netherite_layer_1": "textures/armor/netherite_layer_1.png"
+                "netherite_layer_1": "textures/armor/netherite_layer_1.png",
+                "test": "textures/armor/test_armor.png"
             }
         },
-        
+		"scrap": {
+            "type": "json",
+            "geom": "json/scrap.geo.json",
+            "baseSkin": "iron",
+            "skins": {
+                "iron": "textures/armor/scrap_armor_iron.png",
+                "gold": "textures/armor/scrap_armor_gold.png",
+                "copper": "textures/armor/scrap_armor_copper.png",
+                "diamond": "textures/armor/scrap_armor_diamond.png"
+            }
+        },
         "boat": {
             "type": "json",
             "geom": "json/boat.geo.json",
@@ -28,7 +39,6 @@
                 "base": "textures/boat/boat_oak.png"
             }
         },
-
         "goat": {
             "type": "json",
             "geom": "json/goat.geo.json",
@@ -110,7 +120,7 @@
 
         "player:steve": {
             "type": "json",
-            "geom": "json/steve.geo.json",
+            "geom": "json/humanoid.geo.json",
             "baseSkin": "1",
             "skins": {
             }

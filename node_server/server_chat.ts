@@ -714,6 +714,7 @@ export class ServerChat {
                 case '?z':
                     value = parseArgCoord(ch, player?.state.pos.z)
                     break
+                case '?string|float':
                 case 'string|float': // that mode was formerly 'string'
                     value = isNaN(ch as any) || !isFinite(ch as any)
                         ? ch

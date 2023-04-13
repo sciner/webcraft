@@ -355,23 +355,75 @@ export class InHandOverlay {
     postModelMatrix(modelMatrix) {
         //mat4.scale(modelMatrix, modelMatrix, scale.toArray());
 
-        let q = quat.create();
-        let m = mat4.create();
+        let q = quat.create()
+        let q2 = quat.create()
+        let m = mat4.create()
+        const block = this.inHandItemMesh?.block_material
 
-        let translation = new Vector(0.5, 0, 0);
-        let rotate = new Vector(0, -45 - 180, 0);
-
-
-        if (this.inHandItemMesh?.block_material?.diagonal) {
-            rotate.y = -65 - 180;
-            rotate.z = 30;
+        const base = {
+            scale:      new Float32Array([1, 1, 1]),
+            position:   new Float32Array([0, 0, 0]), // внутрь туловища / от туловища; вдоль руки; над рукой
+            pivot:      new Float32Array([0, 0, 0]),
+            rotation:   new Float32Array([0, 0, 0]),
         }
 
-        mat4.multiply(modelMatrix, modelMatrix,
-            mat4.fromQuat(m, quat.fromEuler(q, rotate.x, rotate.y, rotate.z, "xyz")));
-        mat4.translate(modelMatrix, modelMatrix, translation.toArray());
+        // let translation = new Vector(0.5, 0, 0)
+        // let rotate = new Vector(0, -45 - 180, 0)
 
-        swapMatrixYZ(modelMatrix);
+        if(block) {
+            const bb_display         = block.bb?.model?.json?.display
+            const bbmodel_hand       = (false ? bb_display?.firstperson_lefthand : bb_display?.firstperson_righthand) ?? null // {}
+            if(bb_display && bbmodel_hand) {
+                base.position[0] -= 1.75 // право/лево
+                base.position[1] += 0.85 // вниз/вверх
+                base.position[2] += 1.0  // на себя/от себя
+                if(block.diagonal) {
+                    base.position[1] += .25
+                }
+                // rotation
+                base.rotation[1] += 180 // поворот
+                // 1. position (1 = 1/16)
+                if(bbmodel_hand.translation) {
+                    base.position[0] += bbmodel_hand.translation[0] / 16
+                    base.position[1] += bbmodel_hand.translation[1] / 16
+                    base.position[2] += bbmodel_hand.translation[2] / 16
+                }
+                // 2. pivot
+                // 3. rotation (в градусах -180...180)
+                if(bbmodel_hand.rotation) {
+                    base.rotation[0] -= bbmodel_hand.rotation[0]
+                    base.rotation[1] += bbmodel_hand.rotation[1]
+                    base.rotation[2] += bbmodel_hand.rotation[2]
+                }
+                // 4. scale
+                if(bbmodel_hand.scale) {
+                    base.scale.set(bbmodel_hand.scale)
+                }
+                quat.fromEuler(q, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
+                mat4.fromRotationTranslationScaleOrigin(m, q, base.position, base.scale, base.pivot)
+                mat4.multiply(modelMatrix, modelMatrix, m)
+
+                swapMatrixYZ(modelMatrix)
+
+                return
+            } else {
+                base.position.set([.5, 0, 0])
+                base.rotation.set([0, -45 - 180, 0])
+                if (block.diagonal) {
+                    base.rotation[1] = -65 - 180
+                    base.rotation[2] = 30
+                }
+            }
+        }
+
+        quat.fromEuler(q, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, q))
+        mat4.scale(modelMatrix, modelMatrix, base.scale)
+        mat4.translate(modelMatrix, modelMatrix, base.position)
+        swapMatrixYZ(modelMatrix)
+
+        // mat4.fromRotationTranslationScaleOrigin(modelMatrix, q, base.position, base.scale, base.pivot);
+
     }
 
     /**

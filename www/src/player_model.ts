@@ -7,7 +7,7 @@ import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
-import type {ArmorState, PlayerHands, PlayerStateUpdate, TSittingState, TSleepState} from "./player.js";
+import type {ArmorState, PlayerHands, TSittingState, TSleepState} from "./player.js";
 import type { NetworkPhysicObjectState } from "./network_physic_object.js";
 import type { World } from "./world.js";
 
@@ -184,14 +184,13 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
     }
 
+    // Draw inhand item
     changeSlotEntry(name : string, props) {
         if (!name || !props) {
             return;
         }
 
-        let {
-            id, scale = 0.3
-        } = props;
+        let {id} = props
 
         id = typeof id !== 'number' ? -1 : id;
 
@@ -224,22 +223,19 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             return;
         }
 
-        const block = BLOCK.fromId(id);
+        const block = BLOCK.fromId(id)
 
         if(!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name)) {
             return;
         }
 
-        let item;
+        let item: any = null
 
         try {
             item = new Mesh_Object_Block_Drop(this.world, null, null, [block], Vector.ZERO);
         } catch(e) {
             console.error(e)
-        }
-
-        if (!item) {
-            return;
+            return
         }
 
         // slot.holder.terrainGeometry = item.buffer;
@@ -250,18 +246,70 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             break;
         }
 
-        const orient = name === 'LeftArm' ? -1 : 1;
+        const is_left_arm        = name === 'LeftArm'
+        const orient             = is_left_arm ? -1 : 1
+        const bb_display         = block.bb?.model?.json?.display
+        const bbmodel_hand       = (is_left_arm ? bb_display?.thirdperson_lefthand : bb_display?.thirdperson_righthand) ?? {}
+        const orig_slot_position = slot.holder.orig_position || (slot.holder.orig_position = new Float32Array(slot.holder.position))
 
-        if (block.diagonal) {
-            scale *= 1.2;
-            quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
-        } else {
-            quat.fromEuler(slot.holder.quat, 20, 0, -20);
+        const base = {
+            scale:      new Float32Array([1, 1, 1]),
+            position:   new Float32Array(orig_slot_position), // внутрь туловища / от туловища; вдоль руки; над рукой
+            pivot:      new Float32Array([0, 0, -.5]),
+            rotation:   new Float32Array([0, 0, 0]),
         }
 
-        slot.holder.scale.set([scale, scale, scale]);
-        // slot.holder.pivot.set([0, 0, scale / 2]);
-        slot.holder.updateMatrix();
+        if(bb_display || !!block.bb) {
+            // 1. position (1 = 1/16)
+            base.position[2] += .5
+            if(bbmodel_hand.translation) {
+                base.position[0] += bbmodel_hand.translation[0] / 16
+                base.position[1] += bbmodel_hand.translation[2] / 16
+                base.position[2] += bbmodel_hand.translation[1] / 16
+            }
+            // 2. pivot
+            // 3. rotation (в градусах -180...180)
+            if(bbmodel_hand.rotation) {
+                base.rotation[0] -= bbmodel_hand.rotation[0]
+                base.rotation[1] += bbmodel_hand.rotation[2]
+                base.rotation[2] += bbmodel_hand.rotation[1]
+            }
+            // 4. scale
+            if(bbmodel_hand.scale) {
+                base.scale.set(bbmodel_hand.scale)
+            }
+        } else {
+            let { scale = 0.3 } = props
+            // mc steve model
+            // if (block.diagonal) {
+            //     scale *= 1.2;
+            //     base.rotation.set([10 * orient, -70, 90 + 10 * orient])
+            // } else {
+            //     base.rotation.set([20, 0, -20])
+            // }
+            // new model
+            if (block.diagonal) {
+                scale *= 1.2
+                // x - вдоль
+                // y - вокруг своей оси
+                // z - другое
+                base.rotation.set([42.5, 0, 90])
+                base.pivot.set([.035, -.07, .35])
+                base.position[1] += 1.5 / 16
+            } else {
+                base.rotation.set([0, 0, -30])
+                base.pivot.set([0, 0, scale / 2])
+            }
+            base.scale.set([scale, scale, scale])
+        }
+
+        // apply modifies
+        slot.holder.pivot.set(base.pivot)
+        slot.holder.scale.set(base.scale)
+        slot.holder.position.set(base.position)
+        quat.fromEuler(slot.holder.quat, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
+        slot.holder.updateMatrix()
+
     }
 
     itsMe() {

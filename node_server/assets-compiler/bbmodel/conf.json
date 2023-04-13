@@ -80,7 +80,8 @@
         {"name": "sugar_cane",          "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "bough",               "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "dandelion",           "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "poppy",               "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "poppy",               "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "iron_sword",          "shift": {"x": 16, "y": 0, "z": 0}}
     ],
     "blocks": [
         {
@@ -2116,6 +2117,13 @@
             "name": "POPPY",
             "bb": {
                 "model": "poppy"
+            }
+        },
+        {
+            "id": 608,
+            "name": "IRON_SWORD",
+            "bb": {
+                "model": "iron_sword"
             }
         }
     ]

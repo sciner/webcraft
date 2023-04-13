@@ -1,6 +1,6 @@
 import { Resources } from "./resources.js";
 import * as ModelBuilder from "./modelBuilder.js";
-import { Color, Helpers, Vector } from "./helpers.js";
+import { Color, Helpers, IndexedColor, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
 import { HEAD_MAX_ROTATE_ANGLE, MOUSE, PLAYER_SKIN_TYPES, SNEAK_MINUS_Y_MUL } from "./constant.js";
@@ -11,6 +11,8 @@ import type { Renderer } from "./render.js";
 import type { SceneNode } from "./SceneNode.js";
 import type { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import type { World } from "./world.js";
+import type { BBModel_Group } from "./bbmodel/group.js";
+import GeometryTerrain from "./geometry_terrain.js";
 
 const { quat, mat4 } = glMatrix;
 
@@ -80,12 +82,9 @@ export class TraversableRenderer {
 
     drawTraversed(node, parent, render, traversable) {
         if('visible' in node && !node.visible) {
-            return;
-        }
-        if (!node.terrainGeometry) {
             return true;
         }
-        if (node?.armor && !node.material) {
+        if (!node.terrainGeometry) {
             return true;
         }
         if (node.material && traversable.lightTex) {
@@ -356,7 +355,10 @@ export class MobAnimation {
             }
         } else {
             // размахивание конечностями
-            rotate.x = aniangle * sign - (animable.sneak || 0) * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0));
+            // mc steve model
+            // rotate.x = aniangle * sign - (animable.sneak || 0) * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0));
+            // new model
+            rotate.x = aniangle * sign - ((isArm && animable.sneak) || 0) * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0));
         }
 
         // shake arms
@@ -528,7 +530,8 @@ export class MobModel extends NetworkPhysicObject {
         this.height                     = 0;
         this.sneak                      = 0;
         this.body_rotate                = 0;
-        this.textures                   = new Map();
+        this.textures                   = new Map()
+        this.models                     = new Map()
 
         Object.assign(this, props);
 
@@ -572,6 +575,8 @@ export class MobModel extends NetworkPhysicObject {
             boot: null,
             skin: null
         };
+
+        this.loaded = false
     }
 
     isRenderable(render: Renderer) {
@@ -732,7 +737,7 @@ export class MobModel extends NetworkPhysicObject {
 
         // ignore_roots
         const ignore_roots = [];
-        if(this.type == 'sheep' && this.extra_data?.is_shaered) {
+        if(this.type == 'sheep' && this.extra_data?.is_sheared) {
             ignore_roots.push('geometry.sheep.v1.8:geometry.sheep.sheared.v1.8');
         }
 
@@ -746,32 +751,34 @@ export class MobModel extends NetworkPhysicObject {
             this.aabb.draw(render, this.tPos, delta, true /*this.raycasted*/ );
         }
 
-        const mesh : Mesh_Object_BBModel = null // this._mesh || (this._mesh = render.world.mobs.models.get(this.type))
+        let type = this.type
+        // if(type == 'player:steve') type = 'humanoid'
+        const mesh : Mesh_Object_BBModel = this._mesh || (this._mesh = render.world.mobs.models.get(type))
+
         if(mesh) {
 
-            //
-            // const init_matrix = mat4.create()
-            // const rotate = new Vector(0, 0, this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0)
-            // let rotate_matrix = mat4.create()
-            // mat4.rotateZ(rotate_matrix, rotate_matrix, rotate.z)
-            // let leg_matrix = mat4.create()
-            // mat4.rotateY(leg_matrix, leg_matrix, performance.now() / 1000)
-            // mat4.rotateZ(leg_matrix, leg_matrix, rotate.z)
-            // for(let k in mesh.parts) {
-            //     const parts = mesh.parts[k]
-            //     const parent_matrix = (k == 'legs') ? leg_matrix : rotate_matrix
-            //     for(let i = 0; i < parts.length; i++) {
-            //         const group : BBModel_Group = parts[i]
-            //         if(group instanceof GeometryTerrain) {
-            //             render.renderBackend.drawMesh(group, mesh.gl_material, this._pos, parent_matrix)
-            //         } else {
-            //             const vertices = []
-            //             group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null)
-            //             const gt = new GeometryTerrain(vertices)
-            //             parts[i] = gt
-            //         }
-            //     }
-            // }
+            const init_matrix = mat4.create()
+            const rotate = new Vector(0, 0, this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0)
+            let rotate_matrix = mat4.create()
+            mat4.rotateZ(rotate_matrix, rotate_matrix, rotate.z)
+            let leg_matrix = mat4.create()
+            mat4.rotateY(leg_matrix, leg_matrix, performance.now() / 1000)
+            mat4.rotateZ(leg_matrix, leg_matrix, rotate.z)
+            for(let k in mesh.parts) {
+                const parts = mesh.parts[k]
+                const parent_matrix = (k == 'legs') ? leg_matrix : rotate_matrix
+                for(let i = 0; i < parts.length; i++) {
+                    const group : BBModel_Group = parts[i]
+                    if(group instanceof GeometryTerrain) {
+                        render.renderBackend.drawMesh(group, mesh.gl_material, this._pos, parent_matrix)
+                    } else {
+                        const vertices = []
+                        group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null)
+                        const gt = new GeometryTerrain(vertices)
+                        parts[i] = gt
+                    }
+                }
+            }
 
             // mesh.setAnimation('walk')
             mesh.rotate.z = this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0
@@ -842,14 +849,10 @@ export class MobModel extends NetworkPhysicObject {
                 }
                 this.detonation_started_info = null;
             }
-
-            this.setArmor();
-
-            this.setSkin();
-
+            this.setSkin()
+            this.setArmor()
             // run render
-            this.renderer.drawLayer(render, this, ignore_roots);
-
+            this.renderer.drawLayer(render, this, ignore_roots)
         }
 
     }
@@ -908,7 +911,6 @@ export class MobModel extends NetworkPhysicObject {
         if (!this.sceneTree) {
             return null;
         }
-
         let image;
         if (this.type.startsWith('player')) {
             image = await asset.getPlayerSkin(this.skin.file);
@@ -926,29 +928,22 @@ export class MobModel extends NetworkPhysicObject {
         }
         // если игрок зомби или скелет, загружаем броню для них
         if (this.type.startsWith('player') || this.type == 'zombie' || this.type == 'skeleton') {
-            const armor = await Resources.getModelAsset('armor');
-            if (!armor) {
-                console.log("Can't locate armor model");
-                return null;
+            for (const name of ['armor', 'scrap']) {
+                const model = await Resources.getModelAsset(name);
+                if (!model) {
+                    console.log("Can't locate " + name + " model")
+                    return null
+                }
+                for (const skin in model.skins) {
+                    const image = await model.getSkin(skin)
+                    const texture = this.getTexture(render, image)
+                    this.textures.set(name + '_' + skin, texture)
+                }
+                this.models.set(name, ModelBuilder.loadModel(model)[0])
             }
-            for (const title in armor.skins) {
-                const image = await armor.getSkin(title);
-                const texture = this.getTexture(render, image);
-                this.textures.set(title, texture);
-            }
-            const scene = ModelBuilder.loadModel(armor);
-            scene[0].children[0].armor = true;
-            scene[0].children[1].armor = true;
-            scene[0].children[1].children[0].armor = true;
-            scene[0].children[1].children[1].armor = true;
-            scene[0].children[1].children[2].armor = true;
-            scene[0].children[1].children[3].armor = true;
-            scene[0].children[1].children[4].armor = true;
-            scene[0].children[1].children[2].children[0].armor = true;
-            scene[0].children[1].children[3].children[0].armor = true;
-            this.sceneTree[1] = scene[0];
         }
-        this.animator.prepare(this);
+        this.loaded = true
+        this.animator.prepare(this)
     }
 
     postLoad(render : Renderer, tree : SceneNode) {
@@ -975,8 +970,8 @@ export class MobModel extends NetworkPhysicObject {
 
     // установка армора
     setArmor() {
-        if (!this.sceneTree[1]) {
-            return;
+        if (!this.loaded) {
+            return
         }
         const armor = (this.extra_data?.armor) ? this.extra_data.armor : this.armor;
         if (!armor) {
@@ -984,45 +979,91 @@ export class MobModel extends NetworkPhysicObject {
         }
         if (armor.head != this.prev.head) {
             if (armor.head) {
-                const item = BLOCK.fromId(armor.head);
-                this.sceneTree[1].children[0].material = (armor.head == 273) ? this.textures.get('turtle_layer_1') : this.textures.get(item.material.id +'_layer_1');
+                const item = BLOCK.fromId(armor.head)
+                const material = this.textures.get(item.model.geo + '_' + item.model.texture)
+                const helmet = this.models.get(item.model.geo).findNode('helmet')
+                if (helmet && material) {
+                    this.sceneTree[0].findNode('helmet')?.setChild(helmet, material)
+                }
+                this.sceneTree[0].findNode('hair')?.setVisible(true)
             } else {
-                this.sceneTree[1].children[0].material = null;
+                this.sceneTree[0].findNode('hair')?.setVisible(true)
+                this.sceneTree[0].findNode('helmet')?.setVisible(false)
             }
-            this.prev.head = armor.head;
+            
+            this.prev.head = armor.head
         }
         if (armor.body != this.prev.body) {
             if (armor.body) {
-                const item = BLOCK.fromId(armor.body);
-                this.sceneTree[1].children[1].material = this.textures.get(item.material.id +'_layer_1');
+                const item = BLOCK.fromId(armor.body)
+                const material = this.textures.get(item.model.geo + '_' + item.model.texture)
+                const chestplate = this.models.get(item.model.geo).findNode('chestplate')
+                if (chestplate && material) {
+                    this.sceneTree[0].findNode('chestplate')?.setChild(chestplate, material)
+                }
+                const chestplate2 = this.models.get(item.model.geo).findNode('chestplate2')
+                if (chestplate2 && material) {
+                    this.sceneTree[0].findNode('chestplate2')?.setChild(chestplate2, material)
+                }
+                const chestplate3 = this.models.get(item.model.geo).findNode('chestplate3')
+                if (chestplate3 && material) {
+                    this.sceneTree[0].findNode('chestplate3')?.setChild(chestplate3, material)
+                }
+                const chestplate4 = this.models.get(item.model.geo).findNode('chestplate4')
+                if (chestplate4 && material) {
+                    this.sceneTree[0].findNode('chestplate4')?.setChild(chestplate4, material)
+                }
+                const chestplate5 = this.models.get(item.model.geo).findNode('chestplate5')
+                if (chestplate5 && material) {
+                    this.sceneTree[0].findNode('chestplate5')?.setChild(chestplate5, material)
+                }
             } else {
-                this.sceneTree[1].children[1].material = null;
+                this.sceneTree[0].findNode('chestplate')?.setVisible(false)
+                this.sceneTree[0].findNode('chestplate2')?.setVisible(false)
+                this.sceneTree[0].findNode('chestplate3')?.setVisible(false)
+                this.sceneTree[0].findNode('chestplate4')?.setVisible(false)
+                this.sceneTree[0].findNode('chestplate5')?.setVisible(false)
             }
-            this.sceneTree[1].children[1].children[0].material = this.sceneTree[1].children[1].material;
-            this.sceneTree[1].children[1].children[1].material = this.sceneTree[1].children[1].material;
-            this.prev.body = armor.body;
+            this.prev.body = armor.body
         }
         if (armor.leg != this.prev.leg) {
             if (armor.leg) {
-                const item = BLOCK.fromId(armor.leg);
-                this.sceneTree[1].children[1].children[2].material = this.textures.get(item.material.id +'_layer_2');
-                this.sceneTree[1].children[1].children[3].material = this.textures.get(item.material.id +'_layer_2');
-                this.sceneTree[1].children[1].children[4].material = this.textures.get(item.material.id +'_layer_2');
+                const item = BLOCK.fromId(armor.leg)
+                const material = this.textures.get(item.model.geo + '_' + item.model.texture)
+                const pants = this.models.get(item.model.geo).findNode('pants')
+                if (pants && material) {
+                    this.sceneTree[0].findNode('pants')?.setChild(pants, material)
+                }
+                const pants2 = this.models.get(item.model.geo).findNode('pants2')
+                if (pants2 && material) {
+                    this.sceneTree[0].findNode('pants2')?.setChild(pants2, material)
+                }
+                const pants3 = this.models.get(item.model.geo).findNode('pants3')
+                if (pants3 && material) {
+                    this.sceneTree[0].findNode('pants3')?.setChild(pants3, material)
+                }
             } else {
-                this.sceneTree[1].children[1].children[2].material = null;
-                this.sceneTree[1].children[1].children[3].material = null;
-                this.sceneTree[1].children[1].children[4].material = null;
+                this.sceneTree[0].findNode('pants')?.setVisible(false)
+                this.sceneTree[0].findNode('pants2')?.setVisible(false)
+                this.sceneTree[0].findNode('pants3')?.setVisible(false)
             }
             this.prev.leg = armor.leg;
         }
         if (armor.boot != this.prev.boot) {
             if (armor.boot) {
-                const item = BLOCK.fromId(armor.boot);
-                this.sceneTree[1].children[1].children[2].children[0].material = this.textures.get(item.material.id +'_layer_1');
-                this.sceneTree[1].children[1].children[3].children[0].material = this.textures.get(item.material.id +'_layer_1');
+                const item = BLOCK.fromId(armor.boot)
+                const material = this.textures.get(item.model.geo + '_' + item.model.texture)
+                const boots = this.models.get(item.model.geo).findNode('boots')
+                if (boots && material) {
+                    this.sceneTree[0].findNode('boots')?.setChild(boots, material)
+                }
+                const boots2 = this.models.get(item.model.geo).findNode('boots2')
+                if (boots2 && material) {
+                    this.sceneTree[0].findNode('boots2')?.setChild(boots2, material)
+                }
             } else {
-                this.sceneTree[1].children[1].children[2].children[0].material = null;
-                this.sceneTree[1].children[1].children[3].children[0].material = null;
+                this.sceneTree[0].findNode('boots')?.setVisible(false)
+                this.sceneTree[0].findNode('boots2')?.setVisible(false)
             }
             this.prev.boot = armor.boot;
         }
