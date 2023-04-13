@@ -5,7 +5,7 @@ import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 import type { BBModel_Model } from '../../bbmodel/model.js';
 import type { BBModel_Group } from '../../bbmodel/group.js';
 
-const {mat4}    = glMatrix;
+const {mat4, quat} = glMatrix;
 const lm        = IndexedColor.WHITE;
 const vecZero   = Vector.ZERO.clone();
 
@@ -101,10 +101,16 @@ export class Mesh_Object_BBModel {
     }
 
     drawBuffered(render : Renderer, delta : float) {
-        const mx = mat4.create()
-        mat4.rotateY(mx, mx, this.rotate.z + Math.PI)
+        const m = mat4.create()
+        // mat4.rotateZ(mx, mx, -this.rotate.z)
+        // mat4.rotateY(mx, mx, Math.PI)
+
+        let q = quat.create()
+        quat.fromEuler(q, 0, 0, -this.rotate.z / Math.PI * 180, 'xyz')
+        mat4.fromRotationTranslationScaleOrigin(m, q, [0, 0, 0], [1, 1, 1], [0, 0, 0])
+
         this.model.playAnimation(this.animation_name, (this.start_time + performance.now()) / 1000)
-        this.model.drawBuffered(render, this, vecZero, lm, mx)
+        this.model.drawBuffered(render, this, this.apos, lm, m)
     }
 
     applyRotate() {

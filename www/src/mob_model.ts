@@ -776,7 +776,7 @@ export class MobModel extends NetworkPhysicObject {
 
         if(mesh) {
 
-            /*const init_matrix = mat4.create()
+            /*
             const rotate = new Vector(0, 0, this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0)
             let rotate_matrix = mat4.create()
             mat4.rotateZ(rotate_matrix, rotate_matrix, rotate.z)
@@ -823,6 +823,7 @@ export class MobModel extends NetworkPhysicObject {
 
             //render.renderBackend.drawMesh(mesh.model.groups.get('head'), mesh.gl_material, this._pos, init_matrix)
 
+            const init_matrix = mat4.create()
             mesh.setAnimation('walk')
             mesh.rotate.z = this.draw_yaw ? this.draw_yaw : 0
             mesh.apos.copyFrom(this._pos)

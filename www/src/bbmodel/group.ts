@@ -1,6 +1,6 @@
 import { BBModel_Child } from './child.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-import type { IndexedColor, Vector } from '../helpers.js';
+import { IndexedColor, Vector } from '../helpers.js';
 import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 import GeometryTerrain from '../geometry_terrain.js';
 import type { Renderer } from '../render.js';
@@ -73,7 +73,7 @@ export class BBModel_Group extends BBModel_Child {
             } else {
                 if(!this.vertices_pushed) {
                     this.vertices_pushed = true
-                    part.pushVertices(vertices, pos, lm, mx, emmit_particles_func)
+                    part.pushVertices(vertices, Vector.ZERO, lm, mx, emmit_particles_func)
                 }
             }
         }
