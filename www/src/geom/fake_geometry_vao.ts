@@ -18,7 +18,7 @@ export class FakeGeometryVao {
         this.buffer.bind();
         gl.enableVertexAttribArray(0);
         const fake = context.fake;
-        gl.vertexAttribPointer(fake.shader.a_flipflop, 3, gl.FLOAT, false, 4,  0);
+        gl.vertexAttribPointer(fake.shader.a_flipflop, 1, gl.FLOAT, false, 4,  0);
     }
 
     bind() {
