@@ -280,15 +280,14 @@ export class LineGeometry {
         render.line.draw(this);
     }
 
-    static quadBuf = null;
-
     static bindQuad(context, noBind = false) {
-        if (LineGeometry.quadBuf) {
-            LineGeometry.quadBuf.bind();
-            return LineGeometry.quadBuf;
+        const {globalBufs} = context;
+        if (globalBufs.lineGeom) {
+            globalBufs.lineGeom.bind();
+            return globalBufs.lineGeom;
         }
 
-        const quadBuf = LineGeometry.quadBuf = context.createBuffer({
+        const quadBuf = globalBufs.lineGeom = context.createBuffer({
             data: new Float32Array([
                 0., -1.,
                 1., -1.,

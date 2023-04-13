@@ -30,7 +30,6 @@ type ResourcesLoadSettings = {
 }
 
 export class Resources {
-    [key: string]: any;
 
     static _bbmodels          : any;
     static _bbmodel_promise   : any;
@@ -86,13 +85,16 @@ export class Resources {
 
         // Functions
         const loadTextFile = Resources.loadTextFile
-        const loadImage = (url) => Resources.loadImage(url, settings.imageBitmap)
+        const loadImage = (url : string) => Resources.loadImage(url, settings.imageBitmap)
 
         let all = [];
+
+        all.push(loadImage('media/block_day_light.png').then((img) => { this.blockDayLight = img}));
 
         // Shader blocks
         if (settings.wgsl) {
             // not supported
+            all.push(loadTextFile('./shaders/skybox_gpu/shader.wgsl').then((txt) => { this.codeSky = { vertex: txt, fragment: txt} } ));
         } else {
             all.push(
                 loadTextFile('./shaders/shader.blocks.glsl')
@@ -100,7 +102,9 @@ export class Resources {
                     .then(blocks => {
                         console.debug('Load shader blocks:', blocks)
                     })
-            );
+            )
+            all.push(loadTextFile('./shaders/skybox/vertex.glsl').then((txt) => { this.codeSky.vertex = txt } ))
+            all.push(loadTextFile('./shaders/skybox/fragment.glsl').then((txt) => { this.codeSky.fragment = txt } ))
         }
 
         await Promise.all(all)
@@ -111,12 +115,11 @@ export class Resources {
 
         // Functions
         const loadTextFile = Resources.loadTextFile;
-        const loadImage = (url) => Resources.loadImage(url, settings.imageBitmap);
+        const loadImage = (url : string) => Resources.loadImage(url, settings.imageBitmap);
 
         let all : any[] = [];
 
         // Others
-        all.push(loadImage('media/block_day_light.png').then((img) => { this.blockDayLight = img}));
         all.push(loadImage('media/mask_color_with_swamp.png').then((img) => { this.maskColor = img}));
         all.push(loadImage('media/weather.png').then((img) => { this.weather.image = img}));
         // all.push(loadImage('media/snow.png').then((img) => { this.weather.snow = img}));
@@ -163,14 +166,6 @@ export class Resources {
         all.push(loadImage(skiybox_dir + '/posz.webp').then((img) => {this.sky.posz = img}));
         all.push(loadImage(skiybox_dir + '/negz.webp').then((img) => {this.sky.negz = img}));
         */
-
-        // Skybox shaders
-        if (settings.wgsl) {
-            all.push(loadTextFile('./shaders/skybox_gpu/shader.wgsl').then((txt) => { this.codeSky = { vertex: txt, fragment: txt} } ));
-        } else {
-            all.push(loadTextFile('./shaders/skybox/vertex.glsl').then((txt) => { this.codeSky.vertex = txt } ));
-            all.push(loadTextFile('./shaders/skybox/fragment.glsl').then((txt) => { this.codeSky.fragment = txt } ));
-        }
 
         // Painting
         all.push(Resources.loadPainting());

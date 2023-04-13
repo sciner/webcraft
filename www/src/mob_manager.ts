@@ -24,11 +24,13 @@ export class MobManager {
     }
 
     // Client side method
-    init() {
+    init(render? : null) {
 
-        for(let name of [/*'pig',*/ 'humanoid']) {
+        render = render ?? Qubatch.render
+
+        for(let name of ['pig', 'humanoid']) {
             const model = Resources._bbmodels.get(`mob/${name}`)
-            const mesh = new Mesh_Object_BBModel(Qubatch.render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
+            const mesh = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
             mesh.parts = {
                 'head': [],
                 'legs': [],
@@ -55,62 +57,65 @@ export class MobManager {
         }
 
         // On server message
-        this.#world.server.AddCmdListener([ServerClient.CMD_MOB_ADD, ServerClient.CMD_MOB_DELETE, ServerClient.CMD_MOB_UPDATE], (cmd) => {
-            switch(cmd.name) {
-                case ServerClient.CMD_MOB_ADD: {
-                    for(let mob of cmd.data) {
-                        // console.log('Mob added: ' + mob.id, mob.pos);
-                        this.add(mob);
+        if(this.#world.server) {
+            this.#world.server.AddCmdListener([ServerClient.CMD_MOB_ADD, ServerClient.CMD_MOB_DELETE, ServerClient.CMD_MOB_UPDATE], (cmd) => {
+                switch(cmd.name) {
+                    case ServerClient.CMD_MOB_ADD: {
+                        for(let mob of cmd.data) {
+                            // console.log('Mob added: ' + mob.id, mob.pos);
+                            this.add(mob);
+                        }
+                        break;
                     }
-                    break;
-                }
-                case ServerClient.CMD_MOB_UPDATE: {
-                    if(Array.isArray(cmd.data)) {
-                        const add_pos = cmd.data.slice(0, 3)
-                        for(let i = 3; i < cmd.data.length; i += 6) {
-                            const mob = this.list.get(cmd.data[i]);
-                            if(mob) {
-                                const new_state = {
-                                    pos: new Vector(
-                                        cmd.data[i + 1] + add_pos[0],
-                                        cmd.data[i + 2] + add_pos[1],
-                                        cmd.data[i + 3] + add_pos[2]
-                                    ),
-                                    rotate: new Vector(0, 0, cmd.data[i + 4]), // new Vector(cmd.data[i + 4], cmd.data[i + 5], cmd.data[i + 6]),
-                                    extra_data: cmd.data[i + 5],
-                                    time: cmd.time
-                                };
-                                mob.applyNetState(new_state);
-                                // частицы смерти
-                                if (new_state.extra_data && !new_state.extra_data.is_alive) {
-                                    Qubatch.render.addParticles({type: 'cloud', pos: new_state.pos});
+                    case ServerClient.CMD_MOB_UPDATE: {
+                        if(Array.isArray(cmd.data)) {
+                            const add_pos = cmd.data.slice(0, 3)
+                            for(let i = 3; i < cmd.data.length; i += 6) {
+                                const mob = this.list.get(cmd.data[i]);
+                                if(mob) {
+                                    const new_state = {
+                                        pos: new Vector(
+                                            cmd.data[i + 1] + add_pos[0],
+                                            cmd.data[i + 2] + add_pos[1],
+                                            cmd.data[i + 3] + add_pos[2]
+                                        ),
+                                        rotate: new Vector(0, 0, cmd.data[i + 4]), // new Vector(cmd.data[i + 4], cmd.data[i + 5], cmd.data[i + 6]),
+                                        extra_data: cmd.data[i + 5],
+                                        time: cmd.time
+                                    };
+                                    mob.applyNetState(new_state);
+                                    // частицы смерти
+                                    if (new_state.extra_data && !new_state.extra_data.is_alive) {
+                                        Qubatch.render.addParticles({type: 'cloud', pos: new_state.pos});
+                                    }
+                                } else {
+                                    // Mob not found
                                 }
+                            }
+                        } else {
+                            let mob = this.list.get(cmd.data.id);
+                            if(mob) {
+                                mob.applyNetState({
+                                    pos: cmd.data.pos,
+                                    rotate: cmd.data.rotate,
+                                    time: cmd.time
+                                });
                             } else {
                                 // Mob not found
                             }
                         }
-                    } else {
-                        let mob = this.list.get(cmd.data.id);
-                        if(mob) {
-                            mob.applyNetState({
-                                pos: cmd.data.pos,
-                                rotate: cmd.data.rotate,
-                                time: cmd.time
-                            });
-                        } else {
-                            // Mob not found
+                        break;
+                    }
+                    case ServerClient.CMD_MOB_DELETE: {
+                        for(let mob_id of cmd.data) {
+                            this.delete(mob_id);
                         }
+                        break;
                     }
-                    break;
                 }
-                case ServerClient.CMD_MOB_DELETE: {
-                    for(let mob_id of cmd.data) {
-                        this.delete(mob_id);
-                    }
-                    break;
-                }
-            }
-        });
+            });
+        }
+
     }
 
     // add

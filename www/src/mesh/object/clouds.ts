@@ -117,7 +117,7 @@ export default class Mesh_Object_Clouds {
 
     // Draw
     draw(render, delta) {
-        const cam_pos = Qubatch.render.camPos.clone();
+        const cam_pos = render.camPos.clone();
 
         if(cam_pos.y < 0) {
             return false
