@@ -1,16 +1,15 @@
 "use strict";
 
-import { CAMERA_MODE, Vector } from "./helpers.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
-
 import { MeshManager } from "./mesh/manager.js";
 import { Camera } from "./camera.js";
 import { Environment } from "./environment.js";
 import { LIGHT_TYPE, PLAYER_ZOOM } from "./constant.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
-import {LineGeometry} from "./geom/line_geometry.js";
+
+import type { Vector } from "./helpers.js";
 import type { World } from "./world.js";
 import type {Player} from "./player.js";
 import type WebGLRenderer from "./renders/webgl/index.js";
@@ -157,8 +156,8 @@ export class RendererBBModel {
         })
         this.blockDayLightTex.bind(2)
 
-        this.debugGeom = new LineGeometry()
-        this.debugGeom.pos = this.camPos
+        // this.debugGeom = new LineGeometry()
+        // this.debugGeom.pos = this.camPos
 
     }
 
@@ -188,7 +187,7 @@ export class RendererBBModel {
         const { renderBackend, camera, player } = this
         const { globalUniforms } = renderBackend
 
-        this.resetBefore()
+        // this.resetBefore()
 
         // upload GU data from environment
         this.env.sync(renderBackend.globalUniforms)
@@ -199,7 +198,7 @@ export class RendererBBModel {
 
         globalUniforms.update()
 
-        this.debugGeom.clear()
+        // this.debugGeom.clear()
 
         renderBackend.beginPass({
             fogColor : this.env.interpolatedClearValue
@@ -208,11 +207,11 @@ export class RendererBBModel {
         this.env.draw(this)
         this.defaultShader.bind(true)
         this.meshes.draw(this, delta, player.lerpPos)
-        this.debugGeom.draw(renderBackend)
-        this.defaultShader.bind()
+        // this.debugGeom.draw(renderBackend)
+        // this.defaultShader.bind()
         renderBackend.endPass()
 
-        this.resetAfter()
+        // this.resetAfter()
     }
 
     addBBModel(pos : Vector, bbname : string, rotate : Vector, animation_name : string, key : string, doubleface : boolean = false) : Mesh_Object_BBModel | null {
@@ -225,19 +224,19 @@ export class RendererBBModel {
         return this.meshes.add(bbmodel, key)
     }
 
-    resetBefore() {
-        // webgl state was reset, we have to re-bind textures
-        this.renderBackend.resetBefore()
-        const defTex = this.env.skyBox?.shader.texture || this.renderBackend._emptyTex
-        defTex.bind(0)
-        this.renderBackend._emptyTex3D.bind(6)
-        this.blockDayLightTex?.bind(2)
-        this.defaultShader?.bind()
-    }
+    // resetBefore() {
+    //     // webgl state was reset, we have to re-bind textures
+    //     this.renderBackend.resetBefore()
+    //     const defTex = this.env.skyBox?.shader.texture || this.renderBackend._emptyTex
+    //     defTex.bind(0)
+    //     this.renderBackend._emptyTex3D.bind(6)
+    //     this.blockDayLightTex?.bind(2)
+    //     this.defaultShader?.bind()
+    // }
 
-    resetAfter() {
-        this.renderBackend.resetAfter();
-    }
+    // resetAfter() {
+    //     this.renderBackend.resetAfter();
+    // }
 
     // Check if the viewport is still the same size and update the render configuration if required.
     updateViewport() {

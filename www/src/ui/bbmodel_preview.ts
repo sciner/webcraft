@@ -7,21 +7,19 @@ import { Resources } from "../resources.js"
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import { BLOCK } from "../blocks.js"
 import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js"
+import { ShaderPreprocessor } from "../renders/ShaderPreprocessor.js"
 
 const {mat4} = glMatrix;
 
 export class BBModel_Preview {
 
-    #_stop = false
-
-    render: RendererBBModel
-    m4 = mat4.create()
-    prev_time: float = performance.now()
-    mesh?: Mesh_Object_BBModel
-
-    //
-    camRot : Vector = new Vector(0, 0, 0)
-    camPos : Vector = new Vector(1, 1.7, -.7)
+    #_stop:         boolean = false
+    render:         RendererBBModel
+    m4:             any = mat4.create()
+    prev_time:      float = performance.now()
+    mesh?:          Mesh_Object_BBModel
+    camRot:         Vector = new Vector(0, 0, 0)
+    camPos:         Vector = new Vector(1, 1.7, -.7)
 
     async init() {
 

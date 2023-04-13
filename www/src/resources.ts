@@ -30,7 +30,6 @@ type ResourcesLoadSettings = {
 }
 
 export class Resources {
-    [key: string]: any;
 
     static _bbmodels          : any;
     static _bbmodel_promise   : any;
