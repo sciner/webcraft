@@ -628,7 +628,7 @@ export class MobModel extends NetworkPhysicObject {
             return;
         }
 
-        const newChunk = ChunkManager.instance.getChunk(this.chunk_addr);
+        const newChunk = ChunkManager.instance?.getChunk(this.chunk_addr);
 
         this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend);
 

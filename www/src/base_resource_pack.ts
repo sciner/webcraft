@@ -29,6 +29,13 @@ export class BaseResourcePack {
         this.styles_stat = new Map();
     }
 
+    killRender() {
+        this.shader = null
+        this.fluidShader = null
+        this.textures = new Map()
+        this.materials = new Map()
+    }
+
     async init(manager) {
         this.manager = manager;
 
@@ -230,9 +237,13 @@ export class BaseResourcePack {
         tmpCanvas = tmpCanvas || document.createElement('canvas');
 
         for(let [k, v] of Object.entries(this.conf.textures)) {
-            tasks.push(this._processTexture(v, renderBackend, settings));
+            const newTexInfo = { ...(v as any) };
+            if (newTexInfo.canvas) {
+                newTexInfo.canvas = {...newTexInfo.canvas};
+            }
+            tasks.push(this._processTexture(newTexInfo, renderBackend, settings));
 
-            this.textures.set(k, v);
+            this.textures.set(k, newTexInfo);
         }
 
         return Promise.all(tasks)
