@@ -3,6 +3,7 @@ import GeometryTerrain from '../../geometry_terrain.js';
 import type { Renderer } from '../../render.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 import type { BBModel_Model } from '../../bbmodel/model.js';
+import type { BBModel_Group } from '../../bbmodel/group.js';
 
 const {mat4}    = glMatrix;
 const lm        = IndexedColor.WHITE;
@@ -10,7 +11,10 @@ const vecZero   = Vector.ZERO.clone();
 
 // Mesh_Object_BBModel
 export class Mesh_Object_BBModel {
-    [key: string]: any;
+    [key: string]: any
+
+    model : BBModel_Model
+    bone_groups: Map<string, BBModel_Group>
 
     constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false) {
 
@@ -39,6 +43,21 @@ export class Mesh_Object_BBModel {
 
         this.setAnimation(animation_name);
 
+        // Parse bone groups
+        this.bone_groups = new Map()
+        for(const [_, anim] of this.model.animations.entries()) {
+            for(let [_, animator] of Object.entries(anim.animators)) {
+                const name = (animator as any).name
+                if(!this.bone_groups.has(name)) {
+                    const group = this.model.groups.get(name)
+                    if(!group) {
+                        throw 'error_bone_group_not_found'
+                    }
+                    this.bone_groups.set(name, group)
+                }
+            }
+        }
+
     }
 
     //
@@ -57,6 +76,8 @@ export class Mesh_Object_BBModel {
 
     // Draw
     draw(render : Renderer, delta : float) {
+
+        throw 'error_deprecated'
 
         if(!this.buffer) {
             return false;
@@ -77,6 +98,13 @@ export class Mesh_Object_BBModel {
 
         render.renderBackend.drawMesh(this.buffer, this.gl_material, this.apos, this.matrix);
 
+    }
+
+    drawBuffered(render : Renderer, delta : float) {
+        const mx = mat4.create()
+        mat4.rotateY(mx, mx, this.rotate.z + Math.PI)
+        this.model.playAnimation(this.animation_name, (this.start_time + performance.now()) / 1000)
+        this.model.drawBuffered(render, this, vecZero, lm, mx)
     }
 
     applyRotate() {

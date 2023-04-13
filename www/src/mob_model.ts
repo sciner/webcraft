@@ -820,26 +820,31 @@ export class MobModel extends NetworkPhysicObject {
             }*/
 
             //console.log(mesh.model.groups.get('head'))
-            
-            
+
             //render.renderBackend.drawMesh(mesh.model.groups.get('head'), mesh.gl_material, this._pos, init_matrix)
+
+            mesh.setAnimation('walk')
+            mesh.rotate.z = this.draw_yaw ? this.draw_yaw : 0
+            mesh.apos.copyFrom(this._pos)
+            mesh.drawBuffered(render, delta)
+
+            // for (const group of mesh.model.groups.values()) {
+            //     if (group.update) {
+            //         if (group.gt) {
+            //             const rotate_matrix = mat4.create()
+            //             if (group.name == 'head') {
+            //                 mat4.rotateZ(rotate_matrix, rotate_matrix, performance.now() / 1000)
+            //             }
+            //             render.renderBackend.drawMesh(group.gt, mesh.gl_material, this._pos, rotate_matrix)
+            //         } else {
+            //             const init_matrix = mat4.create()
+            //             const vertices = []
+            //             group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null, false)
+            //             group.gt = new GeometryTerrain(vertices)
+            //         }
+            //     }
+            // }
             
-            for (const group of mesh.model.groups.values()) {
-                if (group.update) {
-                    if (group.gt) {
-                        const rotate_matrix = mat4.create()
-                        if (group.name == 'head') {
-                            mat4.rotateZ(rotate_matrix, rotate_matrix, performance.now() / 1000)
-                        }
-                        render.renderBackend.drawMesh(group.gt, mesh.gl_material, this._pos, rotate_matrix)
-                    } else {
-                        const init_matrix = mat4.create()
-                        const vertices = []
-                        group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null)
-                        group.gt = new GeometryTerrain(vertices)
-                    }
-                }
-            }
         }
     }
 

@@ -1,10 +1,11 @@
-import { isScalar, Vector } from "../helpers.js";
+import { IndexedColor, isScalar, Vector } from "../helpers.js";
 import { EasingType } from "./easing_type.js";
 import { BBModel_Cube } from "./cube.js";
 import { BBModel_Group } from "./group.js";
 import { BBModel_Locator } from "./locator.js";
-import { BLOCK } from "../blocks.js";
 import { DEFAULT_ATLAS_SIZE } from "../constant.js";
+import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js";
+import type { Renderer } from "../render.js";
 
 const VEC_2 = new Vector(2, 2, 2);
 const FIX_POS = new Vector(8, -8, -8);
@@ -125,13 +126,14 @@ export class BBModel_Model {
 
     /**
      * Draw
-     * @param {float[]} vertices 
-     * @param {Vector} pos 
-     * @param {IndexedColor} lm 
-     * @param {float[]} matrix 
      */
-    draw(vertices, pos, lm, matrix, emmit_particles_func) {
+    draw(vertices: Float32Array, pos : Vector, lm : IndexedColor, matrix : float[], emmit_particles_func? : Function) {
         this.root.pushVertices(vertices, pos, lm, matrix, emmit_particles_func);
+    }
+
+    drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, matrix : float[], emmit_particles_func? : Function) {
+        const vertices = []
+        this.root.drawBuffered(render, mesh, pos, lm, matrix, vertices, emmit_particles_func)
     }
 
     /**
@@ -148,8 +150,7 @@ export class BBModel_Model {
         if(!animation) {
             return false
         }
-        const time = dt % animation.length
-        /*
+
         // reset all states
         for(const [name, animation] of this.animations.entries()) {
             for(let k in animation.animators) {
@@ -162,10 +163,6 @@ export class BBModel_Model {
         }
 
         //
-        
-
-        
-
         const time = dt % animation.length;
         const loop_mode = animation.loop;
         const loop_delay = animation.loop_delay;
@@ -234,7 +231,7 @@ export class BBModel_Model {
             }
 
         }
-        */
+
         return true
 
     }
