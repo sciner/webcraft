@@ -828,7 +828,7 @@ export class MobModel extends NetworkPhysicObject {
                 if (group.update) {
                     if (group.gt) {
                         const rotate_matrix = mat4.create()
-                        if (group.name == 'chestplate') {
+                        if (group.name == 'head') {
                             mat4.rotateZ(rotate_matrix, rotate_matrix, performance.now() / 1000)
                         }
                         render.renderBackend.drawMesh(group.gt, mesh.gl_material, this._pos, rotate_matrix)
