@@ -2,14 +2,11 @@ import { ChunkGrid } from "../core/ChunkGrid.js"
 import { GameSettings } from "../game.js"
 import { Vector } from "../helpers.js"
 import { ChunkDataTexture } from "../light/ChunkDataTexture.js"
-import { MobManager } from "../mob_manager.js"
-import { PlayerManager } from "../player_manager.js"
 import { RendererBBModel } from "../render_bbmodel.js"
 import { Resources } from "../resources.js"
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import { BLOCK } from "../blocks.js"
 import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js"
-import { ResourcePackManager } from "../resource_pack_manager.js"
 
 const {mat4} = glMatrix;
 
@@ -67,28 +64,18 @@ export class BBModel_Preview {
         this.render.player = player
 
         // Init blocks
-        const blockTask = BLOCK.init(world.settings)
-        await Promise.all([blockTask])
+        await BLOCK.init(world.settings)
         // BLOCK.reset()
         // BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK)
         // await BLOCK.resource_pack_manager.init(world.settings)
         // BLOCK.reset()
 
-        world.players = new PlayerManager(world)
-        world.mobs = new MobManager(world)
         world.block_manager = BLOCK
         await this.render.init(world, world.settings)
         this.render.camPos = this.camPos
 
-        world.mobs.init(this.render)
-
         // Add humanoid mesh
-        // this.mesh = this.render.addBBModel(player.lerpPos, 'humanoid', player.rotate, 'walk', 'humanoid')
-        this.mesh = world.mobs.models.get('humanoid')
-        this.mesh.setAnimation('walk')
-        this.mesh.rotate.copyFrom(player.rotate)
-        this.mesh.apos.copyFrom(player.lerpPos)
-        this.render.meshes.add(this.mesh)
+        this.mesh = this.render.addBBModel(player.lerpPos, 'mob/humanoid', player.rotate, 'walk', 'humanoid')
 
         // hide armor groups
         for(const group of this.mesh.model.groups.values()) {
