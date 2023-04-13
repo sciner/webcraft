@@ -144,6 +144,12 @@ export class BBModel_Model {
      */
     playAnimation(animation_name, dt) {
 
+        const animation = this.animations.get(animation_name)
+        if(!animation) {
+            return false
+        }
+        const time = dt % animation.length
+        /*
         // reset all states
         for(const [name, animation] of this.animations.entries()) {
             for(let k in animation.animators) {
@@ -156,11 +162,9 @@ export class BBModel_Model {
         }
 
         //
-        const animation = this.animations.get(animation_name);
+        
 
-        if(!animation) {
-            return false;
-        }
+        
 
         const time = dt % animation.length;
         const loop_mode = animation.loop;
@@ -230,8 +234,8 @@ export class BBModel_Model {
             }
 
         }
-
-        return true;
+        */
+        return true
 
     }
 

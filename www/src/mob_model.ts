@@ -68,16 +68,18 @@ export class TraversableRenderer {
      * @param {Traversable} traversable
      * @returns
      */
-    traverse(node, parent = null, render, traversable) {
-        if(!this.drawTraversed(node, parent, render, traversable)) {
+    traverse(group, mesh, pos, render) {
+        if(!this.drawGroup(group, mesh, pos, render)) {
             return false;
         }
 
-        for(let next of node.children) {
-            if (!this.traverse(next, node, render, traversable)) return false;
-        }
+       // for(const next of group.children.keys()) {
+        //    if (!group.children || !this.traverse(group.children.get(next), mesh, pos, render))  {
+               //return false
+           // }
+      //  }
 
-        return true;
+        return true
     }
 
     drawTraversed(node, parent, render, traversable) {
@@ -90,6 +92,7 @@ export class TraversableRenderer {
         if (node.material && traversable.lightTex) {
             node.material.lightTex = traversable.lightTex;
         }
+        
         render.renderBackend.drawMesh(
             node.terrainGeometry,
             node.material || traversable.material,
@@ -100,8 +103,24 @@ export class TraversableRenderer {
         return true;
     }
 
-    drawLayer(render, traversable : Traversable, ignore_roots = []) {
-        if (!traversable || !traversable.sceneTree) {
+
+    drawGroup(group, mesh, pos, render) {
+        const init_matrix = mat4.create()
+        if (group instanceof GeometryTerrain) {
+            render.renderBackend.drawMesh(group, mesh.gl_material, pos, init_matrix)
+        } else {
+            const vertices = []
+            group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null)
+            const gt = new GeometryTerrain(vertices)
+            render.renderBackend.drawMesh(gt, mesh.gl_material, pos, init_matrix)
+        }
+        return true
+    } 
+
+    drawLayer(render, mesh, ignore_roots = []) {
+       // this.traverse(st, null, render, traversable);
+        
+        /*if (!traversable || !traversable.sceneTree) {
             return;
         }
 
@@ -120,7 +139,7 @@ export class TraversableRenderer {
             }
             this.traverse(st, null, render, traversable);
         }
-
+        */
     }
 
 }
@@ -752,12 +771,12 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         let type = this.type
-        // if(type == 'player:steve') type = 'humanoid'
+         if(type == 'player:steve') type = 'humanoid'
         const mesh : Mesh_Object_BBModel = this._mesh || (this._mesh = render.world.mobs.models.get(type))
 
         if(mesh) {
 
-            const init_matrix = mat4.create()
+            /*const init_matrix = mat4.create()
             const rotate = new Vector(0, 0, this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0)
             let rotate_matrix = mat4.create()
             mat4.rotateZ(rotate_matrix, rotate_matrix, rotate.z)
@@ -769,92 +788,59 @@ export class MobModel extends NetworkPhysicObject {
                 const parent_matrix = (k == 'legs') ? leg_matrix : rotate_matrix
                 for(let i = 0; i < parts.length; i++) {
                     const group : BBModel_Group = parts[i]
-                    if(group instanceof GeometryTerrain) {
-                        render.renderBackend.drawMesh(group, mesh.gl_material, this._pos, parent_matrix)
-                    } else {
-                        const vertices = []
-                        group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null)
-                        const gt = new GeometryTerrain(vertices)
-                        parts[i] = gt
-                    }
+                    //if(group instanceof GeometryTerrain) {
+                        render.renderBackend.drawMesh(group, mesh.gl_material, this._pos, init_matrix)
+                    //} else {
+                        //const vertices = []
+                        //group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null)
+                        //const gt = new GeometryTerrain(vertices)
+                        //parts[i] = gt
+                   // }
                 }
-            }
+            }*/
 
             // mesh.setAnimation('walk')
-            mesh.rotate.z = this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0
-            mesh.apos.copyFrom(this._pos)
-            mesh.applyRotate()
-            mesh.draw(render, delta)
+           // mesh.rotate.z = this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0
+            //mesh.apos.copyFrom(this._pos)
+            //mesh.applyRotate()
+           // mesh.draw(render, delta)
 
-        } else {
+            /*this.renderer.traverse(mesh.model.groups[9], mesh, this._pos, render)
 
-            // If mob die
-            if(this.isAlive === false) {
-                // first enter to this code
-                if(!this.die_info) {
-                    this.yaw_before_die = this.yaw;
-                    this.die_info = {
-                        time: performance.now(),
-                        scale: Array.from(this.sceneTree[0].scale)
-                    };
-                    this.sneak = 1;
-                }
-                const elapsed = performance.now() - this.die_info.time;
-                const max_die_animation_time = 1000;
-                let elapsed_percent = elapsed / max_die_animation_time;
-                if(elapsed_percent < 1) {
-                    if(this.netBuffer.length > 0) {
-                        const state = this.netBuffer[0];
-                        state.rotate.z = this.yaw_before_die + elapsed / 100;
-                        if(!this.extra_data.play_death_animation) {
-                            elapsed_percent = 1;
-                        }
-                        for(let st of this.sceneTree) {
-                            st.scale[0] = this.die_info.scale[0] * (1 - elapsed_percent);
-                            st.scale[1] = this.die_info.scale[1] * (1 - elapsed_percent);
-                            st.scale[2] = this.die_info.scale[2] * (1 - elapsed_percent);
-                        }
-                    }
-                    this.tintColor.set(1, 1, 1, .3);
+            const init_matrix = mat4.create()
+            for (const group in mesh.groups.values()) {
+                if(group instanceof GeometryTerrain) {
+                    render.renderBackend.drawMesh(group, mesh.gl_material, this._pos, parent_matrix)
                 } else {
-                    return false;
+                    const vertices = []
+                    group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null)
+                    const gt = new GeometryTerrain(vertices)
+                    parts[i] = gt
                 }
-            } else if(this.isDetonationStarted()) {
-                if(!this.detonation_started_info) {
-                    this.detonation_started_info = {
-                        time: performance.now(),
-                        scale: Array.from(this.sceneTree[0].scale)
+            }*/
+
+            //console.log(mesh.model.groups.get('head'))
+            
+            
+            //render.renderBackend.drawMesh(mesh.model.groups.get('head'), mesh.gl_material, this._pos, init_matrix)
+            
+            for (const group of mesh.model.groups.values()) {
+                if (group.update) {
+                    if (group.gt) {
+                        const rotate_matrix = mat4.create()
+                        if (group.name == 'chestplate') {
+                            mat4.rotateZ(rotate_matrix, rotate_matrix, performance.now() / 1000)
+                        }
+                        render.renderBackend.drawMesh(group.gt, mesh.gl_material, this._pos, rotate_matrix)
+                    } else {
+                        const init_matrix = mat4.create()
+                        const vertices = []
+                        group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null)
+                        group.gt = new GeometryTerrain(vertices)
                     }
                 }
-                const info = this.detonation_started_info;
-                const elapsed = performance.now() - info.time;
-                const elapsed_percent = Math.min(elapsed / MAX_DETONATION_TIME, 1);
-                const is_tinted = Math.round(elapsed / 150) % 2 == 0;
-                if(elapsed_percent == 1 || is_tinted) {
-                    this.tintColor.set(1, 1, 1, .5);
-                } else {
-                    this.tintColor.set(0, 0, 0, 0);
-                }
-                const CREEPER_MAX_DETONATION_SCALE = 1.35;
-                const new_creeper_scale = info.scale[0] * (1 + elapsed_percent * (CREEPER_MAX_DETONATION_SCALE - 1));
-                for(let st of this.sceneTree) {
-                    st.scale[0] = new_creeper_scale;
-                    st.scale[1] = new_creeper_scale;
-                    st.scale[2] = new_creeper_scale;
-                }
-            } else if(this.detonation_started_info) {
-                this.tintColor.set(0, 0, 0, 0);
-                for(let st of this.sceneTree) {
-                    st.scale = this.detonation_started_info.scale;
-                }
-                this.detonation_started_info = null;
             }
-            this.setSkin()
-            this.setArmor()
-            // run render
-            this.renderer.drawLayer(render, this, ignore_roots)
         }
-
     }
 
     drawInFire(render : Renderer, delta : float) {

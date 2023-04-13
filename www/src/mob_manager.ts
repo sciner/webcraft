@@ -29,29 +29,8 @@ export class MobManager {
         for(let name of [/*'pig',*/ 'humanoid']) {
             const model = Resources._bbmodels.get(`mob/${name}`)
             const mesh = new Mesh_Object_BBModel(Qubatch.render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
-            mesh.parts = {
-                'head': [],
-                'legs': [],
-                'arms': [],
-                'wings': [],
-                'body': [],
-            }
-            for(let group of model.groups.values()) {
-                if(group.name.startsWith('leg')) {
-                    mesh.parts.legs.push(group)
-                } else if(group.name.startsWith('wing')) {
-                    mesh.parts.wings.push(group)
-                } else if(['leftLeg', 'rightLeg'].includes(group.name)) {
-                    mesh.parts.legs.push(group)
-                } else if(['leftArm', 'rightArm'].includes(group.name)) {
-                    mesh.parts.arms.push(group)
-                } else if(group.name == 'head') {
-                    mesh.parts.head.push(group)
-                } else if(group.name == 'body') {
-                    mesh.parts.body.push(group)
-                }
-            }
             this.models.set(name, mesh)
+            console.log(mesh)
         }
 
         // On server message

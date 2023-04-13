@@ -23,6 +23,7 @@ export class BBModel_Group extends BBModel_Child {
         this.animations = [];
         this.visibility = !!visibility
         this.orig_visibility = !!visibility
+        this.update = true
     }
 
     /**
