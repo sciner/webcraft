@@ -28,7 +28,6 @@ export class BaseGeometryVao {
 
     data: Float32Array = null;
     buffer: BaseBuffer = null;
-    copyBuffer: BaseBuffer = null;
     quad: BaseBuffer = null;
     vao: WebGLVertexArrayObject = null;
     buffers: BaseBuffer[] = [];
@@ -64,17 +63,9 @@ export class BaseGeometryVao {
                 usage: 'dynamic',
                 data: this.data,
             });
-            this.copyBuffer = this.context.createBuffer({
-                usage: 'static',
-                data: this.data,
-            })
         }
 
         (this.buffer as any).glTrySubData = false;
-        const copy = (this.copyBuffer as any);
-        if (copy) {
-            copy.glTrySubData = false;
-        }
         // this.data = null;
 
         if (this.hasInstance) {
@@ -86,11 +77,6 @@ export class BaseGeometryVao {
         }
 
         this.createVao();
-    }
-
-    doCopy() {
-        this.copyBuffer.data = this.buffer.data;
-        this.copyBuffer.bind();
     }
 
     resize(instances) {

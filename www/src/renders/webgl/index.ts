@@ -14,6 +14,7 @@ import {GLCubeDrawer} from "./GLCubeDrawer.js";
 import {GLChunkDrawer} from "./GLChunkDrawer.js";
 import {GLLineDrawer} from "./GLLineDrawer.js";
 import {WebGLFluidShader} from "./WebGLFluidShader.js";
+import {GLFakeDrawer} from "./GLFakeDrawer.js";
 
 const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
 
@@ -327,6 +328,7 @@ export default class WebGLRenderer extends BaseRenderer {
         this.cube = new GLCubeDrawer(this);
         this.chunk = new GLChunkDrawer(this);
         this.line = new GLLineDrawer(this);
+        this.fake = new GLFakeDrawer(this);
     }
 
     async init(args) {
@@ -349,6 +351,7 @@ export default class WebGLRenderer extends BaseRenderer {
         }
 
         this.line.init();
+        this.fake.init();
     }
 
     resetBefore() {

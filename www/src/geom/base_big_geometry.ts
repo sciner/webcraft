@@ -2,6 +2,7 @@ import {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
 import type {BaseBuffer} from "../renders/BaseRenderer.js";
 import type WebGLRenderer from "../renders/webgl";
 import type {BaseGeometryVao} from "./base_geometry_vao.js";
+import {FakeGeometryVao} from "./fake_geometry_vao.js";
 import {VAO_BUFFER_TYPE} from "./base_geometry_vao.js";
 
 export interface BigGeometryOptions {
@@ -34,6 +35,7 @@ export class BaseBigGeometry {
     staticDraw: BaseGeometryVao;
     staticCopy: BaseGeometryVao;
     dynamicDraw: BaseGeometryVao;
+    fakeDraw: FakeGeometryVao;
     batch: BigGeomBatchUpdate;
 
     createGeom() {
@@ -42,6 +44,7 @@ export class BaseBigGeometry {
             this.staticCopy = new this.geomClass({size: this.staticSize, bufferType: VAO_BUFFER_TYPE.BIG});
         }
         this.dynamicDraw = new this.geomClass({size: this.dynamicSize, bufferType: VAO_BUFFER_TYPE.DYNAMIC});
+        this.fakeDraw = new FakeGeometryVao();
         this.strideFloats = this.staticDraw.strideFloats;
         this.batch = new BigGeomBatchUpdate(this);
     }
@@ -72,7 +75,7 @@ export class BaseBigGeometry {
     }
 
     upload(shader) {
-        const {batch, staticDraw, staticCopy, dynamicDraw} = this;
+        const {batch, staticDraw, staticCopy, dynamicDraw, fakeDraw} = this;
         if (!this.context) {
             this.context = shader.context;
             // when WebGL
@@ -80,6 +83,7 @@ export class BaseBigGeometry {
             staticDraw.init(shader);
             staticCopy?.init(shader);
             dynamicDraw.init(shader);
+            fakeDraw?.init(this.context);
         }
         if (batch.instCount === 0) {
             return;
@@ -91,15 +95,12 @@ export class BaseBigGeometry {
             if (staticCopy.isSynced()) {
                 if (staticCopy.copyFlag) {
                     staticCopy.copyFlag = false;
-                    // let tempCnt = batch.copies.count;
-                    // batch.copies.count = batch.postFlipInstCount;
-                    staticCopy.buffer.batchUpdate(batch.vao.copyBuffer, batch.copyOps, staticDraw.stride);
-                    // batch.copies.count = tempCnt;
+                    staticCopy.buffer.batchUpdate(fakeDraw.buffer, batch.copyOps, staticDraw.stride);
                     this.flip();
                 } else {
                     staticCopy.copyFlag = true;
                     batch.preFlip();
-                    dynamicDraw.doCopy();
+                    fakeDraw.draw(dynamicDraw.buffer.data);
                     staticCopy.checkFence(true);
                 }
             }
