@@ -1,6 +1,6 @@
 import { Resources } from "./resources.js";
 import * as ModelBuilder from "./modelBuilder.js";
-import { Color, Helpers, Vector } from "./helpers.js";
+import { Color, Helpers, IndexedColor, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
 import { HEAD_MAX_ROTATE_ANGLE, MOUSE, PLAYER_SKIN_TYPES, SNEAK_MINUS_Y_MUL } from "./constant.js";
@@ -11,6 +11,8 @@ import type { Renderer } from "./render.js";
 import type { SceneNode } from "./SceneNode.js";
 import type { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import type { World } from "./world.js";
+import type { BBModel_Group } from "./bbmodel/group.js";
+import GeometryTerrain from "./geometry_terrain.js";
 
 const { quat, mat4 } = glMatrix;
 
@@ -749,32 +751,34 @@ export class MobModel extends NetworkPhysicObject {
             this.aabb.draw(render, this.tPos, delta, true /*this.raycasted*/ );
         }
 
-        const mesh : Mesh_Object_BBModel = null // this._mesh || (this._mesh = render.world.mobs.models.get(this.type))
+        let type = this.type
+        // if(type == 'player:steve') type = 'humanoid'
+        const mesh : Mesh_Object_BBModel = this._mesh || (this._mesh = render.world.mobs.models.get(type))
+
         if(mesh) {
 
-            //
-            // const init_matrix = mat4.create()
-            // const rotate = new Vector(0, 0, this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0)
-            // let rotate_matrix = mat4.create()
-            // mat4.rotateZ(rotate_matrix, rotate_matrix, rotate.z)
-            // let leg_matrix = mat4.create()
-            // mat4.rotateY(leg_matrix, leg_matrix, performance.now() / 1000)
-            // mat4.rotateZ(leg_matrix, leg_matrix, rotate.z)
-            // for(let k in mesh.parts) {
-            //     const parts = mesh.parts[k]
-            //     const parent_matrix = (k == 'legs') ? leg_matrix : rotate_matrix
-            //     for(let i = 0; i < parts.length; i++) {
-            //         const group : BBModel_Group = parts[i]
-            //         if(group instanceof GeometryTerrain) {
-            //             render.renderBackend.drawMesh(group, mesh.gl_material, this._pos, parent_matrix)
-            //         } else {
-            //             const vertices = []
-            //             group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null)
-            //             const gt = new GeometryTerrain(vertices)
-            //             parts[i] = gt
-            //         }
-            //     }
-            // }
+            const init_matrix = mat4.create()
+            const rotate = new Vector(0, 0, this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0)
+            let rotate_matrix = mat4.create()
+            mat4.rotateZ(rotate_matrix, rotate_matrix, rotate.z)
+            let leg_matrix = mat4.create()
+            mat4.rotateY(leg_matrix, leg_matrix, performance.now() / 1000)
+            mat4.rotateZ(leg_matrix, leg_matrix, rotate.z)
+            for(let k in mesh.parts) {
+                const parts = mesh.parts[k]
+                const parent_matrix = (k == 'legs') ? leg_matrix : rotate_matrix
+                for(let i = 0; i < parts.length; i++) {
+                    const group : BBModel_Group = parts[i]
+                    if(group instanceof GeometryTerrain) {
+                        render.renderBackend.drawMesh(group, mesh.gl_material, this._pos, parent_matrix)
+                    } else {
+                        const vertices = []
+                        group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null)
+                        const gt = new GeometryTerrain(vertices)
+                        parts[i] = gt
+                    }
+                }
+            }
 
             // mesh.setAnimation('walk')
             mesh.rotate.z = this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0

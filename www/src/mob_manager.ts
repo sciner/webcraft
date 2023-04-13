@@ -26,7 +26,7 @@ export class MobManager {
     // Client side method
     init() {
 
-        for(let name of ['pig']) {
+        for(let name of [/*'pig',*/ 'humanoid']) {
             const model = Resources._bbmodels.get(`mob/${name}`)
             const mesh = new Mesh_Object_BBModel(Qubatch.render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
             mesh.parts = {
