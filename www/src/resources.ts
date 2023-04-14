@@ -107,6 +107,9 @@ export class Resources {
             all.push(loadTextFile('./shaders/skybox/fragment.glsl').then((txt) => { this.codeSky.fragment = txt } ))
         }
 
+        //
+        all.push(Resources.loadBBModels());
+
         await Promise.all(all)
 
     }
@@ -169,9 +172,6 @@ export class Resources {
 
         // Painting
         all.push(Resources.loadPainting());
-
-        //
-        all.push(Resources.loadBBModels());
 
         // Physics features
         all.push(fetch('/src/prismarine-physics/lib/features.json').then(response => response.json()).then(json => { this.physics.features = json;}));

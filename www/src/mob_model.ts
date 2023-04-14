@@ -852,6 +852,8 @@ export class MobModel extends NetworkPhysicObject {
             //     }
             // }
             
+        } else {
+            
         }
     }
 

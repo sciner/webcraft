@@ -51,6 +51,7 @@ export class Mesh_Effect_Manager {
             const tex = (item as any).textures
             if(tex) {
                 for(let i in tex) {
+                    if(tex[i].length != 2) continue
                     tex[i][0] = (tex[i][0] + .5) / 8;
                     tex[i][1] = (tex[i][1] + .5) / 8;
                     tex[i][2] = 1 / 8;
