@@ -5,6 +5,7 @@ import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 import GeometryTerrain from '../geometry_terrain.js';
 import type { Renderer } from '../render.js';
 import { BBModel_Cube } from './cube.js';
+import type { BBModel_Model } from './model.js';
 
 const {mat4} = glMatrix;
 
@@ -13,9 +14,11 @@ export class BBModel_Group extends BBModel_Child {
     [key: string]: any;
 
     vertices_pushed: boolean = false
+    // model: BBModel_Model
 
-    constructor(name : string, pivot : Vector, rot : Vector, visibility : boolean = true) {
+    constructor(model : BBModel_Model, name : string, pivot : Vector, rot : Vector, visibility : boolean = true) {
         super();
+        this.model = model;
         this.name = name;
         this.children = [];
         this.pivot = pivot;
@@ -56,9 +59,9 @@ export class BBModel_Group extends BBModel_Child {
         this.playAnimations(mx);
         mat4.multiply(mx, mx, this.matrix);
 
-        const im_bone = mesh.bone_groups.has(this.name)
+        const im_bone = this.model.bone_groups.has(this.name)
 
-        if(im_bone && !this.buf) {
+        if(im_bone && !mesh.geometries.has(this.name)) {
             vertices = []
         }
 
@@ -76,10 +79,12 @@ export class BBModel_Group extends BBModel_Child {
         this.vertices_pushed = true
 
         if(im_bone) {
-            if(!this.buf) {
-                this.buf = new GeometryTerrain(vertices)
+            let geom = mesh.geometries.get(this.name)
+            if(!geom) {
+                geom = new GeometryTerrain(vertices)
+                mesh.geometries.set(this.name, geom)
             }
-            render.renderBackend.drawMesh(this.buf, mesh.gl_material, pos, mx)
+            render.renderBackend.drawMesh(geom, mesh.gl_material, pos, mx)
         }
 
     }
