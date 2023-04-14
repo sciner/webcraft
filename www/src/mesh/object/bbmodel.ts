@@ -95,21 +95,16 @@ export class Mesh_Object_BBModel {
         return normalizedAngle > 180 ? normalizedAngle - 360 : normalizedAngle;
     }
 
-    drawBuffered(render : Renderer, delta : float) {
-        const m = mat4.create()
-        mat4.copy(m, this.matrix)
-        // mat4.rotateZ(m, m, -this.rotate.z)
-        mat4.rotateY(m, m, this.rotate.z +  Math.PI)
+    drawBuffered(render : Renderer, delta : float, m? : float[], pos?: Vector) {
+        if(!m) {
+            m = mat4.create()
+            mat4.copy(m, this.matrix)
+            mat4.rotateY(m, m, this.rotate.z +  Math.PI)
+        }
 
-        // mat4.identity(m)
-        // mat4.rotate(m,m, 0, [0, 1, 0])
-        // mat4.rotate(m,m, 0, [1, 0, 0])
-        // mat4.rotate(m,m, Math.PI, [0, 0, 1])
-
-        // let q = quat.create()
-        // quat.rotateZ(q, q, this.rotate.z)
-        // quat.fromEuler(q, 0, 0, this.normalizeAngle(-this.rotate.z / Math.PI * 180) / Math.PI, 'xyz')
-        // mat4.fromRotationTranslationScaleOrigin(m, q, [0, 0, 0], [1, 1, 1], [0, 0, 0])
+        if(pos) {
+            this.apos.copyFrom(pos)
+        }
 
         this.model.playAnimation(this.animation_name, (this.start_time + performance.now()) / 1000)
         this.model.drawBuffered(render, this, this.apos, lm, m)

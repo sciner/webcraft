@@ -1,11 +1,12 @@
 import { BBModel_Child } from './child.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { IndexedColor, Vector } from '../helpers.js';
-import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
+import { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 import GeometryTerrain from '../geometry_terrain.js';
 import type { Renderer } from '../render.js';
 import { BBModel_Cube } from './cube.js';
 import type { BBModel_Model } from './model.js';
+import { Resources } from '../resources.js';
 
 const {mat4} = glMatrix;
 
@@ -19,6 +20,7 @@ export class BBModel_Group extends BBModel_Child {
     animations:         any[] = []
     name:               string
     rot_orig:           Vector
+    axe:                Mesh_Object_BBModel
 
     constructor(model : BBModel_Model, name : string, pivot : Vector, rot : Vector, visibility : boolean = true) {
         super()
@@ -101,6 +103,22 @@ export class BBModel_Group extends BBModel_Child {
                 mesh.geometries.set(this.name, geom)
             }
             render.renderBackend.drawMesh(geom, mesh.gl_material, pos, mx)
+        }
+
+        if(this.name == 'RightArmItemPlace') {
+            if(!mesh.axe) {
+                const axe_model = Resources._bbmodels.get('tool/primitive_axe')
+                mesh.axe = new Mesh_Object_BBModel(render, Vector.ZERO, Vector.ZERO, axe_model, null, false)
+            }
+            // 1. move to anchor
+            mat4.translate(mx, mx, [this.pivot.x/16, this.pivot.y/16, this.pivot.z/16])
+            // 2. move by display from model
+            const axe_display = mesh.axe.model.json?.display?.thirdperson_righthand
+            if(axe_display?.translation) {
+                const t = axe_display?.translation
+                mat4.translate(mx, mx, [t[0] / 16, t[1] / 16, t[2] / 16])
+            }
+            mesh.axe.drawBuffered(render, 0, mx, pos)
         }
 
     }
