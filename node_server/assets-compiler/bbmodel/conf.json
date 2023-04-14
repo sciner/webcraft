@@ -265,7 +265,7 @@
             "id": 642,
             "name": "BIRCH_SIGN",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.3}
+                "move": {"x": 0, "y": -0.3, "z": 0}
             },
             "bb": {
                 "model": "sign",
@@ -286,7 +286,7 @@
             "id": 643,
             "name": "OAK_SIGN",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.3}
+                "move": {"x": 0, "y": -0.3, "z": 0}
             },
             "bb": {
                 "model": "sign",
@@ -307,7 +307,7 @@
             "id": 644,
             "name": "ACACIA_SIGN",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.3}
+                "move": {"x": 0, "y": -0.3, "z": 0}
             },
             "bb": {
                 "model": "sign",
@@ -328,7 +328,7 @@
             "id": 645,
             "name": "SPRUCE_SIGN",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.3}
+                "move": {"x": 0, "y": -0.3, "z": 0}
             },
             "bb": {
                 "model": "sign",
@@ -349,7 +349,7 @@
             "id": 646,
             "name": "DARK_OAK_SIGN",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.3}
+                "move": {"x": 0, "y": -0.3, "z": 0}
             },
             "bb": {
                 "model": "sign",
@@ -370,7 +370,7 @@
             "id": 647,
             "name": "JUNGLE_SIGN",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.3}
+                "move": {"x": 0, "y": -0.3, "z": 0}
             },
             "bb": {
                 "model": "sign",
@@ -960,8 +960,8 @@
             "name": "BIRCH_DOOR",
             "inventory": {
                 "scale": 0.75,
-                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
-                "move": {"x": 0, "y": -0.5, "z": -0.9},
+                "rotate": {"x": 0, "y": -0.7853981633974483, "z": 0},
+                "move": {"x": 0, "y": -0.75, "z": -0.5},
                 "_style": "extruder",
                 "_texture": {
                     "id": "default",
@@ -985,8 +985,8 @@
             "name": "OAK_DOOR",
             "inventory": {
                 "scale": 0.75,
-                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
-                "move": {"x": 0, "y": -0.5, "z": -0.9}
+                "rotate": {"x": 0, "y": -0.7853981633974483, "z": 0},
+                "move": {"x": 0, "y": -0.75, "z": -0.5}
             },
             "bb": {
                 "model": "door",
@@ -1005,8 +1005,8 @@
             "name": "ACACIA_DOOR",
             "inventory": {
                 "scale": 0.75,
-                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
-                "move": {"x": 0, "y": -0.5, "z": -0.9}
+                "rotate": {"x": 0, "y": -0.7853981633974483, "z": 0},
+                "move": {"x": 0, "y": -0.75, "z": -0.5}
             },
             "bb": {
                 "model": "door",
@@ -1025,8 +1025,8 @@
             "name": "SPRUCE_DOOR",
             "inventory": {
                 "scale": 0.75,
-                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
-                "move": {"x": 0, "y": -0.5, "z": -0.9}
+                "rotate": {"x": 0, "y": -0.7853981633974483, "z": 0},
+                "move": {"x": 0, "y": -0.75, "z": -0.5}
             },
             "bb": {
                 "model": "door",
@@ -1045,8 +1045,8 @@
             "name": "DARK_OAK_DOOR",
             "inventory": {
                 "scale": 0.75,
-                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
-                "move": {"x": 0, "y": -0.5, "z": -0.9}
+                "rotate": {"x": 0, "y": -0.7853981633974483, "z": 0},
+                "move": {"x": 0, "y": -0.75, "z": -0.5}
             },
             "bb": {
                 "model": "door",
@@ -1065,8 +1065,8 @@
             "name": "JUNGLE_DOOR",
             "inventory": {
                 "scale": 0.75,
-                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
-                "move": {"x": 0, "y": -0.5, "z": -0.9}
+                "rotate": {"x": 0, "y": -0.7853981633974483, "z": 0},
+                "move": {"x": 0, "y": -0.75, "z": -0.5}
             },
             "bb": {
                 "model": "door",
@@ -1085,8 +1085,8 @@
             "name": "IRON_DOOR",
             "inventory": {
                 "scale": 0.75,
-                "rotate": {"x": 0, "y": 0, "z": -0.7853981633974483},
-                "move": {"x": 0, "y": -0.5, "z": -0.9}
+                "rotate": {"x": 0, "y": -0.7853981633974483, "z": 0},
+                "move": {"x": 0, "y": -0.75, "z": -0.5}
             },
             "bb": {
                 "model": "door",
@@ -1155,7 +1155,7 @@
             "id": 911,
             "name": "BIRCH_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
                 "model": "fence_gate",
@@ -1178,7 +1178,7 @@
             "id": 912,
             "name": "OAK_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
                 "model": "fence_gate",
@@ -1201,7 +1201,7 @@
             "id": 913,
             "name": "ACACIA_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
                 "model": "fence_gate",
@@ -1224,7 +1224,7 @@
             "id": 914,
             "name": "SPRUCE_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
                 "model": "fence_gate",
@@ -1247,7 +1247,7 @@
             "id": 915,
             "name": "DARK_OAK_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
                 "model": "fence_gate",
@@ -1270,7 +1270,7 @@
             "id": 916,
             "name": "JUNGLE_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
                 "model": "fence_gate",
@@ -1293,7 +1293,7 @@
             "id": 917,
             "name": "CRIMSON_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
                 "model": "fence_gate",
@@ -1316,7 +1316,7 @@
             "id": 918,
             "name": "WARPED_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
                 "model": "fence_gate",
@@ -1339,7 +1339,7 @@
             "id": 919,
             "name": "NETHER_BRICK_FENCE_GATE",
             "inventory": {
-                "move": {"x": 0, "y": 0, "z": -0.15}
+                "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
                 "model": "fence_gate",
@@ -1363,7 +1363,7 @@
             "name": "WHITE_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1383,7 +1383,7 @@
             "name": "ORANGE_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1403,7 +1403,7 @@
             "name": "MAGENTA_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1423,7 +1423,7 @@
             "name": "LIGHT_BLUE_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1443,7 +1443,7 @@
             "name": "YELLOW_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1463,7 +1463,7 @@
             "name": "LIME_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1483,7 +1483,7 @@
             "name": "PINK_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1503,7 +1503,7 @@
             "name": "GRAY_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1523,7 +1523,7 @@
             "name": "LIGHT_GRAY_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1543,7 +1543,7 @@
             "name": "CYAN_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1563,7 +1563,7 @@
             "name": "PURPLE_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1583,7 +1583,7 @@
             "name": "BLUE_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1603,7 +1603,7 @@
             "name": "BROWN_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1623,7 +1623,7 @@
             "name": "GREEN_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1643,7 +1643,7 @@
             "name": "RED_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1663,7 +1663,7 @@
             "name": "BLACK_BED",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0.5, "z": -0.3}
+                "move": {"x": 0, "z": 0.5, "y": 0}
             },
             "bb": {
                 "model": "bed",
@@ -1683,8 +1683,8 @@
             "name": "BIRCH_CHAIR",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": {"x": 0, "y": 3.14159, "z": 0},
+                "move": {"x": 0, "y": -0.35, "z": 0}
             },
             "bb": {
                 "model": "chair",
@@ -1705,8 +1705,8 @@
             "name": "OAK_CHAIR",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": {"x": 0, "y": 3.14159, "z": 0},
+                "move": {"x": 0, "y": -0.35, "z": 0}
             },
             "bb": {
                 "model": "chair",
@@ -1727,8 +1727,8 @@
             "name": "ACACIA_CHAIR",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": {"x": 0, "y": 3.14159, "z": 0},
+                "move": {"x": 0, "y": -0.35, "z": 0}
             },
             "bb": {
                 "model": "chair",
@@ -1749,8 +1749,8 @@
             "name": "SPRUCE_CHAIR",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": {"x": 0, "y": 3.14159, "z": 0},
+                "move": {"x": 0, "y": -0.35, "z": 0}
             },
             "bb": {
                 "model": "chair",
@@ -1771,8 +1771,8 @@
             "name": "DARK_OAK_CHAIR",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": {"x": 0, "y": 3.14159, "z": 0},
+                "move": {"x": 0, "y": -0.35, "z": 0}
             },
             "bb": {
                 "model": "chair",
@@ -1793,8 +1793,8 @@
             "name": "JUNGLE_CHAIR",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": {"x": 0, "y": 3.14159, "z": 0},
+                "move": {"x": 0, "y": -0.35, "z": 0}
             },
             "bb": {
                 "model": "chair",
@@ -1815,8 +1815,8 @@
             "name": "BIRCH_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": {"x": 0, "y": 3.14159, "z": 0},
+                "move": {"x": 0, "y": -0.35, "z": 0}
             },
             "bb": {
                 "model": "stool",
@@ -1834,8 +1834,8 @@
             "name": "OAK_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": {"x": 0, "y": 3.14159, "z": 0},
+                "move": {"x": 0, "y": -0.35, "z": 0}
             },
             "bb": {
                 "model": "stool",
@@ -1853,8 +1853,8 @@
             "name": "ACACIA_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": {"x": 0, "y": 3.14159, "z": 0},
+                "move": {"x": 0, "y": -0.35, "z": 0}
             },
             "bb": {
                 "model": "stool",
@@ -1872,8 +1872,8 @@
             "name": "SPRUCE_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": {"x": 0, "y": 3.14159, "z": 0},
+                "move": {"x": 0, "y": -0.35, "z": 0}
             },
             "bb": {
                 "model": "stool",
@@ -1891,8 +1891,8 @@
             "name": "DARK_OAK_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": {"x": 0, "y": 3.14159, "z": 0},
+                "move": {"x": 0, "y": -0.35, "z": 0}
             },
             "bb": {
                 "model": "stool",
@@ -1910,8 +1910,8 @@
             "name": "JUNGLE_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": {"x": 0, "y": 3.14159, "z": 0},
+                "move": {"x": 0, "y": -0.35, "z": 0}
             },
             "bb": {
                 "model": "stool",
@@ -1929,8 +1929,8 @@
             "name": "CRIMSON_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": {"x": 0, "y": 3.14159, "z": 0},
+                "move": {"x": 0, "y": -0.35, "z": 0}
             },
             "bb": {
                 "model": "stool",
@@ -1948,8 +1948,8 @@
             "name": "WARPED_STOOL",
             "inventory": {
                 "scale": 0.9,
-                "rotate": {"x": 0, "y": 0, "z": 3.14159},
-                "move": {"x": 0, "y": 0, "z": -0.35}
+                "rotate": {"x": 0, "y": 3.14159, "z": 0},
+                "move": {"x": 0, "y": -0.35, "z": 0}
             },
             "bb": {
                 "model": "stool",
@@ -2013,7 +2013,7 @@
             "group": "doubleface_transparent",
             "inventory": {
                 "scale": 0.75,
-                "move": {"x": 0, "y": 0, "z": -0.275}
+                "move": {"x": 0, "y": -0.275, "z": 0}
             },
             "bb": {
                 "model": "mob_spawn",
@@ -2064,7 +2064,7 @@
             "name": "CATTAIL",
             "inventory": {
                 "scale": 0.55,
-                "move": {"x": 0, "y": 0, "z": -1}
+                "move": {"x": 0, "y": -1, "z": 0}
             },
             "bb": {
                 "model": "cattail",
@@ -2079,7 +2079,7 @@
             "name": "REED",
             "inventory": {
                 "scale": 0.55,
-                "move": {"x": 0, "y": 0, "z": -1}
+                "move": {"x": 0, "y": -1, "z": 0}
             },
             "bb": {
                 "model": "reed",

@@ -37,6 +37,13 @@ export class HumanoidArm {
 const {mat3, mat4, quat} = glMatrix;
 const tmpMatrix = mat4.create();
 
+export function invertMatrixZ(matrix) {
+    for (let i = 0; i < 4; i++) {
+        matrix[8 + i] *= -1;
+        matrix[i * 4 + 2] *= -1;
+    }
+}
+
 export function swapMatrixYZ(matrix) {
     for (let i = 0; i < 4; i++) {
         let t = matrix[4 + i];
@@ -403,7 +410,8 @@ export class InHandOverlay {
                 mat4.fromRotationTranslationScaleOrigin(m, q, base.position, base.scale, base.pivot)
                 mat4.multiply(modelMatrix, modelMatrix, m)
 
-                swapMatrixYZ(modelMatrix)
+                // swapMatrixYZ(modelMatrix)
+                invertMatrixZ(modelMatrix)
 
                 return
             } else {
@@ -420,7 +428,8 @@ export class InHandOverlay {
         mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, q))
         mat4.scale(modelMatrix, modelMatrix, base.scale)
         mat4.translate(modelMatrix, modelMatrix, base.position)
-        swapMatrixYZ(modelMatrix)
+        // swapMatrixYZ(modelMatrix)
+        invertMatrixZ(modelMatrix)
 
         // mat4.fromRotationTranslationScaleOrigin(modelMatrix, q, base.position, base.scale, base.pivot);
 

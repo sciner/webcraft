@@ -427,8 +427,8 @@ export class Renderer {
         mat4.scale(matrix_empty, matrix_empty, [0.75, 0.75, 0.75]);
         //
         const matrix = mat4.create();
-        mat4.rotateX(matrix, matrix, Math.PI / 6);
-        mat4.rotateZ(matrix, matrix, Math.PI + Math.PI / 4);
+        mat4.rotateX(matrix, matrix, -Math.PI / 6);
+        mat4.rotateY(matrix, matrix, Math.PI + Math.PI / 4);
         //
         camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
         // larg for valid render results

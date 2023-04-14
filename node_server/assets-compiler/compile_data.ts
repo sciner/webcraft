@@ -663,8 +663,8 @@ export class CompileData {
                 },
                 "inventory": {
                     "scale": .75,
-                    "rotate": {"x": 0, "y": 0, "z": Math.PI * .9},
-                    "move": {"x": 0, "y": 0, "z": 0.5}
+                    "rotate": {"x": 0, "y": Math.PI * .9, "z": 0},
+                    "move": {"x": 0, "y": 0.5, "z": 0}
                 },
                 "tags": [
                     "banner",
@@ -854,7 +854,7 @@ export class CompileData {
                 ],
                 "inventory": {
                     "scale": 0.8,
-                    "move": {"x": -0.2, "y": 0, "z": -0.4}
+                    "move": {"x": -0.2, "y": -0.2, "z": 0}
                 },
                 "extra_data": {
                     "frame": item.log

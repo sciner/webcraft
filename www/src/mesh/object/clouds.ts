@@ -106,7 +106,7 @@ export default class Mesh_Object_Clouds {
         }
         this.modelMatrix = mat4.create();
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.yaw);
-        mat4.scale(this.modelMatrix, this.modelMatrix, CLOUDS_TEX_SCALE.swapYZ().toArray());
+        mat4.scale(this.modelMatrix, this.modelMatrix, CLOUDS_TEX_SCALE.toArray());
         //
         // console.log(parseInt(this.vertices.length / GeometryTerrain.strideFloats) + ' quads in clouds ');
         //

@@ -211,12 +211,12 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         mat4.translate(this.modelMatrix, this.modelMatrix,
             [
                 (this.posFact.x - this.chunk.coord.x),
+                (this.posFact.y - this.chunk.coord.y + 3 / 16),
                 (this.posFact.z - this.chunk.coord.z),
-                (this.posFact.y - this.chunk.coord.y + 3 / 16)
             ]
         );
         mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.toArray());
-        mat4.rotateZ(this.modelMatrix, this.modelMatrix, addY / 60);
+        mat4.rotateY(this.modelMatrix, this.modelMatrix, addY / 60);
 
         // Draw mesh group
         this.mesh_group.draw(render, this.chunk.coord, this.modelMatrix, this.lightTex);
@@ -244,8 +244,8 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         const mat = this.block.material
         if(mat.style == 'extruder') {
             const matrix = mat4.create()
-            mat4.rotateZ(matrix, mx, Helpers.deg2rad(180))
-            mat4.rotateY(matrix, matrix, Helpers.deg2rad(mat.diagonal ? -65 : -30))
+            mat4.rotateY(matrix, mx, Helpers.deg2rad(180))
+            mat4.rotateZ(matrix, matrix, Helpers.deg2rad(mat.diagonal ? 65 : 30))
             mx = matrix
         }
 
