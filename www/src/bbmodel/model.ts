@@ -128,7 +128,7 @@ export class BBModel_Model {
     /**
      * Draw
      */
-    draw(vertices: Float32Array, pos : Vector, lm : IndexedColor, matrix : imat4, emmit_particles_func? : Function) {
+    draw(vertices: float[], pos : Vector, lm : IndexedColor, matrix : imat4, emmit_particles_func? : Function) {
         this.root.pushVertices(vertices, pos, lm, matrix, emmit_particles_func);
     }
 
@@ -139,13 +139,8 @@ export class BBModel_Model {
 
     /**
      * Play animations
-     *
-     * @param {string} animation_name
-     * @param {float} dt
-     *
-     * @return {boolean}
      */
-    playAnimation(animation_name, dt) {
+    playAnimation(animation_name : string, dt : float) : boolean {
 
         const animation = this.animations.get(animation_name)
         if(!animation) {
@@ -153,11 +148,11 @@ export class BBModel_Model {
         }
 
         // reset all states
-        for(const [name, animation] of this.animations.entries()) {
+        for(const [_, animation] of this.animations.entries()) {
             for(let k in animation.animators) {
                 const animator = animation.animators[k];
-                const group = this.groups.get(animator.name);
-                group.animations = [];
+                const group = this.groups.get(animator.name) as BBModel_Group
+                group.animations.length = 0
                 group.rot.copyFrom(group.rot_orig)
                 group.updateLocalTransform()
             }
@@ -206,7 +201,7 @@ export class BBModel_Model {
                     if(!current_keyframe || !next_keyframe) continue
                     const current_point = current_keyframe.data_points[0];
                     const next_point = next_keyframe.data_points[0];
-                    const point = new Vector(0, 0, 0);
+                    const point : Vector = current_keyframe.point || (current_keyframe.point = new Vector(0, 0, 0))
 
                     let args;
                     let func_name;
@@ -225,7 +220,7 @@ export class BBModel_Model {
 
                     const t = func(percent, args || [])
                     point.lerpFrom(current_point, next_point, t)
-                    group.animations.push({channel_name, point})
+                    group.animations.push(channel_name, point)
 
                 }
 

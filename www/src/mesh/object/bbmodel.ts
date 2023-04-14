@@ -4,6 +4,8 @@ import type { Renderer } from '../../render.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 import type { BBModel_Model } from '../../bbmodel/model.js';
 import type { BBModel_Group } from '../../bbmodel/group.js';
+import type { BaseResourcePack } from '../../base_resource_pack.js';
+import type { WebGLMaterial } from '../../renders/webgl/WebGLMaterial.js';
 
 const {mat4, quat} = glMatrix;
 const lm        = IndexedColor.WHITE;
@@ -16,6 +18,8 @@ export class Mesh_Object_BBModel {
     model : BBModel_Model
     geometries: Map<string, GeometryTerrain> = new Map()
     vertices_pushed: Map<string, boolean> = new Map()
+    resource_pack : BaseResourcePack
+    gl_material: WebGLMaterial
 
     constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false) {
 
@@ -25,18 +29,18 @@ export class Mesh_Object_BBModel {
             return;
         }
 
+        const grid          = render.world.chunkManager.grid
+
         this.rotate         = new Vector(rotate)
         this.life           = 1.0;
         this.chunk          = null;
         this.apos           = new Vector(pos) // absolute coord
-        const grid          = render.world.chunkManager.grid;
         this.chunk_addr     = grid.toChunkAddr(this.apos);
         this.chunk_coord    = this.chunk_addr.mul(grid.chunkSize);
         this.pos            = this.apos.sub(this.chunk_coord); // pos inside chunk
         this.matrix         = mat4.create();
         this.start_time     = performance.now();
         this.resource_pack  = render.world.block_manager.resource_pack_manager.get('bbmodel');
-
         this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${doubleface ? 'doubleface' : 'regular'}/terrain/${model.json._properties.texture_id}`);
         this.vertices       = [];
         this.buffer         = new GeometryTerrain(this.vertices);

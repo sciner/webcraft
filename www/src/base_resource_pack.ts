@@ -5,6 +5,7 @@ import { DEFAULT_TX_SIZE, LIGHT_TYPE } from './constant.js';
 import type { TBlock } from './typed_blocks3.js';
 import type { BLOCK, FakeTBlock } from './blocks.js';
 import type { ChunkWorkerChunk } from './worker/chunk.js';
+import type { WebGLMaterial } from './renders/webgl/WebGLMaterial.js';
 
 let tmpCanvas;
 
@@ -259,7 +260,7 @@ export class BaseResourcePack {
     }
 
     //
-    getMaterial(key) {
+    getMaterial(key : string) : WebGLMaterial {
         let texMat = this.materials.get(key);
         if(texMat) {
             return texMat;

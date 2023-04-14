@@ -12,49 +12,51 @@ const {mat4} = glMatrix;
 let IDENTITY = mat4.create();
 //
 export class BBModel_Group extends BBModel_Child {
-    [key: string]: any;
-
-    vertices_pushed: boolean = false
-    // model: BBModel_Model
+    vertices_pushed:    boolean = false
+    _mx:                imat4 = mat4.create()
+    update:             boolean = true
+    children:           any[] = []
+    animations:         any[] = []
+    name:               string
+    rot_orig:           Vector
 
     constructor(model : BBModel_Model, name : string, pivot : Vector, rot : Vector, visibility : boolean = true) {
-        super();
-        this.model = model;
-        this.name = name;
-        this.children = [];
-        this.pivot = pivot;
-        this.rot = rot;
-        this.rot_orig = rot.clone();
-        this.animations = [];
+        super()
+        this.model = model
+        this.name = name
+        this.pivot = pivot
+        this.rot = rot
+        this.rot_orig = rot.clone()
         this.visibility = !!visibility
-        this.orig_visibility = !!visibility
-        this.update = true
+        this.orig_visibility = this.visibility
     }
 
-    /**
-     * @param {BBModel_Child} child
-     */
-    addChild(child) {
-        this.children.push(child);
+    addChild(child : BBModel_Child) {
+        this.children.push(child)
     }
 
-    pushVertices(vertices : Float32Array, pos : Vector, lm : IndexedColor, parent_matrix, emmit_particles_func? : Function) {
+    pushVertices(vertices : float[], pos : Vector, lm : IndexedColor, parent_matrix, emmit_particles_func? : Function) {
 
-        const mx = mat4.create();
-        mat4.copy(mx, parent_matrix);
-        this.playAnimations(mx);
-        mat4.multiply(mx, mx, this.matrix);
+        const mx = this._mx
+        mat4.identity(mx)
+
+        mat4.copy(mx, parent_matrix)
+        this.playAnimations(mx)
+        mat4.multiply(mx, mx, this.matrix)
 
         for(let part of this.children) {
             if(!part.visibility) {
                 continue
             }
-            part.pushVertices(vertices, pos, lm, mx, emmit_particles_func);
+            part.pushVertices(vertices, pos, lm, mx, emmit_particles_func)
         }
     }
 
-    drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : float[], bone_matrix: float[] = null, vertices : float[], emmit_particles_func? : Function) {
-        const mx = mat4.create();
+    drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : imat4, bone_matrix: float[] = null, vertices : float[], emmit_particles_func? : Function) {
+
+        const mx = this._mx
+        mat4.identity(mx)
+
         if (parent_matrix) {
             mat4.copy(mx, parent_matrix);
         }
@@ -104,31 +106,33 @@ export class BBModel_Group extends BBModel_Child {
     }
 
     // Play animations
-    playAnimations(mx) {
+    playAnimations(mx : imat4) {
 
         if(this.animations.length == 0) {
             return false;
         }
 
-        for(let animation of this.animations) {
-            switch(animation.channel_name) {
+        for(let i = 0; i < this.animations.length; i += 2) {
+            const channel_name = this.animations[i]
+            const point = this.animations[i + 1]
+            switch(channel_name) {
                 case 'position': {
-                    mat4.translate(mx, mx, animation.point);
+                    mat4.translate(mx, mx, point);
                     break;
                 }
                 case 'rotation': {
-                    this.rot.copyFrom(this.rot_orig).subSelf(animation.point);
+                    this.rot.copyFrom(this.rot_orig).subSelf(point);
                     break;
                 }
             }
         }
 
         // apply
-        this.updateLocalTransform();
+        this.updateLocalTransform()
 
         // reset
-        this.animations = [];
-        this.rot.copyFrom(this.rot_orig);
+        this.animations.length = 0
+        this.rot.copyFrom(this.rot_orig)
 
     }
 
