@@ -15,6 +15,7 @@ export class Mesh_Object_BBModel {
 
     model : BBModel_Model
     geometries: Map<string, GeometryTerrain> = new Map()
+    vertices_pushed: Map<string, boolean> = new Map()
 
     constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false) {
 

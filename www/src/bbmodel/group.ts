@@ -65,18 +65,22 @@ export class BBModel_Group extends BBModel_Child {
             vertices = []
         }
 
+        const vertices_pushed = mesh.vertices_pushed.has(this.name)
+
         for(let part of this.children) {
             if(!part.visibility) {
                 continue
             }
             if(part instanceof BBModel_Group) {
                 part.drawBuffered(render, mesh, pos, lm, mx, vertices, emmit_particles_func)
-            } else if(!this.vertices_pushed && part instanceof BBModel_Cube) {
+            } else if(!vertices_pushed && part instanceof BBModel_Cube) {
                 part.pushVertices(vertices, Vector.ZERO, lm, mx, emmit_particles_func)
             }
         }
 
-        this.vertices_pushed = true
+        if(!vertices_pushed) {
+            mesh.vertices_pushed.set(this.name, true)
+        }
 
         if(im_bone) {
             let geom = mesh.geometries.get(this.name)
