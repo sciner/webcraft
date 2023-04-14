@@ -5,6 +5,7 @@ import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 import GeometryTerrain from '../geometry_terrain.js';
 import type { Renderer } from '../render.js';
 import { BBModel_Cube } from './cube.js';
+import type { BBModel_Model } from './model.js';
 
 const {mat4} = glMatrix;
 
@@ -14,9 +15,11 @@ export class BBModel_Group extends BBModel_Child {
     [key: string]: any;
 
     vertices_pushed: boolean = false
+    // model: BBModel_Model
 
-    constructor(name : string, pivot : Vector, rot : Vector, visibility : boolean = true) {
+    constructor(model : BBModel_Model, name : string, pivot : Vector, rot : Vector, visibility : boolean = true) {
         super();
+        this.model = model;
         this.name = name;
         this.children = [];
         this.pivot = pivot;
@@ -50,7 +53,7 @@ export class BBModel_Group extends BBModel_Child {
         }
     }
 
-    drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : float[], bone_matrix: float[] = IDENTITY, vertices : float[], emmit_particles_func? : Function) {
+    drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : float[], bone_matrix: float[] = null, vertices : float[], emmit_particles_func? : Function) {
         //this.updateLocalTransform();
         const mx = mat4.create();
         if (parent_matrix) {
@@ -59,16 +62,21 @@ export class BBModel_Group extends BBModel_Child {
         this.playAnimations(mx);
         mat4.multiply(mx, mx, this.matrix);
 
-        const im_bone = mesh.bone_groups.has(this.name)
-        if (im_bone) {
-            bone_matrix = mat4.create();
-        } else {
-            this.updateLocalTransform();
-            bone_matrix = mat4.multiply(mat4.create(), bone_matrix, this.matrix);
+        const im_bone = this.model.bone_groups.has(this.name)
+        if (bone_matrix) {
+            if (im_bone) {
+                bone_matrix = mat4.create();
+            } else {
+                this.updateLocalTransform();
+                bone_matrix = mat4.multiply(mat4.create(), bone_matrix, this.matrix);
+            }
         }
-        if(im_bone && !this.buf) {
+        if(im_bone && !mesh.geometries.has(this.name)) {
             vertices = []
+            bone_matrix = mat4.create();
         }
+
+        const vertices_pushed = mesh.vertices_pushed.has(this.name)
 
         for(let part of this.children) {
             if(!part.visibility) {
@@ -76,18 +84,22 @@ export class BBModel_Group extends BBModel_Child {
             }
             if(part instanceof BBModel_Group) {
                 part.drawBuffered(render, mesh, pos, lm, mx, bone_matrix, vertices, emmit_particles_func)
-            } else if(!this.vertices_pushed && part instanceof BBModel_Cube) {
+            } else if(!vertices_pushed && part instanceof BBModel_Cube) {
                 part.pushVertices(vertices, Vector.ZERO, lm, bone_matrix, emmit_particles_func)
             }
         }
 
-        this.vertices_pushed = true
+        if(!vertices_pushed) {
+            mesh.vertices_pushed.set(this.name, true)
+        }
 
         if(im_bone) {
-            if(!this.buf) {
-                this.buf = new GeometryTerrain(vertices)
+            let geom = mesh.geometries.get(this.name)
+            if(!geom) {
+                geom = new GeometryTerrain(vertices)
+                mesh.geometries.set(this.name, geom)
             }
-            render.renderBackend.drawMesh(this.buf, mesh.gl_material, pos, mx)
+            render.renderBackend.drawMesh(geom, mesh.gl_material, pos, mx)
         }
 
     }

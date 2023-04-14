@@ -15,6 +15,7 @@ export class BBModel_Model {
     [key: string]: any;
 
     root : BBModel_Group
+    bone_groups: Map<string, BBModel_Group> = new Map()
 
     constructor(json) {
         // TODO: need to read from bbmodel texture pack options
@@ -23,7 +24,7 @@ export class BBModel_Model {
         this.elements = new Map()
         this.groups = new Map()
         this._group_stack = []
-        this.root = new BBModel_Group('_main', new Vector(0, 0, 0), new Vector(0, 0, 0))
+        this.root = new BBModel_Group(this, '_main', new Vector(0, 0, 0), new Vector(0, 0, 0))
         this._group_stack.push(this.root)
         this.selected_texture_name = null
         this.particle_locators = []
@@ -283,9 +284,27 @@ export class BBModel_Model {
                 this.addElement(origin, element);
             }
         }
+
         // parse animations
         this.parseAnimations();
-        return this;
+
+        // parse bone groups
+        for(const [_, anim] of this.animations.entries()) {
+            for(let [_, animator] of Object.entries(anim.animators)) {
+                const name = (animator as any).name
+                if(!this.bone_groups.has(name)) {
+                    const group = this.groups.get(name)
+                    if(!group) {
+                        throw 'error_bone_group_not_found'
+                    }
+                    this.bone_groups.set(name, group)
+                }
+            }
+        }
+
+        this.bone_groups.set(this.root.name, this.root)
+
+        return this
     }
 
     // Parse animations
@@ -386,7 +405,7 @@ export class BBModel_Model {
         // create new group and add to other groups list
         const {rot, pivot} = this.parsePivotAndRot(group, true);
 
-        const bbGroup = new BBModel_Group(group.name, pivot, rot, group.visibility);
+        const bbGroup = new BBModel_Group(this, group.name, pivot, rot, group.visibility);
         bbGroup.updateLocalTransform();
         this.groups.set(group.name, bbGroup);
 

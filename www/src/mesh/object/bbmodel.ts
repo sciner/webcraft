@@ -14,7 +14,8 @@ export class Mesh_Object_BBModel {
     [key: string]: any
 
     model : BBModel_Model
-    bone_groups: Map<string, BBModel_Group>
+    geometries: Map<string, GeometryTerrain> = new Map()
+    vertices_pushed: Map<string, boolean> = new Map()
 
     constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false) {
 
@@ -42,21 +43,6 @@ export class Mesh_Object_BBModel {
         this.redraw(0.);
 
         this.setAnimation(animation_name);
-
-        // Parse bone groups
-        this.bone_groups = new Map()
-        for(const [_, anim] of this.model.animations.entries()) {
-            for(let [_, animator] of Object.entries(anim.animators)) {
-                const name = (animator as any).name
-                if(!this.bone_groups.has(name)) {
-                    const group = this.model.groups.get(name)
-                    if(!group) {
-                        throw 'error_bone_group_not_found'
-                    }
-                    this.bone_groups.set(name, group)
-                }
-            }
-        }
 
     }
 
