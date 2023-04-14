@@ -30,7 +30,7 @@ export class MobManager {
             const model = Resources._bbmodels.get(`mob/${name}`)
             const mesh = new Mesh_Object_BBModel(Qubatch.render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
             this.models.set(name, mesh)
-            console.log(mesh)
+            // console.log(mesh)
         }
 
         // On server message

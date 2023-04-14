@@ -823,10 +823,16 @@ export class MobModel extends NetworkPhysicObject {
 
             //render.renderBackend.drawMesh(mesh.model.groups.get('head'), mesh.gl_material, this._pos, init_matrix)
 
-            const init_matrix = mat4.create()
             mesh.setAnimation('walk')
             mesh.rotate.z = this.draw_yaw ? this.draw_yaw : 0
             mesh.apos.copyFrom(this._pos)
+            // hide armor groups
+            for(let group of mesh.model.groups.values()) {
+                if(['helmet', 'boat'].includes(group.name) || group.name.startsWith('chest') || group.name.startsWith('pants')) {
+                    group.visibility = false
+                }
+            }
+            // mesh.draw(render, delta)
             mesh.drawBuffered(render, delta)
 
             // for (const group of mesh.model.groups.values()) {

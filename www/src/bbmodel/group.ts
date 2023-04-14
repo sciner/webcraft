@@ -4,6 +4,7 @@ import { IndexedColor, Vector } from '../helpers.js';
 import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 import GeometryTerrain from '../geometry_terrain.js';
 import type { Renderer } from '../render.js';
+import { BBModel_Cube } from './cube.js';
 
 const {mat4} = glMatrix;
 
@@ -37,9 +38,7 @@ export class BBModel_Group extends BBModel_Child {
 
         const mx = mat4.create();
         mat4.copy(mx, parent_matrix);
-
         this.playAnimations(mx);
-
         mat4.multiply(mx, mx, this.matrix);
 
         for(let part of this.children) {
@@ -52,11 +51,10 @@ export class BBModel_Group extends BBModel_Child {
 
     drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : float[], vertices : float[], emmit_particles_func? : Function) {
 
-        const mx = mat4.create()
-        mat4.copy(mx, parent_matrix)
-        this.playAnimations(mx)
-
-        mat4.multiply(mx, mx, this.matrix)
+        const mx = mat4.create();
+        mat4.copy(mx, parent_matrix);
+        this.playAnimations(mx);
+        mat4.multiply(mx, mx, this.matrix);
 
         const im_bone = mesh.bone_groups.has(this.name)
 
@@ -70,13 +68,12 @@ export class BBModel_Group extends BBModel_Child {
             }
             if(part instanceof BBModel_Group) {
                 part.drawBuffered(render, mesh, pos, lm, mx, vertices, emmit_particles_func)
-            } else {
-                if(!this.vertices_pushed) {
-                    this.vertices_pushed = true
-                    part.pushVertices(vertices, Vector.ZERO, lm, mx, emmit_particles_func)
-                }
+            } else if(!this.vertices_pushed && part instanceof BBModel_Cube) {
+                part.pushVertices(vertices, Vector.ZERO, lm, mx, emmit_particles_func)
             }
         }
+
+        this.vertices_pushed = true
 
         if(im_bone) {
             if(!this.buf) {

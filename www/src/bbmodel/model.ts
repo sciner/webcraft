@@ -127,7 +127,7 @@ export class BBModel_Model {
     /**
      * Draw
      */
-    draw(vertices: Float32Array, pos : Vector, lm : IndexedColor, matrix : float[], emmit_particles_func? : Function) {
+    draw(vertices: Float32Array, pos : Vector, lm : IndexedColor, matrix : imat4, emmit_particles_func? : Function) {
         this.root.pushVertices(vertices, pos, lm, matrix, emmit_particles_func);
     }
 

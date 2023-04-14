@@ -77,7 +77,7 @@ export class Mesh_Object_BBModel {
     // Draw
     draw(render : Renderer, delta : float) {
 
-        throw 'error_deprecated'
+        // throw 'error_deprecated'
 
         if(!this.buffer) {
             return false;
@@ -100,14 +100,26 @@ export class Mesh_Object_BBModel {
 
     }
 
+    normalizeAngle(angle) {
+        let normalizedAngle = ((angle % 360) + 360) % 360;
+        return normalizedAngle > 180 ? normalizedAngle - 360 : normalizedAngle;
+    }
+
     drawBuffered(render : Renderer, delta : float) {
         const m = mat4.create()
+        mat4.copy(m, this.matrix)
         // mat4.rotateZ(mx, mx, -this.rotate.z)
         // mat4.rotateY(mx, mx, Math.PI)
 
-        let q = quat.create()
-        quat.fromEuler(q, 0, 0, -this.rotate.z / Math.PI * 180, 'xyz')
-        mat4.fromRotationTranslationScaleOrigin(m, q, [0, 0, 0], [1, 1, 1], [0, 0, 0])
+        // mat4.identity(m)
+        // mat4.rotate(m,m, 0, [0, 1, 0])
+        // mat4.rotate(m,m, 0, [1, 0, 0])
+        // mat4.rotate(m,m, Math.PI, [0, 0, 1])
+
+        // let q = quat.create()
+        // quat.rotateZ(q, q, this.rotate.z)
+        // quat.fromEuler(q, 0, 0, this.normalizeAngle(-this.rotate.z / Math.PI * 180) / Math.PI, 'xyz')
+        // mat4.fromRotationTranslationScaleOrigin(m, q, [0, 0, 0], [1, 1, 1], [0, 0, 0])
 
         this.model.playAnimation(this.animation_name, (this.start_time + performance.now()) / 1000)
         this.model.drawBuffered(render, this, this.apos, lm, m)
