@@ -205,6 +205,7 @@ export class RendererBBModel {
 
         this.env.draw(this as any)
         this.defaultShader.bind(true)
+        // this.meshes.draw(this as any, delta, player.lerpPos)
         this.meshes.draw(this as any, delta, player.lerpPos)
         // this.debugGeom.draw(renderBackend)
         // this.defaultShader.bind()
