@@ -8,6 +8,7 @@ import { BBModel_Cube } from './cube.js';
 
 const {mat4} = glMatrix;
 
+let IDENTITY = mat4.create();
 //
 export class BBModel_Group extends BBModel_Child {
     [key: string]: any;
@@ -49,15 +50,22 @@ export class BBModel_Group extends BBModel_Child {
         }
     }
 
-    drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : float[], vertices : float[], emmit_particles_func? : Function) {
-
+    drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : float[], bone_matrix: float[] = IDENTITY, vertices : float[], emmit_particles_func? : Function) {
+        //this.updateLocalTransform();
         const mx = mat4.create();
-        mat4.copy(mx, parent_matrix);
+        if (parent_matrix) {
+            mat4.copy(mx, parent_matrix);
+        }
         this.playAnimations(mx);
         mat4.multiply(mx, mx, this.matrix);
 
         const im_bone = mesh.bone_groups.has(this.name)
-
+        if (im_bone) {
+            bone_matrix = mat4.create();
+        } else {
+            this.updateLocalTransform();
+            bone_matrix = mat4.multiply(mat4.create(), bone_matrix, this.matrix);
+        }
         if(im_bone && !this.buf) {
             vertices = []
         }
@@ -67,9 +75,9 @@ export class BBModel_Group extends BBModel_Child {
                 continue
             }
             if(part instanceof BBModel_Group) {
-                part.drawBuffered(render, mesh, pos, lm, mx, vertices, emmit_particles_func)
+                part.drawBuffered(render, mesh, pos, lm, mx, bone_matrix, vertices, emmit_particles_func)
             } else if(!this.vertices_pushed && part instanceof BBModel_Cube) {
-                part.pushVertices(vertices, Vector.ZERO, lm, mx, emmit_particles_func)
+                part.pushVertices(vertices, Vector.ZERO, lm, bone_matrix, emmit_particles_func)
             }
         }
 

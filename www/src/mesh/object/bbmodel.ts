@@ -108,7 +108,7 @@ export class Mesh_Object_BBModel {
     drawBuffered(render : Renderer, delta : float) {
         const m = mat4.create()
         mat4.copy(m, this.matrix)
-        // mat4.rotateZ(mx, mx, -this.rotate.z)
+        mat4.rotateZ(m, m, -this.rotate.z)
         // mat4.rotateY(mx, mx, Math.PI)
 
         // mat4.identity(m)

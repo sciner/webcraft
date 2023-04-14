@@ -32,7 +32,7 @@ export class BBModel_Model {
     /**
      * Select texture
      * @param group_name If empty then texture will be selected for all groups
-     * @param texture_name 
+     * @param texture_name
      */
     selectTextureFromPalette(group_name : string, texture_name : string) {
         //
@@ -133,15 +133,15 @@ export class BBModel_Model {
 
     drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, matrix : float[], emmit_particles_func? : Function) {
         const vertices = []
-        this.root.drawBuffered(render, mesh, pos, lm, matrix, vertices, emmit_particles_func)
+        this.root.drawBuffered(render, mesh, pos, lm, matrix, undefined, vertices, emmit_particles_func)
     }
 
     /**
      * Play animations
-     * 
-     * @param {string} animation_name 
+     *
+     * @param {string} animation_name
      * @param {float} dt
-     * 
+     *
      * @return {boolean}
      */
     playAnimation(animation_name, dt) {
@@ -306,7 +306,7 @@ export class BBModel_Model {
              * .start_delay: ''
              * .animators
              */
-            
+
             for(let k in animation.animators) {
 
                 const animator = animation.animators[k];
@@ -474,7 +474,7 @@ export class BBModel_Model {
     }
 
     /**
-     * @param {BBModel_Locator} element 
+     * @param {BBModel_Locator} element
      */
     addParticleLocator(element) {
         this.particle_locators.push(element)
@@ -552,7 +552,7 @@ export class BBModel_Model {
     }
 
     /**
-     * @param {string[]} name 
+     * @param {string[]} name
      */
     hideGroups(names) {
         for(let group of this.root.children) {
@@ -574,14 +574,14 @@ export class BBModel_Model {
     }
 
     /**
-     * @param {string} name 
+     * @param {string} name
      */
     setState(name) {
         this.state = name
     }
 
     /**
-     * @param {string[]} except_list 
+     * @param {string[]} except_list
      */
     hideAllExcept(except_list) {
         for(let group of this.root.children) {
