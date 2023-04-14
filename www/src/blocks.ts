@@ -1660,16 +1660,22 @@ export class BLOCK {
         BLOCK.settings = settings
 
         // Resource packs
-        BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK)
+        const init_rpm = !BLOCK.resource_pack_manager
+        if(init_rpm) {
+            BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK)
+        }
 
         // block styles and resorce styles is independent (should)
         // block styles is how blocks is generated
         // resource styles is textures for it
 
-        await Promise.all([
-            Resources.loadBlockStyles(settings),
-            BLOCK.resource_pack_manager.init(settings)
-        ]).then(([block_styles, _]) => {
+        const all: Promise<any>[] = [Resources.loadBlockStyles(settings)];
+            
+        if(init_rpm) {
+            all.push(BLOCK.resource_pack_manager.init(settings))
+        }
+
+        await Promise.all(all).then(([block_styles, _]) => {
             BLOCK.sortBlocks();
             BLOCK.autoTags();
             BLOCK.addHardcodedFlags();

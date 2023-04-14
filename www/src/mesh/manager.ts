@@ -22,7 +22,7 @@ export class MeshManager {
         return this.list.get(id);
     }
 
-    add(mesh : object, key? : string) {
+    add(mesh : object, key? : string) : any {
         if(!key) {
             key = Helpers.generateID();
         }

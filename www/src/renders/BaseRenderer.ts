@@ -434,6 +434,7 @@ export default class BaseRenderer {
 
     batch : BatchSystem
     preprocessor = new ShaderPreprocessor();
+    globalBufs: Dict<BaseBuffer> = {};
 
     /**
      *
@@ -754,6 +755,10 @@ export default class BaseRenderer {
     }
 
     resetAfter() {
+    }
+
+    destroy() {
+
     }
 
     static ID = 0;
