@@ -54,7 +54,6 @@ export class BBModel_Group extends BBModel_Child {
     }
 
     drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : float[], bone_matrix: float[] = null, vertices : float[], emmit_particles_func? : Function) {
-        //this.updateLocalTransform();
         const mx = mat4.create();
         if (parent_matrix) {
             mat4.copy(mx, parent_matrix);
