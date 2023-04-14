@@ -10856,6 +10856,25 @@
                     ]
                 }
             ]
+        },
+        {
+            "id": 798,
+            "name": "PRIMITIVE_AXE",
+            "style": "extruder",
+            "sound": "madcraft:axe",
+            "transparent": true,
+            "max_in_stack": 1,
+            "item": {"name": "instrument", "instrument_id": "axe"},
+            "diagonal": true,
+            "power": 132,
+            "damage": 9,
+            "speed": 0.8,
+            "material": {
+                "id": "stone"
+            },
+            "texture": {
+                "side": "item/stone_axe.png"
+            }
         }
     ]
 }

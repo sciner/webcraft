@@ -81,7 +81,10 @@
         {"name": "bough",               "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "dandelion",           "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "poppy",               "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "iron_sword",          "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "iron_sword",          "shift": {"x": 16, "y": 0, "z": 0}},
+
+        {"name": "tool/primitive_axe",  "shift": {"x": 16, "y": 0, "z": 0}}
+
     ],
     "blocks": [
         {
@@ -2124,6 +2127,13 @@
             "name": "IRON_SWORD",
             "bb": {
                 "model": "iron_sword"
+            }
+        },
+        {
+            "id": 798,
+            "name": "PRIMITIVE_AXE",
+            "bb": {
+                "model": "tool/primitive_axe"
             }
         }
     ]
