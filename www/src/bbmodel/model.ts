@@ -302,6 +302,8 @@ export class BBModel_Model {
             }
         }
 
+        this.bone_groups.set(this.root.name, this.root)
+
         return this
     }
 
