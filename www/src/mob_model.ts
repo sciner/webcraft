@@ -822,16 +822,11 @@ export class MobModel extends NetworkPhysicObject {
             //console.log(mesh.model.groups.get('head'))
 
             //render.renderBackend.drawMesh(mesh.model.groups.get('head'), mesh.gl_material, this._pos, init_matrix)
-
+//this.setArmor(render)
             mesh.setAnimation('walk')
             mesh.rotate.z = this.draw_yaw ? this.draw_yaw : 0
             mesh.apos.copyFrom(this._pos)
             // hide armor groups
-            for(let group of mesh.model.groups.values()) {
-                if(['helmet', 'boat'].includes(group.name) || group.name.startsWith('chest') || group.name.startsWith('pants')) {
-                    group.visibility = false
-                }
-            }
             // mesh.draw(render, delta)
             mesh.drawBuffered(render, delta)
 
@@ -852,6 +847,7 @@ export class MobModel extends NetworkPhysicObject {
             //     }
             // }
 
+            
         }
     }
 
@@ -967,7 +963,7 @@ export class MobModel extends NetworkPhysicObject {
     }
 
     // установка армора
-    setArmor() {
+    setArmor(render: Renderer) {
         if (!this.loaded) {
             return
         }
@@ -977,16 +973,24 @@ export class MobModel extends NetworkPhysicObject {
         }
         if (armor.head != this.prev.head) {
             if (armor.head) {
-                const item = BLOCK.fromId(armor.head)
+                const sun = render.world.mobs.models.get('sunglasses')
+                const helmet = sun.model.groups.get('helmet')
+                const el = this._mesh.model.groups.get('helmet')
+                el.children = helmet.children
+                el.vertices_pushed = false
+                this._mesh.vertices_pushed.set('helmet', false)
+                console.log(this._mesh)
+                /*const item = BLOCK.fromId(armor.head)
                 const material = this.textures.get(item.model.geo + '_' + item.model.texture)
                 const helmet = this.models.get(item.model.geo).findNode('helmet')
                 if (helmet && material) {
                     this.sceneTree[0].findNode('helmet')?.setChild(helmet, material)
                 }
                 this.sceneTree[0].findNode('hair')?.setVisible(true)
+                */
             } else {
-                this.sceneTree[0].findNode('hair')?.setVisible(true)
-                this.sceneTree[0].findNode('helmet')?.setVisible(false)
+                //this.sceneTree[0].findNode('hair')?.setVisible(true)
+                //this.sceneTree[0].findNode('helmet')?.setVisible(false)
             }
             
             this.prev.head = armor.head

@@ -105,7 +105,17 @@ export class BBModel_Group extends BBModel_Child {
             render.renderBackend.drawMesh(geom, mesh.gl_material, pos, mx)
         }
 
+        if (this.name == 'head') {
+            if(!mesh.helmet) {
+                const helmet_model = Resources._bbmodels.get('tool/sunglasses')
+                mesh.helmet = new Mesh_Object_BBModel(render, Vector.ZERO, Vector.ZERO, helmet_model, null, false)
+                console.log(mesh.helmet)
+            }
+            mesh.helmet.drawBuffered(render, 0, mx, pos)
+        }
+
         if(this.name == 'RightArmItemPlace') {
+            
             if(!mesh.axe) {
                 const axe_model = Resources._bbmodels.get('tool/primitive_axe')
                 mesh.axe = new Mesh_Object_BBModel(render, Vector.ZERO, Vector.ZERO, axe_model, null, false)
@@ -120,7 +130,6 @@ export class BBModel_Group extends BBModel_Child {
             }
             mesh.axe.drawBuffered(render, 0, mx, pos)
         }
-
     }
 
     // Play animations
