@@ -7,7 +7,7 @@ import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
-import type {ArmorState, PlayerHands, TSittingState, TSleepState} from "./player.js";
+import type { PlayerHands, TSittingState, TSleepState} from "./player.js";
 import type { NetworkPhysicObjectState } from "./network_physic_object.js";
 import type { World } from "./world.js";
 
@@ -123,14 +123,8 @@ class PlayerModelSharedProps implements IPlayerSharedProps {
 }
 
 export class PlayerModel extends MobModel implements IPlayerOrModel {
-    [key: string]: any;
-
     sharedProps: PlayerModelSharedProps
-    armor: ArmorState
-    height: number
-    distance: number | null
-    sitting?: false | TSittingState
-    sleep?: false | TSleepState
+    distance:    number | null
 
     constructor(props, world : World) {
         super({type: 'player', skin: '1', ...props}, world);
@@ -144,13 +138,10 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
          */
         this.textCanvas = null;
         this.textContext = null;
-
         this.username = props.username;
-
         this.head = null;
         this.health = props.health;
-
-        this.animationScript = new PlayerAnimation(this)
+        // this.animationScript = new PlayerAnimation(this)
 
         /**
          * @type {Map<string, ModelSlot>}
@@ -170,7 +161,6 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
     applyNetState(state: NetworkPhysicObjectState & { hands: PlayerHands }) {
         super.applyNetState(state);
-
         this.changeSlots(state.hands);
     }
 
@@ -312,11 +302,11 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
     }
 
-    itsMe() {
+    itsMe() : boolean {
         return this.id == Qubatch.App.session.user_id;
     }
 
-    async loadModel(render) {
+    async loadModel(render : Renderer) {
         const img = await super.loadModel(render);
         if (this.itsMe()) {
             this.skinImage = img;
@@ -354,8 +344,8 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.changeSlots(this.activeSlotsData);
     }
 
-    update(render, camPos, delta, speed) {
-        super.update(render, camPos, delta, speed);
+    update(render : Renderer, camPos : Vector, delta : float, speed : float) {
+        super.update(render, camPos, delta, speed)
 
         const angleToYaw = (angle) => {
             if (angle == 0) {
@@ -420,11 +410,8 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     /**
      * Returns the texture and vertex buffer for drawing the name
      * tag of the specified player over head.
-     * @param {string} username
-     * @param render
-     * @return {{texture: BaseTexture, model: GeometryTerrain}}
      */
-    buildPlayerName(username, render) {
+    buildPlayerName(username : string, render : Renderer) : SceneNode {
         username        = username.replace( /&lt;/g, "<" ).replace( /&gt;/g, ">" ).replace( /&quot;/, "\"" );
 
         let canvas      = this.textCanvas;

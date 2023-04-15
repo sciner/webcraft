@@ -2,23 +2,20 @@ import { Resources } from "./resources.js";
 import * as ModelBuilder from "./modelBuilder.js";
 import { Color, Helpers, IndexedColor, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
-import { NetworkPhysicObject } from './network_physic_object.js';
+import { AABBDrawable, NetworkPhysicObject } from './network_physic_object.js';
 import { HEAD_MAX_ROTATE_ANGLE, MOUSE, PLAYER_SKIN_TYPES, SNEAK_MINUS_Y_MUL } from "./constant.js";
 import { Mesh_Object_MobFire } from "./mesh/object/mob_fire.js";
-import { BLOCK } from "./blocks.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import GeometryTerrain from "./geometry_terrain.js";
 import type { Renderer } from "./render.js";
 import type { SceneNode } from "./SceneNode.js";
-import type { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import type { World } from "./world.js";
-import type { BBModel_Group } from "./bbmodel/group.js";
-import GeometryTerrain from "./geometry_terrain.js";
+import type { ArmorState, TSittingState, TSleepState } from "./player.js";
+import type { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 
 const { quat, mat4 } = glMatrix;
 
 const SNEAK_ANGLE                   = 28.65 * Math.PI / 180;
-const MAX_DETONATION_TIME           = 2000; // ms
-const OLD_SKIN                      = false;
 
 export class Traversable {
     [key: string]: any;
@@ -527,78 +524,69 @@ export class MobAnimation {
 }
 
 export class MobModel extends NetworkPhysicObject {
-    [key: string]: any;
+    legs :              SceneNode[] = []
+    head :              SceneNode[] = []
+    sceneTree :         any = null
+    texture :           any = null
+    material :          any = null
+    raycasted :         boolean = false
+    moving_timeout :    any = false
+    nametag :           any = false
+    aniframe :          int = 0
+    width :             int = 0
+    height :            int = 0
+    sneak :             boolean = false
+    body_rotate :       int = 0
+    tintColor :         Color = new Color(0, 0, 0, 0)
+    textures :          Map<string, any> = new Map()
+    models :            Map<string, any> = new Map()
+    fix_z_fighting :    float = Math.random() / 100
+    loaded:             boolean = false
+    type :              string
+    skin :              any
+    initialised :       boolean = false
+    targetLook :        float = 0
+    drawPos :           Vector = new Vector(0, 0, 0)
+    posDirty :          boolean = true
+    currentChunk :      any = null
+    lightTex :          any = null
+    armor :             ArmorState = null
+    prev :              any = {
+                            head: null,
+                            body: null,
+                            leg: null,
+                            boot: null,
+                            skin: null
+                        }
+    extra_data:         any
+    slots:              any
+    tmpDrawPos:         any
+    yaw:                float
+    draw_yaw?:          float
+    sleep?:             false | TSleepState
+    sitting?:           false | TSittingState
+    aabb:               AABBDrawable = null
+    _mesh:              Mesh_Object_BBModel
+    fire_mesh:          any
+    animationScript:    MobAnimation
+    renderer:           TraversableRenderer = null
+    animator:           MobAnimator = null
 
     constructor(props, world : World) {
 
-        super(
-            world,
-            new Vector(0, 0, 0),
-            new Vector(0, 0, 0)
-        )
+        super(world, new Vector(0, 0, 0), new Vector(0, 0, 0))
 
-        this.fix_z_fighting             = Math.random() / 100;
-        this.sceneTree                  = null;
-        this.texture                    = null;
-        this.material                   = null;
-        this.raycasted                  = false;
-        this.moving_timeout             = null;
-        this.nametag                    = null;
-        this.aniframe                   = 0;
-        this.width                      = 0;
-        this.height                     = 0;
-        this.sneak                      = 0;
-        this.body_rotate                = 0;
-        this.textures                   = new Map()
-        this.models                     = new Map()
+        Object.assign(this, props)
 
-        Object.assign(this, props);
+        this.type = props.type
+        this.skin = props.skin_id || props.skin
+        this.renderer = new TraversableRenderer()
+        this.animator = new MobAnimator()
+        this.animationScript = new MobAnimation(this)
 
-        this.type = props.type;
-        this.skin = props.skin_id || props.skin;
-
-        /**
-         * @type {SceneNode[]}
-         */
-        this.legs = [];
-
-        /**
-         * @type {SceneNode}
-         */
-        this.head = null;
-
-        this.initialised = false;
-
-        this.targetLook = 0;
-
-        this.drawPos = {x: 0, y: 0, z: 0};
-
-        this.lightTex = null;
-        this.tintColor = new Color(0, 0, 0, 0);
-
-        this.posDirty = true;
-
-        this.currentChunk = null;
-
-        this.renderer = new TraversableRenderer();
-
-        this.animator = new MobAnimator();
-
-        this.animationScript = new MobAnimation(this);
-
-        this.armor = null;
-        this.prev = {
-            head: null,
-            body: null,
-            leg: null,
-            boot: null,
-            skin: null
-        };
-
-        this.loaded = false
     }
 
-    isRenderable(render: Renderer) {
+    isRenderable(render: Renderer) : boolean {
         return this.sceneTree && (
              !this.currentChunk ||
              (this.currentChunk.cullID === render.cullID)
@@ -633,7 +621,7 @@ export class MobModel extends NetworkPhysicObject {
         }
     }
 
-    lazyInit(render) {
+    lazyInit(render : Renderer) {
         if (this.initialised) {
             return;
         }
@@ -643,7 +631,7 @@ export class MobModel extends NetworkPhysicObject {
         });
     }
 
-    computeLocalPosAndLight(render, delta) {
+    computeLocalPosAndLight(render : Renderer, delta : float) {
         if (!this.initialised) {
             return;
         }
@@ -677,8 +665,8 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         const yaw = this.yaw;
-        if(!('draw_yaw' in this)) {
-            this.draw_yaw = yaw;
+        if(typeof this.draw_yaw == 'undefined') {
+            this.draw_yaw = yaw
         } else {
             this.draw_yaw %= Math.PI * 2;
             while (this.draw_yaw > yaw + Math.PI) {
@@ -728,18 +716,15 @@ export class MobModel extends NetworkPhysicObject {
 
     update(render? : Renderer, camPos? : Vector, delta? : float, speed? : float) {
         super.update();
-
         this.computeLocalPosAndLight(render, delta);
-
         if (!this.isRenderable(render)) {
             return;
         }
-
        this.animator.update(delta, camPos, this, speed);
     }
 
-    isDetonationStarted() {
-        return this.extra_data?.detonation_started || false;
+    isDetonationStarted() : boolean {
+        return this.extra_data?.detonation_started || false
     }
 
     /**
@@ -770,85 +755,24 @@ export class MobModel extends NetworkPhysicObject {
             this.aabb.draw(render, this.tPos, delta, true /*this.raycasted*/ );
         }
 
+        //
         let type = this.type
-         if(type == 'player:steve') type = 'humanoid'
-        const mesh : Mesh_Object_BBModel = this._mesh || (this._mesh = render.world.mobs.models.get(type))
+        if(type == 'player:steve') {
+            type = 'humanoid'
+        }
+        let mesh : Mesh_Object_BBModel = this._mesh
+        if(!mesh) {
+            mesh = this._mesh = render.world.mobs.models.get(type)
+        }
 
         if(mesh) {
-
-            /*
-            const rotate = new Vector(0, 0, this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0)
-            let rotate_matrix = mat4.create()
-            mat4.rotateZ(rotate_matrix, rotate_matrix, rotate.z)
-            let leg_matrix = mat4.create()
-            mat4.rotateY(leg_matrix, leg_matrix, performance.now() / 1000)
-            mat4.rotateZ(leg_matrix, leg_matrix, rotate.z)
-            for(let k in mesh.parts) {
-                const parts = mesh.parts[k]
-                const parent_matrix = (k == 'legs') ? leg_matrix : rotate_matrix
-                for(let i = 0; i < parts.length; i++) {
-                    const group : BBModel_Group = parts[i]
-                    //if(group instanceof GeometryTerrain) {
-                        render.renderBackend.drawMesh(group, mesh.gl_material, this._pos, init_matrix)
-                    //} else {
-                        //const vertices = []
-                        //group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null)
-                        //const gt = new GeometryTerrain(vertices)
-                        //parts[i] = gt
-                   // }
-                }
-            }*/
-
-            // mesh.setAnimation('walk')
-           // mesh.rotate.z = this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0
-            //mesh.apos.copyFrom(this._pos)
-            //mesh.applyRotate()
-           // mesh.draw(render, delta)
-
-            /*this.renderer.traverse(mesh.model.groups[9], mesh, this._pos, render)
-
-            const init_matrix = mat4.create()
-            for (const group in mesh.groups.values()) {
-                if(group instanceof GeometryTerrain) {
-                    render.renderBackend.drawMesh(group, mesh.gl_material, this._pos, parent_matrix)
-                } else {
-                    const vertices = []
-                    group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null)
-                    const gt = new GeometryTerrain(vertices)
-                    parts[i] = gt
-                }
-            }*/
-
-            //console.log(mesh.model.groups.get('head'))
-
-            //render.renderBackend.drawMesh(mesh.model.groups.get('head'), mesh.gl_material, this._pos, init_matrix)
-//this.setArmor(render)
+            this.setArmor(render)
             mesh.setAnimation('walk')
             mesh.rotate.z = this.draw_yaw ? this.draw_yaw : 0
             mesh.apos.copyFrom(this._pos)
-            // hide armor groups
-            // mesh.draw(render, delta)
             mesh.drawBuffered(render, delta)
-
-            // for (const group of mesh.model.groups.values()) {
-            //     if (group.update) {
-            //         if (group.gt) {
-            //             const rotate_matrix = mat4.create()
-            //             if (group.name == 'head') {
-            //                 mat4.rotateZ(rotate_matrix, rotate_matrix, performance.now() / 1000)
-            //             }
-            //             render.renderBackend.drawMesh(group.gt, mesh.gl_material, this._pos, rotate_matrix)
-            //         } else {
-            //             const init_matrix = mat4.create()
-            //             const vertices = []
-            //             group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null, false)
-            //             group.gt = new GeometryTerrain(vertices)
-            //         }
-            //     }
-            // }
-
-            
         }
+
     }
 
     drawInFire(render : Renderer, delta : float) {
@@ -861,16 +785,12 @@ export class MobModel extends NetworkPhysicObject {
         }
     }
 
-    angleTo(pos, target) {
+    angleTo(pos : Vector, target : Vector) {
         const angle = Math.atan2(target.x - pos.x, target.z - pos.z);
         return (angle > 0) ? angle : angle - 2 * Math.PI;
     }
 
-    /**
-     * @param {Renderer} render
-     * @param {ImageBitmap | Image} image
-     */
-    getTexture(render, image) {
+    getTexture(render : Renderer, image : ImageBitmap) {
         const texture = render.renderBackend.createTexture({
             source: image,
             minFilter: 'nearest',
@@ -880,13 +800,10 @@ export class MobModel extends NetworkPhysicObject {
         return render.defaultShader.materials.doubleface_transparent.getSubMat(texture);
     }
 
-
-    // Loads the player head model into a vertex buffer for rendering.
     /**
-     *
-     * @param {Renderer} render
+     * Loads the player head model into a vertex buffer for rendering.
      */
-    async loadModel(render) {
+    async loadModel(render : Renderer) {
         if (this.sceneTree) {
             return;
         }
@@ -964,12 +881,22 @@ export class MobModel extends NetworkPhysicObject {
 
     // установка армора
     setArmor(render: Renderer) {
-        if (!this.loaded) {
+        const armor = (this.extra_data?.armor) ? this.extra_data.armor : this.armor
+
+        if(this._mesh?.model.name == 'mob/humanoid') {
+            if(this._mesh.accessories.list.size == 0) {
+                this._mesh.accessories.addForGroup('helmet', 'tool/sunglasses')
+                this._mesh.accessories.addForGroup('RightArmItemPlace', 'tool/primitive_axe', 'thirdperson_righthand')
+                this._mesh.hide_groups.push('backpack')
+            }
+        }
+
+        /*
+        if (!armor) {
             return
         }
-        const armor = (this.extra_data?.armor) ? this.extra_data.armor : this.armor;
-        if (!armor) {
-            return;
+        if (!this.loaded) {
+            return
         }
         if (armor.head != this.prev.head) {
             if (armor.head) {
@@ -980,14 +907,13 @@ export class MobModel extends NetworkPhysicObject {
                 el.vertices_pushed = false
                 this._mesh.vertices_pushed.set('helmet', false)
                 console.log(this._mesh)
-                /*const item = BLOCK.fromId(armor.head)
-                const material = this.textures.get(item.model.geo + '_' + item.model.texture)
-                const helmet = this.models.get(item.model.geo).findNode('helmet')
-                if (helmet && material) {
-                    this.sceneTree[0].findNode('helmet')?.setChild(helmet, material)
-                }
-                this.sceneTree[0].findNode('hair')?.setVisible(true)
-                */
+                // const item = BLOCK.fromId(armor.head)
+                // const material = this.textures.get(item.model.geo + '_' + item.model.texture)
+                // const helmet = this.models.get(item.model.geo).findNode('helmet')
+                // if (helmet && material) {
+                //     this.sceneTree[0].findNode('helmet')?.setChild(helmet, material)
+                // }
+                // this.sceneTree[0].findNode('hair')?.setVisible(true)
             } else {
                 //this.sceneTree[0].findNode('hair')?.setVisible(true)
                 //this.sceneTree[0].findNode('helmet')?.setVisible(false)
@@ -1069,6 +995,7 @@ export class MobModel extends NetworkPhysicObject {
             }
             this.prev.boot = armor.boot;
         }
+        */
     }
 
 }

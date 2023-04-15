@@ -1,16 +1,16 @@
 import { BBModel_Child } from './child.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { IndexedColor, Vector } from '../helpers.js';
-import { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 import GeometryTerrain from '../geometry_terrain.js';
-import type { Renderer } from '../render.js';
 import { BBModel_Cube } from './cube.js';
+import type { Renderer } from '../render.js';
 import type { BBModel_Model } from './model.js';
-import { Resources } from '../resources.js';
+import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 
 const {mat4} = glMatrix;
 
-let IDENTITY = mat4.create();
+const accessory_matrix = mat4.create()
+
 //
 export class BBModel_Group extends BBModel_Child {
     vertices_pushed:    boolean = false
@@ -55,6 +55,11 @@ export class BBModel_Group extends BBModel_Child {
     }
 
     drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : imat4, bone_matrix: float[] = null, vertices : float[], emmit_particles_func? : Function) {
+
+        // Hide some groups
+        if(mesh.hide_groups.includes(this.name)) {
+            return
+        }
 
         const mx = this._mx
         mat4.identity(mx)
@@ -105,31 +110,23 @@ export class BBModel_Group extends BBModel_Child {
             render.renderBackend.drawMesh(geom, mesh.gl_material, pos, mx)
         }
 
-        if (this.name == 'head') {
-            if(!mesh.helmet) {
-                const helmet_model = Resources._bbmodels.get('tool/sunglasses')
-                mesh.helmet = new Mesh_Object_BBModel(render, Vector.ZERO, Vector.ZERO, helmet_model, null, false)
-                console.log(mesh.helmet)
+        // Draw accessories
+        for(const accessory of mesh.accessories.getForGroup(this.name)) {
+            mat4.identity(accessory_matrix)
+            mat4.copy(accessory_matrix, mx)
+            // 1. move to anchor
+            mat4.translate(accessory_matrix, accessory_matrix, [this.pivot.x/16, this.pivot.y/16, this.pivot.z/16])
+            // 2. move by display from model
+            if(accessory.display) {
+                const display = accessory.display
+                if(display.translation) {
+                    const t = display.translation
+                    mat4.translate(accessory_matrix, accessory_matrix, [t[0] / 16, t[1] / 16, t[2] / 16])
+                }    
             }
-            mesh.helmet.drawBuffered(render, 0, mx, pos)
+            accessory.mesh.drawBuffered(render, 0, accessory_matrix, pos)
         }
 
-        if(this.name == 'RightArmItemPlace') {
-            
-            if(!mesh.axe) {
-                const axe_model = Resources._bbmodels.get('tool/primitive_axe')
-                mesh.axe = new Mesh_Object_BBModel(render, Vector.ZERO, Vector.ZERO, axe_model, null, false)
-            }
-            // 1. move to anchor
-            mat4.translate(mx, mx, [this.pivot.x/16, this.pivot.y/16, this.pivot.z/16])
-            // 2. move by display from model
-            const axe_display = mesh.axe.model.json?.display?.thirdperson_righthand
-            if(axe_display?.translation) {
-                const t = axe_display?.translation
-                mat4.translate(mx, mx, [t[0] / 16, t[1] / 16, t[2] / 16])
-            }
-            mesh.axe.drawBuffered(render, 0, mx, pos)
-        }
     }
 
     // Play animations

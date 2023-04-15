@@ -3,13 +3,57 @@ import GeometryTerrain from '../../geometry_terrain.js';
 import type { Renderer } from '../../render.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 import type { BBModel_Model } from '../../bbmodel/model.js';
-import type { BBModel_Group } from '../../bbmodel/group.js';
 import type { BaseResourcePack } from '../../base_resource_pack.js';
 import type { WebGLMaterial } from '../../renders/webgl/WebGLMaterial.js';
+import { Resources } from '../../resources.js';
 
 const {mat4, quat} = glMatrix;
 const lm        = IndexedColor.WHITE;
 const vecZero   = Vector.ZERO.clone();
+
+class MeshObjectAccessory {
+    mesh : Mesh_Object_BBModel
+    display? : any
+
+    constructor(mesh : Mesh_Object_BBModel, display : any) {
+        this.mesh = mesh
+        this.display = display
+    }
+
+}
+
+class MeshObjectAccessories {
+
+    mesh : Mesh_Object_BBModel
+    list : Map<string, MeshObjectAccessory[]> = new Map()
+
+    constructor(mesh : Mesh_Object_BBModel) {
+        this.mesh = mesh
+    }
+
+    getForGroup(name : string) : MeshObjectAccessory[] {
+        return this.list.get(name) || []
+    }
+
+    addForGroup(group_name : string, model_name : string, display_name? : string) {
+
+        let group = this.list.get(group_name)
+        if(!group) {
+            group = []
+            this.list.set(group_name, group)
+        }
+
+        const render = this.mesh.render
+        const bbmodel = Resources._bbmodels.get(model_name)
+        const mesh = new Mesh_Object_BBModel(render, Vector.ZERO, Vector.ZERO, bbmodel, null, false)
+        const displays = mesh.model.json?.display
+        const display = display_name && displays ? displays[display_name] : null
+
+        group.push(new MeshObjectAccessory(mesh, display))
+
+    }
+
+}
 
 // Mesh_Object_BBModel
 export class Mesh_Object_BBModel {
@@ -20,6 +64,8 @@ export class Mesh_Object_BBModel {
     vertices_pushed: Map<string, boolean> = new Map()
     resource_pack : BaseResourcePack
     gl_material: WebGLMaterial
+    accessories: MeshObjectAccessories
+    hide_groups: string[] = []
 
     constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false) {
 
@@ -32,6 +78,7 @@ export class Mesh_Object_BBModel {
         const grid          = render.world.chunkManager.grid
 
         this.rotate         = new Vector(rotate)
+        this.render         = render
         this.life           = 1.0;
         this.chunk          = null;
         this.apos           = new Vector(pos) // absolute coord
@@ -43,7 +90,8 @@ export class Mesh_Object_BBModel {
         this.resource_pack  = render.world.block_manager.resource_pack_manager.get('bbmodel');
         this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${doubleface ? 'doubleface' : 'regular'}/terrain/${model.json._properties.texture_id}`);
         this.vertices       = [];
-        this.buffer         = new GeometryTerrain(this.vertices);
+        this.buffer         = new GeometryTerrain(this.vertices)
+        this.accessories    = new MeshObjectAccessories(this)
         this.redraw(0.);
 
         this.setAnimation(animation_name);
