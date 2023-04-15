@@ -84,7 +84,9 @@
         {"name": "iron_sword",          "shift": {"x": 16, "y": 0, "z": 0}},
 
         {"name": "tool/primitive_axe",  "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "tool/sunglasses",  "shift": {"x": 16, "y": 0, "z": 0}}
+        {"name": "tool/sunglasses",     "shift": {"x": 16, "y": 0, "z": 0}},
+        
+        {"name": "armor/scrap_armor",   "shift": {"x": 16, "y": 0, "z": 0}}
 
     ],
     "blocks": [
