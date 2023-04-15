@@ -60,7 +60,11 @@ export abstract class PlayerControlManager {
     constructor(player: Player) {
         this.player = player
         const pos = new Vector(player.sharedProps.pos)
-        this.prismarine = new PrismarinePlayerControl(player.world, pos, {effects: player.effects})
+        const options = {
+            effects: player.effects,
+            blockUnderAffectsJumping: true
+        }
+        this.prismarine = new PrismarinePlayerControl(player.world, pos, options)
         const useOldSpectator = Qubatch.settings?.old_spectator_controls ?? false
         this.spectator = new SpectatorPlayerControl(player.world, pos, useOldSpectator)
         this.controlByType = [this.prismarine, this.spectator]

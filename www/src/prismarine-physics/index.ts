@@ -513,7 +513,7 @@ export class Physics {
             if (entity.flying) {
                 inertia         = this.flyingInertia
                 acceleration    = this.flyingAcceleration
-            } else if (entity.onGround && blockUnder) {
+            } else if ((entity.onGround || options.blockUnderAffectsJumping) && blockUnder) {
                 inertia = (this.blockSlipperiness[blockUnder.id] || options.defaultSlipperiness) * 0.91
                 acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
             }

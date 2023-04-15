@@ -29,6 +29,9 @@ export type TPrismarineOptions = {
     effects             ? : TPrismarineEffects
     /** If it's defined, the object floats, and this value is its height below the surface. */
     floatSubmergedHeight? : float
+
+    /** If it's true, slipperiness of a block under the entity affects it when it's in the air */
+    blockUnderAffectsJumping? : boolean
 }
 
 // FakeWorld
