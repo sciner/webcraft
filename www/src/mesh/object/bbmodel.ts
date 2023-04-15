@@ -165,8 +165,12 @@ export class Mesh_Object_BBModel {
     }
 
     destroy() {
-        this.buffer.destroy();
-        this.buffer = null;
+        this.buffer.destroy()
+        this.buffer = null
+        for(const geom of this.geometries.values()) {
+            geom.destroy()
+        }
+        this.geometries.clear()
     }
 
     get isAlive() : boolean {
