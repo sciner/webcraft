@@ -16,13 +16,13 @@ export class BBModel_Model {
 
     root : BBModel_Group
     bone_groups: Map<string, BBModel_Group> = new Map()
+    groups: Map<string, BBModel_Group> = new Map()
 
     constructor(json) {
         // TODO: need to read from bbmodel texture pack options
         this.tx_size = DEFAULT_ATLAS_SIZE
         this.json = json
         this.elements = new Map()
-        this.groups = new Map()
         this._group_stack = []
         this.root = new BBModel_Group(this, '_main', new Vector(0, 0, 0), new Vector(0, 0, 0))
         this._group_stack.push(this.root)
@@ -35,15 +35,16 @@ export class BBModel_Model {
      * @param group_name If empty then texture will be selected for all groups
      * @param texture_name
      */
-    selectTextureFromPalette(group_name : string, texture_name : string) {
-        //
-        if(!this.all_textures) {
-            this.makeTexturePalette()
-        }
-        //
-        const texture = this.all_textures.get(texture_name)
-        if(!texture) {
-            throw `error_invalid_palette|${texture_name}`
+    selectTextureFromPalette(group_name : string, texture_name : string | null) {
+        if(texture_name) {
+            if(!this.all_textures) {
+                this.makeTexturePalette()
+            }
+            //
+            const texture = this.all_textures.get(texture_name)
+            if(!texture) {
+                throw `error_invalid_palette|${texture_name}`
+            }
         }
         //
         if(group_name) {

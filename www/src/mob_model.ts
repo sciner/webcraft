@@ -884,9 +884,9 @@ export class MobModel extends NetworkPhysicObject {
         const armor = (this.extra_data?.armor) ? this.extra_data.armor : this.armor
 
         if(this._mesh?.model.name == 'mob/humanoid') {
-            if(this._mesh.accessories.list.size == 0) {
-                this._mesh.accessories.addForGroup('helmet', 'tool/sunglasses')
-                this._mesh.accessories.addForGroup('RightArmItemPlace', 'tool/primitive_axe', 'thirdperson_righthand')
+            if(this._mesh.modifiers.append_list.size == 0) {
+                this._mesh.modifiers.appendToGroup('helmet', 'tool/sunglasses')
+                this._mesh.modifiers.appendToGroup('RightArmItemPlace', 'tool/primitive_axe', 'thirdperson_righthand')
                 this._mesh.hide_groups.push('backpack')
             }
         }

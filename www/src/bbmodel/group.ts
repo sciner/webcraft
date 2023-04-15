@@ -54,34 +54,56 @@ export class BBModel_Group extends BBModel_Child {
         }
     }
 
-    drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : imat4, bone_matrix: float[] = null, vertices : float[], emmit_particles_func? : Function) {
+    drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : imat4, bone_matrix: float[] = null, vertices : float[], emmit_particles_func? : Function, replace : boolean = false) {
 
         // Hide some groups
         if(mesh.hide_groups.includes(this.name)) {
             return
         }
 
+        const group_modifiers = mesh.modifiers.getForGroup(this.name)
+
         const mx = this._mx
         mat4.identity(mx)
 
         if (parent_matrix) {
-            mat4.copy(mx, parent_matrix);
+            mat4.copy(mx, parent_matrix)
         }
-        this.playAnimations(mx);
-        mat4.multiply(mx, mx, this.matrix);
+        this.playAnimations(mx)
+        mat4.multiply(mx, mx, this.matrix)
 
-        const im_bone = this.model.bone_groups.has(this.name)
-        if (bone_matrix) {
+        const im_bone = this.model.bone_groups.has(this.name) || replace
+        if(bone_matrix) {
             if (im_bone) {
-                bone_matrix = mat4.create();
+                bone_matrix = mat4.create()
             } else {
-                this.updateLocalTransform();
-                bone_matrix = mat4.multiply(mat4.create(), bone_matrix, this.matrix);
+                this.updateLocalTransform()
+                bone_matrix = mat4.multiply(mat4.create(), bone_matrix, this.matrix)
             }
         }
         if(im_bone && !mesh.geometries.has(this.name)) {
             vertices = []
             bone_matrix = mat4.create();
+        }
+
+        // Replace group
+        if(group_modifiers.replace.length > 0) {
+            for(const modifier of group_modifiers.replace) {
+                const repl_group = modifier.mesh.model.groups.get(this.name)
+                if(repl_group) {
+                    const repl_vertices = []
+                    // replace specific texture
+                    if(modifier.texture_name) {
+                        modifier.mesh.model.selectTextureFromPalette(this.name, modifier.texture_name)
+                    }
+                    repl_group.drawBuffered(render, modifier.mesh, pos, lm, mx, bone_matrix, repl_vertices, undefined, true)
+                    // restore specific texture
+                    if(modifier.texture_name) {
+                        modifier.mesh.model.selectTextureFromPalette(this.name, null)
+                    }
+                }
+            }
+            return
         }
 
         const vertices_pushed = mesh.vertices_pushed.has(this.name)
@@ -110,21 +132,21 @@ export class BBModel_Group extends BBModel_Child {
             render.renderBackend.drawMesh(geom, mesh.gl_material, pos, mx)
         }
 
-        // Draw accessories
-        for(const accessory of mesh.accessories.getForGroup(this.name)) {
+        // Draw appended groups
+        for(const modifier of group_modifiers.append) {
             mat4.identity(accessory_matrix)
             mat4.copy(accessory_matrix, mx)
             // 1. move to anchor
             mat4.translate(accessory_matrix, accessory_matrix, [this.pivot.x/16, this.pivot.y/16, this.pivot.z/16])
             // 2. move by display from model
-            if(accessory.display) {
-                const display = accessory.display
+            if(modifier.display) {
+                const display = modifier.display
                 if(display.translation) {
                     const t = display.translation
                     mat4.translate(accessory_matrix, accessory_matrix, [t[0] / 16, t[1] / 16, t[2] / 16])
                 }    
             }
-            accessory.mesh.drawBuffered(render, 0, accessory_matrix, pos)
+            modifier.mesh.drawBuffered(render, 0, accessory_matrix, pos)
         }
 
     }

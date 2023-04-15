@@ -17,6 +17,7 @@ export class BBModel_Preview {
     m4:             any = mat4.create()
     prev_time:      float = performance.now()
     mesh?:          Mesh_Object_BBModel
+    mesh2?:         Mesh_Object_BBModel
     camRot:         Vector = new Vector(0, 0, 0)
     camPos:         Vector = new Vector(1, 1.7, -.7)
 
@@ -75,15 +76,23 @@ export class BBModel_Preview {
         await this.render.init(world, world.settings)
         this.render.camPos = this.camPos
 
-        // Add humanoid mesh
-        this.mesh = this.render.addBBModel(player.lerpPos, 'mob/humanoid', player.rotate, 'walk', 'humanoid')
+        // Add humanoid mesh #1
+        this.mesh = this.render.addBBModel(player.lerpPos.add(new Vector(-.5, 0, 0)), 'mob/humanoid', player.rotate, 'walk', 'humanoid')
+        this.mesh.modifiers.appendToGroup('head', 'tool/sunglasses')
+        this.mesh.modifiers.appendToGroup('RightArmItemPlace', 'tool/primitive_axe', 'thirdperson_righthand')
+        this.mesh.modifiers.replaceGroup('chestplate', 'armor/scrap_armor')
+        this.mesh.modifiers.replaceGroup('boots2', 'armor/scrap_armor', 'scrap_armor_gold.png')
+        this.mesh.modifiers.hideGroup('backpack')
+        // this.mesh.modifiers.showGroup('backpack')
 
-        // hide armor groups
-        for(const group of this.mesh.model.groups.values()) {
-            if(group.name == 'helmet' || group.name.startsWith('chestplate')) {
-                group.visibility = false
-            }
-        }
+        // Add humanoid mesh #2
+        this.mesh2 = this.render.addBBModel(player.lerpPos.add(new Vector(.5, 0, 0)), 'mob/humanoid', player.rotate.clone(), 'walk', 'humanoid2')
+        this.mesh2.modifiers.appendToGroup('RightArmItemPlace', 'iron_sword', 'thirdperson_righthand')
+        this.mesh2.modifiers.replaceGroup('chestplate', 'armor/scrap_armor', 'scrap_armor_copper.png')
+        this.mesh2.modifiers.replaceGroup('chestplate5', 'armor/scrap_armor', 'scrap_armor_diamond.png')
+        this.mesh2.modifiers.replaceGroup('chestplate6', 'armor/scrap_armor', 'scrap_armor_diamond.png')
+        this.mesh2.modifiers.replaceGroup('boots', 'armor/scrap_armor', 'scrap_armor_diamond.png')
+        this.mesh2.modifiers.replaceGroup('boots2', 'armor/scrap_armor', 'scrap_armor_copper.png')
 
         // Start render loop
         this.preLoop = this.preLoop.bind(this)
@@ -112,7 +121,8 @@ export class BBModel_Preview {
 
         this.render.camera.set(this.render.camPos, this.camRot, this.m4)
 
-        this.mesh.rotate.z =  performance.now() / 1000 * 2 // Math.PI * 1.15
+        this.mesh.rotate.z =  performance.now() / 1000 // Math.PI * 1.15
+        this.mesh2.rotate.z =  performance.now() / 1000
 
         const delta = performance.now() - this.prev_time
         this.render.draw(delta, undefined)

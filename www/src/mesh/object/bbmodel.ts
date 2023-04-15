@@ -11,7 +11,7 @@ const {mat4, quat} = glMatrix;
 const lm        = IndexedColor.WHITE;
 const vecZero   = Vector.ZERO.clone();
 
-class MeshObjectAccessory {
+class MeshObjectModifyAppend {
     mesh : Mesh_Object_BBModel
     display? : any
 
@@ -22,35 +22,92 @@ class MeshObjectAccessory {
 
 }
 
-class MeshObjectAccessories {
+class MeshObjectModifyReplace {
+    mesh : Mesh_Object_BBModel
+    texture_name? : string
+
+    constructor(mesh : Mesh_Object_BBModel, texture_name? : string) {
+        this.mesh = mesh
+        this.texture_name = texture_name
+    }
+
+}
+
+class MeshObjectModifiers {
 
     mesh : Mesh_Object_BBModel
-    list : Map<string, MeshObjectAccessory[]> = new Map()
+    append_list : Map<string, MeshObjectModifyAppend[]> = new Map()
+    replace_list : Map<string, MeshObjectModifyReplace[]> = new Map()
+    hide_group_list : string[] = []
 
     constructor(mesh : Mesh_Object_BBModel) {
         this.mesh = mesh
     }
 
-    getForGroup(name : string) : MeshObjectAccessory[] {
-        return this.list.get(name) || []
+    getForGroup(name : string) : {append: MeshObjectModifyAppend[], replace: MeshObjectModifyReplace[], hide : string[]} {
+        return {
+            append: this.append_list.get(name) || [],
+            replace: this.replace_list.get(name) || [],
+            hide: this.hide_group_list || [],
+        }
     }
 
-    addForGroup(group_name : string, model_name : string, display_name? : string) {
+    appendToGroup(group_name : string, model_name : string, display_name? : string) : MeshObjectModifyAppend {
 
-        let group = this.list.get(group_name)
+        let group = this.append_list.get(group_name)
         if(!group) {
             group = []
-            this.list.set(group_name, group)
+            this.append_list.set(group_name, group)
         }
 
         const render = this.mesh.render
         const bbmodel = Resources._bbmodels.get(model_name)
-        const mesh = new Mesh_Object_BBModel(render, Vector.ZERO, Vector.ZERO, bbmodel, null, false)
+        const mesh = new Mesh_Object_BBModel(render, Vector.ZERO, Vector.ZERO, bbmodel, null, true)
         const displays = mesh.model.json?.display
         const display = display_name && displays ? displays[display_name] : null
+        const modifier = new MeshObjectModifyAppend(mesh, display)
 
-        group.push(new MeshObjectAccessory(mesh, display))
+        group.push(modifier)
 
+        return modifier
+
+    }
+
+    replaceGroup(group_name : string, model_name : string, texture_name? : string) : MeshObjectModifyReplace {
+
+        let group = this.replace_list.get(group_name)
+        if(!group) {
+            group = []
+            this.replace_list.set(group_name, group)
+        }
+
+        const render = this.mesh.render
+        const bbmodel = Resources._bbmodels.get(model_name)
+        const mesh = new Mesh_Object_BBModel(render, Vector.ZERO, Vector.ZERO, bbmodel, null, true)
+        const modifier = new MeshObjectModifyReplace(mesh, texture_name)
+
+        group.push(modifier)
+
+        return modifier
+
+    }
+
+    hideGroup(group_name : string) : boolean {
+        if(this.hide_group_list.includes(group_name)) {
+            return false
+        }
+        this.hide_group_list.push(group_name)
+        this.mesh.hide_groups.push(group_name)
+        return true
+    }
+
+    showGroup(group_name : string) : void {
+        for(let list of [this.hide_group_list, this.mesh.hide_groups]) {
+            const index = list.indexOf(group_name)
+            if(index >= 0) {
+                list.splice(index, 1)
+            }
+        }
     }
 
 }
@@ -64,7 +121,7 @@ export class Mesh_Object_BBModel {
     vertices_pushed: Map<string, boolean> = new Map()
     resource_pack : BaseResourcePack
     gl_material: WebGLMaterial
-    accessories: MeshObjectAccessories
+    modifiers: MeshObjectModifiers
     hide_groups: string[] = []
 
     constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false) {
@@ -91,7 +148,7 @@ export class Mesh_Object_BBModel {
         this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${doubleface ? 'doubleface' : 'regular'}/terrain/${model.json._properties.texture_id}`);
         this.vertices       = [];
         this.buffer         = new GeometryTerrain(this.vertices)
-        this.accessories    = new MeshObjectAccessories(this)
+        this.modifiers    = new MeshObjectModifiers(this)
         this.redraw(0.);
 
         this.setAnimation(animation_name);
