@@ -3,7 +3,7 @@
 import {Vector} from "../helpers/vector.js";
 import type {Player} from "../player.js";
 import type {PacketBuffer} from "../packet_compressor.js";
-import {PrismarinePlayerControl} from "../prismarine-physics/using.js";
+import {PrismarinePlayerControl, TPrismarineOptions} from "../prismarine-physics/using.js";
 import {SPECTATOR_SPEED_CHANGE_MAX, SPECTATOR_SPEED_CHANGE_MIN, SPECTATOR_SPEED_CHANGE_MULTIPLIER, SpectatorPlayerControl} from "./spectator-physics.js";
 import {
     MAX_CLIENT_STATE_INTERVAL, PHYSICS_INTERVAL_MS, DEBUG_LOG_PLAYER_CONTROL,
@@ -22,7 +22,7 @@ import {LimitedLogger} from "../helpers/limited_logger.js";
 
 const tmpAddr = new Vector()
 const DEBUG_LOG_SPEED = false
-const DEBUG_LOG_SPEED_MODE = PlayerSpeedLoggerMode.SCALAR
+const DEBUG_LOG_SPEED_MODE = PlayerSpeedLoggerMode.COORD_XYZ
 
 /**
  * It contains multiple controllers (subclasses of {@link PlayerControl}), switches between them,
@@ -60,9 +60,10 @@ export abstract class PlayerControlManager {
     constructor(player: Player) {
         this.player = player
         const pos = new Vector(player.sharedProps.pos)
-        const options = {
-            effects: player.effects,
-            blockUnderAffectsJumping: true
+        const options: TPrismarineOptions = {
+            effects                 : player.effects,
+            airborneInertia         : 0.76, // 0.91 in Minecraft (default), 0.546 in typical old bugged jumps
+            airborneAcceleration    : 0.05  // 0.02 in Minecraft (default), 0.1 in typical old bugged jumps
         }
         this.prismarine = new PrismarinePlayerControl(player.world, pos, options)
         const useOldSpectator = Qubatch.settings?.old_spectator_controls ?? false
@@ -297,10 +298,10 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     }
 
     lerpPos(dst: Vector, prevPos: Vector = this.prevPhysicsTickPos, pc: PlayerControl = this.current): void {
+        const pos = pc.player_state.pos
         if (pc === this.spectator) {
             this.spectator.getCurrentPos(dst)
         } else {
-            const pos = pc.player_state.pos
             if (pos.distance(prevPos) > 10.0) {
                 dst.copyFrom(pos)
             } else {
@@ -308,7 +309,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             }
         }
         dst.roundSelf(8)
-        this.speedLogger?.add(dst)
+        this.speedLogger?.add(pos, dst)
     }
 
     get isFreeCam(): boolean { return this.#isFreeCam }
@@ -326,7 +327,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
 
     getFreeCampPos(): Vector {
         this.freeCamSpectator.getCurrentPos(this.freeCamPos)
-        this.speedLogger?.add(this.freeCamPos)
+        this.speedLogger?.add(this.freeCamSpectator.player_state.pos, this.freeCamPos)
         return this.freeCamPos
     }
 
