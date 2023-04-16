@@ -41,7 +41,7 @@ class MeshObjectModifiers {
     mesh : Mesh_Object_BBModel
     append_list : Map<string, MeshObjectModifyAppend[]> = new Map()
     replace : Map<string, MeshObjectModifyReplace> = new Map()
-    hide_group_list : string[] = []
+    hide_list : string[] = []
 
     constructor(mesh : Mesh_Object_BBModel) {
         this.mesh = mesh
@@ -51,7 +51,7 @@ class MeshObjectModifiers {
         return {
             append: this.append_list.get(name) || [],
             replace: this.replace.get(name) || null,
-            hide: this.hide_group_list || [],
+            hide: this.hide_list || [],
         }
     }
 
@@ -93,7 +93,7 @@ class MeshObjectModifiers {
 
         const render = this.mesh.render
         const bbmodel = Resources._bbmodels.get(model_name)
-        const replacement_group = bbmodel.groups.get(group_name)
+        const replacement_group = bbmodel?.groups?.get(group_name)
         if(!replacement_group) {
             console.error('error_replacement_group_not_found')
             return null
@@ -108,16 +108,16 @@ class MeshObjectModifiers {
     }
 
     hideGroup(group_name : string) : boolean {
-        if(this.hide_group_list.includes(group_name)) {
+        if(this.hide_list.includes(group_name)) {
             return false
         }
-        this.hide_group_list.push(group_name)
+        this.hide_list.push(group_name)
         this.mesh.hide_groups.push(group_name)
         return true
     }
 
     showGroup(group_name : string) : void {
-        for(let list of [this.hide_group_list, this.mesh.hide_groups]) {
+        for(let list of [this.hide_list, this.mesh.hide_groups]) {
             const index = list.indexOf(group_name)
             if(index >= 0) {
                 list.splice(index, 1)
@@ -139,7 +139,7 @@ class MeshObjectModifiers {
         }
         this.replace.clear()
         // hide
-        this.hide_group_list.length = 0
+        this.hide_list.length = 0
     }
 
 }

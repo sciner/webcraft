@@ -6,7 +6,6 @@ import { BBModel_Locator } from "./locator.js";
 import { DEFAULT_ATLAS_SIZE } from "../constant.js";
 import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js";
 import type { Renderer } from "../render.js";
-import type GeometryTerrain from "../geometry_terrain.js";
 
 const VEC_2 = new Vector(2, 2, 2);
 const FIX_POS = new Vector(8, -8, -8);
