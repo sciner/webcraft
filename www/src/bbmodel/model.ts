@@ -216,7 +216,8 @@ export class BBModel_Model {
 
                     const func = EasingType.get(func_name)
                     if(!func) {
-                        throw `error_not_supported_keyframe_interpolation_method|${next_keyframe.easing}`
+                        console.error(`error_not_supported_keyframe_interpolation_method|${func_name}`)
+                        continue
                     }
 
                     const t = func(percent, args || [])
