@@ -284,7 +284,7 @@ export class Renderer {
 
         const promises = []
 
-        // generatePrev
+        // generate prev
         promises.push(this.generatePrev(settings.generate_prev_callback))
         this.generateDropItemVertices();
 
@@ -424,7 +424,8 @@ export class Renderer {
         const gu = this.globalUniforms;
         //
         const matrix_empty = mat4.create();
-        mat4.scale(matrix_empty, matrix_empty, [0.75, 0.75, 0.75]);
+        const matrix_base = mat4.create();
+        mat4.scale(matrix_base, matrix_base, [0.75, 0.75, 0.75]);
         //
         const matrix = mat4.create();
         mat4.rotateX(matrix, matrix, -Math.PI / 6);
@@ -472,26 +473,51 @@ export class Renderer {
                 mesh.material.texture.magFilter = 'linear';
 
                 let pers_matrix = null;
-                if(drop.block_material.inventory?.rotate) {
-                    const icon_rotate = new Vector(drop.block_material.inventory?.rotate).toArray()
-                    pers_matrix = pers_matrix || [...(multipart ? matrix_empty : matrix)];
-                    for(let i = 0; i < icon_rotate.length; i++) {
-                        if(!icon_rotate[i]) continue;
-                        const rot_arr = [0, 0, 0];
-                        rot_arr[i] = 1;
-                        mat4.rotate(pers_matrix, pers_matrix, icon_rotate[i], rot_arr);
+                const mat = drop.block_material
+
+                const display = mat.bb?.model?.json?.display?.gui
+                if(display) {
+                    pers_matrix = [...matrix_empty]
+                    if(display.rotation) {
+                        const icon_rotate = display.rotation
+                        for(let i = 0; i < icon_rotate.length; i++) {
+                            if(!icon_rotate[i]) continue;
+                            const rot_arr = [0, 0, 0]
+                            rot_arr[i] = 1
+                            mat4.rotate(pers_matrix, pers_matrix, icon_rotate[i] / 180 * Math.PI, rot_arr)
+                        }
                     }
-                }
-                if(drop.block_material.inventory?.scale) {
-                    const icon_scale = drop.block_material.inventory?.scale;
-                    pers_matrix = pers_matrix || [...(multipart ? matrix_empty : matrix)];
-                    mat4.scale(pers_matrix, pers_matrix, [icon_scale, icon_scale, icon_scale]);
-                    mat4.translate(pers_matrix, pers_matrix, [0, 0, icon_scale / 10]);
-                }
-                if(drop.block_material.inventory?.move) {
-                    const icon_move = drop.block_material.inventory?.move;
-                    pers_matrix = pers_matrix || [...(multipart ? matrix_empty : matrix)];
-                    mat4.translate(pers_matrix, pers_matrix, new Vector(icon_move).toArray());
+                    if(display.translation) {
+                        const icon_move = [display.translation[0]/16, display.translation[2]/16, display.translation[1]/16]
+                        mat4.translate(pers_matrix, pers_matrix, icon_move)
+                    }
+                    if(display.scale) {
+                        mat4.scale(pers_matrix, pers_matrix, [display.scale[0] * 1.5, display.scale[1] * 1.5, display.scale[2] * 1.5])
+                    }
+                    mat4.translate(pers_matrix, pers_matrix, [0, 0, 4/16])
+
+                } else if(mat.inventory) {
+                    if(mat.inventory.rotate) {
+                        const icon_rotate = new Vector(mat.inventory.rotate).toArray()
+                        pers_matrix = pers_matrix || [...(multipart ? matrix_base : matrix)];
+                        for(let i = 0; i < icon_rotate.length; i++) {
+                            if(!icon_rotate[i]) continue;
+                            const rot_arr = [0, 0, 0];
+                            rot_arr[i] = 1;
+                            mat4.rotate(pers_matrix, pers_matrix, icon_rotate[i], rot_arr);
+                        }
+                    }
+                    if(mat.inventory.scale) {
+                        const icon_scale = mat.inventory.scale;
+                        pers_matrix = pers_matrix || [...(multipart ? matrix_base : matrix)];
+                        mat4.scale(pers_matrix, pers_matrix, [icon_scale, icon_scale, icon_scale]);
+                        mat4.translate(pers_matrix, pers_matrix, [0, 0, icon_scale / 10]);
+                    }
+                    if(mat.inventory.move) {
+                        const icon_move = mat.inventory.move;
+                        pers_matrix = pers_matrix || [...(multipart ? matrix_base : matrix)];
+                        mat4.translate(pers_matrix, pers_matrix, new Vector(icon_move).toArray());
+                    }
                 }
 
                 //if(this.block_material?.inventory?.move) {
@@ -502,7 +528,7 @@ export class Renderer {
                     mesh.buffer,
                     mesh.material,
                     new Vector(x, y, 0),
-                    pers_matrix ? pers_matrix : (multipart ? matrix_empty : matrix)
+                    pers_matrix ? pers_matrix : (multipart ? matrix_base : matrix)
                 );
 
                 mesh.material.texture.minFilter = 'nearest';
