@@ -77,7 +77,7 @@ export class BBModel_Preview {
         this.render.camPos = this.camPos
 
         // Add humanoid mesh #1
-        this.mesh = this.render.addBBModel(player.lerpPos.add(new Vector(-.5, 0, 0)), 'mob/humanoid', player.rotate, 'walk', 'humanoid')
+        this.mesh = this.render.addBBModel(player.lerpPos.add(new Vector(-.5, 0, 0)), 'mob/humanoid', player.rotate, 'run', 'humanoid')
         this.mesh.modifiers.appendToGroup('head', 'tool/sunglasses')
         this.mesh.modifiers.appendToGroup('RightArmItemPlace', 'tool/primitive_axe', 'thirdperson_righthand')
         this.mesh.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor')
