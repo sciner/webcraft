@@ -776,12 +776,17 @@ export class MobModel extends NetworkPhysicObject {
                 if (this.sitting) {
                     mesh.setAnimation('sitting')
                 } else if (this.moving) {
-                    if (!this.running) {
+                    if (this.sneak) {
+                        mesh.setAnimation('crouch')
+                    } else if (!this.running) {
                         mesh.setAnimation('walk')
-                        console.log(this)
                     } else {
                         mesh.setAnimation('run')
                     }
+                }  else if (this.sneak) {
+                    mesh.setAnimation('crouch_idle')
+                } else if (this.eat) {
+                    mesh.setAnimation('eat')
                 } else {
                     mesh.setAnimation('idle')
                 }

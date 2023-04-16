@@ -1173,6 +1173,7 @@ export class Player implements IPlayer {
         switch(item_name) {
             case 'bottle':
             case 'food': {
+                const itsme = this.getModel()
                 this.world.server.Send({name: ServerClient.CMD_USE_ITEM});
                 this.inhand_animation_duration = RENDER_EAT_FOOD_DURATION;
                 this._eating_sound_tick = 0;
@@ -1181,6 +1182,7 @@ export class Player implements IPlayer {
                 }
                 // timer
                 this._eating_sound = setInterval(() => {
+                    itsme.eat = true
                     this._eating_sound_tick++
                     const action = (this._eating_sound_tick % 9 == 0) ? 'burp' : 'eat';
                     Qubatch.sounds.play('madcraft:block.player', action, null, false);
@@ -1215,6 +1217,8 @@ export class Player implements IPlayer {
 
     // Stop use of item
     stopItemUse() {
+        const itsme = this.getModel()
+        itsme.eat = false
         this.inItemUseProcess = false;
         if(this._eating_sound) {
             clearInterval(this._eating_sound);
