@@ -767,12 +767,28 @@ export class MobModel extends NetworkPhysicObject {
 
         if(mesh) {
             this.setArmor()
-            mesh.setAnimation('walk')
-            mesh.rotate.z = this.draw_yaw ? this.draw_yaw : 0
+            if (this.sleep) {
+                const rot = this.sleep.rotate.z * 2 * Math.PI
+                mesh.rotate.z = rot % Math.PI ? rot : rot + Math.PI
+                mesh.setAnimation('sleep')
+            } else {
+                mesh.rotate.z = this.draw_yaw ? this.draw_yaw : 0
+                if (this.sitting) {
+                    mesh.setAnimation('sitting')
+                } else if (this.moving) {
+                    if (!this.running) {
+                        mesh.setAnimation('walk')
+                        console.log(this)
+                    } else {
+                        mesh.setAnimation('run')
+                    }
+                } else {
+                    mesh.setAnimation('idle')
+                }
+            }
             mesh.apos.copyFrom(this._pos)
             mesh.drawBuffered(render, delta)
         }
-        this._prevPos = this._pos.clone()
     }
 
     drawInFire(render : Renderer, delta : float) {
