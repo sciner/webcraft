@@ -17,7 +17,7 @@ export class BBModel_Group extends BBModel_Child {
     _mx:                imat4 = mat4.create()
     update:             boolean = true
     children:           any[] = []
-    animations:         any[] = []
+    animations:         Map<string, any> = new Map()
     name:               string
     rot_orig:           Vector
     axe:                Mesh_Object_BBModel
@@ -69,7 +69,7 @@ export class BBModel_Group extends BBModel_Child {
         if (parent_matrix) {
             mat4.copy(mx, parent_matrix)
         }
-        this.playAnimations(mx)
+        this.playAnimations(mx, mesh)
         mat4.multiply(mx, mx, this.matrix)
 
         const im_bone = this.model.bone_groups.has(this.name) || replace
@@ -151,15 +151,13 @@ export class BBModel_Group extends BBModel_Child {
     }
 
     // Play animations
-    playAnimations(mx : imat4) {
+    playAnimations(mx : imat4, mesh?: Mesh_Object_BBModel) {
 
-        if(this.animations.length == 0) {
-            return false;
+        if(this.animations.size == 0) {
+            return false
         }
 
-        for(let i = 0; i < this.animations.length; i += 2) {
-            const channel_name = this.animations[i]
-            const point = this.animations[i + 1]
+        for(const [channel_name, point] of this.animations.entries()) {
             switch(channel_name) {
                 case 'position': {
                     mat4.translate(mx, mx, point);
@@ -175,8 +173,14 @@ export class BBModel_Group extends BBModel_Child {
         // apply
         this.updateLocalTransform()
 
+        mesh.prev_animations.set(this.name, {
+            group: this,
+            list: this.animations
+        })
+
         // reset
-        this.animations.length = 0
+        // TODO: Need to optimize!
+        this.animations = new Map()
         this.rot.copyFrom(this.rot_orig)
 
     }

@@ -20,6 +20,7 @@ export class BBModel_Preview {
     mesh2?:         Mesh_Object_BBModel
     camRot:         Vector = new Vector(0, 0, 0)
     camPos:         Vector = new Vector(1, 1.7, -.7)
+    intv: NodeJS.Timer
 
     async init() {
 
@@ -77,7 +78,7 @@ export class BBModel_Preview {
         this.render.camPos = this.camPos
 
         // Add humanoid mesh #1
-        this.mesh = this.render.addBBModel(player.lerpPos.add(new Vector(-.5, 0, 0)), 'mob/humanoid', player.rotate, 'run', 'humanoid')
+        this.mesh = this.render.addBBModel(player.lerpPos.add(new Vector(-.5, 0, 0)), 'mob/humanoid', player.rotate, 'walk', 'humanoid')
         this.mesh.modifiers.appendToGroup('head', 'tool/sunglasses')
         this.mesh.modifiers.appendToGroup('RightArmItemPlace', 'tool/primitive_axe', 'thirdperson_righthand')
         this.mesh.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor')
@@ -85,14 +86,19 @@ export class BBModel_Preview {
         this.mesh.modifiers.hideGroup('backpack')
         // this.mesh.modifiers.showGroup('backpack')
 
-        // Add humanoid mesh #2
-        this.mesh2 = this.render.addBBModel(player.lerpPos.add(new Vector(.5, 0, 0)), 'mob/humanoid', player.rotate.clone(), 'walk', 'humanoid2')
-        this.mesh2.modifiers.appendToGroup('RightArmItemPlace', 'tool/iron_sword', 'thirdperson_righthand')
-        this.mesh2.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor', 'scrap_armor_copper.png')
-        this.mesh2.modifiers.replaceGroup('chestplate4', 'armor/scrap_armor', 'scrap_armor_diamond.png')
-        this.mesh2.modifiers.replaceGroup('chestplate5', 'armor/scrap_armor', 'scrap_armor_diamond.png')
-        this.mesh2.modifiers.replaceGroup('boots0', 'armor/scrap_armor', 'scrap_armor_diamond.png')
-        this.mesh2.modifiers.replaceGroup('boots1', 'armor/scrap_armor', 'scrap_armor_copper.png')
+        let anim = 0
+        this.intv = setInterval(() => {
+            this.mesh.setAnimation(anim++%2 ? 'walk' : 'idle')
+        }, 2000)
+
+        // // Add humanoid mesh #2
+        // this.mesh2 = this.render.addBBModel(player.lerpPos.add(new Vector(.5, 0, 0)), 'mob/humanoid', player.rotate.clone(), 'run', 'humanoid2')
+        // this.mesh2.modifiers.appendToGroup('RightArmItemPlace', 'tool/iron_sword', 'thirdperson_righthand')
+        // this.mesh2.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor', 'scrap_armor_copper.png')
+        // this.mesh2.modifiers.replaceGroup('chestplate4', 'armor/scrap_armor', 'scrap_armor_diamond.png')
+        // this.mesh2.modifiers.replaceGroup('chestplate5', 'armor/scrap_armor', 'scrap_armor_diamond.png')
+        // this.mesh2.modifiers.replaceGroup('boots0', 'armor/scrap_armor', 'scrap_armor_diamond.png')
+        // this.mesh2.modifiers.replaceGroup('boots1', 'armor/scrap_armor', 'scrap_armor_copper.png')
 
         // Start render loop
         this.preLoop = this.preLoop.bind(this)
@@ -107,6 +113,7 @@ export class BBModel_Preview {
             // BLOCK.resource_pack_manager.list.clear()
             // BLOCK.list = new Map()
             this.render.renderBackend.destroy();
+            clearInterval(this.intv)
             for(let rp of BLOCK.resource_pack_manager.list.values()) {
                 rp.killRender()
             }
@@ -121,8 +128,11 @@ export class BBModel_Preview {
 
         this.render.camera.set(this.render.camPos, this.camRot, this.m4)
 
-        this.mesh.rotate.z =  performance.now() / 1000 // Math.PI * 1.15
-        this.mesh2.rotate.z =  performance.now() / 1000
+        this.mesh.rotate.z = performance.now() / 1000 // Math.PI * 1.15
+        this.mesh.rotate.z = Math.PI * 1.15
+        if(this.mesh2) {
+            this.mesh2.rotate.z =  performance.now() / 1000
+        }
 
         const delta = performance.now() - this.prev_time
         this.render.draw(delta, undefined)

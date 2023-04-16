@@ -7,8 +7,9 @@ import { DEFAULT_ATLAS_SIZE } from "../constant.js";
 import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js";
 import type { Renderer } from "../render.js";
 
-const VEC_2 = new Vector(2, 2, 2);
-const FIX_POS = new Vector(8, -8, -8);
+const VEC_2 = new Vector(2, 2, 2)
+const FIX_POS = new Vector(8, -8, -8)
+const EMPTY_ARGS = []
 
 //
 export class BBModel_Model {
@@ -141,7 +142,7 @@ export class BBModel_Model {
     /**
      * Play animations
      */
-    playAnimation(animation_name : string, dt : float) : boolean {
+    playAnimation(animation_name : string, dt : float, mesh : Mesh_Object_BBModel = null) : boolean {
 
         const animation = this.animations.get(animation_name)
         if(!animation) {
@@ -153,7 +154,7 @@ export class BBModel_Model {
             for(let k in animation.animators) {
                 const animator = animation.animators[k];
                 const group = this.groups.get(animator.name) as BBModel_Group
-                group.animations.length = 0
+                group.animations.clear()
                 group.rot.copyFrom(group.rot_orig)
                 group.updateLocalTransform()
             }
@@ -220,14 +221,40 @@ export class BBModel_Model {
                         continue
                     }
 
-                    const t = func(percent, args || [])
+                    const t = func(percent, args || EMPTY_ARGS)
                     point.lerpFrom(current_point, next_point, t)
-                    group.animations.push(channel_name, point)
+                    group.animations.set(channel_name, point)
 
                 }
 
             }
 
+        }
+
+        if(mesh.lerp_animations) {
+            const diff = performance.now() / 1000 - mesh.lerp_animations.start
+            // const current_point = new Vector(0, 0, 0)
+            const next_point = new Vector(0, 0, 0)
+            // const func = EasingType.get('linear')
+            if(diff < mesh.lerp_animations.duration) {
+                const percent = diff / mesh.lerp_animations.duration
+                const t = percent // func(percent, EMPTY_ARGS)
+                for(const item of mesh.lerp_animations.all.values()) {
+                    const {group, list} = item
+                    for(const [channel_name, current_point] of list.entries()) {
+                        const exist_point = group.animations.get(channel_name)
+                        if(exist_point) {
+                            next_point.copyFrom(exist_point)
+                        } else {
+                            next_point.copyFrom(group.rot_orig)
+                        }
+                        current_point.lerpFrom(current_point, next_point, t)
+                        group.animations.set(channel_name, exist_point ? exist_point.copyFrom(current_point) : current_point.clone())
+                    }
+                }
+            } else {
+                mesh.lerp_animations = null
+            }
         }
 
         return true

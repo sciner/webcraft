@@ -156,6 +156,11 @@ export class Mesh_Object_BBModel {
     modifiers: MeshObjectModifiers
     hide_groups: string[] = []
 
+    //
+    animation_changed : float | null = null
+    prev_animations : Map<string, any> = new Map()
+    lerp_animations : {start : float, duration : float, all: Map<string, {group: BBModel_Group, list: Map<string, Vector>}>} | null = null
+
     constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false) {
 
         this.model = model;
@@ -180,7 +185,7 @@ export class Mesh_Object_BBModel {
         this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${doubleface ? 'doubleface' : 'regular'}/terrain/${model.json._properties.texture_id}`);
         this.vertices       = [];
         this.buffer         = new GeometryTerrain(this.vertices)
-        this.modifiers    = new MeshObjectModifiers(this)
+        this.modifiers      = new MeshObjectModifiers(this)
         this.redraw(0.);
 
         this.setAnimation(animation_name);
@@ -188,8 +193,9 @@ export class Mesh_Object_BBModel {
     }
 
     //
-    setAnimation(name : string) {
-        this.animation_name = name;
+    setAnimation(animation_name : string) {
+        this.animation_changed = (this.animation_name && this.animation_name != animation_name) ? (performance.now() / 1000) : null
+        this.animation_name = animation_name
     }
 
     redraw(delta: float) {
@@ -243,8 +249,20 @@ export class Mesh_Object_BBModel {
             this.apos.copyFrom(pos)
         }
 
-        this.model.playAnimation(this.animation_name, (this.start_time + performance.now()) / 1000)
+        if(!this.animation_changed) {
+            this.prev_animations.clear()
+        } else {
+            this.lerp_animations = {
+                all: this.prev_animations,
+                duration: 5.8,
+                start: this.animation_changed
+            }
+            this.prev_animations = new Map()
+        }
+
+        this.model.playAnimation(this.animation_name, (this.start_time + performance.now()) / 1000, this)
         this.model.drawBuffered(render, this, this.apos, lm, m)
+        this.animation_changed = null
     }
 
     applyRotate() {
