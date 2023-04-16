@@ -5733,66 +5733,6 @@
             ]
         },
         {
-            "id": 1424,
-            "name": "EMPTY_ARMOR_SLOT_HELMET",
-            "style": "extruder",
-            "deprecated": true,
-            "spawnable": false,
-            "texture": "item/empty_armor_slot_helmet.png",
-            "item": {"name": "slot"},
-            "material": {
-                "id": "iron"
-            }
-        },
-        {
-            "id": 1425,
-            "name": "EMPTY_ARMOR_SLOT_CHESTPLATE",
-            "style": "extruder",
-            "deprecated": true,
-            "spawnable": false,
-            "texture": "item/empty_armor_slot_chestplate.png",
-            "item": {"name": "slot"},
-            "material": {
-                "id": "iron"
-            }
-        },
-        {
-            "id": 1426,
-            "name": "EMPTY_ARMOR_SLOT_BOOTS",
-            "style": "extruder",
-            "deprecated": true,
-            "spawnable": false,
-            "texture": "item/empty_armor_slot_boots.png",
-            "item": {"name": "slot"},
-            "material": {
-                "id": "iron"
-            }
-        },
-        {
-            "id": 1427,
-            "name": "EMPTY_ARMOR_SLOT_LEGGINGS",
-            "style": "extruder",
-            "deprecated": true,
-            "spawnable": false,
-            "texture": "item/empty_armor_slot_leggings.png",
-            "item": {"name": "slot"},
-            "material": {
-                "id": "iron"
-            }
-        },
-        {
-            "id": 1428,
-            "name": "EMPTY_ARMOR_SLOT_SHIELD",
-            "style": "extruder",
-            "deprecated": true,
-            "spawnable": false,
-            "texture": "item/empty_armor_slot_shield.png",
-            "item": {"name": "slot"},
-            "material": {
-                "id": "iron"
-            }
-        },
-        {
             "id": 1429,
             "name": "FEATHER",
             "style": "extruder",
@@ -9143,8 +9083,8 @@
                 "damage": 2
             },
             "model": {
-                "geo": "scrap",
-                "texture": "copper" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9163,8 +9103,8 @@
                 "damage": 2
             },
             "model": {
-                "geo": "scrap",
-                "texture": "iron" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_iron" 
             }
         },
         {
@@ -9183,8 +9123,8 @@
                 "damage": 3
             },
             "model": {
-                "geo": "scrap",
-                "texture": "diamond" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_diamond" 
             }
         },
         {
@@ -9203,8 +9143,8 @@
                 "damage": 2
             },
             "model": {
-                "geo": "scrap",
-                "texture": "gold" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_gold" 
             }
         },
         {
@@ -9263,8 +9203,8 @@
                 "damage": 5
             },
             "model": {
-                "geo": "scrap",
-                "texture": "cooper" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9283,8 +9223,8 @@
                 "damage": 6
             },
             "model": {
-                "geo": "scrap",
-                "texture": "iron" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_iron" 
             }
         },
         {
@@ -9303,8 +9243,8 @@
                 "damage": 8
             },
             "model": {
-                "geo": "scrap",
-                "texture": "diamond" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_diamond" 
             }
         },
         {
@@ -9323,8 +9263,8 @@
                 "damage": 5
             },
             "model": {
-                "geo": "scrap",
-                "texture": "gold" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_gold" 
             }
         },
         {
@@ -9383,8 +9323,8 @@
                 "damage": 4
             },
             "model": {
-                "geo": "scrap",
-                "texture": "copper" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9403,8 +9343,8 @@
                 "damage": 5
             },
             "model": {
-                "geo": "scrap",
-                "texture": "iron" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_iron" 
             }
         },
         {
@@ -9423,8 +9363,8 @@
                 "damage": 6
             },
             "model": {
-                "geo": "scrap",
-                "texture": "diamond" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_diamond" 
             }
         },
         {
@@ -9443,8 +9383,8 @@
                 "damage": 3
             },
             "model": {
-                "geo": "scrap",
-                "texture": "gold" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_gold" 
             }
         },
         {
@@ -9503,8 +9443,8 @@
                 "damage": 1
             },
             "model": {
-                "geo": "scrap",
-                "texture": "copper" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9523,8 +9463,8 @@
                 "damage": 2
             },
             "model": {
-                "geo": "scrap",
-                "texture": "iron" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_iron" 
             }
         },
         {
@@ -9543,8 +9483,8 @@
                 "damage": 3
             },
             "model": {
-                "geo": "scrap",
-                "texture": "diamond" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_diamond" 
             }
         },
         {
@@ -9563,8 +9503,8 @@
                 "damage": 1
             },
             "model": {
-                "geo": "scrap",
-                "texture": "gold" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_gold" 
             }
         },
         {

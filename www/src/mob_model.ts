@@ -766,7 +766,7 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         if(mesh) {
-            this.setArmor(render)
+            this.setArmor()
             mesh.setAnimation('walk')
             mesh.rotate.z = this.draw_yaw ? this.draw_yaw : 0
             mesh.apos.copyFrom(this._pos)
@@ -879,123 +879,73 @@ export class MobModel extends NetworkPhysicObject {
         }
     }
 
-    // установка армора
-    setArmor(render: Renderer) {
+     // установка армора
+     setArmor() {
+
         const armor = (this.extra_data?.armor) ? this.extra_data.armor : this.armor
-
-        if(this._mesh?.model.name == 'mob/humanoid') {
-            if(this._mesh.modifiers.append_list.size == 0) {
-                this._mesh.modifiers.appendToGroup('helmet', 'tool/sunglasses')
-                this._mesh.modifiers.appendToGroup('RightArmItemPlace', 'tool/primitive_axe', 'thirdperson_righthand')
-                this._mesh.hide_groups.push('backpack')
-            }
-        }
-
-        /*
         if (!armor) {
             return
         }
-        if (!this.loaded) {
-            return
-        }
+
+        const block = Qubatch.world.block_manager
+
         if (armor.head != this.prev.head) {
             if (armor.head) {
-                const sun = render.world.mobs.models.get('sunglasses')
-                const helmet = sun.model.groups.get('helmet')
-                const el = this._mesh.model.groups.get('helmet')
-                el.children = helmet.children
-                el.vertices_pushed = false
-                this._mesh.vertices_pushed.set('helmet', false)
-                console.log(this._mesh)
-                // const item = BLOCK.fromId(armor.head)
-                // const material = this.textures.get(item.model.geo + '_' + item.model.texture)
-                // const helmet = this.models.get(item.model.geo).findNode('helmet')
-                // if (helmet && material) {
-                //     this.sceneTree[0].findNode('helmet')?.setChild(helmet, material)
-                // }
-                // this.sceneTree[0].findNode('hair')?.setVisible(true)
+                const item = block.fromId(armor.head)
+                this._mesh.modifiers.replaceGroup('helmet', item.model.name, item.model.texture + '.png')
+                this._mesh.modifiers.showGroup('helmet')
             } else {
-                //this.sceneTree[0].findNode('hair')?.setVisible(true)
-                //this.sceneTree[0].findNode('helmet')?.setVisible(false)
+                this._mesh.modifiers.hideGroup('helmet')
             }
-            
             this.prev.head = armor.head
         }
+
         if (armor.body != this.prev.body) {
             if (armor.body) {
-                const item = BLOCK.fromId(armor.body)
-                const material = this.textures.get(item.model.geo + '_' + item.model.texture)
-                const chestplate = this.models.get(item.model.geo).findNode('chestplate')
-                if (chestplate && material) {
-                    this.sceneTree[0].findNode('chestplate')?.setChild(chestplate, material)
-                }
-                const chestplate2 = this.models.get(item.model.geo).findNode('chestplate2')
-                if (chestplate2 && material) {
-                    this.sceneTree[0].findNode('chestplate2')?.setChild(chestplate2, material)
-                }
-                const chestplate3 = this.models.get(item.model.geo).findNode('chestplate3')
-                if (chestplate3 && material) {
-                    this.sceneTree[0].findNode('chestplate3')?.setChild(chestplate3, material)
-                }
-                const chestplate4 = this.models.get(item.model.geo).findNode('chestplate4')
-                if (chestplate4 && material) {
-                    this.sceneTree[0].findNode('chestplate4')?.setChild(chestplate4, material)
-                }
-                const chestplate5 = this.models.get(item.model.geo).findNode('chestplate5')
-                if (chestplate5 && material) {
-                    this.sceneTree[0].findNode('chestplate5')?.setChild(chestplate5, material)
+                const item = block.fromId(armor.body)
+                for (let i = 0; i < 6; i++) {
+                    this._mesh.modifiers.replaceGroup('chestplate' + i, item.model.name, item.model.texture + '.png')
+                    this._mesh.modifiers.showGroup('chestplate' + i)
                 }
             } else {
-                this.sceneTree[0].findNode('chestplate')?.setVisible(false)
-                this.sceneTree[0].findNode('chestplate2')?.setVisible(false)
-                this.sceneTree[0].findNode('chestplate3')?.setVisible(false)
-                this.sceneTree[0].findNode('chestplate4')?.setVisible(false)
-                this.sceneTree[0].findNode('chestplate5')?.setVisible(false)
+                for (let i = 0; i < 6; i++) {
+                    this._mesh.modifiers.hideGroup('chestplate' + i)
+                }
             }
             this.prev.body = armor.body
         }
+
         if (armor.leg != this.prev.leg) {
             if (armor.leg) {
-                const item = BLOCK.fromId(armor.leg)
-                const material = this.textures.get(item.model.geo + '_' + item.model.texture)
-                const pants = this.models.get(item.model.geo).findNode('pants')
-                if (pants && material) {
-                    this.sceneTree[0].findNode('pants')?.setChild(pants, material)
-                }
-                const pants2 = this.models.get(item.model.geo).findNode('pants2')
-                if (pants2 && material) {
-                    this.sceneTree[0].findNode('pants2')?.setChild(pants2, material)
-                }
-                const pants3 = this.models.get(item.model.geo).findNode('pants3')
-                if (pants3 && material) {
-                    this.sceneTree[0].findNode('pants3')?.setChild(pants3, material)
+                const item = block.fromId(armor.leg)
+                for (let i = 0; i < 10; i++) {
+                    this._mesh.modifiers.replaceGroup('pants' + i, item.model.name, item.model.texture + '.png')
+                    this._mesh.modifiers.showGroup('pants' + i)
                 }
             } else {
-                this.sceneTree[0].findNode('pants')?.setVisible(false)
-                this.sceneTree[0].findNode('pants2')?.setVisible(false)
-                this.sceneTree[0].findNode('pants3')?.setVisible(false)
+                for (let i = 0; i < 10; i++) {
+                    this._mesh.modifiers.hideGroup('pants' + i)
+                }
             }
-            this.prev.leg = armor.leg;
+            this.prev.leg = armor.leg
         }
+
         if (armor.boot != this.prev.boot) {
             if (armor.boot) {
-                const item = BLOCK.fromId(armor.boot)
-                const material = this.textures.get(item.model.geo + '_' + item.model.texture)
-                const boots = this.models.get(item.model.geo).findNode('boots')
-                if (boots && material) {
-                    this.sceneTree[0].findNode('boots')?.setChild(boots, material)
-                }
-                const boots2 = this.models.get(item.model.geo).findNode('boots2')
-                if (boots2 && material) {
-                    this.sceneTree[0].findNode('boots2')?.setChild(boots2, material)
+                const item = block.fromId(armor.boot)
+                for (let i = 0; i < 10; i++) {
+                    this._mesh.modifiers.replaceGroup('boots' + i, item.model.name, item.model.texture + '.png')
+                    this._mesh.modifiers.showGroup('boots' + i)
                 }
             } else {
-                this.sceneTree[0].findNode('boots')?.setVisible(false)
-                this.sceneTree[0].findNode('boots2')?.setVisible(false)
+                for (let i = 0; i < 10; i++) {
+                    this._mesh.modifiers.hideGroup('boots' + i)
+                }
             }
-            this.prev.boot = armor.boot;
+            this.prev.boot = armor.boot
         }
-        */
+
     }
+
 
 }
