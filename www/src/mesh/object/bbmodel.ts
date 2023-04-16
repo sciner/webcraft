@@ -6,6 +6,7 @@ import type { BBModel_Model } from '../../bbmodel/model.js';
 import type { BaseResourcePack } from '../../base_resource_pack.js';
 import type { WebGLMaterial } from '../../renders/webgl/WebGLMaterial.js';
 import { Resources } from '../../resources.js';
+import type { BBModel_Group } from '../../bbmodel/group.js';
 
 const {mat4, quat} = glMatrix;
 const lm        = IndexedColor.WHITE;
@@ -24,10 +25,12 @@ class MeshObjectModifyAppend {
 
 class MeshObjectModifyReplace {
     mesh : Mesh_Object_BBModel
+    replacement_group : BBModel_Group
     texture_name? : string
 
-    constructor(mesh : Mesh_Object_BBModel, texture_name? : string) {
+    constructor(mesh : Mesh_Object_BBModel, replacement_group : BBModel_Group, texture_name? : string) {
         this.mesh = mesh
+        this.replacement_group = replacement_group
         this.texture_name = texture_name
     }
 
@@ -37,22 +40,26 @@ class MeshObjectModifiers {
 
     mesh : Mesh_Object_BBModel
     append_list : Map<string, MeshObjectModifyAppend[]> = new Map()
-    replace_list : Map<string, MeshObjectModifyReplace[]> = new Map()
+    replace : Map<string, MeshObjectModifyReplace> = new Map()
     hide_group_list : string[] = []
 
     constructor(mesh : Mesh_Object_BBModel) {
         this.mesh = mesh
     }
 
-    getForGroup(name : string) : {append: MeshObjectModifyAppend[], replace: MeshObjectModifyReplace[], hide : string[]} {
+    getForGroup(name : string) : {append: MeshObjectModifyAppend[], replace: MeshObjectModifyReplace, hide : string[]} {
         return {
             append: this.append_list.get(name) || [],
-            replace: this.replace_list.get(name) || [],
+            replace: this.replace.get(name) || null,
             hide: this.hide_group_list || [],
         }
     }
 
     appendToGroup(group_name : string, model_name : string, display_name? : string) : MeshObjectModifyAppend {
+
+        if(!this.mesh.model.groups.get(group_name)) {
+            return null
+        }
 
         let group = this.append_list.get(group_name)
         if(!group) {
@@ -73,20 +80,28 @@ class MeshObjectModifiers {
 
     }
 
-    replaceGroup(group_name : string, model_name : string, texture_name? : string) : MeshObjectModifyReplace {
+    replaceGroup(group_name : string, model_name : string, texture_name? : string) : MeshObjectModifyReplace | null {
 
-        let group = this.replace_list.get(group_name)
-        if(!group) {
-            group = []
-            this.replace_list.set(group_name, group)
+        if(!this.mesh.model.groups.get(group_name)) {
+            return null
+        }
+
+        const group = this.replace.get(group_name)
+        if(group) {
+            group.mesh.destroy()
         }
 
         const render = this.mesh.render
         const bbmodel = Resources._bbmodels.get(model_name)
+        const replacement_group = bbmodel.groups.get(group_name)
+        if(!replacement_group) {
+            console.error('error_replacement_group_not_found')
+            return null
+        }
         const mesh = new Mesh_Object_BBModel(render, Vector.ZERO, Vector.ZERO, bbmodel, null, true)
-        const modifier = new MeshObjectModifyReplace(mesh, texture_name)
+        const modifier = new MeshObjectModifyReplace(mesh, replacement_group, texture_name)
 
-        group.push(modifier)
+        this.replace.set(group_name, modifier)
 
         return modifier
 
@@ -108,6 +123,23 @@ class MeshObjectModifiers {
                 list.splice(index, 1)
             }
         }
+    }
+
+    destroy() {
+        // append
+        for(let list of this.append_list.values()) {
+            for(let modifier of list) {
+                modifier.mesh.destroy()
+            }
+        }
+        this.append_list.clear()
+        // replace
+        for(let modifier of this.replace.values()) {
+            modifier.mesh.destroy()
+        }
+        this.replace.clear()
+        // hide
+        this.hide_group_list.length = 0
     }
 
 }
@@ -228,6 +260,7 @@ export class Mesh_Object_BBModel {
             geom.destroy()
         }
         this.geometries.clear()
+        this.modifiers.destroy()
     }
 
     get isAlive() : boolean {

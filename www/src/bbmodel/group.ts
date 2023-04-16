@@ -87,20 +87,18 @@ export class BBModel_Group extends BBModel_Child {
         }
 
         // Replace group
-        if(group_modifiers.replace.length > 0) {
-            for(const modifier of group_modifiers.replace) {
-                const repl_group = modifier.mesh.model.groups.get(this.name)
-                if(repl_group) {
-                    const repl_vertices = []
-                    // replace specific texture
-                    if(modifier.texture_name) {
-                        modifier.mesh.model.selectTextureFromPalette(this.name, modifier.texture_name)
-                    }
-                    repl_group.drawBuffered(render, modifier.mesh, pos, lm, mx, bone_matrix, repl_vertices, undefined, true)
-                    // restore specific texture
-                    if(modifier.texture_name) {
-                        modifier.mesh.model.selectTextureFromPalette(this.name, null)
-                    }
+        const replace_modifier = group_modifiers.replace
+        if(replace_modifier) {
+            if(replace_modifier.replacement_group) {
+                // replace specific texture
+                if(replace_modifier.texture_name) {
+                    replace_modifier.mesh.model.selectTextureFromPalette(this.name, replace_modifier.texture_name)
+                }
+                // draw another mesh
+                replace_modifier.replacement_group.drawBuffered(render, replace_modifier.mesh, pos, lm, mx, bone_matrix, [], undefined, true)
+                // restore specific texture
+                if(replace_modifier.texture_name) {
+                    replace_modifier.mesh.model.selectTextureFromPalette(this.name, null)
                 }
             }
             return
@@ -126,6 +124,7 @@ export class BBModel_Group extends BBModel_Child {
         if(im_bone) {
             let geom = mesh.geometries.get(this.name)
             if(!geom) {
+                // TODO: кешировать геомы с учетом использованных текстур (в т.ч. у вложенных групп) в bbmodel, а не в mesh_object
                 geom = new GeometryTerrain(vertices)
                 mesh.geometries.set(this.name, geom)
             }

@@ -80,19 +80,19 @@ export class BBModel_Preview {
         this.mesh = this.render.addBBModel(player.lerpPos.add(new Vector(-.5, 0, 0)), 'mob/humanoid', player.rotate, 'walk', 'humanoid')
         this.mesh.modifiers.appendToGroup('head', 'tool/sunglasses')
         this.mesh.modifiers.appendToGroup('RightArmItemPlace', 'tool/primitive_axe', 'thirdperson_righthand')
-        this.mesh.modifiers.replaceGroup('chestplate', 'armor/scrap_armor')
-        this.mesh.modifiers.replaceGroup('boots2', 'armor/scrap_armor', 'scrap_armor_gold.png')
+        this.mesh.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor')
+        this.mesh.modifiers.replaceGroup('boots1', 'armor/scrap_armor', 'scrap_armor_gold.png')
         this.mesh.modifiers.hideGroup('backpack')
         // this.mesh.modifiers.showGroup('backpack')
 
         // Add humanoid mesh #2
         this.mesh2 = this.render.addBBModel(player.lerpPos.add(new Vector(.5, 0, 0)), 'mob/humanoid', player.rotate.clone(), 'walk', 'humanoid2')
         this.mesh2.modifiers.appendToGroup('RightArmItemPlace', 'iron_sword', 'thirdperson_righthand')
-        this.mesh2.modifiers.replaceGroup('chestplate', 'armor/scrap_armor', 'scrap_armor_copper.png')
+        this.mesh2.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor', 'scrap_armor_copper.png')
+        this.mesh2.modifiers.replaceGroup('chestplate4', 'armor/scrap_armor', 'scrap_armor_diamond.png')
         this.mesh2.modifiers.replaceGroup('chestplate5', 'armor/scrap_armor', 'scrap_armor_diamond.png')
-        this.mesh2.modifiers.replaceGroup('chestplate6', 'armor/scrap_armor', 'scrap_armor_diamond.png')
-        this.mesh2.modifiers.replaceGroup('boots', 'armor/scrap_armor', 'scrap_armor_diamond.png')
-        this.mesh2.modifiers.replaceGroup('boots2', 'armor/scrap_armor', 'scrap_armor_copper.png')
+        this.mesh2.modifiers.replaceGroup('boots0', 'armor/scrap_armor', 'scrap_armor_diamond.png')
+        this.mesh2.modifiers.replaceGroup('boots1', 'armor/scrap_armor', 'scrap_armor_copper.png')
 
         // Start render loop
         this.preLoop = this.preLoop.bind(this)
