@@ -89,7 +89,7 @@ export class TraversableRenderer {
         if (node.material && traversable.lightTex) {
             node.material.lightTex = traversable.lightTex;
         }
-        
+
         render.renderBackend.drawMesh(
             node.terrainGeometry,
             node.material || traversable.material,
@@ -112,11 +112,11 @@ export class TraversableRenderer {
             render.renderBackend.drawMesh(gt, mesh.gl_material, pos, init_matrix)
         }
         return true
-    } 
+    }
 
     drawLayer(render, mesh, ignore_roots = []) {
        // this.traverse(st, null, render, traversable);
-        
+
         /*if (!traversable || !traversable.sceneTree) {
             return;
         }
@@ -780,10 +780,6 @@ export class MobModel extends NetworkPhysicObject {
                         mesh.setAnimation('crouch')
                     } else if (!this.running) {
                         mesh.setAnimation('walk')
-<<<<<<< HEAD
-                        // console.log(this)
-=======
->>>>>>> 094e4227e2cbe5e72f5e12701e66dc3076537518
                     } else {
                         mesh.setAnimation('run')
                     }
