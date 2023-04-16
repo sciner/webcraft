@@ -477,18 +477,18 @@ export class Renderer {
 
                 const display = mat.bb?.model?.json?.display?.gui
                 if(display) {
-                    pers_matrix = [...matrix_empty]
+                    pers_matrix = mat4.create();
                     const tempQuat = quat.create()
 
                     const position = vec3.create()
                     const scale = vec3.set(vec3.create(), 1, 1, 1)
-                    const pivot = vec3.set(vec3.create(), 0, 0, 0)
-                    const rotate = [0, 0, 0]
+                    const pivot = vec3.create();
+                    const rotate = vec3.create();
 
                     if(display.rotation) {
-                        rotate[0] -= display.rotation[0]
-                        rotate[1] -= display.rotation[1]
-                        rotate[2] -= display.rotation[2]
+                        rotate[0] = display.rotation[0];//+display.rotation[0] + Math.PI / 2
+                        rotate[1] = -display.rotation[1] + 180;
+                        rotate[2] = display.rotation[2];
                     }
 
                     if(display.scale) {
@@ -496,13 +496,16 @@ export class Renderer {
                     }
 
                     if(display.translation) {
-                        vec3.set(position, display.translation[0]/16, display.translation[2]/16, display.translation[1]/16-.5)
+                        vec3.set(position, display.translation[0]/16, display.translation[1]/16 + 4.5/16 , display.translation[2]/16)
                     }
 
                     quat.fromEuler(tempQuat, rotate[0], rotate[1], rotate[2], 'xyz')
-                    mat4.fromRotationTranslationScaleOrigin(pers_matrix, tempQuat, position, scale, pivot)
-                    mat4.rotateY(pers_matrix, pers_matrix, Math.PI);
-
+                    mat4.fromRotationTranslationScaleOrigin(pers_matrix, tempQuat, vec3.create(), scale, pivot)
+                    mat4.translate(pers_matrix, pers_matrix, position);
+                    mat4.identity(matrix)
+                    mat4.rotateY(matrix, matrix, Math.PI)
+                    mat4.multiply(pers_matrix, pers_matrix, matrix)
+                    mat4.multiply(pers_matrix, matrix, pers_matrix)
                     // if(display.rotation) {
                     //     const icon_rotate = display.rotation
                     //     for(let i = 0; i < icon_rotate.length; i++) {

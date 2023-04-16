@@ -89,7 +89,7 @@ export class TraversableRenderer {
         if (node.material && traversable.lightTex) {
             node.material.lightTex = traversable.lightTex;
         }
-        
+
         render.renderBackend.drawMesh(
             node.terrainGeometry,
             node.material || traversable.material,
@@ -112,11 +112,11 @@ export class TraversableRenderer {
             render.renderBackend.drawMesh(gt, mesh.gl_material, pos, init_matrix)
         }
         return true
-    } 
+    }
 
     drawLayer(render, mesh, ignore_roots = []) {
        // this.traverse(st, null, render, traversable);
-        
+
         /*if (!traversable || !traversable.sceneTree) {
             return;
         }
