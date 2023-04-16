@@ -429,7 +429,7 @@ export class Renderer {
         //
         const matrix = mat4.create();
         mat4.rotateX(matrix, matrix, -Math.PI / 6);
-        mat4.rotateY(matrix, matrix, Math.PI + Math.PI / 4);
+        mat4.rotateY(matrix, matrix, Math.PI / 4);
         //
         camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
         // larg for valid render results
@@ -483,7 +483,7 @@ export class Renderer {
                     const position = vec3.create()
                     const scale = vec3.set(vec3.create(), 1, 1, 1)
                     const pivot = vec3.set(vec3.create(), 0, 0, 0)
-                    const rotate = [0, 180, 0]
+                    const rotate = [0, 0, 0]
 
                     if(display.rotation) {
                         rotate[0] -= display.rotation[0]
@@ -496,7 +496,7 @@ export class Renderer {
                     }
 
                     if(display.translation) {
-                        vec3.set(position, display.translation[0]/16, display.translation[1]/16, display.translation[2]/16)
+                        vec3.set(position, display.translation[0]/16, display.translation[2]/16, display.translation[1]/16-.5)
                     }
 
                     quat.fromEuler(tempQuat, rotate[0], rotate[1], rotate[2], 'xyz')
