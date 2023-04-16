@@ -86,7 +86,7 @@ class MeshObjectModifiers {
         const mesh = new Mesh_Object_BBModel(render, Vector.ZERO, Vector.ZERO, bbmodel, null, true)
         const modifier = new MeshObjectModifyReplace(mesh, texture_name)
 
-        group[0] = modifier// .push(modifier)
+        group.push(modifier)
 
         return modifier
 
