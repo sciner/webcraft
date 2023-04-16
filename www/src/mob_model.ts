@@ -780,10 +780,6 @@ export class MobModel extends NetworkPhysicObject {
                         mesh.setAnimation('crouch')
                     } else if (!this.running) {
                         mesh.setAnimation('walk')
-<<<<<<< HEAD
-                        // console.log(this)
-=======
->>>>>>> 094e4227e2cbe5e72f5e12701e66dc3076537518
                     } else {
                         mesh.setAnimation('run')
                     }
