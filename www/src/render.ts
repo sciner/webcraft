@@ -429,7 +429,7 @@ export class Renderer {
         //
         const matrix = mat4.create();
         mat4.rotateX(matrix, matrix, -Math.PI / 6);
-        mat4.rotateY(matrix, matrix, Math.PI / 4);
+        mat4.rotateY(matrix, matrix, Math.PI / 4 + Math.PI);
         //
         camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
         // larg for valid render results
@@ -479,7 +479,7 @@ export class Renderer {
                 if(display) {
                     pers_matrix = [...matrix_empty]
                     const tempQuat = quat.create()
-                    
+
                     const position = vec3.create()
                     const scale = vec3.set(vec3.create(), 1, 1, 1)
                     const pivot = vec3.set(vec3.create(), 0, 0, 0)
@@ -501,6 +501,7 @@ export class Renderer {
 
                     quat.fromEuler(tempQuat, rotate[0], rotate[1], rotate[2], 'xyz')
                     mat4.fromRotationTranslationScaleOrigin(pers_matrix, tempQuat, position, scale, pivot)
+                    mat4.rotateY(pers_matrix, pers_matrix, Math.PI);
 
                     // if(display.rotation) {
                     //     const icon_rotate = display.rotation
@@ -511,7 +512,6 @@ export class Renderer {
                     //         mat4.rotate(pers_matrix, pers_matrix, icon_rotate[i] / 180 * Math.PI, rot_arr)
                     //     }
                     // }
-
 
                     // mat4.translate(pers_matrix, pers_matrix, [0, 0, 4/16])
 

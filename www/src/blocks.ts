@@ -1366,7 +1366,7 @@ export class BLOCK {
     //
     static getCardinalDirection(vec3 : IVector) : number {
         if (!vec3) {
-            return ROTATE.S;
+            return ROTATE.N;
         }
         if (vec3.x && !(vec3.y * vec3.z)) {
             if(vec3.x >= 0 && vec3.x < 48 && vec3.x == Math.round(vec3.x)) {
@@ -1670,7 +1670,7 @@ export class BLOCK {
         // resource styles is textures for it
 
         const all: Promise<any>[] = [Resources.loadBlockStyles(settings)];
-            
+
         if(init_rpm) {
             all.push(BLOCK.resource_pack_manager.init(settings))
         }
