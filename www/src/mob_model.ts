@@ -778,7 +778,7 @@ export class MobModel extends NetworkPhysicObject {
                 } else if (this.moving) {
                     if (!this.running) {
                         mesh.setAnimation('walk')
-                        console.log(this)
+                        // console.log(this)
                     } else {
                         mesh.setAnimation('run')
                     }

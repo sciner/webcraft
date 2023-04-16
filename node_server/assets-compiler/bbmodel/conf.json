@@ -81,8 +81,8 @@
         {"name": "bough",               "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "dandelion",           "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "poppy",               "shift": {"x": 16, "y": 0, "z": 0}},
-        {"name": "iron_sword",          "shift": {"x": 16, "y": 0, "z": 0}},
 
+        {"name": "tool/iron_sword",     "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "tool/primitive_axe",  "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "tool/sunglasses",     "shift": {"x": 16, "y": 0, "z": 0}},
         
@@ -2129,7 +2129,7 @@
             "id": 608,
             "name": "IRON_SWORD",
             "bb": {
-                "model": "iron_sword"
+                "model": "tool/iron_sword"
             }
         },
         {

@@ -36,7 +36,7 @@ import type { HUD } from "./hud.js";
 import type {Player} from "./player.js";
 import type WebGLRenderer from "./renders/webgl/index.js";
 
-const {mat3, mat4} = glMatrix;
+const {mat3, mat4, quat, vec3} = glMatrix;
 
 /**
 * Renderer
@@ -478,23 +478,42 @@ export class Renderer {
                 const display = mat.bb?.model?.json?.display?.gui
                 if(display) {
                     pers_matrix = [...matrix_empty]
+                    const tempQuat = quat.create()
+                    
+                    const position = vec3.create()
+                    const scale = vec3.set(vec3.create(), 1, 1, 1)
+                    const pivot = vec3.set(vec3.create(), 0, 0, 0)
+                    const rotate = [0, 180, 0]
+
                     if(display.rotation) {
-                        const icon_rotate = display.rotation
-                        for(let i = 0; i < icon_rotate.length; i++) {
-                            if(!icon_rotate[i]) continue;
-                            const rot_arr = [0, 0, 0]
-                            rot_arr[i] = 1
-                            mat4.rotate(pers_matrix, pers_matrix, icon_rotate[i] / 180 * Math.PI, rot_arr)
-                        }
+                        rotate[0] -= display.rotation[0]
+                        rotate[1] -= display.rotation[1]
+                        rotate[2] -= display.rotation[2]
                     }
-                    if(display.translation) {
-                        const icon_move = [display.translation[0]/16, display.translation[2]/16, display.translation[1]/16]
-                        mat4.translate(pers_matrix, pers_matrix, icon_move)
-                    }
+
                     if(display.scale) {
-                        mat4.scale(pers_matrix, pers_matrix, [display.scale[0] * 1.5, display.scale[1] * 1.5, display.scale[2] * 1.5])
+                        vec3.set(scale, display.scale[0] * 1.5, display.scale[1] * 1.5, display.scale[2] * 1.5)
                     }
-                    mat4.translate(pers_matrix, pers_matrix, [0, 0, 4/16])
+
+                    if(display.translation) {
+                        vec3.set(position, display.translation[0]/16, display.translation[1]/16, display.translation[2]/16)
+                    }
+
+                    quat.fromEuler(tempQuat, rotate[0], rotate[1], rotate[2], 'xyz')
+                    mat4.fromRotationTranslationScaleOrigin(pers_matrix, tempQuat, position, scale, pivot)
+
+                    // if(display.rotation) {
+                    //     const icon_rotate = display.rotation
+                    //     for(let i = 0; i < icon_rotate.length; i++) {
+                    //         if(!icon_rotate[i]) continue;
+                    //         const rot_arr = [0, 0, 0]
+                    //         rot_arr[i] = 1
+                    //         mat4.rotate(pers_matrix, pers_matrix, icon_rotate[i] / 180 * Math.PI, rot_arr)
+                    //     }
+                    // }
+
+
+                    // mat4.translate(pers_matrix, pers_matrix, [0, 0, 4/16])
 
                 } else if(mat.inventory) {
                     if(mat.inventory.rotate) {
