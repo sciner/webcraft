@@ -8876,8 +8876,8 @@
                 "damage": 0
             },
             "model": {
-               "geo": "test_armor",
-               "texture": "base" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9063,8 +9063,8 @@
                 "damage": 1
             },
             "model": {
-                "geo": "armor",
-                "texture": "leather_layer_1" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9163,8 +9163,8 @@
                 "damage": 3
             },
             "model": {
-                "geo": "armor",
-                "texture": "netherite_layer_1" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9183,8 +9183,8 @@
                 "damage": 3
             },
             "model": {
-                "geo": "armor",
-                "texture": "leather_layer_1" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9283,8 +9283,8 @@
                 "damage": 8
             },
             "model": {
-                "geo": "armor",
-                "texture": "netherite_layer_1" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9303,8 +9303,8 @@
                 "damage": 2
             },
             "model": {
-                "geo": "armor",
-                "texture": "leather_layer_2" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9403,8 +9403,8 @@
                 "damage": 6
             },
             "model": {
-                "geo": "armor",
-                "texture": "netherite_layer_2" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9423,8 +9423,8 @@
                 "damage": 1
             },
             "model": {
-                "geo": "armor",
-                "texture": "leather_layer_1" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9523,8 +9523,8 @@
                 "damage": 3
             },
             "model": {
-                "geo": "armor",
-                "texture": "netherite_layer_1" 
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
