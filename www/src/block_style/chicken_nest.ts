@@ -32,7 +32,7 @@ export default class style {
             return;
         }
         const bm = style.block_manager
-        const planks = bm.calcTexture(bm.HAY_BLOCK.texture, DIRECTION.UP);
+        const planks = bm.calcTexture(block.material.texture.side, DIRECTION.UP);
         const parts = [];
         parts.push(...[
             {

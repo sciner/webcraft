@@ -108,7 +108,7 @@ export class BBModel_Preview {
         // Start render loop
         this.loop = this.loop.bind(this)
         this.loop()
-        console.debug(performance.now() - p)
+        // console.debug(performance.now() - p)
 
     }
 

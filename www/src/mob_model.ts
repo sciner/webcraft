@@ -648,11 +648,11 @@ export class MobModel extends NetworkPhysicObject {
             this.material.lightTex = this.lightTex;
             this.material.tintColor = this.tintColor;
 
-            //TODO: refactor this!
-            if (this.slots && this.slots.RightArm && this.slots.RightArm.holder
-                && this.slots.RightArm.holder.material) {
-                this.slots.RightArm.holder.material.lightTex = this.lightTex;
-            }
+            // //TODO: refactor this!
+            // if (this.slots && this.slots.RightArm && this.slots.RightArm.holder
+            //     && this.slots.RightArm.holder.material) {
+            //     this.slots.RightArm.holder.material.lightTex = this.lightTex;
+            // }
         }
 
         if (newChunk) {
