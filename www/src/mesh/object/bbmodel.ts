@@ -7,6 +7,7 @@ import type { BaseResourcePack } from '../../base_resource_pack.js';
 import type { WebGLMaterial } from '../../renders/webgl/WebGLMaterial.js';
 import { Resources } from '../../resources.js';
 import type { BBModel_Group } from '../../bbmodel/group.js';
+import type Mesh_Object_Block_Drop from './block_drop.js';
 
 const {mat4} = glMatrix;
 const lm        = IndexedColor.WHITE;
@@ -20,6 +21,17 @@ class MeshObjectModifyAppend {
     constructor(mesh : Mesh_Object_BBModel, display : any) {
         this.mesh = mesh
         this.display = display
+    }
+
+}
+
+class MeshObjectModifyReplaceWithMesh {
+    mesh : Mesh_Object_Block_Drop
+    matrix : imat4
+
+    constructor(mesh : Mesh_Object_Block_Drop, matrix : imat4) {
+        this.mesh = mesh
+        this.matrix = matrix
     }
 
 }
@@ -42,16 +54,18 @@ class MeshObjectModifiers {
     mesh : Mesh_Object_BBModel
     append_list : Map<string, MeshObjectModifyAppend[]> = new Map()
     replace : Map<string, MeshObjectModifyReplace> = new Map()
+    replace_with_mesh : Map<string, MeshObjectModifyReplaceWithMesh> = new Map()
     hide_list : string[] = []
 
     constructor(mesh : Mesh_Object_BBModel) {
         this.mesh = mesh
     }
 
-    getForGroup(name : string) : {append: MeshObjectModifyAppend[], replace: MeshObjectModifyReplace, hide : string[]} {
+    getForGroup(name : string) : {append: MeshObjectModifyAppend[], replace: MeshObjectModifyReplace, replace_with_mesh: MeshObjectModifyReplaceWithMesh, hide : string[]} {
         return {
             append: this.append_list.get(name) || [],
             replace: this.replace.get(name) || null,
+            replace_with_mesh: this.replace_with_mesh.get(name) || null,
             hide: this.hide_list || [],
         }
     }
@@ -76,6 +90,25 @@ class MeshObjectModifiers {
         const modifier = new MeshObjectModifyAppend(mesh, display)
 
         group.push(modifier)
+
+        return modifier
+
+    }
+
+    replaceGroupWithMesh(group_name : string, mesh : Mesh_Object_Block_Drop, matrix : imat4) {
+
+        if(!this.mesh.model.groups.get(group_name)) {
+            return null
+        }
+
+        const group = this.replace_with_mesh.get(group_name)
+        if(group) {
+            group.mesh.destroy()
+        }
+
+        const modifier = new MeshObjectModifyReplaceWithMesh(mesh, matrix)
+
+        this.replace_with_mesh.set(group_name, modifier)
 
         return modifier
 

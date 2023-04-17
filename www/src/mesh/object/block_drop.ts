@@ -1,11 +1,12 @@
 import { FakeTBlock } from '../../blocks.js';
-import { Vector, unixTime, Helpers, QUAD_FLAGS } from '../../helpers.js';
+import { Vector, unixTime, Helpers, QUAD_FLAGS, IndexedColor } from '../../helpers.js';
 import { NetworkPhysicObject } from '../../network_physic_object.js';
 import { MeshGroup } from '../group.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 import { MAX_DIST_FOR_PICKUP, PICKUP_OWN_DELAY_SECONDS } from '../../constant.js';
 import type { Player } from '../../player.js';
 import type { World } from '../../world.js';
+import type { Renderer } from '../../render.js';
 
 const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();
@@ -220,6 +221,42 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
         // Draw mesh group
         this.mesh_group.draw(render, this.chunk.coord, this.modelMatrix, this.lightTex);
+
+    }
+
+    // Draw2
+    draw2(render : Renderer, pos : Vector, lm : IndexedColor, mx : imat4) {
+
+        // // this.update();
+        // this.updateLightTex(render);
+
+        // if(!this.chunk) {
+        //     return;
+        // }
+
+        // Calc position
+        // this.posFact.set(
+        //     this.pos.x,
+        //     this.pos.y,
+        //     this.pos.z,
+        // );
+        // const addY = (performance.now() - this.pn) / 10;
+        // this.posFact.y += Math.sin(addY / 35) / Math.PI * .2;
+
+        // // Calc matrices
+        // mat4.identity(this.modelMatrix);
+        // mat4.translate(this.modelMatrix, this.modelMatrix,
+        //     [
+        //         (this.posFact.x - this.chunk.coord.x),
+        //         (this.posFact.y - this.chunk.coord.y + 3 / 16),
+        //         (this.posFact.z - this.chunk.coord.z),
+        //     ]
+        // );
+        // mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.toArray());
+        // mat4.rotateY(this.modelMatrix, this.modelMatrix, addY / 60);
+
+        // Draw mesh group
+        this.mesh_group.draw(render, pos, mx, this.lightTex)
 
     }
 

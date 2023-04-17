@@ -11,7 +11,7 @@ import type { PlayerHands, TSittingState, TSleepState} from "./player.js";
 import type { NetworkPhysicObjectState } from "./network_physic_object.js";
 import type { World } from "./world.js";
 
-const { quat } = glMatrix;
+const { quat, mat4 } = glMatrix;
 const SWING_DURATION = 6;
 
 const KEY_SLOT_MAP = {
@@ -202,12 +202,17 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             return;
         }
 
+        // destroy buffer
         if (slot.holder.terrainGeometry) {
             slot.holder.terrainGeometry.destroy();
             slot.holder.terrainGeometry = null;
         }
 
         slot.id = id;
+
+        const arm_item_place_name = 'RightArmItemPlace'
+        const mesh_modifiers = this._mesh.modifiers
+        mesh_modifiers.hideGroup(arm_item_place_name)
 
         if (id === -1) {
             return;
@@ -219,7 +224,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             return;
         }
 
-        let item: any = null
+        let item: Mesh_Object_Block_Drop = null
 
         try {
             item = new Mesh_Object_Block_Drop(this.world, null, null, [block], Vector.ZERO);
@@ -228,8 +233,6 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             return
         }
 
-        // slot.holder.terrainGeometry = item.buffer;
-        // slot.holder.material = item.material;
         for(let mesh of item.mesh_group.meshes.values()) {
             slot.holder.terrainGeometry = mesh.buffer;
             slot.holder.material = mesh.material;
@@ -244,29 +247,31 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
         const base = {
             scale:      new Float32Array([1, 1, 1]),
-            position:   new Float32Array(orig_slot_position), // внутрь туловища / от туловища; вдоль руки; над рукой
-            pivot:      new Float32Array([0, 0, -.5]),
+            // position:   new Float32Array(orig_slot_position), // внутрь туловища / от туловища; вдоль руки; над рукой
+            // pivot:      new Float32Array([0, 0, -.5]),
+            position:   new Float32Array([0, 0, 0]), // внутрь туловища / от туловища; вдоль руки; над рукой
+            pivot:      new Float32Array([0, -.5, 0]),
             rotation:   new Float32Array([0, 0, 0]),
         }
 
         if(bb_display || !!block.bb) {
             // 1. position (1 = 1/16)
-            base.position[2] += .5
-            if(bbmodel_hand.translation) {
-                base.position[0] += bbmodel_hand.translation[0] / 16
-                base.position[1] += bbmodel_hand.translation[2] / 16
-                base.position[2] += bbmodel_hand.translation[1] / 16
-            }
-            // 2. pivot
-            // 3. rotation (в градусах -180...180)
-            if(bbmodel_hand.rotation) {
-                base.rotation[0] -= bbmodel_hand.rotation[0]
-                base.rotation[1] += bbmodel_hand.rotation[2]
-                base.rotation[2] += bbmodel_hand.rotation[1]
-            }
+            // base.position[2] += .5
+            // if(bbmodel_hand.translation) {
+            //     base.position[0] += bbmodel_hand.translation[0] / 16
+            //     base.position[1] += bbmodel_hand.translation[2] / 16
+            //     base.position[2] += bbmodel_hand.translation[1] / 16
+            // }
+            // // 2. pivot
+            // // 3. rotation (в градусах -180...180)
+            // if(bbmodel_hand.rotation) {
+            //     base.rotation[0] -= bbmodel_hand.rotation[0]
+            //     base.rotation[1] += bbmodel_hand.rotation[2]
+            //     base.rotation[2] += bbmodel_hand.rotation[1]
+            // }
             // 4. scale
             if(bbmodel_hand.scale) {
-                base.scale.set(bbmodel_hand.scale)
+                // base.scale.set(bbmodel_hand.scale)
             }
         } else {
             let { scale = 0.3 } = props
@@ -294,11 +299,13 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
 
         // apply modifies
-        slot.holder.pivot.set(base.pivot)
-        slot.holder.scale.set(base.scale)
-        slot.holder.position.set(base.position)
-        quat.fromEuler(slot.holder.quat, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
-        slot.holder.updateMatrix()
+        const matrix = mat4.create()
+        const q = quat.create()
+        quat.fromEuler(q, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
+        mat4.fromRotationTranslationScaleOrigin(matrix, q, base.position, base.scale, base.pivot)
+
+        mesh_modifiers.showGroup(arm_item_place_name)
+        mesh_modifiers.replaceGroupWithMesh(arm_item_place_name, item, matrix)
 
     }
 

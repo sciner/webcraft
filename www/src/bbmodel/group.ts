@@ -104,6 +104,16 @@ export class BBModel_Group extends BBModel_Child {
             return
         }
 
+        // Replace with mesh
+        if(group_modifiers.replace_with_mesh) {
+            const {mesh, matrix} = group_modifiers.replace_with_mesh
+            mat4.multiply(mx, mx, matrix)
+            // mat4.multiply(mx, mx, bone_matrix)
+            mesh.draw2(render, pos, lm, mx)
+            return
+        }
+        
+
         const vertices_pushed = mesh.vertices_pushed.has(this.name)
 
         for(let part of this.children) {
