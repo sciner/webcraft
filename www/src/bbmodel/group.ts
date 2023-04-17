@@ -107,9 +107,10 @@ export class BBModel_Group extends BBModel_Child {
         // Replace with mesh
         if(group_modifiers.replace_with_mesh) {
             const {mesh, matrix} = group_modifiers.replace_with_mesh
-            mat4.multiply(mx, mx, matrix)
-            // mat4.multiply(mx, mx, bone_matrix)
-            mesh.draw2(render, pos, lm, mx)
+            mat4.identity(accessory_matrix)
+            mat4.copy(accessory_matrix, mx)
+            mat4.translate(accessory_matrix, accessory_matrix, [this.pivot.x/16, this.pivot.y/16 + .5, this.pivot.z/16])
+            mesh.draw2(render, pos, lm, accessory_matrix)
             return
         }
         
