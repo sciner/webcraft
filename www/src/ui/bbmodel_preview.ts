@@ -78,31 +78,36 @@ export class BBModel_Preview {
         this.render.camPos = this.camPos
 
         // Add humanoid mesh #1
-        this.mesh = this.render.addBBModel(player.lerpPos.add(new Vector(-.5, 0, 0)), 'mob/humanoid', player.rotate, 'walk', 'humanoid')
-        this.mesh.modifiers.appendToGroup('head', 'tool/sunglasses')
-        this.mesh.modifiers.appendToGroup('RightArmItemPlace', 'tool/primitive_axe', 'thirdperson_righthand')
-        this.mesh.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor')
-        this.mesh.modifiers.replaceGroup('boots1', 'armor/scrap_armor', 'scrap_armor_gold.png')
+        this.mesh = this.render.addBBModel(player.lerpPos.add(new Vector(-.5, 0, 1)), 'mob/humanoid', player.rotate, 'walk', 'humanoid')
+        // this.mesh.modifiers.appendToGroup('head', 'tool/sunglasses')
+        // this.mesh.modifiers.appendToGroup('RightArmItemPlace', 'tool/iron_sword', 'thirdperson_righthand')
+        this.mesh.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor', 'scrap_armor_copper.png')
+        this.mesh.modifiers.replaceGroup('chestplate4', 'armor/scrap_armor', 'scrap_armor_diamond.png')
+        this.mesh.modifiers.replaceGroup('chestplate5', 'armor/scrap_armor', 'scrap_armor_diamond.png')
+        this.mesh.modifiers.replaceGroup('boots0', 'armor/scrap_armor', 'scrap_armor_diamond.png')
+        this.mesh.modifiers.replaceGroup('boots1', 'armor/scrap_armor', 'scrap_armor_copper.png')
         this.mesh.modifiers.hideGroup('backpack')
         // this.mesh.modifiers.showGroup('backpack')
 
         let anim = 0
+        const animations = ['walk', 'idle', 'eat', 'sitting', 'sleep']
+        // const animations = ['walk', 'sitting', 'idle', 'eat', 'sleep']
         this.intv = setInterval(() => {
-            this.mesh.setAnimation(anim++%2 ? 'walk' : 'idle')
+            this.mesh.setAnimation(animations[++anim%animations.length])
         }, 2000)
 
-        // // Add humanoid mesh #2
-        // this.mesh2 = this.render.addBBModel(player.lerpPos.add(new Vector(.5, 0, 0)), 'mob/humanoid', player.rotate.clone(), 'run', 'humanoid2')
-        // this.mesh2.modifiers.appendToGroup('RightArmItemPlace', 'tool/iron_sword', 'thirdperson_righthand')
-        // this.mesh2.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor', 'scrap_armor_copper.png')
-        // this.mesh2.modifiers.replaceGroup('chestplate4', 'armor/scrap_armor', 'scrap_armor_diamond.png')
-        // this.mesh2.modifiers.replaceGroup('chestplate5', 'armor/scrap_armor', 'scrap_armor_diamond.png')
-        // this.mesh2.modifiers.replaceGroup('boots0', 'armor/scrap_armor', 'scrap_armor_diamond.png')
-        // this.mesh2.modifiers.replaceGroup('boots1', 'armor/scrap_armor', 'scrap_armor_copper.png')
+        // Add humanoid mesh #2
+        this.mesh2 = this.render.addBBModel(player.lerpPos.add(new Vector(.5, 0, 0)), 'mob/humanoid', player.rotate.clone(), 'walk', 'humanoid2')
+        this.mesh2.modifiers.appendToGroup('RightArmItemPlace', 'tool/iron_sword', 'thirdperson_righthand')
+        this.mesh2.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor', 'scrap_armor_copper.png')
+        this.mesh2.modifiers.replaceGroup('chestplate4', 'armor/scrap_armor', 'scrap_armor_diamond.png')
+        this.mesh2.modifiers.replaceGroup('chestplate5', 'armor/scrap_armor', 'scrap_armor_diamond.png')
+        this.mesh2.modifiers.replaceGroup('boots0', 'armor/scrap_armor', 'scrap_armor_diamond.png')
+        this.mesh2.modifiers.replaceGroup('boots1', 'armor/scrap_armor', 'scrap_armor_copper.png')
 
         // Start render loop
-        this.preLoop = this.preLoop.bind(this)
-        this.preLoop()
+        this.loop = this.loop.bind(this)
+        this.loop()
         console.debug(performance.now() - p)
 
     }
@@ -120,7 +125,7 @@ export class BBModel_Preview {
         }
     }
 
-    preLoop() {
+    loop() {
 
         if(!this.#_active) {
             return
@@ -138,7 +143,7 @@ export class BBModel_Preview {
         this.render.draw(delta, undefined)
         this.prev_time = performance.now()
 
-        this.render.requestAnimationFrame(this.preLoop)
+        this.render.requestAnimationFrame(this.loop)
     }
 
 }

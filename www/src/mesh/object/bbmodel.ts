@@ -8,9 +8,10 @@ import type { WebGLMaterial } from '../../renders/webgl/WebGLMaterial.js';
 import { Resources } from '../../resources.js';
 import type { BBModel_Group } from '../../bbmodel/group.js';
 
-const {mat4, quat} = glMatrix;
+const {mat4} = glMatrix;
 const lm        = IndexedColor.WHITE;
 const vecZero   = Vector.ZERO.clone();
+const DEFAULT_ANIMATION_TRANSITION_DURATION = 6
 
 class MeshObjectModifyAppend {
     mesh : Mesh_Object_BBModel
@@ -158,6 +159,7 @@ export class Mesh_Object_BBModel {
 
     //
     animation_changed : float | null = null
+    animations : Map<string, any> = new Map()
     prev_animations : Map<string, any> = new Map()
     lerp_animations : {start : float, duration : float, all: Map<string, {group: BBModel_Group, list: Map<string, Vector>}>} | null = null
 
@@ -170,6 +172,10 @@ export class Mesh_Object_BBModel {
         }
 
         const grid          = render.world.chunkManager.grid
+
+        for(const group_name of model.groups.keys()) {
+            this.animations.set(group_name, new Map())
+        }
 
         this.rotate         = new Vector(rotate)
         this.render         = render
@@ -254,7 +260,7 @@ export class Mesh_Object_BBModel {
         } else {
             this.lerp_animations = {
                 all: this.prev_animations,
-                duration: 5.8,
+                duration: DEFAULT_ANIMATION_TRANSITION_DURATION,
                 start: this.animation_changed
             }
             this.prev_animations = new Map()

@@ -150,11 +150,11 @@ export class BBModel_Model {
         }
 
         // reset all states
-        for(const [_, animation] of this.animations.entries()) {
+        for(const animation of this.animations.values()) {
             for(let k in animation.animators) {
                 const animator = animation.animators[k];
-                const group = this.groups.get(animator.name) as BBModel_Group
-                group.animations.clear()
+                const group = this.groups.get(animator.name)
+                mesh.animations.get(group.name).clear()
                 group.rot.copyFrom(group.rot_orig)
                 group.updateLocalTransform()
             }
@@ -203,7 +203,10 @@ export class BBModel_Model {
                     if(!current_keyframe || !next_keyframe) continue
                     const current_point = current_keyframe.data_points[0];
                     const next_point = next_keyframe.data_points[0];
-                    const point : Vector = current_keyframe.point || (current_keyframe.point = new Vector(0, 0, 0))
+
+                    // TODO: Need to optimize
+                    // const point : Vector = current_keyframe.point || (current_keyframe.point = new Vector(0, 0, 0))
+                    const point = new Vector()
 
                     let args;
                     let func_name;
@@ -223,7 +226,7 @@ export class BBModel_Model {
 
                     const t = func(percent, args || EMPTY_ARGS)
                     point.lerpFrom(current_point, next_point, t)
-                    group.animations.set(channel_name, point)
+                    mesh.animations.get(group.name).set(channel_name, point)
 
                 }
 
@@ -231,9 +234,9 @@ export class BBModel_Model {
 
         }
 
+        // Animation transitions
         if(mesh.lerp_animations) {
             const diff = performance.now() / 1000 - mesh.lerp_animations.start
-            // const current_point = new Vector(0, 0, 0)
             const next_point = new Vector(0, 0, 0)
             // const func = EasingType.get('linear')
             if(diff < mesh.lerp_animations.duration) {
@@ -242,14 +245,15 @@ export class BBModel_Model {
                 for(const item of mesh.lerp_animations.all.values()) {
                     const {group, list} = item
                     for(const [channel_name, current_point] of list.entries()) {
-                        const exist_point = group.animations.get(channel_name)
+                        const group_animations = mesh.animations.get(group.name)
+                        const exist_point = group_animations.get(channel_name)
                         if(exist_point) {
                             next_point.copyFrom(exist_point)
                         } else {
                             next_point.copyFrom(group.rot_orig)
                         }
                         current_point.lerpFrom(current_point, next_point, t)
-                        group.animations.set(channel_name, exist_point ? exist_point.copyFrom(current_point) : current_point.clone())
+                        group_animations.set(channel_name, exist_point ? exist_point.copyFrom(current_point) : current_point.clone())
                     }
                 }
             } else {

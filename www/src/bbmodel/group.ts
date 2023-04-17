@@ -17,7 +17,6 @@ export class BBModel_Group extends BBModel_Child {
     _mx:                imat4 = mat4.create()
     update:             boolean = true
     children:           any[] = []
-    animations:         Map<string, any> = new Map()
     name:               string
     rot_orig:           Vector
     axe:                Mesh_Object_BBModel
@@ -153,11 +152,15 @@ export class BBModel_Group extends BBModel_Child {
     // Play animations
     playAnimations(mx : imat4, mesh?: Mesh_Object_BBModel) {
 
-        if(this.animations.size == 0) {
+        // const group_animations = this.animations
+        if(!mesh) return
+        const group_animations = mesh.animations.get(this.name)
+
+        if(!group_animations || group_animations.size == 0) {
             return false
         }
 
-        for(const [channel_name, point] of this.animations.entries()) {
+        for(const [channel_name, point] of group_animations.entries()) {
             switch(channel_name) {
                 case 'position': {
                     mat4.translate(mx, mx, point);
@@ -175,12 +178,12 @@ export class BBModel_Group extends BBModel_Child {
 
         mesh.prev_animations.set(this.name, {
             group: this,
-            list: this.animations
+            list: group_animations
         })
 
         // reset
         // TODO: Need to optimize!
-        this.animations = new Map()
+        mesh.animations.set(this.name, new Map())
         this.rot.copyFrom(this.rot_orig)
 
     }
