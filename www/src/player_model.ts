@@ -257,21 +257,21 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         if(bb_display || !!block.bb) {
             // 1. position (1 = 1/16)
             // base.position[2] += .5
-            // if(bbmodel_hand.translation) {
-            //     base.position[0] += bbmodel_hand.translation[0] / 16
-            //     base.position[1] += bbmodel_hand.translation[2] / 16
-            //     base.position[2] += bbmodel_hand.translation[1] / 16
-            // }
+            if(bbmodel_hand.translation) {
+                base.position[0] = bbmodel_hand.translation[0] / 16
+                base.position[1] = bbmodel_hand.translation[1] / 16
+                base.position[2] = bbmodel_hand.translation[2] / 16
+            }
             // // 2. pivot
             // // 3. rotation (в градусах -180...180)
-            // if(bbmodel_hand.rotation) {
-            //     base.rotation[0] -= bbmodel_hand.rotation[0]
-            //     base.rotation[1] += bbmodel_hand.rotation[2]
-            //     base.rotation[2] += bbmodel_hand.rotation[1]
-            // }
+            if(bbmodel_hand.rotation) {
+                base.rotation[0] = bbmodel_hand.rotation[0]
+                base.rotation[1] = -bbmodel_hand.rotation[1]
+                base.rotation[2] = -bbmodel_hand.rotation[2]
+            }
             // 4. scale
             if(bbmodel_hand.scale) {
-                // base.scale.set(bbmodel_hand.scale)
+                base.scale.set(bbmodel_hand.scale)
             }
         } else {
             let { scale = 0.3 } = props

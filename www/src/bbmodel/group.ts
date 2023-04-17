@@ -7,10 +7,10 @@ import type { Renderer } from '../render.js';
 import type { BBModel_Model } from './model.js';
 import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 
-const {mat4} = glMatrix;
+const {mat4, vec3} = glMatrix;
 
 const accessory_matrix = mat4.create()
-
+const tempVec3 = vec3.create();
 //
 export class BBModel_Group extends BBModel_Child {
     vertices_pushed:    boolean = false
@@ -107,13 +107,13 @@ export class BBModel_Group extends BBModel_Child {
         // Replace with mesh
         if(group_modifiers.replace_with_mesh) {
             const {mesh, matrix} = group_modifiers.replace_with_mesh
-            mat4.identity(accessory_matrix)
-            mat4.copy(accessory_matrix, mx)
-            mat4.translate(accessory_matrix, accessory_matrix, [this.pivot.x/16, this.pivot.y/16 + .5, this.pivot.z/16])
-            mesh.draw2(render, pos, lm, accessory_matrix)
+            mat4.translate(mx, mx,
+                vec3.set(tempVec3, this.pivot.x/16, this.pivot.y/16 + .5, this.pivot.z/16))
+            mat4.multiply(mx, mx, matrix);
+            mesh.draw2(render, pos, lm, mx)
             return
         }
-        
+
 
         const vertices_pushed = mesh.vertices_pushed.has(this.name)
 
@@ -147,14 +147,16 @@ export class BBModel_Group extends BBModel_Child {
             mat4.identity(accessory_matrix)
             mat4.copy(accessory_matrix, mx)
             // 1. move to anchor
-            mat4.translate(accessory_matrix, accessory_matrix, [this.pivot.x/16, this.pivot.y/16, this.pivot.z/16])
+            mat4.translate(accessory_matrix, accessory_matrix,
+                vec3.set(tempVec3, this.pivot.x/16, this.pivot.y/16, this.pivot.z/16))
             // 2. move by display from model
             if(modifier.display) {
                 const display = modifier.display
                 if(display.translation) {
                     const t = display.translation
-                    mat4.translate(accessory_matrix, accessory_matrix, [t[0] / 16, t[1] / 16, t[2] / 16])
-                }    
+                    mat4.translate(accessory_matrix, accessory_matrix,
+                        vec3.set(tempVec3, t[0] / 16, t[1] / 16, t[2] / 16))
+                }
             }
             modifier.mesh.drawBuffered(render, 0, accessory_matrix, pos)
         }
