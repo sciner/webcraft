@@ -482,7 +482,7 @@ export class Renderer {
 
                     const position = vec3.create()
                     const scale = vec3.set(vec3.create(), 1, 1, 1)
-                    const pivot = vec3.create();
+                    const pivot = vec3.set(vec3.create(), 0, -0.5, 0);
                     const rotate = vec3.create();
 
                     if(display.rotation) {
@@ -491,17 +491,20 @@ export class Renderer {
                         rotate[2] = -display.rotation[2];
                     }
 
+                    const BB_GUI_SCALE = 1.5;
+
                     if(display.scale) {
-                        vec3.set(scale, display.scale[0] * 1.5, display.scale[1] * 1.5, display.scale[2] * 1.5)
+                        vec3.set(scale, display.scale[0] * BB_GUI_SCALE, display.scale[1] * BB_GUI_SCALE, display.scale[2] * BB_GUI_SCALE)
                     }
 
+                    const s16 = BB_GUI_SCALE / 16;
                     if(display.translation) {
-                        // vec3.set(position, display.translation[0]/16, display.translation[1]/16 + 4.5/16 , display.translation[2]/16)
+                        vec3.set(position, -display.translation[0] * s16, display.translation[1] * s16 + 0.5, -display.translation[2] * s16);
                     }
 
                     quat.fromEuler(tempQuat, rotate[0], rotate[1], rotate[2], 'xyz')
-                    mat4.fromRotationTranslationScaleOrigin(pers_matrix, tempQuat, vec3.create(), scale, pivot)
-                    mat4.translate(pers_matrix, pers_matrix, position);
+                    mat4.fromRotationTranslationScaleOrigin(pers_matrix, tempQuat, position, scale, pivot)
+                    // mat4.translate(pers_matrix, pers_matrix, position);
                     // if(display.rotation) {
                     //     const icon_rotate = display.rotation
                     //     for(let i = 0; i < icon_rotate.length; i++) {
