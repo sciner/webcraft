@@ -156,6 +156,7 @@ export class BBModel_Model {
                 const group = this.groups.get(animator.name)
                 mesh.animations.get(group.name).clear()
                 group.rot.copyFrom(group.rot_orig)
+                group.animation_changed = false
                 group.updateLocalTransform()
             }
         }
@@ -227,6 +228,7 @@ export class BBModel_Model {
                     const t = func(percent, args || EMPTY_ARGS)
                     point.lerpFrom(current_point, next_point, t)
                     mesh.animations.get(group.name).set(channel_name, point)
+                    group.animation_changed = true
 
                 }
 
@@ -235,14 +237,15 @@ export class BBModel_Model {
         }
 
         // Animation transitions
-        if(mesh.lerp_animations) {
-            const diff = performance.now() / 1000 - mesh.lerp_animations.start
-            const next_point = new Vector(0, 0, 0)
+        if(mesh.trans_animations) {
+            const diff = performance.now() / 1000 - mesh.trans_animations.start
             // const func = EasingType.get('linear')
-            if(diff < mesh.lerp_animations.duration) {
-                const percent = diff / mesh.lerp_animations.duration
-                const t = percent // func(percent, EMPTY_ARGS)
-                for(const item of mesh.lerp_animations.all.values()) {
+            if(diff < mesh.trans_animations.duration) {
+                const next_point = new Vector(0, 0, 0)
+                const percent = diff / mesh.trans_animations.duration
+                const t2 = percent // func(percent, EMPTY_ARGS)
+                //
+                for(const item of mesh.trans_animations.all.values()) {
                     const {group, list} = item
                     for(const [channel_name, current_point] of list.entries()) {
                         const group_animations = mesh.animations.get(group.name)
@@ -250,14 +253,45 @@ export class BBModel_Model {
                         if(exist_point) {
                             next_point.copyFrom(exist_point)
                         } else {
-                            next_point.copyFrom(group.rot_orig)
+                            if(channel_name == 'rotation') {
+                                next_point.copyFrom(group.rot_orig)
+                            } else if(channel_name == 'position') {
+                                next_point.set(0, 0, 0)
+                                // next_point.copyFrom(group.pivot)
+                            }
                         }
-                        current_point.lerpFrom(current_point, next_point, t)
+                        current_point.lerpFrom(current_point, next_point, t2)
                         group_animations.set(channel_name, exist_point ? exist_point.copyFrom(current_point) : current_point.clone())
+                        group.animation_changed = false
+                    }
+                }
+                //
+                const fix_duration = .3
+                if(diff < fix_duration) {
+                    const t2 = diff / fix_duration
+                    const current_point = new Vector()
+                    for(const group of this.groups.values()) {
+                        if(group.animation_changed) {
+                            group.animation_changed = false
+                            const group_animations = mesh.animations.get(group.name)
+                            for(const [channel_name, exist_point] of group_animations.entries()) {
+                                next_point.copyFrom(exist_point)
+                                if(channel_name == 'rotation') {
+                                    current_point.copyFrom(group.rot_orig)
+                                } else if(channel_name == 'position') {
+                                    // if(group.name == 'bone17') {
+                                    //     debugger
+                                    // }
+                                    current_point.set(0, 0, 0)
+                                    // current_point.copyFrom(group.pivot).divScalarSelf(16)
+                                }
+                                exist_point.lerpFrom(current_point, next_point, t2)
+                            }
+                        }
                     }
                 }
             } else {
-                mesh.lerp_animations = null
+                mesh.trans_animations = null
             }
         }
 
@@ -520,10 +554,7 @@ export class BBModel_Model {
 
     }
 
-    /**
-     * @param {BBModel_Locator} element
-     */
-    addParticleLocator(element) {
+    addParticleLocator(element : BBModel_Locator) {
         this.particle_locators.push(element)
     }
 
@@ -598,10 +629,7 @@ export class BBModel_Model {
 
     }
 
-    /**
-     * @param {string[]} name
-     */
-    hideGroups(names) {
+    hideGroups(names : string[]) {
         for(let group of this.root.children) {
             if(names.includes(group.name)) {
                 group.visibility = false
@@ -620,17 +648,11 @@ export class BBModel_Model {
         this.selected_texture_name = null
     }
 
-    /**
-     * @param {string} name
-     */
-    setState(name) {
+    setState(name : string) {
         this.state = name
     }
 
-    /**
-     * @param {string[]} except_list
-     */
-    hideAllExcept(except_list) {
+    hideAllExcept(except_list : string[]) {
         for(let group of this.root.children) {
             group.visibility = except_list.includes(group.name)
         }

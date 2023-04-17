@@ -89,11 +89,11 @@ export class BBModel_Preview {
         this.mesh.modifiers.hideGroup('backpack')
         // this.mesh.modifiers.showGroup('backpack')
 
-        let anim = 0
-        const animations = ['walk', 'idle', 'eat', 'sitting', 'sleep']
-        // const animations = ['walk', 'sitting', 'idle', 'eat', 'sleep']
+        let demo_animation_frame = 0
+        // const demo_animations = ['walk', 'idle', 'eat', 'sitting', 'sleep']
+        const demo_animations = ['walk', 'sitting', 'idle', 'eat', 'sleep']
         this.intv = setInterval(() => {
-            this.mesh.setAnimation(animations[++anim%animations.length])
+            this.mesh.setAnimation(demo_animations[++demo_animation_frame % demo_animations.length])
         }, 2000)
 
         // Add humanoid mesh #2

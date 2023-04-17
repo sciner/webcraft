@@ -20,6 +20,7 @@ export class BBModel_Group extends BBModel_Child {
     name:               string
     rot_orig:           Vector
     axe:                Mesh_Object_BBModel
+    animation_changed: boolean;
 
     constructor(model : BBModel_Model, name : string, pivot : Vector, rot : Vector, visibility : boolean = true) {
         super()

@@ -11,7 +11,7 @@ import type { BBModel_Group } from '../../bbmodel/group.js';
 const {mat4} = glMatrix;
 const lm        = IndexedColor.WHITE;
 const vecZero   = Vector.ZERO.clone();
-const DEFAULT_ANIMATION_TRANSITION_DURATION = 6
+const DEFAULT_ANIMATION_TRANSITION_DURATION = 5
 
 class MeshObjectModifyAppend {
     mesh : Mesh_Object_BBModel
@@ -161,7 +161,7 @@ export class Mesh_Object_BBModel {
     animation_changed : float | null = null
     animations : Map<string, any> = new Map()
     prev_animations : Map<string, any> = new Map()
-    lerp_animations : {start : float, duration : float, all: Map<string, {group: BBModel_Group, list: Map<string, Vector>}>} | null = null
+    trans_animations : {start : float, duration : float, all: Map<string, {group: BBModel_Group, list: Map<string, Vector>}>} | null = null
 
     constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false) {
 
@@ -258,7 +258,7 @@ export class Mesh_Object_BBModel {
         if(!this.animation_changed) {
             this.prev_animations.clear()
         } else {
-            this.lerp_animations = {
+            this.trans_animations = {
                 all: this.prev_animations,
                 duration: DEFAULT_ANIMATION_TRANSITION_DURATION,
                 start: this.animation_changed
