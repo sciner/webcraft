@@ -428,10 +428,10 @@ export class Renderer {
         mat4.scale(matrix_base, matrix_base, [0.75, 0.75, 0.75]);
         //
         const matrix = mat4.create();
-        mat4.rotateX(matrix, matrix, -Math.PI / 6);
-        mat4.rotateY(matrix, matrix, Math.PI / 4 + Math.PI);
+        mat4.rotateX(matrix, matrix, Math.PI / 6);
+        mat4.rotateY(matrix, matrix, Math.PI / 4);
         //
-        camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
+        camera.set(new Vector(0, 0, 2), new Vector(0, 0, Math.PI));
         // larg for valid render results
         gu.fogColor = [0, 0, 0, 0];
         gu.fogDensity = 100;
@@ -455,7 +455,7 @@ export class Renderer {
 
         regular.forEach((drop, i) => {
             const pos = drop.block_material.inventory_icon_id;
-            const x = -GRID_X + 1 + (pos % GRID_X) * 2;
+            const x = GRID_X - 1 - (pos % GRID_X) * 2;
             const y = GRID_Y - 1 - ((pos / (GRID_X)) | 0) * 2;
             const multipart = drop.mesh_group.multipart;
 
@@ -487,8 +487,8 @@ export class Renderer {
 
                     if(display.rotation) {
                         rotate[0] = display.rotation[0];//+display.rotation[0] + Math.PI / 2
-                        rotate[1] = -display.rotation[1] + 180;
-                        rotate[2] = display.rotation[2];
+                        rotate[1] = -display.rotation[1];
+                        rotate[2] = -display.rotation[2];
                     }
 
                     if(display.scale) {
@@ -496,16 +496,12 @@ export class Renderer {
                     }
 
                     if(display.translation) {
-                        vec3.set(position, display.translation[0]/16, display.translation[1]/16 + 4.5/16 , display.translation[2]/16)
+                        // vec3.set(position, display.translation[0]/16, display.translation[1]/16 + 4.5/16 , display.translation[2]/16)
                     }
 
                     quat.fromEuler(tempQuat, rotate[0], rotate[1], rotate[2], 'xyz')
                     mat4.fromRotationTranslationScaleOrigin(pers_matrix, tempQuat, vec3.create(), scale, pivot)
                     mat4.translate(pers_matrix, pers_matrix, position);
-                    mat4.identity(matrix)
-                    mat4.rotateY(matrix, matrix, Math.PI)
-                    mat4.multiply(pers_matrix, pers_matrix, matrix)
-                    mat4.multiply(pers_matrix, matrix, pers_matrix)
                     // if(display.rotation) {
                     //     const icon_rotate = display.rotation
                     //     for(let i = 0; i < icon_rotate.length; i++) {
