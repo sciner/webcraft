@@ -4,6 +4,7 @@ import {BLOCK, FakeTBlock} from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 import type { BaseResourcePack } from '../base_resource_pack.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
+import type { Renderer } from '../render.js';
 
 // Chunk
 export const FakeChunk = {
@@ -157,7 +158,7 @@ export class MeshGroup {
     }
 
     // Draw meshes
-    draw(render, pos, matrix, light_texture) {
+    draw(render : Renderer, pos : Vector, matrix : imat4, light_texture) {
         this.meshes.forEach((mesh, _, map) => {
             if(light_texture) {
                 mesh.material.changeLighTex(light_texture);

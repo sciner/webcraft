@@ -133,10 +133,10 @@ export class BBModel_Preview {
 
         this.render.camera.set(this.render.camPos, this.camRot, this.m4)
 
-        this.mesh.rotate.z = performance.now() / 1000 // Math.PI * 1.15
-        this.mesh.rotate.z = Math.PI * 1.15
+        // this.mesh.rotate.z = performance.now() / 1000 // Math.PI * 1.15
+        this.mesh.rotation[2] = Math.PI * 1.15
         if(this.mesh2) {
-            this.mesh2.rotate.z =  performance.now() / 1000
+            this.mesh2.rotation[2] = performance.now() / 1000
         }
 
         const delta = performance.now() - this.prev_time

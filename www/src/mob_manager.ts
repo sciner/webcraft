@@ -3,9 +3,12 @@ import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { MobModel } from "./mob_model.js";
 import { Resources } from "./resources.js";
 import { ServerClient } from "./server_client.js";
+import type { PlayerSkin } from "./player.js";
 import type { World } from "./world.js";
 
 export declare type TMobProps = {
+    health:         float
+    username:       any
     id:             int
     type:           string
     name?:          string
@@ -16,9 +19,10 @@ export declare type TMobProps = {
     rotate:         Vector
     pitch:          float
     yaw:            float
-    skin?:          string
+    skin?:          PlayerSkin
     skin_id?:       string
     extra_data?:    any
+    hands:          any
 }
 
 export class MobManager {

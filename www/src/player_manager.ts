@@ -3,6 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {AbstractPlayerManager} from "./abstract_player_manager.js";
 import type { PlayerStateUpdate } from "./player.js";
 import type { World } from "./world.js";
+import type { TMobProps } from "./mob_manager.js";
 
 export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
 
@@ -42,7 +43,7 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
             username:       data.username,
             type:           data.type || 'player',
             health:         data.health
-        }, this.world);
+        } as TMobProps, this.world);
 
         this.list.set(data.id, player);
         this.setState(cmd);

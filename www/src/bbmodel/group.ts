@@ -5,7 +5,8 @@ import GeometryTerrain from '../geometry_terrain.js';
 import { BBModel_Cube } from './cube.js';
 import type { Renderer } from '../render.js';
 import type { BBModel_Model } from './model.js';
-import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
+import { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
+import { Mesh_Object_Base } from '../mesh/object/base.js';
 
 const {mat4, vec3} = glMatrix;
 
@@ -107,13 +108,11 @@ export class BBModel_Group extends BBModel_Child {
         // Replace with mesh
         if(group_modifiers.replace_with_mesh) {
             const {mesh, matrix} = group_modifiers.replace_with_mesh
-            mat4.translate(mx, mx,
-                vec3.set(tempVec3, this.pivot.x/16, this.pivot.y/16 + .5, this.pivot.z/16))
+            mat4.translate(mx, mx, vec3.set(tempVec3, this.pivot.x/16, this.pivot.y/16 + .5, this.pivot.z/16))
             mat4.multiply(mx, mx, matrix);
-            mesh.draw2(render, pos, lm, mx)
+            mesh.drawBuffer(render, pos, mx)
             return
         }
-
 
         const vertices_pushed = mesh.vertices_pushed.has(this.name)
 
@@ -158,7 +157,11 @@ export class BBModel_Group extends BBModel_Child {
                         vec3.set(tempVec3, t[0] / 16, t[1] / 16, t[2] / 16))
                 }
             }
-            modifier.mesh.drawBuffered(render, 0, accessory_matrix, pos)
+            if(modifier.mesh instanceof Mesh_Object_BBModel) {
+                modifier.mesh.drawBuffered(render, 0, accessory_matrix, pos)
+            } else if(modifier.mesh instanceof Mesh_Object_Base) {
+                modifier.mesh.drawBuffer(render, pos, accessory_matrix)
+            }
         }
 
     }

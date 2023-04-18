@@ -8,6 +8,7 @@ import type { WebGLMaterial } from '../../renders/webgl/WebGLMaterial.js';
 import { Resources } from '../../resources.js';
 import type { BBModel_Group } from '../../bbmodel/group.js';
 import type Mesh_Object_Block_Drop from './block_drop.js';
+import { Mesh_Object_Base } from './base.js';
 
 const {mat4} = glMatrix;
 const lm        = IndexedColor.WHITE;
@@ -15,10 +16,10 @@ const vecZero   = Vector.ZERO.clone();
 const DEFAULT_ANIMATION_TRANSITION_DURATION = 1.0
 
 class MeshObjectModifyAppend {
-    mesh : Mesh_Object_BBModel
+    mesh : Mesh_Object_BBModel | Mesh_Object_Base
     display? : any
 
-    constructor(mesh : Mesh_Object_BBModel, display : any) {
+    constructor(mesh : Mesh_Object_BBModel | Mesh_Object_Base, display? : any) {
         this.mesh = mesh
         this.display = display
     }
@@ -68,6 +69,25 @@ class MeshObjectModifiers {
             replace_with_mesh: this.replace_with_mesh.get(name) || null,
             hide: this.hide_list || [],
         }
+    }
+
+    appendMeshToGroup(group_name : string, mesh : Mesh_Object_Base) : MeshObjectModifyAppend {
+
+        if(!this.mesh.model.groups.get(group_name)) {
+            return null
+        }
+
+        let group = this.append_list.get(group_name)
+        if(!group) {
+            group = []
+            this.append_list.set(group_name, group)
+        }
+
+        const modifier = new MeshObjectModifyAppend(mesh)
+
+        group.push(modifier)
+
+        return modifier
     }
 
     appendToGroup(group_name : string, model_name : string, display_name? : string) : MeshObjectModifyAppend {
@@ -179,41 +199,48 @@ class MeshObjectModifiers {
 }
 
 // Mesh_Object_BBModel
-export class Mesh_Object_BBModel {
-    [key: string]: any
+export class Mesh_Object_BBModel extends Mesh_Object_Base {
+    // [key: string]: any
 
-    model : BBModel_Model
-    geometries: Map<string, GeometryTerrain> = new Map()
-    vertices_pushed: Map<string, boolean> = new Map()
-    resource_pack : BaseResourcePack
-    gl_material: WebGLMaterial
-    modifiers: MeshObjectModifiers
-    hide_groups: string[] = []
-
-    //
-    animation_changed : float | null = null
-    animations : Map<string, any> = new Map()
-    prev_animations : Map<string, any> = new Map()
-    trans_animations : {start : float, duration : float, all: Map<string, {group: BBModel_Group, list: Map<string, Vector>}>} | null = null
+    model:              BBModel_Model
+    geometries:         Map<string, GeometryTerrain> = new Map()
+    vertices_pushed:    Map<string, boolean> = new Map()
+    resource_pack:      BaseResourcePack
+    modifiers:          MeshObjectModifiers
+    hide_groups:        string[] = []
+    render:             Renderer
+    animation_changed:  float | null = null
+    animations:         Map<string, any> = new Map()
+    prev_animations:    Map<string, any> = new Map()
+    trans_animations:   {start : float, duration : float, all: Map<string, {group: BBModel_Group, list: Map<string, Vector>}>} | null = null
+    start_time:         float
+    chunk:              any
+    apos:               Vector
+    chunk_addr:         Vector
+    chunk_coord:        Vector
+    animation_name:     string
+    animation_name_o:   string
 
     constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false) {
+        super(undefined)
 
-        this.model = model;
+        this.model = model
         if(!this.model) {
-            console.error('error_model_not_found');
-            return;
+            console.error('error_model_not_found')
+            return
         }
 
-        const grid          = render.world.chunkManager.grid
+        const grid = render.world.chunkManager.grid
 
         for(const group_name of model.groups.keys()) {
             this.animations.set(group_name, new Map())
         }
 
-        this.rotate         = new Vector(rotate)
+        this.rotation.set(rotate.toArray())
+
         this.render         = render
         this.life           = 1.0;
-        this.chunk          = null;
+        this.chunk          = null
         this.apos           = new Vector(pos) // absolute coord
         this.chunk_addr     = grid.toChunkAddr(this.apos);
         this.chunk_coord    = this.chunk_addr.mul(grid.chunkSize);
@@ -222,7 +249,6 @@ export class Mesh_Object_BBModel {
         this.start_time     = performance.now();
         this.resource_pack  = render.world.block_manager.resource_pack_manager.get('bbmodel');
         this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${doubleface ? 'doubleface' : 'regular'}/terrain/${model.json._properties.texture_id}`);
-        this.vertices       = [];
         this.buffer         = new GeometryTerrain(this.vertices)
         this.modifiers      = new MeshObjectModifiers(this)
         this.redraw(0.);
@@ -238,9 +264,9 @@ export class Mesh_Object_BBModel {
     }
 
     redraw(delta: float) {
-        this.vertices = [];
+        this.vertices = []
         const mx = mat4.create();
-        mat4.rotateY(mx, mx, this.rotate.z + Math.PI);
+        mat4.rotateY(mx, mx, this.rotation[2] + Math.PI);
         this.model.playAnimation(this.animation_name, (this.start_time + performance.now()) / 1000);
         this.model.draw(this.vertices, vecZero, lm, mx);
         this.buffer.updateInternal(this.vertices);
@@ -281,7 +307,7 @@ export class Mesh_Object_BBModel {
         if(!m) {
             m = mat4.create()
             mat4.copy(m, this.matrix)
-            mat4.rotateY(m, m, this.rotate.z +  Math.PI)
+            mat4.rotateY(m, m, this.rotation[2] +  Math.PI)
         }
 
         if(pos) {
@@ -306,7 +332,7 @@ export class Mesh_Object_BBModel {
 
     applyRotate() {
         this.matrix = mat4.create()
-        const z = this.rotate.z
+        const z = this.rotation[2]
         mat4.rotateZ(this.matrix, this.matrix, z)
     }
 

@@ -185,7 +185,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     }
 
     // Draw
-    draw(render, delta) {
+    draw(render : Renderer, delta : float) {
 
         if(this.now_draw || this.isDead()) {
             return false;
@@ -220,54 +220,21 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         mat4.rotateY(this.modelMatrix, this.modelMatrix, addY / 60);
 
         // Draw mesh group
-        this.mesh_group.draw(render, this.chunk.coord, this.modelMatrix, this.lightTex);
+        this.drawBuffer(render, this.chunk.coord, this.modelMatrix);
 
     }
 
-    // Draw2
-    draw2(render : Renderer, pos : Vector, lm : IndexedColor, mx : imat4) {
-
-        // // this.update();
-        // this.updateLightTex(render);
-
-        // if(!this.chunk) {
-        //     return;
-        // }
-
-        // Calc position
-        // this.posFact.set(
-        //     this.pos.x,
-        //     this.pos.y,
-        //     this.pos.z,
-        // );
-        // const addY = (performance.now() - this.pn) / 10;
-        // this.posFact.y += Math.sin(addY / 35) / Math.PI * .2;
-
-        // // Calc matrices
-        // mat4.identity(this.modelMatrix);
-        // mat4.translate(this.modelMatrix, this.modelMatrix,
-        //     [
-        //         (this.posFact.x - this.chunk.coord.x),
-        //         (this.posFact.y - this.chunk.coord.y + 3 / 16),
-        //         (this.posFact.z - this.chunk.coord.z),
-        //     ]
-        // );
-        // mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.toArray());
-        // mat4.rotateY(this.modelMatrix, this.modelMatrix, addY / 60);
-
-        // Draw mesh group
+    // Draw directly without any pre-computation
+    drawBuffer(render : Renderer, pos : Vector, mx : imat4) {
         this.mesh_group.draw(render, pos, mx, this.lightTex)
-
     }
 
     /**
      * Push draw task directly without any pre-computation.
      * Any matrix updates should be applied manually
      * Allow prepend matrix to modelMatrix
-     * @param {Render} render
-     * @param {mat4} prePendMatrix
      */
-     drawDirectly(render, prePendMatrix = null) {
+    drawDirectly(render : Renderer, prePendMatrix : imat4 = null) {
         if (this.isDead()){
             return false;
         }
@@ -294,6 +261,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     }
 
     destroy() {
+        // TODO: need to correct destroy
         // this.mesh_group.destroy();
     }
 

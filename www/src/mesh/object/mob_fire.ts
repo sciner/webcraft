@@ -12,9 +12,6 @@ const {mat4} = glMatrix;
 export class Mesh_Object_MobFire {
     [key: string]: any;
 
-    /**
-     * @param {MobModel} mob
-     */
     constructor(mob : MobModel, world : World) {
 
         this.apos           = mob.pos.clone().addScalarSelf(.5, .5, .5); // absolute coord

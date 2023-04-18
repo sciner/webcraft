@@ -9,6 +9,7 @@ import type { World } from "./world.js";
 import type { ArmorState, TSittingState, TSleepState } from "./player.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import type { TMobProps } from "./mob_manager.js";
+import type { Mesh_Object_Base } from "./mesh/object/base.js";
 
 // Анимация повороа говоры отдельно от тела, нужно перенести в bbmodel
 // head({part, index, delta, animable, camPos}) {
@@ -37,32 +38,30 @@ import type { TMobProps } from "./mob_manager.js";
 // }
 
 export class MobModel extends NetworkPhysicObject {
-    texture :           any = null
-    material :          any = null
-    raycasted :         boolean = false
-    moving_timeout :    any = false
-    nametag :           any = false
-    aniframe :          int = 0
-    width :             int = 0
-    height :            int = 0
-    sneak :             boolean = false
-    on_ground :         boolean = true
-    body_rotate :       int = 0
-    tintColor :         Color = new Color(0, 0, 0, 0)
-    textures :          Map<string, any> = new Map()
-    models :            Map<string, any> = new Map()
-    fix_z_fighting :    float = Math.random() / 100
-    loaded:             boolean = false
-    type :              string
-    skin :              any
-    // initialised :       boolean = false
-    targetLook :        float = 0
-    drawPos :           Vector = new Vector(0, 0, 0)
-    posDirty :          boolean = true
-    currentChunk :      any = null
-    lightTex :          any = null
-    armor :             ArmorState = null
-    prev :              any = {
+    texture:            any = null
+    material:           any = null
+    raycasted:          boolean = false
+    moving_timeout:     any = false
+    nametag:            Mesh_Object_Base | null
+    aniframe:           int = 0
+    width:              int = 0
+    height:             int = 0
+    sneak:              boolean = false
+    on_ground:          boolean = true
+    body_rotate:        int = 0
+    tintColor:          Color = new Color(0, 0, 0, 0)
+    textures:           Map<string, any> = new Map()
+    models:             Map<string, any> = new Map()
+    fix_z_fighting:     float = Math.random() / 100
+    type:               string
+    skin:               any
+    targetLook:         float = 0
+    drawPos:            Vector = new Vector(0, 0, 0)
+    posDirty:           boolean = true
+    currentChunk:       any = null
+    lightTex:           any = null
+    armor:              ArmorState = null
+    prev:               any = {
                             head: null,
                             body: null,
                             leg: null,
@@ -183,12 +182,8 @@ export class MobModel extends NetworkPhysicObject {
     }
 
     update(render? : Renderer, camPos? : Vector, delta? : float, speed? : float) {
-        super.update();
-        this.computeLocalPosAndLight(render, delta);
-        if (!this.isRenderable(render)) {
-            return;
-        }
-    //    this.animator.update(delta, camPos, this, speed);
+        super.update()
+        this.computeLocalPosAndLight(render, delta)
     }
 
     isDetonationStarted() : boolean {
@@ -225,10 +220,10 @@ export class MobModel extends NetworkPhysicObject {
             this.setArmor()
             if (this.sleep) {
                 const rot = this.sleep.rotate.z * 2 * Math.PI
-                mesh.rotate.z = rot % Math.PI ? rot : rot + Math.PI
+                mesh.rotation[2] = rot % Math.PI ? rot : rot + Math.PI
                 mesh.setAnimation('sleep')
             } else {
-                mesh.rotate.z = this.draw_yaw ? this.draw_yaw : 0
+                mesh.rotation[2] = this.draw_yaw ? this.draw_yaw : 0
                 if (this.sitting) {
                     mesh.setAnimation('sitting')
                 } else if (this.moving && this.on_ground) {
@@ -353,5 +348,7 @@ export class MobModel extends NetworkPhysicObject {
         }
 
     }
+
+    postLoad(render : Renderer) {}
 
 }
