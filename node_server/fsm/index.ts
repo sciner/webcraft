@@ -9,7 +9,9 @@ export class Brains {
     }
 
     add(type: string, module: typeof FSMBrain): void {
+        // TODO: double for old brain names compatibility
         this.list.set(type, module);
+        this.list.set(`mob/${type}`, module);
     }
 
     get(type: string, mob: Mob): FSMBrain {

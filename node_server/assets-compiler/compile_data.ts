@@ -386,25 +386,25 @@ export class CompileData {
         };
 
         const eggs = [
-            {id: 521, type: 'chicken', skin: 'base'},
-            {id: 522, type: 'creeper', skin: 'base'},
-            {id: 523, type: 'pig', skin: 'base'},
-            {id: 524, type: 'horse', skin: 'creamy'},
-            {id: 525, type: 'horse', skin: 'base'},
-            {id: 651, type: 'fox', skin: 'base'},
-            {id: 1448, type: 'skeleton', skin: 'base'},
-            {id: 1449, type: 'axolotl', skin: 'base'},
-            {id: 1450, type: 'bee', skin: 'base'},
-            {id: 1451, type: 'cow', skin: 'base'},
-            {id: 1453, type: 'goat', skin: 'base'},
-            {id: 1454, type: 'hoglin', skin: 'base'},
-            {id: 1455, type: 'ocelot', skin: 'base'},
-            {id: 1456, type: 'panda', skin: 'base'},
-            {id: 1457, type: 'piglin', skin: 'base'},
-            {id: 1458, type: 'sheep', skin: 'base'},
+            {id: 521, type: 'mob/chicken', skin: 'base'},
+            {id: 522, type: 'mob/creeper', skin: 'base'},
+            {id: 523, type: 'mob/pig', skin: 'base'},
+            {id: 524, type: 'mob/horse', skin: 'creamy'},
+            {id: 525, type: 'mob/horse', skin: 'base'},
+            {id: 651, type: 'mob/fox', skin: 'base'},
+            {id: 1448, type: 'mob/skeleton', skin: 'base'},
+            {id: 1449, type: 'mob/axolotl', skin: 'base'},
+            {id: 1450, type: 'mob/bee', skin: 'base'},
+            {id: 1451, type: 'mob/cow', skin: 'base'},
+            {id: 1453, type: 'mob/goat', skin: 'base'},
+            {id: 1454, type: 'mob/hoglin', skin: 'base'},
+            {id: 1455, type: 'mob/ocelot', skin: 'base'},
+            {id: 1456, type: 'mob/panda', skin: 'base'},
+            {id: 1457, type: 'mob/piglin', skin: 'base'},
+            {id: 1458, type: 'mob/sheep', skin: 'base'},
             //
-            {id: 1452, type: 'deer', skin: 'base'},
-            {id: 1459, type: 'snow_golem', skin: 'base'},
+            {id: 1452, type: 'mob/deer', skin: 'base'},
+            {id: 1459, type: 'mob/snow_golem', skin: 'base'},
             /*
             Under construction:
             - bat
@@ -413,7 +413,7 @@ export class CompileData {
             */
         ];
         for(let egg of eggs) {
-            const color = colors[egg.type];
+            const color = colors[egg.type.substring(4)];
             const b = {
                 "id": egg.id,
                 "name": "SPAWN_EGG_" + egg.type.toUpperCase(),

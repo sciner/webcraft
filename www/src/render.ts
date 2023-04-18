@@ -1149,7 +1149,7 @@ export class Renderer {
         let prev_chunk = null;
         let prev_chunk_addr = new Vector();
         const pos_of_interest = this.player.getEyePos();
-        const mobs_list : MobModel[] = this.world.mobs.list.values()
+        const mobs_list : MobModel[] = Array.from(this.world.mobs.list.values())
         this.draw_mobs_stat.count = 0
         this.draw_mobs_stat.time = performance.now()
         for(let mob of mobs_list) {

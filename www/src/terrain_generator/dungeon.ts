@@ -126,7 +126,7 @@ export class DungeonGenerator {
         this.setBlock(chunk, x + 3, y + 1, z + 3, BLOCK.CHEST, {x: 0, y: 0, z: 0}, {generate: true, params: {source: 'treasure_room'}});
 
         // Спавнер
-        const mob = alea.double() < 0.75 ? 'zombie' : 'skeleton';
+        const mob = alea.double() < 0.75 ? 'mob/zombie' : 'mob/skeleton';
         this.setBlock(chunk, x + 5, y + 1, z + 5, BLOCK.MOB_SPAWN, {x: 0, y: 0, z: 0}, {
             type: mob,
             skin: 'base',
@@ -209,7 +209,7 @@ export class DungeonGenerator {
         this.setBlock(chunk, x + 10, y + 1, z + 1, BLOCK.CHEST, rotate, {generate: true, params: {source: 'treasure_room'}});
 
         // Спавнер
-        const mob = alea.double() < 0.75 ? 'zombie' : 'skeleton';
+        const mob = alea.double() < 0.75 ? 'mob/zombie' : 'mob/skeleton';
         this.setBlock(chunk, x + 9, y + 1, z + 3, BLOCK.MOB_SPAWN, {x: 0, y: 0, z: 0}, {
             type: mob,
             skin: 'base',

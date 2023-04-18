@@ -107,6 +107,7 @@ interface TBlocksSettings {
 interface TWorldSettings extends TBlocksSettings {
     chunks_draw_debug_grid: boolean
     cluster_draw_debug_grid: boolean
+    mobs_draw_debug_grid: boolean
     use_light: number
     chunk_geometry_mode: number
     leaf_fall: boolean

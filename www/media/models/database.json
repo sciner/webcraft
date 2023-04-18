@@ -1,5 +1,7 @@
 {
     "assets": {
+    },
+    "_assets": {
         "armor": {
             "type": "json",
             "geom": "json/armor.geo.json",

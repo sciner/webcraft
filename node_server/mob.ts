@@ -196,13 +196,14 @@ export class Mob {
      * Create new mob
      */
     static create(world : ServerWorld, params: MobSpawnParams) : Mob {
-        const model = world.models.list.get(params.type);
-        if(!model) {
-            throw `Can't locate model for create: ${params.type}`;
-        }
-        if(!(params.skin in model.skins)) {
-            throw `Can't locate skin for: ${params.type}/${params.skin}`;
-        }
+        // TODO: need to check mob type and skin from bbmodels
+        // const model = world.models.list.get(params.type);
+        // if(!model) {
+        //     throw `Can't locate model for create: ${params.type}`;
+        // }
+        // if(!(params.skin in model.skins)) {
+        //     throw `Can't locate skin for: ${params.type}/${params.skin}`;
+        // }
         // make extra_data
         if(!params.extra_data) {
             params.extra_data = {};
@@ -214,7 +215,7 @@ export class Mob {
         params.is_active = 1; // previously is_active was selected from DB, where it's set to 1 by default
         //
         switch(params.type) {
-            case 'bee': {
+            case 'mob/bee': {
                 params.extra_data.pollen = 0;
                 break;
             }

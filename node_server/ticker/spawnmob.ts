@@ -91,7 +91,7 @@ export default class Ticker {
                     }
                     // проверяем освещенность для нежети
                     if ((body.lightValue & 0xFF) > 160 || ((body.lightValue >> 8) < 100)) {
-                        if (extra_data.type == 'zombie' || extra_data.type == 'skeleton') {
+                        if (extra_data.type == 'mob/zombie' || extra_data.type == 'mob/skeleton') {
                             spawn_disabled = true
                         }
                     }

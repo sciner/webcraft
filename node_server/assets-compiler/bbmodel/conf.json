@@ -15,6 +15,7 @@
         {"name": "mob/zombie_bomber",   "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "mob/chicken",         "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "mob/humanoid",        "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "mob/sheep",           "shift": {"x": 16, "y": 0, "z": 0}},
 
         {"name": "ladder",              "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "torch",               "shift": {"x": 16, "y": 0, "z": 0}},

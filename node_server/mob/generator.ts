@@ -14,13 +14,13 @@ export class MobGenerator {
 
     constructor(chunk: ServerChunk) {
         this.chunk = chunk;
-        this.types.push({type: 'chicken', skin: 'base', count: 4});
-        this.types.push({type: 'chicken', skin: 'base', count: 4});
-        this.types.push({type: 'sheep', skin: 'base', count: 4});
-        this.types.push({type: 'cow', skin: 'base', count: 4});
-        this.types.push({type: 'horse', skin: 'creamy', count: 2});
-        this.types.push({type: 'pig', skin: 'base', count: 4});
-        this.types.push({type: 'fox', skin: 'base', count: 1});
+        this.types.push({type: 'mob/chicken', skin: 'base', count: 4});
+        this.types.push({type: 'mob/chicken', skin: 'base', count: 4});
+        this.types.push({type: 'mob/sheep', skin: 'base', count: 4});
+        this.types.push({type: 'mob/cow', skin: 'base', count: 4});
+        this.types.push({type: 'mob/horse', skin: 'creamy', count: 2});
+        this.types.push({type: 'mob/pig', skin: 'base', count: 4});
+        this.types.push({type: 'mob/fox', skin: 'base', count: 1});
     }
 
     async generate() {

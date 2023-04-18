@@ -186,7 +186,7 @@ export class MineGenerator {
 
         //Спавнер
         vec.set(4, 1, 2).rotY(dir);
-        const mob = random.double() < 0.75 ? 'zombie' : 'skeleton';
+        const mob = random.double() < 0.75 ? 'mob/zombie' : 'mob/skeleton'
         this.setBlock(chunk, node, vec.x, vec.y, vec.z, BLOCK.MOB_SPAWN, true, {x: 0, y: 0, z: 0}, {
             type: mob,
             skin: 'base',

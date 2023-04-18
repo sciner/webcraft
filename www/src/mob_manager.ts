@@ -1,26 +1,42 @@
-import { SimpleShifted3DArray, Vector } from "./helpers.js";
+import { Vector } from "./helpers.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { MobModel } from "./mob_model.js";
 import { Resources } from "./resources.js";
 import { ServerClient } from "./server_client.js";
+import type { World } from "./world.js";
+
+export declare type TMobProps = {
+    id:             int
+    type:           string
+    name?:          string
+    indicators:     any
+    width:          float
+    height:         float
+    pos:            Vector
+    rotate:         Vector
+    pitch:          float
+    yaw:            float
+    skin?:          string
+    skin_id?:       string
+    extra_data?:    any
+}
 
 export class MobManager {
-    [key: string]: any;
+    #world:             World
+    list:               Map<number, MobModel> = new Map()
+    sendStateInterval:  any
+    draw_debug_grid:    boolean = false
 
-    #world;
-    models: Map<string, Mesh_Object_BBModel> = new Map()
+    private models:     Map<string, Mesh_Object_BBModel> = new Map()
 
-    constructor(world) {
-        this.#world = world;
-        /**
-         * @type {Map<number, MobModel>}
-         */
-        this.list = new Map();
-        this.draw_debug_grid = world.settings.mobs_draw_debug_grid;
+    constructor(world : World) {
+        this.#world = world
+        this.list = new Map()
+        this.draw_debug_grid = world.settings.mobs_draw_debug_grid
         // Interval functions
         this.sendStateInterval = setInterval(() => {
-            this.playSounds();
-        }, 50);
+            this.playSounds()
+        }, 50)
     }
 
     // Client side method
@@ -100,7 +116,7 @@ export class MobManager {
     }
 
     // add
-    add(data) {
+    add(data : TMobProps) {
         const mob = new MobModel({
             id:             data.id,
             type:           data.type,
@@ -114,11 +130,11 @@ export class MobManager {
             yaw:            data.rotate.z,
             skin:           data.skin || 'base',
             extra_data:     data.extra_data || null
-        }, this.#world);
+        }, this.#world)
 
-        mob.pos.y += 1/200;
+        mob.pos.y += 1/200
 
-        this.list.set(data.id, mob);
+        this.list.set(data.id, mob)
     }
 
     // get

@@ -37,7 +37,7 @@ export default class Ticker {
                     } else {
                         // первая генерация моба, если его ещё не было в БД
                         const params = {
-                            type: 'bee',
+                            type: 'mob/bee',
                             skin: 'base',
                             pos: spawn_pos
                         };

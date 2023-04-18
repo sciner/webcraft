@@ -1,8 +1,8 @@
 import { BLOCK } from "./blocks.js";
-import { HAND_ANIMATION_SPEED, HEAD_MAX_ROTATE_ANGLE, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_ZOOM } from "./constant.js";
+import { HAND_ANIMATION_SPEED, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_ZOOM } from "./constant.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
-import { MobAnimation, MobModel } from "./mob_model.js";
+import { MobModel } from "./mob_model.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
@@ -18,50 +18,6 @@ const KEY_SLOT_MAP = {
     left: 'LeftArm',
     right: 'RightArm'
 };
-
-const setFromUnitVectors = (q, vFrom, vTo ) => {
-
-    // assumes direction vectors vFrom and vTo are normalized
-    vFrom = vFrom.normalize();
-    vTo = vTo.normalize();
-
-    let r = vFrom.dot( vTo ) + 1;
-
-    if ( r < Number.EPSILON ) {
-
-        // vFrom and vTo point in opposite directions
-
-        r = 0;
-
-        if ( Math.abs( vFrom.x ) > Math.abs( vFrom.z ) ) {
-
-            q[0] = - vFrom.y;
-            q[1] = vFrom.x;
-            q[2] = 0;
-            q[3] = r;
-
-        } else {
-
-            q[0] = 0;
-            q[1] = - vFrom.z;
-            q[2] = vFrom.y;
-            q[3] = r;
-
-        }
-
-    } else {
-
-        q[0] = vFrom.y * vTo.z - vFrom.z * vTo.y;
-        q[1] = vFrom.z * vTo.x - vFrom.x * vTo.z;
-        q[2] = vFrom.x * vTo.y - vFrom.y * vTo.x;
-        q[3] = r;
-
-    }
-
-    quat.normalize(q, q);
-
-    return q;
-}
 
 export class ModelSlot {
     holder: SceneNode;
@@ -79,31 +35,6 @@ export class ModelSlot {
 
         this.holder.updateMatrix();
     }
-}
-
-export class PlayerAnimation extends MobAnimation {
-    [key: string]: any;
-
-    head({
-        part, animable
-    }) {
-        let pitch = animable.pitch;
-        if (pitch < -0.5) {
-            pitch = -0.5;
-        }
-        if (pitch > 0.5) {
-            pitch = 0.5;
-        }
-        const yaw = animable.body_rotate * HEAD_MAX_ROTATE_ANGLE;
-        if (animable.sleep) {
-            quat.fromEuler(part.quat, 0, 0, 0)
-            quat.rotateX(part.quat, part.quat, -Math.PI / 2)
-        } else {
-            quat.fromEuler(part.quat, -pitch * 90, 0, yaw)
-        }
-        part.updateMatrix()
-    }
-
 }
 
 // An adapter that allows using ServerPlayer and PlayerModel in the same way
@@ -211,6 +142,9 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         slot.id = id;
 
         const arm_item_place_name = 'RightArmItemPlace'
+        if(!this._mesh) {
+            debugger
+        }
         const mesh_modifiers = this._mesh.modifiers
         mesh_modifiers.hideGroup(arm_item_place_name)
 
@@ -477,7 +411,8 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
     updateArmSwingProgress(delta) {
         const asa = this.getArmSwingAnimationEnd();
-        this.swingProgressPrev = this.animationScript.swingProgress;
+        // this.swingProgressPrev = this.animationScript.swingProgress;
+        this.swingProgressPrev = this.swingProgress;
         if(this.isSwingInProgress) {
             this.swingProgressInt += HAND_ANIMATION_SPEED * delta / 1000;
             if (this.swingProgressInt >= asa) {
@@ -488,9 +423,9 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             this.swingProgressInt = 0;
         }
         // attackAnim
-        this.animationScript.isSwingInProgress = this.isSwingInProgress;
+        // this.animationScript.isSwingInProgress = this.isSwingInProgress;
         this.swingProgress = this.swingProgressInt / asa;
-        this.animationScript.swingProgress = this.swingProgress;
+        // this.animationScript.swingProgress = this.swingProgress;
     }
 
     setProps(pos: Vector, rotate: Vector, sneak: boolean, moving: boolean, running: boolean,
