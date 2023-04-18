@@ -108,6 +108,10 @@ export class ServerClient {
     // Use effects
     static CMD_EFFECTS_STATE            = 101;
 
+    // Animations
+    static CMD_PLAY_ANIM                = 119
+    static CMD_USE_WEAPON               = 120
+
     // Fluid
 	static CMD_FLUID_UPDATE             = 102;
     static CMD_FLUID_DELTA              = 105;

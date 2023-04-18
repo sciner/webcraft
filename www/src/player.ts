@@ -84,6 +84,11 @@ export type TSittingState = {
     rotate: IVector // rotate.z is in radians
 }
 
+export type TAnimState = {
+    title: string,
+    speed: number
+}
+
 /** A part of {@link PlayerState} that is also sent in {@link PlayerStateUpdate} */
 type PlayerStateDynamicPart = {
     pos         : Vector
@@ -92,7 +97,8 @@ type PlayerStateDynamicPart = {
     sitting ?   : false | TSittingState
     sneak ?     : boolean
     sleep ?     : false | TSleepState
-    hands       : PlayerHands
+    hands       : PlayerHands,
+    anim?       : false | TAnimState
 }
 
 /** Fields that are saved together into DB in user.state field. */
@@ -242,6 +248,7 @@ export class Player implements IPlayer {
     underwater_track_id:        any;
     _eating_sound_tick:         number;
     _eating_sound:              any;
+    timer_anim:                number = 0
 
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
@@ -369,7 +376,6 @@ export class Player implements IPlayer {
                 false, false, cmd.data.maxDist || DEFAULT_SOUND_MAX_DIST);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
-            this.state.lies    = false
             this.state.sitting = false
             this.state.sleep   = false
         });
@@ -397,6 +403,20 @@ export class Player implements IPlayer {
         this.pickAt = new PickAt(this.world, this.render, async (e : IPickatEvent, times : float, number : int) => {
             return this.onPickAtTarget(e, times, number)
         }, (e : IPickatEvent) => {
+            if (e.button_id == MOUSE.BUTTON_RIGHT) {
+                this.setAnimation('attack', 1, .5)
+                setTimeout(() => {
+                    this.world.server.Send({
+                        name: ServerClient.CMD_USE_WEAPON,
+                        data: {
+                            target: {
+                                pid: e.interactPlayerID,
+                                mid: e.interactMobID
+                            }
+                        }
+                    })
+                }, 500)
+            } else {
             const instrument = this.getCurrentInstrument()
             const speed = instrument?.speed ? instrument.speed : 1
             const time = e.start_time - this.timer_attack
@@ -426,6 +446,7 @@ export class Player implements IPlayer {
                     name: ServerClient.CMD_PICKAT_ACTION,
                     data: e
                 });
+            }
             }
         }, (bPos: IPickatEventPos) => {
             // onInteractFluid
@@ -968,6 +989,7 @@ export class Player implements IPlayer {
             this.render.updateNightVision(this.getEffectLevel(Effect.NIGHT_VISION));
             // Update picking target
             this.updatePickingTarget()
+            this.updateTimerAnim()
         }
         this.lastUpdate = performance.now();
     }
@@ -1142,6 +1164,7 @@ export class Player implements IPlayer {
                 this.state.lies,
                 this.state.sitting,
                 this.state.sleep,
+                this.state.anim,
                 undefined,
                 this.onGround
             )
@@ -1329,6 +1352,34 @@ export class Player implements IPlayer {
         const model = this.getModel()
         if(model) {
             model.armor = this.inventory.exportArmorState()
+        }
+    }
+
+    /*
+    * Метод устанавливает проигрвание анимации
+    */
+    setAnimation(title: string, speed: number = 1, time: number = 1) {
+        this.world.server.Send({
+            name: ServerClient.CMD_PLAY_ANIM,
+            data: {
+                title,
+                speed,
+                time,
+            }
+        })
+        this.state.anim = {
+            title,
+            speed
+        }
+        this.timer_anim = performance.now() + (time * 1000) / speed
+    }
+
+    /*
+    * Проверка завершения анимации
+    */
+    updateTimerAnim() {
+        if (this.timer_anim <= performance.now()) {
+            this.state.anim = false
         }
     }
 

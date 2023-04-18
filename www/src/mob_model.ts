@@ -6,7 +6,7 @@ import { MOUSE } from "./constant.js";
 import { Mesh_Object_MobFire } from "./mesh/object/mob_fire.js";
 import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
-import type { ArmorState, TSittingState, TSleepState } from "./player.js";
+import type { ArmorState, TAnimState, TSittingState, TSleepState } from "./player.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import type { TMobProps } from "./mob_manager.js";
 import type { Mesh_Object_Base } from "./mesh/object/base.js";
@@ -38,30 +38,30 @@ import type { Mesh_Object_Base } from "./mesh/object/base.js";
 // }
 
 export class MobModel extends NetworkPhysicObject {
-    texture:            any = null
-    material:           any = null
-    raycasted:          boolean = false
-    moving_timeout:     any = false
-    nametag:            Mesh_Object_Base | null
-    aniframe:           int = 0
-    width:              int = 0
-    height:             int = 0
-    sneak:              boolean = false
-    on_ground:          boolean = true
-    body_rotate:        int = 0
-    tintColor:          Color = new Color(0, 0, 0, 0)
-    textures:           Map<string, any> = new Map()
-    models:             Map<string, any> = new Map()
-    fix_z_fighting:     float = Math.random() / 100
-    type:               string
-    skin:               any
-    targetLook:         float = 0
-    drawPos:            Vector = new Vector(0, 0, 0)
-    posDirty:           boolean = true
-    currentChunk:       any = null
-    lightTex:           any = null
-    armor:              ArmorState = null
-    prev:               any = {
+	texture :           any = null
+	material :          any = null
+	raycasted :         boolean = false
+	moving_timeout :    any = false
+	nametag:            Mesh_Object_Base | null
+	aniframe :          int = 0
+	width :             int = 0
+	height :            int = 0
+	on_ground :         boolean = true
+	tintColor :         Color = new Color(0, 0, 0, 0)
+	textures :          Map<string, any> = new Map()
+	type :              string
+	skin :              any
+	targetLook :        float = 0
+	currentChunk :      any = null
+	lightTex :          any = null
+	armor :             ArmorState = null
+	// sneak:              boolean = false
+	// body_rotate:        int = 0
+	// models:             Map<string, any> = new Map()
+	// fix_z_fighting:     float = Math.random() / 100
+	// drawPos:            Vector = new Vector(0, 0, 0)
+	// posDirty:           boolean = true
+	prev :              any = {
                             head: null,
                             body: null,
                             leg: null,
@@ -78,6 +78,7 @@ export class MobModel extends NetworkPhysicObject {
     aabb:               AABBDrawable = null
     _mesh:              Mesh_Object_BBModel
     _fire_mesh:         any
+    anim?:              false | TAnimState 
 
     constructor(props : TMobProps, world : World) {
 
@@ -218,6 +219,7 @@ export class MobModel extends NetworkPhysicObject {
 
         if(mesh) {
             this.setArmor()
+            const ground = Math.abs(this._prevPos.y - this._pos.y) != 0 ? false : true
             if (this.sleep) {
                 const rot = this.sleep.rotate.z * 2 * Math.PI
                 mesh.rotation[2] = rot % Math.PI ? rot : rot + Math.PI
@@ -226,7 +228,9 @@ export class MobModel extends NetworkPhysicObject {
                 mesh.rotation[2] = this.draw_yaw ? this.draw_yaw : 0
                 if (this.sitting) {
                     mesh.setAnimation('sitting')
-                } else if (this.moving && this.on_ground) {
+                } else if (!ground) {
+                    mesh.setAnimation('jump')
+                } else if (this.moving) {
                     if (this.sneak) {
                         mesh.setAnimation('sneak')
                     } else if (!this.running) {
@@ -234,20 +238,15 @@ export class MobModel extends NetworkPhysicObject {
                     } else {
                         mesh.setAnimation('run')
                     }
-                }  else if (this.sneak && this.on_ground) {
-                    mesh.setAnimation('sneak_idle')
-                } else if (this.eat) {
-                    mesh.setAnimation('eat')
+                } else if (this.anim) {
+                    mesh.setAnimation(this.anim.title)
                 } else {
-                    if(this.on_ground) {
-                        mesh.setAnimation('idle')
-                    } else {
-                        mesh.setAnimation('jump')
-                    }
+                    mesh.setAnimation('idle')
                 }
-            }
+            } 
             mesh.apos.copyFrom(this._pos)
             mesh.drawBuffered(render, delta)
+            this._prevPos.y = this._pos.y
         }
     }
 

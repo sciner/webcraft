@@ -33,9 +33,9 @@ export default class packet_reader {
             return true;
         }
         if (packet.data.interactMobID || packet.data.interactPlayerID) {
-            if (packet.data.button_id == MOUSE.BUTTON_LEFT) {
-                player.onAttackEntity(packet.data.interactMobID, packet.data.interactPlayerID)
-            }
+            //if (packet.data.button_id == MOUSE.BUTTON_LEFT) {
+            //    player.onAttackEntity(packet.data.interactMobID, packet.data.interactPlayerID)
+            //}
             if (packet.data.button_id == MOUSE.BUTTON_RIGHT) {
                 player.onUseItem(packet.data.interactMobID, packet.data.interactPlayerID)
             }

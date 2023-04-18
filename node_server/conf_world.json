@@ -113,7 +113,9 @@
         "cmd_sync_time",
         "cmd_teleport_request",
         "cmd_modify_indicator_request",
-        "cmd_use_item"
+        "cmd_use_item",
+        "cmd_play_anim",
+        "cmd_use_weapon"
     ],
     "treasure_chests": [
         {

@@ -48,7 +48,7 @@ export class Brain extends FSMBrain {
             this.target = player;
             // Если выбран режим hard, то устанавливаем общий таргет
             if (difficulty == EnumDifficulty.HARD) {
-                const bots = world.getMobsNear(mob.pos, this.distance_view, 'zombie');
+                const bots = world.getMobsNear(mob.pos, this.distance_view, 'mob/zombie');
                 for (const bot of bots) {
                     const brain = bot.getBrain();
                     if (!brain.target) {

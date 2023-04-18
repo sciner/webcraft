@@ -23,6 +23,7 @@ import type { ServerWorld } from "./server_world.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
 import { SERVER_SEND_CMD_MAX_INTERVAL } from "./server_constant.js";
 import {ServerPlayerControlManager} from "./control/server_player_control_manager.js";
+import { ServerPlayerCombat } from "player/combat.js";
 
 export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
     time?: number;
@@ -78,6 +79,7 @@ export class ServerPlayer extends Player {
     raycaster: Raycaster;
     quests: QuestPlayer;
     damage: ServerPlayerDamage;
+    combat: ServerPlayerCombat
     wait_portal: WorldPortalWait | null;
     //@ts-expect-error
     declare world: ServerWorld
@@ -185,6 +187,7 @@ export class ServerPlayer extends Player {
         };
         this.controlManager = new ServerPlayerControlManager(this as any)
         this.effects = new ServerPlayerEffects(this);
+        this.combat = new ServerPlayerCombat(this)
     }
 
     /** Closes the player's session after encountering an unrecoverable error. */
@@ -473,6 +476,7 @@ export class ServerPlayer extends Player {
             sitting:  state.sitting,
             sleep:    state.sleep,
             lies:     state.lies,
+            anim:     state.anim,
             armor:    this.inventory.exportArmorState(),
             health:   state.indicators.live
         };
@@ -513,6 +517,8 @@ export class ServerPlayer extends Player {
         if (this.lastSentPacketTime < performance.now() - SERVER_SEND_CMD_MAX_INTERVAL) {
             this.sendPackets([{name: ServerClient.CMD_NOTHING, data: null}])
         }
+
+        this.updateTimerAnim()
     }
 
     get isAlive() : boolean {
@@ -998,41 +1004,7 @@ export class ServerPlayer extends Player {
             }
         }
     }
-
-    // урон от оружия
-    onAttackEntity(mob_id, player_id) {
-        const world = this.world
-        const item = world.block_manager.fromId(this.state.hands.right.id)
-        const time = performance.now() - this.timer_reload
-        if (time < 200) {
-            return
-        } 
-        this.timer_reload = performance.now()
-        let damage = item?.damage ? item.damage : 1
-        const speed = item?.speed ? item.speed : 1
-        const strength = Math.min(Math.max(time * speed, 0), 1000) / 1000
-        damage = damage * (.2 + strength * strength * .8)
-        const crit = strength > .9 // @todo crit нельзя посчитать, так как нет информации о игроке (находится в воде, летит, бежит)
-        if (player_id && world.rules.getValue('pvp')) {
-            // наносим урон по игроку
-            const player = world.players.get(player_id)
-            player.setDamage(damage, EnumDamage.PUNCH, this)
-            // уменьшаем прочнось предмета
-            if (item?.power) {
-                this.inventory.decrement_instrument()
-            }
-        }
-        if (mob_id) {
-            // наносим урон по мобу
-            const mob = world.mobs.get(mob_id)
-            mob.setDamage(damage, EnumDamage.PUNCH, this)
-            // уменьшаем прочнось предмета
-            if (item?.power) {
-                this.inventory.decrement_instrument()
-            }
-        }
-    }
-
+    
     writeToWorldTransaction(underConstruction: WorldTransactionUnderConstruction) {
         // always save the player state, as it was in the old code
         const row = DBWorld.toPlayerUpdateRow(this);
@@ -1060,6 +1032,14 @@ export class ServerPlayer extends Player {
 
     isAdmin() : boolean {
         return this.world.admins.checkIsAdmin(this)
+    }
+
+    setAnimation(title, speed = 1, time = 1) {
+        this.state.anim = {
+            title,
+            speed
+        }
+        this.timer_anim = performance.now() + (time * 1000) / speed
     }
     
 }

@@ -7,7 +7,7 @@ import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
-import type { PlayerHands, TSittingState, TSleepState} from "./player.js";
+import type { PlayerHands, TAnimState, TSittingState, TSleepState} from "./player.js";
 import type { NetworkPhysicObjectState } from "./network_physic_object.js";
 import type { World } from "./world.js";
 import type { TMobProps } from "./mob_manager.js";
@@ -389,7 +389,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
     setProps(pos: Vector, rotate: Vector, sneak: boolean, moving: boolean, running: boolean,
         hands: PlayerHands, lies: boolean, sitting: false | TSittingState,
-        sleep: false | TSleepState, health?: number, on_ground: boolean = true): void {
+        sleep: false | TSleepState, anim : false | TAnimState, health?: number, on_ground: boolean = true): void {
         this.pos.copyFrom(pos);
         this.yaw = rotate.z; // around
         this.pitch = rotate.x; // head rotate
@@ -398,6 +398,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.running = running;
         this.lies = lies;
         this.sitting = sitting;
+        this.anim = anim
         this.sleep = sleep
         this.on_ground = on_ground
         //
