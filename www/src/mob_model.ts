@@ -536,6 +536,7 @@ export class MobModel extends NetworkPhysicObject {
     width :             int = 0
     height :            int = 0
     sneak :             boolean = false
+    on_ground :         boolean = true
     body_rotate :       int = 0
     tintColor :         Color = new Color(0, 0, 0, 0)
     textures :          Map<string, any> = new Map()
@@ -775,20 +776,24 @@ export class MobModel extends NetworkPhysicObject {
                 mesh.rotate.z = this.draw_yaw ? this.draw_yaw : 0
                 if (this.sitting) {
                     mesh.setAnimation('sitting')
-                } else if (this.moving) {
+                } else if (this.moving && this.on_ground) {
                     if (this.sneak) {
-                        mesh.setAnimation('crouch')
+                        mesh.setAnimation('sneak')
                     } else if (!this.running) {
                         mesh.setAnimation('walk')
                     } else {
                         mesh.setAnimation('run')
                     }
-                }  else if (this.sneak) {
-                    mesh.setAnimation('crouch_idle')
+                }  else if (this.sneak && this.on_ground) {
+                    mesh.setAnimation('sneak_idle')
                 } else if (this.eat) {
                     mesh.setAnimation('eat')
                 } else {
-                    mesh.setAnimation('idle')
+                    if(this.on_ground) {
+                        mesh.setAnimation('idle')
+                    } else {
+                        mesh.setAnimation('jump')
+                    }
                 }
             }
             mesh.apos.copyFrom(this._pos)

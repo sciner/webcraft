@@ -12,7 +12,7 @@ import type Mesh_Object_Block_Drop from './block_drop.js';
 const {mat4} = glMatrix;
 const lm        = IndexedColor.WHITE;
 const vecZero   = Vector.ZERO.clone();
-const DEFAULT_ANIMATION_TRANSITION_DURATION = 5
+const DEFAULT_ANIMATION_TRANSITION_DURATION = 1.0
 
 class MeshObjectModifyAppend {
     mesh : Mesh_Object_BBModel

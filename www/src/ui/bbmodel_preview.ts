@@ -78,7 +78,7 @@ export class BBModel_Preview {
         this.render.camPos = this.camPos
 
         // Add humanoid mesh #1
-        this.mesh = this.render.addBBModel(player.lerpPos.add(new Vector(-.5, 0, 1)), 'mob/humanoid', player.rotate, 'walk', 'humanoid')
+        this.mesh = this.render.addBBModel(player.lerpPos.add(new Vector(-.5, 0, 1)), 'mob/humanoid', player.rotate, 'idle', 'humanoid')
         // this.mesh.modifiers.appendToGroup('head', 'tool/sunglasses')
         // this.mesh.modifiers.appendToGroup('RightArmItemPlace', 'tool/iron_sword', 'thirdperson_righthand')
         this.mesh.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor', 'scrap_armor_copper.png')
@@ -93,7 +93,7 @@ export class BBModel_Preview {
         // const demo_animations = ['walk', 'idle', 'eat', 'sitting', 'sleep']
         const demo_animations = ['walk', 'sitting', 'idle', 'eat', 'sleep']
         this.intv = setInterval(() => {
-            this.mesh.setAnimation(demo_animations[++demo_animation_frame % demo_animations.length])
+            // this.mesh.setAnimation(demo_animations[++demo_animation_frame % demo_animations.length])
         }, 2000)
 
         // Add humanoid mesh #2

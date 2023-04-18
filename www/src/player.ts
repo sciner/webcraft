@@ -1141,7 +1141,9 @@ export class Player implements IPlayer {
                 this.state.hands,
                 this.state.lies,
                 this.state.sitting,
-                this.state.sleep
+                this.state.sleep,
+                undefined,
+                this.onGround
             )
         }
     }

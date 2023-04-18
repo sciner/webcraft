@@ -49,7 +49,9 @@ EasingType.set('easeInElastic', (percent, args) => easeIn(percent, elastic, args
 EasingType.set('easeOutElastic', (percent, args) => easeOut(percent, elastic, args))
 EasingType.set('easeInOutElastic', (percent, args) => easeInOut(percent, elastic, args))
 
-EasingType.set('catmullRom', (percent, args) => easeInOut(percent, catmullRom, args))
+// TODO: замена на линейную интерполяцию, т.к. с catmullrom работает неправильно
+// EasingType.set('catmullRom', (percent, args) => easeInOut(percent, catmullRom, args))
+EasingType.set('catmullrom', (percent, args) => easyLinear(percent, linear, args))
 
 function easyLinear(percent, func, args) {
     return func(percent, ...args)
