@@ -403,7 +403,7 @@ export class Player implements IPlayer {
         this.pickAt = new PickAt(this.world, this.render, async (e : IPickatEvent, times : float, number : int) => {
             return this.onPickAtTarget(e, times, number)
         }, (e : IPickatEvent) => {
-            if (e.button_id == MOUSE.BUTTON_RIGHT) {
+            if (e.button_id == MOUSE.BUTTON_LEFT) {
                 this.setAnimation('attack', 1, .5)
                 setTimeout(() => {
                     this.world.server.Send({
