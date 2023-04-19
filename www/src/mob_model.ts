@@ -223,6 +223,13 @@ export class MobModel extends NetworkPhysicObject {
         const mesh = this._mesh
 
         if(mesh) {
+            if(this.type == MOB_TYPE.SHEEP) {
+                if (this.extra_data?.is_sheared) {
+                    mesh.modifiers.hideGroup('wool')
+                } else {
+                    mesh.modifiers.showGroup('wool')
+                }  
+            }
             this.setArmor()
             if (this.sleep) {
                 const rot = this.sleep.rotate.z * 2 * Math.PI
