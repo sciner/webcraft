@@ -12,7 +12,7 @@ export class BigGeometryPool extends BaseGeometryPool {
     baseGeometry: BaseBigGeometry;
     constructor(context, {
         pageSize = 256,
-        pageCount = 1000 * 24,
+        pageCount = 1000,
         growCoeff = 2.0,
         growMaxPageInc = 8000,
     }) {

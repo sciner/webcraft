@@ -14,7 +14,7 @@ import {GLCubeDrawer} from "./GLCubeDrawer.js";
 import {GLChunkDrawer} from "./GLChunkDrawer.js";
 import {GLLineDrawer} from "./GLLineDrawer.js";
 import {WebGLFluidShader} from "./WebGLFluidShader.js";
-import {GLFakeDrawer} from "./GLFakeDrawer.js";
+import {GLSillyDrawer} from "./GLSillyDrawer.js";
 
 const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
 
@@ -328,7 +328,7 @@ export default class WebGLRenderer extends BaseRenderer {
         this.cube = new GLCubeDrawer(this);
         this.chunk = new GLChunkDrawer(this);
         this.line = new GLLineDrawer(this);
-        this.fake = new GLFakeDrawer(this);
+        this.silly = new GLSillyDrawer(this);
     }
 
     async init(args) {
@@ -351,7 +351,7 @@ export default class WebGLRenderer extends BaseRenderer {
         }
 
         this.line.init();
-        this.fake.init();
+        this.silly.init();
     }
 
     resetBefore() {
@@ -442,10 +442,11 @@ export default class WebGLRenderer extends BaseRenderer {
         return texture;
     }
 
-    createProgram({vertex, fragment}, preprocessArgs = {}) {
+    createProgram({vertex, fragment, tfVaryings}, preprocessArgs = {}) {
         return Helpers.createGLProgram(this.gl, {
             vertex: this.preprocessor.applyBlocks(vertex, preprocessArgs),
-            fragment: this.preprocessor.applyBlocks(fragment, preprocessArgs)
+            fragment: this.preprocessor.applyBlocks(fragment, preprocessArgs),
+            tfVaryings: tfVaryings,
         });
     }
 

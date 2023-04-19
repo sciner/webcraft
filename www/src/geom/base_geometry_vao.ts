@@ -55,12 +55,12 @@ export class BaseGeometryVao {
 
         if (this.bufferType == VAO_BUFFER_TYPE.BIG) {
             this.buffer = this.context.createBuffer({
-                usage: 'static',
+                usage: 'dynamic',
                 bigLength: this.size * this.stride,
             });
         } else {
             this.buffer = this.context.createBuffer({
-                usage: 'dynamic',
+                usage: 'static',
                 data: this.data,
             });
         }
