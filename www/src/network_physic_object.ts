@@ -80,7 +80,7 @@ export class NetworkPhysicObject {
         this._prevPos.copyFrom(this._pos);
         this._pos.copyFrom(v);
 
-        this.moving = Math.abs(dx) + Math.abs(dz) != 0
+        this.moving = Math.abs(dx) + Math.abs(dz) > 0.002
     }
 
     get clientTime() {
