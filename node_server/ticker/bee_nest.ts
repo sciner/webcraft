@@ -4,6 +4,7 @@ import { ServerClient } from "@client/server_client.js";
 import type { ServerWorld } from "../server_world.js";
 import type { ServerChunk } from "../server_chunk.js";
 import type { TickingBlockManager } from "../server_chunk.js";
+import { MOB_TYPE } from "@client/constant.js";
 
 export default class Ticker {
 
@@ -37,7 +38,7 @@ export default class Ticker {
                     } else {
                         // первая генерация моба, если его ещё не было в БД
                         const params = {
-                            type: 'mob/bee',
+                            type: MOB_TYPE.BEE,
                             skin: 'base',
                             pos: spawn_pos
                         };

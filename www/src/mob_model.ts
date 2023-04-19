@@ -2,7 +2,7 @@ import { Resources } from "./resources.js";
 import { Color, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { AABBDrawable, NetworkPhysicObject } from './network_physic_object.js';
-import { MOUSE } from "./constant.js";
+import { MOB_TYPE, MOUSE } from "./constant.js";
 import { Mesh_Object_MobFire } from "./mesh/object/mob_fire.js";
 import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
@@ -97,7 +97,7 @@ export class MobModel extends NetworkPhysicObject {
 
         // load mesh
         const render = Qubatch.render as Renderer
-        const type = this.type.startsWith('player') ? 'mob/humanoid' : this.type
+        const type = this.type.startsWith('player') ? MOB_TYPE.HUMANOID : this.type
         const model = Resources._bbmodels.get(type)
         if(!model) {
             console.error(`error_model_not_found|${type}`)
@@ -206,11 +206,10 @@ export class MobModel extends NetworkPhysicObject {
         // TODO: need to migrate to bbmodels
         // // ignore_roots
         // const ignore_roots = [];
-        // if(this.type == 'mob/sheep' && this.extra_data?.is_sheared) {
+        // if(this.type == MOB_TYPE.SHEEP && this.extra_data?.is_sheared) {
         //     ignore_roots.push('geometry.sheep.v1.8:geometry.sheep.sheared.v1.8');
         // }
 
-    
         // Draw in fire
         if(this.extra_data?.in_fire) {
             this.drawInFire(render, delta);

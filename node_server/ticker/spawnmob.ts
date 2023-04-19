@@ -3,6 +3,7 @@ import {BLOCK} from "@client/blocks.js";
 import {ServerClient} from "@client/server_client.js";
 import { WorldAction } from "@client/world_action.js";
 import type { TickingBlockManager } from "../server_chunk.js";
+import { MOB_TYPE } from "@client/constant.js";
 
 const SPAWN_PLAYER_DISTANCE     = 16;
 const SPAWN_RAD_HOR             = 4;
@@ -91,7 +92,7 @@ export default class Ticker {
                     }
                     // проверяем освещенность для нежети
                     if ((body.lightValue & 0xFF) > 160 || ((body.lightValue >> 8) < 100)) {
-                        if (extra_data.type == 'mob/zombie' || extra_data.type == 'mob/skeleton') {
+                        if (extra_data.type == MOB_TYPE.ZOMBIE || extra_data.type == MOB_TYPE.SKELETON) {
                             spawn_disabled = true
                         }
                     }

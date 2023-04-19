@@ -4,6 +4,7 @@ import { TBlock } from "@client/typed_blocks3.js";
 import {impl as alea} from '../../www/vendors/alea.js';
 import type { MobSpawnParams } from "../mob.js";
 import type { ServerChunk } from "../server_chunk.js";
+import { MOB_TYPE } from "@client/constant.js";
 
 // Mob generator
 export class MobGenerator {
@@ -14,13 +15,13 @@ export class MobGenerator {
 
     constructor(chunk: ServerChunk) {
         this.chunk = chunk;
-        this.types.push({type: 'mob/chicken', skin: 'base', count: 4});
-        this.types.push({type: 'mob/chicken', skin: 'base', count: 4});
-        this.types.push({type: 'mob/sheep', skin: 'base', count: 4});
-        this.types.push({type: 'mob/cow', skin: 'base', count: 4});
-        this.types.push({type: 'mob/horse', skin: 'creamy', count: 2});
-        this.types.push({type: 'mob/pig', skin: 'base', count: 4});
-        this.types.push({type: 'mob/fox', skin: 'base', count: 1});
+        this.types.push({type: MOB_TYPE.CHICKEN, skin: 'base', count: 4});
+        this.types.push({type: MOB_TYPE.CHICKEN, skin: 'base', count: 4});
+        this.types.push({type: MOB_TYPE.SHEEP, skin: 'base', count: 4});
+        this.types.push({type: MOB_TYPE.COW, skin: 'base', count: 4});
+        this.types.push({type: MOB_TYPE.HORSE, skin: 'creamy', count: 2});
+        this.types.push({type: MOB_TYPE.PIG, skin: 'base', count: 4});
+        this.types.push({type: MOB_TYPE.FOX, skin: 'base', count: 1});
     }
 
     async generate() {

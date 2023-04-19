@@ -3,6 +3,7 @@ import { Vector } from "@client/helpers.js";
 import { WorldAction } from "@client/world_action.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
 import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
+import { MOB_TYPE } from "@client/constant.js";
 
 export class Brain extends FSMBrain {
     distance_attack: number;
@@ -48,7 +49,7 @@ export class Brain extends FSMBrain {
             this.target = player;
             // Если выбран режим hard, то устанавливаем общий таргет
             if (difficulty == EnumDifficulty.HARD) {
-                const bots = world.getMobsNear(mob.pos, this.distance_view, 'mob/zombie');
+                const bots = world.getMobsNear(mob.pos, this.distance_view, MOB_TYPE.ZOMBIE);
                 for (const bot of bots) {
                     const brain = bot.getBrain();
                     if (!brain.target) {

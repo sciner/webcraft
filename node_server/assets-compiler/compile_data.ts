@@ -1,4 +1,4 @@
-import { BLOCK_GROUP_TAG } from "@client/constant.js";
+import { BLOCK_GROUP_TAG, MOB_TYPE } from "@client/constant.js";
 import {Color} from "@client/helpers.js";
 import { COLOR_PALETTE, Resources } from "@client/resources.js";
 
@@ -386,22 +386,22 @@ export class CompileData {
         };
 
         const eggs = [
-            {id: 521, type: 'mob/chicken', skin: 'base'},
+            {id: 521, type: MOB_TYPE.CHICKEN, skin: 'base'},
             {id: 522, type: 'mob/creeper', skin: 'base'},
-            {id: 523, type: 'mob/pig', skin: 'base'},
-            {id: 524, type: 'mob/horse', skin: 'creamy'},
-            {id: 525, type: 'mob/horse', skin: 'base'},
+            {id: 523, type: MOB_TYPE.PIG, skin: 'base'},
+            {id: 524, type: MOB_TYPE.HORSE, skin: 'creamy'},
+            {id: 525, type: MOB_TYPE.HORSE, skin: 'base'},
             {id: 651, type: 'mob/fox', skin: 'base'},
             {id: 1448, type: 'mob/skeleton', skin: 'base'},
             {id: 1449, type: 'mob/axolotl', skin: 'base'},
-            {id: 1450, type: 'mob/bee', skin: 'base'},
-            {id: 1451, type: 'mob/cow', skin: 'base'},
+            {id: 1450, type: MOB_TYPE.BEE, skin: 'base'},
+            {id: 1451, type: MOB_TYPE.COW, skin: 'base'},
             {id: 1453, type: 'mob/goat', skin: 'base'},
             {id: 1454, type: 'mob/hoglin', skin: 'base'},
             {id: 1455, type: 'mob/ocelot', skin: 'base'},
             {id: 1456, type: 'mob/panda', skin: 'base'},
             {id: 1457, type: 'mob/piglin', skin: 'base'},
-            {id: 1458, type: 'mob/sheep', skin: 'base'},
+            {id: 1458, type: MOB_TYPE.SHEEP, skin: 'base'},
             //
             {id: 1452, type: 'mob/deer', skin: 'base'},
             {id: 1459, type: 'mob/snow_golem', skin: 'base'},

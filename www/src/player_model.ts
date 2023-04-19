@@ -4,40 +4,28 @@ import GeometryTerrain from "./geometry_terrain.js";
 import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
 import { MobModel } from "./mob_model.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
-import { SceneNode } from "./SceneNode.js";
+import { Mesh_Object_Base } from "./mesh/object/base.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
 import type { PlayerHands, TAnimState, TSittingState, TSleepState} from "./player.js";
 import type { NetworkPhysicObjectState } from "./network_physic_object.js";
 import type { World } from "./world.js";
 import type { TMobProps } from "./mob_manager.js";
-import { Mesh_Object_Base } from "./mesh/object/base.js";
 
 const { quat, mat4 } = glMatrix
 const SWING_DURATION = 6
-const RIGHT_ARM_ITEM_PLACE_NAME = 'RightArmItemPlace'
 
 const KEY_SLOT_MAP = {
-    left: 'LeftArm',
-    right: 'RightArm'
+    left: 'LeftArmItemPlace',
+    right: 'RightArmItemPlace'
 };
 
 export class ModelSlot {
-    holder: SceneNode;
-    id: number;
-    name: string;
+    id: int = -1
+    item?: Mesh_Object_Block_Drop
 
-    constructor(name : string = '', parent = null) {
+    constructor() {}
 
-        this.holder = new SceneNode(parent);
-        this.holder.position.set(parent.pivot);
-
-        this.id = -1;
-
-        this.name = name;
-
-        this.holder.updateMatrix();
-    }
 }
 
 // An adapter that allows using ServerPlayer and PlayerModel in the same way
@@ -61,7 +49,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     distance:           number | null
     textCanvas:         HTMLCanvasElement
     textContext:        any
-    slots:              Dict<any> = {}
+    slots:              Map<string, ModelSlot> = new Map()
     swingProgress:      float = 0
     swingProgressInt:   float = 0
     isSwingInProgress:  boolean = false
@@ -91,7 +79,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     changeSlots(data: PlayerHands) {
         this.activeSlotsData = data;
 
-        if (this.sceneTree && this.activeSlotsData) {
+        if (this.activeSlotsData) {
             for(const key in this.activeSlotsData) {
                 this.changeSlotEntry(KEY_SLOT_MAP[key], this.activeSlotsData[key]);
             }
@@ -99,100 +87,72 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     }
 
     // Draw inhand item
-    changeSlotEntry(name : string, props) {
-        if (!name || !props) {
-            return;
-        }
-
-        let {id} = props
-
-        id = typeof id !== 'number' ? -1 : id;
-
-        let slotLocation = null;
-        for(let st of this.sceneTree) {
-            slotLocation = st.findNode(name + 'ItemPlace');
-            if(slotLocation) {
-                break;
-            }
-        }
-
-        if (!slotLocation) {
-            return;
-        }
-
-        const slot = (this.slots[name] || (this.slots[name] = new ModelSlot(name, slotLocation)));
-
-        if (id == slot.id && slot.holder.terrainGeometry) {
-            return;
-        }
-
-        // destroy buffer
-        if (slot.holder.terrainGeometry) {
-            slot.holder.terrainGeometry.destroy();
-            slot.holder.terrainGeometry = null;
-        }
-
-        slot.id = id;
-
-        const mesh_modifiers = this._mesh.modifiers
-        mesh_modifiers.hideGroup(RIGHT_ARM_ITEM_PLACE_NAME)
-
-        if (id === -1) {
-            return;
-        }
-
-        const block = BLOCK.fromId(id)
-
-        if(!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name)) {
-            return;
-        }
-
-        let item: Mesh_Object_Block_Drop = null
-
-        try {
-            item = new Mesh_Object_Block_Drop(this.world, null, null, [block], Vector.ZERO);
-        } catch(e) {
-            console.error(e)
+    changeSlotEntry(name : string, props : {id: int|null, scale: float|null}) {
+        if (!name || !props || !Object.values(KEY_SLOT_MAP).includes(name)) {
             return
         }
 
-        for(let mesh of item.mesh_group.meshes.values()) {
-            slot.holder.terrainGeometry = mesh.buffer;
-            slot.holder.material = mesh.material;
-            break;
+        const block_id = props.id = typeof props.id !== 'number' ? -1 : props.id
+        let slot : ModelSlot = this.slots.get(name)
+        if(!slot) {
+            slot = new ModelSlot()
+            this.slots.set(name, slot)
         }
 
-        const is_left_arm        = name === 'LeftArm'
-        const orient             = is_left_arm ? -1 : 1
+        if (block_id == slot.id && slot.item) {
+            return
+        }
+
+        // destroy buffer
+        if (slot.item) {
+            slot.item.mesh_group.destroy()
+            // slot.item.destroy()
+            slot.item = null
+        }
+
+        slot.id = block_id
+
+        const mesh_modifiers = this._mesh.modifiers
+        mesh_modifiers.hideGroup(name)
+
+        if (block_id === -1) {
+            return
+        }
+
+        const block = BLOCK.fromId(block_id)
+
+        if(!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name)) {
+            return
+        }
+
+        slot.item = new Mesh_Object_Block_Drop(this.world, null, null, [block], Vector.ZERO)
+
+        const is_right_arm       = name === KEY_SLOT_MAP.right
         const bb_display         = block.bb?.model?.json?.display
-        const bbmodel_hand       = (is_left_arm ? bb_display?.thirdperson_lefthand : bb_display?.thirdperson_righthand) ?? {}
-        const orig_slot_position = slot.holder.orig_position || (slot.holder.orig_position = new Float32Array(slot.holder.position))
+        const bbmodel_hand       = (is_right_arm ? bb_display?.thirdperson_righthand : bb_display?.thirdperson_lefthand) ?? {}
+        // const orient             = is_right_arm ? -1 : 1
 
         const base = {
             scale:      new Float32Array([1, 1, 1]),
-            // position:   new Float32Array(orig_slot_position), // внутрь туловища / от туловища; вдоль руки; над рукой
-            // pivot:      new Float32Array([0, 0, -.5]),
-            position:   new Float32Array([0, 0, 0]), // внутрь туловища / от туловища; вдоль руки; над рукой
+            position:   new Float32Array([0, 0, 0]),
             pivot:      new Float32Array([0, -.5, 0]),
             rotation:   new Float32Array([0, 0, 0]),
         }
 
-        if(bb_display || !!block.bb) {
+        if(bb_display || block.bb) {
             // 1. position (1 = 1/16)
-            // base.position[2] += .5
             if(bbmodel_hand.translation) {
                 base.position[0] = bbmodel_hand.translation[0] / 16
                 base.position[1] = bbmodel_hand.translation[1] / 16
                 base.position[2] = bbmodel_hand.translation[2] / 16
             }
-            // // 2. pivot
-            // // 3. rotation (в градусах -180...180)
+            // 2. rotation (в градусах -180...180)
             if(bbmodel_hand.rotation) {
                 base.rotation[0] = bbmodel_hand.rotation[0]
                 base.rotation[1] = -bbmodel_hand.rotation[1]
                 base.rotation[2] = -bbmodel_hand.rotation[2]
             }
-            // 4. scale
+            // 3. scale
             if(bbmodel_hand.scale) {
                 base.scale.set(bbmodel_hand.scale)
             }
@@ -227,8 +187,8 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         quat.fromEuler(q, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
         mat4.fromRotationTranslationScaleOrigin(matrix, q, base.position, base.scale, base.pivot)
 
-        mesh_modifiers.showGroup(RIGHT_ARM_ITEM_PLACE_NAME)
-        mesh_modifiers.replaceGroupWithMesh(RIGHT_ARM_ITEM_PLACE_NAME, item, matrix)
+        mesh_modifiers.showGroup(name)
+        mesh_modifiers.replaceGroupWithMesh(name, slot.item, matrix)
 
     }
 

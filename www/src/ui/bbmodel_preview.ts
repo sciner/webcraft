@@ -7,6 +7,7 @@ import { Resources } from "../resources.js"
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import { BLOCK } from "../blocks.js"
 import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js"
+import { MOB_TYPE } from "../constant.js"
 
 const {mat4} = glMatrix;
 
@@ -78,7 +79,7 @@ export class BBModel_Preview {
         this.render.camPos = this.camPos
 
         // Add humanoid mesh #1
-        this.mesh = this.render.addBBModel(player.lerpPos.add(new Vector(-.5, 0, 1)), 'mob/humanoid', player.rotate, 'idle', 'humanoid')
+        this.mesh = this.render.addBBModel(player.lerpPos.add(new Vector(-.5, 0, 1)), MOB_TYPE.HUMANOID, player.rotate, 'idle', 'humanoid')
         // this.mesh.modifiers.appendToGroup('head', 'tool/sunglasses')
         // this.mesh.modifiers.appendToGroup('RightArmItemPlace', 'tool/iron_sword', 'thirdperson_righthand')
         this.mesh.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor', 'scrap_armor_copper.png')
@@ -97,7 +98,7 @@ export class BBModel_Preview {
         }, 2000)
 
         // Add humanoid mesh #2
-        this.mesh2 = this.render.addBBModel(player.lerpPos.add(new Vector(.5, 0, 0)), 'mob/humanoid', player.rotate.clone(), 'walk', 'humanoid2')
+        this.mesh2 = this.render.addBBModel(player.lerpPos.add(new Vector(.5, 0, 0)), MOB_TYPE.HUMANOID, player.rotate.clone(), 'walk', 'humanoid2')
         this.mesh2.modifiers.appendToGroup('RightArmItemPlace', 'tool/iron_sword', 'thirdperson_righthand')
         this.mesh2.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor', 'scrap_armor_copper.png')
         this.mesh2.modifiers.replaceGroup('chestplate4', 'armor/scrap_armor', 'scrap_armor_diamond.png')

@@ -22,7 +22,7 @@ import { BLOCK, DBItemBlock } from "@client/blocks.js";
 import { ServerClient } from "@client/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { GAME_DAY_SECONDS, GAME_ONE_SECOND, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
+import { GAME_DAY_SECONDS, GAME_ONE_SECOND, MOB_TYPE, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
 import { Weather } from "@client/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
@@ -336,7 +336,7 @@ export class ServerWorld implements IWorld {
         for (const player of this.players.values()) {
             if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS.DEAD) {
                 // количество мобов одного типа в радиусе спауна
-                const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, ['mob/zombie', 'mob/skeleton']);
+                const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, [MOB_TYPE.ZOMBIE, MOB_TYPE.SKELETON]);
                 if (mobs.length <= 4) {
                     // TODO: Вот тут явно проблема, поэтому зомби спавняться близко к игроку!
                     // выбираем рандомную позицию для спауна
@@ -368,8 +368,8 @@ export class ServerWorld implements IWorld {
                             const players = this.getPlayersNear(spawn_pos, 10);
                             if (players.length == 0) {
                                 // тип мобов для спауна
-                                const type_mob = (Math.random() < 0.5) ? 'mob/zombie' : 'mob/skeleton';
-                                spawn_pos.addSelf(new Vector(0.5, 0, 0.5));
+                                const type_mob = (Math.random() < 0.5) ? MOB_TYPE.ZOMBIE : MOB_TYPE.SKELETON;
+                                spawn_pos.addScalarSelf(0.5, 0, 0.5)
                                 const params = new MobSpawnParams(spawn_pos, Vector.ZERO.clone(), type_mob, 'base')
                                 const actions = new WorldAction(null, this, false, false);
                                 actions.spawnMob(params);
