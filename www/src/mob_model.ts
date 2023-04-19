@@ -83,6 +83,8 @@ export class MobModel extends NetworkPhysicObject {
     running:            boolean = false
     health:             number = 100
 
+    is_sheared:         boolean = false
+
     constructor(props : TMobProps, world : World) {
 
         super(world, new Vector(0, 0, 0), new Vector(0, 0, 0))
@@ -241,9 +243,11 @@ export class MobModel extends NetworkPhysicObject {
                     } else {
                         mesh.setAnimation('run')
                     }
+                } else if (this.sneak) {
+                    mesh.setAnimation('sneak_idle')
                 } else if (this.anim) {
                     mesh.setAnimation(this.anim.title)
-                } else {
+                }else {
                     mesh.setAnimation('idle')
                 }
             }
