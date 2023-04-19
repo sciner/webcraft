@@ -8,7 +8,7 @@ export class TerrainSubGeometry implements IGeomCopyOperation {
     glOffsets: number[] = [];
     glCounts: number[] = [];
     batchStart = 0;
-    isDynamic = false;
+    batchStatus = 0;
     copyId = -1;
     pages: number[] = [];
     sizeQuads: number;
@@ -43,8 +43,8 @@ export class TerrainSubGeometry implements IGeomCopyOperation {
             }
             batch.addArrayBuffer(floatBuffer);
         }
-        if (!this.isDynamic) {
-            this.isDynamic = true;
+        if (this.batchStatus < batch.flipStatus) {
+            this.batchStatus = batch.flipStatus;
             batch.copies.push(this);
         }
     }

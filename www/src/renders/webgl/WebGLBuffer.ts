@@ -1,15 +1,12 @@
 import {BaseBuffer} from "../BaseRenderer.js";
-import type {IGeomCopyOperation} from "../../geom/big_geom_batch_update.js";
 import type {IvanArray} from "../../helpers";
-
-let globalCopyId = 0;
+import type {GeomCopyOperation} from "../../geom/big_geom_batch_update";
 
 export class WebGLBuffer extends BaseBuffer {
     /**
      * length of last uploaded buffer to webgl, in bytes
      */
     glLength = 0;
-    glType = 0;
     buffer: WebGLBuffer = null;
     glTrySubData = true;
 
@@ -101,28 +98,16 @@ export class WebGLBuffer extends BaseBuffer {
         gl.bindBuffer(loc, this.buffer);
     }
 
-    batchUpdate(updBuffer: BaseBuffer, copies: IvanArray<any>, stride: number) {
+    batchUpdate(updBuffer: BaseBuffer, copies: IvanArray<GeomCopyOperation>, stride: number) {
         const {gl} = this.context;
 
         const loc = gl.COPY_WRITE_BUFFER;
         this.bind(loc);
         updBuffer.bind(gl.COPY_READ_BUFFER);
-        const copyId = ++globalCopyId;
         for (let i = 0; i < copies.count; i++) {
             const op = copies.arr[i];
-            if (op.copyId === copyId) {
-                continue;
-            }
-            op.copyId = copyId;
-            let batchPos = op.batchStart;
-            const len = op.glCounts.length;
-            for (let j = 0; j < len; j++) {
-                const offset = op.glOffsets[j];
-                const count = op.glCounts[j];
-                gl.copyBufferSubData(gl.COPY_READ_BUFFER, loc,
-                    batchPos * stride, offset * stride, count * stride);
-                batchPos += count;
-            }
+            gl.copyBufferSubData(gl.COPY_READ_BUFFER, loc,
+                op.src * stride, op.dst * stride, op.count * stride);
         }
     }
 
