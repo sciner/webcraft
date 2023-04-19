@@ -382,6 +382,7 @@ export default class style {
                 if (bm.canPaneConnect(neighbours.SOUTH)) except_list.push('south')
                 if (bm.canPaneConnect(neighbours.NORTH)) except_list.push('north')
                 model.hideAllExcept(except_list)
+                mat4.rotateY(matrix, matrix, Math.PI)
                 break
             }
             case 'chest': {
@@ -420,6 +421,7 @@ export default class style {
                 if(!bm.canFenceConnect(neighbours.EAST)) hide_group_names.push('east')
                 model.hideGroups(hide_group_names)
                 style.selectTextureFromPalette(model, {name: mat.name}, tblock)
+                mat4.rotateY(matrix, matrix, Math.PI)
                 break
             }
             case 'pot': {

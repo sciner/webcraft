@@ -158,25 +158,13 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             }
         } else {
             let { scale = 0.3 } = props
-            // mc steve model
-            // if (block.diagonal) {
-            //     scale *= 1.2;
-            //     base.rotation.set([10 * orient, -70, 90 + 10 * orient])
-            // } else {
-            //     base.rotation.set([20, 0, -20])
-            // }
             // new model
             if (block.diagonal) {
                 scale *= 1.2
-                // x - вдоль
-                // y - вокруг своей оси
-                // z - другое
-                base.rotation.set([42.5, 0, 90])
-                base.pivot.set([.035, -.07, .35])
+                base.rotation.set([42.5, 90, 0])
                 base.position[1] += 1.5 / 16
             } else {
-                base.rotation.set([0, 0, -30])
-                base.pivot.set([0, 0, scale / 2])
+                base.rotation.set([0, -30, 0])
             }
             base.scale.set([scale, scale, scale])
         }

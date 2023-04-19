@@ -954,6 +954,7 @@
                 "rotate": [
                     {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.shape": [1, 2, 7]}},
                     {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.shape": [5, 8]}},
+                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.shape": [4, 6]}},
                     {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.shape": [3, 9]}}
                 ]
             }
