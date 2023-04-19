@@ -2,13 +2,30 @@ import type { BaseBigGeometry } from "./base_big_geometry";
 import type {BaseGeometryVao} from "./base_geometry_vao";
 import type {TerrainSubGeometry} from "./terrain_sub_geometry";
 import {IvanArray} from "../helpers.js";
-import {GL_BUFFER_LOCATION} from "./base_geometry_vao.js";
+import {SimplePool} from "../helpers/simple_pool.js";
 
-export interface IGeomCopyOperation {
-    batchStart: number;
-    glOffsets: number[];
-    glCounts: number[];
-    copyId: number;
+/**
+ * stores instance indexes
+ */
+export class GeomCopyOperation {
+    src: number;
+    dst: number;
+    count: number;
+
+    reset() {
+        this.src = 0;
+        this.dst = 0;
+        this.count = 0;
+    }
+
+    set(src: number, dst: number, count: number) {
+        this.src = src;
+        this.dst = dst;
+        this.count = count;
+        return this;
+    }
+
+    static pool = new SimplePool<GeomCopyOperation>(GeomCopyOperation);
 }
 
 export class BigGeomBatchUpdate {
@@ -18,6 +35,7 @@ export class BigGeomBatchUpdate {
     baseGeom: BaseBigGeometry;
     vao: BaseGeometryVao;
     data: Float32Array;
+    copyOps = new IvanArray<GeomCopyOperation>();
 
     constructor(baseGeom: BaseBigGeometry) {
         this.baseGeom = baseGeom;
@@ -42,27 +60,44 @@ export class BigGeomBatchUpdate {
         const f32 = new Float32Array(ab);
         this.data.set(f32, this.instCount * this.strideFloats);
         this.instCount += f32.length / this.strideFloats;
+        if (this.vao.buffer) {
+            this.vao.buffer.dirty = true;
+        }
     }
 
     reset() {
         this.instCount = 0;
-        const {copies} = this;
+        const {copies, copyOps} = this;
         for (let i = 0; i < copies.count; i++) {
-            copies.arr[i].isDynamic = false;
+            copies.arr[i].batchStatus = 0;
         }
-        copies.count = 0;
+        copies.clear();
+        for (let i = 0; i < copyOps.count; i++) {
+            GeomCopyOperation.pool.free(copyOps.arr[i]);
+        }
+        copyOps.clear();
     }
 
     flipInstCount = 0;
     flipCopyCount = 0;
 
     checkInvariant() {
-        const {flipCopyCount, copies, flipInstCount, data, strideFloats} = this;
-        for (let i = 0; i < flipCopyCount; i++) {
+        const {flipCopyCount, copies, flipInstCount, postFlipCopyCount} = this;
+        for (let i = 0; i < copies.count; i++) {
             const copy = copies.arr[i];
-            if (copy.isDynamic) {
+            let st = 0;
+            if (i >= flipCopyCount) {
+                st++;
+                if (i >= postFlipCopyCount) {
+                    st++;
+                }
+            }
+            if (copy.batchStatus < st) {
+                console.log("WTF");
+            }
+            if (copy.batchStatus > st) {
                 let find = -1;
-                for (let j = flipCopyCount; j < copies.count; j++) {
+                for (let j = i + 1; j < copies.count; j++) {
                     if (copies.arr[j] === copy) {
                         find = j;
                         break;
@@ -71,6 +106,14 @@ export class BigGeomBatchUpdate {
                 if (find < 0) {
                     console.log("WTF");
                 }
+            }
+        }
+        for (let i = flipCopyCount; i < postFlipCopyCount; i++) {
+            if (!copies.arr[i]) {
+                console.log("WTF2");
+            } else
+            if (!copies.arr[i].batchStatus) {
+                console.log("WTF");
             }
         }
         let maxBatch = 0;
@@ -84,26 +127,68 @@ export class BigGeomBatchUpdate {
         }
     }
 
+    postFlipInstCount = 0;
+    postFlipCopyCount = 0;
+    flipStatus = 1;
+
+    preFlip() {
+        this.postFlipInstCount = this.instCount;
+        this.postFlipCopyCount = this.copies.count;
+        this.flipStatus = 2;
+
+        const {flipCopyCount, copies, copyOps} = this;
+        for (let i = 0; i < copyOps.count; i++) {
+            GeomCopyOperation.pool.free(copyOps.arr[i]);
+        }
+        copyOps.clear();
+        for (let i = 0; i < copies.count; i++) {
+            const copy = copies.arr[i];
+            if (copy.batchStatus > 0 && i < flipCopyCount) {
+                continue;
+            }
+            let pos = copy.batchStart;
+            for (let j = 0; j < copy.glCounts.length; j++) {
+                copyOps.push(GeomCopyOperation.pool.alloc().set(pos, copy.glOffsets[j], copy.glCounts[j]));
+                pos += copy.glCounts[j];
+            }
+        }
+    }
 
     flip() {
-        const {flipCopyCount, copies, flipInstCount, data, strideFloats} = this;
-        //this.checkInvariant();
-        for (let i = flipCopyCount; i < copies.count; i++) {
+        const {flipCopyCount, copies, flipInstCount, data, strideFloats,
+            postFlipInstCount, postFlipCopyCount} = this;
+        // this.checkInvariant();
+        for (let i = flipCopyCount; i < postFlipCopyCount; i++) {
             copies.arr[i].batchStart -= flipInstCount;
-            copies.arr[i].isDynamic = false;
+            copies.arr[i].batchStatus--;
+        }
+        for (let i = postFlipCopyCount; i < copies.count; i++) {
+            if (copies.arr[i].batchStatus === 2) {
+                copies.arr[i].batchStart -= flipInstCount;
+                copies.arr[i].batchStatus--;
+            }
         }
         if (flipInstCount === 0) {
-            this.flipCopyCount = copies.count;
-            this.flipInstCount = this.instCount;
+            this.flipCopyCount = postFlipCopyCount;
+            this.flipInstCount = postFlipInstCount;
+            this.postFlipInstCount = this.instCount;
+            this.postFlipCopyCount = this.copies.count;
+            this.flipStatus = 1;
+            // this.checkInvariant();
             return;
         }
         copies.shiftCount(flipCopyCount);
-        this.flipCopyCount = copies.count;
+        this.flipCopyCount = postFlipCopyCount - flipCopyCount;
 
         data.copyWithin(0, flipInstCount * strideFloats, this.instCount * strideFloats);
         this.instCount -= flipInstCount;
-        this.flipInstCount = this.instCount;
-        //this.checkInvariant();
+        this.flipInstCount = postFlipInstCount - flipInstCount;
+
+        this.postFlipInstCount = this.instCount;
+        this.postFlipCopyCount = this.copies.count;
+        this.flipStatus = 1;
+        // this.checkInvariant();
+        this.updDynamic();
     }
 
     updDynamic() {
