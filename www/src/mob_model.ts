@@ -79,6 +79,9 @@ export class MobModel extends NetworkPhysicObject {
     _mesh:              Mesh_Object_BBModel
     _fire_mesh:         any
     anim?:              false | TAnimState 
+    ground:             boolean = true
+    running:            boolean = false
+    health:             number = 100
 
     constructor(props : TMobProps, world : World) {
 
@@ -205,8 +208,7 @@ export class MobModel extends NetworkPhysicObject {
         //     ignore_roots.push('geometry.sheep.v1.8:geometry.sheep.sheared.v1.8');
         // }
 
-        
-
+    
         // Draw in fire
         if(this.extra_data?.in_fire) {
             this.drawInFire(render, delta);
@@ -229,7 +231,7 @@ export class MobModel extends NetworkPhysicObject {
                 mesh.rotation[2] = this.draw_yaw ? this.draw_yaw : 0
                 if (this.sitting) {
                     mesh.setAnimation('sitting')
-                } else if (this.jump) {
+                } else if (!this.ground) {
                     mesh.setAnimation('jump')
                 } else if (this.moving) {
                     if (this.sneak) {
@@ -244,7 +246,7 @@ export class MobModel extends NetworkPhysicObject {
                 } else {
                     mesh.setAnimation('idle')
                 }
-            } 
+            }
             mesh.apos.copyFrom(this._pos)
             mesh.drawBuffered(render, delta)
         }

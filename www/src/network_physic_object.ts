@@ -42,7 +42,6 @@ export class NetworkPhysicObject {
         this.yaw            = 0;
         this.pitch          = 0;
         this.sneak          = 0;
-        this.jump           = false
 
         // Networking
         this.netBuffer = [];
@@ -82,7 +81,6 @@ export class NetworkPhysicObject {
         this._pos.copyFrom(v);
 
         this.moving = Math.abs(dx) + Math.abs(dz) != 0
-        this.jump = Math.abs(dy) != 0
     }
 
     get clientTime() {

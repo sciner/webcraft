@@ -14,6 +14,7 @@ import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
 
 import type { Player, PlayerStateUpdate } from "./player.js";
 import type { HUD } from "./hud.js";
+import { group } from "console";
 
 // TrackerPlayer
 (globalThis as any).TrackerPlayer = new Tracker_Player();
@@ -480,17 +481,19 @@ export class GameClass {
                                     */
                                     data: {
                                         id:       -1,
-                                        username: Lang.im,
-                                        pos:      player.lerpPos.clone(),
-                                        rotate:   player.rotate.clone(),
-                                        skin:     player.skin,
-                                        hands:    player.state.hands,
-                                        sitting:  player.state.sitting,
-                                        health:   player.state.indicators.live,
-                                        armor:    player.inventory.exportArmorState(),
-                                        sneak:    player.sneak,
-                                        sleep:    player.state.sleep,
-                                        anim:     player.state.anim
+                                        username:   Lang.im,
+                                        pos:        player.lerpPos.clone(),
+                                        rotate:     player.rotate.clone(),
+                                        skin:       player.skin,
+                                        hands:      player.state.hands,
+                                        sitting:    player.state.sitting,
+                                        health:     player.state.indicators.live,
+                                        armor:      player.inventory.exportArmorState(),
+                                        sneak:      player.sneak,
+                                        sleep:      player.state.sleep,
+                                        anim:       player.state.anim,
+                                        ground:     true,
+                                        running:    false
                                         /* It's unused, and it doesn't exist on player.state
                                         "scale":    player.state.scale
                                         */

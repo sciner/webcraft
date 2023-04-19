@@ -465,6 +465,7 @@ export class ServerPlayer extends Player {
     //
     exportStateUpdate(): PlayerStateUpdate {
         const state = this.state
+        const control = this.controlManager.prismarine.player_state
         return {
             id:       this.session.user_id,
             username: this.session.username,
@@ -477,8 +478,10 @@ export class ServerPlayer extends Player {
             sleep:    state.sleep,
             anim:     state.anim,
             armor:    this.inventory.exportArmorState(),
-            health:   state.indicators.live
-        };
+            health:   state.indicators.live,
+            ground:   control.onGround,
+            running:  control.control.sprint
+        }
     }
 
     async preTick(delta, tick_number) {

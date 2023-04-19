@@ -120,6 +120,8 @@ export type PlayerStateUpdate = PlayerStateDynamicPart & {
     /** it's never set. It's just checked, and if it's not defined, 'player' type is used. */
     type ?
     dist ?      : number // null means that the player is too far, and it stopped receiving updates
+    ground      : boolean
+    running     : boolean
 }
 
 export type PlayerConnectData = {
@@ -1161,7 +1163,6 @@ export class Player implements IPlayer {
                 this.lerpPos,
                 this.rotate,
                 this.controls.sneak,
-                this.moving, // && !this.getFlying(),
                 this.running && !this.isSneak,
                 this.state.hands,
                 this.state.sitting,
