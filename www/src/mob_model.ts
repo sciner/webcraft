@@ -46,7 +46,7 @@ export class MobModel extends NetworkPhysicObject {
 	aniframe :          int = 0
 	width :             int = 0
 	height :            int = 0
-	on_ground :         boolean = true
+	//on_ground :         boolean = true
 	tintColor :         Color = new Color(0, 0, 0, 0)
 	textures :          Map<string, any> = new Map()
 	type :              string
@@ -205,6 +205,8 @@ export class MobModel extends NetworkPhysicObject {
         //     ignore_roots.push('geometry.sheep.v1.8:geometry.sheep.sheared.v1.8');
         // }
 
+        
+
         // Draw in fire
         if(this.extra_data?.in_fire) {
             this.drawInFire(render, delta);
@@ -219,7 +221,6 @@ export class MobModel extends NetworkPhysicObject {
 
         if(mesh) {
             this.setArmor()
-            const ground = Math.abs(this._prevPos.y - this._pos.y) != 0 ? false : true
             if (this.sleep) {
                 const rot = this.sleep.rotate.z * 2 * Math.PI
                 mesh.rotation[2] = rot % Math.PI ? rot : rot + Math.PI
@@ -228,7 +229,7 @@ export class MobModel extends NetworkPhysicObject {
                 mesh.rotation[2] = this.draw_yaw ? this.draw_yaw : 0
                 if (this.sitting) {
                     mesh.setAnimation('sitting')
-                } else if (!ground) {
+                } else if (this.jump) {
                     mesh.setAnimation('jump')
                 } else if (this.moving) {
                     if (this.sneak) {
@@ -246,7 +247,6 @@ export class MobModel extends NetworkPhysicObject {
             } 
             mesh.apos.copyFrom(this._pos)
             mesh.drawBuffered(render, delta)
-            this._prevPos.y = this._pos.y
         }
     }
 

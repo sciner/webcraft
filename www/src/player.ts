@@ -417,36 +417,36 @@ export class Player implements IPlayer {
                     })
                 }, 500)
             } else {
-            const instrument = this.getCurrentInstrument()
-            const speed = instrument?.speed ? instrument.speed : 1
-            const time = e.start_time - this.timer_attack
-            if (time < 500) {
-                return
-            }
-            this.mineTime = 0
-            if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
-                this.inAttackProcess = ATTACK_PROCESS_ONGOING;
-                this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD / speed
-            }
-            this.timer_attack = e.start_time
-            if (e.interactPlayerID) {
-                const player = Qubatch.world.players.get(e.interactPlayerID);
-                if (player) {
-                    player.punch(e);
+                const instrument = this.getCurrentInstrument()
+                const speed = instrument?.speed ? instrument.speed : 1
+                const time = e.start_time - this.timer_attack
+                if (time < 500) {
+                    return
                 }
-            }
-            if (e.interactMobID) {
-                const mob = Qubatch.world.mobs.get(e.interactMobID);
-                if (mob) {
-                    mob.punch(e);
+                this.mineTime = 0
+                if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
+                    this.inAttackProcess = ATTACK_PROCESS_ONGOING;
+                    this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD / speed
                 }
-            }
-            if (e.interactMobID || e.interactPlayerID) {
-                this.world.server.Send({
-                    name: ServerClient.CMD_PICKAT_ACTION,
-                    data: e
-                });
-            }
+                this.timer_attack = e.start_time
+                if (e.interactPlayerID) {
+                    const player = Qubatch.world.players.get(e.interactPlayerID);
+                    if (player) {
+                        player.punch(e);
+                    }
+                }
+                if (e.interactMobID) {
+                    const mob = Qubatch.world.mobs.get(e.interactMobID);
+                    if (mob) {
+                        mob.punch(e);
+                    }
+                }
+                if (e.interactMobID || e.interactPlayerID) {
+                    this.world.server.Send({
+                        name: ServerClient.CMD_PICKAT_ACTION,
+                        data: e
+                    });
+                }
             }
         }, (bPos: IPickatEventPos) => {
             // onInteractFluid
@@ -662,7 +662,7 @@ export class Player implements IPlayer {
     }
 
     standUp() {
-        if(this.state.sitting || this.state.lies || this.state.sleep) {
+        if(this.state.sitting || this.state.sleep) {
             this.world.server.Send({
                 name: ServerClient.CMD_STANDUP_STRAIGHT,
                 data: null
@@ -728,7 +728,7 @@ export class Player implements IPlayer {
         }
         //
         if(!this.limitBlockActionFrequency(e) && this.game_mode.canBlockAction()) {
-            if(this.state.sitting || this.state.lies || this.state.sleep) {
+            if(this.state.sitting || this.state.sleep) {
                 console.log('Stand up first');
                 return false;
             }
@@ -1153,6 +1153,9 @@ export class Player implements IPlayer {
     updateModelProps() {
         const model = this.getModel();
         if(model) {
+            /*
+            * Нужно передавать, то что приходит с сервера или будут отличия
+            */
             model.hide_nametag = true;
             model.setProps(
                 this.lerpPos,
@@ -1161,11 +1164,10 @@ export class Player implements IPlayer {
                 this.moving, // && !this.getFlying(),
                 this.running && !this.isSneak,
                 this.state.hands,
-                this.state.lies,
                 this.state.sitting,
                 this.state.sleep,
                 this.state.anim,
-                undefined,
+                this.indicators.live,
                 this.onGround
             )
         }

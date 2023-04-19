@@ -18,7 +18,7 @@ import { DBWorld, PlayerInitInfo } from "./db/world.js"
 import {ServerPlayerVision} from "./server_player_vision.js";
 import {compressNearby} from "@client/packet_compressor.js";
 import { AABB } from "@client/core/AABB.js"
-import { EnumDamage } from "@client/enums/enum_damage.js";
+import type { EnumDamage } from "@client/enums/enum_damage.js";
 import type { ServerWorld } from "./server_world.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
 import { SERVER_SEND_CMD_MAX_INTERVAL } from "./server_constant.js";
@@ -164,7 +164,7 @@ export class ServerPlayer extends Player {
 
     init(init_info: PlayerInitInfo): void {
         this.state = init_info.state;
-        this.state.lies ||= false;
+        this.state.anim ||= false;
         this.state.sitting ||= false;
         this.state.sleep ||= false;
         this.live_level = this.state.indicators.live;
@@ -475,7 +475,6 @@ export class ServerPlayer extends Player {
             sneak:    state.sneak,
             sitting:  state.sitting,
             sleep:    state.sleep,
-            lies:     state.lies,
             anim:     state.anim,
             armor:    this.inventory.exportArmorState(),
             health:   state.indicators.live

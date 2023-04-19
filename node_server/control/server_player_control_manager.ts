@@ -479,7 +479,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         super.onSimulation(prevPos, data)
 
         const ps = this.player.state
-        const sitsOrSleeps = ps.sitting || ps.lies || ps.sleep
+        const sitsOrSleeps = ps.sitting || ps.sleep
         const moved = !prevPos.equal(data.outPos)
         if (!moved) {
             if (!sitsOrSleeps) {
@@ -496,7 +496,6 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             if (this.accumulatedSleepSittingDistance > WAKEUP_MOVEMENT_DISTANCE) {
                 this.accumulatedSleepSittingDistance = 0
                 ps.sitting = false
-                ps.lies = false
                 ps.sleep = false
                 this.serverPlayer.sendPackets([{name: ServerClient.CMD_STANDUP_STRAIGHT, data: null}])
             }

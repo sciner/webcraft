@@ -1,4 +1,5 @@
 import { ServerClient } from "@client/server_client.js";
+import type { ServerPlayer } from "server_player";
 
 export default class packet_reader {
 
@@ -13,7 +14,7 @@ export default class packet_reader {
     }
 
     // use item
-    static async read(player, packet) {
+    static async read(player: ServerPlayer, packet) {
         const target = packet.data.target
         player.combat.onAttack(target.mid, target.pid)
         return true

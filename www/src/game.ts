@@ -478,24 +478,24 @@ export class GameClass {
                                     /* It's unused
                                     "name": ServerClient.CMD_PLAYER_JOIN,
                                     */
-                                    "data": {
-                                        "id":       -1,
-                                        "username": Lang.im,
-                                        "pos":      player.lerpPos.clone(),
-                                        "rotate":   player.rotate.clone(),
-                                        "skin":     player.skin,
-                                        "hands":    player.state.hands,
-                                        "sitting":  player.state.sitting,
-                                        "lies":     player.state.lies,
-                                        health:     player.state.indicators.live,
-                                        armor:      player.inventory.exportArmorState(),
-                                        sneak:      player.sneak,
-                                        "sleep":    player.state.sleep
+                                    data: {
+                                        id:       -1,
+                                        username: Lang.im,
+                                        pos:      player.lerpPos.clone(),
+                                        rotate:   player.rotate.clone(),
+                                        skin:     player.skin,
+                                        hands:    player.state.hands,
+                                        sitting:  player.state.sitting,
+                                        health:   player.state.indicators.live,
+                                        armor:    player.inventory.exportArmorState(),
+                                        sneak:    player.sneak,
+                                        sleep:    player.state.sleep,
+                                        anim:     player.state.anim
                                         /* It's unused, and it doesn't exist on player.state
                                         "scale":    player.state.scale
                                         */
                                     },
-                                    "time": ~~(new Date())
+                                    time: ~~(new Date())
                                 };
                                 player.world.players.add(ghost);
                             }

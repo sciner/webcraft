@@ -388,19 +388,18 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     }
 
     setProps(pos: Vector, rotate: Vector, sneak: boolean, moving: boolean, running: boolean,
-        hands: PlayerHands, lies: boolean, sitting: false | TSittingState,
+        hands: PlayerHands, sitting: false | TSittingState,
         sleep: false | TSleepState, anim : false | TAnimState, health?: number, on_ground: boolean = true): void {
-        this.pos.copyFrom(pos);
+        this.pos = pos
         this.yaw = rotate.z; // around
         this.pitch = rotate.x; // head rotate
         this.sneak = sneak;
-        this.moving = moving;
-        this.running = running;
-        this.lies = lies;
+        //this.moving = moving;
+        //this.running = running;
         this.sitting = sitting;
         this.anim = anim
         this.sleep = sleep
-        this.on_ground = on_ground
+        //this.on_ground = on_ground
         //
         const current_right_hand_id = hands.right?.id;
         if(this.prev_current_id != current_right_hand_id) {

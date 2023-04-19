@@ -1,4 +1,5 @@
 import { ServerClient } from "@client/server_client.js";
+import type { ServerPlayer } from "server_player";
 
 export default class packet_reader {
 
@@ -13,7 +14,7 @@ export default class packet_reader {
     }
 
     // use item
-    static async read(player, packet) {
+    static async read(player: ServerPlayer, packet) {
         const title = packet.data.title
         const speed = packet.data.speed
         const time = packet.data.time

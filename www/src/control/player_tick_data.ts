@@ -117,7 +117,7 @@ export class PlayerTickData {
         const state = player.state
         this.contextGameModeIndex  = player.game_mode.getCurrent().index
         this.contextControlType   = pc.type
-        this.contextTickMode = state.sitting || state.lies || state.sleep
+        this.contextTickMode = state.sitting || state.sleep
             ? PLAYER_TICK_MODE.SITTING_OR_LYING
             : pc.player_state.flying
                 ? PLAYER_TICK_MODE.FLYING
@@ -234,7 +234,7 @@ export class ClientPlayerTickData extends PlayerTickData {
         const player = controlManager.player
         const state = player.state
         const controls = player.controls
-        const applyControl = controls.enabled && !state.sleep && !state.sitting && !state.lies
+        const applyControl = controls.enabled && !state.sleep && !state.sitting
 
         this.inputFlags = applyControl
             ? packBooleans(controls.back,
