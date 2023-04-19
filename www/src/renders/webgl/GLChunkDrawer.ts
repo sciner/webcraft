@@ -38,7 +38,7 @@ export class GLChunkDrawer extends ChunkDrawer {
 
         const baseGeom = geom.baseGeometry;
         if (baseGeom) {
-            const vao = geom.isDynamic ? baseGeom.dynamicDraw : baseGeom.staticDraw;
+            const vao = geom.batchStatus > 0 ? baseGeom.dynamicDraw : baseGeom.staticDraw;
             if (this.curVao !== vao
                 || this.curMat !== material) {
                 this.flush();
@@ -79,7 +79,7 @@ export class GLChunkDrawer extends ChunkDrawer {
                 offsets = this.offsets;
                 counts = this.counts;
             }
-            if (geom.isDynamic) {
+            if (geom.batchStatus > 0) {
                 offsets[sz] = geom.batchStart;
                 counts[sz] = geom.sizeQuads;
                 if ((offsets[sz] + counts[sz]) * curVao.stride > curVao.buffer.glLength) {
@@ -171,5 +171,6 @@ export class GLChunkDrawer extends ChunkDrawer {
                 }
             }
         }
+        this.curVao = null;
     }
 }

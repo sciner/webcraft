@@ -649,8 +649,8 @@ export class ServerChat {
     /**
      * Supported formats:
      * - 'int', '?int', 'float', '?float'
-     * - 'string' - either string or undefined
-     * - 'string|float' - the same semantics as old 'string' - if it's a number, it's parsed as a number
+     * - 'string', '?string' - either string or undefined
+     * - 'string|float', '?string|float' - the same semantics as old 'string' - if it's a number, it's parsed as a number
      * - 'x', 'y', 'z', '?x', '?y', '?z' - similar to 'float' and '?float', but have an additional feature:
      *   if '+' is before the number, then it's relative to the player's position.
      * @returns {(number | string | null)[]} - parsed arguments. To avoid re-writing a lot of code,
@@ -724,6 +724,7 @@ export class ServerChat {
                         ? ch
                         : parseFloat(ch)
                     break
+                case '?string':
                 case 'string':
                     value = ch
                     break
