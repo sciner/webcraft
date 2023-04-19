@@ -14,7 +14,6 @@ import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
 
 import type { Player, PlayerStateUpdate } from "./player.js";
 import type { HUD } from "./hud.js";
-import { group } from "console";
 
 // TrackerPlayer
 (globalThis as any).TrackerPlayer = new Tracker_Player();
