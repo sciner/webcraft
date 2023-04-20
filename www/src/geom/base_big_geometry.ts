@@ -12,6 +12,7 @@ export interface BigGeometryOptions {
 }
 
 export class BaseBigGeometry {
+    staticCopy: any;
     staticSize: number;
     dynamicSize: number;
     useTransformFeedback: boolean;
