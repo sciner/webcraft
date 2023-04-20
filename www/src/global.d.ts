@@ -321,6 +321,7 @@ interface IBlockMaterial {
         can_replace_to_slab: string
     }
     bb: any
+    flags: int // BLOCK_FLAG enum
     planes: IPlane[]
     tx_cnt: number
     overlay_textures_weight: number

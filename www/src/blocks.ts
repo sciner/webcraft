@@ -1540,6 +1540,13 @@ export class BLOCK {
 
     }
 
+    static setFlags() {
+        const blockFlags = BLOCK.flags
+        for(let b of BLOCK.list.values()) {
+            b.flags = blockFlags[b.id] ?? 0
+        }
+    }
+
     //
     static sortBlocks() {
         //
@@ -1677,6 +1684,7 @@ export class BLOCK {
 
         await Promise.all(all).then(([block_styles, _]) => {
             BLOCK.sortBlocks();
+            BLOCK.setFlags();
             BLOCK.autoTags();
             BLOCK.addHardcodedFlags();
             BLOCK.checkGeneratorOptions()
