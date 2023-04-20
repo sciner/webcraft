@@ -268,13 +268,13 @@ export class BBModel_Model {
                         if(channel_name == 'rotation') {
                             const q_cur = quat.create()
                             const q_next = quat.create()
-                            // debugger
                             quat.fromEuler(q_cur, current_point.x, current_point.y, current_point.z, 'zyx');
                             quat.fromEuler(q_next, next_point.x, next_point.y, next_point.z, 'zyx')
                             quat.slerp(q_cur, q_cur, q_next, t2)
                             getEuler(current_point, q_cur)
-                            current_point.x = -current_point.x;
-                            current_point.y = 180 - current_point.y;
+                            let temp = current_point.x;
+                            current_point.x = 180 - current_point.y;
+                            current_point.y = -temp;
                         } else {
                             current_point.lerpFrom(current_point, next_point, t2)
                         }
