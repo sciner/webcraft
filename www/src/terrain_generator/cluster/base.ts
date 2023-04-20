@@ -456,11 +456,11 @@ export class ClusterBase {
     // Return extra data for block MOB_SPAWN
     generateNPCSpawnExtraData() {
         return {
-            "type": "npc",
-            "limit": {"count": 1},
-            "calculated": [
-                {"type": "random_item", "name": "skin", "items": [1, 2, 3, 4, 5, 6, 7, 10]},
-                {"type": "random_int", "name": "max_ticks", "min_max": [1, 1]}
+            type: 'mob/npc',
+            limit: {count: 1},
+            calculated: [
+                {type: 'random_item', name: 'skin', items: [1, 2, 3, 4, 5, 6, 7, 10]},
+                {type: 'random_int', name: 'max_ticks', min_max: [1, 1]}
             ]
         }
     }

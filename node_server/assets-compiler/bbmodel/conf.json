@@ -18,6 +18,7 @@
         {"name": "mob/sheep",           "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "mob/horse",           "shift": {"x": 16, "y": 0, "z": 0}},
         {"name": "mob/fox",             "shift": {"x": 16, "y": 0, "z": 0}},
+        {"name": "mob/npc",             "shift": {"x": 16, "y": 0, "z": 0}},
 
         {"name": "transport/boat",      "shift": {"x": 16, "y": 0, "z": 0}},
 
