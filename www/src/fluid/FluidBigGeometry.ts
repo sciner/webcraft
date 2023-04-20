@@ -2,6 +2,7 @@ import {BaseBigGeometry, BigGeometryOptions} from "../geom/base_big_geometry.js"
 import {FluidGeometryVao} from "./fluid_geometry_vao.js";
 
 export class FluidBigGeometry extends BaseBigGeometry {
+
     constructor(options: BigGeometryOptions) {
         super(options);
         this.createIndex();
