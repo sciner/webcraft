@@ -77,7 +77,7 @@ export class QuadPlane implements IPlane {
 export default class {
 
     //
-    static pushPlane(vertices, plane) {
+    static pushPlane(vertices : float[], plane : QuadPlane) {
 
         const pivot = null;
 

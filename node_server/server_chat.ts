@@ -559,9 +559,13 @@ export class ServerChat {
                     break
                 }
                 args = this.parseCMD(args, ['string', 'x', 'y', 'z', 'string', '?string'], player);
-                const type = args[4]
+                const type_orig = args[4]
+                let type = type_orig
+                if(!type.includes('/')) {
+                    type = `mob/${type}`
+                }
                 if (!world.brains.list.has(type)) {
-                    this.sendSystemChatMessageToSelectedPlayers(`!langUnknown mob type ${type}`, player, false)
+                    this.sendSystemChatMessageToSelectedPlayers(`!langUnknown mob type ${type_orig}`, player, false)
                     break
                 }
                 // @ParamMobAdd

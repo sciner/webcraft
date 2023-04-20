@@ -6,17 +6,18 @@ import type { ServerPlayer } from "../server_player.js";
 import { PLAYER_STATUS } from "@client/constant.js";
 import type { EnumDamage } from "@client/enums/enum_damage.js";
 
-const INSTANT_DAMAGE_TICKS = 10;
-const INSTANT_HEALTH_TICKS = 10;
-const LIVE_REGENERATIN_TICKS = 50;
-const FIRE_LOST_TICKS = 10;
-const OXYGEN_LOST_TICKS = 10;
-const OXYGEN_GOT_TICKS = 5;
-const POISON_TICKS = 25;
-const WITHER_TICKS = 40;
-const FOOD_LOST_TICKS = 80;
-const PLANTING_LOST_TICKS = 10;
-const PLANTING_PADDING_DAMAGE = 0.3;
+const INSTANT_DAMAGE_TICKS = 10
+const INSTANT_HEALTH_TICKS = 10
+const LIVE_REGENERATIN_TICKS = 50
+const FIRE_LOST_TICKS = 10
+const OXYGEN_LOST_TICKS = 10
+const OXYGEN_GOT_TICKS = 5
+const POISON_TICKS = 25
+const WITHER_TICKS = 40
+const FOOD_LOST_TICKS = 80
+const PLANTING_LOST_TICKS = 10
+const PLANTING_PADDING_DAMAGE = 0.3
+const MAX_UNDAMAGED_HEIGHT = 3
 
 export class ServerPlayerDamage {
     player: ServerPlayer;
@@ -35,6 +36,8 @@ export class ServerPlayerDamage {
     damage: number = 0
     type_damage : EnumDamage
     actor: any
+    #ground = true
+    #last_height = null
 
     constructor(player : ServerPlayer) {
         this.player = player;
@@ -45,23 +48,48 @@ export class ServerPlayerDamage {
     *
     */
     getDamage(tick) {
-        const player = this.player;
-        const world = player.world;
-        const position = player.state.pos.floored();
-        const eyePos = player.getEyePos();
-        const head = world.getBlock(eyePos.floored());
-        const legs = world.getBlock(position);
+        const player = this.player
+        const world = player.world
+        const position = player.state.pos.floored()
+        const eyePos = player.getEyePos()
+        const head = world.getBlock(eyePos.floored())
+        const legs = world.getBlock(position)
         if (!head || !legs || head.id < 0 || legs.id < 0) {
             return;
         }
-        const effects = player.effects;
-        const ind_def = world.defaultPlayerIndicators;
-        let max_live = ind_def.live;
+        const effects = player.effects
+        const ind_def = world.defaultPlayerIndicators
+        let max_live = ind_def.live
+
         // эффект прилив здоровья
         const health_boost_lvl = effects.getEffectLevel(Effect.HEALTH_BOOST);
         max_live += 2 * health_boost_lvl;
 
-        let damage = this.damage;
+        let damage = this.damage
+
+        // Урон от падения 
+        const ground = player.controlManager.prismarine.player_state.onGround
+        if (!this.#ground) {
+            const block = world.getBlock(position)
+            if (block.id == 0 && (block.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
+                this.#last_height = position.y
+            }
+            if (ground) {
+                const height = (position.y - this.#last_height) / player.scale
+                if(height < 0) {
+                    const power = -height - MAX_UNDAMAGED_HEIGHT - player.effects.getEffectLevel(Effect.JUMP_BOOST)
+                    if (power > 0) {
+                        damage += power
+                        console.log("fall damage: " + power)
+                    }
+                }
+                this.#last_height = position.y
+            }
+        } else {
+            this.#last_height = position.y
+        }
+        this.#ground = ground
+
         // Урон от голода
         if (this.food_exhaustion_level > 4) {
             this.food_exhaustion_level -= 4;

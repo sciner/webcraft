@@ -18,24 +18,25 @@ import type {Physics} from "./prismarine-physics/index.js";
 
 // World container
 export class World implements IWorld {
-    [key: string]: any;
+    latency:                number = 0
+    info?:                  TWorldInfo | null
+    serverTimeShift:        number = 0
+    settings:               TWorldSettings
+    chunkManager:           ChunkManager
+    mobs:                   MobManager
+    drop_items:             DropItemManager
+    players:                PlayerManager
+    blockModifierListeners: Function[]
+    block_manager:          any
+    server?:                ServerClient
+    hello?:                 IChatCommand
+    history:                any = new WorldHistory(this)
+    physics?:               Physics
+    dt_update_time:         any
+    dt_connected:           any
 
-    static MIN_LATENCY = 60;
     static TIME_SYNC_PERIOD = 5000;
-    latency: number = 0;
-    info?: TWorldInfo | null;
-    serverTimeShift: number = 0;
-    settings: TWorldSettings;
-    chunkManager: ChunkManager;
-    mobs: MobManager;
-    drop_items: DropItemManager;
-    players: PlayerManager;
-    blockModifierListeners: Function[];
-    block_manager: any;
-    server?: ServerClient;
-    hello?: IChatCommand;
-    history = new WorldHistory(this);
-    physics?: Physics
+
     private lastMeasuredQueudLag = 0
     private unansweredQueudLagTimes = new SimpleQueue<number>()
 
@@ -58,7 +59,8 @@ export class World implements IWorld {
     }
 
     get serverTimeWithLatency() {
-        return this.serverTime - Math.max(this.latency, World.MIN_LATENCY);
+        const MIN_LATENCY = 60
+        return this.serverTime - Math.max(this.latency, MIN_LATENCY)
     }
 
     get serverTime() {

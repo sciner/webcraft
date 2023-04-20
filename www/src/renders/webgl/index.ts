@@ -628,6 +628,10 @@ export default class WebGLRenderer extends BaseRenderer {
         }, format);
     }
 
+    destroy() {
+        this.gl.getExtension("WEBGL_lose_context").loseContext();
+    }
+
     static test(view: HTMLCanvasElement, options: WebGLContextAttributes = {}) {
         const context = view.getContext('webgl2', options);
         return !!context;

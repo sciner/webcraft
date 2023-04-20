@@ -1,4 +1,4 @@
-import { BLOCK_GROUP_TAG } from "@client/constant.js";
+import { BLOCK_GROUP_TAG, MOB_TYPE } from "@client/constant.js";
 import {Color} from "@client/helpers.js";
 import { COLOR_PALETTE, Resources } from "@client/resources.js";
 
@@ -386,25 +386,25 @@ export class CompileData {
         };
 
         const eggs = [
-            {id: 521, type: 'chicken', skin: 'base'},
-            {id: 522, type: 'creeper', skin: 'base'},
-            {id: 523, type: 'pig', skin: 'base'},
-            {id: 524, type: 'horse', skin: 'creamy'},
-            {id: 525, type: 'horse', skin: 'base'},
-            {id: 651, type: 'fox', skin: 'base'},
-            {id: 1448, type: 'skeleton', skin: 'base'},
-            {id: 1449, type: 'axolotl', skin: 'base'},
-            {id: 1450, type: 'bee', skin: 'base'},
-            {id: 1451, type: 'cow', skin: 'base'},
-            {id: 1453, type: 'goat', skin: 'base'},
-            {id: 1454, type: 'hoglin', skin: 'base'},
-            {id: 1455, type: 'ocelot', skin: 'base'},
-            {id: 1456, type: 'panda', skin: 'base'},
-            {id: 1457, type: 'piglin', skin: 'base'},
-            {id: 1458, type: 'sheep', skin: 'base'},
+            {id: 521, type: MOB_TYPE.CHICKEN, skin: 'base'},
+            {id: 522, type: 'mob/creeper', skin: 'base'},
+            {id: 523, type: MOB_TYPE.PIG, skin: 'base'},
+            {id: 524, type: MOB_TYPE.HORSE, skin: 'creamy'},
+            {id: 525, type: MOB_TYPE.HORSE, skin: 'base'},
+            {id: 651, type: 'mob/fox', skin: 'base'},
+            {id: 1448, type: 'mob/skeleton', skin: 'base'},
+            {id: 1449, type: 'mob/axolotl', skin: 'base'},
+            {id: 1450, type: MOB_TYPE.BEE, skin: 'base'},
+            {id: 1451, type: MOB_TYPE.COW, skin: 'base'},
+            {id: 1453, type: 'mob/goat', skin: 'base'},
+            {id: 1454, type: 'mob/hoglin', skin: 'base'},
+            {id: 1455, type: 'mob/ocelot', skin: 'base'},
+            {id: 1456, type: 'mob/panda', skin: 'base'},
+            {id: 1457, type: 'mob/piglin', skin: 'base'},
+            {id: 1458, type: MOB_TYPE.SHEEP, skin: 'base'},
             //
-            {id: 1452, type: 'deer', skin: 'base'},
-            {id: 1459, type: 'snow_golem', skin: 'base'},
+            {id: 1452, type: 'mob/deer', skin: 'base'},
+            {id: 1459, type: 'mob/snow_golem', skin: 'base'},
             /*
             Under construction:
             - bat
@@ -413,7 +413,7 @@ export class CompileData {
             */
         ];
         for(let egg of eggs) {
-            const color = colors[egg.type];
+            const color = colors[egg.type.substring(4)];
             const b = {
                 "id": egg.id,
                 "name": "SPAWN_EGG_" + egg.type.toUpperCase(),
@@ -663,8 +663,8 @@ export class CompileData {
                 },
                 "inventory": {
                     "scale": .75,
-                    "rotate": {"x": 0, "y": 0, "z": Math.PI * .9},
-                    "move": {"x": 0, "y": 0, "z": 0.5}
+                    "rotate": {"x": 0, "y": Math.PI * .9, "z": 0},
+                    "move": {"x": 0, "y": 0.5, "z": 0}
                 },
                 "tags": [
                     "banner",
@@ -854,7 +854,7 @@ export class CompileData {
                 ],
                 "inventory": {
                     "scale": 0.8,
-                    "move": {"x": -0.2, "y": 0, "z": -0.4}
+                    "move": {"x": -0.2, "y": -0.2, "z": 0}
                 },
                 "extra_data": {
                     "frame": item.log

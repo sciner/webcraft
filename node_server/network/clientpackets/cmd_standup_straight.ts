@@ -18,7 +18,6 @@ export default class packet_reader {
         const pos = getValidPosition(new Vector(player.state.pos).floored(), player.world)
         if (pos) {
             player.state.pos = pos
-            player.state.lies = false
             player.state.sitting = false
             player.state.sleep = false
             const packets_for_player = [

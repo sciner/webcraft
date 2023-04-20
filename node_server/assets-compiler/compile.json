@@ -5659,6 +5659,7 @@
             "id": 1419,
             "name": "BONE",
             "style": "extruder",
+            "diagonal": true,
             "texture": "item/bone.png",
             "item": {"name": "bone"},
             "material": {
@@ -5730,66 +5731,6 @@
             "tags": [
                 "can_put_into_pot"
             ]
-        },
-        {
-            "id": 1424,
-            "name": "EMPTY_ARMOR_SLOT_HELMET",
-            "style": "extruder",
-            "deprecated": true,
-            "spawnable": false,
-            "texture": "item/empty_armor_slot_helmet.png",
-            "item": {"name": "slot"},
-            "material": {
-                "id": "iron"
-            }
-        },
-        {
-            "id": 1425,
-            "name": "EMPTY_ARMOR_SLOT_CHESTPLATE",
-            "style": "extruder",
-            "deprecated": true,
-            "spawnable": false,
-            "texture": "item/empty_armor_slot_chestplate.png",
-            "item": {"name": "slot"},
-            "material": {
-                "id": "iron"
-            }
-        },
-        {
-            "id": 1426,
-            "name": "EMPTY_ARMOR_SLOT_BOOTS",
-            "style": "extruder",
-            "deprecated": true,
-            "spawnable": false,
-            "texture": "item/empty_armor_slot_boots.png",
-            "item": {"name": "slot"},
-            "material": {
-                "id": "iron"
-            }
-        },
-        {
-            "id": 1427,
-            "name": "EMPTY_ARMOR_SLOT_LEGGINGS",
-            "style": "extruder",
-            "deprecated": true,
-            "spawnable": false,
-            "texture": "item/empty_armor_slot_leggings.png",
-            "item": {"name": "slot"},
-            "material": {
-                "id": "iron"
-            }
-        },
-        {
-            "id": 1428,
-            "name": "EMPTY_ARMOR_SLOT_SHIELD",
-            "style": "extruder",
-            "deprecated": true,
-            "spawnable": false,
-            "texture": "item/empty_armor_slot_shield.png",
-            "item": {"name": "slot"},
-            "material": {
-                "id": "iron"
-            }
         },
         {
             "id": 1429,
@@ -8933,6 +8874,10 @@
                 "slot": 39,
                 "durability": 276,
                 "damage": 0
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9116,6 +9061,10 @@
                 "slot": 39,
                 "durability": 55,
                 "damage": 1
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9132,6 +9081,10 @@
                 "slot": 39,
                 "durability": 165,
                 "damage": 2
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9148,6 +9101,10 @@
                 "slot": 39,
                 "durability": 165,
                 "damage": 2
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_iron" 
             }
         },
         {
@@ -9164,6 +9121,10 @@
                 "slot": 39,
                 "durability": 363,
                 "damage": 3
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_diamond" 
             }
         },
         {
@@ -9180,6 +9141,10 @@
                 "slot": 39,
                 "durability": 77,
                 "damage": 2
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_gold" 
             }
         },
         {
@@ -9196,6 +9161,10 @@
                 "slot": 39,
                 "durability": 407,
                 "damage": 3
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9212,6 +9181,10 @@
                 "slot": 38,
                 "durability": 80,
                 "damage": 3
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9228,6 +9201,10 @@
                 "slot": 38,
                 "durability": 240,
                 "damage": 5
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9244,6 +9221,10 @@
                 "slot": 38,
                 "durability": 240,
                 "damage": 6
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_iron" 
             }
         },
         {
@@ -9260,6 +9241,10 @@
                 "slot": 38,
                 "durability": 528,
                 "damage": 8
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_diamond" 
             }
         },
         {
@@ -9276,6 +9261,10 @@
                 "slot": 38,
                 "durability": 112,
                 "damage": 5
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_gold" 
             }
         },
         {
@@ -9292,6 +9281,10 @@
                 "slot": 38,
                 "durability": 592,
                 "damage": 8
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9308,6 +9301,10 @@
                 "slot": 37,
                 "durability": 80,
                 "damage": 2
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9324,6 +9321,10 @@
                 "slot": 37,
                 "durability": 240,
                 "damage": 4
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9340,6 +9341,10 @@
                 "slot": 37,
                 "durability": 240,
                 "damage": 5
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_iron" 
             }
         },
         {
@@ -9356,6 +9361,10 @@
                 "slot": 37,
                 "durability": 528,
                 "damage": 6
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_diamond" 
             }
         },
         {
@@ -9372,6 +9381,10 @@
                 "slot": 37,
                 "durability": 112,
                 "damage": 3
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_gold" 
             }
         },
         {
@@ -9388,6 +9401,10 @@
                 "slot": 37,
                 "durability": 592,
                 "damage": 6
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9404,6 +9421,10 @@
                 "slot": 36,
                 "durability": 65,
                 "damage": 1
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9420,6 +9441,10 @@
                 "slot": 36,
                 "durability": 195,
                 "damage": 1
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9436,6 +9461,10 @@
                 "slot": 36,
                 "durability": 195,
                 "damage": 2
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_iron" 
             }
         },
         {
@@ -9452,6 +9481,10 @@
                 "slot": 36,
                 "durability": 429,
                 "damage": 3
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_diamond" 
             }
         },
         {
@@ -9468,6 +9501,10 @@
                 "slot": 36,
                 "durability": 91,
                 "damage": 1
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_gold" 
             }
         },
         {
@@ -9484,6 +9521,10 @@
                 "slot": 36,
                 "durability": 481,
                 "damage": 3
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper" 
             }
         },
         {
@@ -9914,6 +9955,9 @@
             "transparent": true,
             "can_rotate": true,
             "style": "pebbles",
+            "inventory": {
+                "move": {"x": -1, "y": 0, "z": 0}
+            },
             "sound": "madcraft:block.stone",
             "texture": "block/cobblestone.png",
             "texture_variants": [
@@ -10752,6 +10796,25 @@
                     ]
                 }
             ]
+        },
+        {
+            "id": 798,
+            "name": "PRIMITIVE_AXE",
+            "style": "extruder",
+            "sound": "madcraft:axe",
+            "transparent": true,
+            "max_in_stack": 1,
+            "item": {"name": "instrument", "instrument_id": "axe"},
+            "diagonal": true,
+            "power": 132,
+            "damage": 9,
+            "speed": 0.8,
+            "material": {
+                "id": "stone"
+            },
+            "texture": {
+                "side": "item/stone_axe.png"
+            }
         }
     ]
 }

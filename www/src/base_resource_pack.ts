@@ -5,6 +5,7 @@ import { DEFAULT_TX_SIZE, LIGHT_TYPE } from './constant.js';
 import type { TBlock } from './typed_blocks3.js';
 import type { BLOCK, FakeTBlock } from './blocks.js';
 import type { ChunkWorkerChunk } from './worker/chunk.js';
+import type { WebGLMaterial } from './renders/webgl/WebGLMaterial.js';
 
 let tmpCanvas;
 
@@ -27,6 +28,13 @@ export class BaseResourcePack {
         this.fluidShader = null;
 
         this.styles_stat = new Map();
+    }
+
+    killRender() {
+        this.shader = null
+        this.fluidShader = null
+        this.textures = new Map()
+        this.materials = new Map()
     }
 
     async init(manager) {
@@ -230,9 +238,13 @@ export class BaseResourcePack {
         tmpCanvas = tmpCanvas || document.createElement('canvas');
 
         for(let [k, v] of Object.entries(this.conf.textures)) {
-            tasks.push(this._processTexture(v, renderBackend, settings));
+            const newTexInfo = { ...(v as any) };
+            if (newTexInfo.canvas) {
+                newTexInfo.canvas = {...newTexInfo.canvas};
+            }
+            tasks.push(this._processTexture(newTexInfo, renderBackend, settings));
 
-            this.textures.set(k, v);
+            this.textures.set(k, newTexInfo);
         }
 
         return Promise.all(tasks)
@@ -248,7 +260,7 @@ export class BaseResourcePack {
     }
 
     //
-    getMaterial(key) {
+    getMaterial(key : string) : WebGLMaterial {
         let texMat = this.materials.get(key);
         if(texMat) {
             return texMat;

@@ -1,11 +1,11 @@
 "use strict";
 
-import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix, TX_CNT, Color, FastRandom} from '../helpers.js';
+import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix, TX_CNT, FastRandom} from '../helpers.js';
 import { MAX_CHUNK_SQUARE} from "../chunk_const.js";
 import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style, QuadPlane, TCalcSideParamsResult } from './default.js';
-import { GRASS_PALETTE_OFFSET, LEAVES_TYPE } from '../constant.js';
+import { BLOCK_FLAG, GRASS_PALETTE_OFFSET, LEAVES_TYPE } from '../constant.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { BLOCK, BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
@@ -408,6 +408,7 @@ export default class style {
         }
 
         const bm                    = style.block_manager
+        const blockFlags            = material.flags
         const no_anim               = material.is_simple_qube || !material.texture_animations
         const cavity_id             = (material.is_log && !(block instanceof FakeTBlock)) ? block.extra_data?.cavity : null // for tree logs
         const sides                 = {} as IBlockSides
@@ -453,7 +454,7 @@ export default class style {
             }
 
             // Texture color multiplier
-            if(block.hasTag('mask_biome')) {
+            if(blockFlags & BLOCK_FLAG.BIOME) {
                 lm.copyFrom(dirt_color)
                 if(block.id == bm.GRASS_BLOCK.id || block.id == bm.GRASS_BLOCK_SLAB.id) {
                     lm.r += GRASS_PALETTE_OFFSET.x
@@ -469,14 +470,12 @@ export default class style {
                     lm.r = color.r
                     lm.g = color.g
                 }
-            }
-            if(block.hasTag('mask_color')) {
+            } else if(blockFlags & BLOCK_FLAG.COLOR) {
                 lm = material.mask_color as IndexedColor;
                 flags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
                 sideFlags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
                 upFlags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
-            }
-            if(block.hasTag('multiply_color')) {
+            } else if(block.hasTag('multiply_color')) {
                 lm = material.multiply_color as IndexedColor;
                 flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
             }
@@ -515,11 +514,9 @@ export default class style {
             }
 
             // Layering
-            if(material.is_layering) {
-                if(material.layering.slab) {
-                    if(style.isOnCeil(block)) {
-                        y += material.layering.height;
-                    }
+            if(material.layering?.slab) {
+                if(style.isOnCeil(block)) {
+                    y += material.layering.height
                 }
             }
 
@@ -551,18 +548,18 @@ export default class style {
                 autoUV = false;
             }
 
-        }
-
-        // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
-        if(material.random_rotate_up) {
-            const rv = randoms.double(z * chunk.size.x + x + y * chunk.size.y) | 0
-            if(block.id == bm.LILY_PAD.id) {
-                axes_down = UP_AXES[rv % 4];
-                flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX | QUAD_FLAGS.MASK_BIOME;
-            } else {
-                axes_up = UP_AXES[rv % 4];
+            // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
+            if(material.random_rotate_up) {
+                const rv = randoms.double(z * chunk.size.x + x + y * chunk.size.y) | 0
+                if(block.id == bm.LILY_PAD.id) {
+                    axes_down = UP_AXES[rv % 4];
+                    flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX | QUAD_FLAGS.MASK_BIOME;
+                } else {
+                    axes_up = UP_AXES[rv % 4];
+                }
+                autoUV = false;
             }
-            autoUV = false;
+
         }
 
         // AABB

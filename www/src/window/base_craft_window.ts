@@ -656,6 +656,10 @@ export class ArmorSlot extends CraftTableInventorySlot {
         }
     }
 
+    onSetItem(item : IInventoryItem) {
+        // do nothing
+    }
+
     // Make the slot instantly highlighted when we take the item from it
     onMouseDown(e) {
         super.onMouseDown(e)
@@ -684,7 +688,9 @@ export class ArmorSlot extends CraftTableInventorySlot {
 
     setItem(item: IInventoryItem | null): boolean {
         // this.style.background.color = item ? ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE : '#00000000'
-        return super.setItem(item)
+        const resp = super.setItem(item)
+        this.onSetItem(item)
+        return resp
     }
 
     isValidDragItem(dragItem) {

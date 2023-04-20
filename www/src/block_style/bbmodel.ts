@@ -130,7 +130,6 @@ export default class style {
         }
 
         matrix = mat4.create()
-        mat4.rotateY(matrix, matrix, Math.PI)
 
         // reset state and restore groups visibility
         model.resetBehaviorChanges()
@@ -211,13 +210,13 @@ export default class style {
                         }
                         case 'y360': {
                             if(tblock.rotate) {
-                                mat4.rotateY(matrix, matrix, ((tblock.rotate.x - 2) / 4) * (2 * Math.PI))
+                                mat4.rotateY(matrix, matrix, (tblock.rotate.x / 4) * (2 * Math.PI))
                             }
                             break
                         }
                         case 'ydeg': {
                             if(tblock.rotate) {
-                                mat4.rotateY(matrix, matrix, ((tblock.rotate.x - 180) / 180) * Math.PI)
+                                mat4.rotateY(matrix, matrix, (tblock.rotate.x / 180) * Math.PI)
                             }
                             break
                         }
@@ -383,6 +382,7 @@ export default class style {
                 if (bm.canPaneConnect(neighbours.SOUTH)) except_list.push('south')
                 if (bm.canPaneConnect(neighbours.NORTH)) except_list.push('north')
                 model.hideAllExcept(except_list)
+                mat4.rotateY(matrix, matrix, Math.PI)
                 break
             }
             case 'chest': {
@@ -421,6 +421,7 @@ export default class style {
                 if(!bm.canFenceConnect(neighbours.EAST)) hide_group_names.push('east')
                 model.hideGroups(hide_group_names)
                 style.selectTextureFromPalette(model, {name: mat.name}, tblock)
+                mat4.rotateY(matrix, matrix, Math.PI)
                 break
             }
             case 'pot': {
@@ -493,14 +494,14 @@ export default class style {
 
     static rotateByCardinal4sides(model : BBModel_Model, matrix : imat4, cardinal_direction : int) {
         switch(cardinal_direction) {
-            case DIRECTION.NORTH:
+            case DIRECTION.SOUTH:
                 mat4.rotateY(matrix, matrix, Math.PI);
                 break;
             case DIRECTION.WEST:
-                mat4.rotateY(matrix, matrix, Math.PI / 2);
+                mat4.rotateY(matrix, matrix, -Math.PI / 2);
                 break;
             case DIRECTION.EAST:
-                mat4.rotateY(matrix, matrix, -Math.PI / 2);
+                mat4.rotateY(matrix, matrix, Math.PI / 2);
                 break;
         }
     }
@@ -595,7 +596,7 @@ export default class style {
         //
         const makeTextureName = (name : string) => {
             if(!name) {
-                return 
+                return
             }
             if(tblock && tblock.material) {
                 name = style.processName(name, tblock)

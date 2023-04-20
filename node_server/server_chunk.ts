@@ -4,7 +4,7 @@ import { DIRECTION, SIX_VECS, Vector, VectorCollector } from "@client/helpers.js
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "@client/block_helpers.js";
 import { newTypedBlocks, TBlock, TypedBlocks3 } from "@client/typed_blocks3.js";
 import {dropBlock, TActionBlock, WorldAction} from "@client/world_action.js";
-import {BLOCK_FLAG, COVER_STYLE_SIDES, NO_TICK_BLOCKS} from "@client/constant.js";
+import { COVER_STYLE_SIDES } from "@client/constant.js";
 import { compressWorldModifyChunk } from "@client/compress/world_modify_chunk.js";
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import { DelayedCalls } from "./server_helpers.js";

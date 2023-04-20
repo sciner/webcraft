@@ -57,7 +57,7 @@ export class BBModel_Cube extends BBModel_Child {
         }
     }
 
-    pushVertices(vertices : Float32Array, pos : Vector, lm : IndexedColor, parentMatrix : imat4, emmit_particles_func? : Function) {
+    pushVertices(vertices : float[], pos : Vector, lm : IndexedColor, parentMatrix : imat4, emmit_particles_func? : Function) {
         const worldMatrix = mat4.multiply(tempMat, parentMatrix, this.matrix);
         const model = this.model
         const force_texture_name = this.selected_texture_name ?? model.selected_texture_name

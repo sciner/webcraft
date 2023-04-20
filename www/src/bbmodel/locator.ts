@@ -9,9 +9,12 @@ const tempVec3 = vec3.create();
 
 //
 export class BBModel_Locator extends BBModel_Child {
-    [key: string]: any;
+    size: Vector
+    translate: Vector
+    element: any
+    name: string
 
-    constructor(model : BBModel_Model, json, size : Vector, translate : Vector) {
+    constructor(model : BBModel_Model, json : any, size : Vector, translate : Vector) {
         super(model, json)
         this.size = size
         this.translate = translate
@@ -19,7 +22,7 @@ export class BBModel_Locator extends BBModel_Child {
         this.name = json.name
     }
 
-    pushVertices(vertices : Float32Array, pos : Vector, lm : IndexedColor, parent_matrix : imat4, emmit_particles_func? : Function) {
+    pushVertices(vertices : float[], pos : Vector, lm : IndexedColor, parent_matrix : imat4, emmit_particles_func? : Function) {
         tempVec3[0] = -this.json.position[0] / 16;
         tempVec3[1] = this.json.position[1] / 16;
         tempVec3[2] = this.json.position[2] / 16;

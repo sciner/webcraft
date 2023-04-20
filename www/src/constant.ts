@@ -205,6 +205,19 @@ export enum LEAVES_TYPE {
     BEAUTIFUL = 2,
 }
 
+export enum MOB_TYPE {
+    BEE         = 'mob/bee',
+    CHICKEN     = 'mob/chicken',
+    COW         = 'mob/cow',
+    FOX         = 'mob/fox',
+    HORSE       = 'mob/horse',
+    HUMANOID    = 'mob/humanoid',
+    PIG         = 'mob/pig',
+    SHEEP       = 'mob/sheep',
+    SKELETON    = 'mob/skeleton',
+    ZOMBIE      = 'mob/zombie',
+}
+
 export enum BLOCK_FLAG {
     SOLID                           = 0x1 | 0,
     REMOVE_ONAIR_BLOCKS_IN_CLUSTER  = 0x2 | 0, // these blocks must be removed over structures and buildings

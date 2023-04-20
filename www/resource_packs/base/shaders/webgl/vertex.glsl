@@ -88,8 +88,8 @@ void main() {
     }
 
     if (uModelMatrixMode > 0) {
-        v_chunk_pos = (uModelMatrix *  vec4(pos, 1.0)).xyz;
-        v_normal = normalize((uModelMatrix * vec4(v_normal, 0.0)).xyz);
+        v_chunk_pos = (uModelMatrix *  vec4(pos.xzy, 1.0)).xzy;
+        v_normal = normalize((uModelMatrix * vec4(v_normal.xzy, 0.0)).xzy);
     } else {
         v_chunk_pos = pos;
     }

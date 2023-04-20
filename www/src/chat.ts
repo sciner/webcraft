@@ -260,6 +260,11 @@ export class Chat extends TextBox {
                     this.history.clear();
                     break;
                 }
+                case '/anim': {
+                    player.setAnimation(temp[0], temp[1], temp[2])
+                    no_send = true;
+                    break
+                }
             }
             if (!no_send) {
                 this.messages.send(text);
