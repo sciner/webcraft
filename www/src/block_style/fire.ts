@@ -30,20 +30,21 @@ export default class style {
         if(for_physic) {
             return shapes
         }
-        if(tblock.extra_data) {
-            if (tblock.extra_data.north) {
+        const extra_data = tblock.extra_data || {up: true}
+        if(extra_data) {
+            if (extra_data.north) {
                 shapes.push(new AABB(0, 0, 0.94, 1, 1, 1))
             }
-            if (tblock.extra_data.south) {
+            if (extra_data.south) {
                 shapes.push(new AABB(0, 0, 0, 1, 1, 0.06))
             }
-            if (tblock.extra_data.west) {
+            if (extra_data.west) {
                 shapes.push(new AABB(0, 0, 0, 0.06, 1, 1))
             }
-            if (tblock.extra_data.east) {
+            if (extra_data.east) {
                 shapes.push(new AABB(0.94, 0, 0, 1, 1, 1))
             }
-            if (tblock.extra_data.up) {
+            if (extra_data.up) {
                 shapes.push(new AABB(0, 0, 0, 1, 0.06, 1))
             }
         }
@@ -54,7 +55,7 @@ export default class style {
     static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
         const bm = style.block_manager
-        const extra_data = block.extra_data;
+        const extra_data = block.extra_data || {up: true}
         const material = block.material;
         const texture = bm.calcTexture(material.texture, DIRECTION.WEST);
         const planes = [];
