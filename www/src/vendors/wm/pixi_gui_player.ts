@@ -1,5 +1,4 @@
 import { PIXI } from '../../../tools/gui/pixi.js';
-import {Vector} from "../../helpers/vector.js";
 
 export class PixiGuiPlayer extends PIXI.Container {
     _render(pixiRender) {

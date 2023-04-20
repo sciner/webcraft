@@ -2,8 +2,6 @@ import { Label, Window } from "../ui/wm.js";
 import { BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_HOTBAR_SLOT_COUNT, UI_THEME } from "../constant.js";
-import { skinview3d } from "../../vendors/skinview3d.bundle.js"
-import { blobToImage } from "../helpers.js";
 import type { InventoryRecipeWindow } from "./inventory_recipe.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import type { InGameMain } from "./ingamemain.js";
@@ -108,7 +106,6 @@ export class InventoryWindow extends BaseCraftWindow {
             this.add(form)
         }
 
-        // this.previewSkin()
         this.setHelperSlots(null)
         super.onShow(args)
 
@@ -122,73 +119,12 @@ export class InventoryWindow extends BaseCraftWindow {
 
         const thrown_items = this.clearCraft()
 
-        // // Update player mob model
-        // this.inventory.player.updateArmor()
-
         // Save inventory
         this.world.server.InventoryNewState({
             state: this.inventory.exportItems(),
             used_recipes: this.lblResultSlot.getUsedRecipes(),
             thrown_items
         })
-
-//        this.skinViewer.renderPaused = true
-    }
-
-    async previewSkin() {
-
-        const drawOneFrame = () => {
-            this.skinViewer.draw();
-            this.skinViewer.renderPaused = true;
-            this.skinViewerCanvas.toBlob(async blob => {
-                this.lblPlayerBox.setBackground(await blobToImage(blob), 'centerstretch', .9)
-            })
-        }
-
-        if (!this.skinViewer) {
-            const animation = new skinview3d.WalkingAnimation();
-            animation.progress = 0.7;
-            animation.paused = true;
-            const skinViewer = new skinview3d.SkinViewer({
-                canvas: this.skinViewerCanvas,
-                width: this.skinViewerCanvas.width,
-                height: this.skinViewerCanvas.height,
-                animation: null
-            });
-            skinViewer.camera.position.x = 20;
-            skinViewer.camera.position.y = 15;
-            skinViewer.camera.position.z = 40;
-            skinViewer.zoom = 1;
-            skinViewer.fov = 30;
-            skinViewer.renderPaused = true;
-            this.skinViewer = skinViewer;
-        }
-        // set or reset the pose
-        this.skinViewer.animation = null;
-        const s = this.skinViewer.playerObject.skin;
-        s.leftArm.rotation.x = -0.2;
-        s.rightArm.rotation.x = 0.2;
-        s.leftLeg.rotation.x = 0.3;
-        s.rightLeg.rotation.x = -0.3;
-
-        const skin = Qubatch.render.player.skin
-
-        if(skin) {
-            const skinKey = skin.file + '_' + skin.type;
-            if (this.skinKey !== skinKey) {
-                this.skinKey = skinKey;
-                const model = skin.type ? 'slim' : 'default';
-                // use the cached skin image, if available
-                const img = Qubatch.world.players.getMyself()?.skinImage;
-                // it doesn't return a promise when an image is supplied
-                this.skinViewer.loadSkin(img || skin.file, {model})?.then(() => drawOneFrame());
-                if (img) {
-                    drawOneFrame();
-                }
-            } else {
-                drawOneFrame();
-            }
-        }
 
     }
 

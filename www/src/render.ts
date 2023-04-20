@@ -1607,7 +1607,7 @@ export class Renderer {
         guiCam.shiftY = worldTransform.ty - screen.height / 2;
         // our cube side should be 64px in pixi standard?
         // negative scale because camera should look from NORTH
-        guiCam.scale = worldTransform.a / pixiBlockSize;
+        guiCam.scale = 1 / worldTransform.a / pixiBlockSize;
         guiCam._updateProj();
         // larg for valid render results
         gu.fogColor = [0, 0, 0, 0];

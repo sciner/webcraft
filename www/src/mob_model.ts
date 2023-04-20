@@ -10,6 +10,9 @@ import type { ArmorState, TAnimState, TSittingState, TSleepState } from "./playe
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import type { TMobProps } from "./mob_manager.js";
 import type { Mesh_Object_Base } from "./mesh/object/base.js";
+import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+
+const {mat4} = glMatrix
 
 // Анимация повороа говоры отдельно от тела, нужно перенести в bbmodel
 // head({part, index, delta, animable, camPos}) {
@@ -84,6 +87,7 @@ export class MobModel extends NetworkPhysicObject {
     health:             number = 100
 
     is_sheared:         boolean = false
+    gui_matrix:         float[]
 
     constructor(props : TMobProps, world : World) {
 
@@ -266,6 +270,11 @@ export class MobModel extends NetworkPhysicObject {
             }
         }
     }
+    
+    updateArmor() {
+        Qubatch.player.updateArmor()
+
+    }
 
     drawInGui(render : Renderer, delta : float) {
         this.update(render, new Vector(), delta, 0);
@@ -273,8 +282,8 @@ export class MobModel extends NetworkPhysicObject {
         if (mesh) {
             this.doAnims();
             mesh.apos.copyFrom(Vector.ZERO);
-            mesh.rotation[2] = 0;
-            mesh.drawBuffered(render, delta);
+            mesh.rotation[2] = 0
+            mesh.drawBuffered(render, delta)
         }
     }
 
