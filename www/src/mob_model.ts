@@ -282,7 +282,7 @@ export class MobModel extends NetworkPhysicObject {
         if (mesh) {
             this.doAnims();
             mesh.apos.copyFrom(Vector.ZERO);
-            mesh.rotation[2] = 0
+            mesh.rotation[2] = 15/180 * -Math.PI
             mesh.drawBuffered(render, delta)
         }
     }
