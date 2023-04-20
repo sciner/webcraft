@@ -273,6 +273,8 @@ export class BBModel_Model {
                             quat.fromEuler(q_next, next_point.x, next_point.y, next_point.z, 'zyx')
                             quat.slerp(q_cur, q_cur, q_next, t2)
                             getEuler(current_point, q_cur)
+                            current_point.x = -current_point.x;
+                            current_point.y = 180 - current_point.y;
                         } else {
                             current_point.lerpFrom(current_point, next_point, t2)
                         }
