@@ -944,7 +944,7 @@ export class Renderer {
         }
     }
 
-    checkLightTextures() {
+    checkLightTextures(bindLights = true) {
         const {renderBackend} = this;
         if (!this.world) {
             renderBackend._emptyTexInt.bind(3);
@@ -959,7 +959,7 @@ export class Renderer {
         if (lp) {
             // renderBackend._emptyTex3D.bind(6);
             for (let i = 1; i <= lp.maxBoundTextures; i++) {
-                const tex = lp.boundTextures[i] || renderBackend._emptyTex3D;
+                const tex = (bindLights && lp.boundTextures[i]) || renderBackend._emptyTex3D;
                 if (tex) {
                     tex.bind(6 + i);
                 }
@@ -1200,8 +1200,10 @@ export class Renderer {
         return Weather.BY_NAME[name] || Weather.CLEAR;
     }
 
+    lastDeltaForMeGui = 0;
     // drawPlayers
     drawPlayers(delta) {
+        this.lastDeltaForMeGui = delta;
         if(this.world.players.count < 1) {
             return;
         }
@@ -1211,6 +1213,7 @@ export class Renderer {
                 if(this.camera_mode == CAMERA_MODE.SHOOTER || this.player.game_mode.isSpectator()) {
                     continue;
                 }
+                this.lastDeltaForMeGui = 0;
             }
             // this.camPos.distance
             if(player.itsMe() || player.distance !== null) {
@@ -1418,7 +1421,7 @@ export class Renderer {
         }
     }
 
-    resetBefore() {
+    resetBefore(bindLights = true) {
         // webgl state was reset, we have to re-bind textures
         this.renderBackend.resetBefore();
         const defTex = this.env.skyBox?.shader.texture || this.renderBackend._emptyTex;
@@ -1426,7 +1429,7 @@ export class Renderer {
         this.renderBackend._emptyTex3D.bind(6);
         this.maskColorTex?.bind(1);
         this.blockDayLightTex?.bind(2);
-        this.checkLightTextures();
+        this.checkLightTextures(bindLights);
         this.defaultShader?.bind();
     }
 
@@ -1554,6 +1557,7 @@ export class Renderer {
         let m = Math.PI / 180;
 
         //
+        //
         if(forDrop) {
             mat4.translate(viewMatrix, viewMatrix, [
                 Mth.sin(f1 * Math.PI) * f2 * 0.25,
@@ -1573,6 +1577,64 @@ export class Renderer {
             this.step_side = viewMatrix[1];
             player.triggerEvent('step', {step_side: this.step_side});
         }
+    }
+
+    guiCam = null;
+
+    /**
+     * posX , posY in zoom
+     */
+    drawFromPixi(pixiRender, worldTransform, pixiBlockSize = 64, lambda: (render: Renderer) => void ) {
+        const {globalUniforms:gu} = this;
+        pixiRender.batch.flush();
+        this.resetBefore(false);
+        const {screen} = pixiRender;
+        if (!this.guiCam) {
+            this.guiCam = new Camera({
+                type: Camera.ORTHO_CAMERA,
+                max: -10,
+                min: 10,
+                fov: 60,
+                renderType: this.renderBackend.gl ? 'webgl' : 'webgpu',
+                width: screen.width,
+                height: screen.height,
+            });
+        }
+        const guiCam = this.guiCam;
+        guiCam.width = -screen.width;
+        guiCam.height = screen.height;
+        guiCam.shiftX = worldTransform.tx - screen.width / 2;
+        guiCam.shiftY = worldTransform.ty - screen.height / 2;
+        // our cube side should be 64px in pixi standard?
+        // negative scale because camera should look from NORTH
+        guiCam.scale = worldTransform.a / pixiBlockSize;
+        guiCam._updateProj();
+        // larg for valid render results
+        gu.fogColor = [0, 0, 0, 0];
+        gu.fogDensity = 100;
+        gu.chunkBlockDist = 100;
+
+        // when use a sun dir, brightness is factor how many of sunfactor is applied
+        // sun light is additive
+        gu.brightness = 0.0; // 0.55 * 1.0; // 1.3
+        // gu.sunDir = [-1, -1, 1];
+        // gu.useSunDir = true;
+
+        gu.lightOverride = 0xff;
+
+        guiCam.use(gu, true);
+        gu.update();
+
+        this.defaultShader.bind();
+
+        lambda(this);
+
+        this.resetAfter();
+
+        pixiRender.shader.program = null;
+        pixiRender.shader.bind(pixiRender.plugins.batch._shader, true);
+        pixiRender.reset();
+        pixiRender.texture.bind(null, 3);
     }
 
     // getVideoCardInfo...

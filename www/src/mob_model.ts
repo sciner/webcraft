@@ -223,42 +223,58 @@ export class MobModel extends NetworkPhysicObject {
         const mesh = this._mesh
 
         if(mesh) {
-            if(this.type == MOB_TYPE.SHEEP) {
-                if (this.extra_data?.is_sheared) {
-                    mesh.modifiers.hideGroup('wool')
-                } else {
-                    mesh.modifiers.showGroup('wool')
-                }  
-            }
-            this.setArmor()
-            if (this.sleep) {
-                const rot = this.sleep.rotate.z * 2 * Math.PI
-                mesh.rotation[2] = rot % Math.PI ? rot : rot + Math.PI
-                mesh.setAnimation('sleep')
-            } else {
-                mesh.rotation[2] = this.draw_yaw ? this.draw_yaw : 0
-                if (this.sitting) {
-                    mesh.setAnimation('sitting')
-                } else if (!this.ground) {
-                    mesh.setAnimation('jump')
-                } else if (this.moving) {
-                    if (this.sneak) {
-                        mesh.setAnimation('sneak')
-                    } else if (!this.running) {
-                        mesh.setAnimation('walk')
-                    } else {
-                        mesh.setAnimation('run')
-                    }
-                } else if (this.sneak) {
-                    mesh.setAnimation('sneak_idle')
-                } else if (this.anim) {
-                    mesh.setAnimation(this.anim.title)
-                } else {
-                    mesh.setAnimation('idle')
-                }
-            }
+            this.doAnims();
             mesh.apos.copyFrom(this._pos)
             mesh.drawBuffered(render, delta)
+        }
+    }
+
+    doAnims() {
+        const mesh = this._mesh;
+        if(this.type == MOB_TYPE.SHEEP) {
+            if (this.extra_data?.is_sheared) {
+                mesh.modifiers.hideGroup('wool')
+            } else {
+                mesh.modifiers.showGroup('wool')
+            }
+        }
+        this.setArmor()
+        if (this.sleep) {
+            const rot = this.sleep.rotate.z * 2 * Math.PI
+            mesh.rotation[2] = rot % Math.PI ? rot : rot + Math.PI
+            mesh.setAnimation('sleep')
+        } else {
+            mesh.rotation[2] = this.draw_yaw ? this.draw_yaw : 0
+            if (this.sitting) {
+                mesh.setAnimation('sitting')
+            } else if (!this.ground) {
+                mesh.setAnimation('jump')
+            } else if (this.moving) {
+                if (this.sneak) {
+                    mesh.setAnimation('sneak')
+                } else if (!this.running) {
+                    mesh.setAnimation('walk')
+                } else {
+                    mesh.setAnimation('run')
+                }
+            } else if (this.sneak) {
+                mesh.setAnimation('sneak_idle')
+            } else if (this.anim) {
+                mesh.setAnimation(this.anim.title)
+            } else {
+                mesh.setAnimation('idle')
+            }
+        }
+    }
+
+    drawInGui(render : Renderer, delta : float) {
+        this.update(render, new Vector(), delta, 0);
+        const mesh = this._mesh;
+        if (mesh) {
+            this.doAnims();
+            mesh.apos.copyFrom(Vector.ZERO);
+            mesh.rotation[2] = 0;
+            mesh.drawBuffered(render, delta);
         }
     }
 

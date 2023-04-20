@@ -126,6 +126,9 @@ export class Camera {
         this.update();
     }
 
+    shiftX = 0;
+    shiftY = 0;
+
     _updateProj() {
         const {
             projMatrix,
@@ -136,7 +139,9 @@ export class Camera {
             max,
             fov,
             renderType,
-            type
+            type,
+            shiftX,
+            shiftY,
         } = this;
 
         if (type === Camera.PERSP_CAMERA) {
@@ -148,7 +153,8 @@ export class Camera {
             return;
         } else if(type === Camera.ORTHO_CAMERA) {
             const func = renderType === 'webgl' ? mat4.orthoNO : mat4.orthoZO;
-            func(projMatrix, - scale * width / 2, scale * width / 2, -scale * height / 2, scale * height / 2, min, max);
+            func(projMatrix, scale * (- width / 2 + shiftX), scale * (width / 2 + shiftX),
+                scale * (- height / 2 + shiftY), scale * (height / 2 + shiftY), min, max);
             this._horizontalFovRad = Math.PI / 2 // it's incorrect, but convenient: the callers don't have to make exceptions for ortho
 
             return;
