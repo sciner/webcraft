@@ -1,4 +1,4 @@
-import {AABB as BaseAABB} from "../../core/aabb.js"
+import {AABB as BaseAABB} from "../../core/AABB.js"
 
 const EPS = 1e-3
 
