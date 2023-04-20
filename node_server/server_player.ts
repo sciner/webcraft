@@ -519,7 +519,6 @@ export class ServerPlayer extends Player {
         if (this.lastSentPacketTime < performance.now() - SERVER_SEND_CMD_MAX_INTERVAL) {
             this.sendPackets([{name: ServerClient.CMD_NOTHING, data: null}])
         }
-
         this.updateTimerAnim()
     }
 
@@ -1042,6 +1041,15 @@ export class ServerPlayer extends Player {
             speed
         }
         this.timer_anim = performance.now() + (time * 1000) / speed
+    }
+
+    /*
+    * Проверка завершения анимации
+    */
+    updateTimerAnim() {
+        if (this.timer_anim <= performance.now()) {
+            this.state.anim = false
+        }
     }
     
 }

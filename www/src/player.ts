@@ -1381,6 +1381,18 @@ export class Player implements IPlayer {
     * Проверка завершения анимации
     */
     updateTimerAnim() {
+        if (this.moving) {
+            if (this.state.anim) {
+                this.world.server.Send({name: ServerClient.CMD_PLAY_ANIM, 
+                    data: {
+                        cancel: true
+                    }   
+                })
+            }
+            this.timer_anim = 0
+            this.state.anim = false
+            return
+        }
         if (this.timer_anim <= performance.now()) {
             this.state.anim = false
         }

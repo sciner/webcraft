@@ -253,7 +253,7 @@ export class MobModel extends NetworkPhysicObject {
                     mesh.setAnimation('sneak_idle')
                 } else if (this.anim) {
                     mesh.setAnimation(this.anim.title)
-                }else {
+                } else {
                     mesh.setAnimation('idle')
                 }
             }
