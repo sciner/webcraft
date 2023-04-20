@@ -6,10 +6,14 @@ import { BBModel_Locator } from "./locator.js";
 import { DEFAULT_ATLAS_SIZE } from "../constant.js";
 import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js";
 import type { Renderer } from "../render.js";
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import { getEuler } from "../components/Transform.js";
 
 const VEC_2 = new Vector(2, 2, 2)
 const FIX_POS = new Vector(8, -8, -8)
 const EMPTY_ARGS = []
+
+const {quat} = glMatrix
 
 //
 export class BBModel_Model {
@@ -260,36 +264,48 @@ export class BBModel_Model {
                                 // next_point.copyFrom(group.pivot)
                             }
                         }
-                        current_point.lerpFrom(current_point, next_point, t2)
+
+                        if(channel_name == 'rotation') {
+                            const q_cur = quat.create()
+                            const q_next = quat.create()
+                            // debugger
+                            quat.fromEuler(q_cur, current_point.x, current_point.y, current_point.z, 'zyx');
+                            quat.fromEuler(q_next, next_point.x, next_point.y, next_point.z, 'zyx')
+                            quat.slerp(q_cur, q_cur, q_next, t2)
+                            getEuler(current_point, q_cur)
+                        } else {
+                            current_point.lerpFrom(current_point, next_point, t2)
+                        }
+
                         group_animations.set(channel_name, exist_point ? exist_point.copyFrom(current_point) : current_point.clone())
                         group.animation_changed = false
                     }
                 }
                 //
-                const fix_duration = .3
-                if(diff < fix_duration) {
-                    const t2 = diff / fix_duration
-                    const current_point = new Vector()
-                    for(const group of this.groups.values()) {
-                        if(group.animation_changed) {
-                            group.animation_changed = false
-                            const group_animations = mesh.animations.get(group.name)
-                            for(const [channel_name, exist_point] of group_animations.entries()) {
-                                next_point.copyFrom(exist_point)
-                                if(channel_name == 'rotation') {
-                                    current_point.copyFrom(group.rot_orig)
-                                } else if(channel_name == 'position') {
-                                    // if(group.name == 'bone17') {
-                                    //     debugger
-                                    // }
-                                    current_point.set(0, 0, 0)
-                                    // current_point.copyFrom(group.pivot).divScalarSelf(16)
-                                }
-                                exist_point.lerpFrom(current_point, next_point, t2)
-                            }
-                        }
-                    }
-                }
+                // const fix_duration = .3
+                // if(diff < fix_duration) {
+                //     const t2 = diff / fix_duration
+                //     const current_point = new Vector()
+                //     for(const group of this.groups.values()) {
+                //         if(group.animation_changed) {
+                //             group.animation_changed = false
+                //             const group_animations = mesh.animations.get(group.name)
+                //             for(const [channel_name, exist_point] of group_animations.entries()) {
+                //                 next_point.copyFrom(exist_point)
+                //                 if(channel_name == 'rotation') {
+                //                     current_point.copyFrom(group.rot_orig)
+                //                 } else if(channel_name == 'position') {
+                //                     // if(group.name == 'bone17') {
+                //                     //     debugger
+                //                     // }
+                //                     current_point.set(0, 0, 0)
+                //                     // current_point.copyFrom(group.pivot).divScalarSelf(16)
+                //                 }
+                //                 exist_point.lerpFrom(current_point, next_point, t2)
+                //             }
+                //         }
+                //     }
+                // }
             } else {
                 mesh.trans_animations = null
             }

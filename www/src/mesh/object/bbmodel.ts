@@ -4,7 +4,6 @@ import type { Renderer } from '../../render.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 import type { BBModel_Model } from '../../bbmodel/model.js';
 import type { BaseResourcePack } from '../../base_resource_pack.js';
-import type { WebGLMaterial } from '../../renders/webgl/WebGLMaterial.js';
 import { Resources } from '../../resources.js';
 import type { BBModel_Group } from '../../bbmodel/group.js';
 import type Mesh_Object_Block_Drop from './block_drop.js';
@@ -267,7 +266,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         this.vertices = []
         const mx = mat4.create();
         mat4.rotateY(mx, mx, this.rotation[2] + Math.PI);
-        this.model.playAnimation(this.animation_name, (this.start_time + performance.now()) / 1000);
+        this.model.playAnimation(this.animation_name, (this.start_time + performance.now()) / 1000, this)
         this.model.draw(this.vertices, vecZero, lm, mx);
         this.buffer.updateInternal(this.vertices);
     }

@@ -716,6 +716,94 @@ export class Renderer {
 
     }
 
+    //
+    async drawPlayerPreview(callback) {
+
+        this.resetBefore()
+
+        const target = this.renderBackend.createRenderTarget({
+            width: 320 * 2,
+            height: 480 * 2,
+            depth: true
+        })
+
+        //
+        const camera = new Camera({
+            type:       Camera.PERSP_CAMERA, // Camera.ORTHO_CAMERA
+            max:        100,
+            min:        0.01,
+            fov:        60,
+            renderType: this.renderBackend.gl ? 'webgl' : 'webgpu',
+            width:      target.width,
+            height:     target.height,
+        })
+
+        //
+        const gu = this.globalUniforms
+
+        // larg for valid render results
+        gu.fogColor         = [0, 0, 0, 0]
+        gu.fogDensity       = 100
+        gu.chunkBlockDist   = 100
+        gu.resolution       = [target.width, target.height]
+        gu.brightness       = 0.0; // 0.55 * 1.0; // 1.3
+        gu.sunDir           = [-1, -1, 1]
+        gu.useSunDir        = true
+
+        //
+        camera.set(new Vector(0, 0, 0), new Vector(0, 0, Math.PI))
+        camera.use(gu, true)
+        gu.update()
+
+        this.renderBackend.beginPass({
+            target
+        })
+
+        const player_model = this.player.getModel()
+        const player_mesh = player_model._mesh
+        const pos = new Vector(0, -1, -2)
+
+        const player_matrix = mat4.create()
+        mat4.rotateY(player_matrix, player_matrix, Math.PI * .9)
+
+        const orig_animation = player_mesh.animation_name
+        player_mesh.animation_name = null
+        player_mesh.setAnimation('idle')
+        player_mesh.redraw(0)
+
+        player_model.setArmor()
+        player_mesh.model.drawBuffered(this, player_mesh, pos, IndexedColor.WHITE, player_matrix)
+
+        // this.renderBackend.drawMesh(player_mesh.buffer, player_mesh.gl_material, pos, player_matrix)
+
+        player_mesh.animation_name = orig_animation
+
+        this.renderBackend.endPass()
+
+        return new Promise((resolve, reject) => {
+
+            // render target to Canvas
+            target.toImage('canvas').then(async (data : any) => {
+                data.toBlob(async (blob : Blob) => {
+                    const image = await blobToImage(blob) as HTMLImageElement
+                    Helpers.downloadImage(image, 'inventory.png');
+                    resolve(image)
+                }, 'image/png')
+
+            })
+
+            this.renderBackend.endPass()
+
+            // disable
+            gu.useSunDir = false
+
+            target.destroy()
+            this.resetAfter()
+
+        })
+
+    }
+
     /**
      * Makes the renderer start tracking a new world and set up the chunk structure.
      * world - The world object to operate on.
