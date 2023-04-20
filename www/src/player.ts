@@ -20,7 +20,6 @@ import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
 import type { PLAYER_SKIN_TYPES } from "./constant.js"
 
-const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
 const SNEAK_HEIGHT                      = .78; // in percent
@@ -919,8 +918,6 @@ export class Player implements IPlayer {
             const velocity = pc.player_state.vel;
             // Update player model
             this.updateModelProps();
-            // Check falling
-            this.checkFalling();
             // Walking
             this.walking = (Math.abs(velocity.x) > 0 || Math.abs(velocity.z) > 0) && !this.getFlying() && !this.in_water;
             this.prev_walking = this.walking;
@@ -1098,39 +1095,6 @@ export class Player implements IPlayer {
             this.controls.left = false;
             this.controls.right = false;
         }, duration);
-    }
-
-    // Проверка падения (урон)
-    checkFalling() {
-        if(!this.game_mode.isSurvival()) {
-            return;
-        }
-        if(!this.onGround) {
-            let bpos = this.getBlockPos().add(Vector.YN);
-            let block = this.world.chunkManager.getBlock(bpos);
-            // ignore damage if dropped into water
-            if(block.fluid > 0) {
-                this.lastBlockPos = this.getBlockPos();
-            } else {
-                let pos = this.getBlockPos();
-                if(this.lastBlockPos && pos.y > this.lastBlockPos.y) {
-                    this.lastBlockPos = pos;
-                }
-            }
-        } else if(this.onGround != this.onGroundO && this.lastOnGroundTime) {
-            let bp = this.getBlockPos();
-            let height = (bp.y - this.lastBlockPos.y) / this.scale;
-            if(height < 0) {
-                const damage = -height - MAX_UNDAMAGED_HEIGHT - this.getEffectLevel(Effect.JUMP_BOOST);
-                if(damage > 0) {
-                    Qubatch.hotbar.damage(damage, 'falling');
-                }
-            }
-            this.lastOnGroundTime = null;
-        } else {
-            this.lastOnGroundTime = performance.now();
-            this.lastBlockPos = this.getBlockPos();
-        }
     }
 
     setDie() {
