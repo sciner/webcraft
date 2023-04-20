@@ -8,7 +8,7 @@ import {
 } from "@client/constant.js";
 import type {ServerPlayer} from "../server_player.js";
 import {DONT_VALIDATE_AFTER_MODE_CHANGE_MS, PLAYER_EXHAUSTION_PER_BLOCK, SERVER_SEND_CMD_MAX_INTERVAL,
-    SERVER_UNCERTAINTY_SECONDS, WAKEUP_MOVEMENT_DISTANCE} from "../server_constant.js";
+    SERVER_UNCERTAINTY_SECONDS, WAKEUP_MOVEMENT_DISTANCE, SIMULATE_PLAYER_PHYSICS} from "../server_constant.js";
 import {ServerClient} from "@client/server_client.js";
 import {ArrayHelpers, MonotonicUTCDate, SimpleQueue, Vector} from "@client/helpers.js";
 import {ServerPlayerTickData} from "./server_player_tick_data.js";
@@ -254,7 +254,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             ) {
                 simulatedSuccessfully = false
             } else {
-                simulatedSuccessfully = this.simulate(this.lastData, newData)
+                simulatedSuccessfully = SIMULATE_PLAYER_PHYSICS && this.simulate(this.lastData, newData)
             }
             this.knownPhysicsTicks = this.clientPhysicsTicks
 

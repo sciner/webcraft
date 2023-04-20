@@ -86,6 +86,7 @@ export const MOB_SAVE_DISTANCE  = 4;     // force saving if travelled more than 
 export const PLAYER_EXHAUSTION_PER_BLOCK = 0.01
 // if a player moves more than this distance from his original position, he wakes up or stands up from a chair
 export const WAKEUP_MOVEMENT_DISTANCE = 1.0
+export const SIMULATE_PLAYER_PHYSICS = false
 
 // velocity for deliberate item throws, blocks/phys.tick
 export const THROW_ITEM_VELOCITY                = 0.35
