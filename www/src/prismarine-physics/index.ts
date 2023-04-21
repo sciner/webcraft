@@ -506,16 +506,18 @@ export class Physics {
 
         if (!entity.isInWater && !entity.isInLava) {
             // Normal movement
-            let acceleration = this.airborneAcceleration
-            let inertia = this.airborneInertia
-            const blockUnder = this.world.getBlock(pos.offset(0, -1, 0))
+            let acceleration    = options.airborneAcceleration ?? this.airborneAcceleration
+            let inertia         = options.airborneInertia ?? this.airborneInertia
 
             if (entity.flying) {
                 inertia         = this.flyingInertia
                 acceleration    = this.flyingAcceleration
-            } else if (entity.onGround && blockUnder) {
-                inertia = (this.blockSlipperiness[blockUnder.id] || options.defaultSlipperiness) * 0.91
-                acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
+            } else if (entity.onGround) {
+                const blockUnder = this.world.getBlock(pos.offset(0, -1, 0))
+                if (blockUnder) {
+                    inertia = (this.blockSlipperiness[blockUnder.id] || options.defaultSlipperiness) * 0.91
+                    acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
+                }
             }
 
             if (entity.control.pitch) {
