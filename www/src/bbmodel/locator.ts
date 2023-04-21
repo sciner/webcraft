@@ -31,7 +31,7 @@ export class BBModel_Locator extends BBModel_Child {
         if(emmit_particles_func) {
             emmit_particles_func(StringHelpers.trim(this.name, '_'), _emmiter_pos)
         } else {
-            console.error('empty_emmit_particles_func')
+            console.debug('empty_emmit_particles_func')
         }
     }
 

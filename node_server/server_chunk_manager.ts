@@ -485,7 +485,7 @@ export class ServerChunkManager {
     }
 
     // Return chunks inside AABB
-    getInAABB(aabb : AABB) {
+    getInAABB(aabb : AABB) : ServerChunk[] {
         const pos1 = this.grid.getChunkAddr(aabb.x_min, aabb.y_min, aabb.z_min);
         const pos2 = this.grid.getChunkAddr(aabb.x_max, aabb.y_max, aabb.z_max);
         const aabb2 = new AABB().set(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z).expand(.1, .1, .1);

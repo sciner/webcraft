@@ -8,34 +8,31 @@ import type { ServerWorld } from "./server_world.js";
 import type { FSMBrain } from "./fsm/brain.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
-import type { Indicators } from "@client/player.js";
+import type { Indicators, PlayerSkin } from "@client/player.js";
 import type { ServerPlayer } from "./server_player.js";
 import { upgradeToNewIndicators } from "./db/world.js";
 import type { ServerChunk } from "./server_chunk.js";
 import type { ChunkGrid } from "@client/core/ChunkGrid.js";
 
 export class MobSpawnParams {
-
-    pos: Vector;
-    pos_spawn: Vector;
-    rotate: Vector;
-    type: string;
-    skin: string;
-
     // These values are added by WorldMobManager.create
-    id?: int
-    entity_id?: string
+    id?:            int
+    entity_id?:     string
+
+    pos:            Vector
+    pos_spawn:      Vector
+    rotate:         Vector
+    skin:           PlayerSkin
 
     // These values are added to params by the mob itself
-    extra_data?: any;
-    indicators?: Indicators;
-    is_active?: boolean | int; // 0 or 1
+    extra_data?:    any
+    indicators?:    Indicators
+    is_active?:     boolean | int // 0 or 1
 
-    constructor(pos: Vector, rotate: Vector, type: string, skin: string) {
+    constructor(pos: Vector, rotate: Vector, skin: PlayerSkin) {
         this.pos = new Vector(pos)
         this.pos_spawn = new Vector(pos)
         this.rotate = new Vector(rotate)
-        this.type = type
         this.skin = skin
     }
 
@@ -98,8 +95,7 @@ export class Mob {
     #prev_state;
     id: int;
     entity_id: string;
-    type: string;
-    skin: string;
+    skin: PlayerSkin;
     indicators: Indicators;
     is_active?: boolean | int;
     pos: Vector;
@@ -125,7 +121,6 @@ export class Mob {
         // Read params
         this.id             = params.id,
         this.entity_id      = params.entity_id,
-        this.type           = params.type;
         this.skin           = params.skin;
         this.indicators     = params.indicators;
         this.is_active      = params.is_active;
@@ -143,7 +138,7 @@ export class Mob {
         this.#chunk_addr    = new Vector();
         this.chunk_addr_o   = world.chunkManager.grid.toChunkAddr(this.pos);
         this.#forward       = new Vector(0, 1, 0);
-        this.#brain         = world.brains.get(this.type, this);
+        this.#brain         = world.brains.get(this.skin.model_name, this);
         this.width          = this.#brain.pc.playerHalfWidth * 2;
         this.height         = this.#brain.pc.playerHeight;
 
@@ -210,7 +205,7 @@ export class Mob {
         params.indicators = world.db.getDefaultPlayerIndicators();
         params.is_active = 1; // previously is_active was selected from DB, where it's set to 1 by default
         //
-        switch(params.type) {
+        switch(params.skin.model_name) {
             case MOB_TYPE.BEE: {
                 params.extra_data.pollen = 0;
                 break;
@@ -321,8 +316,7 @@ export class Mob {
             pos_spawn:  JSON.parse(row.pos_spawn),
             pos:        new Vector(row.x, row.y, row.z),
             entity_id:  row.entity_id,
-            type:       row.type,
-            skin:       row.skin,
+            skin:       {model_name: row.type, texture_name: row.skin} as PlayerSkin,
             is_active:  row.is_active != 0,
             extra_data: JSON.parse(row.extra_data),
             indicators: upgradeToNewIndicators(JSON.parse(row.indicators))

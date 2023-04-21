@@ -1,9 +1,9 @@
 import { GameMode } from "@client/game_mode.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 import { WorldGenerators } from "./world/generators.js";
-import type { DBGame } from "db/game.js";
 import { Vector } from "@client/helpers.js";
 import {MonotonicUTCDate, TApiSyncTimeRequest, TApiSyncTimeResponse} from "@client/helpers/monotonic_utc_date.js";
+import type { DBGame } from "db/game.js";
 
 const FLAG_SYSTEM_ADMIN = 256;
 
@@ -192,6 +192,17 @@ export class ServerAPI {
             case '/api/Skin/GetOwned': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);
                 return await ServerAPI.getDb().skins.getOwned(session.user_id);
+            }
+            case '/api/Skin/List': {
+                const resp = []
+                for(const skin of ServerAPI.getDb().skins.list) {
+                    if(skin.can_select_by_player) {
+                        resp.push(skin)
+                    }
+                }
+                return resp
+                // const session = await ServerAPI.getDb().GetPlayerSession(session_id);
+                // return await ServerAPI.getDb().skins.getOwned(session.user_id);
             }
             case '/api/Skin/DeleteFromUser': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);

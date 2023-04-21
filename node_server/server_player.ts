@@ -7,7 +7,7 @@ import { PlayerEvent } from "./player_event.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
 import { ALLOW_NEGATIVE_Y, MAX_RENDER_DIST_IN_BLOCKS } from "@client/chunk_const.js";
-import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_STATUS, DEFAULT_RENDER_DISTANCE } from "@client/constant.js";
+import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_STATUS, DEFAULT_RENDER_DISTANCE, PLAYER_SKIN_TYPES } from "@client/constant.js";
 import { WorldPortal, WorldPortalWait } from "@client/portal.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { ServerPlayerEffects } from "./player/effects.js";
@@ -231,7 +231,7 @@ export class ServerPlayer extends Player {
         });
     }
 
-    async onJoin(session_id : string, skin_id : int, conn : any, world : ServerWorld) {
+    async onJoin(session_id : string, skin_id : string, conn : any, world : ServerWorld) {
 
         if (EMULATED_PING) {
             console.log('Connect user with emulated ping:', EMULATED_PING);

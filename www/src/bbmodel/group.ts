@@ -64,6 +64,15 @@ export class BBModel_Group extends BBModel_Child {
 
         const group_modifiers = mesh.modifiers.getForGroup(this.name)
 
+        if(this.name == '_main') {
+            const replaceTextures = mesh.modifiers.getSelectedTextures()
+            if(replaceTextures.size > 0) {
+                for(const [group_name, texture_name] of replaceTextures.entries()) {
+                    this.model.selectTextureFromPalette(group_name, texture_name)
+                }
+            }
+        }
+
         const mx = this._mx
         mat4.identity(mx)
 
