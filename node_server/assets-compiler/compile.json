@@ -504,7 +504,13 @@
                 "height": 0.5,
                 "slab": true,
                 "full_block_name": "DIRT"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"DIRT_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 420,
@@ -527,7 +533,13 @@
                 "height": 0.5,
                 "slab": true,
                 "full_block_name": "SNOW_DIRT"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"SNOW_DIRT_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 2,
@@ -594,7 +606,20 @@
             "material": {
                 "id": "cobblestone"
             },
-            "texture": "block/cobblestone.png"
+            "texture": "block/cobblestone.png",
+            "drop_item": [
+                {
+                    "name":"COBBLESTONE",
+                    "instrument":["_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 137,
@@ -1330,7 +1355,13 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/birch_planks.png"
+            "texture": "block/birch_planks.png",
+            "drop_item": [
+                {
+                    "name":"BIRCH_PLANKS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 7,
@@ -1344,7 +1375,13 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/oak_planks.png"
+            "texture": "block/oak_planks.png",
+            "drop_item": [
+                {
+                    "name":"OAK_PLANKS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 457,
@@ -1358,7 +1395,13 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/acacia_planks.png"
+            "texture": "block/acacia_planks.png",
+            "drop_item": [
+                {
+                    "name":"ACACIA_PLANKS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 460,
@@ -1372,7 +1415,13 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/spruce_planks.png"
+            "texture": "block/spruce_planks.png",
+            "drop_item": [
+                {
+                    "name":"SPRUCE_PLANKS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 528,
@@ -1386,7 +1435,13 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/dark_oak_planks.png"
+            "texture": "block/dark_oak_planks.png",
+            "drop_item": [
+                {
+                    "name":"DARK_OAK_PLANKS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 529,
@@ -1400,7 +1455,13 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/jungle_planks.png"
+            "texture": "block/jungle_planks.png",
+            "drop_item": [
+                {
+                    "name":"JUNGLE_PLANKS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 661,
@@ -1414,7 +1475,13 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/warped_planks.png"
+            "texture": "block/warped_planks.png",
+            "drop_item": [
+                {
+                    "name":"WARPED_PLANKS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 89,
@@ -1429,18 +1496,39 @@
                 "id": "stone"
             },
             "sound": "madcraft:block.stone",
-            "texture": "block/glowstone.png"
+            "texture": "block/glowstone.png",
+            "drop_item": [
+                {
+                    "name":"GLOWSTONE_DUST",
+                    "count": {
+                        "min": 2,
+                        "max": 4
+                    }
+                }
+            ]
         },
         {
             "id": 9,
             "name": "STONE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "COBBLESTONE", "count": 1, "chance": 1},
             "coocked_item": {"name": "SMOOTH_STONE", "count": 1},
             "material": {
                 "id": "stone"
             },
-            "texture": "block/stone.png"
+            "texture": "block/stone.png",
+            "drop_item": [
+                {
+                    "name":"COBBLESTONE",
+                    "instrument":["_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 70,
@@ -1449,7 +1537,20 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/smooth_stone.png"
+            "texture": "block/smooth_stone.png",
+            "drop_item": [
+                {
+                    "name":"COBBLESTONE",
+                    "instrument":["_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 10,
@@ -1458,7 +1559,20 @@
             "texture": "block/bricks.png",
             "material": {
                 "id": "stone"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"BRICKS",
+                    "instrument":["_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 11,
@@ -1661,7 +1775,13 @@
             "texture": "block/gold_block.png",
             "material": {
                 "id": "gold"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"GOLD_BLOCK",
+                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 14,
@@ -1670,7 +1790,7 @@
             "coocked_item": {"name": "GOLD_ORE", "count": 1},
             "drop_item": [
                 {
-                    "name":"GOLD_ORE",
+                    "name":"RAW_GOLD",
                     "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
@@ -1696,7 +1816,13 @@
             "material": {
                 "id": "diamond"
             },
-            "texture": "block/diamond_block.png"
+            "texture": "block/diamond_block.png",
+            "drop_item": [
+                {
+                    "name":"DIAMOND_BLOCK",
+                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 90,
@@ -1705,7 +1831,20 @@
             "texture": "block/obsidian.png",
             "material": {
                 "id": "obsidian"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"OBSIDIAN",
+                    "instrument":["DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 17,
@@ -1759,32 +1898,73 @@
             },
             "tags": [
                 "ore"
+            ],
+            "drop_item": [
+                {
+                    "name":"RAW_IRON",
+                    "instrument":["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
             ]
         },
         {
             "id": 16,
             "name": "COAL_ORE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "COAL", "count": 1, "chance": 1},
             "texture": "block/coal_ore.png",
             "material": {
                 "id": "stone"
             },
             "tags": [
                 "ore"
+            ],
+            "drop_item": [
+                {
+                    "name":"COAL",
+                    "instrument":["_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
             ]
         },
         {
             "id": 21,
             "name": "LAPIS_LAZULI_ORE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "LAPIS_LAZULI", "count": 1},
             "texture": "block/lapis_ore.png",
             "material": {
                 "id": "stone"
             },
             "tags": [
                 "ore"
+            ],
+            "drop_item": [
+                {
+                    "name":"LAPIS_LAZULI",
+                    "instrument":["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"],
+                    "count": {
+                        "min": 2,
+                        "max": 5
+                    }
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
             ]
         },
         {
@@ -1793,7 +1973,13 @@
             "texture": "block/lapis_block.png",
             "material": {
                 "id": "stone"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"LAPIS_BLOCK",
+                    "instrument":["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 24,
@@ -1806,7 +1992,20 @@
             },
             "material": {
                 "id": "stone"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"SANDSTONE",
+                    "instrument":["_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 25,
@@ -2183,7 +2382,13 @@
                 "slab": true,
                 "full_block_name": "SMOOTH_STONE"
             },
-            "texture": "block/smooth_stone.png"
+            "texture": "block/smooth_stone.png",
+            "drop_item": [
+                {
+                    "name":"SMOOTH_STONE_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 45,
@@ -2199,7 +2404,13 @@
                 "slab": true,
                 "full_block_name": "COBBLESTONE"
             },
-            "texture": "block/cobblestone.png"
+            "texture": "block/cobblestone.png",
+            "drop_item": [
+                {
+                    "name":"COBBLESTONE_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 1496,
@@ -2215,7 +2426,13 @@
                 "slab": true,
                 "full_block_name": "POLISHED_ANDESITE"
             },
-            "texture": "block/polished_andesite.png"
+            "texture": "block/polished_andesite.png",
+            "drop_item": [
+                {
+                    "name":"POLISHED_ANDESITE_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 48,
@@ -2224,24 +2441,44 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/mossy_cobblestone.png"
+            "texture": "block/mossy_cobblestone.png",
+            "drop_item": [
+                {
+                    "name":"MOSS_STONE",
+                    "instrument":["_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 56,
             "name": "DIAMOND_ORE",
             "sound": "madcraft:block.stone",
-            "drop_item": [
-                {
-                    "name":"DIAMOND",
-                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
-                }
-            ],
             "texture": "block/diamond_ore.png",
             "material": {
                 "id": "diamond"
             },
             "tags": [
                 "ore"
+            ],
+            "drop_item": [
+                {
+                    "name":"DIAMOND",
+                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
             ]
         },
         {
@@ -2290,7 +2527,13 @@
                 "id": "cobblestone"
             },
             "texture": "block/cobblestone.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"COBBLESTONE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 76,
@@ -2397,7 +2640,13 @@
             "material": {
                 "id": "netherrack"
             },
-            "texture": "block/nether_bricks.png"
+            "texture": "block/nether_bricks.png",
+            "drop_item": [
+                {
+                    "name":"NETHER_BRICK",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 1418,
@@ -2494,7 +2743,13 @@
             "material": {
                 "id": "netherrack"
             },
-            "texture": "block/nether_bricks.png"
+            "texture": "block/nether_bricks.png",
+            "drop_item": [
+                {
+                    "name":"NETHER_BRICK_FENCE",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 87,
@@ -2502,7 +2757,13 @@
             "material": {
                 "id": "netherrack"
             },
-            "texture": "block/netherrack.png"
+            "texture": "block/netherrack.png",
+            "drop_item": [
+                {
+                    "name":"NETHERRACK",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 88,
@@ -2520,7 +2781,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/stone_bricks.png"
+            "texture": "block/stone_bricks.png",
+            "drop_item": [
+                {
+                    "name":"STONE_BRICKS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 99,
@@ -2570,7 +2837,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/stone_bricks.png"
+            "texture": "block/stone_bricks.png",
+            "drop_item": [
+                {
+                    "name":"STONE_BRICK_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 103,
@@ -2579,7 +2852,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/chiseled_stone_bricks.png"
+            "texture": "block/chiseled_stone_bricks.png",
+            "drop_item": [
+                {
+                    "name":"CHISELED_STONE_BRICKS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 104,
@@ -2588,7 +2867,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/polished_blackstone.png"
+            "texture": "block/polished_blackstone.png",
+            "drop_item": [
+                {
+                    "name":"POLISHED_BLACKSTONE",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 105,
@@ -2597,7 +2882,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/polished_blackstone_bricks.png"
+            "texture": "block/polished_blackstone_bricks.png",
+            "drop_item": [
+                {
+                    "name":"POLISHED_BLACKSTONE_BRICKS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 107,
@@ -2613,7 +2904,13 @@
                 "slab": true,
                 "full_block_name": "POLISHED_BLACKSTONE_BRICKS"
             },
-            "texture": "block/polished_blackstone_bricks.png"
+            "texture": "block/polished_blackstone_bricks.png",
+            "drop_item": [
+                {
+                    "name":"POLISHED_BLACKSTONE_BRICK_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 111,
@@ -2627,7 +2924,13 @@
                 "stairs"
             ],
             "texture": "block/polished_blackstone.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"POLISHED_ANDESITE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 115,
@@ -2641,7 +2944,13 @@
                 "stairs"
             ],
             "texture": "block/polished_blackstone_bricks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"POLISHED_BLACKSTONE_BRICK_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 116,
@@ -2657,7 +2966,13 @@
                 "slab": true,
                 "full_block_name": "POLISHED_BLACKSTONE"
             },
-            "texture": "block/polished_blackstone.png"
+            "texture": "block/polished_blackstone.png",
+            "drop_item": [
+                {
+                    "name":"POLISHED_BLACKSTONE_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 118,
@@ -2668,7 +2983,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/polished_blackstone.png"
+            "texture": "block/polished_blackstone.png",
+            "drop_item": [
+                {
+                    "name":"POLISHED_BLACKSTONE_WALL",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 995,
@@ -2738,7 +3059,13 @@
                 "stairs"
             ],
             "texture": "block/bricks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"BRICK_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 109,
@@ -2752,7 +3079,13 @@
                 "stairs"
             ],
             "texture": "block/stone_bricks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"STONE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 122,
@@ -2765,7 +3098,19 @@
                 "up": "block/quartz_block_top.png",
                 "side": "block/quartz_block_side.png",
                 "down": "block/quartz_block_bottom.png"
-            }
+            },"drop_item": [
+                {
+                    "name":"QUARTZ_BLOCK",
+                    "instrument":["_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 123,
@@ -2778,7 +3123,13 @@
                 "up": "block/sandstone_top.png",
                 "side": "block/cut_sandstone.png",
                 "down": "block/sandstone_top.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"CUT_SANDSTONE",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 117,
@@ -2816,7 +3167,13 @@
             "texture": "block/end_stone.png",
             "material": {
                 "id": "stone"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"END_STONE",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 120,
@@ -2846,7 +3203,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/bricks.png"
+            "texture": "block/bricks.png",
+            "drop_item": [
+                {
+                    "name":"BRICK_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 126,
@@ -2862,7 +3225,13 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/oak_planks.png"
+            "texture": "block/oak_planks.png",
+            "drop_item": [
+                {
+                    "name":"OAK_SLAB",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 538,
@@ -2878,7 +3247,13 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/dark_oak_planks.png"
+            "texture": "block/dark_oak_planks.png",
+            "drop_item": [
+                {
+                    "name":"DARK_OAK_SLAB",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 539,
@@ -2894,7 +3269,13 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/jungle_planks.png"
+            "texture": "block/jungle_planks.png",
+            "drop_item": [
+                {
+                    "name":"JUNGLE_SLAB",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 458,
@@ -2910,7 +3291,13 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/birch_planks.png"
+            "texture": "block/birch_planks.png",
+            "drop_item": [
+                {
+                    "name":"BIRCH_SLAB",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 459,
@@ -2926,7 +3313,13 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/acacia_planks.png"
+            "texture": "block/acacia_planks.png",
+            "drop_item": [
+                {
+                    "name":"ACACIA_SLAB",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 461,
@@ -2942,7 +3335,13 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/spruce_planks.png"
+            "texture": "block/spruce_planks.png",
+            "drop_item": [
+                {
+                    "name":"SPRUCE_SLAB",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 128,
@@ -2960,17 +3359,35 @@
                 "up": "block/sandstone_bottom.png",
                 "down": "block/sandstone_bottom.png"
             },
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"SANDSTONE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 129,
             "name": "EMERALD_ORE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "EMERALD", "count": 1},
             "material": {"id": "stone"},
             "texture": "block/emerald_ore.png",
             "tags": [
                 "ore"
+            ],
+            "drop_item": [
+                {
+                    "name":"EMERALD",
+                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
             ]
         },
         {
@@ -2985,7 +3402,13 @@
                 "stairs"
             ],
             "texture": "block/birch_planks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"BIRCH_STAIRS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 53,
@@ -2999,7 +3422,13 @@
                 "stairs"
             ],
             "texture": "block/oak_planks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"OAK_STAIRS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 163,
@@ -3013,7 +3442,13 @@
                 "stairs"
             ],
             "texture": "block/acacia_planks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"ACACIA_STAIRS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 134,
@@ -3027,7 +3462,13 @@
                 "stairs"
             ],
             "texture": "block/spruce_planks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"SPRUCE_STAIRS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 534,
@@ -3041,7 +3482,13 @@
                 "stairs"
             ],
             "texture": "block/dark_oak_planks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"DARK_OAK_STAIRS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 535,
@@ -3055,7 +3502,13 @@
                 "stairs"
             ],
             "texture": "block/jungle_planks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"JUNGLE_STAIRS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 156,
@@ -3069,7 +3522,13 @@
                 "stairs"
             ],
             "texture": "block/quartz_block_top.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"QUARTZ_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 173,
@@ -3640,7 +4099,13 @@
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             },
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"BIRCH_TRAPDOOR",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 463,
@@ -3660,7 +4125,13 @@
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             },
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"OAK_TRAPDOOR",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 464,
@@ -3680,7 +4151,13 @@
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             },
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"ACACIA_TRAPDOOR",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 465,
@@ -3700,7 +4177,13 @@
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             },
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"SPRUCE_TRAPDOOR",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 532,
@@ -3720,7 +4203,13 @@
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             },
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"DARK_OAK_TRAPDOOR",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 533,
@@ -3740,7 +4229,13 @@
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             },
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"JUNGLE_TRAPDOOR",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 1495,
@@ -3760,7 +4255,13 @@
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             },
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"IRON_TRAPDOOR",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 86,
@@ -3907,7 +4408,20 @@
             },
             "texture": {
                 "side": "block/andesite.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"ANDESITE",
+                    "instrument":["_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 546,
@@ -3918,7 +4432,13 @@
             },
             "texture": {
                 "side": "block/polished_andesite.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"POLISHED_ANDESITE",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 547,
@@ -3929,7 +4449,20 @@
             },
             "texture": {
                 "side": "block/diorite.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"DIORITE",
+                    "instrument":["_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 548,
@@ -3940,7 +4473,13 @@
             },
             "texture": {
                 "side": "block/polished_diorite.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"POLISHED_DIORITE",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 549,
@@ -3951,7 +4490,20 @@
             },
             "texture": {
                 "side": "block/granite.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"GRANITE",
+                    "instrument":["_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 550,
@@ -3962,7 +4514,14 @@
             },
             "texture": {
                 "side": "block/polished_granite.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"POLISHED_GRANITE",
+                    "instrument":["_PICKAXE"],
+                    "count": 2
+                }
+            ]
         },
         {
             "id": 572,
@@ -4273,7 +4832,20 @@
                 "type": "dripstone"
             },
             "extra_data": {
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"DRIPSTONE_BLOCK",
+                    "instrument":["_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 593,
@@ -4310,7 +4882,20 @@
             "material": {
                 "id": "amethyst"
             },
-            "texture": "block/amethyst_block.png"
+            "texture": "block/amethyst_block.png",
+            "drop_item": [
+                {
+                    "name":"REDSTONE_WIRE",
+                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 597,
@@ -4588,7 +5173,13 @@
                 "id": "stone"
             },
             "texture": "block/stone_bricks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"STONE_BRICK_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 616,
@@ -4681,7 +5272,13 @@
             "material": {
                 "id": "cobblestone"
             },
-            "texture": "block/cobblestone.png"
+            "texture": "block/cobblestone.png",
+            "drop_item": [
+                {
+                    "name":"COBBLESTONE_WALL",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 1462,
@@ -4692,7 +5289,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/stone_bricks.png"
+            "texture": "block/stone_bricks.png",
+            "drop_item": [
+                {
+                    "name":"STONE_BRICK_WALL",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 620,
@@ -4703,7 +5306,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/mossy_cobblestone.png"
+            "texture": "block/mossy_cobblestone.png",
+            "drop_item": [
+                {
+                    "name":"MOSS_STONE_WALL",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 621,
@@ -4716,7 +5325,13 @@
             },
             "texture": {
                 "side": "block/andesite.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"ANDESITE_WALL",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 622,
@@ -4729,7 +5344,13 @@
             },
             "texture": {
                 "side": "block/diorite.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"DIORITE_WALL",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 623,
@@ -4742,7 +5363,13 @@
             },
             "texture": {
                 "side": "block/granite.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"GRANITE_WALL",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 624,
@@ -4753,7 +5380,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/sandstone.png"
+            "texture": "block/sandstone.png",
+            "drop_item": [
+                {
+                    "name":"SANDSTONE_WALL",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 625,
@@ -4764,7 +5397,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/bricks.png"
+            "texture": "block/bricks.png",
+            "drop_item": [
+                {
+                    "name":"BIRCH_WALL",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 626,
@@ -4793,7 +5432,20 @@
             },
             "texture": {
                 "side": "block/deepslate.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"DEEPSLATE",
+                    "instrument":["_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 629,
@@ -4803,7 +5455,13 @@
             },
             "texture": {
                 "side": "block/deepslate_bricks.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"DEEPSLATE_BRICKS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 630,
@@ -4817,7 +5475,13 @@
                 "id": "stone"
             },
             "texture": "block/deepslate_bricks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"DEEPSLATE_BRICK_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 631,
@@ -4845,7 +5509,13 @@
             },
             "texture": {
                 "side": "block/mossy_stone_bricks.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"MOSSY_STONE_BRICKS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 59,
@@ -4973,13 +5643,26 @@
             "id": 73,
             "name": "REDSTONE_ORE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "REDSTONE_WIRE", "count": 2, "chance": 1},
             "texture": "block/redstone_ore.png",
             "material": {
                 "id": "stone"
             },
             "tags": [
                 "ore"
+            ],
+            "drop_item": [
+                {
+                    "name":"REDSTONE_WIRE",
+                    "instrument":["_PICKAXE"],
+                    "count": 2
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
             ]
         },
         {
@@ -5020,7 +5703,13 @@
             "texture": {
                 "up": "block/lodestone_top.png",
                 "side": "block/lodestone_side.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"LODESTONE",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 637,
@@ -6349,7 +7038,13 @@
                 "id": "stone"
             },
             "texture": "block/polished_andesite.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"POLISHED_ANDESITE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 1497,
@@ -6367,7 +7062,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/deepslate_bricks.png"
+            "texture": "block/deepslate_bricks.png",
+            "drop_item": [
+                {
+                    "name":"DEEPSLATE_BRICKS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 125,
@@ -6383,7 +7084,13 @@
                 "slab": true,
                 "full_block_name": "DEEPSLATE_BRICKS"
             },
-            "texture": "block/deepslate_bricks.png"
+            "texture": "block/deepslate_bricks.png",
+            "drop_item": [
+                {
+                    "name":"DEEPSLATE_BRICK_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 127,
@@ -6397,7 +7104,13 @@
                 "id": "stone"
             },
             "texture": "block/deepslate_bricks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"DEEPSLATE_BRICK_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 133,
@@ -6406,7 +7119,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/deepslate_tiles.png"
+            "texture": "block/deepslate_tiles.png",
+            "drop_item": [
+                {
+                    "name":"DEEPSLATE_TILES",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 136,
@@ -6422,7 +7141,13 @@
                 "slab": true,
                 "full_block_name": "DEEPSLATE_TILES"
             },
-            "texture": "block/deepslate_tiles.png"
+            "texture": "block/deepslate_tiles.png",
+            "drop_item": [
+                {
+                    "name":"DEEPSLATE_TILE_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 140,
@@ -6436,7 +7161,13 @@
                 "id": "stone"
             },
             "texture": "block/deepslate_tiles.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"DEEPSLATE_TILE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 141,
@@ -6447,7 +7178,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/deepslate_tiles.png"
+            "texture": "block/deepslate_tiles.png",
+            "drop_item": [
+                {
+                    "name":"DEEPSLATE_TILE_WALL",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 143,
@@ -6456,7 +7193,13 @@
             "material": {
                 "id": "netherite"
             },
-            "texture": "block/netherite_block.png"
+            "texture": "block/netherite_block.png",
+            "drop_item": [
+                {
+                    "name":"NETHERITE_BLOCK",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 144,
@@ -6467,7 +7210,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/mossy_cobblestone.png"
+            "texture": "block/mossy_cobblestone.png",
+            "drop_item": [
+                {
+                    "name":"MOSSY_COBBLESTONE_WALL",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 146,
@@ -6476,7 +7225,13 @@
             "material": {
                 "id": "cobblestone"
             },
-            "texture": "block/mossy_cobblestone.png"
+            "texture": "block/mossy_cobblestone.png",
+            "drop_item": [
+                {
+                    "name":"MOSSY_COBBLESTONE",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 147,
@@ -6490,7 +7245,13 @@
                 "id": "cobblestone"
             },
             "texture": "block/mossy_cobblestone.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"MOSSY_COBBLESTONE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 148,
@@ -6553,7 +7314,13 @@
                 "id": "iron"
             },
             "texture": "block/cut_copper.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"WAXED_CUT_COPPER_STAIRS",
+                    "instrument":["IRON_PICKAXE", "STONE_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 154,
@@ -6598,7 +7365,13 @@
                 "stairs"
             ],
             "texture": "block/mossy_stone_bricks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"MOSSY_STONE_BRICK_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 159,
@@ -6607,7 +7380,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/dark_prismarine.png"
+            "texture": "block/dark_prismarine.png",
+            "drop_item": [
+                {
+                    "name":"DARK_PRISMARINE",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 160,
@@ -6623,7 +7402,13 @@
                 "slab": true,
                 "full_block_name": "QUARTZ_BLOCK"
             },
-            "texture": "block/quartz_block_top.png"
+            "texture": "block/quartz_block_top.png",
+            "drop_item": [
+                {
+                    "name":"QUARTZ_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 161,
@@ -6639,7 +7424,13 @@
                 "slab": true,
                 "full_block_name": "STONE"
             },
-            "texture": "block/stone.png"
+            "texture": "block/stone.png",
+            "drop_item": [
+                {
+                    "name":"STONE_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 164,
@@ -6653,7 +7444,13 @@
                 "stairs"
             ],
             "texture": "block/dark_prismarine.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"DARK_PRISMARINE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 166,
@@ -6667,7 +7464,13 @@
                 "stairs"
             ],
             "texture": "block/prismarine_bricks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"PRISMARINE_BRICK_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 167,
@@ -6676,7 +7479,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/prismarine_bricks.png"
+            "texture": "block/prismarine_bricks.png",
+            "drop_item": [
+                {
+                    "name":"PRISMARINE_BRICKS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 168,
@@ -6703,7 +7512,13 @@
                 "stairs"
             ],
             "texture": "block/red_sandstone.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"RED_SANDSTONE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 172,
@@ -6714,7 +7529,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/red_sandstone.png"
+            "texture": "block/red_sandstone.png",
+            "drop_item": [
+                {
+                    "name":"RED_SANDSTONE_WALL",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 174,
@@ -6723,7 +7544,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/sandstone_top.png"
+            "texture": "block/sandstone_top.png",
+            "drop_item": [
+                {
+                    "name":"SMOOTH_SANDSTONE",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 175,
@@ -6739,7 +7566,13 @@
                 "slab": true,
                 "full_block_name": "SMOOTH_SANDSTONE"
             },
-            "texture": "block/sandstone_top.png"
+            "texture": "block/sandstone_top.png",
+            "drop_item": [
+                {
+                    "name":"SMOOTH_SANDSTONE_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 176,
@@ -6753,7 +7586,13 @@
                 "stairs"
             ],
             "texture": "block/sandstone_top.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"SMOOTH_SANDSTONE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 177,
@@ -6782,7 +7621,13 @@
                 "slab": true,
                 "full_block_name": "CUT_RED_SANDSTONE"
             },
-            "texture": "block/cut_red_sandstone.png"
+            "texture": "block/cut_red_sandstone.png",
+            "drop_item": [
+                {
+                    "name":"CUT_RED_SANDSTONE_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 179,
@@ -6798,7 +7643,13 @@
                 "slab": true,
                 "full_block_name": "PRISMARINE_BRICKS"
             },
-            "texture": "block/prismarine_bricks.png"
+            "texture": "block/prismarine_bricks.png",
+            "drop_item": [
+                {
+                    "name":"PRISMARINE_BRICK_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 180,
@@ -6838,7 +7689,13 @@
                 "stairs"
             ],
             "texture": "block/nether_bricks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"NETHER_BRICK_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 183,
@@ -6862,7 +7719,13 @@
             "material": {
                 "id": "stone"
             },
-            "texture": "block/emerald_block.png"
+            "texture": "block/emerald_block.png",
+            "drop_item": [
+                {
+                    "name":"EMERALD_BLOCK",
+                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 185,
@@ -6937,7 +7800,13 @@
                 "id": "stone"
             },
             "texture": "block/quartz_block_top.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"SMOOTH_QUARTZ_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 55,
@@ -6957,7 +7826,13 @@
                 "height": 0.5,
                 "slab": true,
                 "full_block_name": "SANDSTONE"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"SANDSTONE_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 57,
@@ -6977,7 +7852,13 @@
                 "height": 0.5,
                 "slab": true,
                 "full_block_name": "RED_SANDSTONE"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"RED_SANDSTONE_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 64,
@@ -6991,7 +7872,13 @@
                 "id": "stone"
             },
             "texture": "block/prismarine.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"PRISMARINE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 66,
@@ -7005,7 +7892,13 @@
                 "id": "stone"
             },
             "texture": "block/end_stone_bricks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"END_STONE_BRICK_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 68,
@@ -7030,7 +7923,13 @@
                 "height": 0.5,
                 "slab": true,
                 "full_block_name": "END_STONE_BRICKS"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"END_STONE_BRICK_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 83,
@@ -7071,7 +7970,13 @@
                 "id": "stone"
             },
             "texture": "block/andesite.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"ANDESITE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 19,
@@ -7181,7 +8086,13 @@
                 "id": "wood"
             },
             "texture": "block/warped_planks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"WARPED_STAIRS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 77,
@@ -7197,7 +8108,13 @@
                 "slab": true,
                 "full_block_name": "WARPED_PLANKS"
             },
-            "texture": "block/warped_planks.png"
+            "texture": "block/warped_planks.png",
+            "drop_item": [
+                {
+                    "name":"WARPED_SLAB",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 78,
@@ -7213,7 +8130,13 @@
                 "slab": true,
                 "full_block_name": "NETHER_BRICKS"
             },
-            "texture": "block/nether_bricks.png"
+            "texture": "block/nether_bricks.png",
+            "drop_item": [
+                {
+                    "name":"NETHER_BRICK_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 96,
@@ -7238,7 +8161,13 @@
                 "slab": true,
                 "full_block_name": "PURPUR_BLOCK"
             },
-            "texture": "block/purpur_block.png"
+            "texture": "block/purpur_block.png",
+            "drop_item": [
+                {
+                    "name":"PURPUR_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 112,
@@ -7252,7 +8181,13 @@
                 "id": "stone"
             },
             "texture": "block/purpur_block.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"PURPUR_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 598,
@@ -7350,7 +8285,13 @@
                 "id": "stone"
             },
             "texture": "block/granite.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"GRANITE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 28,
@@ -7364,7 +8305,13 @@
                 "id": "stone"
             },
             "texture": "block/polished_granite.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"POLISHED_GRANITE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 41,
@@ -7378,7 +8325,13 @@
                 "id": "stone"
             },
             "texture": "block/diorite.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"DIORITE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 193,
@@ -7392,7 +8345,13 @@
                 "id": "wood"
             },
             "texture": "block/crimson_planks.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"CRIMSON_STAIRS",
+                    "instrument":["_AXE"]
+                }
+            ]
         },
         {
             "id": 29,
@@ -7451,7 +8410,13 @@
                 "slab": true,
                 "full_block_name": "SMOOTH_QUARTZ"
             },
-            "texture": "block/quartz_block_top.png"
+            "texture": "block/quartz_block_top.png",
+            "drop_item": [
+                {
+                    "name":"SMOOTH_QUARTZ_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 93,
@@ -7758,13 +8723,26 @@
             "id": 194,
             "name": "DEEPSLATE_REDSTONE_ORE",
             "sound": "madcraft:block.stone",
-            "drop_item": {"name": "REDSTONE_WIRE", "count": 2, "chance": 1},
             "texture": "block/deepslate_redstone_ore.png",
             "material": {
                 "id": "stone"
             },
             "tags": [
                 "ore"
+            ],
+            "drop_item": [
+                {
+                    "name":"REDSTONE_WIRE",
+                    "instrument":["_PICKAXE"],
+                    "count": 2
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
             ]
         },
         {
@@ -7778,6 +8756,19 @@
             },
             "tags": [
                 "ore"
+            ],
+            "drop_item": [
+                {
+                    "name":"GOLD_BLOCK",
+                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
             ]
         },
         {
@@ -7791,6 +8782,19 @@
             },
             "tags": [
                 "ore"
+            ],
+            "drop_item": [
+                {
+                    "name":"IRON_ORE",
+                    "instrument":["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
             ]
         },
         {
@@ -7856,7 +8860,13 @@
                 "stairs"
             ],
             "texture": "block/polished_diorite.png",
-            "can_rotate": true
+            "can_rotate": true,
+            "drop_item": [
+                {
+                    "name":"POLISHED_DIORITE_STAIRS",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 795,
@@ -10080,7 +11090,13 @@
                 "height": 0.5,
                 "slab": true,
                 "full_block_name": "SAND"
-            }
+            },
+            "drop_item": [
+                {
+                    "name":"SAND_SLAB",
+                    "instrument":["_PICKAXE"]
+                }
+            ]
         },
         {
             "id": 1046,
@@ -10829,6 +11845,28 @@
         },{
             "id": 1087,
             "name": "SMALL_ROCKS",
+            "style": "extruder",
+            "texture": "block/stone.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },{
+            "id": 1088,
+            "name": "RAW_GOLD",
+            "style": "extruder",
+            "texture": "block/stone.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },{
+            "id": 1089,
+            "name": "RAW_IRON",
             "style": "extruder",
             "texture": "block/stone.png",
             "item": {
