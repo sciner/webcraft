@@ -79,7 +79,7 @@ class GameController {
     $timeout:           Function
     onShow:             {[key: string]: Function}
     onHide:             {[key: string]: Function}
-    current_lang:       any
+    current_lang:       any = null
     loading_completed:  boolean = false
     Lang:               object
     login_tab:          string = 'login'
@@ -676,7 +676,7 @@ class GameController {
         await Lang.init()
         for(let item of Lang.list) {
             if(item.active) {
-                this.current_lang = item;
+                this.current_lang = item
             }
         }
 
@@ -904,7 +904,7 @@ class GameController {
     
     changeLang(item) {
         Lang.change(item)
-        // $window.location.reload(); // так не всё переводится, потому что уже какие-то игровые окошки прогружены
+        // $window.location.reload() // так не всё переводится, потому что уже какие-то игровые окошки прогружены
         location.reload()
     }
 
@@ -913,8 +913,12 @@ class GameController {
 const gameCtrl = async function($scope : any, $timeout : any) {
 
     const gc = new GameController($scope, $timeout)
+    await gc.init()
+    for(const func_name of ['isMobileBrowser', 'changeLang', 'StartWorld', 'isJoystickControl', 'initSelects', 'onMyGamesLoadedOrTimeSynchronized', 'syncTime', 'loadingComplete', 'showSplash', 'toggleMainMenu', 'toggleFullscreen', 'init']) {
+        $scope[func_name] = gc[func_name].bind(gc)
+    }
+
     Object.assign($scope, gc)
-    gc.init()
 
 }
 
