@@ -106,7 +106,7 @@
                 <img src="/media/design/icons-share.svg" style="height: 2em;" alt="Invite friend">
             </button>
         </div>
-        
+
     </div>
 
     <!-- <canvas id="bg-canvas"></canvas> -->
@@ -288,7 +288,7 @@
 							</button>
 							<!-- <button class="secondary">Edit</button> -->
 						</div>
-						
+
 					</div>
 				</div>
 			</div>
@@ -319,7 +319,7 @@
                         </div>
                         <div id="inputRange_Mouse_ticks"></div>
                     </div>
-                    <!-- 
+                    <!--
                     <div class="input-group">
                         <p>HUD Scale: <span id="inputRange_HudScale_text">30</span></p>
                         <div class="rangeContainer" style="margin-bottom: 20px;">
@@ -366,7 +366,7 @@
                             <p>Render Distance: <span id="inputRange_renderDistance_text">30</span></p>
                             <div class="rangeContainer" style="margin-bottom: 20px;">
                                 <input id="inputRange_renderDistance" class="slider" type="range" step="20" value="{settings.form.render_distance}"
-                                ng-model="settings.form.render_distance"                              
+                                ng-model="settings.form.render_distance"
                                     ng-change="settings.updateSlider('inputRange_renderDistance')">
                                 <div class="ticks" id="inputRange_renderDistance_ticks">
                                     <span class="passed active"></span>
@@ -435,6 +435,10 @@
                     <div class="input-group">
                         <p>{{Lang.chunk_geometry_mode}}</p>
                         <select class="slim-select" id="settings-select-chunk_geometry_mode" ng-options="item as item.name for item in settings.chunkGeometryMode.list" ng-model="settings.chunkGeometryMode.current"></select>
+                    </div>
+                    <div class="input-group">
+                        <p>{{Lang.chunk_geometry_alloc}}</p>
+                        <select class="slim-select" id="settings-select-chunk_geometry_alloc" ng-options="item as item.name for item in settings.chunkGeometryAlloc.list" ng-model="settings.chunkGeometryAlloc.current"></select>
                     </div>
                 </div>
                 <div class="interface">
@@ -519,7 +523,7 @@
                 </p>
 
 
-                
+
                 <!-- <h1 class="flex items-center justify-between">
                     {{Lang.select_skin}}
                     <p class="font-m m-0" style="color: #B7B2CC;">
@@ -587,7 +591,7 @@
                 </a>
             </div>
         </div>
-        
+
         <!-- New skin -->
         <div class="profile-page" ng-if="current_window.id == 'new_skin'">
             <div class="content items-center">
@@ -698,6 +702,6 @@
 
     <script src="/vendors/vanilla-toast.min.js"></script>
     <div id="loading"></div>
-    
+
 </body>
 </html>

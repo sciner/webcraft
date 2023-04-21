@@ -12,7 +12,7 @@ import type {Renderer} from "./render.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
 import type {ChunkMesh} from "./chunk_mesh.js";
 import {SpiralCulling} from "./render_tree/spiral_culling.js";
-import {CHUNK_GEOMETRY_MODE} from "./constant.js";
+import {CHUNK_GEOMETRY_MODE, CHUNK_GEOMETRY_ALLOC} from "./constant.js";
 
 const MAX_APPLY_VERTICES_COUNT = 20;
 
@@ -62,7 +62,13 @@ export class ChunkRenderList {
         if (geomMode === CHUNK_GEOMETRY_MODE.ONE_PER_CHUNK) {
             this.bufferPool = new TrivialGeometryPool(render.renderBackend);
         } else {
-            this.bufferPool = new BigGeometryPool(render.renderBackend, {});
+            let initSizeMegabytes = chunkManager.getWorld().settings.chunk_geometry_alloc;
+            if (!CHUNK_GEOMETRY_ALLOC[initSizeMegabytes]) {
+                initSizeMegabytes = 64;
+            }
+            this.bufferPool = new BigGeometryPool(render.renderBackend, {
+                initSizeMegabytes
+            });
         }
         chunkManager.fluidWorld.mesher.initRenderPool(render.renderBackend);
 

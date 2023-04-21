@@ -341,6 +341,18 @@ let gameCtrl = async function($scope : any, $timeout : any) {
                 $scope.settings.form.chunk_geometry_mode = item.id;
             }
         },
+        chunkGeometryAlloc: {
+            list: [{id: 0, name: 'Auto'}, {id: 64, name: '64 MB'}, {id: 125, name: '125 MB'}, {id: 250, name: '250 MB'}, {id: 375, name: '375 MB'},
+                {id: 500, name: '500 MB'}, {id: 750, name: '750 MB'}, {id: 1000, name: '1000 MB'}],
+            get current() {
+                let t = this.list.find((x) => x.id === $scope.settings.form.chunk_geometry_alloc);
+                if (!t) t = this.list[0];
+                return t;
+            },
+            set current(item) {
+                $scope.settings.form.chunk_geometry_alloc = item.id;
+            }
+        },
         save: function() {
             this.form.save()
             $scope.current_window.show('main');
@@ -500,7 +512,7 @@ let gameCtrl = async function($scope : any, $timeout : any) {
         const renderBackend = render.renderBackend
 
         Q.hud = new HUD(render.canvas)
-  
+
         // we can use it both
         await Resources.preload({
             imageBitmap:    true,

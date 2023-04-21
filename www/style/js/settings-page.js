@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-	
+
 	new SlimSelect({
 		select: '#settings-select-texture',
 		showSearch: false,
@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', function () {
 	})
     new SlimSelect({
 		select: '#settings-select-chunk_geometry_mode',
+		showSearch: false,
+	})
+
+	new SlimSelect({
+		select: '#settings-select-chunk_geometry_alloc',
 		showSearch: false,
 	})
 	//
