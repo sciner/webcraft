@@ -247,7 +247,7 @@ export class DBWorldMob {
 
     /** Upgrdaes {@link MobFullUpdateRow} to {@link MobInsertRow} by adding more data from a mob. */
     static upgradeRowToInsert(row: MobFullUpdateRow, mob: Mob): MobInsertRow {
-        row.push(mob.entity_id, mob.type, mob.skin);
+        row.push(mob.entity_id, mob.skin.model_name, mob.skin.texture_name);
         return row as unknown as MobInsertRow
     }
 

@@ -132,9 +132,9 @@ export class MobManager {
             rotate:         data.rotate,
             pitch:          data.rotate.x,
             yaw:            data.rotate.z,
-            skin:           data.skin || 'base',
+            skin:           data.skin,
             extra_data:     data.extra_data || null
-        }, this.#world)
+        } as TMobProps, this.#world)
 
         mob.pos.y += 1/200
 

@@ -36,6 +36,7 @@ export const DRAW_HUD_INFO_DEFAULT          = false; // (fps, player, etc)
 export const HUD_CONNECTION_WARNING_INTERVAL= 5000; // if there are no packets fpor this time, a warning appears
 export const RAINDROP_NEW_INTERVAL          = 25;
 export const DEFAULT_CLOUD_HEIGHT           = 230.1;
+export const DEFAULT_MOB_TEXTURE_NAME       = 'base'
 export const ONLINE_MAX_VISIBLE_IN_F3       = 7;
 export const DROP_LIFE_TIME_SECONDS         = 60;
 export const MAX_DIST_FOR_PICKUP            = 2.5;
@@ -427,7 +428,8 @@ export const SKIN_RIGHTS_UPLOADED = 2;
 
 export const PLAYER_SKIN_TYPES = {
     0: 'player:steve',
-    1: 'player:alex'
+    1: 'player:alex',
+    2: 'bbmodel',
 };
 
 export enum PLAYER_STATUS {

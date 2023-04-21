@@ -3,7 +3,10 @@ import {BLOCK} from "@client/blocks.js";
 import {ServerClient} from "@client/server_client.js";
 import { WorldAction } from "@client/world_action.js";
 import type { TickingBlockManager } from "../server_chunk.js";
-import { MOB_TYPE } from "@client/constant.js";
+import { MOB_TYPE, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
+import type { PlayerSkin } from "@client/player.js";
+import type { MobSpawnParams } from "mob.js";
+import type { ServerWorld } from "server_world.js";
 
 const SPAWN_PLAYER_DISTANCE     = 16;
 const SPAWN_RAD_HOR             = 4;
@@ -15,8 +18,8 @@ export default class Ticker {
     static type = 'spawnmob'
 
     //
-    static func(this: TickingBlockManager, tick_number, world, chunk, v) {
-        if (world.info.title == 'BLDGFYT') {
+    static func(this: TickingBlockManager, tick_number : int, world : ServerWorld, chunk, v) {
+        if (world.info.world_type_id == WORLD_TYPE_BUILDING_SCHEMAS) {
             return
         }
         const bm = world.block_manager
@@ -25,16 +28,22 @@ export default class Ticker {
         const updated_blocks = []
         const pos = v.pos.clone()
         const auto_generate_mobs = world.getGeneratorOptions('auto_generate_mobs', false)
+
         // Одноразовый спавнер
         if (extra_data?.limit?.count === 1) {
             const spawn_pos = pos.clone().addScalarSelf(.5, 0, .5)
-            const npc_extra_data = bm.calculateExtraData(extra_data, spawn_pos)
-            const params = {
-                type: npc_extra_data.type,
-                skin: npc_extra_data.skin,
-                pos: spawn_pos,
-                pos_spawn: spawn_pos.clone(),
-                rotate: new Vector(0, 0, 0).toAngles()
+            const mob_extra_data = bm.calculateExtraData(extra_data, spawn_pos)
+            const skin : PlayerSkin = Ticker.hotFixSkin(world, mob_extra_data)
+            if(!skin) {
+                console.error('error_spawnmob_invalid_extra_data', mob_extra_data)
+                return
+            }
+            //
+            const params : MobSpawnParams = {
+                skin:       skin,
+                pos:        spawn_pos,
+                pos_spawn:  spawn_pos.clone(),
+                rotate:     new Vector(0, 0, 0).toAngles()
             }
             if (auto_generate_mobs) {
                 Ticker.spawnMob(world, params)
@@ -44,7 +53,7 @@ export default class Ticker {
             this.delete(v.pos)
             return updated_blocks
         }
-        
+
         if(tick_number % extra_data.max_ticks == 0) {
             // Проверяем наличие игроков в указанном радиусе
             const players = world.getPlayersNear(pos, SPAWN_PLAYER_DISTANCE, false, true);
@@ -98,8 +107,7 @@ export default class Ticker {
                     }
                     if(!spawn_disabled) {
                         const params = {
-                            type:       extra_data.type,
-                            skin:       extra_data.skin,
+                            skin:       Ticker.hotFixSkin(world, extra_data),
                             pos:        spawn_pos,
                             pos_spawn:  spawn_pos.clone(),
                             rotate:     new Vector(0, 0, 0).toAngles()
@@ -116,11 +124,38 @@ export default class Ticker {
     }
 
     //
-    static spawnMob(world, params) {
-        console.log('Spawn mob', params.pos.toHash());
-        const actions = new WorldAction(null, world, false, false);
-        actions.spawnMob(params);
-        world.actions_queue.add(null, actions);
+    static spawnMob(world : ServerWorld, params : MobSpawnParams) {
+        console.log(`Spawn mob ${params.pos.toHash()}`)
+        const actions = new WorldAction(null, world, false, false)
+        actions.spawnMob(params)
+        world.actions_queue.add(null, actions)
+    }
+
+    // hotfix skin
+    static hotFixSkin(world : ServerWorld, extra_data: any) : PlayerSkin | null {
+        const skin : PlayerSkin = {
+            model_name: extra_data.type,
+            texture_name: extra_data.skin
+        }
+        let exists_skin = null
+        const skins = world.game.db.skins.list
+        for(const skin_item of skins) {
+            if([skin.model_name, `mob/${skin.model_name}`].includes(skin_item.model_name)) {
+                if(!exists_skin) {
+                    exists_skin = skin_item
+                }
+                if(skin_item.texture_name == skin.texture_name) {
+                    exists_skin = skin_item
+                    break
+                }
+            }
+        }
+        if(!exists_skin) {
+            return null
+        }
+        skin.model_name = exists_skin.model_name
+        skin.texture_name = exists_skin.texture_name
+        return skin
     }
 
 }

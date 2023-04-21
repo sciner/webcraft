@@ -1,13 +1,21 @@
 import { IndexedColor, Vector } from '../../helpers.js';
 import GeometryTerrain from '../../geometry_terrain.js';
-import type { Renderer } from '../../render.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
+import { Mesh_Object_Base } from './base.js';
+import { Resources } from '../../resources.js';
 import type { BBModel_Model } from '../../bbmodel/model.js';
 import type { BaseResourcePack } from '../../base_resource_pack.js';
-import { Resources } from '../../resources.js';
 import type { BBModel_Group } from '../../bbmodel/group.js';
 import type Mesh_Object_Block_Drop from './block_drop.js';
-import { Mesh_Object_Base } from './base.js';
+import type { Renderer } from '../../render.js';
+
+declare type IGroupModifiers = {
+    append:             MeshObjectModifyAppend[],
+    replace:            MeshObjectModifyReplace,
+    replace_with_mesh:  MeshObjectModifyReplaceWithMesh,
+    hide:               string[],
+    texture_name:       string | null,
+}
 
 const {mat4} = glMatrix;
 const lm        = IndexedColor.WHITE;
@@ -50,23 +58,24 @@ class MeshObjectModifyReplace {
 }
 
 class MeshObjectModifiers {
-
-    mesh : Mesh_Object_BBModel
-    append_list : Map<string, MeshObjectModifyAppend[]> = new Map()
-    replace : Map<string, MeshObjectModifyReplace> = new Map()
-    replace_with_mesh : Map<string, MeshObjectModifyReplaceWithMesh> = new Map()
-    hide_list : string[] = []
+    private mesh:               Mesh_Object_BBModel
+    private append_list:        Map<string, MeshObjectModifyAppend[]> = new Map()
+    private replace:            Map<string, MeshObjectModifyReplace> = new Map()
+    private replace_with_mesh:  Map<string, MeshObjectModifyReplaceWithMesh> = new Map()
+    private hide_list:          string[] = []
+    private selected_textures:  Map<string, string> = new Map()
 
     constructor(mesh : Mesh_Object_BBModel) {
         this.mesh = mesh
     }
 
-    getForGroup(name : string) : {append: MeshObjectModifyAppend[], replace: MeshObjectModifyReplace, replace_with_mesh: MeshObjectModifyReplaceWithMesh, hide : string[]} {
+    getForGroup(name : string) : IGroupModifiers {
         return {
-            append: this.append_list.get(name) || [],
-            replace: this.replace.get(name) || null,
+            append:            this.append_list.get(name) || [],
+            replace:           this.replace.get(name) || null,
+            texture_name:      this.selected_textures.get(name) || null,
             replace_with_mesh: this.replace_with_mesh.get(name) || null,
-            hide: this.hide_list || [],
+            hide:              this.hide_list || [],
         }
     }
 
@@ -178,6 +187,14 @@ class MeshObjectModifiers {
         }
     }
 
+    selectTextureFromPalette(group_name : string, texture_name : string) {
+        this.selected_textures.set(group_name, texture_name)
+    }
+
+    getSelectedTextures() : Map<string, string> {
+        return this.selected_textures
+    }
+
     destroy() {
         // append
         for(let list of this.append_list.values()) {
@@ -191,6 +208,8 @@ class MeshObjectModifiers {
             modifier.mesh.destroy()
         }
         this.replace.clear()
+        //
+        this.selected_textures.clear()
         // hide
         this.hide_list.length = 0
     }
@@ -274,9 +293,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
     // Draw
     draw(render : Renderer, delta : float) {
 
-        // throw 'error_deprecated'
-
-        if(!this.buffer) {
+        if(!this.buffer || !this.visible) {
             return false;
         }
 
@@ -303,6 +320,11 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
     }
 
     drawBuffered(render : Renderer, delta : float, m? : float[], pos?: Vector) {
+
+        if(!this.visible) {
+            return
+        }
+
         if(!m) {
             m = mat4.create()
             mat4.copy(m, this.matrix)

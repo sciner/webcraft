@@ -200,7 +200,7 @@ export class RendererBBModel {
         // this.debugGeom.clear()
 
         renderBackend.beginPass({
-            fogColor : this.env.interpolatedClearValue
+            fogColor : [0, 0, 0, 0]// this.env.interpolatedClearValue
         });
 
         this.env.draw(this as any)

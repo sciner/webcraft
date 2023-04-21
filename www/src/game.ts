@@ -145,7 +145,7 @@ export class GameClass {
     preLoopEnable               : boolean = true
 
     App                         : any;
-    skin                        : any;
+    skin_id                     : string
     settings                    : GameSettings
     local_server_client?        : any
     prev_player_state?          : any
@@ -186,7 +186,7 @@ export class GameClass {
         this.hotbar = new Hotbar(this.hud)
 
         // Connect to server
-        const connection_string = server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid;
+        const connection_string = server_url + '?session_id=' + this.App.session.session_id + '&skin_id=' + this.skin_id + '&world_guid=' + world_guid;
         const ws = this.local_server_client ? this.local_server_client.connect(connection_string) : new WebSocket(connection_string);
 
         await this.world.connectToServer(ws);

@@ -55,7 +55,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     isSwingInProgress:  boolean = false
 
     constructor(props : TMobProps, world : World) {
-        super({type: 'player', skin: null, ...props}, world);
+        super({type: 'player', skin: null, ...props}, world)
 
         this.height             = PLAYER_HEIGHT
         this.width              = PLAYER_WIDTH

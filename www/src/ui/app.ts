@@ -205,6 +205,17 @@ export class UIApp {
         return result;
     }
 
+    async GetSkins(form, callback, callback_error, callback_progress, callback_final) {
+        let result = null;
+        await this.api.call(this, '/api/Skin/List', form, (resp) => {
+            result = resp;
+            if(callback) {
+                callback(result);
+            }
+        }, callback_error, callback_progress, callback_final);
+        return result;
+    }
+
     async GetOwnedSkins(form, callback, callback_error, callback_progress, callback_final) {
         let result = null;
         await this.api.call(this, '/api/Skin/GetOwned', form, (resp) => {

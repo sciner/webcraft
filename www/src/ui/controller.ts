@@ -12,7 +12,6 @@ import  registerTextFilter from './angular/textfilter.js';
 import { Resources } from '../resources.js';
 import { ClipboardHelper } from './clipboard.js';
 import { HUD } from '../hud.js';
-import { BBModel_Preview } from './bbmodel_preview.js';
 
 function isSupported() {
     // we should support webgl2 strictly
@@ -123,9 +122,6 @@ let gameCtrl = async function($scope : any, $timeout : any) {
     };
 
     //
-    $scope.bbmodel_preview = new BBModel_Preview()
-
-    //
     $scope.App.onLogin = (e) => {};
     $scope.App.onLogout = (result) => {
         $timeout(function(){
@@ -200,11 +196,16 @@ let gameCtrl = async function($scope : any, $timeout : any) {
         id: 'main',
         show: function(id) {
             if(!$scope.isSupportedBrowser) {
-                id = 'not_supported_browser';
+                id = 'not_supported_browser'
             }
-            this.id = id;
+            if(this.id) {
+                if ($scope.onHide[this.id]) {
+                    $scope.onHide[this.id]()
+                }
+            }
+            this.id = id
             if ($scope.onShow[id]) {
-                $scope.onShow[id]();
+                $scope.onShow[id]()
             }
         },
         toggle(id) {
@@ -458,7 +459,7 @@ let gameCtrl = async function($scope : any, $timeout : any) {
 
     // Start world
     $scope.StartWorld = async function(world_guid : string) {
-        $scope.bbmodel_preview.stop()
+        $scope.skin.stop()
         if(window.event) {
             window.event.preventDefault();
             window.event.stopPropagation();
@@ -837,13 +838,16 @@ let gameCtrl = async function($scope : any, $timeout : any) {
     $scope.onShow       = {
         'skin': () => { $scope.skin.onShow(); }
     };
+    $scope.onHide       = {
+        'skin': () => { $scope.skin.onHide(); }
+    };
     $scope.newgame.init();
 
     $scope.texture_pack.init().then(() => {
         $timeout(() => {
             $scope.boot.init();
             $scope.login.init();
-            $scope.skin.init();
+            // $scope.skin.init();
             $scope.mygames.enterWorld.checkIsWorldUrl();
         });
     });

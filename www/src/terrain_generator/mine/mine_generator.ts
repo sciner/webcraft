@@ -4,7 +4,7 @@ import { AABB } from "../../core/AABB.js";
 import { CD_ROT } from "../../core/CubeSym.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { Biome3LayerBase } from "../biome3/layers/base.js";
-import { MOB_TYPE } from '../../constant.js';
+import { DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE } from '../../constant.js';
 
 const BARREL_CHANCE     = 0.02
 const SIZE_CLUSTER      = 8
@@ -189,9 +189,9 @@ export class MineGenerator {
         vec.set(4, 1, 2).rotY(dir);
         const mob_type = random.double() < 0.75 ? MOB_TYPE.ZOMBIE : MOB_TYPE.SKELETON
         this.setBlock(chunk, node, vec.x, vec.y, vec.z, BLOCK.MOB_SPAWN, true, {x: 0, y: 0, z: 0}, {
-            type: mob_type,
-            skin: 'base',
-            max_ticks: 800
+            type:       mob_type,
+            skin:       DEFAULT_MOB_TEXTURE_NAME,
+            max_ticks:  800
         })
     }
 

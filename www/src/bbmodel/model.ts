@@ -19,9 +19,10 @@ const {quat} = glMatrix
 export class BBModel_Model {
     [key: string]: any;
 
-    root : BBModel_Group
-    bone_groups: Map<string, BBModel_Group> = new Map()
-    groups: Map<string, BBModel_Group> = new Map()
+    root:           BBModel_Group
+    bone_groups:    Map<string, BBModel_Group> = new Map()
+    groups:         Map<string, BBModel_Group> = new Map()
+    all_textures?:  Map<string, any> = null
 
     constructor(json) {
         // TODO: need to read from bbmodel texture pack options
@@ -48,7 +49,8 @@ export class BBModel_Model {
             //
             const texture = this.all_textures.get(texture_name)
             if(!texture) {
-                throw `error_invalid_palette|${texture_name}`
+                texture_name = Array.from(this.all_textures.keys())[0]
+                // throw `error_invalid_palette|${texture_name}`
             }
         }
         //
@@ -135,7 +137,7 @@ export class BBModel_Model {
      * Draw
      */
     draw(vertices: float[], pos : Vector, lm : IndexedColor, matrix : imat4, emmit_particles_func? : Function) {
-        this.root.pushVertices(vertices, pos, lm, matrix, emmit_particles_func);
+        this.root.pushVertices(vertices, pos, lm, matrix, emmit_particles_func)
     }
 
     drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, matrix : float[], emmit_particles_func? : Function) {
@@ -283,31 +285,28 @@ export class BBModel_Model {
                         group.animation_changed = false
                     }
                 }
-                //
-                // const fix_duration = .3
-                // if(diff < fix_duration) {
-                //     const t2 = diff / fix_duration
-                //     const current_point = new Vector()
-                //     for(const group of this.groups.values()) {
-                //         if(group.animation_changed) {
-                //             group.animation_changed = false
-                //             const group_animations = mesh.animations.get(group.name)
-                //             for(const [channel_name, exist_point] of group_animations.entries()) {
-                //                 next_point.copyFrom(exist_point)
-                //                 if(channel_name == 'rotation') {
-                //                     current_point.copyFrom(group.rot_orig)
-                //                 } else if(channel_name == 'position') {
-                //                     // if(group.name == 'bone17') {
-                //                     //     debugger
-                //                     // }
-                //                     current_point.set(0, 0, 0)
-                //                     // current_point.copyFrom(group.pivot).divScalarSelf(16)
-                //                 }
-                //                 exist_point.lerpFrom(current_point, next_point, t2)
-                //             }
-                //         }
-                //     }
-                // }
+                
+                const fix_duration = .3
+                if(diff < fix_duration) {
+                    const t2 = diff / fix_duration
+                    const current_point = new Vector()
+                    for(const group of this.groups.values()) {
+                        if(group.animation_changed) {
+                            group.animation_changed = false
+                            const group_animations = mesh.animations.get(group.name)
+                            for(const [channel_name, exist_point] of group_animations.entries()) {
+                                next_point.copyFrom(exist_point)
+                                if(channel_name == 'rotation') {
+                                    current_point.copyFrom(group.rot_orig)
+                                } else if(channel_name == 'position') {
+                                    current_point.set(0, 0, 0)
+                                    // current_point.copyFrom(group.pivot).divScalarSelf(16)
+                                }
+                                exist_point.lerpFrom(current_point, next_point, t2)
+                            }
+                        }
+                    }
+                }
             } else {
                 mesh.trans_animations = null
             }
@@ -370,14 +369,16 @@ export class BBModel_Model {
 
         // parse bone groups
         for(const [_, anim] of this.animations.entries()) {
-            for(let [_, animator] of Object.entries(anim.animators)) {
-                const name = (animator as any).name
-                if(!this.bone_groups.has(name)) {
-                    const group = this.groups.get(name)
-                    if(!group) {
-                        throw 'error_bone_group_not_found'
+            if(anim.animators) {
+                for(let [_, animator] of Object.entries(anim.animators)) {
+                    const name = (animator as any).name
+                    if(!this.bone_groups.has(name)) {
+                        const group = this.groups.get(name)
+                        if(!group) {
+                            throw 'error_bone_group_not_found'
+                        }
+                        this.bone_groups.set(name, group)
                     }
-                    this.bone_groups.set(name, group)
                 }
             }
         }
