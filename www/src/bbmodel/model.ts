@@ -10,7 +10,7 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { getEuler } from "../components/Transform.js";
 
 const VEC_2 = new Vector(2, 2, 2)
-const FIX_POS = new Vector(8, -8, -8)
+const FIX_POS = new Vector(-8, -8, 8)
 const EMPTY_ARGS = []
 
 const {quat} = glMatrix
@@ -285,7 +285,7 @@ export class BBModel_Model {
                         group.animation_changed = false
                     }
                 }
-                
+
                 const fix_duration = .3
                 if(diff < fix_duration) {
                     const t2 = diff / fix_duration
@@ -438,8 +438,9 @@ export class BBModel_Model {
                         if(keyframe.channel === 'position') {
                             dp.divScalarSelf(16);
                         } else if (keyframe.channel === 'rotation') {
+                            dp.x = -dp.x;
                             dp.y = -dp.y;
-                            //dp.z = -dp.z;
+                            dp.z = -dp.z;
                         }
                     }
                     channel.push(keyframe);
@@ -541,7 +542,7 @@ export class BBModel_Model {
 
         const size = to.subSelf(from);
         const translate = from.addSelf(FIX_POS).addSelf(size.div(VEC_2))
-        translate.x = 16 - translate.x
+        translate.z = -translate.z
 
         let child
 
@@ -604,11 +605,7 @@ export class BBModel_Model {
             if(shift) {
                 resp.pivot.addSelf(shift)
             }
-            if (isGroup) {
-                resp.pivot.x = 16 - resp.pivot.x;
-            } else {
-                resp.pivot.x = 16 - resp.pivot.x;
-            }
+            resp.pivot.z = -resp.pivot.z;
         }
 
         // rotation
@@ -641,7 +638,7 @@ export class BBModel_Model {
 
             }
             resp.rot.y *= -1;
-            resp.rot.z *= -1;
+            resp.rot.x *= -1;
         }
 
         return resp;
