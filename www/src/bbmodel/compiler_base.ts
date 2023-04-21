@@ -38,9 +38,9 @@ export class BBModel_Compiler_Base {
     }
 
     /**
-     * @param {int} tx_cnt 
-     * @param {int} resolution 
-     * @param {object} options 
+     * @param {int} tx_cnt
+     * @param {int} resolution
+     * @param {object} options
      * @returns {Spritesheet_Base}
      */
     getSpritesheet(tx_cnt, resolution, options) {
@@ -63,8 +63,8 @@ export class BBModel_Compiler_Base {
     }
 
     /**
-     * @param {*} texture 
-     * @returns 
+     * @param {*} texture
+     * @returns
      */
     async loadModelTexture(index, texture, tx_sz, tx_cnt) {
         if(isScalar(texture)) {
@@ -89,9 +89,9 @@ export class BBModel_Compiler_Base {
     /**
      * Метод ищет атлас, куда поместятся все текстуры одной модели.
      * Если метод не нашел места ни в одном атласе, то создает ещё 1 атлас и рекурсивно вызывает сам себя (только 1 раз)
-     * @param {*} textures 
-     * @param {boolean} create_if_not_place 
-     * @returns 
+     * @param {*} textures
+     * @param {boolean} create_if_not_place
+     * @returns
      */
     async findPlaces(textures, create_if_not_place, tx_sz, tx_cnt, options) {
         for(let spritesheet of this.spritesheets) {
@@ -126,10 +126,10 @@ export class BBModel_Compiler_Base {
     }
 
     /**
-     * @param {*} model 
-     * @param {*} id 
-     * @param {*} options 
-     * @returns 
+     * @param {*} model
+     * @param {*} id
+     * @param {*} options
+     * @returns
      */
     async prepareModel(model, id, options) {
 
@@ -213,18 +213,12 @@ export class BBModel_Compiler_Base {
                 for(let side in el.faces) {
                     const face = el.faces[side];
                     switch(side) {
-                        case 'south': side = 'north'; break;
-                        case 'north': side = 'south'; break;
-                        case 'west': side = 'east'; break;
-                        case 'east': side = 'west'; break;
                         case 'up': {
-                            face.uv[2] *= -1
-                            // face.uv[3] *= -1
+                            face.uv[3] *= -1
                             break;
                         }
                         case 'down': {
-                            // face.uv[2] *= -1
-                            face.uv[3] *= -1
+                            face.uv[2] *= -1
                             break;
                         }
                     }
