@@ -409,6 +409,7 @@ export class InHandOverlay {
                 quat.fromEuler(q, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
                 mat4.fromRotationTranslationScaleOrigin(m, q, base.position, base.scale, base.pivot)
                 mat4.multiply(modelMatrix, modelMatrix, m)
+                mat4.rotateY(modelMatrix, modelMatrix, Math.PI)
 
                 // swapMatrixYZ(modelMatrix)
                 invertMatrixZ(modelMatrix)
