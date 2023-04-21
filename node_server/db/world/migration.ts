@@ -4,6 +4,20 @@ import type { ServerWorld } from "../../server_world.js";
 import { OLD_CHUNK_SIZE } from "@client/chunk_const.js";
 import { Vector } from "@client/helpers.js";
 
+/* Как делать миграцию блоков.
+
+Пример: у блоков в мире (не в инвентаре) с id = 999 удалить поле extra_data.foo и добавить им extra_data.bar = 10.
+1. Удалить все записи из world_modify_chunks. После запуска мира они будут автоматически созданы заново.
+  DELETE FROM world_modify_chunks;
+2. Изменить все блоки в world_modify: world_modify.params, а также отдельно храняющиеся поля, например:
+  UPDATE world_modify
+  SET params = json_patch(params, '{"extra_data": {"foo": null, "bar": 10} }'),
+    extra_data = json_patch(extra_data, '{"foo": null, "bar": 10}')
+  WHERE block_id = 999;
+
+Если нужно делать миграцию предметов, то нужно менять еще инвентари игроков и содержимое сундуков.
+*/
+
 // Migrations
 export class DBWorldMigration {
     db: DBConnection;
