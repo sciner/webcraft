@@ -9969,12 +9969,16 @@
             "tags": [
                 "_set_only_fullface",
                 "rotate_by_pos_n_6",
-                "no_drop_ao",
-                "no_drop"
+                "no_drop_ao"
             ],
             "material": {
-                "id": "stone"
-            }
+                "id": "pebbles"
+            },
+            "drop_item": [
+                {
+                    "name":"SMALL_ROCKS"
+                }
+            ]
         },
         {
             "id": 62,
@@ -10814,6 +10818,17 @@
             },
             "texture": {
                 "side": "item/stone_axe.png"
+            }
+        },{
+            "id": 1087,
+            "name": "SMALL_ROCKS",
+            "style": "extruder",
+            "texture": "block/stone.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
             }
         }
     ]
