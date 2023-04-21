@@ -284,7 +284,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
     redraw(delta: float) {
         this.vertices = []
         const mx = mat4.create();
-        mat4.rotateY(mx, mx, this.rotation[2] + Math.PI);
+        mat4.rotateY(mx, mx, this.rotation[2]);
         this.model.playAnimation(this.animation_name, (this.start_time + performance.now()) / 1000, this)
         this.model.draw(this.vertices, vecZero, lm, mx);
         this.buffer.updateInternal(this.vertices);
@@ -328,7 +328,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         if(!m) {
             m = mat4.create()
             mat4.copy(m, this.matrix)
-            mat4.rotateY(m, m, this.rotation[2] +  Math.PI)
+            mat4.rotateY(m, m, this.rotation[2])
         }
 
         if(pos) {
