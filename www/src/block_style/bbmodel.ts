@@ -325,7 +325,7 @@ export default class style {
                 const shift = 7/16 * (is_left ? 1 : -1)
                 const move_back = !(tblock instanceof FakeTBlock)
                 if(extra_data) {
-                    if(!is_left) {
+                    if(is_left) {
                         mat4.rotateY(matrix, matrix, Math.PI)
                     }
                     if(extra_data?.opened) {
