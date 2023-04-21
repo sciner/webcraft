@@ -38,12 +38,11 @@ export default class Ticker {
                     } else {
                         // первая генерация моба, если его ещё не было в БД
                         const params = {
-                            type:   MOB_TYPE.BEE,
-                            skin:   DEFAULT_MOB_TEXTURE_NAME,
-                            pos:    spawn_pos
-                        };
+                            skin:       {model_name: MOB_TYPE.BEE, texture_name: DEFAULT_MOB_TEXTURE_NAME},
+                            pos:        spawn_pos,
+                        }
                         // create new mob in world
-                        Ticker.spawnMob(world, params);
+                        Ticker.spawnMob(world, params)
                     }
                     // update this ticking block state
                     updated_blocks.push({

@@ -404,7 +404,7 @@ export class CompileData {
             {id: 1458, type: MOB_TYPE.SHEEP, skin: DEFAULT_MOB_TEXTURE_NAME},
             //
             {id: 1452, type: 'mob/deer', skin: DEFAULT_MOB_TEXTURE_NAME},
-            {id: 1459, type: 'mob/snow_golem', skin: DEFAULT_MOB_TEXTURE_NAME},
+            {id: 1459, type: MOB_TYPE.SNOW_GOLEM, skin: DEFAULT_MOB_TEXTURE_NAME},
             /*
             Under construction:
             - bat

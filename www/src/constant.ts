@@ -227,7 +227,14 @@ export enum MOB_TYPE {
     PIG         = 'mob/pig',
     SHEEP       = 'mob/sheep',
     SKELETON    = 'mob/skeleton',
+    SNOW_GOLEM  = 'mob/snow_golem',
     ZOMBIE      = 'mob/zombie',
+}
+
+export enum TREASURE_SOURCE {
+    TREASURE_ROOM = 'treasure_room',
+    CAVE_MINES = 'cave_mines',
+    BUILDING = 'building'
 }
 
 export enum BLOCK_FLAG {

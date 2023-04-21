@@ -2,7 +2,7 @@ import {impl as alea} from '../../vendors/alea.js';
 import {Vector, DIRECTION} from "../helpers.js";
 import {BLOCK} from '../blocks.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
-import { BLOCK_FLAG, DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE } from '../constant.js';
+import { BLOCK_FLAG, DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE, TREASURE_SOURCE } from '../constant.js';
 
 const _pos = new Vector(0, 0, 0);
 const _vec = new Vector(0, 0, 0);
@@ -123,14 +123,14 @@ export class DungeonGenerator {
         }
 
         // Сундук
-        this.setBlock(chunk, x + 3, y + 1, z + 3, BLOCK.CHEST, {x: 0, y: 0, z: 0}, {generate: true, params: {source: 'treasure_room'}});
+        this.setBlock(chunk, x + 3, y + 1, z + 3, BLOCK.CHEST, {x: 0, y: 0, z: 0}, {generate: true, params: {source: TREASURE_SOURCE.TREASURE_ROOM}});
 
         // Спавнер
-        const mob_type = alea.double() < 0.75 ? MOB_TYPE.ZOMBIE : MOB_TYPE.SKELETON;
+        const mob_type = alea.double() < 0.75 ? MOB_TYPE.ZOMBIE : MOB_TYPE.SKELETON
         this.setBlock(chunk, x + 5, y + 1, z + 5, BLOCK.MOB_SPAWN, {x: 0, y: 0, z: 0}, {
-            type:       mob_type,
-            skin:       DEFAULT_MOB_TEXTURE_NAME,
-            max_ticks:  800
+            type:      mob_type,
+            skin:      DEFAULT_MOB_TEXTURE_NAME,
+            max_ticks: 800
         });
 
         if (!HIDE_DUNGEON) {
@@ -206,7 +206,7 @@ export class DungeonGenerator {
         this.genIfOpaqueNeighbors(chunk, alea, x, y, z, 7, 1, 7, BLOCK.STILL_WATER, 0.1)
 
         const rotate = new Vector(DIRECTION.NORTH, 0, 0);
-        this.setBlock(chunk, x + 10, y + 1, z + 1, BLOCK.CHEST, rotate, {generate: true, params: {source: 'treasure_room'}});
+        this.setBlock(chunk, x + 10, y + 1, z + 1, BLOCK.CHEST, rotate, {generate: true, params: {source: TREASURE_SOURCE.TREASURE_ROOM}});
 
         // Спавнер
         const mob_type = alea.double() < 0.75 ? MOB_TYPE.ZOMBIE : MOB_TYPE.SKELETON
@@ -214,7 +214,7 @@ export class DungeonGenerator {
             type:      mob_type,
             skin:      DEFAULT_MOB_TEXTURE_NAME,
             max_ticks: 800
-        });
+        })
 
     }
 
@@ -263,7 +263,7 @@ export class DungeonGenerator {
             }
         }
 
-        return false;
+        return false
 
     }
 

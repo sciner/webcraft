@@ -4,7 +4,7 @@ import { DIRECTION, SIX_VECS, Vector, VectorCollector } from "@client/helpers.js
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "@client/block_helpers.js";
 import { newTypedBlocks, TBlock, TypedBlocks3 } from "@client/typed_blocks3.js";
 import {dropBlock, TActionBlock, WorldAction} from "@client/world_action.js";
-import { COVER_STYLE_SIDES, DEFAULT_MOB_TEXTURE_NAME } from "@client/constant.js";
+import { COVER_STYLE_SIDES, DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE } from "@client/constant.js";
 import { compressWorldModifyChunk } from "@client/compress/world_modify_chunk.js";
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import { DelayedCalls } from "./server_helpers.js";
@@ -863,11 +863,10 @@ export class ServerChunk {
                 if(under1?.id == bm.POWDER_SNOW.id && under2?.id == bm.POWDER_SNOW.id) {
                     pos.addSelf(new Vector(.5, 0, .5));
                     const params: MobSpawnParams = {
-                        // type           : 'snow_golem',
-                        skin           : {model_name: 'mob/snow_golem', texture_name: DEFAULT_MOB_TEXTURE_NAME},
-                        pos            : pos.clone(),
-                        pos_spawn      : pos.clone(),
-                        rotate         : item.rotate ? new Vector(item.rotate).toAngles() : null
+                        skin:       {model_name: MOB_TYPE.SNOW_GOLEM, texture_name: DEFAULT_MOB_TEXTURE_NAME},
+                        pos:        pos.clone(),
+                        pos_spawn:  pos.clone(),
+                        rotate:     item.rotate ? new Vector(item.rotate).toAngles() : null
                     }
                     this.world.mobs.create(params);
                     const actions = new WorldAction(null, this.world, false, false);

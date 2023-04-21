@@ -8,7 +8,6 @@ import type { WorldTickStat } from "./world/tick_stat.js";
 import type { ServerPlayer } from "./server_player.js";
 import { BLOCK_FLAG, DEFAULT_MOB_TEXTURE_NAME } from "@client/constant.js";
 import {EnumDamage} from "@client/enums/enum_damage.js";
-import type { PlayerSkin } from "@client/player.js";
 
 const MAX_LINE_LENGTH = 100 // TODO based on the cleint's screen size
 
