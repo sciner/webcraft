@@ -7,8 +7,8 @@ import type { PlayerSkin } from "./player.js";
 import type { World } from "./world.js";
 
 export declare type TMobProps = {
-    health:         float
-    username:       any
+    health?:        float
+    username?:      any
     id:             int
     type:           string
     name?:          string
@@ -19,10 +19,10 @@ export declare type TMobProps = {
     rotate:         Vector
     pitch:          float
     yaw:            float
-    skin?:          PlayerSkin
+    skin?:          PlayerSkin | string
     skin_id?:       string
     extra_data?:    any
-    hands:          any
+    hands?:         any
 }
 
 export class MobManager {
