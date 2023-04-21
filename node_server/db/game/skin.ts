@@ -199,7 +199,11 @@ export class DBGameSkins {
                 return {...item}
             }
         }
-        return {...this.list[0]}
+        for(const skin of this.list) {
+            if(skin.can_select_by_player) {
+                return {...skin}
+            }
+        }
         // const skin = STATIC_SKINS_BY_ID.get(skin_id);
         // if (skin && skin.rights === SKIN_RIGHTS_FREE) {
         //     if (!skin.file.endsWith('.png')) {

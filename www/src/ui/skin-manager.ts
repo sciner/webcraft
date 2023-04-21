@@ -80,10 +80,10 @@ export class SkinManager {
         });
     }
 
-    onShow(args : any) {
+    onShow(args? : any) {
     }
 
-    onHide(args : any) {
+    onHide(args? : any) {
     }
 
 }

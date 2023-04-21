@@ -65,7 +65,7 @@ export class UIApp {
     }
 
     // Registration...
-    async Registration(form, callback, callback_error, callback_progress, callback_final) {
+    async Registration(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = [];
         await this.api.call(this, '/api/User/Registration', form, (resp) => {
             result = resp;
@@ -77,7 +77,7 @@ export class UIApp {
     }
 
     // Login...
-    async Login(form, callback, callback_error, callback_progress, callback_final) {
+    async Login(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let that = this;
         let result = [];
         await this.api.call(this, '/api/User/Login', form, (resp) => {
@@ -98,7 +98,7 @@ export class UIApp {
         return this.api.call(this, '/api/SyncTime', req, callback, callback_error)
     }
 
-    async GetWorldPublicInfo(form, callback, callback_error, callback_progress, callback_final) {
+    async GetWorldPublicInfo(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = [];
         await this.api.call(this, '/api/Game/getWorldPublicInfo', form, (resp) => {
             result = resp;
@@ -122,7 +122,7 @@ export class UIApp {
     }
 
     // MyWorlds...
-    async MyWorlds(form, callback, callback_error, callback_progress, callback_final) {
+    async MyWorlds(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = [];
         await this.api.call(this, '/api/Game/MyWorlds', form, (resp) => {
             result = resp;
@@ -134,7 +134,7 @@ export class UIApp {
     }
 
     // DeleteWorld...
-    async DeleteWorld(form, callback, callback_error, callback_progress, callback_final) {
+    async DeleteWorld(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = [];
         await this.api.call(this, '/api/Game/DeleteWorld', form, (resp) => {
             result = resp;
@@ -146,7 +146,7 @@ export class UIApp {
     }
 
     // GameOnline...
-    async GameOnline(form, callback, callback_error, callback_progress, callback_final) {
+    async GameOnline(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = [];
         await this.api.call(this, '/api/Game/Online', form, (resp) => {
             result = resp;
@@ -158,7 +158,7 @@ export class UIApp {
     }
 
     // Send screenshot
-    async Screenshot(form, callback, callback_error, callback_progress, callback_final) {
+    async Screenshot(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = [];
         await this.api.call(this, '/api/Game/Screenshot', form, (resp) => {
             result = resp;
@@ -170,7 +170,7 @@ export class UIApp {
     }
 
     // CreateWorld...
-    async CreateWorld(form, callback, callback_error, callback_progress, callback_final) {
+    async CreateWorld(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = null;
         await this.api.call(this, '/api/Game/CreateWorld', form, (resp) => {
             result = resp;
@@ -182,7 +182,7 @@ export class UIApp {
     }
 
     // Generators...
-    async Generators(form, callback, callback_error, callback_progress, callback_final) {
+    async Generators(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = null;
         await this.api.call(this, '/api/Game/Generators', form, (resp) => {
             result = resp;
@@ -194,7 +194,7 @@ export class UIApp {
     }
 
     // Gamemodes...
-    async Gamemodes(form, callback, callback_error, callback_progress, callback_final) {
+    async Gamemodes(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = null;
         await this.api.call(this, '/api/Game/Gamemodes', form, (resp) => {
             result = resp;
@@ -205,7 +205,7 @@ export class UIApp {
         return result;
     }
 
-    async GetSkins(form, callback, callback_error, callback_progress, callback_final) {
+    async GetSkins(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = null;
         await this.api.call(this, '/api/Skin/List', form, (resp) => {
             result = resp;
@@ -216,7 +216,7 @@ export class UIApp {
         return result;
     }
 
-    async GetOwnedSkins(form, callback, callback_error, callback_progress, callback_final) {
+    async GetOwnedSkins(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = null;
         await this.api.call(this, '/api/Skin/GetOwned', form, (resp) => {
             result = resp;
@@ -227,7 +227,7 @@ export class UIApp {
         return result;
     }
 
-    async DeleteSkin(form, callback, callback_error, callback_progress, callback_final) {
+    async DeleteSkin(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = null;
         await this.api.call(this, '/api/Skin/DeleteFromUser', form, (resp) => {
             result = resp;
@@ -238,7 +238,7 @@ export class UIApp {
         return result;
     }
 
-    async UploadSkin(form, callback, callback_error, callback_progress, callback_final) {
+    async UploadSkin(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = null;
         await this.api.call(this, '/api/Skin/Upload', form, (resp) => {
             result = resp;

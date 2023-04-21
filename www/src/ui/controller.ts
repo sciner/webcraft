@@ -74,424 +74,736 @@ globalThis.randomUUID = () => {
 const app = angular.module('gameApp', []);
 registerTextFilter(app);
 
-let gameCtrl = async function($scope : any, $timeout : any) {
-
-    // Working with lang
-    await Lang.init();
-    $scope.Lang = Lang;
-    $scope.current_lang = null;
-    $scope.loading_completed = false;
-    for(let item of Lang.list) {
-        if(item.active) {
-            $scope.current_lang = item;
-        }
-    }
-    $scope.changeLang = (item) => {
-        Lang.change(item);
-        // $window.location.reload(); // так не всё переводится, потому что уже какие-то игровые окошки прогружены
-        location.reload();
-    };
-
-    //
-    (globalThis as any).Qubatch     = new GameClass();
-    $scope.App                      = Qubatch.App = new UIApp();
-    $scope.login_tab                = 'login';
-
-    //
-    Qubatch.onControlsEnabledChanged = (value) => {
-        const bodyClassList = document.querySelector('body').classList;
-        if(value) {
-            bodyClassList.add('controls_enabled');
-        } else {
-            bodyClassList.remove('controls_enabled');
-        }
-    };
-
-    Qubatch.onStarted = () => {
-        const bodyClassList = document.querySelector('body').classList;
-        bodyClassList.add('started');
-    };
-
-    Qubatch.exit = () => {
-        location.href = '/';
-    };
-
-    $scope.links = {
+class GameController {
+    $scope:             any
+    $timeout:           Function
+    onShow:             {[key: string]: Function}
+    onHide:             {[key: string]: Function}
+    current_lang:       any
+    loading_completed:  boolean = false
+    Lang:               object
+    login_tab:          string = 'login'
+    App:                UIApp
+    skin:               SkinManager
+    texture_pack:       TexturePackManager
+    Qubatch:            any
+    bg?:                any
+    isSupportedBrowser: boolean
+    links = {
         discord: 'https://discord.gg/QQw2zadu3T',
         youtube: 'https://www.youtube.com/channel/UCAcOZMpzYE8rk62giMgTwdw/videos'
-    };
-
-    //
-    $scope.App.onLogin = (e) => {};
-    $scope.App.onLogout = (result) => {
-        $timeout(function(){
-            $scope.current_window.show('hello');
-            location.reload();
-        });
     }
-    $scope.App.onError = (message) => {
-        if (typeof message !== 'string') {
-            // It happens: an exception Object is thrown on the server and sent as an error.
-            // Don't show it, but log it.
-            console.error(JSON.stringify(message))
-            message = 'error'
-        } else {
-            console.error(message)
-        }
-        // special option - show alert
-        let alert = false
-        if (message.startsWith('!alert')) {
-            message = message.substring(6)
-            alert = true
-        }
-        // Multilingual messages
-        message = Lang[message]
-
-        if (alert) {
-            window.alert(message)
-        } else {
-            vt.error(message)
-        }
+    shareGame: { visible: boolean; url: string; toggle: () => void; copy: () => void; };
+    sunDir: { value: Vector; apply: () => void; getValue: () => string; };
+    current_window: { id: string; show(id: any): void; toggle(id: any): void; getTitle(): any; };
+    registration: { loading: boolean; form: { username: string; password: string; }; submit: () => boolean; reset: () => void; isValid: () => any; };
+    settings: { form: any; lightMode: { list: { id: number; name: string; }[]; current: any; }; chunkGeometryMode: { list: { id: number; name: string; }[]; current: any; }; chunkGeometryAlloc: { list: { id: number; name: string; }[]; current: any; }; save: () => void; toggle: () => boolean; updateSlider: (inputId: any) => void; };
+    boot: { loading: boolean; latest_save: boolean; init(): void; };
+    DeleteWorld: { world_guid: string; world_title: string; showModal(world_guid: any): void; delete(): any; };
+    mygames: {
+        list: any[]; shared_worlds: any[]; loading: boolean; toMain: () => void; load: () => any;
+        // @deprecated
+        save: () => void; add: (form: any) => void; enterWorld: { windowMod: string; worldInfo: any; getWorldGuid: () => string; joinAfterApproving: () => void; joinToWorldIfNeed: () => void; showWorldInfo: (worldInfo: any, mode: any) => void; handleNoWorldOrOtherError: (error: any) => void; checkIsWorldUrl: () => void; };
     };
+    newgame: { loading: boolean; form: {game_mode?: any; title: string; seed: string; generator: { id: any; options: any; }; }; reset(): void; init(): void; gamemodes: { index: number; list: any[]; current: any; select(game_mode: any): void; }; generators: { index: number; list: any[]; current: any; next(): void; select(generator: any): void; }; submit(): void; open(): void; close(): void; };
+    modalWindow: { show: (modalId: string) => void; hide: (modalId: string) => void; };
+    login: { logged: boolean; loading: boolean; form: { username: string; password: string; }; submit(): boolean; autoLogin(form: any): void; reset(): void; isValid(): any; init(): boolean; onSuccess(session: any): void; };
 
     //
-    $scope.shareGame = {
-        visible: false,
-        url: '',
-        toggle: function() {
-            this.url = location.protocol + '//' + location.host + '/worlds/' + Qubatch.world.info.guid;
-            this.visible = !this.visible;
-        },
-        copy: function() {
-            ClipboardHelper.copy(this.url);
-            vt.success(Lang.copied);
-        }
-    };
+    constructor($scope : any, $timeout : any) {
+        this.$scope = $scope
+        this.$timeout = $timeout
+        this.Lang = Lang
+        this.isSupportedBrowser = isSupported()
 
-    // Is mobile browser
-    $scope.isMobileBrowser = isMobileBrowser;
-    $scope.isJoystickControl = () => {
-        return isMobileBrowser() || $scope.settings.form.forced_joystick_control;
-    };
+        const _ = (globalThis as any).Qubatch = new GameClass()
 
-    // sun dir
-    $scope.sunDir = {
-        value: new Vector(1.1493, 1.0293, 0.6293),
-        apply: function() {
-            // 0.84 1 -1
-            if(typeof Qubatch != 'undefined') {
-                Qubatch.render.sunDir = [this.value.x, this.value.y, this.value.z];
-            }
-        },
-        getValue: function() {
-            // 1.1493, 1.0293, 0.6293
-            return [this.value.x, this.value.y, this.value.z].join(', ');
-        }
-    };
+        this.Qubatch      = (globalThis as any).Qubatch
+        this.skin         = new SkinManager(this, $timeout)
+        this.texture_pack = new TexturePackManager(this)
 
-    $scope.isSupportedBrowser = isSupported();
+        const instance = this // $scope
 
-    // Current window
-    $scope.current_window = {
-        id: 'main',
-        show: function(id) {
-            if(!$scope.isSupportedBrowser) {
-                id = 'not_supported_browser'
-            }
-            if(this.id) {
-                if ($scope.onHide[this.id]) {
-                    $scope.onHide[this.id]()
-                }
-            }
-            this.id = id
-            if ($scope.onShow[id]) {
-                $scope.onShow[id]()
-            }
-        },
-        toggle(id) {
-            if(this.id != id) {
-                this.show(id);
-            } else {
-                this.show('main');
-            }
-        },
-        getTitle: function() {
-            switch(this.id) {
-                case 'hello': {
-                    return 'MadCraft';
-                    break;
-                }
-                case 'main': {
-                    return 'Welcome!';
-                    break;
-                }
-                default: {
-                    return this.id;
-                }
-            }
-        }
-    };
-
-    // Login
-    $scope.login = {
-        logged: false,
-        loading: false,
-        form: {
-            username: '',
-            password: ''
-        },
-        submit: function() {
-            if(!this.form.username) {
-                return false;
-            }
-            if(!this.form.password) {
-                return false;
-            }
-            //
-            var that = this;
-            that.loading = true;
-            $scope.App.Login(this.form, (resp) => {
-                $timeout(() => {
-                    that.logged = true;
-                    that.reset();
-                    that.onSuccess(resp);
-                    $scope.current_window.show('main');
-                    that.loading = false;
-                });
-            });
-        },
-        autoLogin: function(form) {
-            this.form.username = form.username;
-            this.form.password = form.password;
-            $scope.current_window.show('login');
-            this.submit();
-        },
-        reset: function() {
-            this.form.username = '';
-            this.form.password = '';
-        },
-        isValid: function() {
-            return this.form.username && this.form.password;
-        },
-        init: function() {
-            let session = $scope.App.getSession();
-            this.logged = !!session;
-            if(!this.logged) {
-                $scope.current_window.show('hello');
-                $scope.loadingComplete();
-                return false;
-            }
-            this.onSuccess(session);
-        },
-        onSuccess(session) {
-            $scope.mygames.load();
-        }
-    };
-
-    // Registration
-    $scope.registration = {
-        loading: false,
-        form: {
-            username: '',
-            password: ''
-        },
-        submit: function() {
-            if(!this.form.username) {
-                return false;
-            }
-            if(!this.form.password) {
-                return false;
-            }
-            //
-            var that = this;
-            that.loading = true;
-            $scope.App.Registration(this.form, (resp) => {
-                $timeout(() => {
-                    $scope.login.autoLogin(that.form);
-                    that.reset();
-                });
-            });
-        },
-        reset: function() {
-            this.form.username = '';
-            this.form.password = '';
-        },
-        isValid: function() {
-            return this.form.username && this.form.password;
-        }
-    };
-
-    // Settings
-    $scope.settings = {
-        form: Qubatch.settings,
-        lightMode: {
-            list: [{id: 0, name: 'No'}, {id: 1, name: 'Smooth'}, {id: 2, name: 'RTX'}],
-            get current() {
-                return this.list[$scope.settings.form.use_light];
+        //
+        this.shareGame = {
+            visible: false,
+            url: '',
+            toggle: function() {
+                this.url = location.protocol + '//' + location.host + '/worlds/' + Qubatch.world.info.guid;
+                this.visible = !this.visible;
             },
-            set current(item) {
-                $scope.settings.form.use_light = item.id;
+            copy: function() {
+                ClipboardHelper.copy(this.url);
+                vt.success(Lang.copied);
             }
-        },
-        chunkGeometryMode: {
-            list: [{id: 0, name: 'Auto'}, {id: 1, name: 'One per chunk'}, {id: 2, name: 'Big (multidraw)'}, {id: 3, name: 'Big (no multidraw)'}],
-            get current() {
-                return this.list[$scope.settings.form.chunk_geometry_mode];
+        }
+
+        // sun dir
+        this.sunDir = {
+            value: new Vector(1.1493, 1.0293, 0.6293),
+            apply() {
+                // 0.84 1 -1
+                if(typeof Qubatch != 'undefined') {
+                    Qubatch.render.sunDir = [this.value.x, this.value.y, this.value.z];
+                }
             },
-            set current(item) {
-                $scope.settings.form.chunk_geometry_mode = item.id;
+            getValue() {
+                // 1.1493, 1.0293, 0.6293
+                return [this.value.x, this.value.y, this.value.z].join(', ');
             }
-        },
-        chunkGeometryAlloc: {
-            list: [{id: 0, name: 'Auto'}, {id: 64, name: '64 MB'}, {id: 125, name: '125 MB'}, {id: 250, name: '250 MB'}, {id: 375, name: '375 MB'},
-                {id: 500, name: '500 MB'}, {id: 750, name: '750 MB'}, {id: 1000, name: '1000 MB'}],
-            get current() {
-                let t = this.list.find((x) => x.id === $scope.settings.form.chunk_geometry_alloc);
-                if (!t) t = this.list[0];
-                return t;
-            },
-            set current(item) {
-                $scope.settings.form.chunk_geometry_alloc = item.id;
-            }
-        },
-        save: function() {
-            this.form.save()
-            $scope.current_window.show('main');
-        },
-        toggle: function() {
-            $scope.current_window.toggle('settings');
-            return false;
-        },
-        updateSlider: function (inputId) {
-            const slider = (document.getElementById(inputId) as HTMLInputElement);
-            const step = parseInt(slider.getAttribute("step"));
-            const perc = (parseFloat(slider.value) - parseFloat(slider.min)) / (parseFloat(slider.max) - parseFloat(slider.min)) * 100;
-            // track background
-            slider.style.backgroundImage = "linear-gradient(to right, #FFAB00 " + perc + "%, #3F51B5 " + perc + "%)";
-            // ticks set active
-            const ticks = document.getElementById(inputId + '_ticks').children;
-            const tickMarks = Array.prototype.slice.call(ticks);
-            tickMarks.map(function (tick, index) {
-                var tickIndex = index * step;
-                tick.classList.remove("active");
-                tick.classList.remove("passed");
-                if (tickIndex <= Math.floor(parseFloat(slider.value))) {
-                    tick.classList.add("passed");
-                    if (tickIndex == Math.round(parseFloat(slider.value))) {
-                        tick.classList.add("active");
+        }
+
+        // Current window
+        this.current_window = {
+            id: 'main',
+            show(id : string) {
+                if(!instance.isSupportedBrowser) {
+                    id = 'not_supported_browser'
+                }
+                if(this.id) {
+                    if (instance.onHide[this.id]) {
+                        instance.onHide[this.id]()
                     }
                 }
-            });
-        }
-    };
-
-    // Boot
-    $scope.boot = {
-        loading: false,
-        latest_save: false,
-        init() {
-            // do nothing
-        }
-    };
-
-    // Delete world
-    $scope.DeleteWorld = {
-        world_guid: '',
-        world_title: '',
-        showModal(world_guid) {
-            $scope.modalWindow.show('modal-delete-world');
-            this.world_guid = world_guid;
-            for(let w of $scope.mygames.list) {
-                if(w.guid == world_guid) {
-                    this.world_title = w.title;
-                    break;
+                this.id = id
+                if (instance.onShow[id]) {
+                    instance.onShow[id]()
+                }
+                instance.initSelects()
+            },
+            toggle(id) {
+                if(this.id != id) {
+                    this.show(id);
+                } else {
+                    this.show('main');
+                }
+            },
+            getTitle() {
+                switch(this.id) {
+                    case 'hello': {
+                        return 'MadCraft';
+                        break;
+                    }
+                    case 'main': {
+                        return 'Welcome!';
+                        break;
+                    }
+                    default: {
+                        return this.id;
+                    }
                 }
             }
-        },
-        delete() {
-            var world_guid = this.world_guid;
-            window.event.preventDefault();
-            window.event.stopPropagation();
-            // if(!confirm(Lang.confirm_delete_world)) {
-            //     return false;
-            // }
-            let world = null;
-            for(let w of $scope.mygames.list) {
-                if(w.guid == world_guid) {
-                    world = w;
-                    break;
+        }
+
+        // Login
+        this.login = {
+            logged: false,
+            loading: false,
+            form: {
+                username: '',
+                password: ''
+            },
+            submit() {
+                if(!this.form.username) {
+                    return false;
                 }
-            }
-            if(!world) {
-                return Qubatch.App.showError('error_world_not_found', 4000);
-            }
-            world.hidden = true;
-            $scope.App.DeleteWorld({world_guid}, () => {
-                vt.success(Lang.success_world_deleted);
-            }, (e) => {
-                $timeout(() => {
-                    world.hidden = false;
+                if(!this.form.password) {
+                    return false;
+                }
+                //
+                var that = this;
+                that.loading = true;
+                instance.App.Login(this.form, (resp) => {
+                    $timeout(() => {
+                        that.logged = true;
+                        that.reset();
+                        that.onSuccess(resp);
+                        instance.current_window.show('main');
+                        that.loading = false;
+                    });
                 });
-                vt.error(e.message);
-            });
-            $scope.modalWindow.hide('modal-delete-world');
-        },
-    };
+            },
+            autoLogin(form) {
+                this.form.username = form.username;
+                this.form.password = form.password;
+                instance.current_window.show('login');
+                this.submit();
+            },
+            reset() {
+                this.form.username = '';
+                this.form.password = '';
+            },
+            isValid() {
+                return this.form.username && this.form.password;
+            },
+            init() {
+                let session = instance.App.getSession();
+                this.logged = !!session;
+                if(!this.logged) {
+                    instance.current_window.show('hello');
+                    instance.loadingComplete();
+                    return false;
+                }
+                this.onSuccess(session);
+            },
+            onSuccess(session) {
+                instance.mygames.load()
+            }
+        }
+
+        // Registration
+        this.registration = {
+            loading: false,
+            form: {
+                username: '',
+                password: ''
+            },
+            submit: function() {
+                if(!this.form.username) {
+                    return false;
+                }
+                if(!this.form.password) {
+                    return false;
+                }
+                //
+                var that = this;
+                that.loading = true;
+                instance.App.Registration(this.form, (resp) => {
+                    $timeout(() => {
+                        instance.login.autoLogin(that.form);
+                        that.reset();
+                    });
+                });
+            },
+            reset: function() {
+                this.form.username = '';
+                this.form.password = '';
+            },
+            isValid: function() {
+                return this.form.username && this.form.password;
+            }
+        }
+
+        // Settings
+        this.settings = {
+            form: Qubatch.settings,
+            lightMode: {
+                list: [{id: 0, name: 'No'}, {id: 1, name: 'Smooth'}, {id: 2, name: 'RTX'}],
+                get current() {
+                    return this.list[instance.settings.form.use_light];
+                },
+                set current(item) {
+                    instance.settings.form.use_light = item.id;
+                }
+            },
+            chunkGeometryMode: {
+                list: [{id: 0, name: 'Auto'}, {id: 1, name: 'One per chunk'}, {id: 2, name: 'Big (multidraw)'}, {id: 3, name: 'Big (no multidraw)'}],
+                get current() {
+                    return this.list[instance.settings.form.chunk_geometry_mode];
+                },
+                set current(item) {
+                    instance.settings.form.chunk_geometry_mode = item.id;
+                }
+            },
+            chunkGeometryAlloc: {
+                list: [{id: 0, name: 'Auto'}, {id: 64, name: '64 MB'}, {id: 125, name: '125 MB'}, {id: 250, name: '250 MB'}, {id: 375, name: '375 MB'},
+                    {id: 500, name: '500 MB'}, {id: 750, name: '750 MB'}, {id: 1000, name: '1000 MB'}],
+                get current() {
+                    let t = this.list.find((x) => x.id === instance.settings.form.chunk_geometry_alloc);
+                    if (!t) t = this.list[0];
+                    return t;
+                },
+                set current(item) {
+                    instance.settings.form.chunk_geometry_alloc = item.id;
+                }
+            },
+            save: function() {
+                this.form.save()
+                instance.current_window.show('main');
+            },
+            toggle: function() {
+                instance.current_window.toggle('settings');
+                return false;
+            },
+            updateSlider: function (inputId) {
+                const slider = (document.getElementById(inputId) as HTMLInputElement);
+                const step = parseInt(slider.getAttribute("step"));
+                const perc = (parseFloat(slider.value) - parseFloat(slider.min)) / (parseFloat(slider.max) - parseFloat(slider.min)) * 100;
+                // track background
+                slider.style.backgroundImage = "linear-gradient(to right, #FFAB00 " + perc + "%, #3F51B5 " + perc + "%)";
+                // ticks set active
+                const ticks = document.getElementById(inputId + '_ticks').children;
+                const tickMarks = Array.prototype.slice.call(ticks);
+                tickMarks.map(function (tick, index) {
+                    var tickIndex = index * step;
+                    tick.classList.remove("active");
+                    tick.classList.remove("passed");
+                    if (tickIndex <= Math.floor(parseFloat(slider.value))) {
+                        tick.classList.add("passed");
+                        if (tickIndex == Math.round(parseFloat(slider.value))) {
+                            tick.classList.add("active");
+                        }
+                    }
+                });
+            }
+        }
+
+        // Boot
+        this.boot = {
+            loading: false,
+            latest_save: false,
+            init() {
+                // do nothing
+            }
+        }
+
+        // Delete world
+        this.DeleteWorld = {
+            world_guid: '',
+            world_title: '',
+            showModal(world_guid) {
+                instance.modalWindow.show('modal-delete-world');
+                this.world_guid = world_guid;
+                for(let w of instance.mygames.list) {
+                    if(w.guid == world_guid) {
+                        this.world_title = w.title;
+                        break;
+                    }
+                }
+            },
+            delete() {
+                var world_guid = this.world_guid
+                window.event.preventDefault()
+                window.event.stopPropagation()
+                // if(!confirm(Lang.confirm_delete_world)) {
+                //     return false;
+                // }
+                let world = null;
+                for(let w of instance.mygames.list) {
+                    if(w.guid == world_guid) {
+                        world = w;
+                        break;
+                    }
+                }
+                if(!world) {
+                    return Qubatch.App.showError('error_world_not_found', 4000);
+                }
+                world.hidden = true;
+                instance.App.DeleteWorld({world_guid}, () => {
+                    vt.success(Lang.success_world_deleted);
+                }, (e) => {
+                    $timeout(() => {
+                        world.hidden = false;
+                    });
+                    vt.error(e.message);
+                });
+                instance.modalWindow.hide('modal-delete-world');
+            },
+        }
+
+        // My games
+        this.mygames = {
+            list: [],
+            shared_worlds: [],
+            loading: false,
+            toMain: function(){
+                location.href = '/';
+            },
+            load: function() {
+                const session = instance.App.getSession();
+                if(!session) {
+                    return instance.loadingComplete();
+                }
+                const that = this;
+                that.loading = true;
+                instance.syncTime();
+                instance.App.MyWorlds({}, (worlds) => {
+                    $timeout(() => {
+                        that.list = worlds;
+                        for(let w of worlds) {
+                            w.game_mode_title = Lang[`gamemode_${w.game_mode}`];
+                        }
+                        /*
+                        that.shared_worlds = [];
+                        for(let w of worlds) {
+                            w.my = w.user_id == session.user_id;
+                            if(!w.my) {
+                                that.shared_worlds.push(w);
+                            }
+                        }*/
+                        that.enterWorld.joinToWorldIfNeed();
+                        that.loading = false;
+                        instance.onMyGamesLoadedOrTimeSynchronized();
+                    });
+                });
+            },
+            // @deprecated
+            save: function() {},
+            add: function(form) {
+                this.list.push(form);
+            },
+            enterWorld: {
+                windowMod: 'off',
+                worldInfo: null,
+                getWorldGuid: function() {
+                    let pathName = window.location.pathname;
+                    if (pathName && pathName.startsWith('/worlds/')) {
+                        return pathName.substr(8);
+                    }
+                    return null;
+                },
+                joinAfterApproving: function(){
+                    let worldGuid = this.getWorldGuid();
+                    instance.App.JoinWorld({ world_guid: this.worldInfo.guid}, () => {
+                        $timeout(() => instance.StartWorld(worldGuid), error => this.handleNoWorldOrOtherError(error));
+                    });
+                },
+                joinToWorldIfNeed: function() {
+                    if (this.windowMod == 'world-not-found'){
+                        return;
+                    }
+                    let worldGuid = this.getWorldGuid();
+                    if (worldGuid) {
+                        for(let world of instance.mygames.list) {
+                            if(world.guid == worldGuid) {
+                                instance.StartWorld(worldGuid);
+                                return;
+                            }
+                        }
+                        // world is not found in exists
+                        if (this.worldInfo){
+                            this.showWorldInfo(this.worldInfo, 'approve-join')
+                            return;
+                        }
+                        instance.App.GetWorldPublicInfo({worldGuid},
+                            worldInfo => this.showWorldInfo(worldInfo, 'approve-join'),
+                            error => this.handleNoWorldOrOtherError(error));
+
+                    }
+
+                },
+                showWorldInfo: function(worldInfo, mode){
+                    this.worldInfo = worldInfo;
+                    this.windowMod = mode;
+                    instance.current_window.show('enter-world');
+                    $scope.$apply();
+                },
+                handleNoWorldOrOtherError: function(error){
+                    if (error.message === 'error_world_not_found'){
+                        this.windowMod = 'world-not-found'
+                        instance.current_window.show('enter-world');
+                        $scope.$apply();
+                    } else {
+                        vt.error(error.message);
+                    }
+                },
+                checkIsWorldUrl: function(){
+                    let worldGuid = this.getWorldGuid();
+                    if (worldGuid) {
+                        if (!instance.App.isLogged()) {
+                            instance.App.GetWorldPublicInfo({worldGuid},
+                                worldInfo => this.showWorldInfo(worldInfo, 'login'),
+                                error => this.handleNoWorldOrOtherError(error));
+                        }
+                    }
+                }
+            },
+
+
+        }
+
+        // New world
+        this.newgame = {
+            loading: false,
+            form: {
+                title:  '',
+                seed:   '',
+                generator: {
+                    id: null,
+                    options: null
+                }
+            },
+            reset() {
+                this.form.title = '';
+                this.form.seed  = '';
+            },
+            init() {
+                // game modes
+                instance.App.Gamemodes({}, (gamemodes) => {
+                    $timeout(() => {
+                        this.gamemodes.list = gamemodes;
+                        for(let gm of this.gamemodes.list) {
+                            gm.title = Lang[`gamemode_${gm.id}`]
+                        }
+                    });
+                });
+                // generators
+                instance.App.Generators({}, (generators) => {
+                    $timeout(() => {
+                        this.generators.list = generators;
+                    });
+                });
+            },
+            gamemodes: {
+                index: 0,
+                list: [],
+                get current() {
+                    return this.list[this.index];
+                },
+                set current(item) {
+                    for(let i in this.list) {
+                        const t = this.list[i];
+                        if(t.id == item.id) {
+                            this.index = i;
+                            break;
+                        }
+                    }
+                },
+                select(game_mode) {
+                    const form = instance.newgame.form;
+                    form.game_mode = game_mode.id;
+                }
+            },
+            generators: {
+                index: 0,
+                list: [],
+                get current() {
+                    return this.list[this.index];
+                },
+                set current(item) {
+                    for(let i in this.list) {
+                        const t = this.list[i];
+                        if(t.id == item.id) {
+                            this.index = i;
+                            break;
+                        }
+                    }
+                },
+                next() {
+                    this.index = (this.index + 1) % this.list.length
+                    this.select(this.current)
+                },
+                select(generator) {
+                    const form = instance.newgame.form;
+                    form.generator.id = generator.id;
+                    const current = this.current;
+                    if(!('has_options' in current)) {
+                        current.has_options = !!current.options;
+                    }
+                    current.options_form = form.generator.options = current.options_form || {};
+                    const options = current.options;
+                    if(options) {
+                        for(let k in options) {
+                            const op = options[k];
+                            let value = null;
+                            switch(op.type) {
+                                case 'checkbox': {
+                                    value = op.default_value;
+                                    break;
+                                }
+                                case 'select': {
+                                    value = op.default_value ? op.default_value + '': op.options[0].value;
+                                    break;
+                                }
+                                default: {
+                                    console.error('Invalid generator option type');
+                                    break;
+                                }
+                            }
+                            form.generator.options[k] = value;
+                        }
+                    }
+                    instance.initSelects('#world-generator-options .slim-select');
+                }
+            },
+            submit() {
+                var that = this;
+                that.loading = true;
+                let form = {...that.form};
+                form.seed = instance.App.GenerateSeed(form.seed);
+                instance.App.CreateWorld(form, (world) => {
+                    $timeout(() => {
+                        that.reset();
+                        instance.mygames.add(world);
+                        instance.StartWorld(world.guid);
+                        that.loading = false;
+                    });
+                });
+            },
+            open() {
+                this.generators.select(this.generators.list[0]);
+                this.gamemodes.select(this.gamemodes.list[0]);
+                instance.current_window.show('newgame');
+                this.form.seed = instance.App.GenerateSeed(Helpers.getRandomInt(1000000, 4000000000));
+            },
+            close() {
+                instance.current_window.show('main');
+            }
+        }
+
+        // modal windows show/hide
+        this.modalWindow = {
+            show: function(modalId : string) {
+                document.getElementById(modalId).style.visibility = 'visible';
+                document.body.style.overflow = 'hidden';
+            },
+            hide: function(modalId : string) {
+                document.getElementById(modalId).style.visibility = 'hidden';
+                document.body.style.overflow = 'unset';
+            },
+        }
+
+        this.onShow = {
+            'skin': () => { this.skin.onShow() }
+        }
+
+        this.onHide = {
+            'skin': () => { this.skin.onHide() }
+        }
+    
+    }
+
+    // Init
+    async init()  {
+
+        //
+        const App = this.App = Qubatch.App = new UIApp()
+
+        const that = this
+        const {$timeout, $scope} = this
+
+        // Working with lang
+        await Lang.init()
+        for(let item of Lang.list) {
+            if(item.active) {
+                this.current_lang = item;
+            }
+        }
+
+        this.current_window.show('main')
+        this.newgame.init();
+    
+        this.texture_pack.init().then(() => {
+            this.$timeout(() => {
+                this.boot.init()
+                this.login.init()
+                this.mygames.enterWorld.checkIsWorldUrl()
+            })
+        })
+
+        //
+        Qubatch.onControlsEnabledChanged = (value) => {
+            const bodyClassList = document.querySelector('body').classList;
+            if(value) {
+                bodyClassList.add('controls_enabled');
+            } else {
+                bodyClassList.remove('controls_enabled');
+            }
+        };
+
+        Qubatch.onStarted = () => {
+            const bodyClassList = document.querySelector('body').classList
+            bodyClassList.add('started')
+        }
+
+        Qubatch.exit = () => {
+            location.href = '/'
+        }
+
+        //
+        App.onLogin = (e) => {}
+
+        App.onLogout = (result) => {
+            $timeout(() => {
+                this.current_window.show('hello');
+                location.reload()
+            })
+        }
+
+        App.onError = (message) => {
+            if (typeof message !== 'string') {
+                // It happens: an exception Object is thrown on the server and sent as an error.
+                // Don't show it, but log it.
+                console.error(JSON.stringify(message))
+                message = 'error'
+            } else {
+                console.error(message)
+            }
+            // special option - show alert
+            let alert = false
+            if (message.startsWith('!alert')) {
+                message = message.substring(6)
+                alert = true
+            }
+            // Multilingual messages
+            message = Lang[message]
+
+            if (alert) {
+                window.alert(message)
+            } else {
+                vt.error(message)
+            }
+        }
+
+    }
 
     //
-    $scope.toggleMainMenu = function() {
+    toggleMainMenu() {
         if(Qubatch.hud.wm.hasVisibleWindow()) {
-            Qubatch.hud.wm.closeAll();
+            Qubatch.hud.wm.closeAll()
         } else {
-            Qubatch.hud.frmMainMenu.show();
+            Qubatch.hud.frmMainMenu.show()
         }
     }
 
     //
-    $scope.toggleFullscreen = function () {
-        const el = document.getElementById('qubatch-canvas-container');
+    toggleFullscreen() {
+        const el = document.getElementById('qubatch-canvas-container')
         if (!document.fullscreenElement) {
             el.requestFullscreen();
         } else if (document.exitFullscreen) {
-            document.exitFullscreen();
+            document.exitFullscreen()
         }
-    };
+    }
 
     // Start world
-    $scope.StartWorld = async function(world_guid : string) {
-        $scope.skin.stop()
+    async StartWorld(world_guid : string) {
+        this.skin.stop()
         if(window.event) {
             window.event.preventDefault();
             window.event.stopPropagation();
             if(isMobileBrowser()) {
-                $scope.toggleFullscreen();
+                this.toggleFullscreen();
             }
         }
         console.log(`StartWorld: ${world_guid}`);
+
         // Check session
-        const session = $scope.App.getSession();
+        const session = this.App.getSession()
         if(!session) {
             return;
         }
+
         //
-        $scope.current_window.show('world-loading');
+        this.current_window.show('world-loading');
         Array.from(document.getElementsByTagName('header')).map(h => h.remove());
         document.getElementById('bg-canvas')?.remove();
         document.getElementById('bg-circles_area')?.remove();
+
         // stop background animation effect
-        $scope.bg?.stop();
+        this.bg?.stop()
 
         // Show Loading...
         await this.showSplash()
 
         // Continue loading
-        $timeout(async function() {
-            const options = $scope.settings.form;
+        this.$timeout(async () => {
+            const options = this.settings.form;
             const server_url = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
                 '//' + location.hostname +
                 (location.port ? ':' + location.port : '') +
                 '/ws';
-            const world = await $scope.Qubatch.Start(server_url, world_guid, (resource_loading_state) => {
+            const world = await this.Qubatch.Start(server_url, world_guid, (resource_loading_state) => {
                 Qubatch.hud.draw(true);
             });
             if(!world.info) {
@@ -506,7 +818,7 @@ let gameCtrl = async function($scope : any, $timeout : any) {
 
     }
 
-    $scope.showSplash = async () => {
+    async showSplash() {
 
         const Q: GameClass = Qubatch
         const render = Q.render
@@ -537,279 +849,40 @@ let gameCtrl = async function($scope : any, $timeout : any) {
     }
 
     // loadingComplete
-    $scope.loadingComplete = function() {
+    loadingComplete() {
         document.getElementById('loading').classList.add('loading-complete');
-        $scope.loading_completed = true;
+        this.loading_completed = true;
     }
 
-    $scope.syncTime = function() {
-        $scope.App.SyncTime((resp: TApiSyncTimeResponse) => {
+    syncTime() {
+        this.App.SyncTime((resp: TApiSyncTimeResponse) => {
             const twoSidedLag = MonotonicUTCDate.nowWithoutExternalCorrection() - resp.clientUTCDate
             if (twoSidedLag > CLIENT_MAX_SYNC_TIME_TWO_SIDED_LAG) {
                 console.warn('Lag is too high to synchronize time: ', Math.round(twoSidedLag))
-                $scope.syncTime()
+                this.syncTime()
             } else {
                 const diff = Math.round(resp.serverUTCDate - (resp.clientUTCDate + twoSidedLag * 0.5))
                 MonotonicUTCDate.setExternalCorrection(diff)
                 console.log(`Time difference with server: ${diff} ms`)
-                $scope.onMyGamesLoadedOrTimeSynchronized()
+                this.onMyGamesLoadedOrTimeSynchronized()
             }
         }, (err) => {
             // try until we succeed
-            setTimeout(() => { $scope.syncTime() }, 1000)
+            setTimeout(() => { this.syncTime() }, 1000)
         })
     }
 
-    $scope.onMyGamesLoadedOrTimeSynchronized = function() {
-        if (!$scope.mygames.loading && MonotonicUTCDate.externalCorrectionInitialized) {
-            $scope.loadingComplete()
+    onMyGamesLoadedOrTimeSynchronized() {
+        if (!this.mygames.loading && MonotonicUTCDate.externalCorrectionInitialized) {
+            this.loadingComplete()
         }
     }
 
-    // My games
-    $scope.mygames = {
-        list: [],
-        shared_worlds: [],
-        loading: false,
-        toMain: function(){
-            location.href = '/';
-        },
-        load: function() {
-            const session = $scope.App.getSession();
-            if(!session) {
-                return $scope.loadingComplete();
-            }
-            const that = this;
-            that.loading = true;
-            $scope.syncTime();
-            $scope.App.MyWorlds({}, (worlds) => {
-                $timeout(() => {
-                    that.list = worlds;
-                    for(let w of worlds) {
-                        w.game_mode_title = Lang[`gamemode_${w.game_mode}`];
-                    }
-                    /*
-                    that.shared_worlds = [];
-                    for(let w of worlds) {
-                        w.my = w.user_id == session.user_id;
-                        if(!w.my) {
-                            that.shared_worlds.push(w);
-                        }
-                    }*/
-                    that.enterWorld.joinToWorldIfNeed();
-                    that.loading = false;
-                    $scope.onMyGamesLoadedOrTimeSynchronized();
-                });
-            });
-        },
-        // @deprecated
-        save: function() {},
-        add: function(form) {
-            this.list.push(form);
-        },
-        enterWorld: {
-            windowMod: 'off',
-            worldInfo: null,
-            getWorldGuid: function() {
-                let pathName = window.location.pathname;
-                if (pathName && pathName.startsWith('/worlds/')) {
-                    return pathName.substr(8);
-                }
-                return null;
-            },
-            joinAfterApproving: function(){
-                let worldGuid = this.getWorldGuid();
-                $scope.App.JoinWorld({ world_guid: this.worldInfo.guid}, () => {
-                    $timeout(() => $scope.StartWorld(worldGuid), error => this.handleNoWorldOrOtherError(error));
-                });
-            },
-            joinToWorldIfNeed: function() {
-                if (this.windowMod == 'world-not-found'){
-                    return;
-                }
-                let worldGuid = this.getWorldGuid();
-                if (worldGuid) {
-                    for(let world of $scope.mygames.list) {
-                        if(world.guid == worldGuid) {
-                            $scope.StartWorld(worldGuid);
-                            return;
-                        }
-                    }
-                    // world is not found in exists
-                    if (this.worldInfo){
-                        this.showWorldInfo(this.worldInfo, 'approve-join')
-                        return;
-                    }
-                    $scope.App.GetWorldPublicInfo({worldGuid},
-                        worldInfo => this.showWorldInfo(worldInfo, 'approve-join'),
-                        error => this.handleNoWorldOrOtherError(error));
-
-                }
-
-            },
-            showWorldInfo: function(worldInfo, mode){
-                this.worldInfo = worldInfo;
-                this.windowMod = mode;
-                $scope.current_window.show('enter-world');
-                $scope.$apply();
-            },
-            handleNoWorldOrOtherError: function(error){
-                if (error.message === 'error_world_not_found'){
-                    this.windowMod = 'world-not-found'
-                    $scope.current_window.show('enter-world');
-                    $scope.$apply();
-                } else {
-                    vt.error(error.message);
-                }
-            },
-            checkIsWorldUrl: function(){
-                let worldGuid = this.getWorldGuid();
-                if (worldGuid) {
-                    if (!$scope.App.isLogged()) {
-                        $scope.App.GetWorldPublicInfo({worldGuid},
-                             worldInfo => this.showWorldInfo(worldInfo, 'login'),
-                             error => this.handleNoWorldOrOtherError(error));
-                    }
-                }
-            }
-        },
-
-
-    };
-
-    // New world
-    $scope.newgame = {
-        loading: false,
-        form: {
-            title:  '',
-            seed:   '',
-            generator: {
-                id: null,
-                options: null
-            }
-        },
-        reset() {
-            this.form.title = '';
-            this.form.seed  = '';
-        },
-        init() {
-            // game modes
-            $scope.App.Gamemodes({}, (gamemodes) => {
-                $timeout(() => {
-                    this.gamemodes.list = gamemodes;
-                    for(let gm of this.gamemodes.list) {
-                        gm.title = Lang[`gamemode_${gm.id}`]
-                    }
-                });
-            });
-            // generators
-            $scope.App.Generators({}, (generators) => {
-                $timeout(() => {
-                    this.generators.list = generators;
-                });
-            });
-        },
-        gamemodes: {
-            index: 0,
-            list: [],
-            get current() {
-                return this.list[this.index];
-            },
-            set current(item) {
-                for(let i in this.list) {
-                    const t = this.list[i];
-                    if(t.id == item.id) {
-                        this.index = i;
-                        break;
-                    }
-                }
-            },
-            select(game_mode) {
-                const form = $scope.newgame.form;
-                form.game_mode = game_mode.id;
-            }
-        },
-        generators: {
-            index: 0,
-            list: [],
-            get current() {
-                return this.list[this.index];
-            },
-            set current(item) {
-                for(let i in this.list) {
-                    const t = this.list[i];
-                    if(t.id == item.id) {
-                        this.index = i;
-                        break;
-                    }
-                }
-            },
-            next() {
-                this.index = (this.index + 1) % this.list.length
-                this.select(this.current)
-            },
-            select(generator) {
-                const form = $scope.newgame.form;
-                form.generator.id = generator.id;
-                const current = this.current;
-                if(!('has_options' in current)) {
-                    current.has_options = !!current.options;
-                }
-                current.options_form = form.generator.options = current.options_form || {};
-                const options = current.options;
-                if(options) {
-                    for(let k in options) {
-                        const op = options[k];
-                        let value = null;
-                        switch(op.type) {
-                            case 'checkbox': {
-                                value = op.default_value;
-                                break;
-                            }
-                            case 'select': {
-                                value = op.default_value ? op.default_value + '': op.options[0].value;
-                                break;
-                            }
-                            default: {
-                                console.error('Invalid generator option type');
-                                break;
-                            }
-                        }
-                        form.generator.options[k] = value;
-                    }
-                }
-                $scope.initSelects('#world-generator-options .slim-select');
-            }
-        },
-        submit() {
-            var that = this;
-            that.loading = true;
-            let form = {...that.form};
-            form.seed = $scope.App.GenerateSeed(form.seed);
-            $scope.App.CreateWorld(form, (world) => {
-                $timeout(() => {
-                    that.reset();
-                    $scope.mygames.add(world);
-                    $scope.StartWorld(world.guid);
-                    that.loading = false;
-                });
-            });
-        },
-        open() {
-            this.generators.select(this.generators.list[0]);
-            this.gamemodes.select(this.gamemodes.list[0]);
-            $scope.current_window.show('newgame');
-            this.form.seed = $scope.App.GenerateSeed(Helpers.getRandomInt(1000000, 4000000000));
-        },
-        close() {
-            $scope.current_window.show('main');
-        }
-    };
-
     //
-    $scope.initSelects = function(selector) {
-        $timeout(() => {
-            const selects = document.querySelectorAll(selector ?? '.slim-select')
+    initSelects(selector? : string) {
+        selector = selector ?? '.slim-select'
+        this.$timeout(() => {
+            const selects = document.querySelectorAll(selector)
             selects.forEach((selectElement) => {
                 new SlimSelect({
                     select: selectElement,
@@ -817,46 +890,32 @@ let gameCtrl = async function($scope : any, $timeout : any) {
                 });
                 // setSlimData(selectElement)
             })
-        }, 0);
+        }, 0)
     }
 
-    // modal windows show/hide
-    $scope.modalWindow = {
-        show: function(modalId : string) {
-            document.getElementById(modalId).style.visibility = 'visible';
-            document.body.style.overflow = 'hidden';
-        },
-        hide: function(modalId : string) {
-            document.getElementById(modalId).style.visibility = 'hidden';
-            document.body.style.overflow = 'unset';
-        },
-    };
+    // Is mobile browser
+    isMobileBrowser() {
+        return isMobileBrowser()
+    }
 
-    $scope.Qubatch      = (globalThis as any).Qubatch;
-    $scope.skin         = new SkinManager($scope, $timeout);
-    $scope.texture_pack = new TexturePackManager($scope);
-    $scope.onShow       = {
-        'skin': () => { $scope.skin.onShow(); }
-    };
-    $scope.onHide       = {
-        'skin': () => { $scope.skin.onHide(); }
-    };
-    $scope.newgame.init();
+    isJoystickControl() {
+        return isMobileBrowser() || this.settings.form.forced_joystick_control
+    }
+    
+    changeLang(item) {
+        Lang.change(item)
+        // $window.location.reload(); // так не всё переводится, потому что уже какие-то игровые окошки прогружены
+        location.reload()
+    }
 
-    $scope.texture_pack.init().then(() => {
-        $timeout(() => {
-            $scope.boot.init();
-            $scope.login.init();
-            // $scope.skin.init();
-            $scope.mygames.enterWorld.checkIsWorldUrl();
-        });
-    });
+}
 
-    // Background animation
-    // $scope.bg = new BgEffect()
+const gameCtrl = async function($scope : any, $timeout : any) {
 
-    // show the window after everything is initilized
-    $scope.current_window.show('main');
+    const gc = new GameController($scope, $timeout)
+    Object.assign($scope, gc)
+    gc.init()
+
 }
 
 app.controller('gameCtrl', ['$scope', '$timeout', gameCtrl]);
@@ -876,7 +935,7 @@ const directive = function($q) {
         });
     };
 };
-app.directive('myEnter', ['$q', directive]);
+app.directive('myEnter', ['$q', directive])
 
 // from https://stackoverflow.com/questions/20146713/ng-change-on-input-type-file
 app.directive("ngUploadChange",function(){
@@ -895,4 +954,4 @@ app.directive("ngUploadChange",function(){
             });
         }
     }
-});
+})

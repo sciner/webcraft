@@ -210,10 +210,6 @@ export class ServerGame {
             }
         }); // {port: 5701}
 
-        const parseSkin = (id : string) => {
-            return id
-        }
-
         // New player connection
         this.wsServer.on('connection', (conn, req) => {
             if (this.shutdownPromise) {
@@ -231,7 +227,7 @@ export class ServerGame {
                 }
                 Log.append('WsConnected', {world_guid, session_id: query.session_id});
                 const player = new ServerPlayer();
-                player.onJoin(query.session_id as string, parseSkin(skin_id), conn, world);
+                player.onJoin(query.session_id as string, skin_id, conn, world);
                 const game_world = await this.db.getWorld(world_guid);
                 await this.db.IncreasePlayCount(game_world.id, query.session_id);
             };
