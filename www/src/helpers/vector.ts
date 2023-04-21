@@ -470,7 +470,7 @@ export class Vector implements IVector {
         return this;
     }
 
-    set(x: Vector | IVector | number[] | number, y: number, z: number) : this {
+    set(x: Vector | IVector | number[] | number, y?: number, z?: number) : this {
         if (x && typeof x == 'object') {
             return this.copy(x);
         }

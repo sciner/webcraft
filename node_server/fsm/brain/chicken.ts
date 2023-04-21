@@ -1,5 +1,4 @@
 import { FSMBrain } from "../brain.js";
-import { Vector } from "@client/helpers.js";
 import { WorldAction } from "@client/world_action.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
 import { ServerClient } from "@client/server_client.js";
@@ -15,20 +14,10 @@ export class Brain extends FSMBrain {
 
     constructor(mob) {
         super(mob);
-        this.prevPos        = new Vector(mob.pos);
-        this.lerpPos        = new Vector(mob.pos);
-        this.pc             = this.createPlayerControl(this, {
-            baseSpeed: 1/2,
-            playerHeight: 0.9,
-            stepHeight: 1.5,
-            playerHalfWidth: .45
-        });
         this.stack.pushState(this.doStand);
         this.egg_timer = performance.now();
         this.nest_timer = 0;
-        this.nest = null;   // гнездо 
-        this.health = 4;    // максимальное здоровье
-        this.distance_view = 6; // дистанция на которм виден игрок
+        this.nest = null;   // гнездо
         const bm = mob.getWorld().block_manager
         this.targets = [
             bm.WHEAT_SEEDS.id,

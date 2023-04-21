@@ -1,5 +1,6 @@
 import { getValidPosition, Vector } from "@client/helpers.js";
 import { ServerClient } from "@client/server_client.js";
+import type {ServerPlayer} from "../../server_player.js";
 
 export default class packet_reader {
 
@@ -14,8 +15,13 @@ export default class packet_reader {
     }
 
     //
-    static async read(player, packet) {
-        const pos = getValidPosition(new Vector(player.state.pos).floored(), player.world)
+    static async read(player: ServerPlayer, packet: INetworkMessage<int | null>) {
+        let pos = getValidPosition(new Vector(player.state.pos).floored(), player.world)
+        if (player.driving) {
+            player.state.pos = pos ?? player.state.pos // разрешить прервать езду даже если не нашлась безопасная позиции
+            player.driving.onStandUp(player, packet.data)
+            return true
+        }
         if (pos) {
             player.state.pos = pos
             player.state.lies = false

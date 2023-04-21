@@ -42,12 +42,15 @@ import type { Indicators, PlayerConnectData, PlayerSkin } from "@client/player.j
 import type {TRandomTickerFunction, TTickerFunction} from "./server_chunk.js";
 import type {Physics} from "@client/prismarine-physics/index.js";
 import { ChunkGrid } from "@client/core/ChunkGrid.js";
+import {ServerDrivingManager} from "./control/server_driving_manager.js";
+import {preprocessMobConfigs, TMobConfig} from "./mob/mob_config.js";
+import {Raycaster} from "@client/Raycaster.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
 export class ServerWorld implements IWorld {
     temp_vec: Vector;
-    block_manager: BLOCK;
+    block_manager: typeof BLOCK;
     updatedBlocksByListeners: any[];
     shuttingDown: any;
     game: any;
@@ -56,6 +59,7 @@ export class ServerWorld implements IWorld {
     blockListeners: BlockListeners;
     blockCallees: any;
     brains: Brains;
+    raycaster: Raycaster
     db: DBWorld;
     info: TWorldInfo;
     worldChunkFlags: WorldChunkFlags;
@@ -70,6 +74,7 @@ export class ServerWorld implements IWorld {
     admins: WorldAdminManager;
     chests: WorldChestManager;
     mobs: WorldMobManager;
+    drivingManager: ServerDrivingManager;
     packets_queue: WorldPacketQueue;
     ticks_stat: WorldTickStat;
     network_stat: {
@@ -91,10 +96,11 @@ export class ServerWorld implements IWorld {
     defaultPlayerIndicators: Indicators
     physics?: Physics
 
-    constructor(block_manager : BLOCK) {
+    constructor(block_manager : typeof BLOCK) {
         this.temp_vec = new Vector();
 
         this.block_manager = block_manager;
+        this.raycaster = new Raycaster(this)
         this.updatedBlocksByListeners = [];
 
         // An object with fields { resolve, gentle }. Gentle means to wait unil the action queue is empty
@@ -127,12 +133,10 @@ export class ServerWorld implements IWorld {
         await this.blockListeners.loadAll(config);
         this.blockCallees = this.blockListeners.calleesById;
         // Brains
+        const mobConfigs: Dict<TMobConfig> = config.mobs
+        preprocessMobConfigs(mobConfigs)
         this.brains = new Brains();
-        for(let fn of config.brains) {
-            await import(`./fsm/brain/${fn}.js`).then((module) => {
-                this.brains.add(fn, module.Brain);
-            });
-        }
+        await this.brains.load(mobConfigs);
         t = performance.now() - t | 0;
         if (t > 50) {
             console.log('Importing tickers, listeners & brains: ' + t + ' ms');
@@ -167,6 +171,7 @@ export class ServerWorld implements IWorld {
         this.admins         = new WorldAdminManager(this);
         this.chests         = new WorldChestManager(this);
         this.mobs           = new WorldMobManager(this);
+        this.drivingManager  = new ServerDrivingManager(this);
         this.packets_queue  = new WorldPacketQueue(this);
         // statistics
         this.ticks_stat     = new WorldTickStat();
@@ -479,6 +484,9 @@ export class ServerWorld implements IWorld {
             // 4.
             this.chunks.itemWorld.tick(delta);
             this.ticks_stat.add('drop_items');
+            //
+            this.drivingManager.tick();
+            this.ticks_stat.add('other');
             // 6.
             await this.packet_reader.queue.process();
             this.ticks_stat.add('packet_reader_queue');
@@ -569,8 +577,8 @@ export class ServerWorld implements IWorld {
         // 3. wait for chunks to load. AFTER THAT other chunks should be loaded
         player.initWaitingDataForSpawn();
         timer.stop();
-        // 4. Insert to array
-        this.players.list.set(user_id, player);
+        // 4. Add to the list of players
+        this.players.add(player);
         // 5. Send about all other players
         const all_players_packets = [];
         for (const p of this.players.values()) {
@@ -654,12 +662,12 @@ export class ServerWorld implements IWorld {
      * @param except_players  ID of players.
      *   It's ignored if {@link selected_players} is ServerPlayer.
      */
-    sendSelected(packets: INetworkMessage[], selected_players: number[] | ServerPlayer, except_players?: number[]) {
+    sendSelected(packets: INetworkMessage[], selected_players: Iterable<number> | ServerPlayer, except_players?: number[]) {
         if ((selected_players as ServerPlayer).sendPackets) { // fast check if it's a ServerPlayer
             (selected_players as ServerPlayer).sendPackets(packets)
             return
         }
-        for (const user_id of selected_players as number[]) {
+        for (const user_id of selected_players as Iterable<number>) {
             if (except_players?.includes(user_id)) {
                 continue;
             }
@@ -700,10 +708,8 @@ export class ServerWorld implements IWorld {
 
     /**
      * Returns block on world pos, or null.
-     * @param {Vector} pos
-     * @returns {TBlock}
      */
-    getBlock(pos : Vector, resultBlock = null) : TBlock {
+    getBlock(pos : IVector, resultBlock = null) : TBlock {
         const chunk = this.chunks.getByPos(pos);
         return chunk ? chunk.getBlock(pos, null, null, resultBlock) : null;
     }
@@ -1087,8 +1093,9 @@ export class ServerWorld implements IWorld {
             server_player.state.sitting = actions.sitting;
             server_player.state.lies = false;
             server_player.state.rotate = Vector.vectorify(actions.sitting.rotate)
-            server_player.controlManager.setPos(actions.sitting.pos, actions.id)
-            server_player.controlManager.setVelocity(0, 0, 0)
+            server_player.controlManager.setPos(actions.sitting.pos)
+                .setVelocity(0, 0, 0)
+                .syncWithActionId(actions.id)
         }
         // Sleep
         if(actions.sleep) {
@@ -1097,8 +1104,9 @@ export class ServerWorld implements IWorld {
             server_player.state.sleep = actions.sleep
             server_player.state.sitting = false
             server_player.state.lies = false
-            server_player.controlManager.setPos(actions.sleep.pos, actions.id)
-            server_player.controlManager.setVelocity(0, 0, 0)
+            server_player.controlManager.setPos(actions.sleep.pos)
+                .setVelocity(0, 0, 0)
+                .syncWithActionId(actions.id)
         }
         // Spawn mobs
         if(actions.mobs.spawn.length > 0) {

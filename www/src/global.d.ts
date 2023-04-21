@@ -322,7 +322,6 @@ interface IBlockMaterial {
     material: IBlockMiningMaterial
     material_key: string
     texture: any
-    hanging_textures?: string[]
     texture_overlays: any
     texture_animations: any
     multiply_color: IColor
@@ -330,6 +329,17 @@ interface IBlockMaterial {
     has_head: {pos: IVector}
     window?: string
     spawn_egg?: {type, skin}
+    damage?: number
+    speed?: number
+    food?: {
+        amount: number,
+        saturation: number
+    }
+    effects?: {
+        id: int,
+        time: int,
+        level: int
+    }[]
     // boolean values
     spawnable: boolean
     planting: boolean
@@ -412,14 +422,10 @@ interface ITerrainMapManager {
     calcBiome(center_coord : IVector, preset : any) : any
 }
 
-interface IPickatEventPos {
-    x:          float
-    y:          float
-    z:          float
+interface IPickatEventPos extends IVectorPoint {
     mob:        any
     player:     any
     aabb?:      any
-    n:          IVector
     block_id:   int
 }
 
@@ -428,7 +434,7 @@ interface IPickatEvent {
     cloneBlock:         boolean
     createBlock:        boolean
     destroyBlock:       boolean
-    id:                 any
+    id:                 int
     interactMobID?:     int
     interactPlayerID?:  int
     number:             int

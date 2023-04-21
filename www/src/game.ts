@@ -111,6 +111,8 @@ export class GameSettings implements TWorldSettings {
 // Main game class
 export class GameClass {
 
+    static instance ?           : GameClass
+
     player                      : Player
     world                       : World
     render                      : Renderer
@@ -147,6 +149,7 @@ export class GameClass {
     // Start
     async Start(server_url : string, world_guid : string, resource_loading_progress? : (state : any) => {}) {
         Qubatch.game = this;
+        GameClass.instance = this;
 
         const settings = this.settings
 
@@ -164,7 +167,7 @@ export class GameClass {
         await Promise.all([blockTask]);
 
         // init world
-        this.world = new World(settings, BLOCK);
+        this.world = new World(this, settings, BLOCK);
 
         // Create world
         await this.render.init(this.world, settings)

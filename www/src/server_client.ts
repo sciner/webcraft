@@ -94,6 +94,10 @@ export class ServerClient {
 	static CMD_MOB_DELETE               = 71;
     static CMD_MOB_UPDATE               = 72;
 
+    // Driving
+    static CMD_DRIVING_ADD_OR_UPDATE    = 118 // s->p
+    static CMD_DRIVING_DELETE           = 119 // s->p
+
     // Drop items
 	static CMD_DROP_ITEM_ADDED          = 76;
 	static CMD_DROP_ITEM_DELETED        = 77;
@@ -114,7 +118,7 @@ export class ServerClient {
 
     static CMD_BUILDING_SCHEMA_ADD      = 107;
 
-    // NEXT UNUSED COMMAND INDEX        = 118
+    // NEXT UNUSED COMMAND INDEX        = 120
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;

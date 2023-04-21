@@ -1,21 +1,134 @@
 {
-    "brains": [
-        "default",
-        "chicken",
-        "creeper",
-        "horse",
-        "fox",
-        "pig",
-        "snow_golem",
-        "cow",
-        "sheep",
-        "npc",
-        "zombie",
-        "bee",
-        "parrot",
-        "skeleton",
-        "boat"
-    ],
+    "mobs": {
+        "chicken": {
+            "physics": {
+                "baseSpeed": 0.5,
+                "playerHeight": 0.9,
+                "stepHeight": 1.5,
+                "playerHalfWidth": 0.45
+            },
+            "health": 4,
+            "distance_view": 6
+        },
+        "creeper": {
+            "physics": {
+                "baseSpeed": 0.5,
+                "playerHeight": 1.6,
+                "playerHalfWidth": 0.45
+            },
+            "health": 20,
+            "distance_view": 40
+        },
+        "horse": {
+            "brain": "default",
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 1.4,
+                "playerHalfWidth": 0.7
+            },
+            "health": 20
+        },
+        "fox": {
+            "brain": "default",
+            "physics": {
+                "baseSpeed": 0.5,
+                "playerHeight": 0.8,
+                "playerHalfWidth": 0.4
+            },
+            "health": 10
+        },
+        "pig": {
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 1.125,
+                "playerHalfWidth": 0.45
+            },
+            "health": 10,
+            "distance_view": 6
+        },
+        "snow_golem": {
+            "brain": "default",
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 1.9,
+                "playerHalfWidth": 0.35
+            }
+        },
+        "cow": {
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 1.4,
+                "playerHalfWidth": 0.45
+            },
+            "health": 10,
+            "distance_view": 6
+        },
+        "sheep": {
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 1.3,
+                "playerHalfWidth": 0.45
+            },
+            "driving": {
+                "offsets": [ { "x": 0, "y": 0.7, "z": -0.1 } ],
+                "speed": 1
+            },
+            "health": 8,
+            "distance_view": 6
+        },
+        "npc": {
+            "brain": "default",
+            "physics": {
+                "baseSpeed": 0.5,
+                "playerHeight": 1.8
+            },
+            "health": 20
+        },
+        "zombie": {
+            "physics": {
+                "baseSpeed": 0.8,
+                "playerHeight": 1.6,
+                "playerHalfWidth": 0.45
+            },
+            "hasUse": true,
+            "health": 20,
+            "distance_view": 40
+        },
+        "bee": {
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 0.6,
+                "playerHalfWidth": 0.3
+            },
+            "health": 10
+        },
+        "parrot": {
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 0.6,
+                "playerHalfWidth": 0.3
+            },
+            "health": 10
+        },
+        "skeleton": {
+            "physics": {
+                "baseSpeed": 0.8,
+                "playerHeight": 1.95,
+                "playerHalfWidth": 0.3
+            },
+            "hasUse": true,
+            "health": 20,
+            "distance_view": 16
+        },
+        "boat": {
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 1.125,
+                "playerHalfWidth": 0.45
+            },
+            "health": 1
+        }
+    },
     "tickers": [
         "bamboo",
         "charging_station",

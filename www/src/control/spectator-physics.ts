@@ -241,7 +241,7 @@ export class SpectatorPlayerControl extends PlayerControl {
         this.accumulatedDeltaPos.addScalarSelf(vel.x * deltaTicks, vel.y * deltaTicks, vel.z * deltaTicks)
     }
 
-    simulatePhysicsTick(): void {
+    simulatePhysicsTick(): boolean {
         const ps = this.player_state
         ps.pos.addSelf(this.accumulatedDeltaPos)
         this.accumulatedDeltaPos.zero()
@@ -250,6 +250,7 @@ export class SpectatorPlayerControl extends PlayerControl {
         ps.vel.addSelf(deltaVel)
         this.prevTickVelocity.copyFrom(ps.vel)
         this.currentVelocity.copyFrom(ps.vel)
+        return true
     }
 
     backupPartialState(): void {

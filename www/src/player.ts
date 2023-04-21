@@ -19,6 +19,7 @@ import { PlayerArm } from "./player_arm.js";
 import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
 import type { PLAYER_SKIN_TYPES } from "./constant.js"
+import type {ClientDriving} from "./control/driving.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
@@ -242,6 +243,7 @@ export class Player implements IPlayer {
     underwater_track_id:        any;
     _eating_sound_tick:         number;
     _eating_sound:              any;
+    driving?:                   ClientDriving | null
 
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
@@ -398,7 +400,7 @@ export class Player implements IPlayer {
             return this.onPickAtTarget(e, times, number)
         }, (e : IPickatEvent) => {
             const instrument = this.getCurrentInstrument()
-            const speed = instrument?.speed ? instrument.speed : 1
+            const speed = instrument?.material?.speed ?? 1
             const time = e.start_time - this.timer_attack
             if (time < 500) {
                 return
@@ -409,19 +411,13 @@ export class Player implements IPlayer {
                 this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD / speed
             }
             this.timer_attack = e.start_time
-            if (e.interactPlayerID) {
-                const player = Qubatch.world.players.get(e.interactPlayerID);
-                if (player) {
-                    player.punch(e);
-                }
+            let validAction = false
+            if (e.button_id === MOUSE.BUTTON_LEFT) {
+                validAction = this.onAttackEntityClient(e)
+            } else if (e.button_id === MOUSE.BUTTON_RIGHT) {
+                validAction = this.onUseItemOnEntityClient(e, instrument)
             }
-            if (e.interactMobID) {
-                const mob = Qubatch.world.mobs.get(e.interactMobID);
-                if (mob) {
-                    mob.punch(e);
-                }
-            }
-            if (e.interactMobID || e.interactPlayerID) {
+            if (validAction) {
                 this.world.server.Send({
                     name: ServerClient.CMD_PICKAT_ACTION,
                     data: e
@@ -459,6 +455,45 @@ export class Player implements IPlayer {
         this.arm = new PlayerArm(this, this.render)
 
         return true;
+    }
+
+    /** См. также ServerPlayer.onAttackEntity */
+    private onAttackEntityClient(e: IPickatEvent): boolean {
+        if (e.interactPlayerID != null) {
+            const player = this.world.players.get(e.interactPlayerID);
+            if (player) {
+                player.punch(e);
+                return true
+            }
+        }
+        if (e.interactMobID) {
+            const mob = this.world.mobs.get(e.interactMobID);
+            if (mob) {
+                mob.punch(e);
+                return true
+            }
+        }
+        return false
+    }
+
+    /** См. также ServerPlayer.onUseItemOnEntity */
+    private onUseItemOnEntityClient(e: IPickatEvent, instrumentHand: Instrument_Hand): boolean {
+        if (e.interactMobID != null) {
+            const mob = this.world.mobs.get(e.interactMobID)
+            if (!mob) {
+                return false
+            }
+            if (mob.hasUse || instrumentHand.material?.tags.includes('use_on_mob')) {
+                // Попробовать действие или использование предмета на мобе (сервер знает что)
+                return true
+            }
+            if (mob.supportsDriving && !mob.driving?.isFull()) {
+                // Попробовать присоединиться к езде
+                this.controlManager.syncWithActionId(e.id, true)
+                return true
+            }
+        }
+        return false
     }
 
     getOverChunk() {
@@ -641,10 +676,10 @@ export class Player implements IPlayer {
     }
 
     standUp() {
-        if(this.state.sitting || this.state.lies || this.state.sleep) {
+        if (this.driving || this.state.sitting || this.state.lies || this.state.sleep) {
             this.world.server.Send({
                 name: ServerClient.CMD_STANDUP_STRAIGHT,
-                data: null
+                data: this.driving?.standUpGetId() ?? null
             })
         }
     }
@@ -713,15 +748,7 @@ export class Player implements IPlayer {
             }
             this.mineTime = 0;
             const e_orig: ICmdPickatData = ObjectHelpers.deepClone(e);
-            const action_player_info: ActionPlayerInfo = {
-                radius: PLAYER_DIAMETER, // .radius is used as a diameter
-                height: this.height,
-                pos: this.lerpPos,
-                rotate: this.rotateDegree.clone(),
-                session: {
-                    user_id: this.session.user_id
-                }
-            };
+            const action_player_info = this.getActionPlayerInfo()
             const [actions, pos] = await doBlockAction(e, this.world, action_player_info, this.currentInventoryItem);
             if (actions) {
                 e_orig.snapshotId = this.world.history.makeSnapshot(pos);
@@ -741,6 +768,18 @@ export class Player implements IPlayer {
         return true;
     }
 
+    private getActionPlayerInfo(): ActionPlayerInfo {
+        return {
+            radius: PLAYER_DIAMETER, // .radius is used as a diameter
+            height: this.height,
+            pos: this.lerpPos,
+            rotate: this.rotateDegree.clone(),
+            session: {
+                user_id: this.session.user_id
+            }
+        }
+    }
+
     // Ограничение частоты выполнения данного действия
     limitBlockActionFrequency(e) {
         let resp = (e.number > 1 && performance.now() - this._prevActionTime < PREV_ACTION_MIN_ELAPSED);
@@ -756,7 +795,7 @@ export class Player implements IPlayer {
     }
 
     // getCurrentInstrument
-    getCurrentInstrument() {
+    getCurrentInstrument(): Instrument_Hand {
         const currentInventoryItem = this.currentInventoryItem;
         const instrument = new Instrument_Hand(this.inventory, currentInventoryItem);
         /* Old incorrect code that did nothing:
@@ -800,11 +839,11 @@ export class Player implements IPlayer {
     }
 
     //
-    setPosition(vec: IVector, worldActionId?: string | int | null): void {
+    setPosition(vec: IVector): void {
         //
         const pc = this.getPlayerControl();
         pc.player_state.onGround = false;
-        this.controlManager.setPos(vec, worldActionId);
+        this.controlManager.setPos(vec)
         //
         if (!Qubatch.is_server) {
             this.stopAllActivity();

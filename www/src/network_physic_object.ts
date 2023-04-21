@@ -26,12 +26,26 @@ export type NetworkPhysicObjectState = {
 
 // NetworkPhysicObject
 export class NetworkPhysicObject {
-    [key: string]: any;
 
     #world : World
-    netBuffer: NetworkPhysicObjectState[]
+    netBuffer           : NetworkPhysicObjectState[]
+    tPos                : Vector
+    protected tRot      : Vector
+    yaw                 : float
+    protected pitch     : float
+    protected sneak     : number | boolean
+    protected _pos      : Vector
+    private _prevPos    : Vector
+    protected moving    : boolean
+    private _chunk_addr : Vector
+    private latency     : number
+    aabb                : AABBDrawable | null
+    private tracked     : boolean
+    protected extra_data? : Dict | null
+    width               : number
+    height              : number
 
-    constructor(world : World, pos, rotate) {
+    constructor(world : World, pos: Vector, rotate: IVector) {
 
         this.#world         = world
         this._pos           = pos;
@@ -48,9 +62,6 @@ export class NetworkPhysicObject {
         this.latency = 50;
         this.tPos = new Vector();
         this.tRot = new Vector();
-        /**
-         * @type {AABBDrawable}
-         */
         this.aabb = null;
 
         this.tracked = false;
@@ -108,7 +119,7 @@ export class NetworkPhysicObject {
         }
     }
 
-    processNetState() {
+    protected processNetState(): void {
         if (this.netBuffer.length === 0) {
             return;
         }

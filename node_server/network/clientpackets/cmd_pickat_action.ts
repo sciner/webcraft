@@ -37,7 +37,7 @@ export default class packet_reader {
                 player.onAttackEntity(packet.data.interactMobID, packet.data.interactPlayerID)
             }
             if (packet.data.button_id == MOUSE.BUTTON_RIGHT) {
-                player.onUseItem(packet.data.interactMobID, packet.data.interactPlayerID)
+                player.onUseItemOnEntity(packet.data)
             }
         } else {
             const correct_destroy = player.isMiningComplete(packet.data);

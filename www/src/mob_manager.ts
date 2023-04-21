@@ -1,21 +1,20 @@
-import { SimpleShifted3DArray, Vector } from "./helpers.js";
+import { Vector } from "./helpers.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
-import { MobModel } from "./mob_model.js";
+import {MobModel, TMobModelConstructorProps} from "./mob_model.js";
 import { Resources } from "./resources.js";
 import { ServerClient } from "./server_client.js";
+import type {World} from "./world.js";
 
 export class MobManager {
-    [key: string]: any;
 
-    #world;
-    models: Map<string, Mesh_Object_BBModel> = new Map()
+    #world              : World
+    models              : Map<string, Mesh_Object_BBModel> = new Map()
+    list                = new Map<int, MobModel>()
+    draw_debug_grid     : boolean
+    sendStateInterval   : any // number
 
-    constructor(world) {
+    constructor(world: World) {
         this.#world = world;
-        /**
-         * @type {Map<number, MobModel>}
-         */
-        this.list = new Map();
         this.draw_debug_grid = world.settings.mobs_draw_debug_grid;
         // Interval functions
         this.sendStateInterval = setInterval(() => {
@@ -114,33 +113,23 @@ export class MobManager {
     }
 
     // add
-    add(data) {
-        const mob = new MobModel({
-            id:             data.id,
-            type:           data.type,
-            name:           data.name,
-            indicators:     data.indicators,
-            width:          data.width,
-            height:         data.height,
-            pos:            data.pos,
-            rotate:         data.rotate,
-            pitch:          data.rotate.x,
-            yaw:            data.rotate.z,
-            skin:           data.skin || 'base',
-            extra_data:     data.extra_data || null
-        }, this.#world);
+    add(data: TMobModelConstructorProps): void {
+        data.pitch  = data.rotate.x
+        data.yaw    = data.rotate.z
+        data.skin   ??= 'base'
+        data.extra_data ??= null
+
+        const mob = new MobModel(data, this.#world)
 
         mob.pos.y += 1/200;
 
         this.list.set(data.id, mob);
+        this.#world.drivingManager.onMobModelAdded(mob)
     }
 
     // get
-    get(id) {
-        if(!this.list.has(id)) {
-            return null;
-        }
-        return this.list.get(id);
+    get(id: int): MobModel | null {
+        return this.list.get(id) ?? null;
     }
 
     // delete
@@ -149,6 +138,7 @@ export class MobManager {
         if(mob) {
             mob.onUnload();
             this.list.delete(id);
+            mob.driving?.onModelDeleted(mob)
         }
     }
 
@@ -157,7 +147,7 @@ export class MobManager {
         for(const mob of this.list.values()) {
             if(Math.random() < .01) {
                 const effect = Math.random() > .75 ? 'idle' : 'step';
-                if(Qubatch.sounds.play('madcraft:block.' + mob.type, effect, mob._pos)) {
+                if(Qubatch.sounds.play('madcraft:block.' + mob.type, effect, mob.pos)) {
                     break;
                 }
             }

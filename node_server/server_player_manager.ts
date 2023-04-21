@@ -2,6 +2,7 @@ import { AbstractPlayerManager } from "@client/abstract_player_manager.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
 import type { ServerPlayer } from "./server_player.js";
 import type { ServerWorld } from "./server_world.js";
+import {PLAYER_STATUS} from "@client/constant.js";
 
 export class ServerPlayerManager extends AbstractPlayerManager<ServerWorld, ServerPlayer> {
 
@@ -14,9 +15,17 @@ export class ServerPlayerManager extends AbstractPlayerManager<ServerWorld, Serv
         this.deletedPlyersByUserIdBeingWritten = null; // to avoid errors in race conditions
     }
 
+    add(player: ServerPlayer): void {
+        const user_id = player.session.user_id
+        this.list.set(user_id, player)
+        this.world.drivingManager.onPlayerAdded(player)
+    }
+
     delete(user_id: number): boolean {
         const player = this.list.get(user_id);
         if (player) {
+            player.driving?.onPlayerUnloadedOrRemoved(player)
+            player.status = PLAYER_STATUS.DELETED
             player.savingPromise = this.world.dbActor.worldSavingPromise;
             this.deletedPlyersByUserId.set(user_id, player);
         }

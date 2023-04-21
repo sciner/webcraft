@@ -6,6 +6,7 @@ import {PHYSICS_ROTATION_DECIMALS} from "../constant.js";
 import type {ClientPlayerControlManager, PlayerControlManager} from "./player_control_manager.js";
 import type {PLAYER_CONTROL_TYPE} from "./player_control.js";
 import {ObjectHelpers} from "../helpers/object_helpers.js";
+import type {Player} from "../player.js";
 
 export enum PLAYER_TICK_DATA_STATUS {
     NEW = 1,
@@ -84,7 +85,7 @@ export class PlayerTickData {
         this.inputWorldActionIds = ObjectHelpers.deepClone(src.inputWorldActionIds)
     }
 
-    applyInputTo(controlManager: PlayerControlManager, pc: PlayerControl): void {
+    applyInputTo(controlManager: PlayerControlManager<any>, pc: PlayerControl): void {
         const controls = pc.controls
         const player_state = pc.player_state
 
@@ -106,12 +107,12 @@ export class PlayerTickData {
         player_state.yaw = this.inputRotation.z
 
         const game_mode = GameMode.byIndex[this.contextGameModeIndex]
-        if (controlsEnabled && switchFlying && game_mode.id === GAME_MODE.CREATIVE) {
+        if (controlsEnabled && switchFlying && game_mode.id === GAME_MODE.CREATIVE && !controlManager.player.driving) {
             player_state.flying = !player_state.flying
         }
     }
 
-    initContextFrom(controlManager: PlayerControlManager): void {
+    initContextFrom(controlManager: PlayerControlManager<any>): void {
         const player = controlManager.player
         const pc = controlManager.current
         const state = player.state

@@ -4,6 +4,7 @@ import { DEAD_MOB_TTL } from "../server_constant.js";
 import type { ServerPlayer } from "../server_player.js";
 import type { ServerWorld } from "../server_world.js";
 import { WorldTickStat } from "./tick_stat.js";
+import type {TMobConfig} from "../mob/mob_config.js";
 
 // Store refs to all loaded mobs in the world
 export class WorldMobManager {
@@ -14,6 +15,7 @@ export class WorldMobManager {
     ticks_stat_by_mob_type:         Map<string, WorldTickStat> = new Map()
     inactiveByEntityId:             Map<string, Mob>
     inactiveByEntityIdBeingWritten: Map<string, Mob> | null
+    configs:                        Dict<TMobConfig>
 
     static STAT_NAMES = ['update_chunks', 'unload', 'other', 'onLive', 'onFind']
     static MOB_STAT_NAMES = ['onLive', 'onFind']
@@ -22,6 +24,7 @@ export class WorldMobManager {
 
         this.world = world;
         this.list = new Map();
+        this.configs = config.mobs
 
         this.ticks_stat = new WorldTickStat(WorldMobManager.STAT_NAMES)
 
@@ -61,6 +64,7 @@ export class WorldMobManager {
 
     add(mob: Mob): void {
         this.list.set(mob.id, mob);
+        this.world.drivingManager.onMobAdded(mob)
     }
 
     get(id: int): Mob | undefined {
@@ -68,6 +72,8 @@ export class WorldMobManager {
     }
 
     delete(id: int): void {
+        const mob = this.list.get(id)
+        mob.driving?.onMobUnloadedOrRemoved(mob)
         this.list.delete(id);
     }
 

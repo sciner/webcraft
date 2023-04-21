@@ -406,7 +406,7 @@ export class ServerChunk {
         this.mobs.set(mob.id, mob);
         const packets = [{
             name: ServerClient.CMD_MOB_ADD,
-            data: [mob]
+            data: [mob.exportMobModelConstructorProps()]
         }];
         this.sendAll(packets);
     }
@@ -475,7 +475,7 @@ export class ServerChunk {
             data: []
         }];
         for(const mob of this.mobs.values()) {
-            packets_mobs[0].data.push(mob);
+            packets_mobs[0].data.push(mob.exportMobModelConstructorProps());
         }
         this.world.sendSelected(packets_mobs, player_user_ids);
     }
@@ -492,7 +492,7 @@ export class ServerChunk {
     }
 
     /** Creates a packet describing fluid at world position {@link worldPos} */
-    createFluidDeltaPacketAt(worldPos: Vector): INetworkMessage {
+    createFluidDeltaPacketAt(worldPos: IVector): INetworkMessage {
         const buf = FluidChunkQueue.packAsDelta(worldPos, this.fluid)
         return {
             name: ServerClient.CMD_FLUID_DELTA,
@@ -714,16 +714,17 @@ export class ServerChunk {
     // directly is easier and faster.
     // If the argument after the coordiantes (y or fromOtherChunks) is true,
     // it can return blocks from chunks outside its boundary.
-    getBlock(pos : number | Vector, y? : number, z? : number, resultBlock: TBlock | null = null, fromOtherChunks: boolean = false) {
+    getBlock(pos_ : number | IVector, y? : number, z? : number, resultBlock: TBlock | null = null, fromOtherChunks: boolean = false) {
         if(this.load_state !== CHUNK_STATE.READY) {
             return this.getChunkManager().DUMMY;
         }
 
-        if (typeof pos == 'number') {
-            pos = tmp_posVector.set(pos, y, z);
+        let pos: Vector
+        if (typeof pos_ == 'number') {
+            pos = tmp_posVector.set(pos_, y, z);
         } else {
             // We expect (typeof pos == 'object') here.
-            pos = tmp_posVector.initFrom(pos);
+            pos = tmp_posVector.copyFrom(pos_);
         }
         pos.flooredSelf().subSelf(this.coord);
 

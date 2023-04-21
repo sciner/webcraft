@@ -17,10 +17,8 @@ import {ClientPlayerTickData, PLAYER_TICK_DATA_STATUS, PLAYER_TICK_MODE, PlayerT
 import {ServerClient} from "../server_client.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketWriter, PlayerControlSessionPacket} from "./player_control_packets.js";
 import {PlayerSpeedLoggerMode, PlayerSpeedLogger} from "./player_speed_logger.js";
-import type { ChunkGrid } from "../core/ChunkGrid.js";
 import {LimitedLogger} from "../helpers/limited_logger.js";
 
-const tmpAddr = new Vector()
 const DEBUG_LOG_SPEED = false
 const DEBUG_LOG_SPEED_MODE = PlayerSpeedLoggerMode.SCALAR
 
@@ -29,8 +27,8 @@ const DEBUG_LOG_SPEED_MODE = PlayerSpeedLoggerMode.SCALAR
  * calls the controllers to update the player state based on the input, and synchronizes the state
  * between the server and the client.
  */
-export abstract class PlayerControlManager {
-    player: Player
+export abstract class PlayerControlManager<TPlayer extends Player> {
+    player: TPlayer
 
     // the different controllers
     spectator: SpectatorPlayerControl
@@ -40,7 +38,7 @@ export abstract class PlayerControlManager {
     current: PlayerControl
 
     /**
-     * Each session starts uninitialzied. To become initialized, {@link baseTime} must be set.
+     * Each session starts uninitialized. To become initialized, {@link baseTime} must be set.
      * (a client sets it when in the first physics tick of the session, and the server receives this
      * value from the client).
      * @see startNewPhysicsSession
@@ -52,12 +50,12 @@ export abstract class PlayerControlManager {
 
     /** The time {@link MonotonicUTCDate.now} at which the physics session started. */
     protected baseTime: number
-    /** The number of physics session (see {@link PHYSICS_INTERVAL_MS}) from the start of the current physics session. */
+    /** The number of physics ticks (see {@link PHYSICS_INTERVAL_MS}) from the start of the current physics session. */
     protected knownPhysicsTicks: int
 
     private tmpPos = new Vector()
 
-    constructor(player: Player) {
+    constructor(player: TPlayer) {
         this.player = player
         const pos = new Vector(player.sharedProps.pos)
         this.prismarine = new PrismarinePlayerControl(player.world, pos, {effects: player.effects})
@@ -123,12 +121,14 @@ export abstract class PlayerControlManager {
      * - on the server: the controller is notified that the action completed, so if the physics was waiting for it,
      *   it may continue
      */
-    setPos(pos: IVector, worldActionId?: string | int | null): void {
+    setPos(pos: IVector): this {
         this.current.setPos(pos)
+        return this
     }
 
-    setVelocity(x: IVector | number[] | number, y: number, z: number): void {
+    setVelocity(x: IVector | number[] | number, y?: number, z?: number): this {
         this.current.player_state.vel.set(x, y, z)
+        return this
     }
 
     /**
@@ -146,6 +146,7 @@ export abstract class PlayerControlManager {
         const pc = this.controlByType[data.contextControlType]
         const gameMode = GameMode.byIndex[data.contextGameModeIndex]
         const player_state = pc.player_state
+        const driving = this.player.driving
 
         // this prevents, e.g. huge jumps after switching to/from spectator
         if (prevData && pc.type !== prevData.contextControlType) {
@@ -155,11 +156,13 @@ export abstract class PlayerControlManager {
         // apply input
         data.applyInputTo(this, pc)
 
-        // special state adjustments
-        player_state.flying &&= gameMode.can_fly // a hack-fix to ensure the player isn't flying when it shouldn't
-        // if a player was running before sitting, remove that speed, so it doesn't move after sitting
-        if (data.contextTickMode === PLAYER_TICK_MODE.SITTING_OR_LYING) {
-            player_state.vel.zero()
+        if (!driving) {
+            // special state adjustments
+            player_state.flying &&= gameMode.can_fly // a hack-fix to ensure the player isn't flying when it shouldn't
+            // if a player was running before sitting, remove that speed, so it doesn't move after sitting
+            if (data.contextTickMode === PLAYER_TICK_MODE.SITTING_OR_LYING) {
+                player_state.vel.zero()
+            }
         }
 
         // remember the state before the simulation
@@ -167,21 +170,17 @@ export abstract class PlayerControlManager {
         pc.backupPartialState()
 
         // simulate the steps
-        const grid : ChunkGrid = this.player.world.chunkManager.grid
         for(let i = 0; i < data.physicsTicks; i++) {
+            const pos = player_state.pos
             if (pc.requiresChunk) {
-                const pos = player_state.pos
-                grid.getChunkAddr(pos.x, pos.y, pos.z, tmpAddr)
-                const chunk = this.player.world.chunkManager.getChunk(tmpAddr)
+                const chunk = this.player.world.chunkManager.getByPos(pos)
                 if (!chunk?.isReady()) {
                     pc.restorePartialState(prevPos)
                     return false
                 }
             }
             outPosBeforeLastTick?.copyFrom(player_state.pos)
-            try {
-                pc.simulatePhysicsTick()
-            } catch (e) {
+            if (!pc.simulatePhysicsTick(driving)) {
                 pc.restorePartialState(prevPos)
                 return false
             }
@@ -202,7 +201,7 @@ export abstract class PlayerControlManager {
     protected get username(): string { return this.player.session.username }
 }
 
-export class ClientPlayerControlManager extends PlayerControlManager {
+export class ClientPlayerControlManager extends PlayerControlManager<Player> {
 
     /**
      * A separate {@link SpectatorPlayerControl} used only for free cam.
@@ -240,6 +239,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     private controlPacketWriter = new PlayerControlPacketWriter()
     private hasCorrection = false
     private correctionPacket = new PlayerControlCorrectionPacket()
+    private _disbaleControlsUntilServerTick: int | null = null
 
     constructor(player: Player) {
         super(player)
@@ -267,6 +267,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         }
         this.hasCorrection = false
         this.posChangedExternally = false
+        this._disbaleControlsUntilServerTick = null
     }
 
     protected resetState(pos: IVector): void {
@@ -274,21 +275,37 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         this.speedLogger?.reset()
     }
 
-    setPos(pos: IVector, worldActionId?: string | int | null): void {
-        super.setPos(pos, worldActionId)
+    setPos(pos: IVector): this {
+        super.setPos(pos)
         this.posChangedExternally = true
+        this.forceSendDelayedData()
+        return this
+    }
+
+    syncWithActionId(worldActionId: string | int | null, disableControls: boolean): this {
         if (worldActionId != null) {
+            this.posChangedExternally = true
             this.appliedWorldActionIds.push(worldActionId)
+            this.forceSendDelayedData()
         }
-        const lastData = this.dataQueue?.getLast()
+        if (disableControls) {
+            this._disbaleControlsUntilServerTick = this.knownPhysicsTicks + 1
+        }
+        return this
+    }
+
+    private forceSendDelayedData(): void {
+        const lastData = this.dataQueue?.getLast()  // it's null in the constructor
         if (lastData?.status === PLAYER_TICK_DATA_STATUS.PROCESSED_SENDING_DELAYED) {
             lastData.status = PLAYER_TICK_DATA_STATUS.PROCESSED_SEND_ASAP
+        }
+        if (lastData?.status === PLAYER_TICK_DATA_STATUS.PROCESSED_SEND_ASAP) {
             this.sendUpdate()
         }
     }
 
     /** Call it after changing the position if you want the change to be instant, e.g. placing the player on the bed. */
-    suppressLerpPos() {
+    suppressLerpPos(): void {
         this.prevPhysicsTickPos.copyFrom(this.current.player_state.pos)
     }
 
@@ -301,6 +318,12 @@ export class ClientPlayerControlManager extends PlayerControlManager {
                 dst.copyFrom(pos)
             } else {
                 dst.lerpFrom(prevPos, pos, this.getCurrentTickFraction())
+            }
+
+            const driving = this.player.driving
+            if (driving) {
+                driving.updateFromDriver(dst, pc.player_state.yaw)
+                driving.applyToDependentParticipants()
             }
         }
         dst.roundSelf(8)
@@ -346,6 +369,10 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         // if the initial step of the current physics session
         if (!this.physicsSessionInitialized) {
             this.initializePhysicsSession()
+            return
+        }
+
+        if (this._disbaleControlsUntilServerTick === this.knownPhysicsTicks) {
             return
         }
 
@@ -396,6 +423,9 @@ export class ClientPlayerControlManager extends PlayerControlManager {
 
         // the number of new ticks to be simulated
         let physicsTicks = Math.floor((this.knownInputTime - this.knownTime) / PHYSICS_INTERVAL_MS)
+        if (this._disbaleControlsUntilServerTick != null) {
+            physicsTicks = Math.min(physicsTicks, this._disbaleControlsUntilServerTick - this.knownPhysicsTicks)
+        }
         // simulate the new tick(s)
         if (physicsTicks) {
             if (physicsTicks < 0) {
@@ -409,6 +439,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
                 data.initInputFrom(this, this.knownPhysicsTicks++, 1)
                 data.initContextFrom(this)
                 data.initOutputFrom(this.current)
+                data.status = PLAYER_TICK_DATA_STATUS.PROCESSED_SEND_ASAP // it can't be combined
                 if (this.appliedWorldActionIds.length) {
                     data.inputWorldActionIds = this.appliedWorldActionIds
                     this.appliedWorldActionIds = []
@@ -416,6 +447,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
                 dataQueue.push(data)
                 this.posChangedExternally = false
                 if (--physicsTicks === 0) {
+                    this.sendUpdate()
                     return
                 }
             }
@@ -452,8 +484,8 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             // Save the tick data to be sent to the server.
             // Possibly postpone its sending, and/or merge it with the previously unsent data.
             if (prevData?.equal(data) && !this.sedASAP) {
-                if (prevData.status === PLAYER_TICK_DATA_STATUS.SENT) {
-                    // it can't be merged with the data already sent, but it contains no new data, so it can be delayed
+                if (prevData.status !== PLAYER_TICK_DATA_STATUS.PROCESSED_SENDING_DELAYED) {
+                    // it can't be merged with the previous data, but it contains no new data, so it can be delayed
                     data.status = PLAYER_TICK_DATA_STATUS.PROCESSED_SENDING_DELAYED
                     dataQueue.push(data)
                     if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
@@ -492,6 +524,10 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         const debPrevKnownPhysicsTicks = this.knownPhysicsTicks
         const correctedPhysicsTick = packet.knownPhysicsTicks
         const correctedData = packet.data
+
+        if (this._disbaleControlsUntilServerTick <= correctedPhysicsTick) {
+            this._disbaleControlsUntilServerTick = null
+        }
 
         // TODO what if correctedData context is different?
 
@@ -574,6 +610,9 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         const dataQueue = this.dataQueue
         while(dataQueue.length && dataQueue.getFirst().endPhysicsTick <= knownPhysicsTicks) {
             dataQueue.shift()
+        }
+        if (this._disbaleControlsUntilServerTick <= knownPhysicsTicks) {
+            this._disbaleControlsUntilServerTick = null
         }
     }
 

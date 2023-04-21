@@ -13,6 +13,10 @@ import type { ServerPlayer } from "./server_player.js";
 import { upgradeToNewIndicators } from "./db/world.js";
 import type { ServerChunk } from "./server_chunk.js";
 import type { ChunkGrid } from "@client/core/ChunkGrid.js";
+import type {ServerDriving} from "./control/server_driving.js";
+import type {TMobConfig} from "./mob/mob_config.js";
+import type {PrismarinePlayerControl} from "@client/prismarine-physics/using.js";
+import type {TMobModelConstructorProps} from "@client/mob_model.js";
 
 export class MobSpawnParams {
 
@@ -95,11 +99,8 @@ export class Mob {
     #brain : FSMBrain;
     #chunk_addr : Vector;
     #forward : Vector;
-
-    /**
-     * @type { MobState }
-     */
-    #prev_state;
+    #prev_state: MobState
+    readonly config: TMobConfig
     id: int;
     entity_id: string;
     type: string;
@@ -120,15 +121,20 @@ export class Mob {
     already_killed?: boolean | int;
     death_time?: number;
     #grid: ChunkGrid
+    driving?: ServerDriving | null
 
     constructor(world : ServerWorld, params: MobSpawnParams, existsInDB: boolean) {
+        this.config = world.mobs.configs[params.type]
+        if (this.config == null) {
+            throw `Unknown mob type ${params.type}`
+        }
 
         this.#world         = world;
         this.#grid          = world.chunkManager.grid
 
         // Read params
-        this.id             = params.id,
-        this.entity_id      = params.entity_id,
+        this.id             = params.id
+        this.entity_id      = params.entity_id
         this.type           = params.type;
         this.skin           = params.skin;
         this.indicators     = params.indicators;
@@ -147,7 +153,7 @@ export class Mob {
         this.#chunk_addr    = new Vector();
         this.chunk_addr_o   = world.chunkManager.grid.toChunkAddr(this.pos);
         this.#forward       = new Vector(0, 1, 0);
-        this.#brain         = world.brains.get(this.type, this);
+        this.#brain         = world.brains.get(this.config.brain, this);
         this.width          = this.#brain.pc.playerHalfWidth * 2;
         this.height         = this.#brain.pc.playerHeight;
 
@@ -159,6 +165,8 @@ export class Mob {
         this.lastSavedPos   = new Vector(this.pos); // to force saving is the position changed to much
         this._aabb = new AABB
     }
+
+    get playerControl(): PrismarinePlayerControl { return this.#brain.pc }
 
     get aabb() : AABB {
         this._aabb.set(
@@ -220,6 +228,24 @@ export class Mob {
             }
         }
         return new Mob(world, params, false);
+    }
+
+    /** @returns параметры для создания моба на клиенте */
+    exportMobModelConstructorProps(): TMobModelConstructorProps {
+        const config = this.config
+        return {
+            id          : this.id,
+            type        : this.type,
+            indicators  : this.indicators,
+            width       : this.width,
+            height      : this.height,
+            pos         : this.pos,
+            rotate      : this.rotate,
+            skin        : this.skin,
+            extra_data  : this.extra_data,
+            hasUse      : config.hasUse,
+            supportsDriving : config.driving != null
+        }
     }
 
     tick(delta: float): void {
@@ -297,6 +323,7 @@ export class Mob {
         this.already_killed = true;
         this.indicators.live = 0;
         this.extra_data.is_alive = false;
+        this.driving?.removeMobId(this.id);
         this.#brain.sendState();
     }
 
@@ -332,7 +359,14 @@ export class Mob {
         }, true);
     }
 
-    exportState(return_diff = false): MobState {
+    /** Обновляет параемтры моба на основе состояния {@link PrismarinePlayerControl} */
+    updateStateFromControl(): void {
+        const pc = this.#brain.pc
+        this.pos.copyFrom(pc.getPos())
+        this.rotate.z = pc.player_state.yaw
+    }
+
+    exportState(return_diff = false): MobState | null {
         const new_state = new MobState(this.id, this.pos, this.rotate, this.extra_data)
         if(return_diff && this.#prev_state) {
             if(new_state.equal(this.#prev_state)) {

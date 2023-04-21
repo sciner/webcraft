@@ -11,12 +11,13 @@ import type { Renderer } from "./render.js";
 import type { SceneNode } from "./SceneNode.js";
 import type { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import type { World } from "./world.js";
+import type {ClientDriving} from "./control/driving.js";
+import type {Indicators, PlayerSkin} from "./player.js";
 
 const { quat, mat4 } = glMatrix;
 
 const SNEAK_ANGLE                   = 28.65 * Math.PI / 180;
 const MAX_DETONATION_TIME           = 2000; // ms
-const OLD_SKIN                      = false;
 
 export class Traversable {
     [key: string]: any;
@@ -505,10 +506,39 @@ export class MobAnimation {
 
 }
 
+/**
+ * Параметры, получаемые с сервера чтобы создать моба
+ * Parameters that are received from a server to create a mob
+ */
+export type TMobModelConstructorProps = {
+    id          : int
+    type        : string
+    indicators? : Indicators    // undefined for players
+    width ?     : float         // undefined for players
+    height ?    : float         // undefined for players
+    pos         : IVector
+    rotate ?    : IVector
+    pitch ?     : float
+    yaw ?       : float
+    skin ?      : string | PlayerSkin | null,
+    extra_data? : Dict | null
+    hasUse ?    : boolean       // undefined for players
+    supportsDriving? : boolean  // undefined for players
+}
+
 export class MobModel extends NetworkPhysicObject {
     [key: string]: any;
 
-    constructor(props, world : World) {
+    id          : int
+    type        : string
+    indicators? : Indicators
+    skin        : string | PlayerSkin
+    rotate      : IVector
+    driving ?   : ClientDriving | null
+    hasUse ?    : boolean
+    supportsDriving ? : boolean
+
+    constructor(props: TMobModelConstructorProps, world : World) {
 
         super(
             world,
@@ -524,16 +554,11 @@ export class MobModel extends NetworkPhysicObject {
         this.moving_timeout             = null;
         this.nametag                    = null;
         this.aniframe                   = 0;
-        this.width                      = 0;
-        this.height                     = 0;
         this.sneak                      = 0;
         this.body_rotate                = 0;
         this.textures                   = new Map();
 
         Object.assign(this, props);
-
-        this.type = props.type;
-        this.skin = props.skin_id || props.skin;
 
         /**
          * @type {SceneNode[]}
@@ -572,6 +597,26 @@ export class MobModel extends NetworkPhysicObject {
             boot: null,
             skin: null
         };
+    }
+
+    protected processNetState(): void {
+        const driving = this.driving
+        if (driving) {
+            const positionProvider = driving.getPositionProvider()
+            if (positionProvider === this) {
+                // обработать новую позицию, и применить ее ко всем участникам движения
+                super.processNetState()
+                driving.updateFromVehicleModel(this)
+                driving.applyToDependentParticipants()
+                return
+            } else if (positionProvider) {
+                // есть кто-то другой, кто задает позицию этой модели; ничего не делать
+                this.netBuffer.length = 0
+                return
+            }
+            // нет никого другого, кто задает позицию этой модели; обработать ее как обычно
+        }
+        super.processNetState()
     }
 
     isRenderable(render: Renderer) {
@@ -895,7 +940,7 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         if (this.type.startsWith('player')) {
-            this.type = PLAYER_SKIN_TYPES[this.skin.type];
+            this.type = PLAYER_SKIN_TYPES[(this.skin as PlayerSkin).type];
         }
 
         // загружеам ресурсы
@@ -911,7 +956,7 @@ export class MobModel extends NetworkPhysicObject {
 
         let image;
         if (this.type.startsWith('player')) {
-            image = await asset.getPlayerSkin(this.skin.file);
+            image = await asset.getPlayerSkin((this.skin as PlayerSkin).file);
             this.material = this.getTexture(render, image);
         } else {
             // получаем все скины моба

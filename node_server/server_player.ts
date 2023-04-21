@@ -23,6 +23,7 @@ import type { ServerWorld } from "./server_world.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
 import { SERVER_SEND_CMD_MAX_INTERVAL } from "./server_constant.js";
 import {ServerPlayerControlManager} from "./control/server_player_control_manager.js";
+import type {ServerDriving} from "./control/server_driving.js";
 
 export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
     time?: number;
@@ -115,6 +116,8 @@ export class ServerPlayer extends Player {
     savingPromise?: Promise<void>
     lastSentPacketTime = Infinity   // performance.now()
     _world_edit_copy: any
+    // @ts-ignore
+    declare driving?: ServerDriving | null
 
     // These flags show what must be saved to DB
     static DB_DIRTY_FLAG_INVENTORY     = 0x1;
@@ -175,6 +178,7 @@ export class ServerPlayer extends Player {
         // GameMode
         this.game_mode = new GameMode(this, init_info.state.game_mode);
         this.game_mode.onSelect = async (mode) => {
+            this.cancelDriving()
             if (this.game_mode.isCreative()) {
                 this.damage.restoreAll();
             }
@@ -185,6 +189,13 @@ export class ServerPlayer extends Player {
         };
         this.controlManager = new ServerPlayerControlManager(this as any)
         this.effects = new ServerPlayerEffects(this);
+    }
+
+    get userId(): int { return this.session.user_id }
+
+    /** Если игрок является участник вождения, прерывает вождение. Иначе - ничего не происходит. */
+    cancelDriving(): void {
+        this.driving?.removePlayerId(this.userId)
     }
 
     /** Closes the player's session after encountering an unrecoverable error. */
@@ -735,6 +746,7 @@ export class ServerPlayer extends Player {
                     name: ServerClient.CMD_DIE,
                     data: {}
                 });
+                this.driving?.removePlayerId(this.userId)
             }
             this.state.indicators.live = this.live_level;
             this.state.indicators.food = this.food_level;
@@ -803,6 +815,7 @@ export class ServerPlayer extends Player {
      * Teleport
      */
     teleport(params: TeleportParams): void {
+        this.cancelDriving()
         const world = this.world;
         let new_pos = null;
         let teleported_player = this;
@@ -981,25 +994,38 @@ export class ServerPlayer extends Player {
         return false;
     }
 
-    // использование предметов и оружия
-    onUseItem(mob_id, player_id) {
+    /**
+     * использование предметов и оружия или езда верхом
+     * См. также {@link Player.onUseItemOnEntityClient}
+     */
+    onUseItemOnEntity(pickatEvent: IPickatEvent): void {
         const world = this.world
-        const item = world.block_manager.fromId(this.state.hands.right.id)
-        // использование предметов
-        if (mob_id) {
-            const mob = world.mobs.get(mob_id)
-            // если этот инструмент можно использовать на мобе, то уменьшаем прочнось
-            if (mob.setUseItem(this.state.hands.right.id, this)) {
-                if (item?.power) {
-                    this.inventory.decrement_instrument()
-                } else {
-                    this.inventory.decrement()
+        const itemId = this.state.hands.right.id
+        const item = itemId && world.block_manager.fromId(itemId)
+        if (pickatEvent.interactMobID != null) {
+            const mob = world.mobs.get(pickatEvent.interactMobID)
+            if (!mob) {
+                return
+            }
+            if (mob.config.hasUse || item?.tags?.includes('use_on_mob')) {
+                // если этот инструмент можно использовать на мобе, то уменьшаем прочнось
+                if (mob.setUseItem(itemId, this)) {
+                    if (item?.power) {
+                        this.inventory.decrement_instrument()
+                    } else {
+                        this.inventory.decrement()
+                    }
                 }
+            } else { // try to ride
+                world.drivingManager.tryJoinDriving(this, mob, pickatEvent.id)
             }
         }
     }
 
-    // урон от оружия
+    /**
+     * урон от оружия
+     * См. также {@link Player.onAttackEntityClient}
+     */
     onAttackEntity(mob_id, player_id) {
         const world = this.world
         const item = world.block_manager.fromId(this.state.hands.right.id)

@@ -1727,6 +1727,9 @@
             "material": {
                 "id": "iron"
             },
+            "tags": [
+                "use_on_mob"
+            ],
             "texture": {
                 "side": "item/shears.png"
             }
@@ -3829,6 +3832,9 @@
             "material": {
                 "id": "iron"
             },
+            "tags": [
+                "use_on_mob"
+            ],
             "texture": {
                 "side": "item/bucket.png"
             }
@@ -4868,7 +4874,8 @@
             },
             "tags": [
                 "agriculture",
-                "swinging_in_the_wind"
+                "swinging_in_the_wind",
+                "use_on_mob"
             ],
             "texture": "item/wheat_seeds.png",
             "stage_textures": [

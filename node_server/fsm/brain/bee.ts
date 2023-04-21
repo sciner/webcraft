@@ -25,17 +25,6 @@ export class Brain extends FSMBrain {
     constructor(mob) {
         super(mob);
         //
-        this.prevPos        = new Vector(mob.pos);
-        this.lerpPos        = new Vector(mob.pos);
-        this.pc             = this.createPlayerControl(this,{
-            baseSpeed: 0.25,
-            playerHeight: 0.6,
-            stepHeight: 1,
-            playerHalfWidth: 0.3,
-        });
-
-        this.health = 10;
-
         this.pc.player_state.flying = true;// @todo костыль от сброса полета при касании земли
 
         this.ticks_pollination = 0;

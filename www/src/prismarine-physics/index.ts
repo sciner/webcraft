@@ -2,13 +2,14 @@ import {Mth, Vector} from "../helpers.js";
 import { Effect } from "../block_type/effect.js";
 import { AABB } from "./lib/aabb.js";
 import {Resources} from "../resources.js";
-import {DEFAULT_SLIPPERINESS, FakeBlock, TPrismarineOptions} from "./using.js";
-import { PLAYER_HEIGHT, PLAYER_ZOOM } from "../constant.js";
+import type {FakeBlock, TPrismarineOptions} from "./using.js";
+import {FakeWorld, addDefaultPhysicsOptions} from "./using.js";
+import {PLAYER_ZOOM} from "../constant.js";
 import { TBlock } from "../typed_blocks3.js";
 import type {IPlayerControls, IPlayerControlState} from "../control/player_control.js";
 import type {Effects} from "../player.js";
-import type {FakeWorld} from "./using.js";
 import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID} from "../fluid/FluidConst.js";
+import type {World} from "../world.js";
 
 const BLOCK_NOT_EXISTS = -2;
 const _ladder_check_tblock = new TBlock()
@@ -130,8 +131,9 @@ export class Physics {
     private tmpFlowVec      = new Vector()
     private tmpAccelerationVec = new Vector()
 
-    constructor(mcData, fake_world: FakeWorld, options) {
-        this.world = fake_world
+    constructor(world: World) {
+        const mcData    = FakeWorld.getMCData();
+        this.world      = new FakeWorld(world)
 
         // ================== options from old Physics function ===================
 
@@ -190,13 +192,13 @@ export class Physics {
         }
     }
 
-    private getPlayerBB(entity: PlayerState, pos: IVector, res: AABB): AABB {
+    private getPlayerBB(entity: PrismarinePlayerState, pos: IVector, res: AABB): AABB {
         const options = entity.options
         const w = options.playerHalfWidth * this.scale
         return res.set(-w, 0, -w, w, options.playerHeight, w).translate(pos.x, pos.y, pos.z)
     }
 
-    private setPositionToBB(entity: PlayerState, bb: AABB): void {
+    private setPositionToBB(entity: PrismarinePlayerState, bb: AABB): void {
         const pos = entity.pos
         const halfWidth = entity.options.playerHalfWidth * this.scale
         pos.x = bb.x_min + halfWidth
@@ -226,7 +228,7 @@ export class Physics {
         return surroundingBBs
     }
 
-    private moveEntity(entity: PlayerState, dx: float, dy: float, dz: float): void {
+    private moveEntity(entity: PrismarinePlayerState, dx: float, dy: float, dz: float): void {
         const world = this.world
         const options = entity.options
         const vel = entity.vel
@@ -453,7 +455,7 @@ export class Physics {
         }
     }
 
-    private applyHeading(entity: PlayerState, strafe: float, forward: float, multiplier: float): void {
+    private applyHeading(entity: PrismarinePlayerState, strafe: float, forward: float, multiplier: float): void {
         let speed = Math.sqrt(strafe * strafe + forward * forward)
         if (speed < 0.01) return
 
@@ -489,12 +491,12 @@ export class Physics {
         return resp
     }
 
-    private doesNotCollide(entity: PlayerState, pos: Vector): boolean {
+    private doesNotCollide(entity: PrismarinePlayerState, pos: Vector): boolean {
         const pBB = this.getPlayerBB(entity, pos, this.tmpPlayerBB)
         return !this.getSurroundingBBs(pBB).some(x => pBB.intersect(x)) && this.getLiquidInBB(pBB) == null
     }
 
-    private moveEntityWithHeading(entity: PlayerState, strafe: number, forward: number): void {
+    private moveEntityWithHeading(entity: PrismarinePlayerState, strafe: number, forward: number): void {
         const options = entity.options
         const vel = entity.vel
         const pos = entity.pos
@@ -791,7 +793,7 @@ export class Physics {
         }
     }
 
-    simulatePlayer(entity: PlayerState): void {
+    simulatePlayer(entity: PrismarinePlayerState): void {
         const vel = entity.vel
         const pos = entity.pos
         const control = entity.control
@@ -938,7 +940,7 @@ function getEffectLevel(val: int, effects?: TPrismarineEffects): int {
     return 0;
 }
 
-export class PlayerState implements IPlayerControlState {
+export class PrismarinePlayerState implements IPlayerControlState {
     options     : TPrismarineOptions
     pos         : Vector
     vel         : Vector
@@ -971,12 +973,7 @@ export class PlayerState implements IPlayerControlState {
         this.control                = control
 
         this.options = options
-        // Set default options
-        options.baseSpeed           ??= 1 // Базовая скорость (1 для игрока, для мобов меньше или наоборот больше)
-        options.stepHeight          ??= 0.65
-        options.playerHalfWidth     ??= 0.3
-        options.playerHeight        ??= PLAYER_HEIGHT
-        options.defaultSlipperiness ??= DEFAULT_SLIPPERINESS
+        addDefaultPhysicsOptions(options)
 
         this.dolphinsGrace          = 0
         this.slowFalling            = 0
@@ -993,19 +990,13 @@ export class PlayerState implements IPlayerControlState {
         this.depthStrider = 0;
     }
 
-    apply(bot) {
-        const bot_entity                    = bot.entity
-        bot_entity.position                 = this.pos
-        bot_entity.velocity                 = this.vel
-        bot_entity.onGround                 = this.onGround
-        bot_entity.isInWater                = this.isInWater
-        bot_entity.isInLava                 = this.isInLava
-        bot_entity.isInWeb                  = this.isInWeb
-        bot_entity.isOnLadder               = this.isOnLadder
-        bot_entity.isCollidedHorizontally   = this.isCollidedHorizontally
-        bot_entity.isCollidedVertically     = this.isCollidedVertically
-        bot.jumpTicks                       = this.jumpTicks
-        bot.jumpQueued                      = this.jumpQueued
+    copydyncamiFieldsExceptPosFrom(other: PrismarinePlayerState): void {
+        this.vel.copyFrom(other.vel)
+        this.flying = other.flying
+        this.yaw    = other.yaw
     }
 
+    copyControlsFrom(other: PrismarinePlayerState): void {
+        Object.assign(this.control, other.control)
+    }
 }

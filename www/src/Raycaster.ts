@@ -1,6 +1,10 @@
 import { Vector } from "./helpers.js";
 import { ALLOW_NEGATIVE_Y } from "./chunk_const.js";
 import type { AABB } from "./core/AABB.js";
+import type {World} from "./world.js";
+import type {BLOCK} from "./blocks.js";
+import type {MobModel} from "./mob_model.js";
+import type {PlayerModel} from "./player_model.js";
 
 const INF = 100000.0;
 const eps = 1e-3;
@@ -64,14 +68,18 @@ export class RaycasterResult {
 }
 
 export class Raycaster {
-    [key: string]: any;
+    private world   : World
+    private BLOCK   : BLOCK
+    private _dir    = new Vector(0, 0, 0)
+    private _pos    = new Vector(0, 0, 0)
+    private _blk    = new Vector(0, 0, 0)
+    private _block_vec: Vector
+    origin
+    direction
 
     constructor(world) {
         this.world = world;
         this.BLOCK = world.block_manager;
-        this._dir = new Vector(0, 0, 0);
-        this._pos = new Vector(0, 0, 0);
-        this._blk = new Vector(0, 0, 0);
     }
 
     getFromView(pos: IVector, invViewMatrix: number[], distance: float,
@@ -130,9 +138,9 @@ export class Raycaster {
     }
 
     // Mob raycaster
-    intersectMob(pos, dir, max_distance) {
+    intersectMob(pos: IVector, dir: IVector, max_distance: number): { mob_distance: number, mob: MobModel | null } {
         const resp = {
-            mob_distance: null,
+            mob_distance: Infinity,
             mob: null
         };
         if(this.world?.mobs) {
@@ -148,12 +156,7 @@ export class Raycaster {
                 }
                 if(this.intersectBox(mob.aabb, pos, dir)) {
                     const dist = tPos.distance(pos);
-                    if(resp.mob) {
-                        if(dist < resp.mob_distance) {
-                            resp.mob = mob;
-                            resp.mob_distance = dist;
-                        }
-                    } else {
+                    if(dist < resp.mob_distance) {
                         resp.mob = mob;
                         resp.mob_distance = dist;
                     }
@@ -164,9 +167,9 @@ export class Raycaster {
     }
 
     // Player raycaster
-    intersectPlayer(pos : IVector, dir : IVector, max_distance : number) {
+    intersectPlayer(pos : IVector, dir : IVector, max_distance : number): { player_distance: number, player: PlayerModel | null } {
         const resp = {
-            player_distance: null,
+            player_distance: Infinity,
             player: null
         };
         if(this.world?.players) {
@@ -182,12 +185,7 @@ export class Raycaster {
                 }
                 if(this.intersectBox(player.aabb, pos, dir)) {
                     const dist = tPos.distance(pos);
-                    if(resp.player) {
-                        if(dist < resp.player_distance) {
-                            resp.player = player;
-                            resp.player_distance = dist;
-                        }
-                    } else {
+                    if(dist < resp.player_distance) {
                         resp.player = player;
                         resp.player_distance = dist;
                     }

@@ -19,6 +19,8 @@ const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface', 'decal1', 'decal2'];
 
+const tmpAddr = new Vector()
+
 export class ChunkManagerState {
 
     stat = {
@@ -422,11 +424,14 @@ export class ChunkManager {
 
     /**
      * Return chunk by address
-     * @param {Vector} addr
-     * @returns Chunk
      */
-    getChunk(addr) {
+    getChunk(addr: IVector): Chunk | null {
         return this.chunks.get(addr);
+    }
+
+    getByPos(pos: IVector): Chunk | null {
+        this.grid.getChunkAddr(pos.x, pos.y, pos.z, tmpAddr)
+        return this.chunks.get(tmpAddr)
     }
 
     getWorld() {

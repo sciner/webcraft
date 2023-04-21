@@ -47,6 +47,13 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
         this.list.set(data.id, player);
         this.setState(cmd);
         player.netBuffer.length = 0;
+        this.world.drivingManager.onPlayerModelAdded(player)
+    }
+
+    delete(user_id: int): boolean {
+        const playerModel = this.list.get(user_id)
+        playerModel?.driving?.onModelDeleted(playerModel)
+        return super.delete(user_id)
     }
 
     /**
@@ -83,7 +90,7 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
 
     }
 
-    getMyself() {
+    getMyself(): PlayerModel | null {
         return this.get(Qubatch.App.session.user_id);
     }
 }

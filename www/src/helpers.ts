@@ -413,7 +413,7 @@ export class IvanArray<T=any> {
      * @param pos - позиция
      * @param world - ссылка на world
      */
-    export function getValidPosition(pos : Vector, world: World) : Vector | null {
+    export function getValidPosition(pos : Vector, world: IWorld) : Vector | null {
         let block = world.getBlock(pos.offset(0, 2, 0))
         if (block.id == 0) {
             return pos.offset(.5, 1, .5)

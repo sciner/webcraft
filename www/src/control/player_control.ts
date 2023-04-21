@@ -3,6 +3,7 @@
 import type {Vector} from "../helpers/vector.js";
 import type {PlayerTickData} from "./player_tick_data.js";
 import {PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS} from "../constant.js";
+import type {Driving} from "./driving.js";
 
 export enum PLAYER_CONTROL_TYPE {
     PRISMARINE,
@@ -126,7 +127,7 @@ export abstract class PlayerControl {
         this.player_state.pos.copyFrom(pos).roundSelf(PHYSICS_POS_DECIMALS)
     }
 
-    updateMob(params: MobControlParams): void {
+    updateControlsFromMob(params: MobControlParams): void {
         const controls = this.controls
         this.player_state.yaw = params.yaw
         controls.forward = params.forward
@@ -154,7 +155,7 @@ export abstract class PlayerControl {
     abstract restorePartialState(pos: Vector): void
 
     /** Performs player's movement during one physics tick, see {@link PHYSICS_INTERVAL_MS} */
-    abstract simulatePhysicsTick(): void
+    abstract simulatePhysicsTick(driving?: Driving<any> | null): boolean
 
     /**
      * Server-only.

@@ -2,7 +2,7 @@ import { BLOCK } from "./blocks.js";
 import { HAND_ANIMATION_SPEED, HEAD_MAX_ROTATE_ANGLE, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_ZOOM } from "./constant.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
-import { MobAnimation, MobModel } from "./mob_model.js";
+import {MobAnimation, MobModel, TMobModelConstructorProps} from "./mob_model.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
@@ -116,23 +116,39 @@ class PlayerModelSharedProps implements IPlayerSharedProps {
 
     // We don't know if it's alive on the client, so we assume if the model exists, than it is
     get isAlive()   : boolean   { return true; }
-    get pos()       : Vector    { return this.p.pos; }
+    get pos()       : IVector   { return this.p.pos; }
     get user_id()   : int       { return this.p.id; }
     get sitting()   : boolean   { return !!this.p.sitting; }
     get sleep()     : boolean   { return !!this.p.sleep; }
 }
 
+type TPlayerModelConstructorProps = TMobModelConstructorProps & {
+    username    : string
+    health      : number
+    hands ?                 // undefined
+}
+
 export class PlayerModel extends MobModel implements IPlayerOrModel {
     [key: string]: any;
 
-    sharedProps: PlayerModelSharedProps
+    // from props
+    declare id: int
+    declare health: number
+    declare username: string
+
+    sharedProps = new PlayerModelSharedProps(this)
+    slots: Dict<ModelSlot> = {}
     armor: ArmorState
-    height: number
+    scale: float
     distance: number | null
     sitting?: false | TSittingState
     sleep?: false | TSleepState
 
-    constructor(props, world : World) {
+    swingProgress: int
+    swingProgressInt: int
+    isSwingInProgress: boolean
+
+    constructor(props: TPlayerModelConstructorProps, world : World) {
         super({type: 'player', skin: '1', ...props}, world);
 
         this.height = PLAYER_HEIGHT;
@@ -145,17 +161,9 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.textCanvas = null;
         this.textContext = null;
 
-        this.username = props.username;
-
         this.head = null;
-        this.health = props.health;
 
         this.animationScript = new PlayerAnimation(this)
-
-        /**
-         * @type {Map<string, ModelSlot>}
-         */
-        this.slots = {};
 
         // for lazy state generation
         this.activeSlotsData = props.hands;
@@ -164,8 +172,6 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.swingProgress = 0;
         this.swingProgressInt = 0;
         this.isSwingInProgress = false;
-
-        this.sharedProps = new PlayerModelSharedProps(this);
     }
 
     applyNetState(state: NetworkPhysicObjectState & { hands: PlayerHands }) {

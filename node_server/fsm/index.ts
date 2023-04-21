@@ -1,5 +1,6 @@
 import type {FSMBrain} from "./brain.js";
 import type {Mob} from "../mob.js";
+import type {TMobConfig} from "../mob/mob_config.js";
 
 export class Brains {
 
@@ -8,8 +9,14 @@ export class Brains {
     constructor() {
     }
 
-    add(type: string, module: typeof FSMBrain): void {
-        this.list.set(type, module);
+    async load(configs: Dict<TMobConfig>): Promise<void> {
+        for(const [name, conf] of Object.entries(configs)) {
+            const brainName = conf.brain
+            if (!this.list.has(brainName)) {
+                const module = await import(`./brain/${brainName}.js`)
+                this.list.set(brainName, module.Brain)
+            }
+        }
     }
 
     get(type: string, mob: Mob): FSMBrain {

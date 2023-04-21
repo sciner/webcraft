@@ -20,7 +20,8 @@ import {LimitedLogger} from "@client/helpers/limited_logger.js";
 const MAX_ACCUMULATED_DISTANCE_INCREMENT = 1.0 // to handle sudden big pos changes (if they ever happen)
 const MAX_CLIENT_QUEUE_LENGTH = MAX_PACKET_LAG_SECONDS * 1000 / PHYSICS_INTERVAL_MS | 0 // a protection against memory leaks if there is garbage input
 
-export class ServerPlayerControlManager extends PlayerControlManager {
+// @ts-expect-error
+export class ServerPlayerControlManager extends PlayerControlManager<ServerPlayer> {
     private lastData: ServerPlayerTickData
     private newData = new ServerPlayerTickData()
     private controlPacketReader = new PlayerControlPacketReader(ServerPlayerTickData)
@@ -50,7 +51,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
     private logger = new LimitedLogger('Control: ', 5000, (key, username) => `@${username} `, DEBUG_LOG_PLAYER_CONTROL)
 
     constructor(player: ServerPlayer) {
-        super(player as any as Player)
+        super(player)
         // super constructor doesn't call these methods correctly, so call them here
         this.physicsSessionId = -1 // revert to what it was before the super constructor
         const pos = new Vector(player.sharedProps.pos)
@@ -92,16 +93,21 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         this.expectedExternalChangeTick = -1
     }
 
-    setPos(pos: IVector, worldActionId?: string | int | null): void {
-        super.setPos(pos, worldActionId)
+    setPos(pos: IVector): this {
+        super.setPos(pos)
         this.player.state.pos.copyFrom(pos)
-        if (worldActionId) {
+        return this
+    }
+
+    syncWithActionId(worldActionId: string | int | null): this {
+        if (worldActionId != null) {
             this.worldActionIdsExecuted.push({
                 performanceNow: performance.now(),
                 id: worldActionId
             })
             this.expectedExternalChangeTick = this.knownPhysicsTicks
         }
+        return this
     }
 
     onClientSession(data: PlayerControlSessionPacket): void {
@@ -167,12 +173,14 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             return // there is nothing to do until the next physics session starts
         }
 
+        const player = this.serverPlayer
         const clientDataQueue = this.clientDataQueue
         const physicsTickNow = this.getPhysicsTickNow()
         const maxAllowedPhysicsTick = physicsTickNow + Math.ceil(MAX_PACKET_AHEAD_OF_TIME_MS / PHYSICS_INTERVAL_MS)
         let clientDataMatches = false // if multiple ticks are simulated, it shows whether the last of them is accepted
+        let needResponse = false // если клиенту нужен ответ (любой) - коррекция или подтверждение
 
-        this.applyPlayerStateToControl()
+        this.updateControlFromPlayerState()
 
         // do ticks for severely lagging clients without their input
         let hasNewData = this.doServerTicks(physicsTickNow - Math.floor(SERVER_UNCERTAINTY_SECONDS * 1000 / PHYSICS_INTERVAL_MS))
@@ -192,11 +200,11 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             // validate time, update this.clientPhysicsTicks
             const newClientPhysicsTicks = clientData.endPhysicsTick
             if (newClientPhysicsTicks > maxAllowedPhysicsTick) {
-                this.serverPlayer.terminate(`newClientPhysicsTicks > maxClientTickAhead ${newClientPhysicsTicks} ${maxAllowedPhysicsTick}`)
+                player.terminate(`newClientPhysicsTicks > maxClientTickAhead ${newClientPhysicsTicks} ${maxAllowedPhysicsTick}`)
                 return
             }
             if (clientData.startingPhysicsTick < this.clientPhysicsTicks) {
-                this.serverPlayer.terminate(`clientData.startingPhysicsTick < this.clientPhysicsTicks ${clientData.startingPhysicsTick} ${this.clientPhysicsTicks}`)
+                player.terminate(`clientData.startingPhysicsTick < this.clientPhysicsTicks ${clientData.startingPhysicsTick} ${this.clientPhysicsTicks}`)
                 return
             }
 
@@ -248,7 +256,10 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             let simulatedSuccessfully: boolean
             if (clientData.inputWorldActionIds) {
                 newData.initOutputFrom(this.current)
+                this.onSimulation(this.lastData.outPos, newData)
+                this.updateLastData(newData)
                 simulatedSuccessfully = true
+                needResponse = true
             } else if (this.current === this.spectator ||
                 this.knownPhysicsTicks <= this.maxUnvalidatedPhysicsTick
             ) {
@@ -282,10 +293,12 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             clientDataMatches = false
         }
         if (hasNewData) {
-            this.lastData.applyOutputToPlayer(this.serverPlayer)
+            player.driving?.applyToDependentParticipants()
+
+            this.lastData.applyOutputToPlayer(player)
             if (clientDataMatches) {
-                if (this.lastCmdSentTime < performance.now() - SERVER_SEND_CMD_MAX_INTERVAL) {
-                    this.serverPlayer.sendPackets([{
+                if (needResponse || this.lastCmdSentTime < performance.now() - SERVER_SEND_CMD_MAX_INTERVAL) {
+                    player.sendPackets([{
                         name: ServerClient.CMD_PLAYER_CONTROL_ACCEPTED,
                         data: this.knownPhysicsTicks
                     }])
@@ -293,7 +306,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
                 }
             } else {
                 if (DEBUG_LOG_PLAYER_CONTROL_DETAIL || DEBUG_LOG_PLAYER_CONTROL && processedClientData) {
-                    this.log('corrrection', `Control ${this.username}: sending correction`)
+                    this.log('correction', `Control ${this.username}: sending correction`)
                 }
                 this.sendCorrection()
             }
@@ -426,6 +439,16 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         this.lastCmdSentTime = performance.now()
     }
 
+    updatePlayerStateFromControl() {
+        const pcState = this.current.player_state
+        const playerState = this.player.state
+
+        // TODO maybe more like this.player.changePosition()?
+
+        playerState.pos.copyFrom(pcState.pos)
+        playerState.rotate.z = pcState.yaw
+    }
+
     /**
      * It updates the current control according to the changes made by the game to the player's state
      * outside the control simulation.
@@ -433,7 +456,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
      *
      * We assume {@link current} is already updated and correct.
      */
-    private applyPlayerStateToControl() {
+    private updateControlFromPlayerState() {
         const pcState = this.current.player_state
         const playerState = this.player.state
 

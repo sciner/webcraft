@@ -20,16 +20,6 @@ export class Brain extends FSMBrain {
     constructor(mob) {
         super(mob);
         //
-        this.prevPos        = new Vector(mob.pos);
-        this.lerpPos        = new Vector(mob.pos);
-        this.pc             = this.createPlayerControl(this, {
-            baseSpeed: 1/2,
-            playerHeight: 1.6,
-            stepHeight: 1,
-            playerHalfWidth: .45
-        });
-        this.health = 20; // максимальное здоровье
-        this.distance_view = 40; // дистанция на которм виден игрок
         mob.extra_data.play_death_animation = false;
         this.detonationTime = 0;
         this.explosion_damage = 12;

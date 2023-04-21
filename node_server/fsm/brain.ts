@@ -2,7 +2,6 @@ import { FSMStack } from "./stack.js";
 import {PrismarinePlayerControl, TPrismarineOptions} from "@client/prismarine-physics/using.js";
 import { Vector } from "@client/helpers.js";
 import { ServerClient } from "@client/server_client.js";
-import { Raycaster } from "@client/Raycaster.js";
 import type { Mob } from "../mob.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
 // import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
@@ -10,21 +9,20 @@ import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "@client/fluid/Fl
 import { WorldAction } from "@client/world_action.js";
 import type {MobControlParams} from "@client/control/player_control.js";
 import type {World} from "@client/world.js";
+import type {ServerWorld} from "../server_world.js";
 
 const MUL_1_SEC = 20;
 
 export class FSMBrain {
 
     #pos;
+    world: ServerWorld
     prevPos: Vector;
     lerpPos: Vector;
     #chunk_addr = new Vector();
     mob: Mob;
     stack: FSMStack;
-    raycaster: Raycaster;
     _eye_pos: Vector;
-    health: number;
-    distance_view: number;
     timer_health: number;
     timer_panick: number;
     timer_fire_damage: number;
@@ -52,12 +50,12 @@ export class FSMBrain {
     constructor(mob: Mob) {
         this.mob = mob;
         this.stack = new FSMStack();
-        this.raycaster = new Raycaster(mob.getWorld());
+        this.world = mob.getWorld()
         this.#pos = new Vector(0, 0, 0);
         this._eye_pos = new Vector(0, 0, 0);
-        // инфо
-        this.health = 1;
-        this.distance_view = 0;
+        this.prevPos    = new Vector(mob.pos);
+        this.lerpPos    = new Vector(mob.pos);
+        this.pc = new PrismarinePlayerControl(this.world as any as World, mob.pos, mob.config.physics)
         // таймеры
         this.timer_health = 0;
         this.timer_panick = 0;
@@ -82,19 +80,17 @@ export class FSMBrain {
         const world = this.mob.getWorld();
         this.#chunk_addr = world.chunkManager.grid.toChunkAddr(this.mob.pos, this.#chunk_addr);
         const chunk = world.chunks.get(this.#chunk_addr);
-        if (chunk && chunk.isReady()) {
-            this.onLive();
-            const stateFunctionUsed = this.stack.tick(delta, this);
-            if (stateFunctionUsed) {
-                this.addStat(stateFunctionUsed.name, true);
-            }
+        if (!chunk?.isReady()) {
+            return
         }
-    }
-
-    createPlayerControl(brain: FSMBrain, options: TPrismarineOptions): PrismarinePlayerControl {
-        const mob = brain.mob;
-        const world = mob.getWorld() as any as World;
-        return new PrismarinePlayerControl(world, mob.pos, options);
+        this.onLive();
+        if (this.mob.driving) {
+            return
+        }
+        const stateFunctionUsed = this.stack.tick(delta, this);
+        if (stateFunctionUsed) {
+            this.addStat(stateFunctionUsed.name, true);
+        }
     }
 
     // Send current mob state to players
@@ -114,12 +110,12 @@ export class FSMBrain {
             name: ServerClient.CMD_MOB_UPDATE,
             data: new_state
         }];
-        world.packets_queue.add(Array.from(chunk_over.connections.keys()), packets);
+        world.packets_queue.add(chunk_over.connections.keys(), packets);
     }
 
     /** Updates the control {@link pc} */
     updateControl(new_states: MobControlParams): void {
-        this.pc.updateMob(new_states)
+        this.pc.updateControlsFromMob(new_states)
 
         /* The old code - slow
 
@@ -140,9 +136,11 @@ export class FSMBrain {
     }
 
     applyControl(delta : float) {
-        const pc = this.pc;
-        pc.tick(delta);// * (this.timer_panick > 0 ? 4 : 1));
-        this.mob.pos.copyFrom(pc.getPos());
+        if (this.mob.driving?.hasPlayerDriver) {
+            return
+        }
+        this.pc.tick(delta);// * (this.timer_panick > 0 ? 4 : 1));
+        this.mob.updateStateFromControl()
     }
 
 
@@ -189,6 +187,8 @@ export class FSMBrain {
     get height(): float {
         return this.pc.playerHeight
     }
+
+    get distance_view(): int { return this.mob.config.distance_view }
 
     // контроль жизней и состяния моба
     onLive() {
@@ -263,7 +263,7 @@ export class FSMBrain {
         this.mob.extra_data.time_fire = this.time_fire;
         // регенерация жизни
         if (this.timer_health >= 10 * MUL_1_SEC) {
-            mob.indicators.live = Math.min(mob.indicators.live + 1, this.health);
+            mob.indicators.live = Math.min(mob.indicators.live + 1, this.mob.config.health);
             this.timer_health = 0;
         } else {
             this.timer_health++;
@@ -399,7 +399,7 @@ export class FSMBrain {
         // находим пересечение сред
         if (this.in_air) {
             const angle_random = mob.rotate.z + (Math.random() - Math.random()) * Math.PI / 8;
-            const ray = this.raycaster.get(mob.pos, new Vector(Math.sin(angle_random), 0, Math.cos(angle_random)), 32);
+            const ray = this.world.raycaster.get(mob.pos, new Vector(Math.sin(angle_random), 0, Math.cos(angle_random)), 32);
             if (ray) {
                const to = new Vector(ray.x, ray.y + 1, ray.z);
                if (!this.to || (this.isStandAt(to) && mob.pos.distance(to) < mob.pos.distance(this.to))) {
