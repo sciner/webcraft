@@ -11,6 +11,7 @@ import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import type { TMobProps } from "./mob_manager.js";
 import type { Mesh_Object_Base } from "./mesh/object/base.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import type {ClientDriving} from "./control/driving.js";
 
 const {mat4} = glMatrix
 
@@ -40,27 +41,8 @@ const {mat4} = glMatrix
 //     animable.targetLook = targetLook;
 // }
 
-/**
- * Параметры, получаемые с сервера чтобы создать моба
- * Parameters that are received from a server to create a mob
- */
-export type TMobModelConstructorProps = {
-    id          : int
-    type        : string
-    indicators? : Indicators    // undefined for players
-    width ?     : float         // undefined for players
-    height ?    : float         // undefined for players
-    pos         : IVector
-    rotate ?    : IVector
-    pitch ?     : float
-    yaw ?       : float
-    skin ?      : string | PlayerSkin | null,
-    extra_data? : Dict | null
-    hasUse ?    : boolean       // undefined for players
-    supportsDriving? : boolean  // undefined for players
-}
-
 export class MobModel extends NetworkPhysicObject {
+    id:                 int
 	texture :           any = null
 	material :          any = null
 	raycasted :         boolean = false
@@ -91,10 +73,9 @@ export class MobModel extends NetworkPhysicObject {
                             boot: null,
                             skin: null
                         }
-    extra_data:         any
     slots:              any
-    tmpDrawPos:         any
-    yaw:                float
+    tmpDrawPos?:        Vector
+    drawPos?:           Vector
     draw_yaw?:          float
     sleep?:             false | TSleepState
     sitting?:           false | TSittingState
@@ -105,6 +86,9 @@ export class MobModel extends NetworkPhysicObject {
     ground:             boolean = true
     running:            boolean = false
     health:             number = 100
+    driving?:           ClientDriving | null
+    hasUse?:            boolean     // см. TMobConfig.hasUse
+    supportsDriving?:   boolean
 
     is_sheared:         boolean = false
     gui_matrix:         float[]
@@ -115,8 +99,6 @@ export class MobModel extends NetworkPhysicObject {
 
         Object.assign(this, props)
 
-        this.type = props.type
-        this.skin = props.skin_id || props.skin
         // this.animationScript = new MobAnimation(this)
 
         // load mesh
@@ -129,6 +111,33 @@ export class MobModel extends NetworkPhysicObject {
         }
         this._mesh = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
 
+    }
+
+    /**
+     * Семантика переопредленного метода:
+     * 1. Если нет вождения, или в нем не хвататет главного участника, то просто вызывается родительский метод.
+     * 2. Иначе:
+     * 2.1 Если эта модель задает позиции другим, то вызвать родительский метод и обновить другие модели на основе этой этой
+     * 2.2 Если есть кто-то другой главный в вождении (другая модель или свой игрок), то ничего не происходит
+     */
+    protected processNetState(): void {
+        const driving = this.driving
+        if (driving) {
+            const positionProvider = driving.getPositionProvider()
+            if (positionProvider === this) {
+                // обработать новую позицию, и применить ее ко всем участникам движения
+                super.processNetState()
+                driving.updateFromVehicleModel(this)
+                driving.applyToDependentParticipants()
+                return
+            } else if (positionProvider) {
+                // есть кто-то другой, кто задает позицию этой модели; ничего не делать
+                this.netBuffer.length = 0
+                return
+            }
+            // нет никого другого, кто задает позицию этой модели; обработать ее как обычно
+        }
+        super.processNetState()
     }
 
     isRenderable(render: Renderer) : boolean {

@@ -16,7 +16,7 @@ import type { ChunkGrid } from "@client/core/ChunkGrid.js";
 import type {ServerDriving} from "./control/server_driving.js";
 import type {TMobConfig} from "./mob/mob_config.js";
 import type {PrismarinePlayerControl} from "@client/prismarine-physics/using.js";
-import type {TMobModelConstructorProps} from "@client/mob_model.js";
+import type {TMobProps} from "@client/mob_manager.js";
 
 export class MobSpawnParams {
 
@@ -228,7 +228,7 @@ export class Mob {
     }
 
     /** @returns параметры для создания моба на клиенте */
-    exportMobModelConstructorProps(): TMobModelConstructorProps {
+    exportMobModelConstructorProps(): TMobProps {
         const config = this.config
         return {
             id          : this.id,

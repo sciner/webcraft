@@ -44,12 +44,6 @@ class PlayerModelSharedProps implements IPlayerSharedProps {
     get sleep()     : boolean   { return !!this.p.sleep; }
 }
 
-type TPlayerModelConstructorProps = TMobModelConstructorProps & {
-    username    : string
-    health      : number
-    hands ?                 // undefined
-}
-
 export class PlayerModel extends MobModel implements IPlayerOrModel {
     sharedProps:        PlayerModelSharedProps
     distance:           number | null
@@ -59,6 +53,16 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     swingProgress:      float = 0
     swingProgressInt:   float = 0
     isSwingInProgress:  boolean = false
+    scale:              float
+    declare username:   string  // из props
+    activeSlotsData
+    head
+    hide_nametag
+    body_rotate
+    swingProgressPrev
+    prev_current_id
+    prev_pos
+    eat
 
     constructor(props : TMobProps, world : World) {
         super({type: 'player', skin: null, ...props}, world);
@@ -66,8 +70,6 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.height             = PLAYER_HEIGHT
         this.width              = PLAYER_WIDTH
         this.scale              = 0.9 * PLAYER_ZOOM
-        this.username           = props.username
-        this.health             = props.health
         this.activeSlotsData    = props.hands
         this.head               = null
         this.sharedProps        = new PlayerModelSharedProps(this)

@@ -20,6 +20,7 @@ import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
 import type { PLAYER_SKIN_TYPES } from "./constant.js"
 import type {ClientDriving} from "./control/driving.js";
+import type {PlayerModel} from "./player_model.js";
 
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
@@ -421,7 +422,7 @@ export class Player implements IPlayer {
                 }, 500)
             } else {
                 const instrument = this.getCurrentInstrument()
-                const speed = instrument?.speed ? instrument.speed : 1
+                const speed = instrument?.material?.speed ?? 1
                 const time = e.start_time - this.timer_attack
                 if (time < 500) {
                     return
@@ -432,19 +433,8 @@ export class Player implements IPlayer {
                     this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD / speed
                 }
                 this.timer_attack = e.start_time
-                if (e.interactPlayerID) {
-                    const player = Qubatch.world.players.get(e.interactPlayerID);
-                    if (player) {
-                        player.punch(e);
-                    }
-                }
-                if (e.interactMobID) {
-                    const mob = Qubatch.world.mobs.get(e.interactMobID);
-                    if (mob) {
-                        mob.punch(e);
-                    }
-                }
-                if (e.interactMobID || e.interactPlayerID) {
+                const validAction = this.onInteractEntityClient(e, instrument)
+                if (validAction) {
                     this.world.server.Send({
                         name: ServerClient.CMD_PICKAT_ACTION,
                         data: e
@@ -485,8 +475,8 @@ export class Player implements IPlayer {
         return true;
     }
 
-    /** См. также ServerPlayer.onAttackEntity */
-    private onAttackEntityClient(e: IPickatEvent): boolean {
+    /** См. также ServerPlayer.onUseItemOnEntity */
+    private onInteractEntityClient(e: IPickatEvent, instrumentHand: Instrument_Hand): boolean {
         if (e.interactPlayerID != null) {
             const player = this.world.players.get(e.interactPlayerID);
             if (player) {
@@ -494,18 +484,6 @@ export class Player implements IPlayer {
                 return true
             }
         }
-        if (e.interactMobID) {
-            const mob = this.world.mobs.get(e.interactMobID);
-            if (mob) {
-                mob.punch(e);
-                return true
-            }
-        }
-        return false
-    }
-
-    /** См. также ServerPlayer.onUseItemOnEntity */
-    private onUseItemOnEntityClient(e: IPickatEvent, instrumentHand: Instrument_Hand): boolean {
         if (e.interactMobID != null) {
             const mob = this.world.mobs.get(e.interactMobID)
             if (!mob) {
@@ -513,6 +491,7 @@ export class Player implements IPlayer {
             }
             if (mob.hasUse || instrumentHand.material?.tags.includes('use_on_mob')) {
                 // Попробовать действие или использование предмета на мобе (сервер знает что)
+                mob.punch(e)
                 return true
             }
             if (mob.supportsDriving && !mob.driving?.isFull()) {
@@ -1121,10 +1100,7 @@ export class Player implements IPlayer {
         }
     }
 
-    /**
-     * @returns { import("./player_model.js").PlayerModel }
-     */
-    getModel() {
+    getModel(): PlayerModel | null {
         return this.world.players.get(this.session.user_id);
     }
 

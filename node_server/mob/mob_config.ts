@@ -48,6 +48,7 @@ export type TMobConfig = {
 
 /** Производит препроцесинг конфигов мобов, добавлет им значения свойств по умолчанию. */
 export function preprocessMobConfigs(configs: Dict<TMobConfig>): void {
+    const configCopies: Dict<TMobConfig> = {}
     for(const [name, conf] of Object.entries(configs)) {
         const physics = conf.physics
         physics.stepHeight      ??= 1
@@ -69,5 +70,10 @@ export function preprocessMobConfigs(configs: Dict<TMobConfig>): void {
                 driving.sound = DEFAULT_DRIVING_SOUND
             }
         }
+        const nameOfCopy = name.startsWith('mob/')
+            ? name.substring(4)
+            : 'mob/' + name
+        configCopies[nameOfCopy] = conf
     }
+    Object.assign(configs, configCopies)
 }

@@ -1003,7 +1003,7 @@ export class ServerPlayer extends Player {
 
     /**
      * использование предметов и оружия или езда верхом
-     * См. также {@link Player.onUseItemOnEntityClient}
+     * См. также {@link Player.onInteractEntityClient}
      */
     onUseItemOnEntity(pickatEvent: IPickatEvent): void {
         const world = this.world

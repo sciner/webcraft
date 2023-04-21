@@ -179,7 +179,7 @@ export class Raycaster {
                     continue;
                 }
                 // @todo костыль, на сервере нет tPos
-                const tPos = player?.tPos ? player.tPos : player.state.pos
+                const tPos = player?.tPos ? player.tPos : (player as any).state.pos // player может быть ServerPlayer
                 if(tPos.distance(pos) > max_distance) {
                     continue;
                 }

@@ -41,7 +41,7 @@ export class NetworkPhysicObject {
     private latency     : number
     aabb                : AABBDrawable | null
     private tracked     : boolean
-    protected extra_data? : Dict | null
+    extra_data?         : Dict | null
     width               : number
     height              : number
 

@@ -1,28 +1,29 @@
 import { Vector } from "./helpers.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
-import {MobModel, TMobModelConstructorProps} from "./mob_model.js";
+import {MobModel} from "./mob_model.js";
 import { Resources } from "./resources.js";
 import { ServerClient } from "./server_client.js";
-import type { PlayerSkin } from "./player.js";
+import type {Indicators, PlayerSkin} from "./player.js";
 import type { World } from "./world.js";
 
 export declare type TMobProps = {
-    health:         float
-    username:       any
+    health?:        float       // не определено для моба
+    username?:      string      // не определено для моба
     id:             int
     type:           string
     name?:          string
-    indicators:     any
-    width:          float
-    height:         float
-    pos:            Vector
-    rotate:         Vector
-    pitch:          float
-    yaw:            float
-    skin?:          PlayerSkin
-    skin_id?:       string
-    extra_data?:    any
-    hands:          any
+    indicators?:    Indicators  // не определено для игрока
+    width?:         float       // не определено для игрока
+    height?:        float       // не определено для игрока
+    pos:            IVector
+    rotate?:        IVector     // не определено для игрока
+    pitch?:         float
+    yaw?:           float
+    skin?:          PlayerSkin | string | null
+    extra_data?:    Dict | null
+    hands?:         any
+    hasUse?:        boolean     // не определено для игрока, см. TMobConfig.hasUse
+    supportsDriving?: boolean   // не определено для игрока
 }
 
 export class MobManager {
@@ -121,20 +122,11 @@ export class MobManager {
 
     // add
     add(data : TMobProps) {
-        const mob = new MobModel({
-            id:             data.id,
-            type:           data.type,
-            name:           data.name,
-            indicators:     data.indicators,
-            width:          data.width,
-            height:         data.height,
-            pos:            data.pos,
-            rotate:         data.rotate,
-            pitch:          data.rotate.x,
-            yaw:            data.rotate.z,
-            skin:           data.skin || 'base',
-            extra_data:     data.extra_data || null
-        }, this.#world)
+        data.pitch  = data.rotate.x
+        data.yaw    = data.rotate.z
+        data.skin   ??= 'base'
+        data.extra_data ??= null
+        const mob = new MobModel(data, this.#world)
 
         mob.pos.y += 1/200
 
