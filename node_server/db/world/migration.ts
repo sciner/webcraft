@@ -980,6 +980,19 @@ export class DBWorldMigration {
             `UPDATE entity SET type = 'mob/' || type WHERE type NOT LIKE'mob/%'`
         ]});
 
+        migrations.push({version: 99, queries: [
+            `UPDATE entity SET skin = 'npc_1.png' WHERE skin = '1';`,
+            `UPDATE entity SET skin = 'npc_2.png' WHERE skin = '2';`,
+            `UPDATE entity SET skin = 'npc_3.png' WHERE skin = '3';`,
+            `UPDATE entity SET skin = 'npc_4.png' WHERE skin = '4';`,
+            `UPDATE entity SET skin = 'npc_5.png' WHERE skin = '5';`,
+            `UPDATE entity SET skin = 'npc_6.png' WHERE skin = '6';`,
+            `UPDATE entity SET skin = 'npc_7.png' WHERE skin = '7';`,
+            `UPDATE entity SET skin = 'npc_8.png' WHERE skin = '8';`,
+            `UPDATE entity SET skin = 'npc_9.png' WHERE skin = '9';`,
+            `UPDATE entity SET skin = 'npc_10.png' WHERE skin = '10';`,
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

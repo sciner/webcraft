@@ -195,6 +195,8 @@ export default class style {
         const mat = tblock.material
         const bb = mat.bb
 
+        mat4.rotateY(matrix, matrix, Math.PI);
+
         // Rotate
         if(bb.rotate) {
             for(let rot of bb.rotate) {

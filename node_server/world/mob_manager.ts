@@ -43,10 +43,10 @@ export class WorldMobManager {
     }
 
     getTickStatForMob(mob: Mob): WorldTickStat {
-        let res = this.ticks_stat_by_mob_type.get(mob.type)
+        let res = this.ticks_stat_by_mob_type.get(mob.skin.model_name)
         if (res == null) {
             res = new WorldTickStat(WorldMobManager.MOB_STAT_NAMES)
-            this.ticks_stat_by_mob_type.set(mob.type, res)
+            this.ticks_stat_by_mob_type.set(mob.skin.model_name, res)
             res.start()
         }
         return res
@@ -146,7 +146,7 @@ export class WorldMobManager {
      * Spawn new mob
      */
     spawn(player: ServerPlayer, params: MobSpawnParams): boolean {
-        const world = this.world;
+        // const world = this.world;
         try {
             this.create(params);
             return true;

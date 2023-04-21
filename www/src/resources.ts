@@ -396,7 +396,7 @@ export class Resources {
     }
 
     // Load BBModels
-    static async _loadBBModels() {
+    static async _loadBBModels() : Promise<Map<string, BBModel_Model>> {
         if(Resources._bbmodels) {
             return Resources._bbmodels
         }
@@ -425,7 +425,7 @@ export class Resources {
         return Resources._bbmodels = resp;
     }
 
-    static loadBBModels() {
+    static async loadBBModels() : Promise<Map<string, BBModel_Model>> {
         return this._bbmodel_promise = this._bbmodel_promise || this._loadBBModels()
     }
 

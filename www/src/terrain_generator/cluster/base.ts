@@ -459,7 +459,7 @@ export class ClusterBase {
             type: 'mob/npc',
             limit: {count: 1},
             calculated: [
-                {type: 'random_item', name: 'skin', items: [1, 2, 3, 4, 5, 6, 7, 10]},
+                {type: 'random_item', name: 'skin', items: ["npc_1.png", "npc_2.png", "npc_3.png", "npc_4.png", "npc_5.png", "npc_6.png", "npc_7.png", "npc_10.png"]},
                 {type: 'random_int', name: 'max_ticks', min_max: [1, 1]}
             ]
         }
