@@ -15,18 +15,18 @@ export class Brain extends FSMBrain {
         ];
     }
 
-    get is_shaered() {
-        return !!this.mob.extra_data?.is_shaered;
+    get is_sheared() {
+        return !!this.mob.extra_data?.is_sheared;
     }
 
-    set is_shaered(value) {
-        this.mob.extra_data.is_shaered = value;
+    set is_sheared(value) {
+        this.mob.extra_data.is_sheared = value;
     }
     
     // просто стоит и кушает траву, если голодная
     doStand(delta) {
         super.doStand(delta);
-        if (this.is_shaered && Math.random() < 0.8) {
+        if (this.is_sheared && Math.random() < 0.8) {
             this.stack.replaceState(this.doEat);
         }
     }
@@ -38,9 +38,9 @@ export class Brain extends FSMBrain {
         const bm = world.block_manager
         if (this.count_grass > 5) {
             this.count_grass = 0;
-            this.is_shaered = false;
+            this.is_sheared = false;
         }
-        if (this.is_shaered) {
+        if (this.is_sheared) {
             if (this.legs_id == bm.TALL_GRASS.id) {
                 const actions = new WorldAction();
                 actions.addBlocks([
@@ -79,7 +79,7 @@ export class Brain extends FSMBrain {
         const rnd_count_mutton = (Math.random() * 2) | 0;
         const bm = world.block_manager
         items.push({ id: type_damage != EnumDamage.FIRE ? bm.MUTTON.id : bm.COOKED_MUTTON.id, count: rnd_count_mutton + 1 });
-        if (!this.is_shaered) {
+        if (!this.is_sheared) {
             const drop_block = world.block_manager.fromName('WHITE_WOOL');
             items.push({ id: drop_block.id, count: 1 });
         }
@@ -98,8 +98,8 @@ export class Brain extends FSMBrain {
         const world = mob.getWorld();
         const bm = world.block_manager
         
-        if (id == bm.SHEARS.id && !this.is_shaered) {
-            this.is_shaered = true;
+        if (id == bm.SHEARS.id && !this.is_sheared) {
+            this.is_sheared = true;
             const actions = new WorldAction();
 
             const rnd_count = ((Math.random() * 2) | 0) + 1;

@@ -1,11 +1,12 @@
 import { FakeTBlock } from '../../blocks.js';
-import { Vector, unixTime, Helpers, QUAD_FLAGS } from '../../helpers.js';
+import { Vector, unixTime, Helpers, QUAD_FLAGS, IndexedColor } from '../../helpers.js';
 import { NetworkPhysicObject } from '../../network_physic_object.js';
 import { MeshGroup } from '../group.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 import { MAX_DIST_FOR_PICKUP, PICKUP_OWN_DELAY_SECONDS } from '../../constant.js';
 import type { Player } from '../../player.js';
 import type { World } from '../../world.js';
+import type { Renderer } from '../../render.js';
 
 const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();
@@ -184,7 +185,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     }
 
     // Draw
-    draw(render, delta) {
+    draw(render : Renderer, delta : float) {
 
         if(this.now_draw || this.isDead()) {
             return false;
@@ -211,26 +212,29 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         mat4.translate(this.modelMatrix, this.modelMatrix,
             [
                 (this.posFact.x - this.chunk.coord.x),
+                (this.posFact.y - this.chunk.coord.y + 3 / 16),
                 (this.posFact.z - this.chunk.coord.z),
-                (this.posFact.y - this.chunk.coord.y + 3 / 16)
             ]
         );
         mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.toArray());
-        mat4.rotateZ(this.modelMatrix, this.modelMatrix, addY / 60);
+        mat4.rotateY(this.modelMatrix, this.modelMatrix, addY / 60);
 
         // Draw mesh group
-        this.mesh_group.draw(render, this.chunk.coord, this.modelMatrix, this.lightTex);
+        this.drawBuffer(render, this.chunk.coord, this.modelMatrix);
 
+    }
+
+    // Draw directly without any pre-computation
+    drawBuffer(render : Renderer, pos : Vector, mx : imat4) {
+        this.mesh_group.draw(render, pos, mx, this.lightTex)
     }
 
     /**
      * Push draw task directly without any pre-computation.
      * Any matrix updates should be applied manually
      * Allow prepend matrix to modelMatrix
-     * @param {Render} render
-     * @param {mat4} prePendMatrix
      */
-     drawDirectly(render, prePendMatrix = null) {
+    drawDirectly(render : Renderer, prePendMatrix : imat4 = null) {
         if (this.isDead()){
             return false;
         }
@@ -244,8 +248,8 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         const mat = this.block.material
         if(mat.style == 'extruder') {
             const matrix = mat4.create()
-            mat4.rotateZ(matrix, mx, Helpers.deg2rad(180))
-            mat4.rotateY(matrix, matrix, Helpers.deg2rad(mat.diagonal ? -65 : -30))
+            mat4.rotateY(matrix, mx, Helpers.deg2rad(180))
+            mat4.rotateZ(matrix, matrix, Helpers.deg2rad(mat.diagonal ? 65 : 30))
             mx = matrix
         }
 
@@ -257,6 +261,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     }
 
     destroy() {
+        // TODO: need to correct destroy
         // this.mesh_group.destroy();
     }
 

@@ -1366,7 +1366,7 @@ export class BLOCK {
     //
     static getCardinalDirection(vec3 : IVector) : number {
         if (!vec3) {
-            return 0;
+            return ROTATE.N;
         }
         if (vec3.x && !(vec3.y * vec3.z)) {
             if(vec3.x >= 0 && vec3.x < 48 && vec3.x == Math.round(vec3.x)) {
@@ -1384,7 +1384,7 @@ export class BLOCK {
                 return ROTATE.N;
             }
         }
-        return CubeSym.ID; //was E
+        return ROTATE.S; // was E
     }
 
     static isOnCeil(block) : boolean {
@@ -1540,6 +1540,13 @@ export class BLOCK {
 
     }
 
+    static setFlags() {
+        const blockFlags = BLOCK.flags
+        for(let b of BLOCK.list.values()) {
+            b.flags = blockFlags[b.id] ?? 0
+        }
+    }
+
     //
     static sortBlocks() {
         //
@@ -1660,17 +1667,24 @@ export class BLOCK {
         BLOCK.settings = settings
 
         // Resource packs
-        BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK)
+        const init_rpm = !BLOCK.resource_pack_manager
+        if(init_rpm) {
+            BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK)
+        }
 
         // block styles and resorce styles is independent (should)
         // block styles is how blocks is generated
         // resource styles is textures for it
 
-        await Promise.all([
-            Resources.loadBlockStyles(settings),
-            BLOCK.resource_pack_manager.init(settings)
-        ]).then(([block_styles, _]) => {
+        const all: Promise<any>[] = [Resources.loadBlockStyles(settings)];
+
+        if(init_rpm) {
+            all.push(BLOCK.resource_pack_manager.init(settings))
+        }
+
+        await Promise.all(all).then(([block_styles, _]) => {
             BLOCK.sortBlocks();
+            BLOCK.setFlags();
             BLOCK.autoTags();
             BLOCK.addHardcodedFlags();
             BLOCK.checkGeneratorOptions()

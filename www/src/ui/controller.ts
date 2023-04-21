@@ -4,7 +4,7 @@ import {CLIENT_MAX_SYNC_TIME_TWO_SIDED_LAG, Helpers, isMobileBrowser, MonotonicU
 import { UIApp } from './app.js';
 import { TexturePackManager } from './texture_pack-manager.js';
 import { SkinManager } from './skin-manager.js';
-import { GameClass, GameSettings } from '../game.js';
+import { GameClass } from '../game.js';
 import { Player } from '../player.js';
 import { Lang } from "../lang.js";
 import { KEY, MOUSE } from "../constant.js";
@@ -12,6 +12,7 @@ import  registerTextFilter from './angular/textfilter.js';
 import { Resources } from '../resources.js';
 import { ClipboardHelper } from './clipboard.js';
 import { HUD } from '../hud.js';
+import { BBModel_Preview } from './bbmodel_preview.js';
 
 function isSupported() {
     // we should support webgl2 strictly
@@ -120,6 +121,9 @@ let gameCtrl = async function($scope : any, $timeout : any) {
         discord: 'https://discord.gg/QQw2zadu3T',
         youtube: 'https://www.youtube.com/channel/UCAcOZMpzYE8rk62giMgTwdw/videos'
     };
+
+    //
+    $scope.bbmodel_preview = new BBModel_Preview()
 
     //
     $scope.App.onLogin = (e) => {};
@@ -442,6 +446,7 @@ let gameCtrl = async function($scope : any, $timeout : any) {
 
     // Start world
     $scope.StartWorld = async function(world_guid : string) {
+        $scope.bbmodel_preview.stop()
         if(window.event) {
             window.event.preventDefault();
             window.event.stopPropagation();

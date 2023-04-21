@@ -226,7 +226,9 @@
         "cmd_sync_time",
         "cmd_teleport_request",
         "cmd_modify_indicator_request",
-        "cmd_use_item"
+        "cmd_use_item",
+        "cmd_play_anim",
+        "cmd_use_weapon"
     ],
     "treasure_chests": [
         {
@@ -1764,6 +1766,29 @@
             },
             "meta": {
                 "dt": "2023-03-27T21:39:45.854Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "pyramid",
+            "pos1": {
+                "x": -616,
+                "y": 0,
+                "z": 1
+            },
+            "pos2": {
+                "x": -646,
+                "y": 17,
+                "z": -29
+            },
+            "entrance": {
+                "x": -631,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-04-14T15:33:20.229Z",
                 "draw_natural_basement": true,
                 "air_column_from_basement": true
             }

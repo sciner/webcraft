@@ -976,6 +976,10 @@ export class DBWorldMigration {
             `ALTER TABLE world ADD COLUMN "tech_info" TEXT DEFAULT '{"chunk_size": {"x":16,"y":40,"z":16}}'`,
         ]});
 
+        migrations.push({version: 98, queries: [
+            `UPDATE entity SET type = 'mob/' || type WHERE type NOT LIKE'mob/%'`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

@@ -14,7 +14,9 @@ export class Brains {
             const brainName = conf.brain
             if (!this.list.has(brainName)) {
                 const module = await import(`./brain/${brainName}.js`)
+                // TODO: double for old brain names compatibility
                 this.list.set(brainName, module.Brain)
+                this.list.set(`mob/${brainName}`, module.Brain);
             }
         }
     }

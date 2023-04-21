@@ -311,8 +311,6 @@ export default class GeometryTerrain {
         return out.set(buffer, offset)
     }
 
-    static quadBuf = null;
-
     /**
      *
      * @param {BaseRenderer} context
@@ -320,12 +318,13 @@ export default class GeometryTerrain {
      * @return {BaseBuffer}
      */
     static bindQuad(context, noBind = false) {
-        if (GeometryTerrain.quadBuf) {
-            GeometryTerrain.quadBuf.bind();
-            return GeometryTerrain.quadBuf;
+        const {globalBufs} = context;
+        if (globalBufs.geom16) {
+            globalBufs.geom16.bind();
+            return globalBufs.geom16;
         }
 
-        const quadBuf = GeometryTerrain.quadBuf = context.createBuffer({
+        const quadBuf = globalBufs.geom16 = context.createBuffer({
             data: new Float32Array([
                 -.5, -.5,
                 .5, -.5,

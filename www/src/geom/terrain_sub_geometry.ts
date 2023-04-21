@@ -1,14 +1,14 @@
-import type {BigGeomBatchUpdate, IGeomCopyOperation} from "./big_geom_batch_update.js";
+import type {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
 import type {BaseBigGeometry} from "./base_big_geometry";
 import type {BigGeometryPool} from "./big_geometry_pool";
 
-export class TerrainSubGeometry implements IGeomCopyOperation {
+export class TerrainSubGeometry {
     baseGeometry: BaseBigGeometry;
     pool: BigGeometryPool;
     glOffsets: number[] = [];
     glCounts: number[] = [];
     batchStart = 0;
-    isDynamic = false;
+    batchStatus = 0;
     copyId = -1;
     pages: number[] = [];
     sizeQuads: number;
@@ -43,8 +43,8 @@ export class TerrainSubGeometry implements IGeomCopyOperation {
             }
             batch.addArrayBuffer(floatBuffer);
         }
-        if (!this.isDynamic) {
-            this.isDynamic = true;
+        if (this.batchStatus < batch.flipStatus) {
+            this.batchStatus = batch.flipStatus;
             batch.copies.push(this);
         }
     }

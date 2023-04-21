@@ -24,7 +24,6 @@ export default class packet_reader {
         }
         if (pos) {
             player.state.pos = pos
-            player.state.lies = false
             player.state.sitting = false
             player.state.sleep = false
             const packets_for_player = [

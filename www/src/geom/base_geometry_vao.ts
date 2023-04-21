@@ -8,12 +8,6 @@ export enum VAO_BUFFER_TYPE {
     DYNAMIC = 2
 }
 
-export enum GL_BUFFER_LOCATION {
-    COPY_READ_BUFFER = 36662,
-    COPY_WRITE_BUFFER = 36662,
-    ARRAY_BUFFER = 34962,
-}
-
 export interface GeometryVaoOptions {
     context?: BaseRenderer,
     size?: number,
@@ -61,12 +55,12 @@ export class BaseGeometryVao {
 
         if (this.bufferType == VAO_BUFFER_TYPE.BIG) {
             this.buffer = this.context.createBuffer({
-                usage: 'static',
+                usage: 'dynamic',
                 bigLength: this.size * this.stride,
             });
         } else {
             this.buffer = this.context.createBuffer({
-                usage: 'dynamic',
+                usage: 'static',
                 data: this.data,
             });
         }
@@ -101,6 +95,7 @@ export class BaseGeometryVao {
     drawBindCountSync: number = 0;
     drawBindCount: number = 0;
     drawSync: WebGLSync = null;
+    copyFlag = false;
 
     /**
      * Only bind for drawing, no actual upload!
@@ -124,8 +119,8 @@ export class BaseGeometryVao {
         this.bindForDraw();
     }
 
-    checkFence() {
-        if (this.drawBindCountSync === this.drawBindCount) {
+    checkFence(force = false) {
+        if (this.drawBindCountSync === this.drawBindCount && !force) {
             return;
         }
         this.drawBindCountSync = this.drawBindCount;
@@ -136,9 +131,10 @@ export class BaseGeometryVao {
         this.drawSync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
 
-    isReadyForUpload() {
+    isSynced() {
         const { gl } = this;
-        return !this.drawSync || gl.getSyncParameter(this.drawSync, gl.SYNC_STATUS) === gl.SIGNALED;
+        return !this.drawSync ||
+            gl.getSyncParameter(this.drawSync, gl.SYNC_STATUS) === gl.SIGNALED;
     }
 
     createVao() {

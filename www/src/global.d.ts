@@ -107,6 +107,7 @@ interface TBlocksSettings {
 interface TWorldSettings extends TBlocksSettings {
     chunks_draw_debug_grid: boolean
     cluster_draw_debug_grid: boolean
+    mobs_draw_debug_grid: boolean
     use_light: number
     chunk_geometry_mode: number
     leaf_fall: boolean
@@ -287,6 +288,10 @@ interface IBlockMaterial {
         durability: number
         damage: number
     }
+    model: {
+        geo: string,
+        texture: string
+    }
     seeds: {
         result: {
             incomplete: object[]
@@ -316,6 +321,7 @@ interface IBlockMaterial {
         can_replace_to_slab: string
     }
     bb: any
+    flags: int // BLOCK_FLAG enum
     planes: IPlane[]
     tx_cnt: number
     overlay_textures_weight: number

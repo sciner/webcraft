@@ -559,9 +559,13 @@ export class ServerChat {
                     break
                 }
                 args = this.parseCMD(args, ['string', 'x', 'y', 'z', 'string', '?string'], player);
-                const type = args[4]
+                const type_orig = args[4]
+                let type = type_orig
+                if(!type.includes('/')) {
+                    type = `mob/${type}`
+                }
                 if (!world.brains.list.has(type)) {
-                    this.sendSystemChatMessageToSelectedPlayers(`!langUnknown mob type ${type}`, player, false)
+                    this.sendSystemChatMessageToSelectedPlayers(`!langUnknown mob type ${type_orig}`, player, false)
                     break
                 }
                 // @ParamMobAdd
@@ -645,8 +649,8 @@ export class ServerChat {
     /**
      * Supported formats:
      * - 'int', '?int', 'float', '?float'
-     * - 'string' - either string or undefined
-     * - 'string|float' - the same semantics as old 'string' - if it's a number, it's parsed as a number
+     * - 'string', '?string' - either string or undefined
+     * - 'string|float', '?string|float' - the same semantics as old 'string' - if it's a number, it's parsed as a number
      * - 'x', 'y', 'z', '?x', '?y', '?z' - similar to 'float' and '?float', but have an additional feature:
      *   if '+' is before the number, then it's relative to the player's position.
      * @returns {(number | string | null)[]} - parsed arguments. To avoid re-writing a lot of code,
@@ -714,11 +718,13 @@ export class ServerChat {
                 case '?z':
                     value = parseArgCoord(ch, player?.state.pos.z)
                     break
+                case '?string|float':
                 case 'string|float': // that mode was formerly 'string'
                     value = isNaN(ch as any) || !isFinite(ch as any)
                         ? ch
                         : parseFloat(ch)
                     break
+                case '?string':
                 case 'string':
                     value = ch
                     break

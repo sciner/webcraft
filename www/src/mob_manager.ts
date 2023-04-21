@@ -3,127 +3,142 @@ import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import {MobModel, TMobModelConstructorProps} from "./mob_model.js";
 import { Resources } from "./resources.js";
 import { ServerClient } from "./server_client.js";
-import type {World} from "./world.js";
+import type { PlayerSkin } from "./player.js";
+import type { World } from "./world.js";
+
+export declare type TMobProps = {
+    health:         float
+    username:       any
+    id:             int
+    type:           string
+    name?:          string
+    indicators:     any
+    width:          float
+    height:         float
+    pos:            Vector
+    rotate:         Vector
+    pitch:          float
+    yaw:            float
+    skin?:          PlayerSkin
+    skin_id?:       string
+    extra_data?:    any
+    hands:          any
+}
 
 export class MobManager {
+    #world:             World
+    list:               Map<number, MobModel> = new Map()
+    sendStateInterval:  any
+    draw_debug_grid:    boolean = false
 
-    #world              : World
-    models              : Map<string, Mesh_Object_BBModel> = new Map()
-    list                = new Map<int, MobModel>()
-    draw_debug_grid     : boolean
-    sendStateInterval   : any // number
+    private models:     Map<string, Mesh_Object_BBModel> = new Map()
 
-    constructor(world: World) {
-        this.#world = world;
-        this.draw_debug_grid = world.settings.mobs_draw_debug_grid;
+    constructor(world : World) {
+        this.#world = world
+        this.list = new Map()
+        this.draw_debug_grid = world.settings.mobs_draw_debug_grid
         // Interval functions
         this.sendStateInterval = setInterval(() => {
-            this.playSounds();
-        }, 50);
+            this.playSounds()
+        }, 50)
     }
 
     // Client side method
-    init() {
+    init(render? : null) {
 
-        for(let name of ['pig']) {
-            const model = Resources._bbmodels.get(`mob/${name}`)
-            const mesh = new Mesh_Object_BBModel(Qubatch.render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
-            mesh.parts = {
-                'head': [],
-                'legs': [],
-                'arms': [],
-                'wings': [],
-                'body': [],
+        render = render ?? Qubatch.render
+
+        for(let [name, model] of Resources._bbmodels.entries()) {
+            if(!name.startsWith('mob/')) {
+                continue
             }
-            for(let group of model.groups.values()) {
-                if(group.name.startsWith('leg')) {
-                    mesh.parts.legs.push(group)
-                } else if(group.name.startsWith('wing')) {
-                    mesh.parts.wings.push(group)
-                } else if(['leftLeg', 'rightLeg'].includes(group.name)) {
-                    mesh.parts.legs.push(group)
-                } else if(['leftArm', 'rightArm'].includes(group.name)) {
-                    mesh.parts.arms.push(group)
-                } else if(group.name == 'head') {
-                    mesh.parts.head.push(group)
-                } else if(group.name == 'body') {
-                    mesh.parts.body.push(group)
-                }
-            }
+            name = name.substring(4)
+            const mesh = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
             this.models.set(name, mesh)
         }
 
         // On server message
-        this.#world.server.AddCmdListener([ServerClient.CMD_MOB_ADD, ServerClient.CMD_MOB_DELETE, ServerClient.CMD_MOB_UPDATE], (cmd) => {
-            switch(cmd.name) {
-                case ServerClient.CMD_MOB_ADD: {
-                    for(let mob of cmd.data) {
-                        // console.log('Mob added: ' + mob.id, mob.pos);
-                        this.add(mob);
+        if(this.#world.server) {
+            this.#world.server.AddCmdListener([ServerClient.CMD_MOB_ADD, ServerClient.CMD_MOB_DELETE, ServerClient.CMD_MOB_UPDATE], (cmd) => {
+                switch(cmd.name) {
+                    case ServerClient.CMD_MOB_ADD: {
+                        for(let mob of cmd.data) {
+                            // console.log('Mob added: ' + mob.id, mob.pos);
+                            this.add(mob);
+                        }
+                        break;
                     }
-                    break;
-                }
-                case ServerClient.CMD_MOB_UPDATE: {
-                    if(Array.isArray(cmd.data)) {
-                        const add_pos = cmd.data.slice(0, 3)
-                        for(let i = 3; i < cmd.data.length; i += 6) {
-                            const mob = this.list.get(cmd.data[i]);
-                            if(mob) {
-                                const new_state = {
-                                    pos: new Vector(
-                                        cmd.data[i + 1] + add_pos[0],
-                                        cmd.data[i + 2] + add_pos[1],
-                                        cmd.data[i + 3] + add_pos[2]
-                                    ),
-                                    rotate: new Vector(0, 0, cmd.data[i + 4]), // new Vector(cmd.data[i + 4], cmd.data[i + 5], cmd.data[i + 6]),
-                                    extra_data: cmd.data[i + 5],
-                                    time: cmd.time
-                                };
-                                mob.applyNetState(new_state);
-                                // частицы смерти
-                                if (new_state.extra_data && !new_state.extra_data.is_alive) {
-                                    Qubatch.render.addParticles({type: 'cloud', pos: new_state.pos});
+                    case ServerClient.CMD_MOB_UPDATE: {
+                        if(Array.isArray(cmd.data)) {
+                            const add_pos = cmd.data.slice(0, 3)
+                            for(let i = 3; i < cmd.data.length; i += 6) {
+                                const mob = this.list.get(cmd.data[i]);
+                                if(mob) {
+                                    const new_state = {
+                                        pos: new Vector(
+                                            cmd.data[i + 1] + add_pos[0],
+                                            cmd.data[i + 2] + add_pos[1],
+                                            cmd.data[i + 3] + add_pos[2]
+                                        ),
+                                        rotate: new Vector(0, 0, cmd.data[i + 4]), // new Vector(cmd.data[i + 4], cmd.data[i + 5], cmd.data[i + 6]),
+                                        extra_data: cmd.data[i + 5],
+                                        time: cmd.time
+                                    };
+                                    mob.applyNetState(new_state);
+                                    // частицы смерти
+                                    if (new_state.extra_data && !new_state.extra_data.is_alive) {
+                                        Qubatch.render.addParticles({type: 'cloud', pos: new_state.pos});
+                                    }
+                                } else {
+                                    // Mob not found
                                 }
+                            }
+                        } else {
+                            let mob = this.list.get(cmd.data.id);
+                            if(mob) {
+                                mob.applyNetState({
+                                    pos: cmd.data.pos,
+                                    rotate: cmd.data.rotate,
+                                    time: cmd.time
+                                });
                             } else {
                                 // Mob not found
                             }
                         }
-                    } else {
-                        let mob = this.list.get(cmd.data.id);
-                        if(mob) {
-                            mob.applyNetState({
-                                pos: cmd.data.pos,
-                                rotate: cmd.data.rotate,
-                                time: cmd.time
-                            });
-                        } else {
-                            // Mob not found
+                        break;
+                    }
+                    case ServerClient.CMD_MOB_DELETE: {
+                        for(let mob_id of cmd.data) {
+                            this.delete(mob_id);
                         }
+                        break;
                     }
-                    break;
                 }
-                case ServerClient.CMD_MOB_DELETE: {
-                    for(let mob_id of cmd.data) {
-                        this.delete(mob_id);
-                    }
-                    break;
-                }
-            }
-        });
+            });
+        }
+
     }
 
     // add
-    add(data: TMobModelConstructorProps): void {
-        data.pitch  = data.rotate.x
-        data.yaw    = data.rotate.z
-        data.skin   ??= 'base'
-        data.extra_data ??= null
+    add(data : TMobProps) {
+        const mob = new MobModel({
+            id:             data.id,
+            type:           data.type,
+            name:           data.name,
+            indicators:     data.indicators,
+            width:          data.width,
+            height:         data.height,
+            pos:            data.pos,
+            rotate:         data.rotate,
+            pitch:          data.rotate.x,
+            yaw:            data.rotate.z,
+            skin:           data.skin || 'base',
+            extra_data:     data.extra_data || null
+        }, this.#world)
 
-        const mob = new MobModel(data, this.#world)
+        mob.pos.y += 1/200
 
-        mob.pos.y += 1/200;
-
-        this.list.set(data.id, mob);
+        this.list.set(data.id, mob)
         this.#world.drivingManager.onMobModelAdded(mob)
     }
 

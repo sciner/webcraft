@@ -15,35 +15,35 @@ import type { WorldAction } from "./world_action.js";
 import type { Player } from "./player.js";
 import type {ICmdPickatData} from "./pickat.js";
 import type {Physics} from "./prismarine-physics/index.js";
-import {ClientDrivingManager} from "./control/driving_manager.js";
+import {ClientDrivingManager, DrivingManager} from "./control/driving_manager.js";
 import type {GameClass} from "./game.js";
 import type {GameSettings} from "./game.js";
 
 // World container
 export class World implements IWorld {
+    readonly game:          GameClass
+    latency:                number = 0
+    info?:                  TWorldInfo | null
+    serverTimeShift:        number = 0
+    settings:               TWorldSettings
+    chunkManager:           ChunkManager
+    mobs:                   MobManager
+    drop_items:             DropItemManager
+    players:                PlayerManager
+    drivingManager:         ClientDrivingManager
+    blockModifierListeners: Function[]
+    block_manager:          any
+    server?:                ServerClient
+    hello?:                 IChatCommand
+    history:                any = new WorldHistory(this)
+    physics?:               Physics
+    private dt_update_time: number // Серверное время, когда произошло подключение к серверу!
+    private dt_connected:   number
 
-    static MIN_LATENCY = 60;
     static TIME_SYNC_PERIOD = 5000;
-    readonly game: GameClass
-    latency: number = 0;
-    info?: TWorldInfo | null;
-    serverTimeShift: number = 0;
-    settings: GameSettings;
-    chunkManager: ChunkManager;
-    mobs: MobManager;
-    drop_items: DropItemManager;
-    players: PlayerManager;
-    drivingManager: ClientDrivingManager;
-    blockModifierListeners: Function[];
-    block_manager: typeof BLOCK;
-    server?: ServerClient;
-    hello?: IChatCommand;
-    history = new WorldHistory(this);
-    physics?: Physics
+
     private lastMeasuredQueudLag = 0
     private unansweredQueudLagTimes = new SimpleQueue<number>()
-    private dt_connected: number // Серверное время, когда произошло подключение к серверу!
-    private dt_update_time: number
 
     constructor(game: GameClass, settings : GameSettings, block_manager : typeof BLOCK) {
 
@@ -55,7 +55,7 @@ export class World implements IWorld {
         this.mobs                   = new MobManager(this);
         this.drop_items             = new DropItemManager(this)
         this.players                = new PlayerManager(this);
-        this.drivingManager          = new ClientDrivingManager(this);
+        this.drivingManager         = new ClientDrivingManager(this);
         this.blockModifierListeners = [];
     }
 
@@ -66,7 +66,8 @@ export class World implements IWorld {
     }
 
     get serverTimeWithLatency() {
-        return this.serverTime - Math.max(this.latency, World.MIN_LATENCY);
+        const MIN_LATENCY = 60
+        return this.serverTime - Math.max(this.latency, MIN_LATENCY)
     }
 
     get serverTime() {

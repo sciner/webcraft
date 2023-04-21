@@ -29,13 +29,13 @@ export default class packet_reader {
         //
         const world = player.world;
         const currentInventoryItem = player.inventory.current_item;
-        if(player.state.sitting || player.state.lies || player.state.sleep) {
+        if(player.state.sitting || player.state.sleep) {
             return true;
         }
         if (packet.data.interactMobID || packet.data.interactPlayerID) {
-            if (packet.data.button_id == MOUSE.BUTTON_LEFT) {
-                player.onAttackEntity(packet.data.interactMobID, packet.data.interactPlayerID)
-            }
+            //if (packet.data.button_id == MOUSE.BUTTON_LEFT) {
+            //    player.onAttackEntity(packet.data.interactMobID, packet.data.interactPlayerID)
+            //}
             if (packet.data.button_id == MOUSE.BUTTON_RIGHT) {
                 player.onUseItemOnEntity(packet.data)
             }

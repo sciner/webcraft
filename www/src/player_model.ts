@@ -1,108 +1,30 @@
 import { BLOCK } from "./blocks.js";
-import { HAND_ANIMATION_SPEED, HEAD_MAX_ROTATE_ANGLE, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_ZOOM } from "./constant.js";
+import { HAND_ANIMATION_SPEED, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_ZOOM } from "./constant.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
-import {MobAnimation, MobModel, TMobModelConstructorProps} from "./mob_model.js";
+import { MobModel } from "./mob_model.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
-import { SceneNode } from "./SceneNode.js";
+import { Mesh_Object_Base } from "./mesh/object/base.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
-import type {ArmorState, PlayerHands, PlayerStateUpdate, TSittingState, TSleepState} from "./player.js";
+import type { PlayerHands, TAnimState, TSittingState, TSleepState} from "./player.js";
 import type { NetworkPhysicObjectState } from "./network_physic_object.js";
 import type { World } from "./world.js";
+import type { TMobProps } from "./mob_manager.js";
 
-const { quat } = glMatrix;
-const SWING_DURATION = 6;
+const { quat, mat4 } = glMatrix
+const SWING_DURATION = 6
 
 const KEY_SLOT_MAP = {
-    left: 'LeftArm',
-    right: 'RightArm'
+    left: 'LeftArmItemPlace',
+    right: 'RightArmItemPlace'
 };
 
-const setFromUnitVectors = (q, vFrom, vTo ) => {
-
-    // assumes direction vectors vFrom and vTo are normalized
-    vFrom = vFrom.normalize();
-    vTo = vTo.normalize();
-
-    let r = vFrom.dot( vTo ) + 1;
-
-    if ( r < Number.EPSILON ) {
-
-        // vFrom and vTo point in opposite directions
-
-        r = 0;
-
-        if ( Math.abs( vFrom.x ) > Math.abs( vFrom.z ) ) {
-
-            q[0] = - vFrom.y;
-            q[1] = vFrom.x;
-            q[2] = 0;
-            q[3] = r;
-
-        } else {
-
-            q[0] = 0;
-            q[1] = - vFrom.z;
-            q[2] = vFrom.y;
-            q[3] = r;
-
-        }
-
-    } else {
-
-        q[0] = vFrom.y * vTo.z - vFrom.z * vTo.y;
-        q[1] = vFrom.z * vTo.x - vFrom.x * vTo.z;
-        q[2] = vFrom.x * vTo.y - vFrom.y * vTo.x;
-        q[3] = r;
-
-    }
-
-    quat.normalize(q, q);
-
-    return q;
-}
-
 export class ModelSlot {
-    holder: SceneNode;
-    id: number;
-    name: string;
+    id: int = -1
+    item?: Mesh_Object_Block_Drop
 
-    constructor(name : string = '', parent = null) {
-
-        this.holder = new SceneNode(parent);
-        this.holder.position.set(parent.pivot);
-
-        this.id = -1;
-
-        this.name = name;
-
-        this.holder.updateMatrix();
-    }
-}
-
-export class PlayerAnimation extends MobAnimation {
-    [key: string]: any;
-
-    head({
-        part, animable
-    }) {
-        let pitch = animable.pitch;
-        if (pitch < -0.5) {
-            pitch = -0.5;
-        }
-        if (pitch > 0.5) {
-            pitch = 0.5;
-        }
-        const yaw = animable.body_rotate * HEAD_MAX_ROTATE_ANGLE;
-        if (animable.sleep) {
-            quat.fromEuler(part.quat, 0, 0, 0)
-            quat.rotateX(part.quat, part.quat, -Math.PI / 2)
-        } else {
-            quat.fromEuler(part.quat, -pitch * 90, 0, yaw)
-        }
-        part.updateMatrix()
-    }
+    constructor() {}
 
 }
 
@@ -129,166 +51,150 @@ type TPlayerModelConstructorProps = TMobModelConstructorProps & {
 }
 
 export class PlayerModel extends MobModel implements IPlayerOrModel {
-    [key: string]: any;
+    sharedProps:        PlayerModelSharedProps
+    distance:           number | null
+    textCanvas:         HTMLCanvasElement
+    textContext:        any
+    slots:              Map<string, ModelSlot> = new Map()
+    swingProgress:      float = 0
+    swingProgressInt:   float = 0
+    isSwingInProgress:  boolean = false
 
-    // from props
-    declare id: int
-    declare health: number
-    declare username: string
+    constructor(props : TMobProps, world : World) {
+        super({type: 'player', skin: null, ...props}, world);
 
-    sharedProps = new PlayerModelSharedProps(this)
-    slots: Dict<ModelSlot> = {}
-    armor: ArmorState
-    scale: float
-    distance: number | null
-    sitting?: false | TSittingState
-    sleep?: false | TSleepState
+        this.height             = PLAYER_HEIGHT
+        this.width              = PLAYER_WIDTH
+        this.scale              = 0.9 * PLAYER_ZOOM
+        this.username           = props.username
+        this.health             = props.health
+        this.activeSlotsData    = props.hands
+        this.head               = null
+        this.sharedProps        = new PlayerModelSharedProps(this)
 
-    swingProgress: int
-    swingProgressInt: int
-    isSwingInProgress: boolean
+        const render = Qubatch.render as Renderer
+        this.postLoad(render)
 
-    constructor(props: TPlayerModelConstructorProps, world : World) {
-        super({type: 'player', skin: '1', ...props}, world);
-
-        this.height = PLAYER_HEIGHT;
-        this.width = PLAYER_WIDTH;
-        this.scale = 0.9 * PLAYER_ZOOM;
-
-        /**
-         * @type {HTMLCanvasElement}
-         */
-        this.textCanvas = null;
-        this.textContext = null;
-
-        this.head = null;
-
-        this.animationScript = new PlayerAnimation(this)
-
-        // for lazy state generation
-        this.activeSlotsData = props.hands;
-
-        // Arm swing
-        this.swingProgress = 0;
-        this.swingProgressInt = 0;
-        this.isSwingInProgress = false;
     }
 
     applyNetState(state: NetworkPhysicObjectState & { hands: PlayerHands }) {
         super.applyNetState(state);
-
         this.changeSlots(state.hands);
     }
 
     changeSlots(data: PlayerHands) {
         this.activeSlotsData = data;
 
-        if (this.sceneTree && this.activeSlotsData) {
+        if (this.activeSlotsData) {
             for(const key in this.activeSlotsData) {
                 this.changeSlotEntry(KEY_SLOT_MAP[key], this.activeSlotsData[key]);
             }
         }
     }
 
-    changeSlotEntry(name : string, props) {
-        if (!name || !props) {
-            return;
+    // Draw inhand item
+    changeSlotEntry(name : string, props : {id: int|null, scale: float|null}) {
+        if (!name || !props || !Object.values(KEY_SLOT_MAP).includes(name)) {
+            return
         }
 
-        let {
-            id, scale = 0.3
-        } = props;
-
-        id = typeof id !== 'number' ? -1 : id;
-
-        let slotLocation = null;
-        for(let st of this.sceneTree) {
-            slotLocation = st.findNode(name + 'ItemPlace');
-            if(slotLocation) {
-                break;
-            }
+        const block_id = props.id = typeof props.id !== 'number' ? -1 : props.id
+        let slot : ModelSlot = this.slots.get(name)
+        if(!slot) {
+            slot = new ModelSlot()
+            this.slots.set(name, slot)
         }
 
-        if (!slotLocation) {
-            return;
+        if (block_id == slot.id && slot.item) {
+            return
         }
 
-        const slot = (this.slots[name] || (this.slots[name] = new ModelSlot(name, slotLocation)));
-
-        if (id == slot.id && slot.holder.terrainGeometry) {
-            return;
+        // destroy buffer
+        if (slot.item) {
+            slot.item.mesh_group.destroy()
+            // slot.item.destroy()
+            slot.item = null
         }
 
-        if (slot.holder.terrainGeometry) {
-            slot.holder.terrainGeometry.destroy();
-            slot.holder.terrainGeometry = null;
+        slot.id = block_id
+
+        const mesh_modifiers = this._mesh.modifiers
+        mesh_modifiers.hideGroup(name)
+
+        if (block_id === -1) {
+            return
         }
 
-        slot.id = id;
-
-        if (id === -1) {
-            return;
-        }
-
-        const block = BLOCK.fromId(id);
+        const block = BLOCK.fromId(block_id)
 
         if(!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name)) {
-            return;
+            return
         }
 
-        let item;
+        slot.item = new Mesh_Object_Block_Drop(this.world, null, null, [block], Vector.ZERO)
 
-        try {
-            item = new Mesh_Object_Block_Drop(this.world, null, null, [block], Vector.ZERO);
-        } catch(e) {
-            console.error(e)
+        const is_right_arm       = name === KEY_SLOT_MAP.right
+        const bb_display         = block.bb?.model?.json?.display
+        const bbmodel_hand       = (is_right_arm ? bb_display?.thirdperson_righthand : bb_display?.thirdperson_lefthand) ?? {}
+        // const orient             = is_right_arm ? -1 : 1
+
+        const base = {
+            scale:      new Float32Array([1, 1, 1]),
+            position:   new Float32Array([0, 0, 0]),
+            pivot:      new Float32Array([0, -.5, 0]),
+            rotation:   new Float32Array([0, 0, 0]),
         }
 
-        if (!item) {
-            return;
-        }
-
-        // slot.holder.terrainGeometry = item.buffer;
-        // slot.holder.material = item.material;
-        for(let mesh of item.mesh_group.meshes.values()) {
-            slot.holder.terrainGeometry = mesh.buffer;
-            slot.holder.material = mesh.material;
-            break;
-        }
-
-        const orient = name === 'LeftArm' ? -1 : 1;
-
-        if (block.diagonal) {
-            scale *= 1.2;
-            quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
+        if(bb_display || block.bb) {
+            // 1. position (1 = 1/16)
+            if(bbmodel_hand.translation) {
+                base.position[0] = bbmodel_hand.translation[0] / 16
+                base.position[1] = bbmodel_hand.translation[1] / 16
+                base.position[2] = bbmodel_hand.translation[2] / 16
+            }
+            // 2. rotation (в градусах -180...180)
+            if(bbmodel_hand.rotation) {
+                base.rotation[0] = bbmodel_hand.rotation[0]
+                base.rotation[1] = -bbmodel_hand.rotation[1]
+                base.rotation[2] = -bbmodel_hand.rotation[2]
+            }
+            // 3. scale
+            if(bbmodel_hand.scale) {
+                base.scale.set(bbmodel_hand.scale)
+            }
         } else {
-            quat.fromEuler(slot.holder.quat, 20, 0, -20);
+            let { scale = 0.3 } = props
+            // new model
+            if (block.diagonal) {
+                scale *= 1.2
+                base.rotation.set([42.5, 90, 0])
+                base.position[1] += 1.5 / 16
+            } else {
+                base.rotation.set([0, -30, 0])
+            }
+            base.scale.set([scale, scale, scale])
         }
 
-        slot.holder.scale.set([scale, scale, scale]);
-        // slot.holder.pivot.set([0, 0, scale / 2]);
-        slot.holder.updateMatrix();
+        // apply modifies
+        const matrix = mat4.create()
+        const q = quat.create()
+        quat.fromEuler(q, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
+        mat4.fromRotationTranslationScaleOrigin(matrix, q, base.position, base.scale, base.pivot)
+
+        mesh_modifiers.showGroup(name)
+        mesh_modifiers.replaceGroupWithMesh(name, slot.item, matrix)
+
     }
 
-    itsMe() {
+    itsMe() : boolean {
         return this.id == Qubatch.App.session.user_id;
     }
 
-    async loadModel(render) {
-        const img = await super.loadModel(render);
-        if (this.itsMe()) {
-            this.skinImage = img;
-        }
-    }
+    postLoad(render : Renderer) {
+        // TODO: need to call super?
+        // super.postLoad(render)
 
-    postLoad(render : Renderer, tree : SceneNode) {
-        super.postLoad(render, tree);
-
-        for(let i = 0; i < tree.length; i++) {
-            tree[i].scale.set([this.scale, this.scale, this.scale]);
-        }
-
-        if (this.nametag || !this.sceneTree) {
+        if (this.nametag) {
             return;
         }
 
@@ -296,128 +202,109 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.textCanvas.width           = 256;
         this.textCanvas.height          = 64;
         this.textCanvas.style.display   = 'none';
-        // Create context used to draw name tags
         this.textContext                = this.textCanvas.getContext('2d');
         this.textContext.textAlign      = 'left';
         this.textContext.textBaseline   = 'top';
         this.textContext.font           = '24px Ubuntu';
 
-        this.nametag = this.buildPlayerName(this.username, render);
+        this.nametag = this.buildPlayerName(this.username, render)
+        const mesh_modifiers = this._mesh.modifiers
+        mesh_modifiers.appendMeshToGroup('nameTagPlace', this.nametag)
 
-        this.sceneTree[0].addChild(this.nametag);
-        this.nametag.scale.set([0.005, 1, 0.005]);
+        this.changeSlots(this.activeSlotsData)
 
-        this.nametag.updateMatrix();
-
-        this.changeSlots(this.activeSlotsData);
     }
 
-    update(render, camPos, delta, speed) {
-        super.update(render, camPos, delta, speed);
+    update(render : Renderer, camPos : Vector, delta : float, speed : float) {
+        super.update(render, camPos, delta, speed)
 
-        const angleToYaw = (angle) => {
-            if (angle == 0) {
-                return Math.PI
-            }
-            if (angle == 0.25) {
-                return Math.PI / 2
-            }
-            if (angle == 0.5) {
-                return 0
-            }
-            if (angle == 0.75) {
-                return 3 * Math.PI / 2
-            }
+        this.updateArmSwingProgress(delta)
+
+        const nametag = this.nametag
+
+        if(!this.isRenderable(render)) {
+            return
         }
 
-        this.updateArmSwingProgress(delta);
-        if (!this.isRenderable(render)) {
-            return;
+        nametag.visible = !this.sneak && !this.hide_nametag
+
+        if(!nametag.visible || this.distance == null) {
+            return
         }
 
-        if (!this.nametag) {
-            return;
-        }
+        // WARNING: Do not remove this code!
+        // rotation
+        // const angleToYaw = (angle) => {
+        //     if (angle == 0) {
+        //         return Math.PI
+        //     } else if (angle == 0.25) {
+        //         return Math.PI / 2
+        //     } else if (angle == 0.5) {
+        //         return 0
+        //     } else if (angle == 0.75) {
+        //         return 3 * Math.PI / 2
+        //     }
+        // }
+        // const dx = camPos.x - this.pos.x - nametag.position[0]
+        // const dy = camPos.y - this.pos.y - nametag.position[1]
+        // const dz = camPos.z - this.pos.z - nametag.position[2]
+        // const d2 = Math.hypot(dz, dx)
+        // const pitch = (-Math.atan2(dy, d2)) / Math.PI * 180
+        // const yaw = ((this.sleep ? angleToYaw(this.sleep.rotate.z) : this.yaw) + Math.atan2(dx, dz)) / Math.PI * 180 + 180
+        // nametag.rotation.set([pitch, yaw, 0])
 
-        this.nametag.visible = !this.sneak && !this.hide_nametag
+        // scale
+        const scale = 0.005 * (camPos.distance(this.pos) / 6)
+        nametag.scale.set([scale, scale, scale])
 
-        if (!this.nametag.visible || this.distance == null) {
-            return;
-        }
+        // apply
+        nametag.updateMatrix()
 
-        const head_y =  (this.sceneTree[0].findNode('Head') || this.sceneTree[0].findNode('head')).pivot[2];
-        if (this.sleep) {
-            // Еесли игрок лежит подвинем ник игрока
-            this.nametag.position[1] = 0.2
-            this.nametag.position[2] = head_y + 0.4
-        } else {
-            this.nametag.position[2] = head_y + ((!this.armor.head) ? 0.6 : 0.8);
-            this.nametag.position[1] = 0
-        }
-
-        const d = camPos.distance(this.pos);
-        const dx = camPos.x - this.pos.x - this.nametag.position[1];
-        const dy = camPos.y - this.pos.y - this.nametag.position[2];
-        const dz = camPos.z - this.pos.z - this.nametag.position[0];
-        const d2 = Math.hypot(dz, dx)
-        const pitch = Math.PI / 2 - Math.atan2(d2, dy);
-        const yaw = (this.sleep ? angleToYaw(this.sleep.rotate.z) : this.yaw) + Math.PI/2 + Math.atan2(dz, dx);
-
-        const zoom = 0.005 * (d / 6);
-
-        this.nametag.scale.set([zoom, 1, zoom]);
-
-        quat.identity(this.nametag.quat);
-
-        quat.rotateZ(this.nametag.quat,this.nametag.quat, yaw)
-        quat.rotateX(this.nametag.quat,this.nametag.quat, pitch)
-
-        this.nametag.updateMatrix();
     }
 
     /**
      * Returns the texture and vertex buffer for drawing the name
      * tag of the specified player over head.
-     * @param {string} username
-     * @param render
-     * @return {{texture: BaseTexture, model: GeometryTerrain}}
      */
-    buildPlayerName(username, render) {
+    buildPlayerName(username : string, render : Renderer) : Mesh_Object_Base {
+
         username        = username.replace( /&lt;/g, "<" ).replace( /&gt;/g, ">" ).replace( /&quot;/, "\"" );
 
-        let canvas      = this.textCanvas;
-        let ctx         = this.textContext;
-        let w           = ctx.measureText(username).width + 16;
-        let h           = 45;
+        const canvas    = this.textCanvas
+        const ctx       = this.textContext
+        const w         = ctx.measureText(username).width + 16
+        const h         = 45
+
         // Draw text box
-        ctx.fillStyle   = '#00000055';
-        ctx.fillRect(0, 0, w, 45);
-        ctx.fillStyle   = '#fff';
-        ctx.font        = '24px Ubuntu';
-        ctx.fillText(username, 10, 12);
+        ctx.fillStyle   = '#00000055'
+        ctx.fillRect(0, 0, w, 45)
+        ctx.fillStyle   = '#fff'
+        ctx.font        = '24px Ubuntu'
+        ctx.fillText(username, 10, 12)
 
         // abstraction
         const texture = render.renderBackend.createTexture({
             source: canvas,
-        });
+        })
 
         // Create model
         const vertices = GeometryTerrain.convertFrom12([
-            -w/2, 0, h / 2, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            w/2, 0, h / 2, 0, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            w/2, 0, -h / 2, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            w/2, 0, -h / 2, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            -w/2, 0, -h / 2, w/256, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            -w/2, 0, h / 2, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-        ]);
+            -w/2 * -1, 0, h / 2, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+            w/2 * -1, 0, h / 2, 0, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+            w/2 * -1, 0, -h / 2, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+            w/2 * -1, 0, -h / 2, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+            -w/2 * -1, 0, -h / 2, w/256, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+            -w/2 * -1, 0, h / 2, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        ])
 
-        const node = new SceneNode();
-        node.name = 'name_tag';
-        node.terrainGeometry = new GeometryTerrain(vertices);
-        node.terrainGeometry.changeFlags(QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.NO_AO | QUAD_FLAGS.NO_FOG);
-        node.material = render.defaultShader.materials.label.getSubMat(texture);
+        const mesh = new Mesh_Object_Base()
+        mesh.changeFlags(QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.NO_AO | QUAD_FLAGS.NO_FOG | QUAD_FLAGS.LOOK_AT_CAMERA)
+        mesh.setGLMaterial(render.defaultShader.materials.label.getSubMat(texture))
+        mesh.setVertices(vertices as any)
+        mesh.ignoreParentRotation = true
 
-        return node;
+        return mesh
+
     }
 
     getArmSwingAnimationEnd() {
@@ -425,13 +312,13 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     }
 
     stopArmSwingProgress() {
-        this.swingProgressInt = 0;
-        this.isSwingInProgress = false;
+        this.swingProgressInt = 0
+        this.isSwingInProgress = false
     }
 
     startArmSwingProgress() {
-        this.stopArmSwingProgress();
-        this.isSwingInProgress = true;
+        this.stopArmSwingProgress()
+        this.isSwingInProgress = true
     }
 
     // value: -1 ... 0 ... 1
@@ -441,7 +328,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
     updateArmSwingProgress(delta) {
         const asa = this.getArmSwingAnimationEnd();
-        this.swingProgressPrev = this.animationScript.swingProgress;
+        this.swingProgressPrev = this.swingProgress;
         if(this.isSwingInProgress) {
             this.swingProgressInt += HAND_ANIMATION_SPEED * delta / 1000;
             if (this.swingProgressInt >= asa) {
@@ -451,23 +338,23 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         } else {
             this.swingProgressInt = 0;
         }
-        // attackAnim
-        this.animationScript.isSwingInProgress = this.isSwingInProgress;
         this.swingProgress = this.swingProgressInt / asa;
-        this.animationScript.swingProgress = this.swingProgress;
     }
 
-    setProps(pos: Vector, rotate: Vector, sneak: boolean, moving: boolean, running: boolean,
-        hands: PlayerHands, lies: boolean, sitting: false | TSittingState, sleep: false | TSleepState, health?: number): void {
-        this.pos.copyFrom(pos);
+    setProps(pos: Vector, rotate: Vector, sneak: boolean, running: boolean,
+        hands: PlayerHands, sitting: false | TSittingState,
+        sleep: false | TSleepState, anim : false | TAnimState, health?: number, on_ground: boolean = true): void {
+        this.pos = pos
         this.yaw = rotate.z; // around
         this.pitch = rotate.x; // head rotate
         this.sneak = sneak;
-        this.moving = moving;
+        //this.moving = moving;
         this.running = running;
-        this.lies = lies;
         this.sitting = sitting;
+        this.anim = anim
         this.sleep = sleep
+        this.ground = on_ground
+        this.health = health
         //
         const current_right_hand_id = hands.right?.id;
         if(this.prev_current_id != current_right_hand_id) {

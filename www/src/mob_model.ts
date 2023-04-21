@@ -1,510 +1,44 @@
 import { Resources } from "./resources.js";
-import * as ModelBuilder from "./modelBuilder.js";
-import { Color, Helpers, Vector } from "./helpers.js";
+import { Color, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
-import { NetworkPhysicObject } from './network_physic_object.js';
-import { HEAD_MAX_ROTATE_ANGLE, MOUSE, PLAYER_SKIN_TYPES, SNEAK_MINUS_Y_MUL } from "./constant.js";
+import { AABBDrawable, NetworkPhysicObject } from './network_physic_object.js';
+import { MOB_TYPE, MOUSE } from "./constant.js";
 import { Mesh_Object_MobFire } from "./mesh/object/mob_fire.js";
-import { BLOCK } from "./blocks.js";
-import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
-import type { SceneNode } from "./SceneNode.js";
-import type { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import type { World } from "./world.js";
-import type {ClientDriving} from "./control/driving.js";
-import type {Indicators, PlayerSkin} from "./player.js";
-
-const { quat, mat4 } = glMatrix;
-
-const SNEAK_ANGLE                   = 28.65 * Math.PI / 180;
-const MAX_DETONATION_TIME           = 2000; // ms
-
-export class Traversable {
-    [key: string]: any;
-
-    constructor() {
-
-        /**
-         * @type {SceneNode}
-         */
-        this.sceneTree;
-
-        this.material;
-
-        this.drawPos;
-    }
-
-    isRenderable(render: Renderer) {
-        return false;
-    }
-}
-
-export class Animable {
-    [key: string]: any;
-
-    constructor() {
-        /**
-         * @type {SceneNode}
-         */
-        this.sceneTree;
-        this.aniframe = 0;
-        this.pos;
-        this.parts;
-        this.animationScript;
-
-    }
-
-}
-
-export class TraversableRenderer {
-    [key: string]: any;
-
-    /**
-     *
-     * @param {SceneNode} node
-     * @param {SceneNode} parent
-     * @param {*} render
-     * @param {Traversable} traversable
-     * @returns
-     */
-    traverse(node, parent = null, render, traversable) {
-        if(!this.drawTraversed(node, parent, render, traversable)) {
-            return false;
-        }
-
-        for(let next of node.children) {
-            if (!this.traverse(next, node, render, traversable)) return false;
-        }
-
-        return true;
-    }
-
-    drawTraversed(node, parent, render, traversable) {
-        if('visible' in node && !node.visible) {
-            return;
-        }
-        if (!node.terrainGeometry) {
-            return true;
-        }
-        if (node?.armor && !node.material) {
-            return true;
-        }
-        if (node.material && traversable.lightTex) {
-            node.material.lightTex = traversable.lightTex;
-        }
-        render.renderBackend.drawMesh(
-            node.terrainGeometry,
-            node.material || traversable.material,
-            traversable.drawPos,
-            node.matrixWorld
-        );
-
-        return true;
-    }
-
-    drawLayer(render, traversable : Traversable, ignore_roots = []) {
-        if (!traversable || !traversable.sceneTree) {
-            return;
-        }
-
-        if (!traversable.isRenderable(render)) {
-            return;
-        }
-
-        // Wait loading texture
-        if(!traversable.material) {
-            return;
-        }
-
-        for(let st of traversable.sceneTree) {
-            if(ignore_roots && ignore_roots.indexOf(st.name) >= 0) {
-                continue;
-            }
-            this.traverse(st, null, render, traversable);
-        }
-
-    }
-
-}
-
-export class Animator {
-    [key: string]: any;
-
-    prepare(animable) {
-    }
-
-    update(delta, camPos, animable) {
-    }
-
-}
-
-export class MobAnimator extends Animator {
-    [key: string]: any;
-
-    prepare(animable) {
-        const { sceneTree: trees, parts = {} } = animable;
-
-        for(const p of ['head', 'arm', 'leg', 'wing', 'body']) {
-            parts[p] = [];
-        }
-
-        const legs = [];
-        const heads = [];
-        const arms = [];
-        const wings = [];
-
-        this.aniangle = 0;
-
-        for(const tree of trees) {
-            let leg;
-            let arm;
-            let head;
-            let wing;
-
-            head = tree.findNode('Head');
-            head && heads.push(head);
-
-            head = tree.findNode('head');
-            head && heads.push(head);
-
-            for(let i = 0; i < 8; i ++) {
-                leg = tree.findNode('leg' + i);
-                leg && legs.push(leg);
-
-                arm = tree.findNode('arm' + i);
-                arm && arms.push(arm);
-
-                wing = tree.findNode('wing' + i);
-                wing && wings.push(wing);
-            }
-
-            leg = tree.findNode('LeftLeg');
-            leg && legs.push(leg);
-
-            leg = tree.findNode('RightLeg');
-            leg && legs.push(leg);
-
-            arm = tree.findNode('RightArm');
-            arm && arms.push(arm);
-
-            arm = tree.findNode('LeftArm');
-            arm && arms.push(arm);
-
-            parts['head'].push(...heads);
-            parts['arm'].push(...arms);
-            parts['leg'].push(...legs);
-            parts['wing'].push(...wings);
-            parts['body'].push(...[tree.findNode('Body')]);
-        }
-
-        animable.parts = parts;
-    }
-
-    update(delta, camPos, animable, speed?) {
-
-        if (!animable) {
-            return;
-        }
-
-        if (!animable.parts) {
-            this.prepare(animable);
-        }
-
-        if (!animable.parts) {
-            return;
-        }
-
-        // Mob legs animation
-        const speed_mul      = animable.running ? 1.5 : (animable.sneak ? .5 : 1); // speed / 15.5;
-        const anim_speed      = 122.5;
-        const max_anim_angle  = Math.PI / 4 * speed_mul;
-        const speed_delta     = typeof speed === 'undefined' ? delta : delta * speed_mul;
-
-        if(animable.moving) {
-            // @IMPORTANT minus to make the character start walking on the right foot
-            animable.aniframe -= speed_delta / anim_speed;
-            this.aniangle = max_anim_angle * Math.sin(animable.aniframe);
-        } else if(this.aniangle != 0) {
-            if(this.aniangle < 0) {
-                this.aniangle += delta / anim_speed;
-                this.aniangle = Math.min(this.aniangle, 0);
-            } else {
-                this.aniangle -= delta / anim_speed;
-                this.aniangle = Math.max(this.aniangle, 0);
-            }
-            if(this.aniangle == 0) {
-                animable.aniframe = 0;
-            }
-        }
-
-        this.applyAnimation(delta, animable.aniframe, this.aniangle, camPos, animable);
-
-    }
-
-    applyAnimation(delta, aniframe, aniangle, camPos, animable) {
-
-        const {
-            animationScript, parts
-        } = animable;
-
-        if (!animationScript) {
-            return;
-        }
-
-        for(const partKey in parts) {
-            if (!animationScript[partKey]) {
-                continue;
-            }
-
-            for(let i = 0; i < parts[partKey].length; i ++) {
-                animationScript[partKey]({
-                    part: parts[partKey][i],
-                    index: i % 4,
-                    delta,
-                    aniframe,
-                    aniangle,
-                    animable,
-                    camPos
-                });
-            }
-        }
-    }
-}
-
-export class MobAnimation {
-    [key: string]: any;
-
-    model : MobModel
-
-    constructor(model : MobModel) {
-        this.model = model
-    }
-
-    head({
-        part, index, delta, animable, camPos
-    }) {
-        let {
-            yaw, pos, targetLook = 0
-        } = animable;
-
-        // Head to camera rotation
-        let angToCam = 0;
-
-        if (Helpers.distance(pos, camPos) < 5) {
-            angToCam = yaw  -Math.PI/2  + Math.atan2(camPos.z - pos.z, camPos.x - pos.x);
-
-            while(angToCam > Math.PI) angToCam -= Math.PI * 2;
-            while(angToCam < -Math.PI) angToCam += Math.PI * 2;
-
-            if (Math.abs(angToCam) >= Math.PI / 4) {
-                angToCam = 0;
-            }
-        }
-
-        if (Math.abs(angToCam - targetLook) > 0.05) {
-            targetLook += Math.sign(angToCam - targetLook) * 0.05;
-        }
-
-        quat.fromEuler(part.quat, 0, 0, 180 * targetLook / Math.PI);
-        if (animable.sleep) {
-            quat.rotateX(part.quat, part.quat, -Math.PI / 2)
-        }
-        part.updateMatrix();
-
-        animable.targetLook = targetLook;
-    }
-
-    leg({
-        part, index, aniangle, animable, isArm = 0
-    }) {
-        // если лег поспать, то не двигаемся
-        if (animable.sleep) {
-            quat.identity(part.quat);
-            quat.rotateX(part.quat, part.quat, 0)
-            quat.rotateY(part.quat, part.quat, 0)
-            quat.rotateZ(part.quat, part.quat, 0)
-            part.updateMatrix();
-            return
-        }
-        const x             = index % 2;
-        const y             = index / 2 | 0;
-        let sign            = isArm ? (index == 0 || index == 2) ? -1 : 1 : x ^ y ? -1 : 1;
-        const ageInTicks    = performance.now() / 50;
-        const isLeftArm     = isArm && index % 2 != 0;
-        const isLeftLeg     = !isArm && index % 2 == 0;
-        const isZombie      = animable.type == 'zombie';
-        const rotate        = new Vector(0, 0, 0);
-        const isSitting     = animable.sitting; // isHumanoid;
-
-        if(isZombie && isArm) {
-           aniangle /= 16;
-        }
-
-        if(!animable.type.startsWith('player:')) {
-            aniangle /= 2
-        }
-
-        if(isArm) {
-            sign *= -1
-        }
-
-        if(isSitting) {
-            if(isArm) {
-                rotate.x -= .8;
-            } else {
-                rotate.x -= 1.55;
-                rotate.y += 0.4 * (isLeftLeg ? -1 : 1);
-            }
-        } else {
-            // размахивание конечностями
-            rotate.x = aniangle * sign - (animable.sneak || 0) * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0));
-        }
-
-        // shake arms
-        if(isArm) {
-            if(!isLeftArm && this.isSwingInProgress) {
-                // атака правой руки
-                this.setupArmOnAttackAnimation(rotate);
-            } else if(!isSitting) {
-                // движение рук от дыхания
-                this.setupArmOnBreathAnimation(rotate, ageInTicks + 1500 * index, isLeftArm);
-            }
-            // hands up if zombie
-            if(isZombie) {
-                rotate.x -= 1.7;
-            }
-        }
-
-        // apply animation
-        quat.identity(part.quat);
-        quat.rotateX(part.quat, part.quat, rotate.x);
-        quat.rotateY(part.quat, part.quat, rotate.y);
-        quat.rotateZ(part.quat, part.quat, rotate.z);
-        part.updateMatrix();
-
-    }
-
-    // анимация от третьего лица
-    setupArmOnAttackAnimation(vec) {
-        let inv = Math.sin(this.swingProgress * Math.PI);
-        let sp = inv * inv;
-        let s1 = Math.sin(sp);
-        let s2 = Math.sin(inv);
-        vec.x -= (s1 * .8 + s2 * .5);
-        vec.y = Math.sin(Math.sqrt(this.swingProgress) * Math.PI) * .4;
-        vec.z = s2 * -.4;
-    }
-
-    // анимация установки блока от первого лица
-    setupArmOnPlaceAnimation(vec) {
-        const attackTime = this.swingProgress;
-        const body = {yRot: 0};
-        const head = {xRot: 0};
-        let f = attackTime;
-        f = 1.0 - attackTime;
-        f *= f;
-        f *= f;
-        f = 1.0 - f;
-        const f1 = Math.sin(f * Math.PI);
-        const f2 = Math.sin(attackTime * Math.PI) * -(head.xRot - 0.7) * 0.75;
-        vec.x -= f1 * 1.2 + f2;
-        vec.y += body.yRot * 2.0;
-        vec.z += Math.sin(attackTime * Math.PI) * -0.4;
-    }
-
-    // движение рук от дыхания
-    setupArmOnBreathAnimation(vec, ageInTicks, isLeftArm) {
-        vec.x += Math.sin(ageInTicks * 0.067) * 0.05;
-        vec.y += .05 * (isLeftArm ? - 1 : 1) + Math.sin(ageInTicks * 0.1) * 0.05; // Руки в сторону
-        vec.z = Math.cos(ageInTicks * 0.09) * 0.05 + 0.05;
-    }
-
-    /*
-    setupAttackAnimation(T p_102858_, float p_102859_) {
-        if (!(this.attackTime <= 0.0F)) {
-           HumanoidArm humanoidarm = this.getAttackArm(p_102858_);
-           ModelPart modelpart = this.getArm(humanoidarm);
-           float f = this.attackTime;
-           this.body.yRot = Mth.sin(Mth.sqrt(f) * ((float)Math.PI * 2F)) * 0.2F;
-           if (humanoidarm == HumanoidArm.LEFT) {
-              this.body.yRot *= -1.0F;
-           }
-
-           this.rightArm.z = Mth.sin(this.body.yRot) * 5.0F;
-           this.rightArm.x = -Mth.cos(this.body.yRot) * 5.0F;
-           this.leftArm.z = -Mth.sin(this.body.yRot) * 5.0F;
-           this.leftArm.x = Mth.cos(this.body.yRot) * 5.0F;
-           this.rightArm.yRot += this.body.yRot;
-           this.leftArm.yRot += this.body.yRot;
-           this.leftArm.xRot += this.body.yRot;
-           f = 1.0F - this.attackTime;
-           f *= f;
-           f *= f;
-           f = 1.0F - f;
-           float f1 = Mth.sin(f * (float)Math.PI);
-           float f2 = Mth.sin(this.attackTime * (float)Math.PI) * -(this.head.xRot - 0.7F) * 0.75F;
-           modelpart.xRot -= f1 * 1.2F + f2;
-           modelpart.yRot += this.body.yRot * 2.0F;
-           modelpart.zRot += Mth.sin(this.attackTime * (float)Math.PI) * -0.4F;
-        }
-    }*/
-
-    body({
-        part, index, aniangle, animable
-    }) {
-        quat.identity(part.quat);
-        if(animable.sneak && !animable.lies && !animable.sitting) {
-            quat.rotateX(part.quat, part.quat, animable.sneak * SNEAK_ANGLE);
-        } else if (animable.sleep) {
-            quat.rotateX(part.quat, part.quat, -Math.PI / 2)
-        }
-        part.updateMatrix();
-    }
-
-    arm(opts) {
-        opts.isArm = 1;
-        return this.leg(opts);
-    }
-
-    wing({
-        part, index, animable, delta
-    }) {
-
-        const deltaY = animable._prevPos.y - animable._pos.y;
-        // 16 - because we base that reference FPS is 60, this means that time should be 16.6
-        let p = part.frame = part.frame === undefined ? 0 : (part.frame + delta / 16.6);
-
-        const x = index % 2;
-        const y = index / 2 | 0;
-        const sign = (x ^ y ? 1 : -1);
-        const isJump = +(Math.abs(deltaY) > 0.01);
-
-        let anim = 0;
-
-        if (isJump) {
-            part.endFrame = part.frame + 30;
-            anim = sign;
-        }
-
-        if (part.frame < part.endFrame) {
-            anim = sign;
-        }
-
-        const add_wing_angle = ['bee'].includes(this.model.type) ? 0 : 90
-
-        const wing_angle = -anim * (Math.sin(p * Math.PI * 2 / 8) * 60 + add_wing_angle)
-
-        if(['bee'].includes(this.model.type)) {
-            quat.fromEuler(part.quat, wing_angle, 0, 0)
-        } else {
-            quat.fromEuler(part.quat, 0, wing_angle, 0)
-        }
-
-        part.updateMatrix()
-
-    }
-
-}
+import type { ArmorState, TAnimState, TSittingState, TSleepState } from "./player.js";
+import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
+import type { TMobProps } from "./mob_manager.js";
+import type { Mesh_Object_Base } from "./mesh/object/base.js";
+import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+
+const {mat4} = glMatrix
+
+// Анимация повороа говоры отдельно от тела, нужно перенести в bbmodel
+// head({part, index, delta, animable, camPos}) {
+//     let {
+//         yaw, pos, targetLook = 0
+//     } = animable;
+//     // Head to camera rotation
+//     let angToCam = 0;
+//     if (Helpers.distance(pos, camPos) < 5) {
+//         angToCam = yaw  -Math.PI/2  + Math.atan2(camPos.z - pos.z, camPos.x - pos.x);
+//         while(angToCam > Math.PI) angToCam -= Math.PI * 2;
+//         while(angToCam < -Math.PI) angToCam += Math.PI * 2;
+//         if (Math.abs(angToCam) >= Math.PI / 4) {
+//             angToCam = 0;
+//         }
+//     }
+//     if (Math.abs(angToCam - targetLook) > 0.05) {
+//         targetLook += Math.sign(angToCam - targetLook) * 0.05;
+//     }
+//     quat.fromEuler(part.quat, 0, 0, 180 * targetLook / Math.PI);
+//     if (animable.sleep) {
+//         quat.rotateX(part.quat, part.quat, -Math.PI / 2)
+//     }
+//     part.updateMatrix();
+//     animable.targetLook = targetLook;
+// }
 
 /**
  * Параметры, получаемые с сервера чтобы создать моба
@@ -527,100 +61,78 @@ export type TMobModelConstructorProps = {
 }
 
 export class MobModel extends NetworkPhysicObject {
-    [key: string]: any;
+	texture :           any = null
+	material :          any = null
+	raycasted :         boolean = false
+	moving_timeout :    any = false
+	nametag:            Mesh_Object_Base | null
+	aniframe :          int = 0
+	width :             int = 0
+	height :            int = 0
+	//on_ground :         boolean = true
+	tintColor :         Color = new Color(0, 0, 0, 0)
+	textures :          Map<string, any> = new Map()
+	type :              string
+	skin :              any
+	targetLook :        float = 0
+	currentChunk :      any = null
+	lightTex :          any = null
+	armor :             ArmorState = null
+	// sneak:              boolean = false
+	// body_rotate:        int = 0
+	// models:             Map<string, any> = new Map()
+	// fix_z_fighting:     float = Math.random() / 100
+	// drawPos:            Vector = new Vector(0, 0, 0)
+	// posDirty:           boolean = true
+	prev :              any = {
+                            head: null,
+                            body: null,
+                            leg: null,
+                            boot: null,
+                            skin: null
+                        }
+    extra_data:         any
+    slots:              any
+    tmpDrawPos:         any
+    yaw:                float
+    draw_yaw?:          float
+    sleep?:             false | TSleepState
+    sitting?:           false | TSittingState
+    aabb:               AABBDrawable = null
+    _mesh:              Mesh_Object_BBModel
+    _fire_mesh:         any
+    anim?:              false | TAnimState
+    ground:             boolean = true
+    running:            boolean = false
+    health:             number = 100
 
-    id          : int
-    type        : string
-    indicators? : Indicators
-    skin        : string | PlayerSkin
-    rotate      : IVector
-    driving ?   : ClientDriving | null
-    hasUse ?    : boolean
-    supportsDriving ? : boolean
+    is_sheared:         boolean = false
+    gui_matrix:         float[]
 
-    constructor(props: TMobModelConstructorProps, world : World) {
+    constructor(props : TMobProps, world : World) {
 
-        super(
-            world,
-            new Vector(0, 0, 0),
-            new Vector(0, 0, 0)
-        )
+        super(world, new Vector(0, 0, 0), new Vector(0, 0, 0))
 
-        this.fix_z_fighting             = Math.random() / 100;
-        this.sceneTree                  = null;
-        this.texture                    = null;
-        this.material                   = null;
-        this.raycasted                  = false;
-        this.moving_timeout             = null;
-        this.nametag                    = null;
-        this.aniframe                   = 0;
-        this.sneak                      = 0;
-        this.body_rotate                = 0;
-        this.textures                   = new Map();
+        Object.assign(this, props)
 
-        Object.assign(this, props);
+        this.type = props.type
+        this.skin = props.skin_id || props.skin
+        // this.animationScript = new MobAnimation(this)
 
-        /**
-         * @type {SceneNode[]}
-         */
-        this.legs = [];
-
-        /**
-         * @type {SceneNode}
-         */
-        this.head = null;
-
-        this.initialised = false;
-
-        this.targetLook = 0;
-
-        this.drawPos = {x: 0, y: 0, z: 0};
-
-        this.lightTex = null;
-        this.tintColor = new Color(0, 0, 0, 0);
-
-        this.posDirty = true;
-
-        this.currentChunk = null;
-
-        this.renderer = new TraversableRenderer();
-
-        this.animator = new MobAnimator();
-
-        this.animationScript = new MobAnimation(this);
-
-        this.armor = null;
-        this.prev = {
-            head: null,
-            body: null,
-            leg: null,
-            boot: null,
-            skin: null
-        };
-    }
-
-    protected processNetState(): void {
-        const driving = this.driving
-        if (driving) {
-            const positionProvider = driving.getPositionProvider()
-            if (positionProvider === this) {
-                // обработать новую позицию, и применить ее ко всем участникам движения
-                super.processNetState()
-                driving.updateFromVehicleModel(this)
-                driving.applyToDependentParticipants()
-                return
-            } else if (positionProvider) {
-                // есть кто-то другой, кто задает позицию этой модели; ничего не делать
-                this.netBuffer.length = 0
-                return
-            }
-            // нет никого другого, кто задает позицию этой модели; обработать ее как обычно
+        // load mesh
+        const render = Qubatch.render as Renderer
+        const type = this.type.startsWith('player') ? MOB_TYPE.HUMANOID : this.type
+        const model = Resources._bbmodels.get(type)
+        if(!model) {
+            console.error(`error_model_not_found|${type}`)
+            debugger
         }
-        super.processNetState()
+        this._mesh = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
+
     }
 
-    isRenderable(render: Renderer) {
-        return this.sceneTree && (
+    isRenderable(render: Renderer) : boolean {
+        return (
              !this.currentChunk ||
              (this.currentChunk.cullID === render.cullID)
          )
@@ -654,38 +166,20 @@ export class MobModel extends NetworkPhysicObject {
         }
     }
 
-    lazyInit(render) {
-        if (this.initialised) {
-            return;
-        }
-        return this.loadModel(render).then(()=>{
-                this.initialised = true;
-                this.postLoad(render, this.sceneTree);
-        });
-    }
+    computeLocalPosAndLight(render : Renderer, delta : float) {
 
-    computeLocalPosAndLight(render, delta) {
-        if (!this.initialised) {
-            return;
-        }
-
-        if (!this.sceneTree) {
-            return;
-        }
-
-        const newChunk = ChunkManager.instance.getChunk(this.chunk_addr);
+        const newChunk = ChunkManager.instance?.getChunk(this.chunk_addr);
 
         this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend);
 
         if (this.material) {
             this.material.lightTex = this.lightTex;
             this.material.tintColor = this.tintColor;
-
-            //TODO: refactor this!
-            if (this.slots && this.slots.RightArm && this.slots.RightArm.holder
-                && this.slots.RightArm.holder.material) {
-                this.slots.RightArm.holder.material.lightTex = this.lightTex;
-            }
+            // TODO: refactor this!
+            // if (this.slots && this.slots.RightArm && this.slots.RightArm.holder
+            //     && this.slots.RightArm.holder.material) {
+            //     this.slots.RightArm.holder.material.lightTex = this.lightTex;
+            // }
         }
 
         if (newChunk) {
@@ -698,8 +192,8 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         const yaw = this.yaw;
-        if(!('draw_yaw' in this)) {
-            this.draw_yaw = yaw;
+        if(typeof this.draw_yaw == 'undefined') {
+            this.draw_yaw = yaw
         } else {
             this.draw_yaw %= Math.PI * 2;
             while (this.draw_yaw > yaw + Math.PI) {
@@ -715,52 +209,15 @@ export class MobModel extends NetworkPhysicObject {
             }
         }
 
-        // root rotation
-        for(const st of this.sceneTree) {
-
-            const draw_yaw = this.draw_yaw;
-            const add_angle = this.body_rotate * Math.PI * (HEAD_MAX_ROTATE_ANGLE / 180);
-            quat.fromEuler(st.quat, 0, 0, (this.sleep) ? 360 * this.sleep.rotate.z : 180 * (Math.PI - (draw_yaw + add_angle)) / Math.PI);
-
-            //
-            let subY = 0;
-            if(this.sitting) {
-                subY = this.height * 1/3
-            } else if(this.sleep) {
-                subY = this.height * 5/6
-            } else if(this.sneak) {
-                subY = SNEAK_MINUS_Y_MUL
-            }
-
-            // TODO
-            let levitation = .2 + Math.sin(performance.now() / 1000) * .1;
-            levitation = 0;
-
-            st.position.set([
-                this.pos.x - this.drawPos.x,
-                this.pos.z - this.drawPos.z,
-                this.pos.y - this.drawPos.y - subY + this.fix_z_fighting + levitation,
-            ]);
-
-            st.updateMatrix();
-        }
-
     }
 
     update(render? : Renderer, camPos? : Vector, delta? : float, speed? : float) {
-        super.update();
-
-        this.computeLocalPosAndLight(render, delta);
-
-        if (!this.isRenderable(render)) {
-            return;
-        }
-
-       this.animator.update(delta, camPos, this, speed);
+        super.update()
+        this.computeLocalPosAndLight(render, delta)
     }
 
-    isDetonationStarted() {
-        return this.extra_data?.detonation_started || false;
+    isDetonationStarted() : boolean {
+        return this.extra_data?.detonation_started || false
     }
 
     /**
@@ -768,18 +225,14 @@ export class MobModel extends NetworkPhysicObject {
      */
     draw(render : Renderer, camPos : Vector, delta : float, speed? : float, draw_debug_grid : boolean = false) {
 
-        this.lazyInit(render);
         this.update(render, camPos, delta, speed);
 
-        if (!this.sceneTree) {
-            return null;
-        }
-
-        // ignore_roots
-        const ignore_roots = [];
-        if(this.type == 'sheep' && this.extra_data?.is_shaered) {
-            ignore_roots.push('geometry.sheep.v1.8:geometry.sheep.sheared.v1.8');
-        }
+        // TODO: need to migrate to bbmodels
+        // // ignore_roots
+        // const ignore_roots = [];
+        // if(this.type == MOB_TYPE.SHEEP && this.extra_data?.is_sheared) {
+        //     ignore_roots.push('geometry.sheep.v1.8:geometry.sheep.sheared.v1.8');
+        // }
 
         // Draw in fire
         if(this.extra_data?.in_fire) {
@@ -791,221 +244,87 @@ export class MobModel extends NetworkPhysicObject {
             this.aabb.draw(render, this.tPos, delta, true /*this.raycasted*/ );
         }
 
-        const mesh : Mesh_Object_BBModel = null // this._mesh || (this._mesh = render.world.mobs.models.get(this.type))
+        const mesh = this._mesh
+
         if(mesh) {
-
-            //
-            // const init_matrix = mat4.create()
-            // const rotate = new Vector(0, 0, this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0)
-            // let rotate_matrix = mat4.create()
-            // mat4.rotateZ(rotate_matrix, rotate_matrix, rotate.z)
-            // let leg_matrix = mat4.create()
-            // mat4.rotateY(leg_matrix, leg_matrix, performance.now() / 1000)
-            // mat4.rotateZ(leg_matrix, leg_matrix, rotate.z)
-            // for(let k in mesh.parts) {
-            //     const parts = mesh.parts[k]
-            //     const parent_matrix = (k == 'legs') ? leg_matrix : rotate_matrix
-            //     for(let i = 0; i < parts.length; i++) {
-            //         const group : BBModel_Group = parts[i]
-            //         if(group instanceof GeometryTerrain) {
-            //             render.renderBackend.drawMesh(group, mesh.gl_material, this._pos, parent_matrix)
-            //         } else {
-            //             const vertices = []
-            //             group.pushVertices(vertices, Vector.ZERO, IndexedColor.WHITE, init_matrix, null)
-            //             const gt = new GeometryTerrain(vertices)
-            //             parts[i] = gt
-            //         }
-            //     }
-            // }
-
-            // mesh.setAnimation('walk')
-            mesh.rotate.z = this.draw_yaw ? Math.PI - this.draw_yaw + Math.PI/2 : 0
+            this.doAnims();
             mesh.apos.copyFrom(this._pos)
-            mesh.applyRotate()
-            mesh.draw(render, delta)
-
-        } else {
-
-            // If mob die
-            if(this.isAlive === false) {
-                // first enter to this code
-                if(!this.die_info) {
-                    this.yaw_before_die = this.yaw;
-                    this.die_info = {
-                        time: performance.now(),
-                        scale: Array.from(this.sceneTree[0].scale)
-                    };
-                    this.sneak = 1;
-                }
-                const elapsed = performance.now() - this.die_info.time;
-                const max_die_animation_time = 1000;
-                let elapsed_percent = elapsed / max_die_animation_time;
-                if(elapsed_percent < 1) {
-                    if(this.netBuffer.length > 0) {
-                        const state = this.netBuffer[0];
-                        state.rotate.z = this.yaw_before_die + elapsed / 100;
-                        if(!this.extra_data.play_death_animation) {
-                            elapsed_percent = 1;
-                        }
-                        for(let st of this.sceneTree) {
-                            st.scale[0] = this.die_info.scale[0] * (1 - elapsed_percent);
-                            st.scale[1] = this.die_info.scale[1] * (1 - elapsed_percent);
-                            st.scale[2] = this.die_info.scale[2] * (1 - elapsed_percent);
-                        }
-                    }
-                    this.tintColor.set(1, 1, 1, .3);
-                } else {
-                    return false;
-                }
-            } else if(this.isDetonationStarted()) {
-                if(!this.detonation_started_info) {
-                    this.detonation_started_info = {
-                        time: performance.now(),
-                        scale: Array.from(this.sceneTree[0].scale)
-                    }
-                }
-                const info = this.detonation_started_info;
-                const elapsed = performance.now() - info.time;
-                const elapsed_percent = Math.min(elapsed / MAX_DETONATION_TIME, 1);
-                const is_tinted = Math.round(elapsed / 150) % 2 == 0;
-                if(elapsed_percent == 1 || is_tinted) {
-                    this.tintColor.set(1, 1, 1, .5);
-                } else {
-                    this.tintColor.set(0, 0, 0, 0);
-                }
-                const CREEPER_MAX_DETONATION_SCALE = 1.35;
-                const new_creeper_scale = info.scale[0] * (1 + elapsed_percent * (CREEPER_MAX_DETONATION_SCALE - 1));
-                for(let st of this.sceneTree) {
-                    st.scale[0] = new_creeper_scale;
-                    st.scale[1] = new_creeper_scale;
-                    st.scale[2] = new_creeper_scale;
-                }
-            } else if(this.detonation_started_info) {
-                this.tintColor.set(0, 0, 0, 0);
-                for(let st of this.sceneTree) {
-                    st.scale = this.detonation_started_info.scale;
-                }
-                this.detonation_started_info = null;
-            }
-
-            this.setArmor();
-
-            this.setSkin();
-
-            // run render
-            this.renderer.drawLayer(render, this, ignore_roots);
-
+            mesh.drawBuffered(render, delta)
         }
+    }
 
+    doAnims() {
+        const mesh = this._mesh;
+        if(this.type == MOB_TYPE.SHEEP) {
+            if (this.extra_data?.is_sheared) {
+                mesh.modifiers.hideGroup('wool')
+            } else {
+                mesh.modifiers.showGroup('wool')
+            }
+        }
+        this.setArmor()
+        if (this.sleep) {
+            const rot = this.sleep.rotate.z * 2 * Math.PI
+            mesh.rotation[2] = rot % Math.PI ? rot : rot + Math.PI
+            mesh.setAnimation('sleep')
+        } else {
+            mesh.rotation[2] = this.draw_yaw ? this.draw_yaw : 0
+            if (this.sitting) {
+                mesh.setAnimation('sitting')
+            } else if (!this.ground) {
+                mesh.setAnimation('jump')
+            } else if (this.moving) {
+                if (this.sneak) {
+                    mesh.setAnimation('sneak')
+                } else if (!this.running) {
+                    mesh.setAnimation('walk')
+                } else {
+                    mesh.setAnimation('run')
+                }
+            } else if (this.sneak) {
+                mesh.setAnimation('sneak_idle')
+            } else if (this.anim) {
+                mesh.setAnimation(this.anim.title)
+            } else {
+                mesh.setAnimation('idle')
+            }
+        }
+    }
+
+    updateArmor() {
+        Qubatch.player.updateArmor()
+
+    }
+
+    drawInGui(render : Renderer, delta : float) {
+        this.update(render, new Vector(), delta, 0);
+        const mesh = this._mesh;
+        if (mesh) {
+            this.doAnims();
+            mesh.apos.copyFrom(Vector.ZERO);
+            mesh.rotation[2] = (this.sleep ? 0 : 15) / 180 * -Math.PI
+            mesh.drawBuffered(render, delta)
+        }
     }
 
     drawInFire(render : Renderer, delta : float) {
-        if(this.fire_mesh) {
-            this.fire_mesh.yaw = Math.PI - this.angleTo(this.pos, render.camPos);
-            this.fire_mesh.apos.copyFrom(this.pos);
-            this.fire_mesh.draw(render, delta);
+        if(this._fire_mesh) {
+            this._fire_mesh.yaw = Math.PI - this.angleTo(this.pos, render.camPos);
+            this._fire_mesh.apos.copyFrom(this.pos);
+            this._fire_mesh.draw(render, delta);
         } else {
-            this.fire_mesh = new Mesh_Object_MobFire(this, this.world)
+            this._fire_mesh = new Mesh_Object_MobFire(this, this.world)
         }
     }
 
-    angleTo(pos, target) {
+    angleTo(pos : Vector, target : Vector) {
         const angle = Math.atan2(target.x - pos.x, target.z - pos.z);
         return (angle > 0) ? angle : angle - 2 * Math.PI;
     }
 
-    /**
-     * @param {Renderer} render
-     * @param {ImageBitmap | Image} image
-     */
-    getTexture(render, image) {
-        const texture = render.renderBackend.createTexture({
-            source: image,
-            minFilter: 'nearest',
-            magFilter: 'nearest',
-            shared: true
-        });
-        return render.defaultShader.materials.doubleface_transparent.getSubMat(texture);
-    }
-
-
-    // Loads the player head model into a vertex buffer for rendering.
-    /**
-     *
-     * @param {Renderer} render
-     */
-    async loadModel(render) {
-        if (this.sceneTree) {
-            return;
-        }
-
-        if (this.type.startsWith('player')) {
-            this.type = PLAYER_SKIN_TYPES[(this.skin as PlayerSkin).type];
-        }
-
-        // загружеам ресурсы
-        const asset = await Resources.getModelAsset(this.type);
-        if (!asset) {
-            console.error("Can't locate model for loadModel:", this.type);
-            return null;
-        }
-        this.sceneTree = ModelBuilder.loadModel(asset);
-        if (!this.sceneTree) {
-            return null;
-        }
-
-        let image;
-        if (this.type.startsWith('player')) {
-            image = await asset.getPlayerSkin((this.skin as PlayerSkin).file);
-            this.material = this.getTexture(render, image);
-        } else {
-            // получаем все скины моба
-            for (const title in asset.skins) {
-                image = await asset.getSkin(title);
-                const texture = this.getTexture(render, image);
-                this.textures.set(title, texture);
-            }
-            // загружем скин для моба
-            this.prev.skin = this.skin = this.skin || asset.baseSkin;
-            this.material = this.textures.get(this.skin.toString());
-        }
-        // если игрок зомби или скелет, загружаем броню для них
-        if (this.type.startsWith('player') || this.type == 'zombie' || this.type == 'skeleton') {
-            const armor = await Resources.getModelAsset('armor');
-            if (!armor) {
-                console.log("Can't locate armor model");
-                return null;
-            }
-            for (const title in armor.skins) {
-                const image = await armor.getSkin(title);
-                const texture = this.getTexture(render, image);
-                this.textures.set(title, texture);
-            }
-            const scene = ModelBuilder.loadModel(armor);
-            scene[0].children[0].armor = true;
-            scene[0].children[1].armor = true;
-            scene[0].children[1].children[0].armor = true;
-            scene[0].children[1].children[1].armor = true;
-            scene[0].children[1].children[2].armor = true;
-            scene[0].children[1].children[3].armor = true;
-            scene[0].children[1].children[4].armor = true;
-            scene[0].children[1].children[2].children[0].armor = true;
-            scene[0].children[1].children[3].children[0].armor = true;
-            this.sceneTree[1] = scene[0];
-        }
-        this.animator.prepare(this);
-    }
-
-    postLoad(render : Renderer, tree : SceneNode) {
-        if (!tree) {
-            return;
-        }
-        this.animator.prepare(this);
-    }
-
     onUnload() {
-        if(this.fire_mesh) {
-            this.fire_mesh.destroy();
+        if(this._fire_mesh) {
+            this._fire_mesh.destroy();
         }
     }
 
@@ -1020,57 +339,72 @@ export class MobModel extends NetworkPhysicObject {
 
     // установка армора
     setArmor() {
-        if (!this.sceneTree[1]) {
-            return;
-        }
-        const armor = (this.extra_data?.armor) ? this.extra_data.armor : this.armor;
+
+        const armor = (this.extra_data?.armor) ? this.extra_data.armor : this.armor
         if (!armor) {
-            return;
+            return
         }
+
+        const block = Qubatch.world.block_manager
+
         if (armor.head != this.prev.head) {
             if (armor.head) {
-                const item = BLOCK.fromId(armor.head);
-                this.sceneTree[1].children[0].material = (armor.head == 273) ? this.textures.get('turtle_layer_1') : this.textures.get(item.material.id +'_layer_1');
+                const item = block.fromId(armor.head)
+                this._mesh.modifiers.replaceGroup('helmet', item.model.name, item.model.texture + '.png')
+                this._mesh.modifiers.showGroup('helmet')
             } else {
-                this.sceneTree[1].children[0].material = null;
+                this._mesh.modifiers.hideGroup('helmet')
             }
-            this.prev.head = armor.head;
+            this.prev.head = armor.head
         }
+
         if (armor.body != this.prev.body) {
             if (armor.body) {
-                const item = BLOCK.fromId(armor.body);
-                this.sceneTree[1].children[1].material = this.textures.get(item.material.id +'_layer_1');
+                const item = block.fromId(armor.body)
+                for (let i = 0; i < 6; i++) {
+                    this._mesh.modifiers.replaceGroup('chestplate' + i, item.model.name, item.model.texture + '.png')
+                    this._mesh.modifiers.showGroup('chestplate' + i)
+                }
             } else {
-                this.sceneTree[1].children[1].material = null;
+                for (let i = 0; i < 6; i++) {
+                    this._mesh.modifiers.hideGroup('chestplate' + i)
+                }
             }
-            this.sceneTree[1].children[1].children[0].material = this.sceneTree[1].children[1].material;
-            this.sceneTree[1].children[1].children[1].material = this.sceneTree[1].children[1].material;
-            this.prev.body = armor.body;
+            this.prev.body = armor.body
         }
+
         if (armor.leg != this.prev.leg) {
             if (armor.leg) {
-                const item = BLOCK.fromId(armor.leg);
-                this.sceneTree[1].children[1].children[2].material = this.textures.get(item.material.id +'_layer_2');
-                this.sceneTree[1].children[1].children[3].material = this.textures.get(item.material.id +'_layer_2');
-                this.sceneTree[1].children[1].children[4].material = this.textures.get(item.material.id +'_layer_2');
+                const item = block.fromId(armor.leg)
+                for (let i = 0; i < 10; i++) {
+                    this._mesh.modifiers.replaceGroup('pants' + i, item.model.name, item.model.texture + '.png')
+                    this._mesh.modifiers.showGroup('pants' + i)
+                }
             } else {
-                this.sceneTree[1].children[1].children[2].material = null;
-                this.sceneTree[1].children[1].children[3].material = null;
-                this.sceneTree[1].children[1].children[4].material = null;
+                for (let i = 0; i < 10; i++) {
+                    this._mesh.modifiers.hideGroup('pants' + i)
+                }
             }
-            this.prev.leg = armor.leg;
+            this.prev.leg = armor.leg
         }
+
         if (armor.boot != this.prev.boot) {
             if (armor.boot) {
-                const item = BLOCK.fromId(armor.boot);
-                this.sceneTree[1].children[1].children[2].children[0].material = this.textures.get(item.material.id +'_layer_1');
-                this.sceneTree[1].children[1].children[3].children[0].material = this.textures.get(item.material.id +'_layer_1');
+                const item = block.fromId(armor.boot)
+                for (let i = 0; i < 10; i++) {
+                    this._mesh.modifiers.replaceGroup('boots' + i, item.model.name, item.model.texture + '.png')
+                    this._mesh.modifiers.showGroup('boots' + i)
+                }
             } else {
-                this.sceneTree[1].children[1].children[2].children[0].material = null;
-                this.sceneTree[1].children[1].children[3].children[0].material = null;
+                for (let i = 0; i < 10; i++) {
+                    this._mesh.modifiers.hideGroup('boots' + i)
+                }
             }
-            this.prev.boot = armor.boot;
+            this.prev.boot = armor.boot
         }
+
     }
+
+    postLoad(render : Renderer) {}
 
 }

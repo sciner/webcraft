@@ -138,8 +138,6 @@ export class Vector implements IVector {
         this.z = newZ + origin.z;
     }
 
-    /**
-     */
     lerpFrom(vec1: IVector, vec2: IVector, delta: float) : this {
         this.x = vec1.x * (1.0 - delta) + vec2.x * delta;
         this.y = vec1.y * (1.0 - delta) + vec2.y * delta;
@@ -147,8 +145,6 @@ export class Vector implements IVector {
         return this;
     }
 
-    /**
-     */
     lerpFromAngle(vec1 :IVector, vec2: IVector, delta: float, rad : boolean = false) : this {
         const coef = rad
             ? 180 / Math.PI
@@ -160,10 +156,6 @@ export class Vector implements IVector {
         return this;
     }
 
-    /**
-     * @param {Vector} vec
-     * @return {Vector}
-     */
     add(vec: IVector) : Vector {
         return new Vector(this.x + vec.x, this.y + vec.y, this.z + vec.z);
     }
@@ -175,8 +167,6 @@ export class Vector implements IVector {
         return this;
     }
 
-    /**
-     */
     addSelf(vec: IVector) : this {
         this.x += vec.x;
         this.y += vec.y;
@@ -190,10 +180,6 @@ export class Vector implements IVector {
         return new Vector(this.x - vec.x, this.y - vec.y, this.z - vec.z);
     }
 
-    /**
-     * @param {Vector} vec
-     * @return {Vector}
-     */
     subSelf(vec: IVector) : this {
         this.x -= vec.x;
         this.y -= vec.y;
@@ -216,10 +202,6 @@ export class Vector implements IVector {
         return this
     }
 
-    /**
-     * @param {Vector} vec
-     * @return {Vector}
-     */
     div(vec: IVector) : Vector {
         return new Vector(this.x / vec.x, this.y / vec.y, this.z / vec.z);
     }
@@ -231,8 +213,6 @@ export class Vector implements IVector {
         return this;
     }
 
-    /**
-     */
     swapYZ() : Vector {
         return new Vector(this.x, this.z, this.y);
     }

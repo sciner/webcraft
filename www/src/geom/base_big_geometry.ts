@@ -2,47 +2,46 @@ import {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
 import type {BaseBuffer} from "../renders/BaseRenderer.js";
 import type WebGLRenderer from "../renders/webgl";
 import type {BaseGeometryVao} from "./base_geometry_vao.js";
-import {GL_BUFFER_LOCATION} from "./base_geometry_vao.js";
+import {SillyGeometryVao} from "./silly_geometry_vao.js";
 import {VAO_BUFFER_TYPE} from "./base_geometry_vao.js";
 
 export interface BigGeometryOptions {
     staticSize?: number;
     dynamicSize?: number;
-    useDoubleBuffer?: boolean;
+    useTransformFeedback?: boolean;
 }
 
 export class BaseBigGeometry {
+    staticCopy: any;
     staticSize: number;
     dynamicSize: number;
+    useTransformFeedback: boolean;
 
     indexData: Int32Array = null;
     indexBuffer: BaseBuffer = null;
 
     context: WebGLRenderer;
     gl: WebGL2RenderingContext = null;
-    useDoubleBuffer = false;
 
-    geomClass: new (options:any) => BaseGeometryVao;
+    geomClass: new (options: any) => BaseGeometryVao;
 
-    constructor({staticSize = 128, dynamicSize = 128, useDoubleBuffer = false} : BigGeometryOptions) {
+    constructor({staticSize = 128, dynamicSize = 128, useTransformFeedback = true}: BigGeometryOptions) {
         this.staticSize = staticSize;
         this.dynamicSize = dynamicSize;
-        this.useDoubleBuffer = useDoubleBuffer;
+        this.useTransformFeedback = useTransformFeedback;
         this.createGeom();
     }
 
     strideFloats: number;
     staticDraw: BaseGeometryVao;
-    staticCopy: BaseGeometryVao;
     dynamicDraw: BaseGeometryVao;
+    sillyDraw: SillyGeometryVao;
     batch: BigGeomBatchUpdate;
 
     createGeom() {
         this.staticDraw = new this.geomClass({size: this.staticSize, bufferType: VAO_BUFFER_TYPE.BIG});
-        if (this.useDoubleBuffer) {
-            this.staticCopy = new this.geomClass({size: this.staticSize, bufferType: VAO_BUFFER_TYPE.BIG});
-        }
         this.dynamicDraw = new this.geomClass({size: this.dynamicSize, bufferType: VAO_BUFFER_TYPE.DYNAMIC});
+        this.sillyDraw = new SillyGeometryVao();
         this.strideFloats = this.staticDraw.strideFloats;
         this.batch = new BigGeomBatchUpdate(this);
     }
@@ -55,34 +54,30 @@ export class BaseBigGeometry {
         }
     }
 
-    flip() {
-        const t = this.staticDraw;
-        this.staticDraw = this.staticCopy;
-        this.staticCopy = t;
-        this.batch.flip();
-    }
-
     upload(shader) {
-        const {batch, staticDraw, staticCopy, dynamicDraw} = this;
+        const {batch, staticDraw, dynamicDraw, sillyDraw} = this;
         if (!this.context) {
             this.context = shader.context;
             // when WebGL
             this.gl = shader.context.gl;
             staticDraw.init(shader);
-            staticCopy?.init(shader);
             dynamicDraw.init(shader);
+            sillyDraw?.init(this.context);
         }
         if (batch.instCount === 0) {
             return;
         }
-        batch.updDynamic();
-        if (this.useDoubleBuffer) {
-            if (staticCopy.isReadyForUpload()) {
-                staticCopy.buffer.batchUpdate(batch.vao.buffer, batch.copies, staticDraw.stride);
-                this.flip();
-            }
-        } else {
-            staticDraw.buffer.batchUpdate(batch.vao.buffer, batch.copies, staticDraw.stride);
+        if (dynamicDraw.buffer?.dirty) {
+            batch.updDynamic();
+        }
+        if (this.useTransformFeedback) {
+            batch.preFlip();
+            sillyDraw.batchUpdate(batch.vao.buffer, staticDraw.buffer, batch.copyOps, staticDraw.stride);
+            batch.reset();
+        }
+        else {
+            batch.preFlip();
+            staticDraw.buffer.batchUpdate(batch.vao.buffer, batch.copyOps, staticDraw.stride);
             batch.reset();
         }
         if (this.indexBuffer) {
@@ -91,17 +86,11 @@ export class BaseBigGeometry {
     }
 
     checkFence() {
-        if (!this.useDoubleBuffer) {
-            return;
-        }
-        this.staticDraw.checkFence();
-        this.staticCopy.checkFence();
     }
 
     resize(newSize) {
         this.staticSize = newSize;
         this.staticDraw.resize(newSize);
-        this.staticCopy?.resize(newSize);
         console.debug(`multigeometry resize ${newSize}`);
     }
 

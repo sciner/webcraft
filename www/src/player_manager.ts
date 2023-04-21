@@ -3,6 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {AbstractPlayerManager} from "./abstract_player_manager.js";
 import type { PlayerStateUpdate } from "./player.js";
 import type { World } from "./world.js";
+import type { TMobProps } from "./mob_manager.js";
 
 export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
 
@@ -31,7 +32,7 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
     }
 
     // addPlayer
-    add(cmd: {data: PlayerStateUpdate, time: number}) {
+    add(cmd: {data: PlayerStateUpdate, time: number}) : PlayerModel {
         const data = cmd.data;
         const player = new PlayerModel({
             id:             data.id,
@@ -42,12 +43,13 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
             username:       data.username,
             type:           data.type || 'player',
             health:         data.health
-        }, this.world);
+        } as TMobProps, this.world);
 
         this.list.set(data.id, player);
         this.setState(cmd);
         player.netBuffer.length = 0;
         this.world.drivingManager.onPlayerModelAdded(player)
+        return player
     }
 
     delete(user_id: int): boolean {
@@ -76,9 +78,11 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
         player.armor = data.armor;
         player.health = data.health;
         player.sleep = data.sleep
+        player.anim = data.anim
+        player.sitting = data.sitting
+        player.ground = data.ground
+        player.running = data.running
         if(data.pos) {
-            player.sitting = data.sitting;
-            player.lies = data.lies;
             player.applyNetState({
                 pos: data.pos,
                 sneak: !!data.sneak,

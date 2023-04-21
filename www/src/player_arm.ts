@@ -51,7 +51,7 @@ export class PlayerArm {
 
             arm.vertices = [];
             const mx = mat4.create();
-            mat4.rotateY(mx, mx, arm.rotate.z + Math.PI);
+            mat4.rotateY(mx, mx, arm.rotation[2] + Math.PI);
             arm.model.playAnimation(arm.animation_name, atack_sword_animation.length * f);
             arm.model.draw(arm.vertices, vecZero, lm, mx);
             arm.buffer.updateInternal(arm.vertices);

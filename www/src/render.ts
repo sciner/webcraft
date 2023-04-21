@@ -36,7 +36,7 @@ import type { HUD } from "./hud.js";
 import type {Player} from "./player.js";
 import type WebGLRenderer from "./renders/webgl/index.js";
 
-const {mat3, mat4} = glMatrix;
+const {mat3, mat4, quat, vec3} = glMatrix;
 
 /**
 * Renderer
@@ -284,7 +284,7 @@ export class Renderer {
 
         const promises = []
 
-        // generatePrev
+        // generate prev
         promises.push(this.generatePrev(settings.generate_prev_callback))
         this.generateDropItemVertices();
 
@@ -424,13 +424,14 @@ export class Renderer {
         const gu = this.globalUniforms;
         //
         const matrix_empty = mat4.create();
-        mat4.scale(matrix_empty, matrix_empty, [0.75, 0.75, 0.75]);
+        const matrix_base = mat4.create();
+        mat4.scale(matrix_base, matrix_base, [0.75, 0.75, 0.75]);
         //
         const matrix = mat4.create();
         mat4.rotateX(matrix, matrix, Math.PI / 6);
-        mat4.rotateZ(matrix, matrix, Math.PI + Math.PI / 4);
+        mat4.rotateY(matrix, matrix, Math.PI / 4);
         //
-        camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
+        camera.set(new Vector(0, 0, 2), new Vector(0, 0, Math.PI));
         // larg for valid render results
         gu.fogColor = [0, 0, 0, 0];
         gu.fogDensity = 100;
@@ -454,7 +455,7 @@ export class Renderer {
 
         regular.forEach((drop, i) => {
             const pos = drop.block_material.inventory_icon_id;
-            const x = -GRID_X + 1 + (pos % GRID_X) * 2;
+            const x = GRID_X - 1 - (pos % GRID_X) * 2;
             const y = GRID_Y - 1 - ((pos / (GRID_X)) | 0) * 2;
             const multipart = drop.mesh_group.multipart;
 
@@ -472,26 +473,72 @@ export class Renderer {
                 mesh.material.texture.magFilter = 'linear';
 
                 let pers_matrix = null;
-                if(drop.block_material.inventory?.rotate) {
-                    const icon_rotate = new Vector(drop.block_material.inventory?.rotate).toArray()
-                    pers_matrix = pers_matrix || [...(multipart ? matrix_empty : matrix)];
-                    for(let i = 0; i < icon_rotate.length; i++) {
-                        if(!icon_rotate[i]) continue;
-                        const rot_arr = [0, 0, 0];
-                        rot_arr[i] = 1;
-                        mat4.rotate(pers_matrix, pers_matrix, icon_rotate[i], rot_arr);
+                const mat = drop.block_material
+
+                const display = mat.bb?.model?.json?.display?.gui
+                if(display) {
+                    pers_matrix = mat4.create();
+                    const tempQuat = quat.create()
+
+                    const position = vec3.create()
+                    const scale = vec3.set(vec3.create(), 1, 1, 1)
+                    const pivot = vec3.set(vec3.create(), 0, -0.5, 0);
+                    const rotate = vec3.create();
+
+                    if(display.rotation) {
+                        rotate[0] = display.rotation[0];//+display.rotation[0] + Math.PI / 2
+                        rotate[1] = -display.rotation[1];
+                        rotate[2] = -display.rotation[2];
                     }
-                }
-                if(drop.block_material.inventory?.scale) {
-                    const icon_scale = drop.block_material.inventory?.scale;
-                    pers_matrix = pers_matrix || [...(multipart ? matrix_empty : matrix)];
-                    mat4.scale(pers_matrix, pers_matrix, [icon_scale, icon_scale, icon_scale]);
-                    mat4.translate(pers_matrix, pers_matrix, [0, 0, icon_scale / 10]);
-                }
-                if(drop.block_material.inventory?.move) {
-                    const icon_move = drop.block_material.inventory?.move;
-                    pers_matrix = pers_matrix || [...(multipart ? matrix_empty : matrix)];
-                    mat4.translate(pers_matrix, pers_matrix, new Vector(icon_move).toArray());
+
+                    const BB_GUI_SCALE = 1.5;
+
+                    if(display.scale) {
+                        vec3.set(scale, display.scale[0] * BB_GUI_SCALE, display.scale[1] * BB_GUI_SCALE, display.scale[2] * BB_GUI_SCALE)
+                    }
+
+                    const s16 = BB_GUI_SCALE / 16;
+                    if(display.translation) {
+                        vec3.set(position, -display.translation[0] * s16, display.translation[1] * s16 + 0.5, -display.translation[2] * s16);
+                    }
+
+                    quat.fromEuler(tempQuat, rotate[0], rotate[1], rotate[2], 'xyz')
+                    mat4.fromRotationTranslationScaleOrigin(pers_matrix, tempQuat, position, scale, pivot)
+                    // mat4.translate(pers_matrix, pers_matrix, position);
+                    // if(display.rotation) {
+                    //     const icon_rotate = display.rotation
+                    //     for(let i = 0; i < icon_rotate.length; i++) {
+                    //         if(!icon_rotate[i]) continue;
+                    //         const rot_arr = [0, 0, 0]
+                    //         rot_arr[i] = 1
+                    //         mat4.rotate(pers_matrix, pers_matrix, icon_rotate[i] / 180 * Math.PI, rot_arr)
+                    //     }
+                    // }
+
+                    // mat4.translate(pers_matrix, pers_matrix, [0, 0, 4/16])
+
+                } else if(mat.inventory) {
+                    if(mat.inventory.rotate) {
+                        const icon_rotate = new Vector(mat.inventory.rotate).toArray()
+                        pers_matrix = pers_matrix || [...(multipart ? matrix_base : matrix)];
+                        for(let i = 0; i < icon_rotate.length; i++) {
+                            if(!icon_rotate[i]) continue;
+                            const rot_arr = [0, 0, 0];
+                            rot_arr[i] = 1;
+                            mat4.rotate(pers_matrix, pers_matrix, icon_rotate[i], rot_arr);
+                        }
+                    }
+                    if(mat.inventory.scale) {
+                        const icon_scale = mat.inventory.scale;
+                        pers_matrix = pers_matrix || [...(multipart ? matrix_base : matrix)];
+                        mat4.scale(pers_matrix, pers_matrix, [icon_scale, icon_scale, icon_scale]);
+                        mat4.translate(pers_matrix, pers_matrix, [0, 0, icon_scale / 10]);
+                    }
+                    if(mat.inventory.move) {
+                        const icon_move = mat.inventory.move;
+                        pers_matrix = pers_matrix || [...(multipart ? matrix_base : matrix)];
+                        mat4.translate(pers_matrix, pers_matrix, new Vector(icon_move).toArray());
+                    }
                 }
 
                 //if(this.block_material?.inventory?.move) {
@@ -502,7 +549,7 @@ export class Renderer {
                     mesh.buffer,
                     mesh.material,
                     new Vector(x, y, 0),
-                    pers_matrix ? pers_matrix : (multipart ? matrix_empty : matrix)
+                    pers_matrix ? pers_matrix : (multipart ? matrix_base : matrix)
                 );
 
                 mesh.material.texture.minFilter = 'nearest';
@@ -669,6 +716,94 @@ export class Renderer {
 
     }
 
+    //
+    async drawPlayerPreview(callback) {
+
+        this.resetBefore()
+
+        const target = this.renderBackend.createRenderTarget({
+            width: 320 * 2,
+            height: 480 * 2,
+            depth: true
+        })
+
+        //
+        const camera = new Camera({
+            type:       Camera.PERSP_CAMERA, // Camera.ORTHO_CAMERA
+            max:        100,
+            min:        0.01,
+            fov:        60,
+            renderType: this.renderBackend.gl ? 'webgl' : 'webgpu',
+            width:      target.width,
+            height:     target.height,
+        })
+
+        //
+        const gu = this.globalUniforms
+
+        // larg for valid render results
+        gu.fogColor         = [0, 0, 0, 0]
+        gu.fogDensity       = 100
+        gu.chunkBlockDist   = 100
+        gu.resolution       = [target.width, target.height]
+        gu.brightness       = 0.0; // 0.55 * 1.0; // 1.3
+        gu.sunDir           = [-1, -1, 1]
+        gu.useSunDir        = true
+
+        //
+        camera.set(new Vector(0, 0, 0), new Vector(0, 0, Math.PI))
+        camera.use(gu, true)
+        gu.update()
+
+        this.renderBackend.beginPass({
+            target
+        })
+
+        const player_model = this.player.getModel()
+        const player_mesh = player_model._mesh
+        const pos = new Vector(0, -1, -2)
+
+        const player_matrix = mat4.create()
+        mat4.rotateY(player_matrix, player_matrix, Math.PI * .9)
+
+        const orig_animation = player_mesh.animation_name
+        player_mesh.animation_name = null
+        player_mesh.setAnimation('idle')
+        player_mesh.redraw(0)
+
+        player_model.setArmor()
+        player_mesh.model.drawBuffered(this, player_mesh, pos, IndexedColor.WHITE, player_matrix)
+
+        // this.renderBackend.drawMesh(player_mesh.buffer, player_mesh.gl_material, pos, player_matrix)
+
+        player_mesh.animation_name = orig_animation
+
+        this.renderBackend.endPass()
+
+        return new Promise((resolve, reject) => {
+
+            // render target to Canvas
+            target.toImage('canvas').then(async (data : any) => {
+                data.toBlob(async (blob : Blob) => {
+                    const image = await blobToImage(blob) as HTMLImageElement
+                    Helpers.downloadImage(image, 'inventory.png');
+                    resolve(image)
+                }, 'image/png')
+
+            })
+
+            this.renderBackend.endPass()
+
+            // disable
+            gu.useSunDir = false
+
+            target.destroy()
+            this.resetAfter()
+
+        })
+
+    }
+
     /**
      * Makes the renderer start tracking a new world and set up the chunk structure.
      * world - The world object to operate on.
@@ -809,7 +944,7 @@ export class Renderer {
         }
     }
 
-    checkLightTextures() {
+    checkLightTextures(bindLights = true) {
         const {renderBackend} = this;
         if (!this.world) {
             renderBackend._emptyTexInt.bind(3);
@@ -824,7 +959,7 @@ export class Renderer {
         if (lp) {
             // renderBackend._emptyTex3D.bind(6);
             for (let i = 1; i <= lp.maxBoundTextures; i++) {
-                const tex = lp.boundTextures[i] || renderBackend._emptyTex3D;
+                const tex = (bindLights && lp.boundTextures[i]) || renderBackend._emptyTex3D;
                 if (tex) {
                     tex.bind(6 + i);
                 }
@@ -1065,8 +1200,10 @@ export class Renderer {
         return Weather.BY_NAME[name] || Weather.CLEAR;
     }
 
+    lastDeltaForMeGui = 0;
     // drawPlayers
     drawPlayers(delta) {
+        this.lastDeltaForMeGui = delta;
         if(this.world.players.count < 1) {
             return;
         }
@@ -1076,6 +1213,7 @@ export class Renderer {
                 if(this.camera_mode == CAMERA_MODE.SHOOTER || this.player.game_mode.isSpectator()) {
                     continue;
                 }
+                this.lastDeltaForMeGui = 0;
             }
             // this.camPos.distance
             if(player.itsMe() || player.distance !== null) {
@@ -1283,7 +1421,7 @@ export class Renderer {
         }
     }
 
-    resetBefore() {
+    resetBefore(bindLights = true) {
         // webgl state was reset, we have to re-bind textures
         this.renderBackend.resetBefore();
         const defTex = this.env.skyBox?.shader.texture || this.renderBackend._emptyTex;
@@ -1291,7 +1429,7 @@ export class Renderer {
         this.renderBackend._emptyTex3D.bind(6);
         this.maskColorTex?.bind(1);
         this.blockDayLightTex?.bind(2);
-        this.checkLightTextures();
+        this.checkLightTextures(bindLights);
         this.defaultShader?.bind();
     }
 
@@ -1419,6 +1557,7 @@ export class Renderer {
         let m = Math.PI / 180;
 
         //
+        //
         if(forDrop) {
             mat4.translate(viewMatrix, viewMatrix, [
                 Mth.sin(f1 * Math.PI) * f2 * 0.25,
@@ -1438,6 +1577,64 @@ export class Renderer {
             this.step_side = viewMatrix[1];
             player.triggerEvent('step', {step_side: this.step_side});
         }
+    }
+
+    guiCam = null;
+
+    /**
+     * posX , posY in zoom
+     */
+    drawFromPixi(pixiRender, worldTransform, pixiBlockSize = 64, lambda: (render: Renderer) => void ) {
+        const {globalUniforms:gu} = this;
+        pixiRender.batch.flush();
+        this.resetBefore(false);
+        const {screen} = pixiRender;
+        if (!this.guiCam) {
+            this.guiCam = new Camera({
+                type: Camera.ORTHO_CAMERA,
+                max: -10,
+                min: 10,
+                fov: 60,
+                renderType: this.renderBackend.gl ? 'webgl' : 'webgpu',
+                width: screen.width,
+                height: screen.height,
+            });
+        }
+        const guiCam = this.guiCam;
+        guiCam.width = -screen.width;
+        guiCam.height = screen.height;
+        guiCam.shiftX = worldTransform.tx - screen.width / 2;
+        guiCam.shiftY = worldTransform.ty - screen.height / 2;
+        // our cube side should be 64px in pixi standard?
+        // negative scale because camera should look from NORTH
+        guiCam.scale = 1 / worldTransform.a / pixiBlockSize;
+        guiCam._updateProj();
+        // larg for valid render results
+        gu.fogColor = [0, 0, 0, 0];
+        gu.fogDensity = 100;
+        gu.chunkBlockDist = 100;
+
+        // when use a sun dir, brightness is factor how many of sunfactor is applied
+        // sun light is additive
+        gu.brightness = 0.0; // 0.55 * 1.0; // 1.3
+        // gu.sunDir = [-1, -1, 1];
+        // gu.useSunDir = true;
+
+        gu.lightOverride = 0xff;
+
+        guiCam.use(gu, true);
+        gu.update();
+
+        this.defaultShader.bind();
+
+        lambda(this);
+
+        this.resetAfter();
+
+        pixiRender.shader.program = null;
+        pixiRender.shader.bind(pixiRender.plugins.batch._shader, true);
+        pixiRender.reset();
+        pixiRender.texture.bind(null, 3);
     }
 
     // getVideoCardInfo...

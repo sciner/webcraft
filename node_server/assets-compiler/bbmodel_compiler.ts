@@ -94,6 +94,7 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
                     id: model._properties.texture_id,
                     side: `${first_place.x}|${first_place.y}`
                 }
+                block.group = 'doubleface'
                 blocks.push(block)
             }
         }

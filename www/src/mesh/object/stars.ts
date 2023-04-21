@@ -4,6 +4,7 @@ import GeometryTerrain from '../../geometry_terrain.js';
 import { GAME_DAY_SECONDS } from '../../constant.js';
 import {impl as alea} from "../../../vendors/alea.js";
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
+import type { Renderer } from '../../render.js';
 
 const {mat4} = glMatrix;
 
@@ -128,7 +129,7 @@ export class Mesh_Object_Stars {
     }
 
     // Draw
-    draw(render, delta) {
+    draw(render : Renderer, delta : float) {
 
         this.generateStarsMesh();
 

@@ -293,8 +293,8 @@ export class PickAt {
                 mat4.translate(matrix, matrix,
                     [
                         (a_pos.x - this.chunk.coord.x),
+                        (a_pos.y - this.chunk.coord.y),
                         (a_pos.z - this.chunk.coord.z),
-                        (a_pos.y - this.chunk.coord.y)
                     ]
                 );
                 a_pos = this.chunk.coord;

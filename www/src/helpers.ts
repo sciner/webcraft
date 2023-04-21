@@ -233,6 +233,9 @@ export class Helpers {
         if(!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
             throw "Could not compile fragment shader!\n" + gl.getShaderInfoLog(fragmentShader);
         }
+        if (obj.tfVaryings) {
+            gl.transformFeedbackVaryings(program, obj.tfVaryings, gl.INTERLEAVED_ATTRIBS);
+        }
         // Finish program
         gl.linkProgram(program);
         if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
@@ -431,7 +434,7 @@ export class IvanArray<T=any> {
                         if (block.id == 0) {
                             return pos.offset(i + .5, .5, j + .5)
                         }
-                    } 
+                    }
                 }
             }
         }

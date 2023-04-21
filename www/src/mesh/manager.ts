@@ -3,6 +3,7 @@ import { Helpers, makeChunkEffectID, Vector } from "../helpers.js";
 import type { Renderer } from "../render.js";
 import type { World } from "../world.js";
 import { Mesh_Effect_Manager } from "./effect/manager.js";
+import { Mesh_Object_BBModel } from "./object/bbmodel.js";
 
 // MeshManager
 export class MeshManager {
@@ -22,7 +23,7 @@ export class MeshManager {
         return this.list.get(id);
     }
 
-    add(mesh : object, key? : string) {
+    add(mesh : object, key? : string) : any {
         if(!key) {
             key = Helpers.generateID();
         }
@@ -83,7 +84,11 @@ export class MeshManager {
         this.effects.tick(delta, player_pos);
         for(let [key, mesh] of this.list.entries()) {
             if(mesh.isAlive) {
-                mesh.draw(render, delta);
+                if(mesh instanceof Mesh_Object_BBModel) {
+                    mesh.drawBuffered(render, delta)
+                } else {
+                    mesh.draw(render, delta)
+                }
             } else {
                 this.remove(key, render)
             }

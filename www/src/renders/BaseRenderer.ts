@@ -2,7 +2,9 @@ import {Color, IvanArray, Mth, Vector} from '../helpers.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import {BatchSystem} from "./batch/BatchSystem.js";
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
-import type {IGeomCopyOperation} from "../geom/big_geom_batch_update.js";
+import type GeometryTerrain from '../geometry_terrain.js';
+import type { WebGLMaterial } from './webgl/WebGLMaterial.js';
+import type {GeomCopyOperation} from "../geom/big_geom_batch_update.js";
 
 const {mat4} = glMatrix;
 
@@ -191,7 +193,7 @@ export class BaseBuffer {
 
     }
 
-    batchUpdate(updBuffer: BaseBuffer, copies: IvanArray<IGeomCopyOperation>, stride: number) {
+    batchUpdate(updBuffer: BaseBuffer, copies: IvanArray<GeomCopyOperation>, stride: number) {
     }
 
     destroy() {
@@ -434,6 +436,7 @@ export default class BaseRenderer {
 
     batch : BatchSystem
     preprocessor = new ShaderPreprocessor();
+    globalBufs: Dict<BaseBuffer> = {};
 
     /**
      *
@@ -571,16 +574,10 @@ export default class BaseRenderer {
         this._target = target;
     }
 
-    /**
-     *
-     * @param {number} width
-     * @param {number} height
-     */
-    resize(width, height) {
+    resize(width : number, height : number) {
         this.size = {
             width, height
         }
-
         this._configure();
     }
 
@@ -712,7 +709,7 @@ export default class BaseRenderer {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
-    drawMesh(geom, material, a_pos = null, modelMatrix = null, draw_type? : string) {
+    drawMesh(geom : GeometryTerrain, material : WebGLMaterial, a_pos : Vector = null, modelMatrix : imat4 = null, draw_type? : string) {
         if (geom.size === 0) {
             return;
         }
@@ -754,6 +751,10 @@ export default class BaseRenderer {
     }
 
     resetAfter() {
+    }
+
+    destroy() {
+
     }
 
     static ID = 0;

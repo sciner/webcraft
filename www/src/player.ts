@@ -21,7 +21,6 @@ import type { World } from "./world.js";
 import type { PLAYER_SKIN_TYPES } from "./constant.js"
 import type {ClientDriving} from "./control/driving.js";
 
-const MAX_UNDAMAGED_HEIGHT              = 3;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
 const SNEAK_HEIGHT                      = .78; // in percent
@@ -85,6 +84,11 @@ export type TSittingState = {
     rotate: IVector // rotate.z is in radians
 }
 
+export type TAnimState = {
+    title: string,
+    speed: number
+}
+
 /** A part of {@link PlayerState} that is also sent in {@link PlayerStateUpdate} */
 type PlayerStateDynamicPart = {
     pos         : Vector
@@ -93,7 +97,8 @@ type PlayerStateDynamicPart = {
     sitting ?   : false | TSittingState
     sneak ?     : boolean
     sleep ?     : false | TSleepState
-    hands       : PlayerHands
+    hands       : PlayerHands,
+    anim?       : false | TAnimState
 }
 
 /** Fields that are saved together into DB in user.state field. */
@@ -115,6 +120,8 @@ export type PlayerStateUpdate = PlayerStateDynamicPart & {
     /** it's never set. It's just checked, and if it's not defined, 'player' type is used. */
     type ?
     dist ?      : number // null means that the player is too far, and it stopped receiving updates
+    ground      : boolean
+    running     : boolean
 }
 
 export type PlayerConnectData = {
@@ -244,6 +251,7 @@ export class Player implements IPlayer {
     _eating_sound_tick:         number;
     _eating_sound:              any;
     driving?:                   ClientDriving | null
+    timer_anim:                number = 0
 
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
@@ -371,7 +379,6 @@ export class Player implements IPlayer {
                 false, false, cmd.data.maxDist || DEFAULT_SOUND_MAX_DIST);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_STANDUP_STRAIGHT], (cmd) => {
-            this.state.lies    = false
             this.state.sitting = false
             this.state.sleep   = false
         });
@@ -399,29 +406,50 @@ export class Player implements IPlayer {
         this.pickAt = new PickAt(this.world, this.render, async (e : IPickatEvent, times : float, number : int) => {
             return this.onPickAtTarget(e, times, number)
         }, (e : IPickatEvent) => {
-            const instrument = this.getCurrentInstrument()
-            const speed = instrument?.material?.speed ?? 1
-            const time = e.start_time - this.timer_attack
-            if (time < 500) {
-                return
-            }
-            this.mineTime = 0
-            if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
-                this.inAttackProcess = ATTACK_PROCESS_ONGOING;
-                this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD / speed
-            }
-            this.timer_attack = e.start_time
-            let validAction = false
-            if (e.button_id === MOUSE.BUTTON_LEFT) {
-                validAction = this.onAttackEntityClient(e)
-            } else if (e.button_id === MOUSE.BUTTON_RIGHT) {
-                validAction = this.onUseItemOnEntityClient(e, instrument)
-            }
-            if (validAction) {
-                this.world.server.Send({
-                    name: ServerClient.CMD_PICKAT_ACTION,
-                    data: e
-                });
+            if (e.button_id == MOUSE.BUTTON_LEFT) {
+                this.setAnimation('attack', 1, .5)
+                setTimeout(() => {
+                    this.world.server.Send({
+                        name: ServerClient.CMD_USE_WEAPON,
+                        data: {
+                            target: {
+                                pid: e.interactPlayerID,
+                                mid: e.interactMobID
+                            }
+                        }
+                    })
+                }, 500)
+            } else {
+                const instrument = this.getCurrentInstrument()
+                const speed = instrument?.speed ? instrument.speed : 1
+                const time = e.start_time - this.timer_attack
+                if (time < 500) {
+                    return
+                }
+                this.mineTime = 0
+                if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
+                    this.inAttackProcess = ATTACK_PROCESS_ONGOING;
+                    this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD / speed
+                }
+                this.timer_attack = e.start_time
+                if (e.interactPlayerID) {
+                    const player = Qubatch.world.players.get(e.interactPlayerID);
+                    if (player) {
+                        player.punch(e);
+                    }
+                }
+                if (e.interactMobID) {
+                    const mob = Qubatch.world.mobs.get(e.interactMobID);
+                    if (mob) {
+                        mob.punch(e);
+                    }
+                }
+                if (e.interactMobID || e.interactPlayerID) {
+                    this.world.server.Send({
+                        name: ServerClient.CMD_PICKAT_ACTION,
+                        data: e
+                    });
+                }
             }
         }, (bPos: IPickatEventPos) => {
             // onInteractFluid
@@ -676,7 +704,7 @@ export class Player implements IPlayer {
     }
 
     standUp() {
-        if (this.driving || this.state.sitting || this.state.lies || this.state.sleep) {
+        if(this.driving || this.state.sitting || this.state.sleep) {
             this.world.server.Send({
                 name: ServerClient.CMD_STANDUP_STRAIGHT,
                 data: this.driving?.standUpGetId() ?? null
@@ -742,7 +770,7 @@ export class Player implements IPlayer {
         }
         //
         if(!this.limitBlockActionFrequency(e) && this.game_mode.canBlockAction()) {
-            if(this.state.sitting || this.state.lies || this.state.sleep) {
+            if(this.state.sitting || this.state.sleep) {
                 console.log('Stand up first');
                 return false;
             }
@@ -935,8 +963,6 @@ export class Player implements IPlayer {
             const velocity = pc.player_state.vel;
             // Update player model
             this.updateModelProps();
-            // Check falling
-            this.checkFalling();
             // Walking
             this.walking = (Math.abs(velocity.x) > 0 || Math.abs(velocity.z) > 0) && !this.getFlying() && !this.in_water;
             this.prev_walking = this.walking;
@@ -1007,6 +1033,7 @@ export class Player implements IPlayer {
             this.render.updateNightVision(this.getEffectLevel(Effect.NIGHT_VISION));
             // Update picking target
             this.updatePickingTarget()
+            this.updateTimerAnim()
         }
         this.lastUpdate = performance.now();
     }
@@ -1115,39 +1142,6 @@ export class Player implements IPlayer {
         }, duration);
     }
 
-    // Проверка падения (урон)
-    checkFalling() {
-        if(!this.game_mode.isSurvival()) {
-            return;
-        }
-        if(!this.onGround) {
-            let bpos = this.getBlockPos().add(Vector.YN);
-            let block = this.world.chunkManager.getBlock(bpos);
-            // ignore damage if dropped into water
-            if(block.fluid > 0) {
-                this.lastBlockPos = this.getBlockPos();
-            } else {
-                let pos = this.getBlockPos();
-                if(this.lastBlockPos && pos.y > this.lastBlockPos.y) {
-                    this.lastBlockPos = pos;
-                }
-            }
-        } else if(this.onGround != this.onGroundO && this.lastOnGroundTime) {
-            let bp = this.getBlockPos();
-            let height = (bp.y - this.lastBlockPos.y) / this.scale;
-            if(height < 0) {
-                const damage = -height - MAX_UNDAMAGED_HEIGHT - this.getEffectLevel(Effect.JUMP_BOOST);
-                if(damage > 0) {
-                    Qubatch.hotbar.damage(damage, 'falling');
-                }
-            }
-            this.lastOnGroundTime = null;
-        } else {
-            this.lastOnGroundTime = performance.now();
-            this.lastBlockPos = this.getBlockPos();
-        }
-    }
-
     setDie() {
         this.status = PLAYER_STATUS.DEAD;
         this.moving = false;
@@ -1170,17 +1164,21 @@ export class Player implements IPlayer {
     updateModelProps() {
         const model = this.getModel();
         if(model) {
+            /*
+            * Нужно передавать, то что приходит с сервера или будут отличия
+            */
             model.hide_nametag = true;
             model.setProps(
                 this.lerpPos,
                 this.rotate,
                 this.controls.sneak,
-                this.moving, // && !this.getFlying(),
                 this.running && !this.isSneak,
                 this.state.hands,
-                this.state.lies,
                 this.state.sitting,
-                this.state.sleep
+                this.state.sleep,
+                this.state.anim,
+                this.indicators.live,
+                this.onGround
             )
         }
     }
@@ -1212,6 +1210,7 @@ export class Player implements IPlayer {
         switch(item_name) {
             case 'bottle':
             case 'food': {
+                const itsme = this.getModel()
                 this.world.server.Send({name: ServerClient.CMD_USE_ITEM});
                 this.inhand_animation_duration = RENDER_EAT_FOOD_DURATION;
                 this._eating_sound_tick = 0;
@@ -1220,6 +1219,7 @@ export class Player implements IPlayer {
                 }
                 // timer
                 this._eating_sound = setInterval(() => {
+                    itsme.eat = true
                     this._eating_sound_tick++
                     const action = (this._eating_sound_tick % 9 == 0) ? 'burp' : 'eat';
                     Qubatch.sounds.play('madcraft:block.player', action, null, false);
@@ -1254,6 +1254,8 @@ export class Player implements IPlayer {
 
     // Stop use of item
     stopItemUse() {
+        const itsme = this.getModel()
+        itsme.eat = false
         this.inItemUseProcess = false;
         if(this._eating_sound) {
             clearInterval(this._eating_sound);
@@ -1362,6 +1364,46 @@ export class Player implements IPlayer {
         const model = this.getModel()
         if(model) {
             model.armor = this.inventory.exportArmorState()
+        }
+    }
+
+    /*
+    * Метод устанавливает проигрвание анимации
+    */
+    setAnimation(title: string, speed: number = 1, time: number = 1) {
+        this.world.server.Send({
+            name: ServerClient.CMD_PLAY_ANIM,
+            data: {
+                title,
+                speed,
+                time,
+            }
+        })
+        this.state.anim = {
+            title,
+            speed
+        }
+        this.timer_anim = performance.now() + (time * 1000) / speed
+    }
+
+    /*
+    * Проверка завершения анимации
+    */
+    updateTimerAnim() {
+        if (this.moving) {
+            if (this.state.anim) {
+                this.world.server.Send({name: ServerClient.CMD_PLAY_ANIM,
+                    data: {
+                        cancel: true
+                    }
+                })
+            }
+            this.timer_anim = 0
+            this.state.anim = false
+            return
+        }
+        if (this.timer_anim <= performance.now()) {
+            this.state.anim = false
         }
     }
 

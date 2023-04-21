@@ -1,28 +1,35 @@
-import { isScalar, Vector } from "../helpers.js";
+import { IndexedColor, isScalar, Vector } from "../helpers.js";
 import { EasingType } from "./easing_type.js";
 import { BBModel_Cube } from "./cube.js";
 import { BBModel_Group } from "./group.js";
 import { BBModel_Locator } from "./locator.js";
-import { BLOCK } from "../blocks.js";
 import { DEFAULT_ATLAS_SIZE } from "../constant.js";
+import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js";
+import type { Renderer } from "../render.js";
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import { getEuler } from "../components/Transform.js";
 
-const VEC_2 = new Vector(2, 2, 2);
-const FIX_POS = new Vector(8, -8, -8);
+const VEC_2 = new Vector(2, 2, 2)
+const FIX_POS = new Vector(8, -8, -8)
+const EMPTY_ARGS = []
+
+const {quat} = glMatrix
 
 //
 export class BBModel_Model {
     [key: string]: any;
 
     root : BBModel_Group
+    bone_groups: Map<string, BBModel_Group> = new Map()
+    groups: Map<string, BBModel_Group> = new Map()
 
     constructor(json) {
         // TODO: need to read from bbmodel texture pack options
         this.tx_size = DEFAULT_ATLAS_SIZE
         this.json = json
         this.elements = new Map()
-        this.groups = new Map()
         this._group_stack = []
-        this.root = new BBModel_Group('_main', new Vector(0, 0, 0), new Vector(0, 0, 0))
+        this.root = new BBModel_Group(this, '_main', new Vector(0, 0, 0), new Vector(0, 0, 0))
         this._group_stack.push(this.root)
         this.selected_texture_name = null
         this.particle_locators = []
@@ -31,17 +38,18 @@ export class BBModel_Model {
     /**
      * Select texture
      * @param group_name If empty then texture will be selected for all groups
-     * @param texture_name 
+     * @param texture_name
      */
-    selectTextureFromPalette(group_name : string, texture_name : string) {
-        //
-        if(!this.all_textures) {
-            this.makeTexturePalette()
-        }
-        //
-        const texture = this.all_textures.get(texture_name)
-        if(!texture) {
-            throw `error_invalid_palette|${texture_name}`
+    selectTextureFromPalette(group_name : string, texture_name : string | null) {
+        if(texture_name) {
+            if(!this.all_textures) {
+                this.makeTexturePalette()
+            }
+            //
+            const texture = this.all_textures.get(texture_name)
+            if(!texture) {
+                throw `error_invalid_palette|${texture_name}`
+            }
         }
         //
         if(group_name) {
@@ -125,43 +133,39 @@ export class BBModel_Model {
 
     /**
      * Draw
-     * @param {float[]} vertices 
-     * @param {Vector} pos 
-     * @param {IndexedColor} lm 
-     * @param {float[]} matrix 
      */
-    draw(vertices, pos, lm, matrix, emmit_particles_func) {
+    draw(vertices: float[], pos : Vector, lm : IndexedColor, matrix : imat4, emmit_particles_func? : Function) {
         this.root.pushVertices(vertices, pos, lm, matrix, emmit_particles_func);
+    }
+
+    drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, matrix : float[], emmit_particles_func? : Function) {
+        const vertices = []
+        this.root.drawBuffered(render, mesh, pos, lm, matrix, undefined, vertices, emmit_particles_func)
     }
 
     /**
      * Play animations
-     * 
-     * @param {string} animation_name 
-     * @param {float} dt
-     * 
-     * @return {boolean}
      */
-    playAnimation(animation_name, dt) {
+    playAnimation(animation_name : string, dt : float, mesh : Mesh_Object_BBModel = null) : boolean {
+
+        const animation = this.animations.get(animation_name)
+        if(!animation) {
+            return false
+        }
 
         // reset all states
-        for(const [name, animation] of this.animations.entries()) {
+        for(const animation of this.animations.values()) {
             for(let k in animation.animators) {
                 const animator = animation.animators[k];
-                const group = this.groups.get(animator.name);
-                group.animations = [];
+                const group = this.groups.get(animator.name)
+                mesh.animations.get(group.name).clear()
                 group.rot.copyFrom(group.rot_orig)
+                group.animation_changed = false
                 group.updateLocalTransform()
             }
         }
 
         //
-        const animation = this.animations.get(animation_name);
-
-        if(!animation) {
-            return false;
-        }
-
         const time = dt % animation.length;
         const loop_mode = animation.loop;
         const loop_delay = animation.loop_delay;
@@ -204,7 +208,10 @@ export class BBModel_Model {
                     if(!current_keyframe || !next_keyframe) continue
                     const current_point = current_keyframe.data_points[0];
                     const next_point = next_keyframe.data_points[0];
-                    const point = new Vector(0, 0, 0);
+
+                    // TODO: Need to optimize
+                    // const point : Vector = current_keyframe.point || (current_keyframe.point = new Vector(0, 0, 0))
+                    const point = new Vector()
 
                     let args;
                     let func_name;
@@ -218,12 +225,14 @@ export class BBModel_Model {
 
                     const func = EasingType.get(func_name)
                     if(!func) {
-                        throw `error_not_supported_keyframe_interpolation_method|${next_keyframe.easing}`
+                        console.error(`error_not_supported_keyframe_interpolation_method|${func_name}`)
+                        continue
                     }
 
-                    const t = func(percent, args || [])
+                    const t = func(percent, args || EMPTY_ARGS)
                     point.lerpFrom(current_point, next_point, t)
-                    group.animations.push({channel_name, point})
+                    mesh.animations.get(group.name).set(channel_name, point)
+                    group.animation_changed = true
 
                 }
 
@@ -231,7 +240,80 @@ export class BBModel_Model {
 
         }
 
-        return true;
+        // Animation transitions
+        if(mesh.trans_animations) {
+            const diff = performance.now() / 1000 - mesh.trans_animations.start
+            // const func = EasingType.get('linear')
+            if(diff < mesh.trans_animations.duration) {
+                const next_point = new Vector(0, 0, 0)
+                const percent = diff / mesh.trans_animations.duration
+                const t2 = percent // func(percent, EMPTY_ARGS)
+                //
+                for(const item of mesh.trans_animations.all.values()) {
+                    const {group, list} = item
+                    for(const [channel_name, current_point] of list.entries()) {
+                        const group_animations = mesh.animations.get(group.name)
+                        const exist_point = group_animations.get(channel_name)
+                        if(exist_point) {
+                            next_point.copyFrom(exist_point)
+                        } else {
+                            if(channel_name == 'rotation') {
+                                next_point.copyFrom(group.rot_orig)
+                            } else if(channel_name == 'position') {
+                                next_point.set(0, 0, 0)
+                                // next_point.copyFrom(group.pivot)
+                            }
+                        }
+
+                        if(channel_name == 'rotation') {
+                            const q_cur = quat.create()
+                            const q_next = quat.create()
+                            quat.fromEuler(q_cur, current_point.x, current_point.y, current_point.z, 'zyx');
+                            quat.fromEuler(q_next, next_point.x, next_point.y, next_point.z, 'zyx')
+                            quat.slerp(q_cur, q_cur, q_next, t2)
+                            getEuler(current_point, q_cur)
+                            let temp = current_point.x;
+                            current_point.x = 180 - current_point.y;
+                            current_point.y = -temp;
+                        } else {
+                            current_point.lerpFrom(current_point, next_point, t2)
+                        }
+
+                        group_animations.set(channel_name, exist_point ? exist_point.copyFrom(current_point) : current_point.clone())
+                        group.animation_changed = false
+                    }
+                }
+                //
+                // const fix_duration = .3
+                // if(diff < fix_duration) {
+                //     const t2 = diff / fix_duration
+                //     const current_point = new Vector()
+                //     for(const group of this.groups.values()) {
+                //         if(group.animation_changed) {
+                //             group.animation_changed = false
+                //             const group_animations = mesh.animations.get(group.name)
+                //             for(const [channel_name, exist_point] of group_animations.entries()) {
+                //                 next_point.copyFrom(exist_point)
+                //                 if(channel_name == 'rotation') {
+                //                     current_point.copyFrom(group.rot_orig)
+                //                 } else if(channel_name == 'position') {
+                //                     // if(group.name == 'bone17') {
+                //                     //     debugger
+                //                     // }
+                //                     current_point.set(0, 0, 0)
+                //                     // current_point.copyFrom(group.pivot).divScalarSelf(16)
+                //                 }
+                //                 exist_point.lerpFrom(current_point, next_point, t2)
+                //             }
+                //         }
+                //     }
+                // }
+            } else {
+                mesh.trans_animations = null
+            }
+        }
+
+        return true
 
     }
 
@@ -282,9 +364,27 @@ export class BBModel_Model {
                 this.addElement(origin, element);
             }
         }
+
         // parse animations
         this.parseAnimations();
-        return this;
+
+        // parse bone groups
+        for(const [_, anim] of this.animations.entries()) {
+            for(let [_, animator] of Object.entries(anim.animators)) {
+                const name = (animator as any).name
+                if(!this.bone_groups.has(name)) {
+                    const group = this.groups.get(name)
+                    if(!group) {
+                        throw 'error_bone_group_not_found'
+                    }
+                    this.bone_groups.set(name, group)
+                }
+            }
+        }
+
+        this.bone_groups.set(this.root.name, this.root)
+
+        return this
     }
 
     // Parse animations
@@ -305,7 +405,7 @@ export class BBModel_Model {
              * .start_delay: ''
              * .animators
              */
-            
+
             for(let k in animation.animators) {
 
                 const animator = animation.animators[k];
@@ -385,7 +485,7 @@ export class BBModel_Model {
         // create new group and add to other groups list
         const {rot, pivot} = this.parsePivotAndRot(group, true);
 
-        const bbGroup = new BBModel_Group(group.name, pivot, rot, group.visibility);
+        const bbGroup = new BBModel_Group(this, group.name, pivot, rot, group.visibility);
         bbGroup.updateLocalTransform();
         this.groups.set(group.name, bbGroup);
 
@@ -472,10 +572,7 @@ export class BBModel_Model {
 
     }
 
-    /**
-     * @param {BBModel_Locator} element 
-     */
-    addParticleLocator(element) {
+    addParticleLocator(element : BBModel_Locator) {
         this.particle_locators.push(element)
     }
 
@@ -550,10 +647,7 @@ export class BBModel_Model {
 
     }
 
-    /**
-     * @param {string[]} name 
-     */
-    hideGroups(names) {
+    hideGroups(names : string[]) {
         for(let group of this.root.children) {
             if(names.includes(group.name)) {
                 group.visibility = false
@@ -572,17 +666,11 @@ export class BBModel_Model {
         this.selected_texture_name = null
     }
 
-    /**
-     * @param {string} name 
-     */
-    setState(name) {
+    setState(name : string) {
         this.state = name
     }
 
-    /**
-     * @param {string[]} except_list 
-     */
-    hideAllExcept(except_list) {
+    hideAllExcept(except_list : string[]) {
         for(let group of this.root.children) {
             group.visibility = except_list.includes(group.name)
         }
