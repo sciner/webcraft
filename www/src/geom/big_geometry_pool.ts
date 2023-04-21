@@ -2,6 +2,7 @@ import {TerrainSubGeometry} from "./terrain_sub_geometry.js";
 import {TerrainBigGeometry} from "./terrain_big_geometry.js";
 import {BaseGeometryPool} from "./base_geometry_pool.js";
 import type {BaseBigGeometry} from "./base_big_geometry";
+import {TerrainGeometryVao} from "./terrain_geometry_vao.js";
 
 export class BigGeometryPool extends BaseGeometryPool {
     growCoeff: number;
@@ -13,6 +14,7 @@ export class BigGeometryPool extends BaseGeometryPool {
     constructor(context, {
         pageSize = 256,
         pageCount = 1000,
+        initSizeMegabytes = 0,
         growCoeff = 2.0,
         growMaxPageInc = 8000,
     }) {
@@ -21,9 +23,15 @@ export class BigGeometryPool extends BaseGeometryPool {
         this.growCoeff = growCoeff;
         this.growMaxPageInc = growMaxPageInc;
         this.pageCount = pageCount;
+
+        if (initSizeMegabytes > 0) {
+            this.pageCount = Math.max(pageCount,
+                Math.ceil(initSizeMegabytes * 1024 * 1024 / pageSize / (TerrainGeometryVao.strideFloats * 4)));
+        }
+
         this.pageSize = pageSize;
         this.freePages = [];
-        for (let i = pageCount - 1; i >= 0; i--) {
+        for (let i = this.pageCount - 1; i >= 0; i--) {
             this.freePages.push(i);
         }
 

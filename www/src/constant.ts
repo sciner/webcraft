@@ -13,6 +13,17 @@ export enum CHUNK_GEOMETRY_MODE {
     BIG_NO_MULTIDRAW = 3,
 }
 
+export enum CHUNK_GEOMETRY_ALLOC {
+    AUTO = 0,
+    M_64 = 64,
+    M_125 = 125,
+    M_250 = 250,
+    M_375 = 375,
+    M_500 = 500,
+    M_750 = 750,
+    M_1000 = 1000,
+}
+
 export const FAST = false
 
 export const INGAME_MAIN_WIDTH              = 772
