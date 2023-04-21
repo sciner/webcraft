@@ -285,7 +285,7 @@ export class BBModel_Model {
                         group.animation_changed = false
                     }
                 }
-                
+
                 const fix_duration = .3
                 if(diff < fix_duration) {
                     const t2 = diff / fix_duration
@@ -541,7 +541,7 @@ export class BBModel_Model {
 
         const size = to.subSelf(from);
         const translate = from.addSelf(FIX_POS).addSelf(size.div(VEC_2))
-        translate.x = 16 - translate.x
+        translate.x = -translate.x
 
         let child
 
@@ -605,9 +605,9 @@ export class BBModel_Model {
                 resp.pivot.addSelf(shift)
             }
             if (isGroup) {
-                resp.pivot.x = 16 - resp.pivot.x;
+                resp.pivot.x = -resp.pivot.x;
             } else {
-                resp.pivot.x = 16 - resp.pivot.x;
+                resp.pivot.x = -resp.pivot.x;
             }
         }
 
