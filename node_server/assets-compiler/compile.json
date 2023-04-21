@@ -1672,6 +1672,13 @@
                 {
                     "name":"GOLD_ORE",
                     "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                },
+                {
+                    "name":"SMALL_ROCKS",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ],
             "texture": "block/gold_ore.png",
