@@ -349,13 +349,6 @@
                         </div>
                         <label for="chk-forced_joystick_control">{{Lang.forced_joystick_control}}</label>
                     </div>
-                    <div class="switcher-container" style="margin-top: 1em;">
-                        <input type="checkbox" id="chk-old_spectator_controls" value="" ng-model="settings.form.old_spectator_controls" />
-                        <div class="switcher">
-                            <small></small>
-                        </div>
-                        <label for="chk-old_spectator_controls">{{Lang.old_spectator_controls}}</label>
-                    </div>
                 </div>
                 <div class="video">
                     <h1>{{Lang.video}}</h1>
@@ -430,14 +423,6 @@
                         <p>{{Lang.use_light}}</p>
                         <select class="slim-select" id="settings-select-light" ng-options="item as item.name for item in settings.lightMode.list" ng-model="settings.lightMode.current"></select>
                     </div>
-                    <div class="input-group">
-                        <p>{{Lang.chunk_geometry_mode}}</p>
-                        <select class="slim-select" id="settings-select-chunk_geometry_mode" ng-options="item as item.name for item in settings.chunkGeometryMode.list" ng-model="settings.chunkGeometryMode.current"></select>
-                    </div>
-                    <div class="input-group">
-                        <p>{{Lang.chunk_geometry_alloc}}</p>
-                        <select class="slim-select" id="settings-select-chunk_geometry_alloc" ng-options="item as item.name for item in settings.chunkGeometryAlloc.list" ng-model="settings.chunkGeometryAlloc.current"></select>
-                    </div>
                 </div>
                 <div class="interface">
                     <h1>{{Lang.interface}}</h1>
@@ -456,6 +441,36 @@
                             <input id="input_window_size" class="slider" type="range" min="10" max="300" step="1" value="settings.form.window_size" ng-model="settings.form.window_size">
                         </div>
                     </div>
+                </div>
+                <div class="interface">
+                    <h1 style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>{{Lang.advanced_settings}}</span>
+                        <div class="switcher-container">
+                            <input type="checkbox" id="chk-show_advanced_settings" value="" ng-model="settings.show_advanced_settings" />
+                            <div class="switcher">
+                                <small></small>
+                            </div>
+                            <label for="chk-show_advanced_settings"></label>
+                        </div>
+                    </h1>
+                    <div ng-show="settings.show_advanced_settings">
+                        <div class="input-group">
+                            <p>{{Lang.chunk_geometry_mode}}</p>
+                            <select class="slim-select" id="settings-select-chunk_geometry_mode" ng-options="item as item.name for item in settings.chunkGeometryMode.list" ng-model="settings.chunkGeometryMode.current"></select>
+                        </div>
+                        <div class="input-group">
+                            <p>{{Lang.chunk_geometry_alloc}}</p>
+                            <select class="slim-select" id="settings-select-chunk_geometry_alloc" ng-options="item as item.name for item in settings.chunkGeometryAlloc.list" ng-model="settings.chunkGeometryAlloc.current"></select>
+                        </div>
+                        <div class="switcher-container" style="margin-top: 1em;">
+                            <input type="checkbox" id="chk-old_spectator_controls" value="" ng-model="settings.form.old_spectator_controls" />
+                            <div class="switcher">
+                                <small></small>
+                            </div>
+                            <label for="chk-old_spectator_controls">{{Lang.old_spectator_controls}}</label>
+                        </div>
+                    </div>
+                    <br>
                 </div>
                 <!-- <div class="audio">
                     <h1>Audio</h1>
