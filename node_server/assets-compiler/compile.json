@@ -1355,13 +1355,7 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/birch_planks.png",
-            "drop_item": [
-                {
-                    "name": "BIRCH_PLANKS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "texture": "block/birch_planks.png"
         },
         {
             "id": 7,
@@ -1375,13 +1369,7 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/oak_planks.png",
-            "drop_item": [
-                {
-                    "name": "OAK_PLANKS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "texture": "block/oak_planks.png"
         },
         {
             "id": 457,
@@ -1395,13 +1383,7 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/acacia_planks.png",
-            "drop_item": [
-                {
-                    "name": "ACACIA_PLANKS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "texture": "block/acacia_planks.png"
         },
         {
             "id": 460,
@@ -1415,13 +1397,7 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/spruce_planks.png",
-            "drop_item": [
-                {
-                    "name": "SPRUCE_PLANKS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "texture": "block/spruce_planks.png"
         },
         {
             "id": 528,
@@ -1435,13 +1411,7 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/dark_oak_planks.png",
-            "drop_item": [
-                {
-                    "name": "DARK_OAK_PLANKS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "texture": "block/dark_oak_planks.png"
         },
         {
             "id": 529,
@@ -1455,13 +1425,7 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/jungle_planks.png",
-            "drop_item": [
-                {
-                    "name": "JUNGLE_PLANKS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "texture": "block/jungle_planks.png"
         },
         {
             "id": 661,
@@ -1475,13 +1439,7 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/warped_planks.png",
-            "drop_item": [
-                {
-                    "name": "WARPED_PLANKS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "texture": "block/warped_planks.png"
         },
         {
             "id": 89,
@@ -3225,13 +3183,7 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/oak_planks.png",
-            "drop_item": [
-                {
-                    "name": "OAK_SLAB",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "texture": "block/oak_planks.png"
         },
         {
             "id": 538,
@@ -3247,13 +3199,7 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/dark_oak_planks.png",
-            "drop_item": [
-                {
-                    "name": "DARK_OAK_SLAB",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "texture": "block/dark_oak_planks.png"
         },
         {
             "id": 539,
@@ -3269,13 +3215,7 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/jungle_planks.png",
-            "drop_item": [
-                {
-                    "name": "JUNGLE_SLAB",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "texture": "block/jungle_planks.png"
         },
         {
             "id": 458,
@@ -3291,13 +3231,7 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/birch_planks.png",
-            "drop_item": [
-                {
-                    "name": "BIRCH_SLAB",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "texture": "block/birch_planks.png"
         },
         {
             "id": 459,
@@ -3313,13 +3247,7 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/acacia_planks.png",
-            "drop_item": [
-                {
-                    "name": "ACACIA_SLAB",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "texture": "block/acacia_planks.png"
         },
         {
             "id": 461,
@@ -3335,13 +3263,7 @@
             "material": {
                 "id": "wood"
             },
-            "texture": "block/spruce_planks.png",
-            "drop_item": [
-                {
-                    "name": "SPRUCE_SLAB",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "texture": "block/spruce_planks.png"
         },
         {
             "id": 128,
@@ -3402,13 +3324,7 @@
                 "stairs"
             ],
             "texture": "block/birch_planks.png",
-            "can_rotate": true,
-            "drop_item": [
-                {
-                    "name": "BIRCH_STAIRS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "can_rotate": true
         },
         {
             "id": 53,
@@ -3422,13 +3338,7 @@
                 "stairs"
             ],
             "texture": "block/oak_planks.png",
-            "can_rotate": true,
-            "drop_item": [
-                {
-                    "name": "OAK_STAIRS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "can_rotate": true
         },
         {
             "id": 163,
@@ -3442,13 +3352,7 @@
                 "stairs"
             ],
             "texture": "block/acacia_planks.png",
-            "can_rotate": true,
-            "drop_item": [
-                {
-                    "name": "ACACIA_STAIRS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "can_rotate": true
         },
         {
             "id": 134,
@@ -3462,13 +3366,7 @@
                 "stairs"
             ],
             "texture": "block/spruce_planks.png",
-            "can_rotate": true,
-            "drop_item": [
-                {
-                    "name": "SPRUCE_STAIRS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "can_rotate": true
         },
         {
             "id": 534,
@@ -3482,13 +3380,7 @@
                 "stairs"
             ],
             "texture": "block/dark_oak_planks.png",
-            "can_rotate": true,
-            "drop_item": [
-                {
-                    "name": "DARK_OAK_STAIRS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "can_rotate": true
         },
         {
             "id": 535,
@@ -3502,13 +3394,7 @@
                 "stairs"
             ],
             "texture": "block/jungle_planks.png",
-            "can_rotate": true,
-            "drop_item": [
-                {
-                    "name": "JUNGLE_STAIRS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "can_rotate": true
         },
         {
             "id": 156,
@@ -4099,13 +3985,7 @@
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             },
-            "can_rotate": true,
-            "drop_item": [
-                {
-                    "name": "BIRCH_TRAPDOOR",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "can_rotate": true
         },
         {
             "id": 463,
@@ -4125,13 +4005,7 @@
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             },
-            "can_rotate": true,
-            "drop_item": [
-                {
-                    "name": "OAK_TRAPDOOR",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "can_rotate": true
         },
         {
             "id": 464,
@@ -4151,13 +4025,7 @@
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             },
-            "can_rotate": true,
-            "drop_item": [
-                {
-                    "name": "ACACIA_TRAPDOOR",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "can_rotate": true
         },
         {
             "id": 465,
@@ -4177,13 +4045,7 @@
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             },
-            "can_rotate": true,
-            "drop_item": [
-                {
-                    "name": "SPRUCE_TRAPDOOR",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "can_rotate": true
         },
         {
             "id": 532,
@@ -4203,13 +4065,7 @@
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             },
-            "can_rotate": true,
-            "drop_item": [
-                {
-                    "name": "DARK_OAK_TRAPDOOR",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "can_rotate": true
         },
         {
             "id": 533,
@@ -4229,13 +4085,7 @@
                 "opened": false,
                 "point": {"x":0, "y":0, "z":0}
             },
-            "can_rotate": true,
-            "drop_item": [
-                {
-                    "name": "JUNGLE_TRAPDOOR",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "can_rotate": true
         },
         {
             "id": 1495,
@@ -8086,13 +7936,7 @@
                 "id": "wood"
             },
             "texture": "block/warped_planks.png",
-            "can_rotate": true,
-            "drop_item": [
-                {
-                    "name": "WARPED_STAIRS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "can_rotate": true
         },
         {
             "id": 77,
@@ -8108,13 +7952,7 @@
                 "slab": true,
                 "full_block_name": "WARPED_PLANKS"
             },
-            "texture": "block/warped_planks.png",
-            "drop_item": [
-                {
-                    "name": "WARPED_SLAB",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "texture": "block/warped_planks.png"
         },
         {
             "id": 78,
@@ -8345,13 +8183,7 @@
                 "id": "wood"
             },
             "texture": "block/crimson_planks.png",
-            "can_rotate": true,
-            "drop_item": [
-                {
-                    "name": "CRIMSON_STAIRS",
-                    "instrument": ["_AXE"]
-                }
-            ]
+            "can_rotate": true
         },
         {
             "id": 29,
