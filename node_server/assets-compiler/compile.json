@@ -613,7 +613,7 @@
                     "instrument":["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1522,7 +1522,7 @@
                     "instrument":["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1544,7 +1544,7 @@
                     "instrument":["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1566,7 +1566,7 @@
                     "instrument":["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1794,7 +1794,7 @@
                     "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1838,7 +1838,7 @@
                     "instrument":["DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1905,7 +1905,7 @@
                     "instrument":["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1930,7 +1930,7 @@
                     "instrument":["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1959,7 +1959,7 @@
                     }
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1999,7 +1999,7 @@
                     "instrument":["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -2448,7 +2448,7 @@
                     "instrument":["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -2473,7 +2473,7 @@
                     "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -3104,7 +3104,7 @@
                     "instrument":["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -3382,7 +3382,7 @@
                     "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -4415,7 +4415,7 @@
                     "instrument":["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -4456,7 +4456,7 @@
                     "instrument":["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -4497,7 +4497,7 @@
                     "instrument":["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -4839,7 +4839,7 @@
                     "instrument":["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -4889,7 +4889,7 @@
                     "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -5439,7 +5439,7 @@
                     "instrument":["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -5657,7 +5657,7 @@
                     "count": 2
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -8737,7 +8737,7 @@
                     "count": 2
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -8763,7 +8763,7 @@
                     "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -8789,7 +8789,7 @@
                     "instrument":["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCKS",
+                    "name":"SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -10993,7 +10993,7 @@
             },
             "drop_item": [
                 {
-                    "name":"SMALL_ROCKS"
+                    "name":"SMALL_ROCK"
                 }
             ]
         },
@@ -11844,7 +11844,7 @@
             }
         },{
             "id": 1087,
-            "name": "SMALL_ROCKS",
+            "name": "SMALL_ROCK",
             "style": "extruder",
             "texture": "block/stone.png",
             "item": {
