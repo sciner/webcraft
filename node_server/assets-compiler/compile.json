@@ -11862,11 +11862,22 @@
                 "name": "powder"
             },
             "material": {
-                "id": "powder"
+                "id": "gold"
             }
         },{
             "id": 1089,
             "name": "RAW_IRON",
+            "style": "extruder",
+            "texture": "block/stone.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "iron"
+            }
+        },{
+            "id": 1090,
+            "name": "RAW_COPPER",
             "style": "extruder",
             "texture": "block/stone.png",
             "item": {
