@@ -504,6 +504,7 @@ export class Renderer {
 
                     quat.fromEuler(tempQuat, rotate[0], rotate[1], rotate[2], 'xyz')
                     mat4.fromRotationTranslationScaleOrigin(pers_matrix, tempQuat, position, scale, pivot)
+                    mat4.rotateY(pers_matrix, pers_matrix, Math.PI)
                     // mat4.translate(pers_matrix, pers_matrix, position);
                     // if(display.rotation) {
                     //     const icon_rotate = display.rotation

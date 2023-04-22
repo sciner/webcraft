@@ -218,6 +218,8 @@
         "tag_plant": {"en": "plant", "ru": "растения", "fr": "", "es": "", "man": ""},
         "tag_tools": {"en": "tools", "ru": "инструменты", "fr": "", "es": "", "man": ""},
         "blocks_changed": {"en": "%0 block(s) changed", "ru": "%0 блоков изменено", "fr": "", "es": "", "man": ""},
-        "chunk_geometry_mode": {"en": "Chunk geometry mode", "ru": "Режим геометрии чанков", "fr": "", "es": "", "man": ""}
+        "chunk_geometry_mode": {"en": "Chunk geometry mode", "ru": "Режим геометрии чанков", "fr": "", "es": "", "man": ""},
+        "chunk_geometry_alloc": {"en": "Chunk geometry initial memory allocation", "ru": "Начальная память под геометрию чанков", "fr": "", "es": "", "man": ""},
+        "advanced_settings": {"en": "Advanced", "ru": "Продвинутые настройки", "fr": "", "es": "", "man": ""}
     }
 }

@@ -558,7 +558,7 @@ export class WorldAction {
     blocks: ActionBlocks
     mobs: {
         activate: any[]
-        spawn: any[]    // it should be MobSpawnParams, but it's server class
+        spawn: any[] // it should be MobSpawnParams, but it's server class
     }
     sitting? : TSittingState
     sleep? : TSleepState
@@ -900,7 +900,7 @@ export class WorldAction {
     }
 
     // Spawn mob (первая генерация моба, если его ещё не было в БД)
-    spawnMob(params) {
+    spawnMob(params : any) {
         this.mobs.spawn.push(params);
     }
 
@@ -1048,7 +1048,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnmob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
+        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
@@ -1518,7 +1518,7 @@ async function putDiscIntoJukebox(e, world, pos, player, world_block, world_mate
 }
 
 // Drop egg
-function chSpawnmob(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+function chSpawnMob(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(!BLOCK.isSpawnEgg(mat_block.id)) {
         return false;
     }

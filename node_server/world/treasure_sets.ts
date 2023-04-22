@@ -62,12 +62,12 @@ export class Treasure_Sets {
     /**
      * Generate chest slots
      */
-    generateSlots(xyz: IVector, set_name: string, count: int) {
+    generateSlots(xyz: IVector, source: string, count: int) {
 
         const rnd = new alea(this.#world.info.seed + new Vector(xyz).toHash());
 
-        const kit = this.treasure_sets.get(set_name)
-        if(!kit) throw `error_invalid_treasure_set_name|${set_name}`
+        const kit = this.treasure_sets.get(source)
+        if(!kit) throw `error_invalid_treasure_set_name|${source}`
         const items_kit = [...kit.items]
 
         //

@@ -7,7 +7,20 @@ import { Sounds } from "./sounds.js";
 import { IKbOptions, Kb, KbEvent} from "./kb.js";
 import { Hotbar } from "./hotbar.js";
 import { Tracker_Player } from "./tracker_player.js";
-import { KEY, MAGIC_ROTATE_DIV, MOUSE, MAX_FPS_DELTA_PROCESSED, MUSIC_INITIAL_PAUSE_SECONDS, DEFAULT_MUSIC_VOLUME, LIGHT_TYPE, DEFAULT_RENDER_DISTANCE, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, CHUNK_GEOMETRY_MODE } from "./constant.js";
+import {
+    KEY,
+    MAGIC_ROTATE_DIV,
+    MOUSE,
+    MAX_FPS_DELTA_PROCESSED,
+    MUSIC_INITIAL_PAUSE_SECONDS,
+    DEFAULT_MUSIC_VOLUME,
+    LIGHT_TYPE,
+    DEFAULT_RENDER_DISTANCE,
+    INGAME_MAIN_WIDTH,
+    INGAME_MAIN_HEIGHT,
+    CHUNK_GEOMETRY_MODE,
+    CHUNK_GEOMETRY_ALLOC
+} from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
 import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
@@ -57,7 +70,8 @@ export class GameSettings implements TWorldSettings {
     base_ambient_light_level:float = 100
     // quality
     use_light:               int = LIGHT_TYPE.RTX
-    chunk_geometry_mode:     int = CHUNK_GEOMETRY_MODE.AUTO
+    chunk_geometry_mode    = CHUNK_GEOMETRY_MODE.AUTO
+    chunk_geometry_alloc   = CHUNK_GEOMETRY_ALLOC.AUTO
     beautiful_leaves:        boolean = true
     leaf_fall:               boolean = true
     draw_improved_blocks:    boolean = true
@@ -131,7 +145,7 @@ export class GameClass {
     preLoopEnable               : boolean = true
 
     App                         : any;
-    skin                        : any;
+    skin_id                     : string
     settings                    : GameSettings
     local_server_client?        : any
     prev_player_state?          : any
@@ -172,7 +186,7 @@ export class GameClass {
         this.hotbar = new Hotbar(this.hud)
 
         // Connect to server
-        const connection_string = server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid;
+        const connection_string = server_url + '?session_id=' + this.App.session.session_id + '&skin_id=' + this.skin_id + '&world_guid=' + world_guid;
         const ws = this.local_server_client ? this.local_server_client.connect(connection_string) : new WebSocket(connection_string);
 
         await this.world.connectToServer(ws);

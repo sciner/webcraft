@@ -218,7 +218,7 @@ export class ServerGame {
             console.log('New player connection');
             const query         = url.parse(req.url, true).query;
             const world_guid    = Array.isArray(query.world_guid) ? query.world_guid[0] : query.world_guid;
-            const skin          = Array.isArray(query.skin) ? query.skin[0] : query.skin;
+            const skin_id       = Array.isArray(query.skin_id) ? query.skin_id[0] : query.skin_id;
             // Get loaded world
             let world = this.getLoadedWorld(world_guid);
             const onWorld = async (world) => {
@@ -227,7 +227,7 @@ export class ServerGame {
                 }
                 Log.append('WsConnected', {world_guid, session_id: query.session_id});
                 const player = new ServerPlayer();
-                player.onJoin(query.session_id as string, parseInt(skin), conn, world);
+                player.onJoin(query.session_id as string, skin_id, conn, world);
                 const game_world = await this.db.getWorld(world_guid);
                 await this.db.IncreasePlayCount(game_world.id, query.session_id);
             };

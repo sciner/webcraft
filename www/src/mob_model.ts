@@ -95,19 +95,20 @@ export class MobModel extends NetworkPhysicObject {
 
         Object.assign(this, props)
 
-        this.type = props.type
-        this.skin = props.skin_id || props.skin
-        // this.animationScript = new MobAnimation(this)
+        this.type = props.skin.model_name
+        this.skin = props.skin
 
         // load mesh
         const render = Qubatch.render as Renderer
-        const type = this.type.startsWith('player') ? MOB_TYPE.HUMANOID : this.type
-        const model = Resources._bbmodels.get(type)
+        const model = Resources._bbmodels.get(this.skin.model_name)
         if(!model) {
-            console.error(`error_model_not_found|${type}`)
+            console.error(`error_model_not_found|${this.skin.model_name}`, props)
             debugger
         }
         this._mesh = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
+        if(this.skin.texture_name) {
+            this._mesh.modifiers.selectTextureFromPalette('', this.skin.texture_name)
+        }
 
     }
 
@@ -228,6 +229,9 @@ export class MobModel extends NetworkPhysicObject {
 
         if(mesh) {
             this.doAnims();
+            if(!mesh.apos) {
+                debugger
+            }
             mesh.apos.copyFrom(this._pos)
             mesh.drawBuffered(render, delta)
         }

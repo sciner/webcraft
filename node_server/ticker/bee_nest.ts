@@ -4,7 +4,7 @@ import { ServerClient } from "@client/server_client.js";
 import type { ServerWorld } from "../server_world.js";
 import type { ServerChunk } from "../server_chunk.js";
 import type { TickingBlockManager } from "../server_chunk.js";
-import { MOB_TYPE } from "@client/constant.js";
+import { DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE } from "@client/constant.js";
 
 export default class Ticker {
 
@@ -38,12 +38,11 @@ export default class Ticker {
                     } else {
                         // первая генерация моба, если его ещё не было в БД
                         const params = {
-                            type: MOB_TYPE.BEE,
-                            skin: 'base',
-                            pos: spawn_pos
-                        };
+                            skin:       {model_name: MOB_TYPE.BEE, texture_name: DEFAULT_MOB_TEXTURE_NAME},
+                            pos:        spawn_pos,
+                        }
                         // create new mob in world
-                        Ticker.spawnMob(world, params);
+                        Ticker.spawnMob(world, params)
                     }
                     // update this ticking block state
                     updated_blocks.push({

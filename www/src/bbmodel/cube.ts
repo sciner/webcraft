@@ -63,6 +63,8 @@ export class BBModel_Cube extends BBModel_Child {
         const force_texture_name = this.selected_texture_name ?? model.selected_texture_name
         const faces = force_texture_name ? this.faces_palette?.get(force_texture_name) : this.faces
         if(!faces) {
+            console.log(force_texture_name, JSON.stringify(this.faces))
+            debugger
             throw 'error_bbcube_no_faces'
         }
         default_style.pushPART(vertices, {

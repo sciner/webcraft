@@ -106,7 +106,7 @@ export class WorldGenerators {
             }
         }
     }
-    
+
     //
     static validateAndFixOptions(params) : TGeneratorInfo {
         if(!('id' in params)) {
@@ -198,7 +198,7 @@ export class WorldGenerators {
     static list = [
         {
             "id": "biome2",
-            "title": "Стандартный",
+            "title": "Standard",
             "pos_spawn": {"x": 0, "y": 120, "z": 0},
             "rules": {
                 "portals": true
@@ -222,7 +222,7 @@ export class WorldGenerators {
         },
         {
             "id": "biome3",
-            "title": "Улучшенный",
+            "title": "Improved 3d-noise",
             "pos_spawn": {"x": 0, "y": 120, "z": 0},
             "rules": {
                 "portals": true
@@ -259,7 +259,7 @@ export class WorldGenerators {
         },
         {
             "id": "flat",
-            "title": "Плоский мир",
+            "title": "Flat world",
             "pos_spawn": {"x": 0, "y": 1, "z": 0},
             "rules": {
                 "portals": false
@@ -270,7 +270,7 @@ export class WorldGenerators {
         },
         {
             "id": "city",
-            "title": "Город 1",
+            "title": "City 1",
             "pos_spawn": {"x": 0, "y": 120, "z": 0},
             "rules": {
                 "portals": false
@@ -281,7 +281,7 @@ export class WorldGenerators {
         },
         {
             "id": "city2",
-            "title": "Город 2",
+            "title": "City 2",
             "pos_spawn": {"x": 0, "y": 120, "z": 0},
             "rules": {
                 "portals": false
@@ -292,7 +292,7 @@ export class WorldGenerators {
         },
         {
             "id": "bottom_caves",
-            "title": "Пещеры нижнего мира",
+            "title": "Cave world",
             "pos_spawn": {"x": 0, "y": 32, "z": 0},
             "rules": {
                 "portals": false
