@@ -8186,20 +8186,7 @@
                 "height": 0.5,
                 "slab": true,
                 "full_block_name": "RED_SANDSTONE"
-            },
-            "drop_item": [
-                {
-                    "name": "RED_SANDSTONE_SLAB",
-                    "instrument": ["_PICKAXE"]
-                },
-                {
-                    "name": "SMALL_ROCK",
-                    "count": {
-                        "min": 1,
-                        "max": 3
-                    }
-                }
-            ]
+            }
         },
         {
             "id": 64,
@@ -10320,11 +10307,23 @@
             "sham_block_name": "STONE",
             "sound": "madcraft:block.stone",
             "support_style": "uncertain_stone",
-            "drop_item": {"name": "COBBLESTONE", "count": 1, "chance": 1},
             "material": {
                 "id": "stone"
             },
-            "texture": "block/stone.png"
+            "texture": "block/stone.png",
+            "drop_item": [
+                {
+                    "name": "COBBLESTONE",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 1024,
@@ -11497,20 +11496,7 @@
                 "height": 0.5,
                 "slab": true,
                 "full_block_name": "SAND"
-            },
-            "drop_item": [
-                {
-                    "name": "SAND_SLAB",
-                    "instrument": ["_PICKAXE"]
-                },
-                {
-                    "name": "SMALL_ROCK",
-                    "count": {
-                        "min": 1,
-                        "max": 3
-                    }
-                }
-            ]
+            }
         },
         {
             "id": 1046,
