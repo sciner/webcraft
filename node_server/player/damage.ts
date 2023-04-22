@@ -294,5 +294,6 @@ export class ServerPlayerDamage {
         player.live_level   = ind_def.live;
         player.food_level   = ind_def.food;
         player.oxygen_level = ind_def.oxygen;
+        this.#last_height = -100000
     }
 }

@@ -87,6 +87,13 @@
         {"name": "bough",               "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "dandelion",           "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "poppy",               "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "small_rock",          "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "raw_copper",          "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "raw_gold",            "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "raw_iron",            "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "gold_nugget",         "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "iron_nugget",         "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "copper_nugget",       "shift": {"x": 0, "y": 0, "z": 0}},
 
         {"name": "tool/iron_sword",     "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "tool/primitive_axe",  "shift": {"x": 0, "y": 0, "z": 0}},
@@ -2145,6 +2152,55 @@
             "name": "PRIMITIVE_AXE",
             "bb": {
                 "model": "tool/primitive_axe"
+            }
+        },
+        {
+            "id": 1087,
+            "name": "SMALL_ROCK",
+            "bb": {
+                "model": "small_rock"
+            }
+        },
+        {
+            "id": 1024,
+            "name": "COPPER_NUGGET",
+            "bb": {
+                "model": "copper_nugget"
+            }
+        },
+        {
+            "id": 796,
+            "name": "IRON_NUGGET",
+            "bb": {
+                "model": "iron_nugget"
+            }
+        },
+        {
+            "id": 212,
+            "name": "GOLD_NUGGET",
+            "bb": {
+                "model": "gold_nugget"
+            }
+        },
+        {
+            "id": 1088,
+            "name": "RAW_GOLD",
+            "bb": {
+                "model": "raw_gold"
+            }
+        },
+        {
+            "id": 1089,
+            "name": "RAW_IRON",
+            "bb": {
+                "model": "raw_iron"
+            }
+        },
+        {
+            "id": 1090,
+            "name": "RAW_COPPER",
+            "bb": {
+                "model": "raw_copper"
             }
         }
     ]

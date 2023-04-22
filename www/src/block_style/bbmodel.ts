@@ -129,7 +129,8 @@ export default class style {
             }
         }
 
-        matrix = mat4.create()
+        matrix = matrix ?? mat4.create()
+        // matrix = mat4.create()
 
         // reset state and restore groups visibility
         model.resetBehaviorChanges()
