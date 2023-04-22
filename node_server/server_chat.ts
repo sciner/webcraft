@@ -545,6 +545,16 @@ export class ServerChat {
                 this.sendSystemChatMessageToSelectedPlayers(stat, player, true);
                 break;
             }
+            case '/debugplayer': {
+                if (args.length === 1) {
+                    this.sendSystemChatMessageToSelectedPlayers('!langUsage: /debugplayer (-<name>|<name>[=<value>])*\nIt sets player debug values.', player)
+                }
+                args.shift()
+                player.updateDebugValues(args)
+                const keys = Array.from(player.debugValues).map(e => `${e[0]}=${e[1]}`).join()
+                this.sendSystemChatMessageToSelectedPlayers(`!langPlayer debug values: ${keys}`, player)
+                break
+            }
             case '/spawnpoint': {
                 player.changePosSpawn({pos: player.state.pos.round(3)});
                 break;

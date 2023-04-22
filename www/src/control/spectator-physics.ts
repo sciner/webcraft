@@ -145,7 +145,6 @@ export class SpectatorPlayerControl extends PlayerControl {
 
     get type()                  { return PLAYER_CONTROL_TYPE.SPECTATOR }
     get requiresChunk(): boolean { return false }
-    get sneak(): boolean        { return false }
     get playerHeight(): float   { return PLAYER_HEIGHT }
 
     resetState(): void {

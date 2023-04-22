@@ -882,6 +882,8 @@ export class Physics {
         }
 
         this.moveEntityWithHeading(entity, strafe, forward)
+
+        entity.sneak = control.sneak && entity.onGround
     }
 }
 
@@ -946,6 +948,7 @@ export class PlayerState implements IPlayerControlState {
     onGround    = false
     isInWater   = false
     isInLava    = false
+    sneak       = false
     /** If isInWater or isInLava, it shows the height of the part of the bounding box that is below the surface */
     submergedHeight?: float
     isInWeb     = false
