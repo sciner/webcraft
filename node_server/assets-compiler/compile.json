@@ -57,7 +57,7 @@
                 "id": "water"
             },
             "texture": {
-                "side":"block/lava_still.png"
+                "side": "block/lava_still.png"
             }
         },
         {
@@ -68,7 +68,7 @@
                 "id": "water"
             },
             "texture": {
-                "side":"block/water_still.png"
+                "side": "block/water_still.png"
             }
         },
         {
@@ -226,7 +226,7 @@
                 "id": "wood"
             },
             "transparent": true,
-            "tags":[
+            "tags": [
                 "no_drop_ao",
                 "doubleface"
             ],
@@ -249,7 +249,7 @@
                 "west": false
             },
             "texture": {
-                "side":"block/fire_0.png"
+                "side": "block/fire_0.png"
             },
             "texture_animations": {
                 "side": null
@@ -376,7 +376,7 @@
                 "style": "extruder",
                 "texture": "item/kelp.png"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant"
             ],
@@ -507,8 +507,8 @@
             },
             "drop_item": [
                 {
-                    "name":"DIRT_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "DIRT_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -536,8 +536,8 @@
             },
             "drop_item": [
                 {
-                    "name":"SNOW_DIRT_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "SNOW_DIRT_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -609,11 +609,11 @@
             "texture": "block/cobblestone.png",
             "drop_item": [
                 {
-                    "name":"COBBLESTONE",
-                    "instrument":["_PICKAXE"]
+                    "name": "COBBLESTONE",
+                    "instrument": ["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1358,8 +1358,8 @@
             "texture": "block/birch_planks.png",
             "drop_item": [
                 {
-                    "name":"BIRCH_PLANKS",
-                    "instrument":["_AXE"]
+                    "name": "BIRCH_PLANKS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -1378,8 +1378,8 @@
             "texture": "block/oak_planks.png",
             "drop_item": [
                 {
-                    "name":"OAK_PLANKS",
-                    "instrument":["_AXE"]
+                    "name": "OAK_PLANKS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -1398,8 +1398,8 @@
             "texture": "block/acacia_planks.png",
             "drop_item": [
                 {
-                    "name":"ACACIA_PLANKS",
-                    "instrument":["_AXE"]
+                    "name": "ACACIA_PLANKS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -1418,8 +1418,8 @@
             "texture": "block/spruce_planks.png",
             "drop_item": [
                 {
-                    "name":"SPRUCE_PLANKS",
-                    "instrument":["_AXE"]
+                    "name": "SPRUCE_PLANKS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -1438,8 +1438,8 @@
             "texture": "block/dark_oak_planks.png",
             "drop_item": [
                 {
-                    "name":"DARK_OAK_PLANKS",
-                    "instrument":["_AXE"]
+                    "name": "DARK_OAK_PLANKS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -1458,8 +1458,8 @@
             "texture": "block/jungle_planks.png",
             "drop_item": [
                 {
-                    "name":"JUNGLE_PLANKS",
-                    "instrument":["_AXE"]
+                    "name": "JUNGLE_PLANKS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -1478,8 +1478,8 @@
             "texture": "block/warped_planks.png",
             "drop_item": [
                 {
-                    "name":"WARPED_PLANKS",
-                    "instrument":["_AXE"]
+                    "name": "WARPED_PLANKS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -1499,7 +1499,7 @@
             "texture": "block/glowstone.png",
             "drop_item": [
                 {
-                    "name":"GLOWSTONE_DUST",
+                    "name": "GLOWSTONE_DUST",
                     "count": {
                         "min": 2,
                         "max": 4
@@ -1518,11 +1518,11 @@
             "texture": "block/stone.png",
             "drop_item": [
                 {
-                    "name":"COBBLESTONE",
-                    "instrument":["_PICKAXE"]
+                    "name": "COBBLESTONE",
+                    "instrument": ["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1540,11 +1540,11 @@
             "texture": "block/smooth_stone.png",
             "drop_item": [
                 {
-                    "name":"COBBLESTONE",
-                    "instrument":["_PICKAXE"]
+                    "name": "COBBLESTONE",
+                    "instrument": ["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1562,11 +1562,11 @@
             },
             "drop_item": [
                 {
-                    "name":"BRICKS",
-                    "instrument":["_PICKAXE"]
+                    "name": "BRICKS",
+                    "instrument": ["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1609,11 +1609,11 @@
             },
             "drop_item": [
                 {
-                    "name":"FLINT",
+                    "name": "FLINT",
                     "chance": 0.1
                 },
                 {
-                    "name":"GRAVEL"
+                    "name": "GRAVEL"
                 }
             ],
             "texture": "block/gravel.png",
@@ -1778,8 +1778,8 @@
             },
             "drop_item": [
                 {
-                    "name":"GOLD_BLOCK",
-                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "name": "GOLD_BLOCK",
+                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ]
         },
@@ -1790,11 +1790,11 @@
             "coocked_item": {"name": "GOLD_ORE", "count": 1},
             "drop_item": [
                 {
-                    "name":"RAW_GOLD",
-                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "name": "RAW_GOLD",
+                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1819,8 +1819,8 @@
             "texture": "block/diamond_block.png",
             "drop_item": [
                 {
-                    "name":"DIAMOND_BLOCK",
-                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "name": "DIAMOND_BLOCK",
+                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ]
         },
@@ -1834,11 +1834,11 @@
             },
             "drop_item": [
                 {
-                    "name":"OBSIDIAN",
-                    "instrument":["DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "name": "OBSIDIAN",
+                    "instrument": ["DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1901,11 +1901,11 @@
             ],
             "drop_item": [
                 {
-                    "name":"RAW_IRON",
-                    "instrument":["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "name": "RAW_IRON",
+                    "instrument": ["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1926,11 +1926,11 @@
             ],
             "drop_item": [
                 {
-                    "name":"COAL",
-                    "instrument":["_PICKAXE"]
+                    "name": "COAL",
+                    "instrument": ["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1951,15 +1951,15 @@
             ],
             "drop_item": [
                 {
-                    "name":"LAPIS_LAZULI",
-                    "instrument":["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"],
+                    "name": "LAPIS_LAZULI",
+                    "instrument": ["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"],
                     "count": {
                         "min": 2,
                         "max": 5
                     }
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -1976,8 +1976,8 @@
             },
             "drop_item": [
                 {
-                    "name":"LAPIS_BLOCK",
-                    "instrument":["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "name": "LAPIS_BLOCK",
+                    "instrument": ["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ]
         },
@@ -1995,11 +1995,11 @@
             },
             "drop_item": [
                 {
-                    "name":"SANDSTONE",
-                    "instrument":["_PICKAXE"]
+                    "name": "SANDSTONE",
+                    "instrument": ["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -2046,12 +2046,12 @@
             },
             "drop_item": [
                 {
-                    "name":"STRING",
-                    "instrument":["_SWORD"]
+                    "name": "STRING",
+                    "instrument": ["_SWORD"]
                 },
                 {
-                    "name":"COBWEB",
-                    "instrument":["SHEARS"]
+                    "name": "COBWEB",
+                    "instrument": ["SHEARS"]
                 }
             ]
         },
@@ -2385,8 +2385,8 @@
             "texture": "block/smooth_stone.png",
             "drop_item": [
                 {
-                    "name":"SMOOTH_STONE_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "SMOOTH_STONE_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2407,8 +2407,8 @@
             "texture": "block/cobblestone.png",
             "drop_item": [
                 {
-                    "name":"COBBLESTONE_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "COBBLESTONE_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2429,8 +2429,8 @@
             "texture": "block/polished_andesite.png",
             "drop_item": [
                 {
-                    "name":"POLISHED_ANDESITE_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "POLISHED_ANDESITE_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2444,11 +2444,11 @@
             "texture": "block/mossy_cobblestone.png",
             "drop_item": [
                 {
-                    "name":"MOSS_STONE",
-                    "instrument":["_PICKAXE"]
+                    "name": "MOSS_STONE",
+                    "instrument": ["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -2469,11 +2469,11 @@
             ],
             "drop_item": [
                 {
-                    "name":"DIAMOND",
-                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "name": "DIAMOND",
+                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -2530,8 +2530,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"COBBLESTONE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "COBBLESTONE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2643,8 +2643,8 @@
             "texture": "block/nether_bricks.png",
             "drop_item": [
                 {
-                    "name":"NETHER_BRICK",
-                    "instrument":["_PICKAXE"]
+                    "name": "NETHER_BRICK",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2746,8 +2746,8 @@
             "texture": "block/nether_bricks.png",
             "drop_item": [
                 {
-                    "name":"NETHER_BRICK_FENCE",
-                    "instrument":["_PICKAXE"]
+                    "name": "NETHER_BRICK_FENCE",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2760,8 +2760,8 @@
             "texture": "block/netherrack.png",
             "drop_item": [
                 {
-                    "name":"NETHERRACK",
-                    "instrument":["_PICKAXE"]
+                    "name": "NETHERRACK",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2784,8 +2784,8 @@
             "texture": "block/stone_bricks.png",
             "drop_item": [
                 {
-                    "name":"STONE_BRICKS",
-                    "instrument":["_PICKAXE"]
+                    "name": "STONE_BRICKS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2840,8 +2840,8 @@
             "texture": "block/stone_bricks.png",
             "drop_item": [
                 {
-                    "name":"STONE_BRICK_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "STONE_BRICK_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2855,8 +2855,8 @@
             "texture": "block/chiseled_stone_bricks.png",
             "drop_item": [
                 {
-                    "name":"CHISELED_STONE_BRICKS",
-                    "instrument":["_PICKAXE"]
+                    "name": "CHISELED_STONE_BRICKS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2870,8 +2870,8 @@
             "texture": "block/polished_blackstone.png",
             "drop_item": [
                 {
-                    "name":"POLISHED_BLACKSTONE",
-                    "instrument":["_PICKAXE"]
+                    "name": "POLISHED_BLACKSTONE",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2885,8 +2885,8 @@
             "texture": "block/polished_blackstone_bricks.png",
             "drop_item": [
                 {
-                    "name":"POLISHED_BLACKSTONE_BRICKS",
-                    "instrument":["_PICKAXE"]
+                    "name": "POLISHED_BLACKSTONE_BRICKS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2907,8 +2907,8 @@
             "texture": "block/polished_blackstone_bricks.png",
             "drop_item": [
                 {
-                    "name":"POLISHED_BLACKSTONE_BRICK_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "POLISHED_BLACKSTONE_BRICK_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2927,8 +2927,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"POLISHED_ANDESITE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "POLISHED_ANDESITE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2947,8 +2947,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"POLISHED_BLACKSTONE_BRICK_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "POLISHED_BLACKSTONE_BRICK_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2969,8 +2969,8 @@
             "texture": "block/polished_blackstone.png",
             "drop_item": [
                 {
-                    "name":"POLISHED_BLACKSTONE_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "POLISHED_BLACKSTONE_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -2986,8 +2986,8 @@
             "texture": "block/polished_blackstone.png",
             "drop_item": [
                 {
-                    "name":"POLISHED_BLACKSTONE_WALL",
-                    "instrument":["_PICKAXE"]
+                    "name": "POLISHED_BLACKSTONE_WALL",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -3062,8 +3062,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"BRICK_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "BRICK_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -3082,8 +3082,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"STONE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "STONE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -3100,11 +3100,11 @@
                 "down": "block/quartz_block_bottom.png"
             },"drop_item": [
                 {
-                    "name":"QUARTZ_BLOCK",
-                    "instrument":["_PICKAXE"]
+                    "name": "QUARTZ_BLOCK",
+                    "instrument": ["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -3126,8 +3126,8 @@
             },
             "drop_item": [
                 {
-                    "name":"CUT_SANDSTONE",
-                    "instrument":["_PICKAXE"]
+                    "name": "CUT_SANDSTONE",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -3170,8 +3170,8 @@
             },
             "drop_item": [
                 {
-                    "name":"END_STONE",
-                    "instrument":["_PICKAXE"]
+                    "name": "END_STONE",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -3206,8 +3206,8 @@
             "texture": "block/bricks.png",
             "drop_item": [
                 {
-                    "name":"BRICK_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "BRICK_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -3228,8 +3228,8 @@
             "texture": "block/oak_planks.png",
             "drop_item": [
                 {
-                    "name":"OAK_SLAB",
-                    "instrument":["_AXE"]
+                    "name": "OAK_SLAB",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -3250,8 +3250,8 @@
             "texture": "block/dark_oak_planks.png",
             "drop_item": [
                 {
-                    "name":"DARK_OAK_SLAB",
-                    "instrument":["_AXE"]
+                    "name": "DARK_OAK_SLAB",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -3272,8 +3272,8 @@
             "texture": "block/jungle_planks.png",
             "drop_item": [
                 {
-                    "name":"JUNGLE_SLAB",
-                    "instrument":["_AXE"]
+                    "name": "JUNGLE_SLAB",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -3294,8 +3294,8 @@
             "texture": "block/birch_planks.png",
             "drop_item": [
                 {
-                    "name":"BIRCH_SLAB",
-                    "instrument":["_AXE"]
+                    "name": "BIRCH_SLAB",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -3316,8 +3316,8 @@
             "texture": "block/acacia_planks.png",
             "drop_item": [
                 {
-                    "name":"ACACIA_SLAB",
-                    "instrument":["_AXE"]
+                    "name": "ACACIA_SLAB",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -3338,8 +3338,8 @@
             "texture": "block/spruce_planks.png",
             "drop_item": [
                 {
-                    "name":"SPRUCE_SLAB",
-                    "instrument":["_AXE"]
+                    "name": "SPRUCE_SLAB",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -3362,8 +3362,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"SANDSTONE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "SANDSTONE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -3378,11 +3378,11 @@
             ],
             "drop_item": [
                 {
-                    "name":"EMERALD",
-                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "name": "EMERALD",
+                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -3405,8 +3405,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"BIRCH_STAIRS",
-                    "instrument":["_AXE"]
+                    "name": "BIRCH_STAIRS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -3425,8 +3425,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"OAK_STAIRS",
-                    "instrument":["_AXE"]
+                    "name": "OAK_STAIRS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -3445,8 +3445,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"ACACIA_STAIRS",
-                    "instrument":["_AXE"]
+                    "name": "ACACIA_STAIRS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -3465,8 +3465,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"SPRUCE_STAIRS",
-                    "instrument":["_AXE"]
+                    "name": "SPRUCE_STAIRS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -3485,8 +3485,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"DARK_OAK_STAIRS",
-                    "instrument":["_AXE"]
+                    "name": "DARK_OAK_STAIRS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -3505,8 +3505,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"JUNGLE_STAIRS",
-                    "instrument":["_AXE"]
+                    "name": "JUNGLE_STAIRS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -3525,8 +3525,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"QUARTZ_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "QUARTZ_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -4102,8 +4102,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"BIRCH_TRAPDOOR",
-                    "instrument":["_AXE"]
+                    "name": "BIRCH_TRAPDOOR",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -4128,8 +4128,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"OAK_TRAPDOOR",
-                    "instrument":["_AXE"]
+                    "name": "OAK_TRAPDOOR",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -4154,8 +4154,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"ACACIA_TRAPDOOR",
-                    "instrument":["_AXE"]
+                    "name": "ACACIA_TRAPDOOR",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -4180,8 +4180,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"SPRUCE_TRAPDOOR",
-                    "instrument":["_AXE"]
+                    "name": "SPRUCE_TRAPDOOR",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -4206,8 +4206,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"DARK_OAK_TRAPDOOR",
-                    "instrument":["_AXE"]
+                    "name": "DARK_OAK_TRAPDOOR",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -4232,8 +4232,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"JUNGLE_TRAPDOOR",
-                    "instrument":["_AXE"]
+                    "name": "JUNGLE_TRAPDOOR",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -4258,8 +4258,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"IRON_TRAPDOOR",
-                    "instrument":["_PICKAXE"]
+                    "name": "IRON_TRAPDOOR",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -4411,11 +4411,11 @@
             },
             "drop_item": [
                 {
-                    "name":"ANDESITE",
-                    "instrument":["_PICKAXE"]
+                    "name": "ANDESITE",
+                    "instrument": ["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -4435,8 +4435,8 @@
             },
             "drop_item": [
                 {
-                    "name":"POLISHED_ANDESITE",
-                    "instrument":["_PICKAXE"]
+                    "name": "POLISHED_ANDESITE",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -4452,11 +4452,11 @@
             },
             "drop_item": [
                 {
-                    "name":"DIORITE",
-                    "instrument":["_PICKAXE"]
+                    "name": "DIORITE",
+                    "instrument": ["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -4476,8 +4476,8 @@
             },
             "drop_item": [
                 {
-                    "name":"POLISHED_DIORITE",
-                    "instrument":["_PICKAXE"]
+                    "name": "POLISHED_DIORITE",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -4493,11 +4493,11 @@
             },
             "drop_item": [
                 {
-                    "name":"GRANITE",
-                    "instrument":["_PICKAXE"]
+                    "name": "GRANITE",
+                    "instrument": ["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -4517,8 +4517,8 @@
             },
             "drop_item": [
                 {
-                    "name":"POLISHED_GRANITE",
-                    "instrument":["_PICKAXE"],
+                    "name": "POLISHED_GRANITE",
+                    "instrument": ["_PICKAXE"],
                     "count": 2
                 }
             ]
@@ -4835,11 +4835,11 @@
             },
             "drop_item": [
                 {
-                    "name":"DRIPSTONE_BLOCK",
-                    "instrument":["_PICKAXE"]
+                    "name": "DRIPSTONE_BLOCK",
+                    "instrument": ["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -4885,11 +4885,11 @@
             "texture": "block/amethyst_block.png",
             "drop_item": [
                 {
-                    "name":"REDSTONE_WIRE",
-                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "name": "REDSTONE_WIRE",
+                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -5176,8 +5176,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"STONE_BRICK_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "STONE_BRICK_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -5275,8 +5275,8 @@
             "texture": "block/cobblestone.png",
             "drop_item": [
                 {
-                    "name":"COBBLESTONE_WALL",
-                    "instrument":["_PICKAXE"]
+                    "name": "COBBLESTONE_WALL",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -5292,8 +5292,8 @@
             "texture": "block/stone_bricks.png",
             "drop_item": [
                 {
-                    "name":"STONE_BRICK_WALL",
-                    "instrument":["_PICKAXE"]
+                    "name": "STONE_BRICK_WALL",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -5309,8 +5309,8 @@
             "texture": "block/mossy_cobblestone.png",
             "drop_item": [
                 {
-                    "name":"MOSS_STONE_WALL",
-                    "instrument":["_PICKAXE"]
+                    "name": "MOSS_STONE_WALL",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -5328,8 +5328,8 @@
             },
             "drop_item": [
                 {
-                    "name":"ANDESITE_WALL",
-                    "instrument":["_PICKAXE"]
+                    "name": "ANDESITE_WALL",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -5347,8 +5347,8 @@
             },
             "drop_item": [
                 {
-                    "name":"DIORITE_WALL",
-                    "instrument":["_PICKAXE"]
+                    "name": "DIORITE_WALL",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -5366,8 +5366,8 @@
             },
             "drop_item": [
                 {
-                    "name":"GRANITE_WALL",
-                    "instrument":["_PICKAXE"]
+                    "name": "GRANITE_WALL",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -5383,8 +5383,8 @@
             "texture": "block/sandstone.png",
             "drop_item": [
                 {
-                    "name":"SANDSTONE_WALL",
-                    "instrument":["_PICKAXE"]
+                    "name": "SANDSTONE_WALL",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -5400,8 +5400,8 @@
             "texture": "block/bricks.png",
             "drop_item": [
                 {
-                    "name":"BIRCH_WALL",
-                    "instrument":["_PICKAXE"]
+                    "name": "BIRCH_WALL",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -5435,11 +5435,11 @@
             },
             "drop_item": [
                 {
-                    "name":"DEEPSLATE",
-                    "instrument":["_PICKAXE"]
+                    "name": "DEEPSLATE",
+                    "instrument": ["_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -5458,8 +5458,8 @@
             },
             "drop_item": [
                 {
-                    "name":"DEEPSLATE_BRICKS",
-                    "instrument":["_PICKAXE"]
+                    "name": "DEEPSLATE_BRICKS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -5478,8 +5478,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"DEEPSLATE_BRICK_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "DEEPSLATE_BRICK_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -5512,8 +5512,8 @@
             },
             "drop_item": [
                 {
-                    "name":"MOSSY_STONE_BRICKS",
-                    "instrument":["_PICKAXE"]
+                    "name": "MOSSY_STONE_BRICKS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -5652,12 +5652,12 @@
             ],
             "drop_item": [
                 {
-                    "name":"REDSTONE_WIRE",
-                    "instrument":["_PICKAXE"],
+                    "name": "REDSTONE_WIRE",
+                    "instrument": ["_PICKAXE"],
                     "count": 2
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -5706,8 +5706,8 @@
             },
             "drop_item": [
                 {
-                    "name":"LODESTONE",
-                    "instrument":["_PICKAXE"]
+                    "name": "LODESTONE",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7041,8 +7041,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"POLISHED_ANDESITE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "POLISHED_ANDESITE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7065,8 +7065,8 @@
             "texture": "block/deepslate_bricks.png",
             "drop_item": [
                 {
-                    "name":"DEEPSLATE_BRICKS",
-                    "instrument":["_PICKAXE"]
+                    "name": "DEEPSLATE_BRICKS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7087,8 +7087,8 @@
             "texture": "block/deepslate_bricks.png",
             "drop_item": [
                 {
-                    "name":"DEEPSLATE_BRICK_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "DEEPSLATE_BRICK_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7107,8 +7107,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"DEEPSLATE_BRICK_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "DEEPSLATE_BRICK_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7122,8 +7122,8 @@
             "texture": "block/deepslate_tiles.png",
             "drop_item": [
                 {
-                    "name":"DEEPSLATE_TILES",
-                    "instrument":["_PICKAXE"]
+                    "name": "DEEPSLATE_TILES",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7144,8 +7144,8 @@
             "texture": "block/deepslate_tiles.png",
             "drop_item": [
                 {
-                    "name":"DEEPSLATE_TILE_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "DEEPSLATE_TILE_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7164,8 +7164,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"DEEPSLATE_TILE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "DEEPSLATE_TILE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7181,8 +7181,8 @@
             "texture": "block/deepslate_tiles.png",
             "drop_item": [
                 {
-                    "name":"DEEPSLATE_TILE_WALL",
-                    "instrument":["_PICKAXE"]
+                    "name": "DEEPSLATE_TILE_WALL",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7196,8 +7196,8 @@
             "texture": "block/netherite_block.png",
             "drop_item": [
                 {
-                    "name":"NETHERITE_BLOCK",
-                    "instrument":["_PICKAXE"]
+                    "name": "NETHERITE_BLOCK",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7213,8 +7213,8 @@
             "texture": "block/mossy_cobblestone.png",
             "drop_item": [
                 {
-                    "name":"MOSSY_COBBLESTONE_WALL",
-                    "instrument":["_PICKAXE"]
+                    "name": "MOSSY_COBBLESTONE_WALL",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7228,8 +7228,8 @@
             "texture": "block/mossy_cobblestone.png",
             "drop_item": [
                 {
-                    "name":"MOSSY_COBBLESTONE",
-                    "instrument":["_PICKAXE"]
+                    "name": "MOSSY_COBBLESTONE",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7248,8 +7248,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"MOSSY_COBBLESTONE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "MOSSY_COBBLESTONE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7317,8 +7317,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"WAXED_CUT_COPPER_STAIRS",
-                    "instrument":["IRON_PICKAXE", "STONE_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "name": "WAXED_CUT_COPPER_STAIRS",
+                    "instrument": ["IRON_PICKAXE", "STONE_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ]
         },
@@ -7368,8 +7368,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"MOSSY_STONE_BRICK_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "MOSSY_STONE_BRICK_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7383,8 +7383,8 @@
             "texture": "block/dark_prismarine.png",
             "drop_item": [
                 {
-                    "name":"DARK_PRISMARINE",
-                    "instrument":["_PICKAXE"]
+                    "name": "DARK_PRISMARINE",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7405,8 +7405,8 @@
             "texture": "block/quartz_block_top.png",
             "drop_item": [
                 {
-                    "name":"QUARTZ_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "QUARTZ_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7427,8 +7427,8 @@
             "texture": "block/stone.png",
             "drop_item": [
                 {
-                    "name":"STONE_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "STONE_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7447,8 +7447,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"DARK_PRISMARINE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "DARK_PRISMARINE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7467,8 +7467,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"PRISMARINE_BRICK_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "PRISMARINE_BRICK_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7482,8 +7482,8 @@
             "texture": "block/prismarine_bricks.png",
             "drop_item": [
                 {
-                    "name":"PRISMARINE_BRICKS",
-                    "instrument":["_PICKAXE"]
+                    "name": "PRISMARINE_BRICKS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7515,8 +7515,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"RED_SANDSTONE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "RED_SANDSTONE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7532,8 +7532,8 @@
             "texture": "block/red_sandstone.png",
             "drop_item": [
                 {
-                    "name":"RED_SANDSTONE_WALL",
-                    "instrument":["_PICKAXE"]
+                    "name": "RED_SANDSTONE_WALL",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7547,8 +7547,8 @@
             "texture": "block/sandstone_top.png",
             "drop_item": [
                 {
-                    "name":"SMOOTH_SANDSTONE",
-                    "instrument":["_PICKAXE"]
+                    "name": "SMOOTH_SANDSTONE",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7569,8 +7569,8 @@
             "texture": "block/sandstone_top.png",
             "drop_item": [
                 {
-                    "name":"SMOOTH_SANDSTONE_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "SMOOTH_SANDSTONE_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7589,8 +7589,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"SMOOTH_SANDSTONE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "SMOOTH_SANDSTONE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7624,8 +7624,8 @@
             "texture": "block/cut_red_sandstone.png",
             "drop_item": [
                 {
-                    "name":"CUT_RED_SANDSTONE_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "CUT_RED_SANDSTONE_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7646,8 +7646,8 @@
             "texture": "block/prismarine_bricks.png",
             "drop_item": [
                 {
-                    "name":"PRISMARINE_BRICK_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "PRISMARINE_BRICK_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7692,8 +7692,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"NETHER_BRICK_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "NETHER_BRICK_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7722,8 +7722,8 @@
             "texture": "block/emerald_block.png",
             "drop_item": [
                 {
-                    "name":"EMERALD_BLOCK",
-                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "name": "EMERALD_BLOCK",
+                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ]
         },
@@ -7803,8 +7803,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"SMOOTH_QUARTZ_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "SMOOTH_QUARTZ_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7829,8 +7829,8 @@
             },
             "drop_item": [
                 {
-                    "name":"SANDSTONE_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "SANDSTONE_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7855,8 +7855,8 @@
             },
             "drop_item": [
                 {
-                    "name":"RED_SANDSTONE_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "RED_SANDSTONE_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7875,8 +7875,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"PRISMARINE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "PRISMARINE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7895,8 +7895,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"END_STONE_BRICK_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "END_STONE_BRICK_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7926,8 +7926,8 @@
             },
             "drop_item": [
                 {
-                    "name":"END_STONE_BRICK_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "END_STONE_BRICK_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -7973,8 +7973,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"ANDESITE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "ANDESITE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -8089,8 +8089,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"WARPED_STAIRS",
-                    "instrument":["_AXE"]
+                    "name": "WARPED_STAIRS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -8111,8 +8111,8 @@
             "texture": "block/warped_planks.png",
             "drop_item": [
                 {
-                    "name":"WARPED_SLAB",
-                    "instrument":["_AXE"]
+                    "name": "WARPED_SLAB",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -8133,8 +8133,8 @@
             "texture": "block/nether_bricks.png",
             "drop_item": [
                 {
-                    "name":"NETHER_BRICK_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "NETHER_BRICK_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -8164,8 +8164,8 @@
             "texture": "block/purpur_block.png",
             "drop_item": [
                 {
-                    "name":"PURPUR_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "PURPUR_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -8184,8 +8184,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"PURPUR_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "PURPUR_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -8288,8 +8288,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"GRANITE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "GRANITE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -8308,8 +8308,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"POLISHED_GRANITE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "POLISHED_GRANITE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -8328,8 +8328,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"DIORITE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "DIORITE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -8348,8 +8348,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"CRIMSON_STAIRS",
-                    "instrument":["_AXE"]
+                    "name": "CRIMSON_STAIRS",
+                    "instrument": ["_AXE"]
                 }
             ]
         },
@@ -8413,8 +8413,8 @@
             "texture": "block/quartz_block_top.png",
             "drop_item": [
                 {
-                    "name":"SMOOTH_QUARTZ_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "SMOOTH_QUARTZ_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -8708,13 +8708,13 @@
             "extra_data": {
                 "page": 0,
                 "book": {
-                    "id":"written_book",
-                    "pages":[
-                        {"text":"Hello world!\n\nHow are you?\nEnd of first page\n"},
-                        {"text":"This is page #2"}
+                    "id": "written_book",
+                    "pages": [
+                        {"text": "Hello world!\n\nHow are you?\nEnd of first page\n"},
+                        {"text": "This is page #2"}
                     ],
-                    "author":"Username",
-                    "title":"Test book",
+                    "author": "Username",
+                    "title": "Test book",
                     "resolved":1
                 }
             }
@@ -8732,12 +8732,12 @@
             ],
             "drop_item": [
                 {
-                    "name":"REDSTONE_WIRE",
-                    "instrument":["_PICKAXE"],
+                    "name": "REDSTONE_WIRE",
+                    "instrument": ["_PICKAXE"],
                     "count": 2
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -8759,11 +8759,11 @@
             ],
             "drop_item": [
                 {
-                    "name":"GOLD_BLOCK",
-                    "instrument":["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "name": "GOLD_BLOCK",
+                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -8785,11 +8785,11 @@
             ],
             "drop_item": [
                 {
-                    "name":"IRON_ORE",
-                    "instrument":["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "name": "IRON_ORE",
+                    "instrument": ["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
-                    "name":"SMALL_ROCK",
+                    "name": "SMALL_ROCK",
                     "count": {
                         "min": 3,
                         "max": 5
@@ -8863,8 +8863,8 @@
             "can_rotate": true,
             "drop_item": [
                 {
-                    "name":"POLISHED_DIORITE_STAIRS",
-                    "instrument":["_PICKAXE"]
+                    "name": "POLISHED_DIORITE_STAIRS",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -8916,7 +8916,7 @@
             "can_rotate": true,
             "transparent": true,
             "texture": "item/armor_stand.png",
-            "tags":[
+            "tags": [
                 "#decore",
                 "rotate_x16",
                 "no_drop_ao"
@@ -9023,7 +9023,7 @@
                 "amount": 4,
                 "saturation": 0.3
             },
-            "effects":[
+            "effects": [
                 {"id":7, "time": 5, "level": 2},
                 {"id":14, "time": 300, "level": 1},
                 {"id":15, "time": 300, "level": 1},
@@ -9051,7 +9051,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":0, "time": 180, "level": 1}
             ]
         },
@@ -9075,7 +9075,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":0, "time": 480, "level": 1}
             ]
         },
@@ -9099,7 +9099,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":0, "time": 90, "level": 2}
             ]
         },
@@ -9123,7 +9123,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":7, "time": 45, "level": 1}
             ]
         },{
@@ -9146,7 +9146,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":7, "time": 90, "level": 1}
             ]
         },{
@@ -9169,7 +9169,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":7, "time": 22, "level": 2}
             ]
         },
@@ -9193,7 +9193,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":1, "time": 90, "level": 1}
             ]
         },
@@ -9217,7 +9217,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":1, "time": 240, "level": 1}
             ]
         },
@@ -9241,7 +9241,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":1, "time": 20, "level": 4}
             ]
         },
@@ -9265,7 +9265,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":19, "time": 180, "level": 1}
             ]
         },
@@ -9289,7 +9289,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":10, "time": 480, "level": 1}
             ]
         },
@@ -9313,7 +9313,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":10, "time": 90, "level": 2}
             ]
         },
@@ -9337,7 +9337,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":4, "time": 180, "level": 1}
             ]
         },
@@ -9361,7 +9361,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":4, "time": 480, "level": 1}
             ]
         },
@@ -9385,7 +9385,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":4, "time": 90, "level": 2}
             ]
         },
@@ -9409,7 +9409,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":24, "time": 0, "level": 1}
             ]
         },
@@ -9433,7 +9433,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":24, "time": 0, "level": 2}
             ]
         },
@@ -9457,7 +9457,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":25, "time": 0, "level": 1}
             ]
         },
@@ -9481,7 +9481,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":25, "time": 0, "level": 2}
             ]
         },
@@ -9505,7 +9505,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":6, "time": 45, "level": 1}
             ]
         },
@@ -9529,7 +9529,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":6, "time": 90, "level": 1}
             ]
         },
@@ -9553,7 +9553,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":6, "time": 22, "level": 2}
             ]
         },
@@ -9577,7 +9577,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":15, "time": 180, "level": 1}
             ]
         },
@@ -9601,7 +9601,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":15, "time": 480, "level": 1}
             ]
         },
@@ -9625,7 +9625,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":16, "time": 180, "level": 1}
             ]
         },
@@ -9649,7 +9649,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":16, "time": 480, "level": 1}
             ]
         },
@@ -9660,12 +9660,12 @@
             "material": {
                 "id": "wood"
             },
-            "tags":[
+            "tags": [
                 "no_drop_ao",
                 "no_set_on_top"
             ],
             "texture": "block/hay_block_top.png",
-            "style":"chicken_nest",
+            "style": "chicken_nest",
             "extra_data": {
                 "eggs": 0
             }
@@ -9741,7 +9741,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {}
             ]
         },
@@ -9808,7 +9808,7 @@
                 "amount": 1,
                 "saturation": 0.3
             },
-            "effects":[
+            "effects": [
                 {"id": 6, "time": 4, "level": 1}
             ],
             "texture": "item/spider_eye.png"
@@ -9852,7 +9852,7 @@
                 "amount": 2,
                 "saturation": 0.3
             },
-            "effects":[
+            "effects": [
                 {"id": 11, "time": 15, "level":2},
                 {"id": 9, "time": 15, "level": 3},
                 {"id": 6, "time": 60, "level": 4}
@@ -10809,7 +10809,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":12, "time": 180, "level": 1}
             ]
         },
@@ -10833,7 +10833,7 @@
                 "style": "extruder",
                 "texture": "26|31"
             },
-            "effects":[
+            "effects": [
                 {"id":12, "time": 480, "level": 1}
             ]
         },
@@ -10906,7 +10906,7 @@
             },
             "drop_item": [
                 {
-                    "name":"CHORUS_FRUIT"
+                    "name": "CHORUS_FRUIT"
                 }
             ]
         },
@@ -10923,7 +10923,7 @@
             },
             "drop_item": [
                 {
-                    "name":"CHORUS_FRUIT",
+                    "name": "CHORUS_FRUIT",
                     "chance": 0.4
                 }
             ]
@@ -10993,7 +10993,7 @@
             },
             "drop_item": [
                 {
-                    "name":"SMALL_ROCK"
+                    "name": "SMALL_ROCK"
                 }
             ]
         },
@@ -11093,8 +11093,8 @@
             },
             "drop_item": [
                 {
-                    "name":"SAND_SLAB",
-                    "instrument":["_PICKAXE"]
+                    "name": "SAND_SLAB",
+                    "instrument": ["_PICKAXE"]
                 }
             ]
         },
@@ -11382,7 +11382,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant"
             ],
@@ -11403,7 +11403,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface"
             ],
             "texture": "block/dead_tube_coral.png"
@@ -11418,7 +11418,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant"
             ],
@@ -11439,7 +11439,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant"
             ],
@@ -11455,7 +11455,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant"
             ],
@@ -11476,7 +11476,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant"
             ],
@@ -11492,7 +11492,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant"
             ],
@@ -11513,7 +11513,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant"
             ],
@@ -11529,7 +11529,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant"
             ],
@@ -11550,7 +11550,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant"
             ],
@@ -11566,7 +11566,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
@@ -11590,7 +11590,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
@@ -11609,7 +11609,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
@@ -11633,7 +11633,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
@@ -11652,7 +11652,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
@@ -11676,7 +11676,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
@@ -11695,7 +11695,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
@@ -11719,7 +11719,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
@@ -11738,7 +11738,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "no_set_on_top",
                 "in_water_plant",
@@ -11762,7 +11762,7 @@
             "material": {
                 "id": "plant"
             },
-            "tags":[
+            "tags": [
                 "doubleface",
                 "in_water_plant",
                 "no_set_on_top",
