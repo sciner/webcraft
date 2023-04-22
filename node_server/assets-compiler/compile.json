@@ -504,13 +504,7 @@
                 "height": 0.5,
                 "slab": true,
                 "full_block_name": "DIRT"
-            },
-            "drop_item": [
-                {
-                    "name": "DIRT_SLAB",
-                    "instrument": ["_PICKAXE"]
-                }
-            ]
+            }
         },
         {
             "id": 420,
@@ -538,6 +532,13 @@
                 {
                     "name": "SNOW_DIRT_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -2345,6 +2346,13 @@
                 {
                     "name": "SMOOTH_STONE_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -2367,6 +2375,13 @@
                 {
                     "name": "COBBLESTONE_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -2389,6 +2404,13 @@
                 {
                     "name": "POLISHED_ANDESITE_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -2490,6 +2512,13 @@
                 {
                     "name": "COBBLESTONE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -2603,6 +2632,13 @@
                 {
                     "name": "NETHER_BRICK",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -2706,6 +2742,13 @@
                 {
                     "name": "NETHER_BRICK_FENCE",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -2744,6 +2787,13 @@
                 {
                     "name": "STONE_BRICKS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -2800,6 +2850,13 @@
                 {
                     "name": "STONE_BRICK_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -2815,6 +2872,13 @@
                 {
                     "name": "CHISELED_STONE_BRICKS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -2830,6 +2894,13 @@
                 {
                     "name": "POLISHED_BLACKSTONE",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -2845,6 +2916,13 @@
                 {
                     "name": "POLISHED_BLACKSTONE_BRICKS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -2867,6 +2945,13 @@
                 {
                     "name": "POLISHED_BLACKSTONE_BRICK_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -2887,6 +2972,13 @@
                 {
                     "name": "POLISHED_ANDESITE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -2907,6 +2999,13 @@
                 {
                     "name": "POLISHED_BLACKSTONE_BRICK_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -2929,6 +3028,13 @@
                 {
                     "name": "POLISHED_BLACKSTONE_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -2946,6 +3052,13 @@
                 {
                     "name": "POLISHED_BLACKSTONE_WALL",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -3022,6 +3135,13 @@
                 {
                     "name": "BRICK_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -3042,6 +3162,13 @@
                 {
                     "name": "STONE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -3086,6 +3213,13 @@
                 {
                     "name": "CUT_SANDSTONE",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -3130,6 +3264,13 @@
                 {
                     "name": "END_STONE",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -3166,6 +3307,13 @@
                 {
                     "name": "BRICK_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -3286,6 +3434,13 @@
                 {
                     "name": "SANDSTONE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -3413,6 +3568,13 @@
                 {
                     "name": "QUARTZ_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -4110,6 +4272,13 @@
                 {
                     "name": "IRON_TRAPDOOR",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -4287,6 +4456,13 @@
                 {
                     "name": "POLISHED_ANDESITE",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -4328,6 +4504,13 @@
                 {
                     "name": "POLISHED_DIORITE",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -4370,6 +4553,13 @@
                     "name": "POLISHED_GRANITE",
                     "instrument": ["_PICKAXE"],
                     "count": 2
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -5028,6 +5218,13 @@
                 {
                     "name": "STONE_BRICK_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -5127,6 +5324,13 @@
                 {
                     "name": "COBBLESTONE_WALL",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -5144,6 +5348,13 @@
                 {
                     "name": "STONE_BRICK_WALL",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -5161,6 +5372,13 @@
                 {
                     "name": "MOSS_STONE_WALL",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -5180,6 +5398,13 @@
                 {
                     "name": "ANDESITE_WALL",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -5199,6 +5424,13 @@
                 {
                     "name": "DIORITE_WALL",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -5218,6 +5450,13 @@
                 {
                     "name": "GRANITE_WALL",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -5235,6 +5474,13 @@
                 {
                     "name": "SANDSTONE_WALL",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -5252,6 +5498,13 @@
                 {
                     "name": "BIRCH_WALL",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -5310,6 +5563,13 @@
                 {
                     "name": "DEEPSLATE_BRICKS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -5330,6 +5590,13 @@
                 {
                     "name": "DEEPSLATE_BRICK_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -5364,6 +5631,13 @@
                 {
                     "name": "MOSSY_STONE_BRICKS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -5558,6 +5832,13 @@
                 {
                     "name": "LODESTONE",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -6893,6 +7174,13 @@
                 {
                     "name": "POLISHED_ANDESITE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -6917,6 +7205,13 @@
                 {
                     "name": "DEEPSLATE_BRICKS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -6939,6 +7234,13 @@
                 {
                     "name": "DEEPSLATE_BRICK_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -6959,6 +7261,13 @@
                 {
                     "name": "DEEPSLATE_BRICK_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -6974,6 +7283,13 @@
                 {
                     "name": "DEEPSLATE_TILES",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -6996,6 +7312,13 @@
                 {
                     "name": "DEEPSLATE_TILE_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -7016,6 +7339,13 @@
                 {
                     "name": "DEEPSLATE_TILE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7033,6 +7363,13 @@
                 {
                     "name": "DEEPSLATE_TILE_WALL",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7065,6 +7402,13 @@
                 {
                     "name": "MOSSY_COBBLESTONE_WALL",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7080,6 +7424,13 @@
                 {
                     "name": "MOSSY_COBBLESTONE",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7100,6 +7451,13 @@
                 {
                     "name": "MOSSY_COBBLESTONE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7169,6 +7527,13 @@
                 {
                     "name": "WAXED_CUT_COPPER_STAIRS",
                     "instrument": ["IRON_PICKAXE", "STONE_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7220,6 +7585,13 @@
                 {
                     "name": "MOSSY_STONE_BRICK_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7235,6 +7607,13 @@
                 {
                     "name": "DARK_PRISMARINE",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7257,6 +7636,13 @@
                 {
                     "name": "QUARTZ_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -7279,6 +7665,13 @@
                 {
                     "name": "STONE_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -7299,6 +7692,13 @@
                 {
                     "name": "DARK_PRISMARINE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7319,6 +7719,13 @@
                 {
                     "name": "PRISMARINE_BRICK_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7334,6 +7741,13 @@
                 {
                     "name": "PRISMARINE_BRICKS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7367,6 +7781,13 @@
                 {
                     "name": "RED_SANDSTONE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7384,6 +7805,13 @@
                 {
                     "name": "RED_SANDSTONE_WALL",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7399,6 +7827,13 @@
                 {
                     "name": "SMOOTH_SANDSTONE",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7421,6 +7856,13 @@
                 {
                     "name": "SMOOTH_SANDSTONE_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -7441,6 +7883,13 @@
                 {
                     "name": "SMOOTH_SANDSTONE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7476,6 +7925,13 @@
                 {
                     "name": "CUT_RED_SANDSTONE_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -7498,6 +7954,13 @@
                 {
                     "name": "PRISMARINE_BRICK_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -7544,6 +8007,13 @@
                 {
                     "name": "NETHER_BRICK_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7655,6 +8125,13 @@
                 {
                     "name": "SMOOTH_QUARTZ_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7681,6 +8158,13 @@
                 {
                     "name": "SANDSTONE_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -7707,6 +8191,13 @@
                 {
                     "name": "RED_SANDSTONE_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -7727,6 +8218,13 @@
                 {
                     "name": "PRISMARINE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7747,6 +8245,13 @@
                 {
                     "name": "END_STONE_BRICK_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7778,6 +8283,13 @@
                 {
                     "name": "END_STONE_BRICK_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -7825,6 +8337,13 @@
                 {
                     "name": "ANDESITE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -7973,6 +8492,13 @@
                 {
                     "name": "NETHER_BRICK_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -8004,6 +8530,13 @@
                 {
                     "name": "PURPUR_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -8024,6 +8557,13 @@
                 {
                     "name": "PURPUR_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -8128,6 +8668,13 @@
                 {
                     "name": "GRANITE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -8148,6 +8695,13 @@
                 {
                     "name": "POLISHED_GRANITE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -8168,6 +8722,13 @@
                 {
                     "name": "DIORITE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -8247,6 +8808,13 @@
                 {
                     "name": "SMOOTH_QUARTZ_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
@@ -8697,6 +9265,13 @@
                 {
                     "name": "POLISHED_DIORITE_STAIRS",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
                 }
             ]
         },
@@ -10927,6 +11502,13 @@
                 {
                     "name": "SAND_SLAB",
                     "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
                 }
             ]
         },
