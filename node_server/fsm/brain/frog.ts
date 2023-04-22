@@ -36,4 +36,15 @@ export class Brain extends AI {
         
     }
 
+    aiLookIdle(params:any) {
+        //this.pc.player_state.flying = true // @todo это костыл, надо бы исправить
+        const ground = this.pc.player_state
+        console.log(ground)
+        if (Math.random() > 0.2) {
+            return false
+        }
+        this.mob.rotate.z = (Math.random() - Math.random())
+        return false
+    }
+
 }

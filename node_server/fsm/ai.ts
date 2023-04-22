@@ -8,13 +8,13 @@ import type {MobControlParams} from "@client/control/player_control.js";
 import type {World} from "@client/world.js";
 
 export class AI {
-    #mob: Mob
+    mob: Mob
     #chunk_addr = new Vector()
     pc: PrismarinePlayerControl
     #tasks: any = []
 
     constructor(mob: Mob) {
-        this.#mob = mob
+        this.mob = mob
     }
 
     // Добавляем задачу на выполнение
@@ -23,34 +23,41 @@ export class AI {
     }
 
     addStat(name : string, allowAdding : boolean = false) {
-        const mobs = this.#mob.getWorld().mobs
-        mobs.getTickStatForMob(this.#mob).add(name, allowAdding)
+        const mobs = this.mob.getWorld().mobs
+        mobs.getTickStatForMob(this.mob).add(name, allowAdding)
         mobs.ticks_stat.add(name, allowAdding)
     }
 
     tick(delta) {
-        const mob = this.#mob
+        const mob = this.mob
         const world = mob.getWorld()
         this.#chunk_addr = world.chunkManager.grid.toChunkAddr(mob.pos, this.#chunk_addr);
         const chunk = world.chunks.get(this.#chunk_addr);
         if (chunk && chunk.isReady()) {
             for (const task of this.#tasks) {
                 if (task.ai.call(this, task.args)) {
-                    break;
+                    break
                 }
             }
+            this.updateControl({
+                yaw: mob.rotate.z,
+                jump: true,
+                sneak: false,
+                forward: false
+            }, delta)
+            this.sendState()
         }
     }
 
     createPlayerControl(options: TPrismarineOptions): PrismarinePlayerControl {
-        const mob = this.#mob
+        const mob = this.mob
         const world = mob.getWorld() as any as World
         return new PrismarinePlayerControl(world, mob.pos, options)
     }
 
     // Send current mob state to players
     sendState() {
-        const mob = this.#mob;
+        const mob = this.mob;
         const world = mob.getWorld();
         const chunk_over = world.chunks.get(mob.chunk_addr);
         if (!chunk_over) {
@@ -69,10 +76,10 @@ export class AI {
     }
 
     /** Updates the control {@link pc} */
-    updateControl(delta : float, new_states: MobControlParams): void {
+    updateControl(new_states: MobControlParams, delta : float): void {
         const pc = this.pc
         pc.updateMob(new_states)
-        const mob = this.#mob
+        const mob = this.mob
         pc.tick(delta)
         mob.pos.copyFrom(pc.getPos())
     }
