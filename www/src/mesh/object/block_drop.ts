@@ -9,7 +9,8 @@ import type { World } from '../../world.js';
 import type { Renderer } from '../../render.js';
 
 const {mat4, quat, vec3} = glMatrix;
-const tmpMatrix = mat4.create();
+const tmpMatrix = mat4.create()
+const _matrix_rot = mat4.create()
 
 // Mesh_Object_Block_Drop
 export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
@@ -233,15 +234,22 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
         // calc matrix
         mat4.identity(matrix)
-        quat.fromEuler(temp_quat, rotate[0], rotate[1] + addY / 60, rotate[2], 'xyz')
+        quat.fromEuler(temp_quat, rotate[0], rotate[1], rotate[2], 'xyz')
         mat4.fromRotationTranslationScaleOrigin(matrix, temp_quat, position, scale, pivot)
 
-        // const m2 = mat4.create()
-        mat4.rotateY(matrix, matrix, addY / 60)
-        // mat4.add(matrix, matrix, m2)
+        // rotate
+        mat4.identity(_matrix_rot)
+        quat.fromEuler(temp_quat, 0, addY/60/Math.PI*180, 0, 'xyz')
+        pivot.set(position)
+        vec3.set(position, 0, 0, 0)
+        vec3.set(scale, 1, 1, 1)
+        mat4.fromRotationTranslationScaleOrigin(_matrix_rot, temp_quat, position, scale, pivot)
+
+        //
+        mat4.multiply(_matrix_rot, _matrix_rot, matrix)
 
         // Draw mesh group
-        this.drawBuffer(render, this.chunk.coord, matrix)
+        this.drawBuffer(render, this.chunk.coord, _matrix_rot)
 
     }
 
