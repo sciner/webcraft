@@ -316,23 +316,25 @@ export function dropBlock(player : any = null, tblock : TBlock | FakeTBlock, act
         return [];
     }
 
-    const instrument_block_id : number | null = current_inventory_item ? current_inventory_item.id : null;
+    const instrument_block = current_inventory_item ? BLOCK.fromId(current_inventory_item.id) : null
 
-    const checkInstrument = (block_id : int, drop) => {
+    const checkInstrument = (instrument_block : IBlockMaterial | null, drop : IBlockDropItem) => {
         if (!drop?.instrument) {
             return true
         }
-        if (!block_id) {
+        if (!instrument_block) {
             return false
         }
-        const name = BLOCK.fromId(block_id).name
+        const name = instrument_block.name
         return drop.instrument.includes(name) || drop.instrument.find(el => name.endsWith(el)) != null
     }
-    const drop_item = tblock.material.drop_item;
+
+    const drop_item = tblock.material.drop_item
+
     // новый функционал
     if (Array.isArray(drop_item)) {
         for (const drop of drop_item) {
-            if (drop && checkInstrument(instrument_block_id, drop)) {
+            if (drop && checkInstrument(instrument_block, drop)) {
                 const block = BLOCK.fromName(drop.name)
                 const chance = drop.chance ?? 1
                 if(Math.random() < chance) {

@@ -241,6 +241,14 @@ interface IBlockChance {
     material: IBlockMaterial
 }
 
+interface IBlockDropItem {
+    name:           string
+    count?:         int
+    chance?:        float
+    min_max_count?: any
+    instrument?:    string[]
+}
+
 interface IBlockMaterial {
     id: int
     name: string
@@ -312,12 +320,7 @@ interface IBlockMaterial {
         readonly_slots: int
     }
     ticking: IBlockMaterialTicking
-    drop_item: {
-        name : string
-        count? : number
-        chance?: float
-        min_max_count?: any
-    }
+    drop_item: IBlockDropItem
     generator? : {
         can_replace_to_slab: string
     }

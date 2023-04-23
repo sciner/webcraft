@@ -55,6 +55,7 @@ type TeleportParams = {
 
 const MAX_COORD                 = 2000000000;
 const MAX_RANDOM_TELEPORT_COORD = 2000000;
+const IMMUNITY_DAMAGE_TIME      = 3000 // 3 секунды
 
 async function waitPing() {
     return new Promise((res) => setTimeout(res, EMULATED_PING));
@@ -117,6 +118,7 @@ export class ServerPlayer extends Player {
     savingPromise?: Promise<void>
     lastSentPacketTime = Infinity   // performance.now()
     _world_edit_copy: any
+    #timer_immunity: number
 
     // These flags show what must be saved to DB
     static DB_DIRTY_FLAG_INVENTORY     = 0x1;
@@ -156,7 +158,7 @@ export class ServerPlayer extends Player {
         this.mining_time_old        = 0; // время последнего разрушения блока
         // null, or an array of POJO postitions of 1 or 2 chests that this player is currently working with
         this.currentChests          = null
-
+        
         this.timer_reload = performance.now()
         this._aabb = new AABB()
 
@@ -719,10 +721,13 @@ export class ServerPlayer extends Player {
     checkIndicators(tick) {
 
         if(this.status !== PLAYER_STATUS.ALIVE || !this.game_mode.mayGetDamaged()) {
-            return false;
+            this.#timer_immunity = performance.now()
+            return false
         }
 
-        this.damage.getDamage(tick);
+        if (this.#timer_immunity + IMMUNITY_DAMAGE_TIME < performance.now()) {
+            this.damage.getDamage(tick)
+        }
 
         if (this.live_level == 0 || this.state.indicators.live != this.live_level || this.state.indicators.food != this.food_level || this.state.indicators.oxygen != this.oxygen_level ) {
             const packets = [];
