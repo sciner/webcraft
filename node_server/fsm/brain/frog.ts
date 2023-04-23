@@ -13,9 +13,19 @@ export class Brain extends AI {
             playerHalfWidth: 0.3,
         })
 
-        this.addTask(this.aiWanderHome)
+        // Список задач на выполнение
+        this.addTask(this.aiMoveHome)
+        this.addTask(this.aiWander)
         this.addTask(this.aiLookIdle)
         this.addTask(this.aiJump)
+    }
+
+    // начальные установки
+    onInit() {
+        const mob = this.mob
+        this.setHealth(10)
+        this.setHome(mob.pos)
+        this.setSpeed(.2)
     }
     
     aiJump(params:any) {

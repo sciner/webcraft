@@ -15,6 +15,7 @@ export class AI {
     #tasks: any = []
     #nav: PathNavigate
     #home: Vector = null
+    #speed: number = 1
     test: boolean = true
 
     constructor(mob: Mob) {
@@ -142,6 +143,11 @@ export class AI {
         const mob = this.mob
         this.setHealth(10)
         this.setHome(mob.pos)
+        this.setSpeed(.5)
+    }
+
+    setSpeed(speed : number) {
+        this.#speed = speed
     }
 
     // Установка дома (место вокруг которого ходит моб)
@@ -193,8 +199,8 @@ export class AI {
         return false
     }
 
-    // блуждание по миру возле дома
-    aiWanderHome(args) {
+    // возвращаемся домой, если он есть
+    aiMoveHome(args) {
         if (!this.#home) {
             return false
         }
@@ -202,20 +208,15 @@ export class AI {
             return true
         }
         const distance = args?.distance ? args.distance : 8
-        const chance = args?.chance ? args.chance : 0.01
         const speed = args?.speed ? args.speed : 1
         const mob = this.mob
-        // с некоторой вероятностью находи точку и идем к ней
-        if (Math.random() < chance) {
-            // рандомная позиция
-            for (let n = 0; n < 10; n++) {
-                const x = mob.pos.x + (Math.random() - Math.random()) * 16
-                const y = mob.pos.y + (Math.random() - Math.random()) * 7
-                const z = mob.pos.z + (Math.random() - Math.random()) * 16
-                const pos = (new Vector(x, y, z)).floored()
-                if ((this.#home.distance(pos) <= distance || Math.random() < 0.1) && this.#nav.tryMoveToPos(pos, speed)) {
-                    return true
-                }
+        if (this.#home.distance(mob.pos) > distance) {
+            if (this.#nav.tryMoveToPos(this.#home, speed)) {
+                console.log('AI-> go home')
+                return true
+            } else {
+                this.#home = null
+                return false
             }
         }
         return false
