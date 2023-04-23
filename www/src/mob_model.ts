@@ -95,9 +95,9 @@ export class MobModel extends NetworkPhysicObject {
 
         Object.assign(this, props)
 
-        this.type = props.skin.model_name
         this.skin = props.skin
-
+        this.type = this.skin.model_name
+        
         // load mesh
         const render = Qubatch.render as Renderer
         const model = Resources._bbmodels.get(this.skin.model_name)

@@ -85,7 +85,7 @@ export class Mob {
     static DIRTY_FLAG_SAVED_DEAD    = 0x8; // If the mob is dead and was already saved as dead, it won't be saved again.
 
     #world : ServerWorld;
-    #brain : FSMBrain;
+    #brain : any
     #chunk_addr : Vector;
     #forward : Vector;
 
@@ -179,8 +179,8 @@ export class Mob {
         return this.#world;
     }
 
-    getBrain() : FSMBrain {
-        return this.#brain;
+    getBrain() {
+        return this.#brain
     }
 
     /**
@@ -211,7 +211,12 @@ export class Mob {
                 break;
             }
         }
-        return new Mob(world, params, false);
+        const mob = new Mob(world, params, false)
+        const brain = mob.getBrain()
+        if (brain.test) {
+            brain.onInit()
+        }
+        return mob
     }
 
     tick(delta: float): void {

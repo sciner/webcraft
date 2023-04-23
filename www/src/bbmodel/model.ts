@@ -151,10 +151,11 @@ export class BBModel_Model {
     playAnimation(animation_name : string, dt : float, mesh : Mesh_Object_BBModel = null) : boolean {
 
         const animation = this.animations.get(animation_name)
+
         if(!animation) {
             return false
         }
-
+        
         // reset all states
         for(const animation of this.animations.values()) {
             for(let k in animation.animators) {

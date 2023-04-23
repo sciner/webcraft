@@ -4,6 +4,7 @@ import { Node } from "./node";
 import { FLUID_TYPE_MASK, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 
 const MAX_NODES = 200
+const MAX_TIME_DOWN = 30
 
 export class PathNavigate {
 
@@ -202,7 +203,7 @@ export class PathNavigate {
                 this.#timer_wall = 0
                 this.#path.shift()
             }
-            if (this.#timer_wall++ > 30 || this.#path.length == 0) {
+            if (this.#timer_wall++ > MAX_TIME_DOWN || this.#path.length == 0) {
                 //console.log('stop move time: ' + this.#timer_wall + ' len: ' + this.#path.length + ' dist: ' + dist + ' dy: ' + dy);
                 this.#path = null
                 return false

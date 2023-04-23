@@ -1,4 +1,3 @@
-import { FSMStack } from "./stack.js";
 import {PrismarinePlayerControl, TPrismarineOptions} from "@client/prismarine-physics/using.js";
 import { Vector } from "@client/helpers.js";
 import { ServerClient } from "@client/server_client.js";
@@ -7,6 +6,7 @@ import type { EnumDamage } from "@client/enums/enum_damage.js";
 import type {MobControlParams} from "@client/control/player_control.js";
 import type {World} from "@client/world.js";
 import { PathNavigate } from "./pathfind/navigation.js";
+import { WorldAction } from "@client/world_action.js";
 
 export class AI {
     mob: Mob
@@ -14,6 +14,8 @@ export class AI {
     pc: PrismarinePlayerControl
     #tasks: any = []
     #nav: PathNavigate
+    #home: Vector = null
+    test: boolean = true
 
     constructor(mob: Mob) {
         this.mob = mob
@@ -88,8 +90,25 @@ export class AI {
     * type_damage - от чего умер[упал, сгорел, утонул]
     * actor - игрок или пероснаж
     */
-    onDamage(val : number, type_damage : EnumDamage, actor) {
-        this.mob.kill()
+    async onDamage(damage : number, type_damage : EnumDamage, actor : any) {
+        const mob = this.mob;
+        const world = mob.getWorld();
+        if (actor) {
+            const velocity = mob.pos.sub(actor.state.pos).normSelf();
+            velocity.y = 0.4;
+            mob.addVelocity(velocity);
+        }
+        console.log('AI->Damge: ' + damage);
+        mob.indicators.live = Math.max(mob.indicators.live - damage, 0);
+        if (mob.indicators.live <= 0) {
+            await mob.kill();
+            this.onKill(actor, type_damage);
+        } else {
+            const actions = new WorldAction();
+            actions.addPlaySound({ tag: 'madcraft:block.' + this.getSound(), action: 'hurt', pos: mob.pos.clone() });
+            world.actions_queue.add(actor, actions);
+            mob.markDirty()
+        }
     }
 
     /**
@@ -97,7 +116,16 @@ export class AI {
     * actor - игрок или пероснаж
     * type_damage - от чего умер[упал, сгорел, утонул]
     */
-    onKill(actor, type_damage) {
+    onKill(actor : any, type_damage : EnumDamage) {
+        const mob = this.mob;
+        const world = mob.getWorld()
+        const items = this.getDrop(type_damage)
+        const actions = new WorldAction()
+        if (items.length > 0) {
+            actions.addDropItem({ pos: mob.pos, items: items, force: true });
+        }
+        actions.addPlaySound({ tag: 'madcraft:block.' + this.getSound(), action: 'death', pos: mob.pos.clone() });
+        world.actions_queue.add(actor, actions);
     }
 
     /**
@@ -109,12 +137,44 @@ export class AI {
         return false
     }
 
+    // начальные установки
+    onInit() {
+        const mob = this.mob
+        this.setHealth(10)
+        this.setHome(mob.pos)
+    }
+
+    // Установка дома (место вокруг которого ходит моб)
+    setHome(pos: Vector) {
+        console.log('set home: ' + pos)
+        this.#home = pos.clone()
+    }
+
+    // Установка жизни
+    setHealth(health: number) {
+        this.mob.indicators.live = health
+    }
+
+    /**
+    * Получение дропа при убйстве моба
+    * @type_damage - от чего умер[упал, сгорел, утонул]
+    */
+    getDrop(type_damage : EnumDamage) {
+        return []
+    }
+    /**
+    * Звук моба
+    */
+    getSound() {
+        return 'player'
+    }
+
     // блуждание по миру
     aiWander(args) {
         if (this.#nav.getPath()) {
             return true
         }
-        const chance = args?.chance ? args.chance : 0.1
+        const chance = args?.chance ? args.chance : 0.01
         const speed = args?.speed ? args.speed : 1
         const mob = this.mob
         // с некоторой вероятностью находи точку и идем к ней
@@ -126,12 +186,55 @@ export class AI {
                 const z = mob.pos.z + (Math.random() - Math.random()) * 16
                 const pos = (new Vector(x, y, z)).floored()
                 if (this.#nav.tryMoveToPos(pos, speed)) {
-                    console.log('AI->aiWander')
                     return true
                 }
             }
         }
         return false
+    }
+
+    // блуждание по миру возле дома
+    aiWanderHome(args) {
+        if (!this.#home) {
+            return false
+        }
+        if (this.#nav.getPath()) {
+            return true
+        }
+        const distance = args?.distance ? args.distance : 8
+        const chance = args?.chance ? args.chance : 0.01
+        const speed = args?.speed ? args.speed : 1
+        const mob = this.mob
+        // с некоторой вероятностью находи точку и идем к ней
+        if (Math.random() < chance) {
+            // рандомная позиция
+            for (let n = 0; n < 10; n++) {
+                const x = mob.pos.x + (Math.random() - Math.random()) * 16
+                const y = mob.pos.y + (Math.random() - Math.random()) * 7
+                const z = mob.pos.z + (Math.random() - Math.random()) * 16
+                const pos = (new Vector(x, y, z)).floored()
+                if ((this.#home.distance(pos) <= distance || Math.random() < 0.1) && this.#nav.tryMoveToPos(pos, speed)) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    // Поворот по сторонам
+    aiLookIdle(params:any) {
+        if (Math.random() > 0.02) {
+            return false
+        }
+        let angle = (Math.random() - Math.random())
+        if (angle > Math.PI / 4) {
+            angle = Math.PI / 4
+        }
+        if (angle < -Math.PI / 4) {
+            angle = -Math.PI / 4
+        }
+        this.mob.rotate.z += angle
+        return true
     }
 
 }
