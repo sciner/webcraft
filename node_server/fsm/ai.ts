@@ -6,15 +6,18 @@ import type { Mob } from "../mob.js";
 import type { EnumDamage } from "@client/enums/enum_damage.js";
 import type {MobControlParams} from "@client/control/player_control.js";
 import type {World} from "@client/world.js";
+import { PathNavigate } from "./pathfind/navigation.js";
 
 export class AI {
     mob: Mob
     #chunk_addr = new Vector()
     pc: PrismarinePlayerControl
     #tasks: any = []
+    #nav: PathNavigate
 
     constructor(mob: Mob) {
         this.mob = mob
+        this.#nav = new PathNavigate(this)
     }
 
     // Добавляем задачу на выполнение
@@ -39,13 +42,7 @@ export class AI {
                     break
                 }
             }
-            this.updateControl({
-                yaw: mob.rotate.z,
-                jump: true,
-                sneak: false,
-                forward: false
-            }, delta)
-            this.sendState()
+            this.#nav.update(delta)
         }
     }
 
@@ -82,6 +79,7 @@ export class AI {
         const mob = this.mob
         pc.tick(delta)
         mob.pos.copyFrom(pc.getPos())
+        this.sendState()
     }
 
     /**
@@ -91,7 +89,7 @@ export class AI {
     * actor - игрок или пероснаж
     */
     onDamage(val : number, type_damage : EnumDamage, actor) {
-        
+        this.mob.kill()
     }
 
     /**
@@ -108,6 +106,31 @@ export class AI {
      * @param item item
      */
     onUse(actor : any, item : any) : boolean{
+        return false
+    }
+
+    // блуждание по миру
+    aiWander(args) {
+        if (this.#nav.getPath()) {
+            return true
+        }
+        const chance = args?.chance ? args.chance : 0.1
+        const speed = args?.speed ? args.speed : 1
+        const mob = this.mob
+        // с некоторой вероятностью находи точку и идем к ней
+        if (Math.random() < chance) {
+            // рандомная позиция
+            for (let n = 0; n < 10; n++) {
+                const x = mob.pos.x + (Math.random() - Math.random()) * 16
+                const y = mob.pos.y + (Math.random() - Math.random()) * 7
+                const z = mob.pos.z + (Math.random() - Math.random()) * 16
+                const pos = (new Vector(x, y, z)).floored()
+                if (this.#nav.tryMoveToPos(pos, speed)) {
+                    console.log('AI->aiWander')
+                    return true
+                }
+            }
+        }
         return false
     }
 
