@@ -109,7 +109,8 @@ export class Renderer {
     timeKillRain:           any
     weather_name:           string
     material_shadow:        any
-    cullID = 0;
+    cullID:                 int = 0
+    lastDeltaForMeGui:      int = 0
 
     constructor(qubatchRenderSurfaceId : string) {
         this.canvas             = document.getElementById(qubatchRenderSurfaceId);
@@ -1201,9 +1202,8 @@ export class Renderer {
         return Weather.BY_NAME[name] || Weather.CLEAR;
     }
 
-    lastDeltaForMeGui = 0;
     // drawPlayers
-    drawPlayers(delta) {
+    drawPlayers(delta : float) {
         this.lastDeltaForMeGui = delta;
         if(this.world.players.count < 1) {
             return;

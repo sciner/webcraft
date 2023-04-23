@@ -151,17 +151,24 @@ export class MobModel extends NetworkPhysicObject {
 
         const newChunk = ChunkManager.instance?.getChunk(this.chunk_addr);
 
-        this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend);
+        this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend)
 
-        if (this.material) {
-            this.material.lightTex = this.lightTex;
-            this.material.tintColor = this.tintColor;
-            // TODO: refactor this!
-            // if (this.slots && this.slots.RightArm && this.slots.RightArm.holder
-            //     && this.slots.RightArm.holder.material) {
-            //     this.slots.RightArm.holder.material.lightTex = this.lightTex;
-            // }
+        const mesh = this._mesh
+        if(mesh && this.lightTex) {
+            // mesh.gl_material.changeLighTex(this.lightTex)
+            // mesh.gl_material.lightTex = this.lightTex
+            mesh.gl_material.tintColor = this.tintColor
         }
+
+        // if (this.material) {
+        //     this.material.lightTex = this.lightTex;
+        //     this.material.tintColor = this.tintColor;
+        //     // TODO: refactor this!
+        //     if (this.slots && this.slots.RightArm && this.slots.RightArm.holder
+        //         && this.slots.RightArm.holder.material) {
+        //         this.slots.RightArm.holder.material.lightTex = this.lightTex;
+        //     }
+        // }
 
         if (newChunk) {
             this.currentChunk = newChunk;
@@ -277,7 +284,6 @@ export class MobModel extends NetworkPhysicObject {
     
     updateArmor() {
         Qubatch.player.updateArmor()
-
     }
 
     drawInGui(render : Renderer, delta : float) {
@@ -309,15 +315,6 @@ export class MobModel extends NetworkPhysicObject {
     onUnload() {
         if(this._fire_mesh) {
             this._fire_mesh.destroy();
-        }
-    }
-
-    setSkin() {
-        if (this?.extra_data?.skin && this.extra_data.skin != this.prev.skin) {
-            if (this.textures.has(this.extra_data.skin)) {
-                this.material = this.textures.get(this.extra_data.skin);
-            }
-            this.prev.skin = this.extra_data.skin;
         }
     }
 
