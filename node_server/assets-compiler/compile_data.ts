@@ -387,23 +387,23 @@ export class CompileData {
 
         const eggs = [
             {id: 521, type: MOB_TYPE.CHICKEN, skin: DEFAULT_MOB_TEXTURE_NAME},
-            {id: 522, type: 'mob/creeper', skin: DEFAULT_MOB_TEXTURE_NAME},
+            {id: 522, type: MOB_TYPE.CREEPER, skin: DEFAULT_MOB_TEXTURE_NAME},
             {id: 523, type: MOB_TYPE.PIG, skin: DEFAULT_MOB_TEXTURE_NAME},
             {id: 524, type: MOB_TYPE.HORSE, skin: 'creamy'},
             {id: 525, type: MOB_TYPE.HORSE, skin: DEFAULT_MOB_TEXTURE_NAME},
             {id: 651, type: MOB_TYPE.FOX, skin: DEFAULT_MOB_TEXTURE_NAME},
             {id: 1448, type: MOB_TYPE.SKELETON, skin: DEFAULT_MOB_TEXTURE_NAME},
-            {id: 1449, type: 'mob/axolotl', skin: DEFAULT_MOB_TEXTURE_NAME},
+            {id: 1449, type: MOB_TYPE.AXOLOTL, skin: DEFAULT_MOB_TEXTURE_NAME},
             {id: 1450, type: MOB_TYPE.BEE, skin: DEFAULT_MOB_TEXTURE_NAME},
             {id: 1451, type: MOB_TYPE.COW, skin: DEFAULT_MOB_TEXTURE_NAME},
-            {id: 1453, type: 'mob/goat', skin: DEFAULT_MOB_TEXTURE_NAME},
+            {id: 1453, type: MOB_TYPE.GOAT, skin: DEFAULT_MOB_TEXTURE_NAME},
             {id: 1454, type: 'mob/hoglin', skin: DEFAULT_MOB_TEXTURE_NAME},
-            {id: 1455, type: 'mob/ocelot', skin: DEFAULT_MOB_TEXTURE_NAME},
-            {id: 1456, type: 'mob/panda', skin: DEFAULT_MOB_TEXTURE_NAME},
+            {id: 1455, type: MOB_TYPE.OCELOT, skin: DEFAULT_MOB_TEXTURE_NAME},
+            {id: 1456, type: MOB_TYPE.PANDA, skin: DEFAULT_MOB_TEXTURE_NAME},
             {id: 1457, type: 'mob/piglin', skin: DEFAULT_MOB_TEXTURE_NAME},
             {id: 1458, type: MOB_TYPE.SHEEP, skin: DEFAULT_MOB_TEXTURE_NAME},
             //
-            {id: 1452, type: 'mob/deer', skin: DEFAULT_MOB_TEXTURE_NAME},
+            {id: 1452, type: MOB_TYPE.DEER, skin: DEFAULT_MOB_TEXTURE_NAME},
             {id: 1459, type: MOB_TYPE.SNOW_GOLEM, skin: DEFAULT_MOB_TEXTURE_NAME},
             /*
             Under construction:

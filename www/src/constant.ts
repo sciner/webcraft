@@ -218,12 +218,18 @@ export enum LEAVES_TYPE {
 }
 
 export enum MOB_TYPE {
+    AXOLOTL     = 'mob/axolotl',
     BEE         = 'mob/bee',
     CHICKEN     = 'mob/chicken',
+    CREEPER     = 'mob/creeper',
     COW         = 'mob/cow',
+    DEER        = 'mob/deer',
     FOX         = 'mob/fox',
+    GOAT        = 'mob/goat',
     HORSE       = 'mob/horse',
     HUMANOID    = 'mob/humanoid',
+    OCELOT      = 'mob/ocelot',
+    PANDA       = 'mob/panda',
     PIG         = 'mob/pig',
     SHEEP       = 'mob/sheep',
     SKELETON    = 'mob/skeleton',
