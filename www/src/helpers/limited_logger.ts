@@ -120,7 +120,8 @@ export class LimitedLogger {
 
     private logString(mode: LogMode, msg: string, history: LogHistory): void {
         const options = this.options
-        msg = options.prefix + history.printedKey + msg
+        const timestamp = (Math.round(performance.now()) % 100000).toString().padStart(5, '0')
+        msg = `${options.prefix}${history.printedKey} ${timestamp} ${msg}`
         if (this.hasDebugValue(options.debugValueSendLog)) {
             options.player?.sendPackets([{ name: ServerClient.CMD_LOG_CONSOLE, data: msg }])
         }

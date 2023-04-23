@@ -234,7 +234,8 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     })
     private fineLogger = new LimitedLogger({
         ...this.logger.options,
-        debugValueEnabled: 'DEBUG_LOG_PLAYER_CONTROL_FINE',
+        minInterval: 0,
+        debugValueEnabled: 'DEBUG_LOG_PLAYER_CONTROL_DETAIL',
         enabled: DEBUG_LOG_PLAYER_CONTROL_DETAIL
     })
     /**

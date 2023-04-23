@@ -47,6 +47,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
     private accumulatedSleepSittingDistance = 0
     private lastCmdSentTime = performance.now()
     private logger: LimitedLogger
+    private fineLogger: LimitedLogger
 
     constructor(player: ServerPlayer) {
         super(player as any as Player)
@@ -59,6 +60,14 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             debugValueEnabled: 'DEBUG_LOG_PLAYER_CONTROL',
             enabled: DEBUG_LOG_PLAYER_CONTROL,
             consoleDisabled: true
+        })
+        this.fineLogger = new LimitedLogger({
+            ...this.logger.options,
+            minInterval: 0,
+            printKeyFn: null,
+            enabled: DEBUG_LOG_PLAYER_CONTROL_DETAIL,
+            debugValueSendLog: 'SEND_LOG_PLAYER_CONTROL_DETAIL',
+            debugValueEnabled: 'DEBUG_LOG_PLAYER_CONTROL_DETAIL'
         })
         // super constructor doesn't call these methods correctly, so call them here
         this.physicsSessionId = -1 // revert to what it was before the super constructor
@@ -151,9 +160,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         }
 
         for(const clientData of ticksData) {
-            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                console.log(`Control ${this.username}: received ${clientData}`)
-            }
+            this.fineLog(() => `received ${clientData}`)
             this.clientDataQueue.push(clientData)
         }
 
@@ -281,13 +288,12 @@ export class ServerPlayerControlManager extends PlayerControlManager {
                 const contextEqual = newData.contextEqual(clientData)
                 const clientDataMatches = contextEqual && newData.outputSimilar(clientData)
                 if (clientDataMatches) {
-                    DEBUG_LOG_PLAYER_CONTROL_DETAIL && console.log(`    simulation matches ${newData}`)
                     correctionReason = null
                 } else if (contextEqual) {
                     this.log('simulation_differs', () => `    simulation doesn't match ${clientData} ${newData}`)
                     correctionReason = 'simulation_differs'
                 } else {
-                    DEBUG_LOG_PLAYER_CONTROL_DETAIL && this.log('simulation_context_differs', () => `    simulation context doesn't match ${newData}`)
+                    this.fineLog(() => `    simulation context doesn't match ${newData}`)
                     correctionReason = 'context_differs'
                 }
             } else {
@@ -536,5 +542,9 @@ export class ServerPlayerControlManager extends PlayerControlManager {
 
     private log(key: string, msg: string | (() => string)) {
         this.logger.log(key, this.username, msg)
+    }
+
+    private fineLog(msg: string | (() => string)) {
+        this.fineLogger.log(msg)
     }
 }
