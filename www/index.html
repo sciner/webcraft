@@ -64,7 +64,7 @@
         window.addEventListener('resize', windowResized, true);
     </script>
 </head>
-<body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak ng-class="{logged: loading_completed && login.logged}" onload="windowResized()">
+<body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak ng-class="{logged: loading.completed && login.logged}" onload="windowResized()">
 
     <div id="bg-circles_area">
         <ul class="circles">
@@ -161,7 +161,7 @@
     </div>
 
     <!-- Start page -->
-    <div class="start-page" ng-if="loading_completed && !login.logged">
+    <div class="start-page" ng-if="loading.completed && !login.logged">
         <input id="sign-modal-toggle" type="checkbox" class="hidden">
         <div class="bg" ng-init="initSelects()">
             <div class="container">

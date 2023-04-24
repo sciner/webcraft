@@ -80,7 +80,7 @@ class GameController {
     onShow:             {[key: string]: Function}
     onHide:             {[key: string]: Function}
     current_lang:       any = null
-    loading_completed:  boolean = false
+    loading:            {completed: boolean} = {completed: false}
     Lang:               object
     login_tab:          string = 'login'
     App:                UIApp
@@ -240,9 +240,9 @@ class GameController {
                 let session = instance.App.getSession();
                 this.logged = !!session;
                 if(!this.logged) {
-                    instance.current_window.show('hello');
-                    instance.loadingComplete();
-                    return false;
+                    instance.current_window.show('hello')
+                    instance.loadingComplete()
+                    return false
                 }
                 this.onSuccess(session);
             },
@@ -851,8 +851,8 @@ class GameController {
 
     // loadingComplete
     loadingComplete() {
-        document.getElementById('loading').classList.add('loading-complete');
-        this.loading_completed = true;
+        document.getElementById('loading').classList.add('loading-complete')
+        this.loading.completed = true
     }
 
     syncTime() {
