@@ -1754,11 +1754,9 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
     let position_head = world_block.posworld.offset(.5, 0.6, !extra_data?.is_head ? -.42 : .58)
     if (rotate.x == 2) {
         position_head = world_block.posworld.offset(.5, 0.6, !extra_data?.is_head ? 1.42 : .42)
-    }
-    if (rotate.x == 1) {
+    } else if (rotate.x == 1) {
         position_head = world_block.posworld.offset(!extra_data?.is_head ? 1.42 : .42, 0.6, .5)
-    }
-    if (rotate.x == 3) {
+    } else if (rotate.x == 3) {
         position_head = world_block.posworld.offset(!extra_data?.is_head ? -.42 : 0.58, 0.6, .5)
     }
     //Проверяем, что кровать не заблочена
