@@ -19,7 +19,7 @@ export declare type TMobProps = {
     rotate:         Vector
     pitch:          float
     yaw:            float
-    skin?:          PlayerSkin | string
+    skin?:          PlayerSkin // | string
     skin_id?:       string
     extra_data?:    any
     hands?:         any
