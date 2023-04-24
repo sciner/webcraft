@@ -60,6 +60,9 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
                 model_json._properties.texture_id = spritesheet.id
                 model_json._properties.places = places
             }
+            if(model_json.display) {
+                // do nothing
+            }
             console.log(`BBModel ... ${id} ${model_json.elements.length} elements (${model_json.polygons} polygons)`)
             delete(model_json.textures);
             // fs.writeFileSync(`${this.options.output_dir}/${id}.json`, JSON.stringify(model_json))
