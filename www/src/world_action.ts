@@ -1746,21 +1746,21 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
     // растояние до кровати (java не более 2, br не более 3)
     if(player.pos.distance(pos) > 3.0) {
         if (!Qubatch.is_server) {
-            Qubatch.hotbar.strings.setText(1, Lang.bed_to_far_away, 4000);
+            Qubatch.hotbar.strings.setText(1, Lang.bed_to_far_away, 4000)
         }
         return true
     }
     // где находится подушка у кровати (голова игрока, когда лежит)
-    let position_head = world_block.posworld.offset(.5, 0.6, !extra_data?.is_head ? -.42 : .58)
-    if (rotate.x == 2) {
+    let position_head : Vector = world_block.posworld.offset(.5, 0.6, !extra_data?.is_head ? -.42 : .58)
+    if (rotate.x == DIRECTION.SOUTH) {
         position_head = world_block.posworld.offset(.5, 0.6, !extra_data?.is_head ? 1.42 : .42)
-    } else if (rotate.x == 1) {
+    } else if (rotate.x == DIRECTION.WEST) {
         position_head = world_block.posworld.offset(!extra_data?.is_head ? 1.42 : .42, 0.6, .5)
-    } else if (rotate.x == 3) {
+    } else if (rotate.x == DIRECTION.EAST) {
         position_head = world_block.posworld.offset(!extra_data?.is_head ? -.42 : 0.58, 0.6, .5)
     }
-    //Проверяем, что кровать не заблочена
-    const block = world.getBlock(position_head.offset(0, 1, 0).floored())
+    // Проверяем, что кровать не заблочена
+    const block = world.getBlock(position_head.offset(0, 1, 0).flooredSelf())
     /*if (block.id != 0 || block.fluid != 0) {
         if (!Qubatch.is_server) {
             Qubatch.hotbar.strings.setText(1, Lang.bed_not_valid, 4000)
