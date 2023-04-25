@@ -75,8 +75,8 @@ export class GameSettings implements TWorldSettings {
     beautiful_leaves:        boolean = true
     leaf_fall:               boolean = true
     draw_improved_blocks:    boolean = true
-    overlay_textures:        boolean = false
-    mipmap:                  boolean = false
+    overlay_textures:        boolean = true
+    mipmap:                  boolean = true
     // grids
     mobs_draw_debug_grid:    boolean = false
     chunks_draw_debug_grid:  boolean = false

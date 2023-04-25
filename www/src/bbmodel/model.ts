@@ -375,7 +375,7 @@ export class BBModel_Model {
                     if(!this.bone_groups.has(name)) {
                         const group = this.groups.get(name)
                         if(!group) {
-                            throw 'error_bone_group_not_found'
+                            throw `error_bone_group_not_found|${model_json.name}:${name}`
                         }
                         this.bone_groups.set(name, group)
                     }
