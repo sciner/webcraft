@@ -10,7 +10,7 @@ export declare type TMobProps = {
     health?:        float       // не определено для моба
     username?:      string      // не определено для моба
     id:             int
-    type:           string
+    type?:          string
     name?:          string
     indicators?:    Indicators  // не определено для игрока
     width?:         float       // не определено для игрока

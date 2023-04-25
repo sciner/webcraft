@@ -116,9 +116,10 @@ export class Mob {
     driving?: ServerDriving | null
 
     constructor(world : ServerWorld, params: MobSpawnParams, existsInDB: boolean) {
-        this.config = world.mobs.configs[params.type]
+        const type = params.skin.model_name
+        this.config = world.mobs.configs[type]
         if (this.config == null) {
-            throw `Unknown mob type ${params.type}`
+            throw `Unknown mob type ${type}`
         }
 
         this.#world         = world;
@@ -127,7 +128,6 @@ export class Mob {
         // Read params
         this.id             = params.id
         this.entity_id      = params.entity_id
-        this.type           = params.type
         this.skin           = params.skin;
         this.indicators     = params.indicators;
         this.is_active      = params.is_active;
@@ -157,6 +157,8 @@ export class Mob {
         this.lastSavedPos   = new Vector(this.pos); // to force saving is the position changed to much
         this._aabb = new AABB
     }
+
+    get type(): string  { return this.skin.model_name }
 
     get playerControl(): PrismarinePlayerControl { return this.#brain.pc }
 
