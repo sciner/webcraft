@@ -109,11 +109,12 @@ export class PickAt {
         const render = this.render;
         pos = this._temp_pos.copyFrom(pos);
         // view_vector = null;
+        const myPlayerModel = this.world.players.getMyself()
         if(view_vector) {
-            return this.raycaster.get(pos, view_vector, pickat_distance, callback, ignore_transparent, return_fluid);
+            return this.raycaster.get(pos, view_vector, pickat_distance, callback, ignore_transparent, return_fluid, myPlayerModel);
         }
         const m = mat4.invert(this.empty_matrix, render.viewMatrix);
-        return this.raycaster.getFromView(pos, m, pickat_distance, callback, ignore_transparent, return_fluid);
+        return this.raycaster.getFromView(pos, m, pickat_distance, callback, ignore_transparent, return_fluid, myPlayerModel);
     }
 
     // Used by other classes

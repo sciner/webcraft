@@ -2,7 +2,7 @@
 
 import {PHYSICS_INTERVAL_MS, PLAYER_HEIGHT, PLAYER_ZOOM, SPECTATOR_SPEED_MUL} from "../constant.js";
 import {Mth, Vector} from "../helpers.js";
-import {PlayerControl} from "./player_control.js";
+import {IPlayerControlState, PlayerControl} from "./player_control.js";
 import type {World} from "../world.js";
 import {PLAYER_CONTROL_TYPE} from "./player_control.js";
 import type {PlayerTickData} from "./player_tick_data.js";
@@ -108,13 +108,16 @@ export class SpectatorPlayerControl extends PlayerControl {
 
     world: World
     speedMultiplier = 1
+    backupState = {
+        pos: new Vector(),
+        vel: new Vector()
+    }
     /** Accumulated difference between player_state.pos and the position in the current tick */
     private accumulatedDeltaPos = new Vector()
     private currentVelocity = new Vector()
     private prevTickVelocity = new Vector()
 
     private tmpDesiredVel = new Vector()
-    private backupVel = new Vector()
     private prevTime: number
     private tmpTickData = new ClientPlayerTickData()
 
@@ -157,7 +160,7 @@ export class SpectatorPlayerControl extends PlayerControl {
         this.prevTime = performance.now()
     }
 
-    updateFrame(controlManager: ClientPlayerControlManager) {
+    updateFrame(controlManager: ClientPlayerControlManager): void {
         const now = performance.now()
         const deltaSeconds = 0.001 * Math.min(now - this.prevTime, MAX_DELTA_TIME)
         this.prevTime = now
@@ -253,13 +256,9 @@ export class SpectatorPlayerControl extends PlayerControl {
         return true
     }
 
-    backupPartialState(): void {
-        this.backupVel.copyFrom(this.player_state.vel)
-    }
-
-    restorePartialState(pos: Vector): void {
-        this.player_state.pos.copyFrom(pos)
-        this.player_state.vel.copyFrom(this.backupVel)
+    copyPartialStateFromTo(src: any, dst: any): void {
+        dst.pos.copyFrom(src.pos)
+        dst.vel.copyFrom(src.vel)
     }
 
     validateWithoutSimulation(prevData: PlayerTickData | null, data: PlayerTickData): boolean {

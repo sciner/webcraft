@@ -11,8 +11,6 @@ import {PHYSICS_INTERVAL_MS, PLAYER_HEIGHT, PLAYER_PHYSICS_HALF_WIDTH} from "../
 import type {PlayerTickData} from "../control/player_tick_data.js";
 import type {World} from "../world.js";
 import type {Effects} from "../player.js";
-import type {Driving} from "../control/driving.js";
-import {DrivingPlace} from "../control/driving.js";
 
 export const PHYSICS_TIMESTEP = PHYSICS_INTERVAL_MS / 1000;
 export const DEFAULT_SLIPPERINESS = 0.6;
@@ -34,6 +32,7 @@ export type TPrismarineOptions = TPrismarinePlayerSize & {
     stepHeight          ? : float
     defaultSlipperiness ? : float
     effects             ? : TPrismarineEffects
+
     /** If it's defined, the object floats, and this value is its height below the surface. */
     floatSubmergedHeight? : float
 }
@@ -141,10 +140,10 @@ export class FakeBlock {
     }
 }
 
-export class PrismarinePlayerControl extends PlayerControl {
+export class PrismarinePlayerControl extends PlayerControl<PrismarinePlayerState> {
     world: World
-    declare player_state: PrismarinePlayerState;
-    private partialStateBackup = {
+    backupState = {
+        pos: new Vector(),
         vel: new Vector(),
         jumpQueued: false,
         jumpTicks: 0
@@ -182,18 +181,18 @@ export class PrismarinePlayerControl extends PlayerControl {
 
         // try tick, and if it throws, restore state and do nothing
         tmpPrevPos.copyFrom(pos)
-        this.backupPartialState()
+        this.copyPartialStateFromTo(this.player_state, this.backupState)
         try {
             this.timeAccumulator += deltaSeconds
             while(this.timeAccumulator >= PHYSICS_TIMESTEP) {
                 this.timeAccumulator -= PHYSICS_TIMESTEP;
                 if (!this.simulatePhysicsTick()) {
-                    this.restorePartialState(tmpPrevPos)
+                    this.copyPartialStateFromTo(this.backupState, this.player_state)
                     break
                 }
             }
         } catch (e) {
-            this.restorePartialState(tmpPrevPos)
+            this.copyPartialStateFromTo(this.backupState, this.player_state)
             throw e
         }
     }
@@ -204,32 +203,21 @@ export class PrismarinePlayerControl extends PlayerControl {
         this.player_state.jumpTicks = 0
     }
 
-    backupPartialState(): void {
-        this.copyPartialStateFromTo(this.player_state, this.partialStateBackup)
-    }
-
-    restorePartialState(pos: Vector): void {
-        this.copyPartialStateFromTo(this.partialStateBackup, this.player_state)
-        this.player_state.pos.copyFrom(pos)
-    }
-
     /**
      * Выполняет симуляцию одного физического тика.
      * @param driving - не null если данный игрок является водителем (если участник движения, но не водитель, то
      *   симуляция не должна для него вызываться)
      * @return true если симуляция успешна. Если она не успешна, сосояние неопределено и нуждается в восстановлении,
-     *   см. {@link restorePartialState}
+     *   см. {@link copyPartialStateFromTo}
      *
      * @return true if simulation is successful. If it's not successful, the state is undefined.
      */
-    simulatePhysicsTick(driving?: Driving<any> | null): boolean {
+    simulatePhysicsTick(): boolean {
         if (!this.physicsEnabled) {
             return true
         }
         try {
-            const simulatedState = driving?.getSimulatedState(this.player_state) ?? this.player_state
-            this.physics.simulatePlayer(simulatedState)
-            driving?.applyToParticipantControl(this, DrivingPlace.DRIVER)
+            this.physics.simulatePlayer(this.simulatedState)
         } catch (e) {
             if (e === PHYSICS_CHUNK_NOT_READY_EXCEPTION) {
                 return false
@@ -239,8 +227,10 @@ export class PrismarinePlayerControl extends PlayerControl {
         return true
     }
 
-    private copyPartialStateFromTo(src: any, dst: any) {
+    copyPartialStateFromTo(src: any, dst: any): void {
+        dst.pos.copyFrom(src.pos)
         dst.vel.copyFrom(src.vel)
+        dst.angularVelocity = src.angularVelocity
         dst.jumpQueued  = src.jumpQueued
         dst.jumpTicks   = src.jumpTicks
     }

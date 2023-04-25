@@ -1,8 +1,8 @@
-import {Driving, DrivingPlace, TDrivingState} from "@client/control/driving.js";
+import {Driving, DrivingPlace, TDrivingState, TDrivingConfig} from "@client/control/driving.js";
 import type {Mob} from "../mob.js";
 import type {ServerPlayer} from "../server_player.js";
 import type {ServerWorld} from "../server_world.js";
-import {PLAYER_HEIGHT, PLAYER_PHYSICS_HALF_WIDTH} from "@client/constant.js";
+import {PHYSICS_ROTATION_DECIMALS, PLAYER_HEIGHT, PLAYER_PHYSICS_HALF_WIDTH} from "@client/constant.js";
 import {Vector} from "@client/helpers/vector.js";
 import type {IAwarenessObject} from "../helpers/aware_players.js";
 import {AwarePlayers, ObjectUpdateType} from "../helpers/aware_players.js";
@@ -10,6 +10,7 @@ import {ServerClient} from "@client/server_client.js";
 import type {ServerDrivingManager} from "./server_driving_manager.js";
 import {ArrayHelpers} from "@client/helpers/array_helpers.js";
 import type {TPrismarinePlayerSize} from "@client/prismarine-physics/using.js";
+import {Mth} from "@client/helpers/mth.js";
 
 /** См. {@link Driving} */
 export class ServerDriving extends Driving<ServerDrivingManager> implements IAwarenessObject {
@@ -23,8 +24,8 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
     /** @see AwarePlayers */
     awarePlayers = new AwarePlayers(this)
 
-    constructor(manager: ServerDrivingManager, state: TDrivingState) {
-        super(manager, state)
+    constructor(manager: ServerDrivingManager, config: TDrivingConfig, state: TDrivingState) {
+        super(manager, config, state)
         this.updateCombinedSize()
         const places    = state.mobIds.length
         this.mobs       = ArrayHelpers.create(places, null)
@@ -61,7 +62,7 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
         for(let place = 0; place < this.mobs.length; place++) {
             const mob = this.mobs[place]
             if (mob) {
-                this.applyToParticipantControl(mob.playerControl, place)
+                this.applyToParticipantControl(mob.playerControl, place, false)
                 mob.updateStateFromControl()
                 mob.getBrain().sendState()
                 continue
@@ -81,11 +82,12 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
         const vehicleMob = this.vehicleMob
         const vehicleState = vehicleMob.playerControl.player_state
         vehicleState.pos.copyFrom(vehicleMob.pos)
-        vehicleState.yaw = vehicleMob.rotate.z
+        vehicleState.yaw = Mth.round(vehicleMob.rotate.z, PHYSICS_ROTATION_DECIMALS)
 
         const cs = this.combinedPhysicsState
-        cs.copydyncamiFieldsExceptPosFrom(vehicleState)
         cs.pos.copyFrom(vehicleState.pos)
+        cs.yaw = vehicleState.yaw
+        cs.copyAdditionalDynamicFieldsFrom(vehicleState)
     }
 
     onPlayerAdded(player: ServerPlayer): void {
@@ -178,6 +180,7 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
             if (players[place] === player) {
                 players[place] = null
                 player.driving = null
+                player.controlManager.prismarine.drivingCombinedState = null
                 return
             }
         }
@@ -228,8 +231,7 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
                 if (mob.id === mobId) {
                     continue
                 }
-                mob.driving = null
-                this.mobs[place] = null
+                this.onMobUnloadedOrRemoved(mob)
             }
 
             let player = this.players[place]
@@ -237,8 +239,7 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
                 if (player.userId === playerId) {
                     continue
                 }
-                player.driving = null
-                this.players[place] = null
+                this.onPlayerUnloadedOrRemoved(player)
             }
 
             if (mobId != null) {
@@ -250,8 +251,14 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
             } else if (playerId != null) {
                 player = world.players.get(playerId)
                 if (player) {
-                    this.players[place] = player
-                    player.driving = this
+                    if (player.game_mode.isSurvival() || player.game_mode.isCreative()) {
+                        this.players[place] = player
+                        player.driving = this
+                        player.controlManager.prismarine.drivingCombinedState = this.combinedPhysicsState
+                    } else {
+                        // Игрок не в том режиме игры. Наверное лучше его убрать из вождения, чем переключать ему режим.
+                        this.removePlayerId(playerId)
+                    }
                 }
             }
         }
@@ -277,13 +284,14 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
 
     private updateCombinedSize(): void {
         const state = this.state
+        const config = this.config
         const vehiclePhysicsOptions = state.physicsOptions
         let playerHeight = vehiclePhysicsOptions.playerHeight
         let playerHalfWidth = vehiclePhysicsOptions.playerHalfWidth
 
         for (let place = DrivingPlace.DRIVER; place < this.state.mobIds.length; place++) {
             if (state.playerIds[place] ?? this.state.mobIds[DrivingPlace.DRIVER] != null) {
-                const offset = state.offsets[place - 1] = Vector.vectorify(state.offsets[place - 1])
+                const offset = config.offsets[place - 1] = Vector.vectorify(config.offsets[place - 1])
 
                 // TODO use correct passenger mob size
 
@@ -303,7 +311,7 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
             case ObjectUpdateType.UPDATE:
                 return {
                     name: ServerClient.CMD_DRIVING_ADD_OR_UPDATE,
-                    data: this.state
+                    data: [this.config, this.state]
                 }
             case ObjectUpdateType.DELETE:
                 return {

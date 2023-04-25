@@ -53,15 +53,15 @@ export class NetworkPhysicObject {
 
         this.moving         = false;
         this._chunk_addr    = new Vector(0, 0, 0);
-        this.yaw            = 0;
-        this.pitch          = 0;
+        this.yaw            = rotate.z;
+        this.pitch          = rotate.x;
         this.sneak          = 0;
 
         // Networking
         this.netBuffer = [];
         this.latency = 50;
-        this.tPos = new Vector();
-        this.tRot = new Vector();
+        this.tPos = new Vector(pos);
+        this.tRot = new Vector(rotate);
         this.aabb = null;
 
         this.tracked = false;
@@ -178,6 +178,30 @@ export class NetworkPhysicObject {
     update() {
         this.processNetState();
         this.updateAABB();
+    }
+
+    /**
+     * Делает те же изменения, что обычно выполняет {@link update}, но не наснове сетевого состояния этого объекта,
+     * а на основе заданных (локально вычисленных) значений.
+     * Конкретно: устанавливает позицию и поворот, а также вызывает необходимые связанные изменения (например, обновление AABB).
+     * Из {@link netBuffer} обновляет extra_data, если оно задано.
+     */
+    forceLocalUpdate(pos: IVector | null, yaw: float | null): void {
+        if (pos) {
+            this.pos.copyFrom(pos)
+            this.tPos.copyFrom(pos)
+        }
+        if (yaw != null) {
+            this.yaw = yaw
+            this.tRot.z = yaw
+        }
+        if (pos || yaw != null) {
+            this.updateAABB()
+        }
+        const netState = this.netBuffer.shift()
+        if (netState?.extra_data) {
+            this.extra_data = netState.extra_data
+        }
     }
 
     updateAABB() {

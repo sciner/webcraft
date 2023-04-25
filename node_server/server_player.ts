@@ -2,7 +2,7 @@ import {Mth, ObjectHelpers, Vector} from "@client/helpers.js";
 import {Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps} from "@client/player.js";
 import { GameMode } from "@client/game_mode.js";
 import { ServerClient } from "@client/server_client.js";
-import { Raycaster } from "@client/Raycaster.js";
+import {Raycaster, RaycasterResult} from "@client/Raycaster.js";
 import { PlayerEvent } from "./player_event.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
@@ -466,11 +466,8 @@ export class ServerPlayer extends Player {
         return this._eye_pos.set(this.state.pos.x, this.state.pos.y + this.height * 0.9375 - subY, this.state.pos.z);
     }
 
-    /**
-     * @returns {null | RaycasterResult}
-     */
-    raycastFromHead() {
-        return this.raycaster.get(this.getEyePos(), this.forward, 100);
+    raycastFromHead(): RaycasterResult | null {
+        return this.raycaster.get(this.getEyePos(), this.forward, 100, null, false, false, this)
     }
 
     //
@@ -1023,7 +1020,7 @@ export class ServerPlayer extends Player {
                         this.inventory.decrement()
                     }
                 }
-            } else { // try to ride
+            } else { // попробовать присоединиться к вождению
                 world.drivingManager.tryJoinDriving(this, mob, pickatEvent.id)
             }
         }

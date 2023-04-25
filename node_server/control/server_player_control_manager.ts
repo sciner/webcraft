@@ -14,7 +14,6 @@ import {ArrayHelpers, MonotonicUTCDate, SimpleQueue, Vector} from "@client/helpe
 import {ServerPlayerTickData} from "./server_player_tick_data.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketReader, PlayerControlSessionPacket} from "@client/control/player_control_packets.js";
 import type {PlayerTickData} from "@client/control/player_tick_data.js";
-import type {Player} from "@client/player.js";
 import {LimitedLogger} from "@client/helpers/limited_logger.js";
 
 const MAX_ACCUMULATED_DISTANCE_INCREMENT = 1.0 // to handle sudden big pos changes (if they ever happen)
@@ -278,7 +277,7 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
                 } else if (contextEqual) {
                     this.log('simulation_differs', () => `    simulation doesn't match ${clientData} ${newData}`)
                 } else {
-                    this.log('simulation_context_differs', () => `    simulation context doesn't match ${newData}`)
+                    DEBUG_LOG_PLAYER_CONTROL_DETAIL && this.log('simulation_context_differs', () => `    simulation context doesn't match ${newData}`)
                 }
             } else {
                 newData.copyOutputFrom(clientData)
@@ -489,9 +488,8 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
         return accepted
     }
 
-    protected simulate(prevData: ServerPlayerTickData | null | undefined, data: ServerPlayerTickData,
-                       outPosBeforeLastTick?: Vector): boolean {
-        const res = super.simulate(prevData, data, outPosBeforeLastTick)
+    protected simulate(prevData: ServerPlayerTickData | null | undefined, data: ServerPlayerTickData): boolean {
+        const res = super.simulate(prevData, data)
         if (res) {
             this.updateLastData(data)
         }

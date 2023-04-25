@@ -35,9 +35,8 @@ export class ServerDrivingManager extends DrivingManager<ServerWorld> {
         }
 
         // update the player's control
-        driving.initFromVehicle()
         if (place === DrivingPlace.DRIVER) {
-            driving.applyToParticipantControl(playerControl, DrivingPlace.DRIVER)
+            driving.applyToParticipantControl(playerControl, DrivingPlace.DRIVER, true)
             controlManager.updatePlayerStateFromControl()
         } else {
             driving.applyToDependentParticipants()
@@ -88,7 +87,6 @@ export class ServerDrivingManager extends DrivingManager<ServerWorld> {
             const drivingState: TDrivingState = {
                 id,
                 physicsOptions,
-                offsets         : drivingConfig.offsets,
                 mobType         : vehicleMob.type,
                 mobIds          : ArrayHelpers.create(places, null),
                 playerIds       : ArrayHelpers.create(places, null),
@@ -96,9 +94,10 @@ export class ServerDrivingManager extends DrivingManager<ServerWorld> {
             }
             drivingState.mobIds[0] = vehicleMob.id
             
-            driving = new ServerDriving(this, drivingState)
+            driving = new ServerDriving(this, drivingConfig, drivingState)
             driving.resolve()
             this.drivingById.set(id, driving)
+            driving.initFromVehicle()
         }
         return driving
     }

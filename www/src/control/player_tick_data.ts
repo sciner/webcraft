@@ -7,6 +7,7 @@ import type {ClientPlayerControlManager, PlayerControlManager} from "./player_co
 import type {PLAYER_CONTROL_TYPE} from "./player_control.js";
 import {ObjectHelpers} from "../helpers/object_helpers.js";
 import type {Player} from "../player.js";
+import type {PrismarinePlayerState} from "../prismarine-physics/index.js";
 
 export enum PLAYER_TICK_DATA_STATUS {
     NEW = 1,
@@ -18,7 +19,9 @@ export enum PLAYER_TICK_DATA_STATUS {
 export enum PLAYER_TICK_MODE {
     NORMAL = 0,
     SITTING_OR_LYING,
-    FLYING
+    FLYING,
+    DRIVING_FREE_YAW, // вождение, со свободным поворотом мышью
+    DRIVING_ANGULAR_SPEED // вождение, с медленным поворотом транспортного средства стрелками
 }
 
 /** It represents input and output of player controls & physics in one several consecutive physics ticks. */
@@ -54,6 +57,10 @@ export class PlayerTickData {
     outPlayerFlags: int     // boolean values that are stored in the player's state
     outPos = new Vector()
     outVelocity = new Vector()
+    /** Угол поворота транспоттного средства (только во время вождения, только если поворотом транспорта нельзя свободно управлять) */
+    outVehicleYaw: float | null
+    /** Угловая скорость транспоттного средства (только во время вождения, только если поворотом транспорта нельзя свободно управлять) */
+    outVehicleAngularVelocity: float | null
 
     // Not inclusive
     get endPhysicsTick() { return this.startingPhysicsTick + this.physicsTicks }
@@ -113,16 +120,22 @@ export class PlayerTickData {
     }
 
     initContextFrom(controlManager: PlayerControlManager<any>): void {
-        const player = controlManager.player
+        const player = controlManager.player as Player
         const pc = controlManager.current
         const state = player.state
         this.contextGameModeIndex  = player.game_mode.getCurrent().index
         this.contextControlType   = pc.type
-        this.contextTickMode = state.sitting || state.sleep
-            ? PLAYER_TICK_MODE.SITTING_OR_LYING
-            : pc.player_state.flying
-                ? PLAYER_TICK_MODE.FLYING
-                : PLAYER_TICK_MODE.NORMAL
+        if (state.sitting || state.sleep) {
+            this.contextTickMode = PLAYER_TICK_MODE.SITTING_OR_LYING
+        } else if (player.driving) {
+            this.contextTickMode = player.driving.config.useAngularSpeed
+                ? PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED
+                : PLAYER_TICK_MODE.DRIVING_FREE_YAW
+        } else if (pc.player_state.flying) {
+            this.contextTickMode = PLAYER_TICK_MODE.FLYING
+        } else {
+            this.contextTickMode = PLAYER_TICK_MODE.NORMAL
+        }
     }
 
     copyContextFrom(src: PlayerTickData): void {
@@ -142,6 +155,9 @@ export class PlayerTickData {
         this.outPlayerFlags = packBooleans(pc.sneak)
         this.outPos.copyFrom(pc.player_state.pos)
         this.outVelocity.copyFrom(pc.player_state.vel)
+        const drivingCombinedState = pc.drivingCombinedState as (PrismarinePlayerState | null)
+        this.outVehicleYaw = drivingCombinedState?.yaw ?? null
+        this.outVehicleAngularVelocity = drivingCombinedState?.angularVelocity ?? null
     }
 
     copyOutputFrom(src: PlayerTickData): void {
@@ -149,6 +165,8 @@ export class PlayerTickData {
         this.outPlayerFlags = src.outPlayerFlags
         this.outPos.copyFrom(src.outPos)
         this.outVelocity.copyFrom(src.outVelocity)
+        this.outVehicleYaw = src.outVehicleYaw
+        this.outVehicleAngularVelocity = src.outVehicleAngularVelocity
     }
 
     applyOutputToControl(pc: PlayerControl): void {
@@ -157,13 +175,20 @@ export class PlayerTickData {
         player_state.flying = flying
         player_state.pos.copyFrom(this.outPos)
         player_state.vel.copyFrom(this.outVelocity)
+        const drivingCombinedState = pc.drivingCombinedState as (PrismarinePlayerState | null)
+        if (drivingCombinedState && this.outVehicleYaw != null) {
+            drivingCombinedState.yaw = this.outVehicleYaw
+            drivingCombinedState.angularVelocity = this.outVehicleAngularVelocity
+        }
     }
 
     outEqual(other: PlayerTickData): boolean {
         return this.outControlFlags === other.outControlFlags &&
             this.outPlayerFlags === other.outPlayerFlags &&
             this.outPos.equal(other.outPos) &&
-            this.outVelocity.equal(other.outVelocity)
+            this.outVelocity.equal(other.outVelocity) &&
+            this.outVehicleYaw === other.outVehicleYaw &&
+            this.outVehicleAngularVelocity === other.outVehicleAngularVelocity
     }
 
     writeInput(dc: OutDeltaCompressor): void {
@@ -185,6 +210,10 @@ export class PlayerTickData {
             .putInt(this.outPlayerFlags)
             .putFloatVector(this.outPos)
             .putFloatVector(this.outVelocity)
+        if (this.contextTickMode === PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
+            dc.putFloat(this.outVehicleYaw)
+            dc.putFloat(this.outVehicleAngularVelocity)
+        }
     }
 
     readInput(dc: InDeltaCompressor): void {
@@ -212,12 +241,23 @@ export class PlayerTickData {
         this.outPlayerFlags = dc.getInt()
         dc.getFloatVector(this.outPos)
         dc.getFloatVector(this.outVelocity)
+        if (this.contextTickMode === PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
+            this.outVehicleYaw = dc.getFloat()
+            this.outVehicleAngularVelocity = dc.getFloat()
+        } else {
+            this.outVehicleYaw = null
+            this.outVehicleAngularVelocity = null
+        }
     }
 
     toString(): string {
         const ids = this.inputWorldActionIds ? `ids=[${this.inputWorldActionIds.join()}] ` : ''
-        return `t${this.startingPhysicsTick}+${this.physicsTicks}=t${this.endPhysicsTick} g${this.contextGameModeIndex} m${
+        let res = `t${this.startingPhysicsTick}+${this.physicsTicks}=t${this.endPhysicsTick} g${this.contextGameModeIndex} m${
             this.contextTickMode} i${this.inputFlags} ${ids}${this.outPos}`
+        if (this.contextTickMode == PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
+            res += `vehicle(${this.outVehicleYaw} ${this.outVehicleAngularVelocity})`
+        }
+        return res
     }
 }
 

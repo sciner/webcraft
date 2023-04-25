@@ -2,8 +2,8 @@
 
 import type {Vector} from "../helpers/vector.js";
 import type {PlayerTickData} from "./player_tick_data.js";
-import {PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS} from "../constant.js";
-import type {Driving} from "./driving.js";
+import {PHYSICS_POS_DECIMALS} from "../constant.js";
+import type {ClientPlayerControlManager} from "./player_control_manager.js";
 
 export enum PLAYER_CONTROL_TYPE {
     PRISMARINE,
@@ -92,9 +92,20 @@ export class PlayerControls implements IPlayerControls {
  * A base class for all player controllers.
  * It implements physics, movement and reactions to the player's input.
  */
-export abstract class PlayerControl {
+export abstract class PlayerControl<TState extends IPlayerControlState = IPlayerControlState> {
     controls    : IPlayerControls       // Input
-    player_state: IPlayerControlState   // Input-output
+    player_state: TState   // Input-output
+    /**
+     * Input-output. Определено только в состоянии вождения для водителя.
+     * Если определено - это состояние общего объекта, который симулируется вместо {@link player_state}
+     * Устанавливается непосредственно преде симуляцией и корректно во время симуляции. В другое время может содержать мусор.
+     */
+    drivingCombinedState?: TState | null
+    /**
+     * Копия состояния (или подмножества его полей), которые могут меняются при симуляции
+     * и могут быть испорчены при неудачной симуляции
+     */
+    abstract backupState: any
 
     protected constructor() {
         this.controls = {
@@ -112,6 +123,11 @@ export abstract class PlayerControl {
     abstract get requiresChunk(): boolean
     abstract get sneak(): boolean
     abstract get playerHeight(): float
+
+    /** @return состояние, которое участвует в симуляции (самого объекта, или общего объекта вождения) */
+    get simulatedState(): TState {
+        return this.drivingCombinedState ?? this.player_state
+    }
 
     /**
      * The result is read-only. It's valid only until the next change.
@@ -144,18 +160,19 @@ export abstract class PlayerControl {
         this.player_state.vel.zero()
     }
 
-    /**
-     * Backs up the part of the state that may become corrupted if the simulation throws an exception.
-     * Which data is backed up, is up to the implementation. It doesn't have to back up the position,
-     * because it's backed up externally.
-     */
-    abstract backupPartialState(): void
+    /** Вызывается в каждом кадре на клиенте */
+    updateFrame(controlManger: ClientPlayerControlManager): void {
+        // ничего; переопределено в подклассах
+    }
 
-    /** Restores the state corrupted by failed simulation to the values previously saved by {@link backupPartialState} */
-    abstract restorePartialState(pos: Vector): void
+    /**
+     * Copies a part of the state that may become corrupted if the simulation throws an exception.
+     * Which data is backed up, is up to the implementation.
+     */
+    abstract copyPartialStateFromTo(src: any, dst: any): void
 
     /** Performs player's movement during one physics tick, see {@link PHYSICS_INTERVAL_MS} */
-    abstract simulatePhysicsTick(driving?: Driving<any> | null): boolean
+    abstract simulatePhysicsTick(): boolean
 
     /**
      * Server-only.

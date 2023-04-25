@@ -4,12 +4,13 @@ import { AABB } from "./lib/aabb.js";
 import {Resources} from "../resources.js";
 import type {FakeBlock, TPrismarineOptions} from "./using.js";
 import {FakeWorld, addDefaultPhysicsOptions} from "./using.js";
-import {PLAYER_ZOOM} from "../constant.js";
+import {PHYSICS_ROTATION_DECIMALS, PLAYER_ZOOM} from "../constant.js";
 import { TBlock } from "../typed_blocks3.js";
 import type {IPlayerControls, IPlayerControlState} from "../control/player_control.js";
 import type {Effects} from "../player.js";
 import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID} from "../fluid/FluidConst.js";
 import type {World} from "../world.js";
+import type {TDrivingConfig} from "../control/driving.js";
 
 const BLOCK_NOT_EXISTS = -2;
 const _ladder_check_tblock = new TBlock()
@@ -48,7 +49,6 @@ export class Physics {
     private readonly lavaId             : int
     private readonly ladderId           : int
     private readonly vineId             : int
-    private readonly waterLike          : boolean[] = []
     private readonly bubbleColumnId     : int
 
     // =================== options from old physics object ====================
@@ -119,6 +119,12 @@ export class Physics {
     private readonly waterGravity       : number
     private readonly lavaGravity        : number
 
+    // ========================= поворот при вождении =========================
+    private readonly maxAngularSpeed    = 0.2   // радиан/тик
+    private readonly angularAcceleration= 0.02  // радиан/тик^2
+    private readonly angularInertia     = 0.85  // аналогично другим видам инерции - на нее умножается скорость в каждом тике
+    private readonly minAngularSpeed    = 0.003 // радиан/тик. Если скорость меньшей этого значения, наступает полная остановка.
+
     // ========================== temporary objects ===========================
 
     private tmpPlayerBB     = new AABB()
@@ -170,13 +176,6 @@ export class Physics {
         this.ladderId       = blocksByName.ladder.id
         this.vineId         = blocksByName.vine.id
         this.bubbleColumnId = blocksByName.bubble_column?.id ?? BLOCK_NOT_EXISTS // 1.13+
-
-        const waterLikeNames = ['seagrass', 'tall_seagrass', 'kelp', 'bubble_column']
-        for(const name of waterLikeNames) {
-            if (blocksByName[name]) {
-                this.waterLike[blocksByName[name].id] = true
-            }
-        }
 
         // =================== options from old physics object ====================
 
@@ -456,13 +455,13 @@ export class Physics {
     }
 
     private applyHeading(entity: PrismarinePlayerState, strafe: float, forward: float, multiplier: float): void {
-        let speed = Math.sqrt(strafe * strafe + forward * forward)
-        if (speed < 0.01) return
+        const length = Math.sqrt(strafe * strafe + forward * forward)
+        if (length < 0.01) return
 
-        speed = multiplier / Math.max(speed, 1)
+        const norm = multiplier / Math.max(length, 1)
 
-        strafe *= speed * this.scale
-        forward *= speed * this.scale
+        strafe *= norm * this.scale
+        forward *= norm * this.scale
 
         const yaw = Math.PI - entity.yaw
         const sin = Math.sin(yaw)
@@ -794,6 +793,7 @@ export class Physics {
     }
 
     simulatePlayer(entity: PrismarinePlayerState): void {
+        const options = entity.options
         const vel = entity.vel
         const pos = entity.pos
         const control = entity.control
@@ -864,8 +864,29 @@ export class Physics {
         let strafe = (control.left as any - (control.right as any)) * 0.98
         let forward = (control.back as any - (control.forward as any)) * 0.98
 
-        strafe *= entity.options.baseSpeed;
-        forward *= entity.options.baseSpeed;
+        // Если поворот стрелками, то вместо движения в бок выполнять поворот
+        const driving = entity.driving
+        if (driving?.useAngularSpeed) {
+            const acceleration  = driving.angularAcceleration ?? this.angularAcceleration
+            const inertia       = driving.angularInertia ?? this.angularInertia
+            entity.angularVelocity = Mth.clampModule(
+                (entity.angularVelocity ?? 0) * inertia - strafe * acceleration,
+                driving.maxAngularSpeed ?? this.maxAngularSpeed
+            )
+            entity.angularVelocity = Mth.round(entity.angularVelocity, PHYSICS_ROTATION_DECIMALS)
+            // полная остановка если скорость слишком маленькая
+            if (!strafe && Math.abs(entity.angularVelocity) < this.minAngularSpeed) {
+                entity.angularVelocity = 0
+            }
+            entity.yaw = Mth.radians_to_0_2PI_range(entity.yaw + entity.angularVelocity)
+            entity.yaw = Mth.round(entity.yaw, PHYSICS_ROTATION_DECIMALS)
+            strafe = 0
+        } else {
+            entity.angularVelocity = 0
+        }
+
+        strafe *= options.baseSpeed;
+        forward *= options.baseSpeed;
 
         if (control.sneak) {
             if(entity.flying) {
@@ -942,8 +963,11 @@ function getEffectLevel(val: int, effects?: TPrismarineEffects): int {
 
 export class PrismarinePlayerState implements IPlayerControlState {
     options     : TPrismarineOptions
+    driving ?   : TDrivingConfig    // Если задано - то это общий физический объект, контролируемый водителем
     pos         : Vector
     vel         : Vector
+    angularVelocity : float // Угловая скорость. Используется при езде если поворот стрелками.
+    yaw         = 0
     flying      = false
     onGround    = false
     isInWater   = false
@@ -956,7 +980,6 @@ export class PrismarinePlayerState implements IPlayerControlState {
     isCollidedVertically    = false
     jumpTicks   = 0
     jumpQueued  = false
-    yaw         = 0
     control     : IPlayerControls
     dolphinsGrace: number;
     slowFalling: number;
@@ -990,10 +1013,14 @@ export class PrismarinePlayerState implements IPlayerControlState {
         this.depthStrider = 0;
     }
 
-    copydyncamiFieldsExceptPosFrom(other: PrismarinePlayerState): void {
+    /**
+     * Копирует некоторые динамически меняющиеся поля из другого состояния.
+     * Не копирует: {@link yaw}, {@link pos} - их нужно обработать отдельно (потому что
+     * в режиме вождения может требовться не просто копирование).
+     */
+    copyAdditionalDynamicFieldsFrom(other: PrismarinePlayerState): void {
         this.vel.copyFrom(other.vel)
         this.flying = other.flying
-        this.yaw    = other.yaw
     }
 
     copyControlsFrom(other: PrismarinePlayerState): void {

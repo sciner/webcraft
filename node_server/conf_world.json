@@ -1,6 +1,6 @@
 {
     "mobs": {
-        "chicken": {
+        "mob/chicken": {
             "physics": {
                 "baseSpeed": 0.5,
                 "playerHeight": 0.9,
@@ -10,7 +10,7 @@
             "health": 4,
             "distance_view": 6
         },
-        "creeper": {
+        "mob/creeper": {
             "physics": {
                 "baseSpeed": 0.5,
                 "playerHeight": 1.6,
@@ -19,7 +19,7 @@
             "health": 20,
             "distance_view": 40
         },
-        "horse": {
+        "mob/horse": {
             "brain": "default",
             "physics": {
                 "baseSpeed": 0.25,
@@ -28,7 +28,7 @@
             },
             "health": 20
         },
-        "fox": {
+        "mob/fox": {
             "brain": "default",
             "physics": {
                 "baseSpeed": 0.5,
@@ -37,7 +37,7 @@
             },
             "health": 10
         },
-        "pig": {
+        "mob/pig": {
             "physics": {
                 "baseSpeed": 0.25,
                 "playerHeight": 1.125,
@@ -46,7 +46,7 @@
             "health": 10,
             "distance_view": 6
         },
-        "snow_golem": {
+        "mob/snow_golem": {
             "brain": "default",
             "physics": {
                 "baseSpeed": 0.25,
@@ -54,7 +54,7 @@
                 "playerHalfWidth": 0.35
             }
         },
-        "cow": {
+        "mob/cow": {
             "physics": {
                 "baseSpeed": 0.25,
                 "playerHeight": 1.4,
@@ -63,20 +63,22 @@
             "health": 10,
             "distance_view": 6
         },
-        "sheep": {
+        "mob/sheep": {
             "physics": {
                 "baseSpeed": 0.25,
                 "playerHeight": 1.3,
                 "playerHalfWidth": 0.45
             },
-            "driving": {
+            "_driving": {
                 "offsets": [ { "x": 0, "y": 0.7, "z": -0.1 } ],
-                "speed": 1
+                "speed": 1,
+                "useAngularSpeed": true,
+                "maxYawDelta": 1.6
             },
             "health": 8,
             "distance_view": 6
         },
-        "npc": {
+        "mob/npc": {
             "brain": "default",
             "physics": {
                 "baseSpeed": 0.5,
@@ -84,7 +86,7 @@
             },
             "health": 20
         },
-        "zombie": {
+        "mob/zombie": {
             "physics": {
                 "baseSpeed": 0.8,
                 "playerHeight": 1.6,
@@ -94,7 +96,7 @@
             "health": 20,
             "distance_view": 40
         },
-        "bee": {
+        "mob/bee": {
             "physics": {
                 "baseSpeed": 0.25,
                 "playerHeight": 0.6,
@@ -102,7 +104,7 @@
             },
             "health": 10
         },
-        "parrot": {
+        "mob/parrot": {
             "physics": {
                 "baseSpeed": 0.25,
                 "playerHeight": 0.6,
@@ -110,7 +112,7 @@
             },
             "health": 10
         },
-        "skeleton": {
+        "mob/skeleton": {
             "physics": {
                 "baseSpeed": 0.8,
                 "playerHeight": 1.95,
@@ -120,13 +122,17 @@
             "health": 20,
             "distance_view": 16
         },
-        "boat": {
+        "transport/boat": {
             "physics": {
                 "baseSpeed": 0.25,
-                "playerHeight": 1.125,
-                "playerHalfWidth": 0.45
+                "playerHeight": 0.6,
+                "playerHalfWidth": 0.8
             },
-            "health": 1
+            "_driving": {
+                "offsets": [
+                    { "x": 0, "y": 0.7, "z": -0.5 }
+                ]
+            }
         }
     },
     "tickers": [

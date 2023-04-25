@@ -1,7 +1,7 @@
 import type {World} from "../world.js";
 import {ServerClient} from "../server_client.js";
 import type {MobModel} from "../mob_model.js";
-import {ClientDriving, TDrivingState} from "./driving.js";
+import {ClientDriving, TDrivingConfig, TDrivingState} from "./driving.js";
 import type {PlayerModel} from "../player_model.js";
 import {Lang} from "../lang.js";
 
@@ -26,12 +26,12 @@ export class ClientDrivingManager extends DrivingManager<World> {
     onCmd(cmd: INetworkMessage): void {
         switch (cmd.name) {
             case ServerClient.CMD_DRIVING_ADD_OR_UPDATE: {
-                const state = cmd.data as TDrivingState
+                const [config, state] = cmd.data as [TDrivingConfig, TDrivingState]
                 let driving = this.drivingById.get(state.id)
                 if (driving) {
                     driving.onNewState(state)
                 } else {
-                    driving = new ClientDriving(this, state)
+                    driving = new ClientDriving(this, config, state)
                     this.drivingById.set(state.id, driving)
                     if (driving.getMyPlayerPlace() != null) {
                         this.world.game.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000)

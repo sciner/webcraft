@@ -18,6 +18,8 @@ import {ServerClient} from "../server_client.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketWriter, PlayerControlSessionPacket} from "./player_control_packets.js";
 import {PlayerSpeedLoggerMode, PlayerSpeedLogger} from "./player_speed_logger.js";
 import {LimitedLogger} from "../helpers/limited_logger.js";
+import {DrivingPlace} from "./driving.js";
+import type {PrismarinePlayerState} from "../prismarine-physics/index.js";
 
 const DEBUG_LOG_SPEED = false
 const DEBUG_LOG_SPEED_MODE = PlayerSpeedLoggerMode.SCALAR
@@ -139,10 +141,9 @@ export abstract class PlayerControlManager<TPlayer extends Player> {
      * @return true if the simulation was successful, i.e. the {@link PlayerControl.simulatePhysicsTick}.
      *   It may be unsuccessful if the chunk is not ready.
      *   If the simulation fails, all the important properties of {@link PlayerControl} remain unchanged
-     *     (assuming {@link PlayerControl.restorePartialState} is correct).
+     *     (assuming {@link PlayerControl.copyPartialStateFromTo} is correct).
      */
-    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData,
-                       outPosBeforeLastTick?: Vector): boolean {
+    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData): boolean {
         const pc = this.controlByType[data.contextControlType]
         const gameMode = GameMode.byIndex[data.contextGameModeIndex]
         const player_state = pc.player_state
@@ -165,9 +166,13 @@ export abstract class PlayerControlManager<TPlayer extends Player> {
             }
         }
 
-        // remember the state before the simulation
         const prevPos = this.tmpPos.copyFrom(player_state.pos)
-        pc.backupPartialState()
+
+        // подготовить симуляцию вождения (если оно есть)
+        pc.drivingCombinedState = driving?.getSimulatedState(player_state as PrismarinePlayerState)
+
+        // remember the state before the simulation
+        pc.copyPartialStateFromTo(pc.simulatedState, pc.backupState)
 
         // simulate the steps
         for(let i = 0; i < data.physicsTicks; i++) {
@@ -175,13 +180,13 @@ export abstract class PlayerControlManager<TPlayer extends Player> {
             if (pc.requiresChunk) {
                 const chunk = this.player.world.chunkManager.getByPos(pos)
                 if (!chunk?.isReady()) {
-                    pc.restorePartialState(prevPos)
+                    pc.copyPartialStateFromTo(pc.backupState, pc.simulatedState)
                     return false
                 }
             }
-            outPosBeforeLastTick?.copyFrom(player_state.pos)
-            if (!pc.simulatePhysicsTick(driving)) {
-                pc.restorePartialState(prevPos)
+            this.onBeforeSimulatingTick(pc)
+            if (!pc.simulatePhysicsTick()) {
+                pc.copyPartialStateFromTo(pc.backupState, pc.simulatedState)
                 return false
             }
             // round the results between each step
@@ -189,6 +194,9 @@ export abstract class PlayerControlManager<TPlayer extends Player> {
             player_state.pos.roundSelf(PHYSICS_POS_DECIMALS)
             player_state.vel.roundSelf(PHYSICS_VELOCITY_DECIMALS)
         }
+        // обновить состояние водиеля, если это было вождение
+        driving?.applyToParticipantControl(pc as PrismarinePlayerControl, DrivingPlace.DRIVER, false)
+
         data.initOutputFrom(pc)
         this.onSimulation(prevPos, data)
         return true
@@ -199,6 +207,10 @@ export abstract class PlayerControlManager<TPlayer extends Player> {
     }
 
     protected get username(): string { return this.player.session.username }
+
+    protected onBeforeSimulatingTick(pc: PlayerControl): void {
+        // ничего; переопределено в субклассах
+    }
 }
 
 export class ClientPlayerControlManager extends PlayerControlManager<Player> {
@@ -313,16 +325,18 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
         if (pc === this.spectator) {
             this.spectator.getCurrentPos(dst)
         } else {
+            const tickFraction = this.getCurrentTickFraction()
             const pos = pc.player_state.pos
             if (pos.distance(prevPos) > 10.0) {
                 dst.copyFrom(pos)
             } else {
-                dst.lerpFrom(prevPos, pos, this.getCurrentTickFraction())
+                dst.lerpFrom(prevPos, pos, tickFraction)
             }
 
             const driving = this.player.driving
             if (driving) {
-                driving.updateFromDriver(dst, pc.player_state.yaw)
+                driving.updateFromDriver(dst, this.player.rotate.z)
+                driving.updateDriverInterpolatedYaw(tickFraction, this.player)
                 driving.applyToDependentParticipants()
             }
         }
@@ -376,9 +390,7 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
             return
         }
 
-        if (this.current === this.spectator) {
-            this.spectator.updateFrame(this)
-        }
+        this.current.updateFrame(this)
         if (this.#isFreeCam) {
             this.updateFreeCamFrame()
         }
@@ -475,7 +487,7 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
             }
 
             const prevData = dataQueue.getLast()
-            this.simulate(prevData, data, this.prevPhysicsTickPos)
+            this.simulate(prevData, data)
 
             if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
                 console.log(`control: simulated t${this.knownPhysicsTicks} ${data.outPos} ${data.outVelocity}`)
@@ -667,11 +679,10 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
         this.player.world.server.Send({name: ServerClient.CMD_PLAYER_CONTROL_SESSION, data})
     }
 
-    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData,
-                       outPosBeforeLastTick?: Vector): boolean {
+    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData): boolean {
         const pc = this.controlByType[data.contextControlType]
         prevData?.applyOutputToControl(pc)
-        if (super.simulate(prevData, data, outPosBeforeLastTick)) {
+        if (super.simulate(prevData, data)) {
             return true
         }
         data.initOutputFrom(pc)
@@ -686,5 +697,13 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
             pc.controls.sneak = false
         }
         pc.updateFrame(this)
+    }
+
+    protected onBeforeSimulatingTick(pc: PlayerControl): void {
+        this.prevPhysicsTickPos.copyFrom(pc.player_state.pos)
+        const driving = this.player.driving
+        if (driving) {
+            driving.prevPhysicsTickVehicleYaw = pc.drivingCombinedState?.yaw
+        }
     }
 }

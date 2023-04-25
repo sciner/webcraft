@@ -399,7 +399,10 @@ export class FSMBrain {
         // находим пересечение сред
         if (this.in_air) {
             const angle_random = mob.rotate.z + (Math.random() - Math.random()) * Math.PI / 8;
-            const ray = this.world.raycaster.get(mob.pos, new Vector(Math.sin(angle_random), 0, Math.cos(angle_random)), 32);
+            const ray = this.world.raycaster.get(mob.pos,
+                new Vector(Math.sin(angle_random), 0, Math.cos(angle_random)),
+                32, null, false, false, this.mob
+            )
             if (ray) {
                const to = new Vector(ray.x, ray.y + 1, ray.z);
                if (!this.to || (this.isStandAt(to) && mob.pos.distance(to) < mob.pos.distance(this.to))) {

@@ -45,6 +45,20 @@ export class WorldMobManager {
         this.inactiveByEntityIdBeingWritten = null;
     }
 
+    /** Возвращает полное имя типа моба (с префиксом) по возможно неполному имени. Для удобства команд. */
+    findTypeFullName(typeShortName: string): string | null {
+        if (this.configs[typeShortName]) {
+            return typeShortName
+        }
+        typeShortName = '/' + typeShortName
+        for(let key in this.configs) {
+            if (key.endsWith(typeShortName)) {
+                return key
+            }
+        }
+        return null
+    }
+
     getTickStatForMob(mob: Mob): WorldTickStat {
         let res = this.ticks_stat_by_mob_type.get(mob.type)
         if (res == null) {
@@ -130,7 +144,7 @@ export class WorldMobManager {
         const chunk = world.chunks.get(chunk_addr);
         if(chunk) {
             try {
-                // fill some cration params
+                // Добавить параметры создания
                 params.id = world.db.mobs.getNextId();
                 params.entity_id = randomUUID();
                 if(!('pos' in params)) {

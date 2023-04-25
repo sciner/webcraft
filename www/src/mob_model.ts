@@ -95,9 +95,10 @@ export class MobModel extends NetworkPhysicObject {
 
     constructor(props : TMobProps, world : World) {
 
-        super(world, new Vector(0, 0, 0), new Vector(0, 0, 0))
+        super(world, new Vector(props.pos), new Vector(props.rotate))
 
         Object.assign(this, props)
+        this.updateAABB()   // у моба, который не движется, может долго автоматически не обновляться AABB
 
         // this.animationScript = new MobAnimation(this)
 
@@ -112,6 +113,9 @@ export class MobModel extends NetworkPhysicObject {
         this._mesh = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
 
     }
+
+    /** Мы не можем использовать в этом файле instanceof PlayerModel, т.к. не можем его испортировать из-за циклической зависимости*/
+    get isPlayer(): boolean { return (this as any).username != null }
 
     /**
      * Семантика переопредленного метода:
@@ -131,8 +135,8 @@ export class MobModel extends NetworkPhysicObject {
                 driving.applyToDependentParticipants()
                 return
             } else if (positionProvider) {
-                // есть кто-то другой, кто задает позицию этой модели; ничего не делать
-                this.netBuffer.length = 0
+                // есть кто-то другой, кто задает позицию этой модели; обработать только extra_data, если оно есть
+                this.forceLocalUpdate(null, null)
                 return
             }
             // нет никого другого, кто задает позицию этой модели; обработать ее как обычно
@@ -277,8 +281,10 @@ export class MobModel extends NetworkPhysicObject {
             mesh.rotation[2] = rot % Math.PI ? rot : rot + Math.PI
             mesh.setAnimation('sleep')
         } else {
-            mesh.rotation[2] = this.draw_yaw ? this.draw_yaw : 0
-            if (this.sitting) {
+            mesh.rotation[2] = this.draw_yaw ?? 0
+            if (this.driving && this !== this.driving.getVehicleModel()) {
+                mesh.setAnimation(this.driving.config.driverAnimation ?? 'sitting')
+            } else if (this.sitting) {
                 mesh.setAnimation('sitting')
             } else if (!this.ground) {
                 mesh.setAnimation('jump')

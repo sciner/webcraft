@@ -205,6 +205,7 @@ export enum LEAVES_TYPE {
     BEAUTIFUL = 2,
 }
 
+/** Подмножество названий типов мобов. Это не все типы. */
 export enum MOB_TYPE {
     BEE         = 'mob/bee',
     CHICKEN     = 'mob/chicken',

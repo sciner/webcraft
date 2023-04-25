@@ -146,6 +146,17 @@ export class Mth {
         return a + delta * Mth.clamp(t, 0, 1);
     }
 
+    /**
+     * Интерполирует угол в радианах.
+     * Аргументы имеют тот же порядок и семантику что и в {@link lerp} (что отличается от {@link lerpAngle}).
+     * @return угол от 0 (включительно) до 2*PI (не включительно)
+     */
+    static lerpRadians(amount: float, value0: float, value1: float): float {
+        const delta = this.radians_to_minus_PI_PI_range(value1 - value0)
+        const lerpDelta = this.lerp(amount, 0, delta)
+        return this.radians_to_0_2PI_range(value0 + lerpDelta)
+    }
+
     // lut is an array containing pairs (amount, vaue), ordered by amount ascending.
     static lerpLUT(amount, lut) {
         if (amount <= lut[0]) {
@@ -160,6 +171,26 @@ export class Mth {
         }
         amount = (amount - lut[i - 2]) / (lut[i] - lut[i - 2]);
         return Mth.lerp(amount, lut[i - 1], lut[i + 1]);
+    }
+
+    /** Добавляет/вычитает период 2*PI нужное число раз, делая угол от 0 (включительно) до 2*PI (не включительно) */
+    static radians_to_0_2PI_range(radians: float): float {
+        radians %= this.PI_MUL2
+        if (radians < 0) {
+            radians += this.PI_MUL2
+        }
+        return radians
+    }
+
+    /** Добавляет/вычитает период 2*PI нужное число раз, делая угол от -PI (включительно) до PI (не включительно) */
+    static radians_to_minus_PI_PI_range(radians: float): float {
+        radians %= this.PI_MUL2
+        if (radians < -Math.PI) {
+            radians += this.PI_MUL2
+        } else if (radians >= Math.PI) {
+            radians -= this.PI_MUL2
+        }
+        return radians
     }
 
     /**

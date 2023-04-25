@@ -560,12 +560,9 @@ export class ServerChat {
                 }
                 args = this.parseCMD(args, ['string', 'x', 'y', 'z', 'string', '?string'], player);
                 const type_orig = args[4]
-                let type = type_orig
-                if(!type.includes('/')) {
-                    type = `mob/${type}`
-                }
-                if (!world.brains.list.has(type)) {
-                    this.sendSystemChatMessageToSelectedPlayers(`!langUnknown mob type ${type_orig}`, player, false)
+                const type = world.mobs.findTypeFullName(type_orig)
+                if (!type) {
+                    this.sendSystemChatMessageToSelectedPlayers(`!langUnknown mob type ${type_orig}`, player)
                     break
                 }
                 // @ParamMobAdd
@@ -576,7 +573,9 @@ export class ServerChat {
                     args[5] ?? 'base',
                 )
                 // spawn
-                world.mobs.spawn(player, params)
+                if (!world.mobs.spawn(player, params)) {
+                    this.sendSystemChatMessageToSelectedPlayers(`!langCan't spawn mob ${type}`, player)
+                }
                 break;
             }
             case '/stairs': {
