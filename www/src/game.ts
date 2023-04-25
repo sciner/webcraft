@@ -69,7 +69,7 @@ export class GameSettings implements TWorldSettings {
     render_distance:         int = DEFAULT_RENDER_DISTANCE
     base_ambient_light_level:float = 100
     // quality
-    use_light:               int = LIGHT_TYPE.RTX
+    use_light:               int = LIGHT_TYPE.SMOOTH
     chunk_geometry_mode    = CHUNK_GEOMETRY_MODE.AUTO
     chunk_geometry_alloc   = CHUNK_GEOMETRY_ALLOC.AUTO
     beautiful_leaves:        boolean = true
