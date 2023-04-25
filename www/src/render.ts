@@ -1278,8 +1278,8 @@ export class Renderer {
         if([CAMERA_MODE.THIRD_PERSON, CAMERA_MODE.THIRD_PERSON_FRONT].indexOf(this.camera_mode) < 0) {
             return false;
         }
-        const player = Qubatch.player;
-        if(player.game_mode.isSpectator()) {
+        const player : Player = Qubatch.player;
+        if(player.game_mode.isSpectator() || player.state.sleep || player.state.sitting) {
             return false;
         }
 
