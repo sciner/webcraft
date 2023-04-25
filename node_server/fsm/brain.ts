@@ -454,7 +454,8 @@ export class FSMBrain {
             this.onKill(actor, type_damage);
         } else {
             const actions = new WorldAction();
-            actions.addPlaySound({ tag: 'madcraft:block.' + mob.type, action: 'hurt', pos: mob.pos.clone() });
+            const mob_type = mob.skin.model_name.split('/')[1]
+            actions.addPlaySound({ tag: 'madcraft:block.' + mob_type, action: 'hurt', pos: mob.pos.clone() });
             world.actions_queue.add(actor, actions);
             this.onPanic();
             mob.markDirty();

@@ -35,6 +35,9 @@ export type TPrismarineOptions = TPrismarinePlayerSize & {
 
     /** If it's defined, the object floats, and this value is its height below the surface. */
     floatSubmergedHeight? : float
+
+    airborneInertia     ? : float // 0.91 in Minecraft (default), 0.546 in typical old bugged jumps
+    airborneAcceleration? : float // 0.02 in Minecraft (default), 0.1 in typical old bugged jumps
 }
 
 export function addDefaultPhysicsOptions(options: TPrismarineOptions) {

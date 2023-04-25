@@ -64,7 +64,7 @@
         window.addEventListener('resize', windowResized, true);
     </script>
 </head>
-<body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak ng-class="{logged: loading_completed && login.logged}" onload="windowResized()">
+<body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak ng-class="{logged: loading.completed && login.logged}" onload="windowResized()">
 
     <div id="bg-circles_area">
         <ul class="circles">
@@ -106,7 +106,7 @@
                 <img src="/media/design/icons-share.svg" style="height: 2em;" alt="Invite friend">
             </button>
         </div>
-        
+
     </div>
 
     <!-- <canvas id="bg-canvas"></canvas> -->
@@ -161,7 +161,7 @@
     </div>
 
     <!-- Start page -->
-    <div class="start-page" ng-if="loading_completed && !login.logged">
+    <div class="start-page" ng-if="loading.completed && !login.logged">
         <input id="sign-modal-toggle" type="checkbox" class="hidden">
         <div class="bg" ng-init="initSelects()">
             <div class="container">
@@ -217,7 +217,7 @@
 	<div class="container" ng-if="Qubatch && login.logged">
 
         <!-- Header -->
-		<header class="animate__animated animate__fadeIn">
+		<header class="animate__animated animate__fadeIn" ng-init="skin.load()">
 			<nav class="tabs">
 				<div class="logo cpointer" ng-click="current_window.show('main')">
 					<img ng-src="style/img/logo.webp" alt="">
@@ -251,8 +251,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- <canvas id="bbmodel_preview" width="480" height="480" style="background: #333; margin: auto;" ng-init="bbmodel_preview.init()"></canvas> -->
 
             <div class="grid">
 				<button class="btn btn-add primary item" ng-click="newgame.open()">
@@ -288,7 +286,7 @@
 							</button>
 							<!-- <button class="secondary">Edit</button> -->
 						</div>
-						
+
 					</div>
 				</div>
 			</div>
@@ -319,7 +317,7 @@
                         </div>
                         <div id="inputRange_Mouse_ticks"></div>
                     </div>
-                    <!-- 
+                    <!--
                     <div class="input-group">
                         <p>HUD Scale: <span id="inputRange_HudScale_text">30</span></p>
                         <div class="rangeContainer" style="margin-bottom: 20px;">
@@ -351,13 +349,6 @@
                         </div>
                         <label for="chk-forced_joystick_control">{{Lang.forced_joystick_control}}</label>
                     </div>
-                    <div class="switcher-container" style="margin-top: 1em;">
-                        <input type="checkbox" id="chk-old_spectator_controls" value="" ng-model="settings.form.old_spectator_controls" />
-                        <div class="switcher">
-                            <small></small>
-                        </div>
-                        <label for="chk-old_spectator_controls">{{Lang.old_spectator_controls}}</label>
-                    </div>
                 </div>
                 <div class="video">
                     <h1>{{Lang.video}}</h1>
@@ -366,7 +357,7 @@
                             <p>Render Distance: <span id="inputRange_renderDistance_text">30</span></p>
                             <div class="rangeContainer" style="margin-bottom: 20px;">
                                 <input id="inputRange_renderDistance" class="slider" type="range" step="20" value="{settings.form.render_distance}"
-                                ng-model="settings.form.render_distance"                              
+                                ng-model="settings.form.render_distance"
                                     ng-change="settings.updateSlider('inputRange_renderDistance')">
                                 <div class="ticks" id="inputRange_renderDistance_ticks">
                                     <span class="passed active"></span>
@@ -432,10 +423,6 @@
                         <p>{{Lang.use_light}}</p>
                         <select class="slim-select" id="settings-select-light" ng-options="item as item.name for item in settings.lightMode.list" ng-model="settings.lightMode.current"></select>
                     </div>
-                    <div class="input-group">
-                        <p>{{Lang.chunk_geometry_mode}}</p>
-                        <select class="slim-select" id="settings-select-chunk_geometry_mode" ng-options="item as item.name for item in settings.chunkGeometryMode.list" ng-model="settings.chunkGeometryMode.current"></select>
-                    </div>
                 </div>
                 <div class="interface">
                     <h1>{{Lang.interface}}</h1>
@@ -454,6 +441,36 @@
                             <input id="input_window_size" class="slider" type="range" min="10" max="300" step="1" value="settings.form.window_size" ng-model="settings.form.window_size">
                         </div>
                     </div>
+                </div>
+                <div class="interface">
+                    <h1 style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>{{Lang.advanced_settings}}</span>
+                        <div class="switcher-container">
+                            <input type="checkbox" id="chk-show_advanced_settings" value="" ng-model="settings.show_advanced_settings" />
+                            <div class="switcher">
+                                <small></small>
+                            </div>
+                            <label for="chk-show_advanced_settings"></label>
+                        </div>
+                    </h1>
+                    <div ng-show="settings.show_advanced_settings">
+                        <div class="input-group">
+                            <p>{{Lang.chunk_geometry_mode}}</p>
+                            <select class="slim-select" id="settings-select-chunk_geometry_mode" ng-options="item as item.name for item in settings.chunkGeometryMode.list" ng-model="settings.chunkGeometryMode.current"></select>
+                        </div>
+                        <div class="input-group">
+                            <p>{{Lang.chunk_geometry_alloc}}</p>
+                            <select class="slim-select" id="settings-select-chunk_geometry_alloc" ng-options="item as item.name for item in settings.chunkGeometryAlloc.list" ng-model="settings.chunkGeometryAlloc.current"></select>
+                        </div>
+                        <div class="switcher-container" style="margin-top: 1em;">
+                            <input type="checkbox" id="chk-old_spectator_controls" value="" ng-model="settings.form.old_spectator_controls" />
+                            <div class="switcher">
+                                <small></small>
+                            </div>
+                            <label for="chk-old_spectator_controls">{{Lang.old_spectator_controls}}</label>
+                        </div>
+                    </div>
+                    <br>
                 </div>
                 <!-- <div class="audio">
                     <h1>Audio</h1>
@@ -491,7 +508,7 @@
         </div>
 
         <!-- Profile -->
-        <div class="profile-page" ng-if="current_window.id == 'skin'">
+        <div class="profile-page" ng-show="current_window.id == 'skin'">
             <div class="modal-wrapper" id="modal-change-pass">
                 <div class="modal">
                     <h3 class="header">Password change</h3>
@@ -504,22 +521,29 @@
                     </div>
                 </div>
             </div>
-            <div class="content" ng-init="skin.initProfilePage()" style="line-height: 1.5em;">
+            <div class="content" style="line-height: 1.5em;">
 
-                Our secure logout page is designed to ensure the privacy and safety of your account information.
-                <p>By logging out, you can confidently close your session,
-                knowing that your personal data and activity remain protected.
-                </p>
-                <p>Remember to always use this feature whenever you access our website on a shared device
-                or public network, as a simple yet essential step in safeguarding your online experience.
-                </p>
+                <div ng-init="skin.init()">
+                    <h1 class="flex items-center justify-between">
+                        {{Lang.select_skin}}
+                    </h1>
+                    <div class="preview-buttons" id="div-skin-preview-buttons">
+                        <button id="slider-prev" class="slider-btn" ng-click="skin.prev()" ng-class="{disabled: skin.preview.index == 0}">
+                            <i class="icon-chevron-left"></i>
+                        </button>
+                        <canvas id="bbmodel_preview" width="320" height="500" style="background: #00000000; margin: auto;"></canvas>
+                        <button id="slider-next" class="slider-btn" ng-click="skin.next()" ng-class="{disabled: skin.index == skin.preview.count -1}">
+                            <i class="icon-chevron-right"></i>
+                        </button>
+                    </div>
+                    <p style="text-align: center;">
+                        {{skin.preview.index + 1}} / {{skin.preview.count}}
+                    </p>
+                    <div class="save">
+                        <button class="primary" ng-click="skin.save()">{{Lang.save}}</button>
+                    </div>
+                </div>
 
-                <p>
-                    <small style="font-size: .8em; opacity: .5;">Yes, this is generated by ChatGPT ;)</small>
-                </p>
-
-
-                
                 <!-- <h1 class="flex items-center justify-between">
                     {{Lang.select_skin}}
                     <p class="font-m m-0" style="color: #B7B2CC;">
@@ -563,7 +587,20 @@
                     <button class="secondary" type='button'>Change password</button>
                 </form> -->
             </div>
-            <div class="content" style="border: none; padding-top: 10px;">
+            <div class="content" style="border: none;">
+
+                <!-- Our secure logout page is designed to ensure the privacy and safety of your account information.
+                <p>By logging out, you can confidently close your session,
+                knowing that your personal data and activity remain protected.
+                </p>
+                <p>Remember to always use this feature whenever you access our website on a shared device
+                or public network, as a simple yet essential step in safeguarding your online experience.
+                </p>
+
+                <p>
+                    <small style="font-size: .8em; opacity: .5;">Yes, this is generated by ChatGPT ;)</small>
+                </p> -->
+
                 <button class="logout" ng-click="App.logout()">
                     <i class="icon-bx-log-out"></i>
                     {{Lang.logout}}
@@ -587,14 +624,14 @@
                 </a>
             </div>
         </div>
-        
+
         <!-- New skin -->
         <div class="profile-page" ng-if="current_window.id == 'new_skin'">
             <div class="content items-center">
                 <h3 class="header">New skin</h3>
                 <div class="input-group">
                     <div>
-                        <canvas id="preview_skin_container" ng-init="skin.initPreviewSkinView3d()"></canvas>
+                        <!-- <canvas id="preview_skin_container" ng-init="skin.initPreviewSkinView3d()"></canvas> -->
                         <!-- <img class="raw-skin-preview" id="new-skin-image" ng-src="{{skin.newSkinDataURL}}"/> -->
                     </div>
                     <div>&nbsp;</div>
@@ -638,7 +675,7 @@
 
                         <h1>{{Lang.new_world}}</h1>
 
-                        <div id="world-generator-main-info"  ng-init="initSelects('#world-generator-main-info .slim-select')">
+                        <div id="world-generator-main-info" ng-init="initSelects('#world-generator-main-info .slim-select')">
 
                             <div class="input-group">
                                 <p>{{Lang.world_name}}</p>
@@ -698,6 +735,6 @@
 
     <script src="/vendors/vanilla-toast.min.js"></script>
     <div id="loading"></div>
-    
+
 </body>
 </html>

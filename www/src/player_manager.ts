@@ -39,9 +39,9 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
             pos:            data.pos,
             pitch:          data.rotate.x,
             yaw:            data.rotate.z,
-            skin:           data.skin,
             username:       data.username,
-            type:           data.type || 'player',
+            // type:           data.type || data.skin?.model_name,
+            skin:           data.skin,
             health:         data.health
         } as TMobProps, this.world);
 

@@ -22,7 +22,7 @@ import { BLOCK, DBItemBlock } from "@client/blocks.js";
 import { ServerClient } from "@client/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { GAME_DAY_SECONDS, GAME_ONE_SECOND, MOB_TYPE, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
+import { DEFAULT_MOB_TEXTURE_NAME, GAME_DAY_SECONDS, GAME_ONE_SECOND, MOB_TYPE, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
 import { Weather } from "@client/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
@@ -45,6 +45,7 @@ import { ChunkGrid } from "@client/core/ChunkGrid.js";
 import {ServerDrivingManager} from "./control/server_driving_manager.js";
 import {preprocessMobConfigs, TMobConfig} from "./mob/mob_config.js";
 import {Raycaster} from "@client/Raycaster.js";
+import type { ServerGame } from "server_game.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -53,7 +54,7 @@ export class ServerWorld implements IWorld {
     block_manager: typeof BLOCK;
     updatedBlocksByListeners: any[];
     shuttingDown: any;
-    game: any;
+    game: ServerGame;
     tickers: Map<string, TTickerFunction>;
     random_tickers: Map<string, TRandomTickerFunction>;
     blockListeners: BlockListeners;
@@ -373,13 +374,13 @@ export class ServerWorld implements IWorld {
                             const players = this.getPlayersNear(spawn_pos, 10);
                             if (players.length == 0) {
                                 // тип мобов для спауна
-                                const type_mob = (Math.random() < 0.5) ? MOB_TYPE.ZOMBIE : MOB_TYPE.SKELETON;
+                                const model_name = (Math.random() < 0.5) ? MOB_TYPE.ZOMBIE : MOB_TYPE.SKELETON;
                                 spawn_pos.addScalarSelf(0.5, 0, 0.5)
-                                const params = new MobSpawnParams(spawn_pos, Vector.ZERO.clone(), type_mob, 'base')
+                                const params = new MobSpawnParams(spawn_pos, Vector.ZERO.clone(), {model_name, texture_name: DEFAULT_MOB_TEXTURE_NAME})
                                 const actions = new WorldAction(null, this, false, false);
                                 actions.spawnMob(params);
                                 this.actions_queue.add(null, actions);
-                                console.log('Auto spawn ' + type_mob + ' pos spawn: ' + spawn_pos);
+                                console.log(`Auto spawn ${model_name} pos spawn: ${spawn_pos.toHash()}`);
                             }
                         }
                     }
@@ -1166,7 +1167,7 @@ export class ServerWorld implements IWorld {
     }
 
     // Return mobs near pos by distance
-    getMobsNear(pos, max_distance, filter_types = null) {
+    getMobsNear(pos : Vector, max_distance : float, filter_types = null) {
         const world = this;
         const aabb = new AABB().set(pos.x, pos.y, pos.z, pos.x, pos.y, pos.z)
             .expand(max_distance, max_distance, max_distance);
@@ -1179,9 +1180,9 @@ export class ServerWorld implements IWorld {
             for(const [mob_id, mob] of chunk.mobs) {
                 if(filter_types)  {
                     if(Array.isArray(filter_types)) {
-                        if(filter_types.indexOf(mob.type) < 0) continue;
+                        if(filter_types.indexOf(mob.skin.model_name) < 0) continue;
                     } else {
-                        if(filter_types !== mob.type) continue;
+                        if(filter_types !== mob.skin.model_name) continue;
                     }
                 }
                 // @todo check if not dead

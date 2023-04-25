@@ -4,6 +4,7 @@ import {BLOCK} from '../../blocks.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import { Default_Terrain_Generator } from "../default.js";
+import { TREASURE_SOURCE } from "../../constant.js";
 
 const DEFAULT_CHEST_ROTATE = new Vector(3, 1, 0);
 const randoms = new FastRandom('demo_map', MAX_CHUNK_SQUARE)
@@ -207,7 +208,7 @@ export default class Demo_Map extends Default_Terrain_Generator {
                 if(xyz.z == line.p_start.z) {
                     let cx = Math.round((line.p_start.x + line.p_end.x) / 2) - 6;
                     if(xyz.x == cx) {
-                        chunk.setBlockIndirect(x, y, z, BLOCK.CHEST.id, DEFAULT_CHEST_ROTATE, {generate: true, params: {source: 'treasure_room'}});
+                        chunk.setBlockIndirect(x, y, z, BLOCK.CHEST.id, DEFAULT_CHEST_ROTATE, {generate: true, params: {source: TREASURE_SOURCE.TREASURE_ROOM}});
                     }
                     if(xyz.x == cx + 3) {
                         chunk.setBlockIndirect(x, y, z, BLOCK.MOB_SPAWN.id, DEFAULT_CHEST_ROTATE);

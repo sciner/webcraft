@@ -2,6 +2,7 @@ import {ServerClient} from "./server_client.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { DROP_LIFE_TIME_SECONDS } from "./constant.js";
 import type { World } from "./world.js";
+import { Vector } from "./helpers.js";
 
 /** Data of one drop item sent to the client. */
 export type DropItemPacket = {
@@ -64,7 +65,7 @@ export class DropItemManager {
     // add
     add(data: DropItemPacket, time: number) {
         if(data.items[0].id < 1) return;
-        const drop_item = new Mesh_Object_Block_Drop(this.#world, null, data.entity_id, data.items, data.pos);
+        const drop_item = new Mesh_Object_Block_Drop(this.#world, null, data.entity_id, data.items, new Vector().copyFrom(data.pos));
         drop_item.dt = data.delayUserId === Qubatch.player.session.user_id
             ? data.dt
             : -Infinity

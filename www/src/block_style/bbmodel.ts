@@ -129,7 +129,8 @@ export default class style {
             }
         }
 
-        matrix = mat4.create()
+        matrix = matrix ?? mat4.create()
+        // matrix = mat4.create()
 
         // reset state and restore groups visibility
         model.resetBehaviorChanges()
@@ -325,7 +326,7 @@ export default class style {
                 const shift = 7/16 * (is_left ? 1 : -1)
                 const move_back = !(tblock instanceof FakeTBlock)
                 if(extra_data) {
-                    if(!is_left) {
+                    if(is_left) {
                         mat4.rotateY(matrix, matrix, Math.PI)
                     }
                     if(extra_data?.opened) {
@@ -382,7 +383,6 @@ export default class style {
                 if (bm.canPaneConnect(neighbours.SOUTH)) except_list.push('south')
                 if (bm.canPaneConnect(neighbours.NORTH)) except_list.push('north')
                 model.hideAllExcept(except_list)
-                mat4.rotateY(matrix, matrix, Math.PI)
                 break
             }
             case 'chest': {
@@ -421,7 +421,6 @@ export default class style {
                 if(!bm.canFenceConnect(neighbours.EAST)) hide_group_names.push('east')
                 model.hideGroups(hide_group_names)
                 style.selectTextureFromPalette(model, {name: mat.name}, tblock)
-                mat4.rotateY(matrix, matrix, Math.PI)
                 break
             }
             case 'pot': {

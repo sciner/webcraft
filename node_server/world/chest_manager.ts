@@ -663,12 +663,11 @@ export class WorldChestManager {
 
     // Generate chest
     generateChest(tblock: TBlock, pos: IVector): void {
-        const extra_data = tblock.extra_data;
-        extra_data.can_destroy = false;
-        extra_data.slots = this.treasure_sets.generateSlots(pos,
-            extra_data.params.source, DEFAULT_CHEST_SLOT_COUNT);
-        delete extra_data.generate;
-        this.world.onBlockExtraDataModified(tblock, pos);
+        const extra_data = tblock.extra_data
+        extra_data.can_destroy = false
+        extra_data.slots = this.treasure_sets.generateSlots(pos, extra_data.params.source, DEFAULT_CHEST_SLOT_COUNT)
+        delete extra_data.generate
+        this.world.onBlockExtraDataModified(tblock, pos)
     }
 
 }

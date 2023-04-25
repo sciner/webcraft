@@ -6,11 +6,14 @@ const MIN_BLOCKS_PER_SECOND = 0.1
  * non-zero value is the averaging period in ms
  * 0 means 1 value per call (if it's called every frame = 1 value per frame). Note that frame durations vary!
  */
-const PERIOD = 100
+const PERIOD = 0
 const MAX_LENGTH = 1000
 const LOG_AFTER_STOP_PERIOD = 200
+const LOG_SPEED_DECIMALS = 2
+const LOG_COORD_DECIMALS = 3
+const USE_PHYS_POS = true
 
-export const enum PlayerSpeedLoggerMode { DISABLED, SCALAR, Y, XYZ }
+export const enum PlayerSpeedLoggerMode { DISABLED, SPEED_SCALAR, SPEED_Y, SPEED_XYZ, COORD_XYZ }
 
 type TXyzTuple = [x: float, y: float, z: float]
 
@@ -26,20 +29,20 @@ export class PlayerSpeedLogger {
     private prevPos     : Vector | null
     private tmpPos      = new Vector()
     private prevTime    : number
-    private speeds      : (number | TXyzTuple)[] = []
+    private logEntries  : (number | TXyzTuple)[] = []
     private accumulatedTime     = 0
     private accumulatedDistance : float
     private accumulatedDistanceXYZ = new Vector()
     private lastMovedTime       : float
 
-    constructor(mode = PlayerSpeedLoggerMode.SCALAR) {
+    constructor(mode = PlayerSpeedLoggerMode.SPEED_SCALAR) {
         this.mode = mode
-        this.modeXYZ = mode === PlayerSpeedLoggerMode.XYZ
+        this.modeXYZ = (mode === PlayerSpeedLoggerMode.SPEED_XYZ || mode === PlayerSpeedLoggerMode.COORD_XYZ)
         this.reset()
     }
 
     reset() {
-        this.speeds.length = 0
+        this.logEntries.length = 0
         this.accumulatedTime = 0
         this.accumulatedDistance = 0
         this.accumulatedDistanceXYZ.zero()
@@ -51,10 +54,11 @@ export class PlayerSpeedLogger {
     /**
      * @returns true if anything has been added to the log or printed
      */
-    add(pos: Vector): boolean {
+    add(physPos: Vector, lerpPos: Vector): boolean {
         if (this.mode === PlayerSpeedLoggerMode.DISABLED) {
             return false
         }
+        const pos = USE_PHYS_POS ? physPos : lerpPos
         const now = performance.now()
         if (!this.prevPos) {
             this.prevPos = pos.clone()
@@ -71,11 +75,12 @@ export class PlayerSpeedLogger {
         const distXYZ = pos.clone().subSelf(this.prevPos)
         let dist: float
         switch(this.mode) {
-            case PlayerSpeedLoggerMode.SCALAR:
-            case PlayerSpeedLoggerMode.XYZ:
+            case PlayerSpeedLoggerMode.SPEED_SCALAR:
+            case PlayerSpeedLoggerMode.SPEED_XYZ:
+            case PlayerSpeedLoggerMode.COORD_XYZ:
                 dist = distXYZ.length()
                 break
-            case PlayerSpeedLoggerMode.Y:
+            case PlayerSpeedLoggerMode.SPEED_Y:
                 dist = distXYZ.y
                 break
         }
@@ -98,12 +103,12 @@ export class PlayerSpeedLogger {
                 : (this.accumulatedTime ? 1 : 0)
             if (periods) {
                 const usedDuration = periods * PERIOD || this.accumulatedTime
-                const hadSpeed = this.calcSpeed(usedDuration)
+                const logEntry = this.calcLogEntry(usedDuration)
                 for(let i = 0; i < periods; i++) {
-                    this.speeds.push(hadSpeed)
+                    this.logEntries.push(logEntry)
                 }
                 this.accumulatedTime -= usedDuration
-                if (this.speeds.length >= MAX_LENGTH) {
+                if (this.logEntries.length >= MAX_LENGTH) {
                     this.log(pos)
                     this.firstPos.copyFrom(pos)
                 }
@@ -112,8 +117,8 @@ export class PlayerSpeedLogger {
         } else if (this.firstPos) {
             this.accumulatedTime = PERIOD || this.accumulatedTime
             if (this.accumulatedTime) {
-                const hadSpeed = this.calcSpeed(this.accumulatedTime)
-                this.speeds.push(hadSpeed)
+                const logEntry = this.calcLogEntry(this.accumulatedTime)
+                this.logEntries.push(logEntry)
             }
             this.log(pos)
             this.reset()
@@ -123,13 +128,15 @@ export class PlayerSpeedLogger {
         }
     }
 
-    private calcSpeed(usedDuration: float): float | TXyzTuple {
+    private calcLogEntry(usedDuration: float): float | TXyzTuple {
         let res: float | TXyzTuple
-        if (this.modeXYZ) {
+        if (this.mode === PlayerSpeedLoggerMode.SPEED_XYZ) {
             const usedDistanceXYZ = this.accumulatedDistanceXYZ.mulScalar(usedDuration / this.accumulatedTime)
             res = usedDistanceXYZ.mulScalar(1 / (usedDuration * 0.001))
-                .round(2).toArray() as TXyzTuple
+                .round(LOG_SPEED_DECIMALS).toArray() as TXyzTuple
             this.accumulatedDistanceXYZ.subSelf(usedDistanceXYZ)
+        } else if (this.mode === PlayerSpeedLoggerMode.COORD_XYZ) {
+            res = this.prevPos.clone().round(LOG_COORD_DECIMALS).toArray() as TXyzTuple
         } else {
             const usedDistance = this.accumulatedDistance * usedDuration / this.accumulatedTime
             res = Mth.round(usedDistance / (usedDuration * 0.001), 2)
@@ -142,7 +149,10 @@ export class PlayerSpeedLogger {
         const deltaPos = this.tmpPos.copyFrom(currentPos).sub(this.firstPos).roundSelf(1)
         const length = Mth.round(deltaPos.length(), 1)
         const periodStr = PERIOD ? `${PERIOD} ms interval` : `frame`
-        console.log(`Total movement: ${deltaPos}; ${length} blocks. Blocks/sec in each ${periodStr}:`, JSON.stringify(this.speeds))
-        this.speeds.length = 0
+        const strExplain = this.mode === PlayerSpeedLoggerMode.COORD_XYZ
+            ? 'Coordinates'
+            : `Blocks/sec`
+        console.log(`Total movement: ${deltaPos}; ${length} blocks. ${strExplain} in each ${periodStr}:`, JSON.stringify(this.logEntries))
+        this.logEntries.length = 0
     }
 }

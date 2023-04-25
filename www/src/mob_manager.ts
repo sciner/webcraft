@@ -19,7 +19,7 @@ export declare type TMobProps = {
     rotate?:        IVector     // не определено для игрока
     pitch?:         float
     yaw?:           float
-    skin?:          PlayerSkin | string | null
+    skin?:          PlayerSkin // | string
     extra_data?:    Dict | null
     hands?:         any
     hasUse?:        boolean     // не определено для игрока, см. TMobConfig.hasUse
@@ -124,7 +124,6 @@ export class MobManager {
     add(data : TMobProps) {
         data.pitch  = data.rotate.x
         data.yaw    = data.rotate.z
-        data.skin   ??= 'base'
         data.extra_data ??= null
         const mob = new MobModel(data, this.#world)
 

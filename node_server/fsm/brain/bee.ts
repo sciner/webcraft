@@ -5,7 +5,7 @@ import { BeeNest } from "@client/block_type/bee_nest.js";
 import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
 import { Effect } from "@client/block_type/effect.js";
 import type { EnumDamage } from "@client/enums/enum_damage.js";
-import { DEFAULT_STYLE_NAME } from "@client/constant.js";
+import { DEFAULT_STYLE_NAME, MOB_TYPE } from "@client/constant.js";
 
 const MAX_POLLEN = 4;
 const POLLEN_PER_TICK = 0.02;
@@ -263,7 +263,7 @@ export class Brain extends FSMBrain {
             mob.addVelocity(velocity);
             const bots = world.getMobsNear(mob.pos, this.back_distance);
             for (const bot of bots) {
-                if (bot.type == "bee") {
+                if (bot.type == MOB_TYPE.BEE) {
                     bot.getBrain().setCommonTarget(actor);
                 }
             }
@@ -275,7 +275,8 @@ export class Brain extends FSMBrain {
             this.onKill(actor, type_damage);
         } else {
             const actions = new WorldAction();
-            actions.addPlaySound({ tag: 'madcraft:block.' + mob.type, action: 'hurt', pos: mob.pos.clone() });
+            const mob_type = mob.skin.model_name.split('/')[1]
+            actions.addPlaySound({ tag: 'madcraft:block.' + mob_type, action: 'hurt', pos: mob.pos.clone() });
             world.actions_queue.add(actor, actions);
             mob.markDirty();
         }

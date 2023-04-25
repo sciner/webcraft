@@ -100,17 +100,20 @@ export class MobModel extends NetworkPhysicObject {
         Object.assign(this, props)
         this.updateAABB()   // у моба, который не движется, может долго автоматически не обновляться AABB
 
-        // this.animationScript = new MobAnimation(this)
+        this.type = props.skin.model_name
+        this.skin = props.skin
 
         // load mesh
         const render = Qubatch.render as Renderer
-        const type = this.type.startsWith('player') ? MOB_TYPE.HUMANOID : this.type
-        const model = Resources._bbmodels.get(type)
+        const model = Resources._bbmodels.get(this.skin.model_name)
         if(!model) {
-            console.error(`error_model_not_found|${type}`)
+            console.error(`error_model_not_found|${this.skin.model_name}`, props)
             debugger
         }
         this._mesh = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
+        if(this.skin.texture_name) {
+            this._mesh.modifiers.selectTextureFromPalette('', this.skin.texture_name)
+        }
 
     }
 
@@ -183,17 +186,24 @@ export class MobModel extends NetworkPhysicObject {
 
         const newChunk = ChunkManager.instance?.getChunk(this.chunk_addr);
 
-        this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend);
+        this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend)
 
-        if (this.material) {
-            this.material.lightTex = this.lightTex;
-            this.material.tintColor = this.tintColor;
-            // TODO: refactor this!
-            // if (this.slots && this.slots.RightArm && this.slots.RightArm.holder
-            //     && this.slots.RightArm.holder.material) {
-            //     this.slots.RightArm.holder.material.lightTex = this.lightTex;
-            // }
+        const mesh = this._mesh
+        if(mesh && this.lightTex) {
+            // mesh.gl_material.changeLighTex(this.lightTex)
+            // mesh.gl_material.lightTex = this.lightTex
+            mesh.gl_material.tintColor = this.tintColor
         }
+
+        // if (this.material) {
+        //     this.material.lightTex = this.lightTex;
+        //     this.material.tintColor = this.tintColor;
+        //     // TODO: refactor this!
+        //     if (this.slots && this.slots.RightArm && this.slots.RightArm.holder
+        //         && this.slots.RightArm.holder.material) {
+        //         this.slots.RightArm.holder.material.lightTex = this.lightTex;
+        //     }
+        // }
 
         if (newChunk) {
             this.currentChunk = newChunk;
@@ -261,6 +271,9 @@ export class MobModel extends NetworkPhysicObject {
 
         if(mesh) {
             this.doAnims();
+            if(!mesh.apos) {
+                debugger
+            }
             mesh.apos.copyFrom(this._pos)
             mesh.drawBuffered(render, delta)
         }
@@ -308,7 +321,6 @@ export class MobModel extends NetworkPhysicObject {
 
     updateArmor() {
         Qubatch.player.updateArmor()
-
     }
 
     drawInGui(render : Renderer, delta : float) {
@@ -340,15 +352,6 @@ export class MobModel extends NetworkPhysicObject {
     onUnload() {
         if(this._fire_mesh) {
             this._fire_mesh.destroy();
-        }
-    }
-
-    setSkin() {
-        if (this?.extra_data?.skin && this.extra_data.skin != this.prev.skin) {
-            if (this.textures.has(this.extra_data.skin)) {
-                this.material = this.textures.get(this.extra_data.skin);
-            }
-            this.prev.skin = this.extra_data.skin;
         }
     }
 

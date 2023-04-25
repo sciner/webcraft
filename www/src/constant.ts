@@ -13,6 +13,17 @@ export enum CHUNK_GEOMETRY_MODE {
     BIG_NO_MULTIDRAW = 3,
 }
 
+export enum CHUNK_GEOMETRY_ALLOC {
+    AUTO = 0,
+    M_64 = 64,
+    M_125 = 125,
+    M_250 = 250,
+    M_375 = 375,
+    M_500 = 500,
+    M_750 = 750,
+    M_1000 = 1000,
+}
+
 export const FAST = false
 
 export const INGAME_MAIN_WIDTH              = 772
@@ -25,6 +36,7 @@ export const DRAW_HUD_INFO_DEFAULT          = false; // (fps, player, etc)
 export const HUD_CONNECTION_WARNING_INTERVAL= 5000; // if there are no packets fpor this time, a warning appears
 export const RAINDROP_NEW_INTERVAL          = 25;
 export const DEFAULT_CLOUD_HEIGHT           = 230.1;
+export const DEFAULT_MOB_TEXTURE_NAME       = 'base'
 export const ONLINE_MAX_VISIBLE_IN_F3       = 7;
 export const DROP_LIFE_TIME_SECONDS         = 60;
 export const MAX_DIST_FOR_PICKUP            = 2.5;
@@ -207,16 +219,29 @@ export enum LEAVES_TYPE {
 
 /** Подмножество названий типов мобов. Это не все типы. */
 export enum MOB_TYPE {
+    AXOLOTL     = 'mob/axolotl',
     BEE         = 'mob/bee',
     CHICKEN     = 'mob/chicken',
+    CREEPER     = 'mob/creeper',
     COW         = 'mob/cow',
+    DEER        = 'mob/deer',
     FOX         = 'mob/fox',
+    GOAT        = 'mob/goat',
     HORSE       = 'mob/horse',
     HUMANOID    = 'mob/humanoid',
+    OCELOT      = 'mob/ocelot',
+    PANDA       = 'mob/panda',
     PIG         = 'mob/pig',
     SHEEP       = 'mob/sheep',
     SKELETON    = 'mob/skeleton',
+    SNOW_GOLEM  = 'mob/snow_golem',
     ZOMBIE      = 'mob/zombie',
+}
+
+export enum TREASURE_SOURCE {
+    TREASURE_ROOM = 'treasure_room',
+    CAVE_MINES = 'cave_mines',
+    BUILDING = 'building'
 }
 
 export enum BLOCK_FLAG {
@@ -418,7 +443,8 @@ export const SKIN_RIGHTS_UPLOADED = 2;
 
 export const PLAYER_SKIN_TYPES = {
     0: 'player:steve',
-    1: 'player:alex'
+    1: 'player:alex',
+    2: 'bbmodel',
 };
 
 export enum PLAYER_STATUS {

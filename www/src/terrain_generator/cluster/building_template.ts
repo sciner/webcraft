@@ -5,6 +5,7 @@ import { Vector, VectorCollector, ShiftedMatrix, VectorCollector2D, ArrayHelpers
 import { BASEMNET_DEPTHS_BY_DISTANCE, BASEMENT_ADDITIONAL_WIDTH, BASEMENT_MAX_PAD,
     BASEMENT_BOTTOM_BULGE_BLOCKS, BASEMENT_BOTTOM_BULGE_PERCENT, BASEMENT_SIDE_BULGE } from "./building.js";
 import { calcMinFloorYbyXZ } from './building_helpers.js';
+import { TREASURE_SOURCE } from "../../constant.js";
 
 const DELETE_BLOCK_ID = 199; // this block is automatically removed from the templates
 
@@ -302,7 +303,7 @@ export class BuildingTemplate {
                 all_blocks.delete(pos)
             } else if(block.block_id == CHEST_ID) {
                 if(!block.extra_data) block.extra_data = {};
-                block.extra_data = {...block.extra_data, generate: true, params: {source: 'building'}}
+                block.extra_data = {...block.extra_data, generate: true, params: {source: TREASURE_SOURCE.BUILDING}}
             }
         }
 

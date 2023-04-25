@@ -6,7 +6,7 @@ import { MobSpawnParams } from "./mob.js";
 import type { ServerWorld } from "./server_world.js";
 import type { WorldTickStat } from "./world/tick_stat.js";
 import type { ServerPlayer } from "./server_player.js";
-import { BLOCK_FLAG } from "@client/constant.js";
+import { BLOCK_FLAG, DEFAULT_MOB_TEXTURE_NAME } from "@client/constant.js";
 import {EnumDamage} from "@client/enums/enum_damage.js";
 
 const MAX_LINE_LENGTH = 100 // TODO based on the cleint's screen size
@@ -560,8 +560,8 @@ export class ServerChat {
                 }
                 args = this.parseCMD(args, ['string', 'x', 'y', 'z', 'string', '?string'], player);
                 const type_orig = args[4]
-                const type = world.mobs.findTypeFullName(type_orig)
-                if (!type) {
+                const model_name = world.mobs.findTypeFullName(type_orig)
+                if (!model_name) {
                     this.sendSystemChatMessageToSelectedPlayers(`!langUnknown mob type ${type_orig}`, player)
                     break
                 }
@@ -569,12 +569,14 @@ export class ServerChat {
                 const params = new MobSpawnParams(
                     new Vector(args[1], args[2], args[3]),
                     new Vector(0, 0, player.state.rotate.z),
-                    type,
-                    args[5] ?? 'base',
+                    {
+                        model_name,
+                        texture_name: (args[5] as string) ?? DEFAULT_MOB_TEXTURE_NAME
+                    }
                 )
                 // spawn
                 if (!world.mobs.spawn(player, params)) {
-                    this.sendSystemChatMessageToSelectedPlayers(`!langCan't spawn mob ${type}`, player)
+                    this.sendSystemChatMessageToSelectedPlayers(`!langCan't spawn mob ${model_name}`, player)
                 }
                 break;
             }

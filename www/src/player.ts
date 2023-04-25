@@ -52,11 +52,12 @@ export type PlayerStats = {
 }
 
 export type PlayerSkin = {
-    /** Skin id in the DB */
-    id: int
-    /** One of {@link PLAYER_SKIN_TYPES} */
-    type: int
-    file: string
+    id?:                    string // Skin id in the DB
+    type?:                  int // One of {@link PLAYER_SKIN_TYPES}
+    file?:                  string
+    can_select_by_player?:  boolean
+    model_name:             string
+    texture_name:           string
 }
 
 type PlayerHand = {

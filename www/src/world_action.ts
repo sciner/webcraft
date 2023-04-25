@@ -316,23 +316,25 @@ export function dropBlock(player : any = null, tblock : TBlock | FakeTBlock, act
         return [];
     }
 
-    const instrument_block_id : number | null = current_inventory_item ? current_inventory_item.id : null;
+    const instrument_block = current_inventory_item ? BLOCK.fromId(current_inventory_item.id) : null
 
-    const checkInstrument = (block_id : int, drop) => {
+    const checkInstrument = (instrument_block : IBlockMaterial | null, drop : IBlockDropItem) => {
         if (!drop?.instrument) {
             return true
         }
-        if (!block_id) {
+        if (!instrument_block) {
             return false
         }
-        const name = BLOCK.fromId(block_id).name
+        const name = instrument_block.name
         return drop.instrument.includes(name) || drop.instrument.find(el => name.endsWith(el)) != null
     }
-    const drop_item = tblock.material.drop_item;
+
+    const drop_item = tblock.material.drop_item
+
     // новый функционал
     if (Array.isArray(drop_item)) {
         for (const drop of drop_item) {
-            if (drop && checkInstrument(instrument_block_id, drop)) {
+            if (drop && checkInstrument(instrument_block, drop)) {
                 const block = BLOCK.fromName(drop.name)
                 const chance = drop.chance ?? 1
                 if(Math.random() < chance) {
@@ -558,7 +560,7 @@ export class WorldAction {
     blocks: ActionBlocks
     mobs: {
         activate: any[]
-        spawn: any[]    // it should be MobSpawnParams, but it's server class
+        spawn: any[] // it should be MobSpawnParams, but it's server class
     }
     sitting? : TSittingState
     sleep? : TSleepState
@@ -900,7 +902,7 @@ export class WorldAction {
     }
 
     // Spawn mob (первая генерация моба, если его ещё не было в БД)
-    spawnMob(params) {
+    spawnMob(params : any) {
         this.mobs.spawn.push(params);
     }
 
@@ -1048,7 +1050,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnmob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
+        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
@@ -1518,7 +1520,7 @@ async function putDiscIntoJukebox(e, world, pos, player, world_block, world_mate
 }
 
 // Drop egg
-function chSpawnmob(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+function chSpawnMob(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(!BLOCK.isSpawnEgg(mat_block.id)) {
         return false;
     }
@@ -1744,23 +1746,21 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
     // растояние до кровати (java не более 2, br не более 3)
     if(player.pos.distance(pos) > 3.0) {
         if (!Qubatch.is_server) {
-            Qubatch.hotbar.strings.setText(1, Lang.bed_to_far_away, 4000);
+            Qubatch.hotbar.strings.setText(1, Lang.bed_to_far_away, 4000)
         }
         return true
     }
     // где находится подушка у кровати (голова игрока, когда лежит)
-    let position_head = world_block.posworld.offset(.5, 0.6, !extra_data?.is_head ? -.42 : .58)
-    if (rotate.x == 2) {
+    let position_head : Vector = world_block.posworld.offset(.5, 0.6, !extra_data?.is_head ? -.42 : .58)
+    if (rotate.x == DIRECTION.SOUTH) {
         position_head = world_block.posworld.offset(.5, 0.6, !extra_data?.is_head ? 1.42 : .42)
-    }
-    if (rotate.x == 1) {
+    } else if (rotate.x == DIRECTION.WEST) {
         position_head = world_block.posworld.offset(!extra_data?.is_head ? 1.42 : .42, 0.6, .5)
-    }
-    if (rotate.x == 3) {
+    } else if (rotate.x == DIRECTION.EAST) {
         position_head = world_block.posworld.offset(!extra_data?.is_head ? -.42 : 0.58, 0.6, .5)
     }
-    //Проверяем, что кровать не заблочена
-    const block = world.getBlock(position_head.offset(0, 1, 0).floored())
+    // Проверяем, что кровать не заблочена
+    const block = world.getBlock(position_head.offset(0, 1, 0).flooredSelf())
     /*if (block.id != 0 || block.fluid != 0) {
         if (!Qubatch.is_server) {
             Qubatch.hotbar.strings.setText(1, Lang.bed_not_valid, 4000)
