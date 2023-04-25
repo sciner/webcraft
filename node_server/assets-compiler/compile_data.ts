@@ -319,7 +319,7 @@ export class CompileData {
             chicken: {base: '#A1A1A1', overlay: '#FF0000'},
             cod: {base: '#C1A76A', overlay: '#E5C48B'},
             cow: {base: '#443626', overlay: '#A1A1A1'},
-            creeper: {base: '#0DA70B', overlay: '#000000'},
+            // creeper: {base: '#0DA70B', overlay: '#000000'},
             dolphin: {base: '#223B4D', overlay: '#F9F9F9'},
             donkey: {base: '#534539', overlay: '#867566'},
             drowned: {base: '#8FF1D7', overlay: '#799C65'},
@@ -387,7 +387,7 @@ export class CompileData {
 
         const eggs = [
             {id: 521, type: MOB_TYPE.CHICKEN, skin: DEFAULT_MOB_TEXTURE_NAME},
-            {id: 522, type: MOB_TYPE.CREEPER, skin: DEFAULT_MOB_TEXTURE_NAME},
+            // {id: 522, type: MOB_TYPE.CREEPER, skin: DEFAULT_MOB_TEXTURE_NAME},
             {id: 523, type: MOB_TYPE.PIG, skin: DEFAULT_MOB_TEXTURE_NAME},
             {id: 524, type: MOB_TYPE.HORSE, skin: 'creamy'},
             {id: 525, type: MOB_TYPE.HORSE, skin: DEFAULT_MOB_TEXTURE_NAME},
