@@ -635,7 +635,7 @@
             "item": {"name": "instrument", "instrument_id": "shovel"},
             "diagonal": true,
             "material": {
-                "id": "wood"
+                "id": "copper"
             },
             "texture": {
                 "side": "item/wooden_shovel.png"
@@ -755,7 +755,7 @@
             "item": {"name": "instrument", "instrument_id": "hoe"},
             "diagonal": true,
             "material": {
-                "id": "wood"
+                "id": "copper"
             },
             "texture": {
                 "side": "item/wooden_hoe.png"
@@ -988,7 +988,7 @@
             "damage": 2,
             "speed": 1.2,
             "material": {
-                "id": "wood"
+                "id": "copper"
             },
             "texture": {
                 "side": "item/wooden_pickaxe.png"
@@ -5043,7 +5043,7 @@
             "damage": 4,
             "speed": 1.6,
             "material": {
-                "id": "wood"
+                "id": "copper"
             },
             "texture": {
                 "side": "item/wooden_sword.png"
