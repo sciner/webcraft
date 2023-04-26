@@ -36,7 +36,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_pixelSize        = gl.getUniformLocation(program, 'u_pixelSize');
         this.u_resolution       = gl.getUniformLocation(program, 'u_resolution');
         this.u_eyeinwater       = gl.getUniformLocation(program, 'u_eyeinwater');
-        this.u_TestLightOn      = gl.getUniformLocation(program, 'u_TestLightOn');
         this.u_SunDir           = gl.getUniformLocation(program, 'u_SunDir');
         this.u_mipmap           = gl.getUniformLocation(program, 'u_mipmap');
         this.u_chunkBlockDist   = gl.getUniformLocation(program, 'u_chunkBlockDist');
@@ -80,7 +79,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_texture_n        = gl.getUniformLocation(program, 'u_texture_n');
         this.u_lightTex         = gl.getUniformLocation(program, 'u_lightTex');
         this.u_lightOffset      = gl.getUniformLocation(program, 'u_lightOffset');
-        this.u_lightSize        = gl.getUniformLocation(program, 'u_lightSize');
         this.u_opaqueThreshold  = gl.getUniformLocation(program, 'u_opaqueThreshold');
         this.u_tintColor        = gl.getUniformLocation(program, 'u_tintColor');
         this.u_chunkDataSampler = gl.getUniformLocation(program, 'u_chunkDataSampler');
@@ -147,7 +145,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform4fv(this.u_fogAddColor, gu.fogAddColor);
         gl.uniform1f(this.u_brightness, Math.max(gu.brightness, MIN_BRIGHTNESS));
         gl.uniform1f(this.u_chunkBlockDist, gu.chunkBlockDist);
-        gl.uniform1f(this.u_useNormalMap, gu.useNormalMap);
+        this.u_useNormalMap && gl.uniform1f(this.u_useNormalMap, gu.useNormalMap);
 
         const cx = gu.camPos.x, cy = gu.camPos.y, cz = gu.camPos.z;
         const px = Math.floor(cx), py = Math.floor(cy), pz = Math.floor(cz);
@@ -155,12 +153,11 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform3i(this.u_camera_posi, px, pz, py);
 
         gl.uniform2fv(this.u_resolution, gu.resolution);
-        gl.uniform1f(this.u_eyeinwater, gu.u_eyeinwater);
-        gl.uniform1f(this.u_TestLightOn, gu.testLightOn);
-        gl.uniform4fv(this.u_SunDir, [...gu.sunDir, gu.useSunDir ? 1 : 0]);
+        this.u_eyeinwater && gl.uniform1f(this.u_eyeinwater, gu.u_eyeinwater);
+        this.u_SunDir && gl.uniform4fv(this.u_SunDir, [...gu.sunDir, gu.useSunDir ? 1 : 0]);
         gl.uniform1f(this.u_localLightRadius, gu.localLigthRadius);
         // gl.uniform1f(this.u_opaqueThreshold, 0.0);
-        gl.uniform1i(this.u_fogOn, true);
+        this.u_fogOn && gl.uniform1i(this.u_fogOn, true);
         gl.uniform1f(this.u_crosshairOn, gu.crosshairOn);
         gl.uniform1f(this.u_time, gu.time);
         gl.uniform1f(this.u_rain_strength, gu.rainStrength);

@@ -90,7 +90,6 @@ export class WebGLMaterial extends BaseMaterial {
             } else {
                 //TODO: zero logic
                 if (prevBase !== base || base.dirty) {
-                    gl.uniform3f(shader.u_lightSize, 1. / base.width, 1. / base.height, 1. / base.depth);
                     base.bind(6);
                 }
                 gl.uniform4i(shader.u_lightOffset, tex.offset.x, tex.offset.y, tex.offset.z, tex.depth);
