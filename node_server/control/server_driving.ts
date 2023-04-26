@@ -8,18 +8,30 @@ import type {IAwarenessObject} from "../helpers/aware_players.js";
 import {AwarePlayers, ObjectUpdateType} from "../helpers/aware_players.js";
 import {ServerClient} from "@client/server_client.js";
 import type {ServerDrivingManager} from "./server_driving_manager.js";
-import {ArrayHelpers} from "@client/helpers/array_helpers.js";
 import type {TPrismarinePlayerSize} from "@client/prismarine-physics/using.js";
 import {Mth} from "@client/helpers/mth.js";
+
+/** Если учстник движения отсутсвует на сервере (может не загружен?) - через сколько секунд его выкидывать. */
+const DRIVING_ABSENT_PARTICIPANT_TTL_SECONDS = 30
 
 /** См. {@link Driving} */
 export class ServerDriving extends Driving<ServerDrivingManager> implements IAwarenessObject {
 
     /** Мобы - участники этого двиения. Индексы - {@link DrivingPlace} */
-    private mobs    : (Mob | null)[]
+    private mobs    : (Mob | null | undefined)[]
 
     /** Игроки - участники этого двиения. Индексы - {@link DrivingPlace} */
-    private players : (ServerPlayer | null)[]
+    private players : (ServerPlayer | null | undefined)[]
+
+    /**
+     * Для участников, числящихся в вождении по id, но отсутвующих в игре (возможно временно),
+     * показывает время performance.now, когда их отсутствие было замечено. Через
+     * {@link DRIVING_ABSENT_PARTICIPANT_TTL_SECONDS} Они удаляются из вождения по id.
+     * Для учтасников которые либо полностью отсутвуют, либо полностью присутсвуют, значение null или undefined.
+     */
+    private missingParticipantTime: (number | null | undefined)[]
+
+    private deleted = false
 
     /** @see AwarePlayers */
     awarePlayers = new AwarePlayers(this)
@@ -28,14 +40,15 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
         super(manager, config, state)
         this.updateCombinedSize()
         const places    = state.mobIds.length
-        this.mobs       = ArrayHelpers.create(places, null)
-        this.players    = ArrayHelpers.create(places, null)
+        this.mobs       = new Array(places)
+        this.players    = new Array(places)
+        this.missingParticipantTime = new Array(places)
     }
 
     get world(): ServerWorld                { return this.manager.world }
     get pos(): IVector                      { return this.combinedPhysicsState.pos }
 
-    get vehicleMob(): Mob | null            { return this.mobs[DrivingPlace.VEHICLE] }
+    get vehicleMob(): Mob | null | undefined    { return this.mobs[DrivingPlace.VEHICLE] }
     get hasPlayerDriver(): boolean          { return this.state.playerIds[DrivingPlace.DRIVER] != null }
 
     /**
@@ -55,6 +68,36 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
             }
         }
         return true
+    }
+    
+    tick(): void {
+        let changed = false
+
+        // удалить участников, которые числятся в вождении, но давно отсутствуют в игре
+        const missingParticipantTime = this.missingParticipantTime
+        for (let place = 0; place < missingParticipantTime.length; place++) {
+            const time = missingParticipantTime[place]
+            if (time != null && time < performance.now() - DRIVING_ABSENT_PARTICIPANT_TTL_SECONDS * 1000) {
+                const playerId = this.state.playerIds[place]
+                if (playerId != null) {
+                    this.removePlayerId(playerId, false)
+                }
+                const mobId = this.state.mobIds[place]
+                if (mobId != null) {
+                    this.removeMobId(mobId, false)
+                }
+                if (this.deleted) {
+                    return
+                }
+                changed = true
+            }
+        }
+
+        if (this.isTerminated()) {
+            this.manager.delete(this)
+        } else {
+            this.awarePlayers.sendUpdate(changed)
+        }
     }
 
     /** @see Driving.applyToDependentParticipants */
@@ -143,28 +186,22 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
      * то и весь экземпляр ServerDriving удалется.
      * См. также и не путать с {@link onPlayerUnloadedOrRemoved}
      */
-    removePlayerId(userId: int): void {
+    removePlayerId(userId: int, sendUpdate: boolean = true): void {
         const place = this.state.playerIds.indexOf(userId)
         if (place >= 0) {
             this.state.playerIds[place] = null
-            const player =  this.players[place]
-            if (player) {
-                this.onPlayerUnloadedOrRemoved(player)
-            }
-            this.onStateChanged()
+            this.disconnectPlayer(place)
+            this.onStateChanged(sendUpdate)
         }
     }
 
     /** Аналогично {@link removePlayerId}, но для мобов */
-    removeMobId(mobId: int): void {
+    removeMobId(mobId: int, sendUpdate: boolean = true): void {
         const place = this.state.mobIds.indexOf(mobId)
         if (place >= 0) {
             this.state.mobIds[place] = null
-            const mob = this.mobs[place]
-            if (mob) {
-                this.onMobUnloadedOrRemoved(mob)
-            }
-            this.onStateChanged()
+            this.disconnectMob(place)
+            this.onStateChanged(sendUpdate)
         }
     }
 
@@ -175,41 +212,25 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
      * Если игрок должен быть логически удален из этого движения (спрыгнул, умер) - см. {@link removePlayerId}
      */
     onPlayerUnloadedOrRemoved(player: ServerPlayer): void {
-        const players = this.players
-        for(let place = 0; place < players.length; place++) {
-            if (players[place] === player) {
-                players[place] = null
-                player.driving = null
-                player.controlManager.prismarine.drivingCombinedState = null
-                return
-            }
+        const place = this.players.indexOf(player)
+        if (place >= 0) {
+            this.disconnectPlayer(place)
         }
     }
 
     /** Аналогично {@link onPlayerUnloadedOrRemoved}, но для мобов */
     onMobUnloadedOrRemoved(mob: Mob): void {
-        const mobs = this.mobs
-        for(let place = 0; place < mobs.length; place++) {
-            if (mobs[place] === mob) {
-                mobs[place] = null
-                mob.driving = null
-                return
-            }
+        const place = this.mobs.indexOf(mob)
+        if (place >= 0) {
+            this.disconnectMob(place)
         }
     }
 
     onDelete(): void {
-        const mobs = this.mobs
-        const players = this.players
-        for(let place = 0; place < mobs.length; place++) {
-            const mob = mobs[place]
-            if (mob) {
-                mob.driving = null
-            }
-            const player = players[place]
-            if (player) {
-                player.driving = null
-            }
+        this.deleted = true
+        for(let place = 0; place < this.mobs.length; place++) {
+            this.disconnectPlayer(place)
+            this.disconnectMob(place)
         }
     }
 
@@ -217,6 +238,8 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
      * Обновляет:
      * 1. Сссылки этого класса на игроков и мобов-участников, которые присутвуют в игре
      * 2. Ссылки игроков и мобов-участников на этот объект.
+     *
+     * Не меняет список id участников и состояние (только может пометить id для удаления при следующем вызове {@link tick}).
      */
     resolve(): void {
         const state = this.state
@@ -231,7 +254,7 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
                 if (mob.id === mobId) {
                     continue
                 }
-                this.onMobUnloadedOrRemoved(mob)
+                this.disconnectMob(place)
             }
 
             let player = this.players[place]
@@ -239,29 +262,63 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
                 if (player.userId === playerId) {
                     continue
                 }
-                this.onPlayerUnloadedOrRemoved(player)
+                this.disconnectPlayer(place)
             }
 
             if (mobId != null) {
                 mob = world.mobs.get(mobId)
                 if (mob) {
+                    // присоединить моба
                     this.mobs[place] = mob
                     mob.driving = this
                 }
+                this.updateParticipantTime(place)
             } else if (playerId != null) {
                 player = world.players.get(playerId)
                 if (player) {
                     if (player.game_mode.isSurvival() || player.game_mode.isCreative()) {
-                        this.players[place] = player
-                        player.driving = this
-                        player.controlManager.prismarine.drivingCombinedState = this.combinedPhysicsState
+                        this.connectPlayer(place, player)
                     } else {
-                        // Игрок не в том режиме игры. Наверное лучше его убрать из вождения, чем переключать ему режим.
-                        this.removePlayerId(playerId)
+                        // Игрок не в том режиме игры. Пометим его - он будет принудительно убран из этого виждения
+                        this.missingParticipantTime[place] = -Infinity
                     }
                 }
+                this.updateParticipantTime(place)
             }
         }
+    }
+
+    private connectPlayer(place: DrivingPlace, player: ServerPlayer): void {
+        const controlManager = player.controlManager
+        this.players[place] = player
+        player.driving = this
+        controlManager.prismarine.drivingCombinedState = this.combinedPhysicsState
+        // update the player's control
+        if (place === DrivingPlace.DRIVER) {
+            this.applyToParticipantControl(controlManager.prismarine, place, true)
+            controlManager.updatePlayerStateFromControl()
+        } else {
+            this.applyToDependentParticipants()
+        }
+    }
+
+    private disconnectMob(place: DrivingPlace): void {
+        const mob = this.mobs[place]
+        if (mob) {
+            this.mobs[place] = null
+            mob.driving = null
+        }
+        this.updateParticipantTime(place)
+    }
+
+    private disconnectPlayer(place: DrivingPlace): void {
+        const player = this.players[place]
+        if (player) {
+            this.players[place] = null
+            player.driving = null
+            player.controlManager.prismarine.drivingCombinedState = null
+        }
+        this.updateParticipantTime(place)
     }
 
     private sendSound(): void {
@@ -273,12 +330,17 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
         }
     }
 
-    private onStateChanged(): void {
+    private onStateChanged(sendUpdate: boolean = true): void {
+        if (this.deleted) {
+            return
+        }
         if (this.isTerminated()) {
             this.manager.delete(this)
         } else {
             this.updateCombinedSize()
-            this.awarePlayers.sendUpdate()
+            if (sendUpdate) {
+                this.awarePlayers.sendUpdate()
+            }
         }
     }
 
@@ -318,6 +380,21 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
                     name: ServerClient.CMD_DRIVING_DELETE,
                     data: this.state.id
                 }
+        }
+    }
+
+    /** Обновляет {@link missingParticipantTime} для указанного места. */
+    private updateParticipantTime(place: int): void {
+        if (// если участник должен присутсвовать
+            (this.state.mobIds[place] != null || this.state.playerIds[place] != null) &&
+            // но отсутствует
+            (this.mobs[place] == null && this.players[place] == null)
+        ) {
+            // запомнить время, когда обнаружено неосоответствие
+            this.missingParticipantTime[place] ??= performance.now()
+        } else {
+            // нет несоответствий
+            this.missingParticipantTime[place] = null
         }
     }
 }

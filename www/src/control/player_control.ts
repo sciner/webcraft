@@ -12,7 +12,7 @@ export enum PLAYER_CONTROL_TYPE {
 
 /** Fields used to update both controls and state by mobs. */
 export type MobControlParams = {
-    yaw         : float
+    yaw ?       : float
     forward     : boolean
     jump        : boolean
     sneak ?     : boolean
@@ -143,13 +143,22 @@ export abstract class PlayerControl<TState extends IPlayerControlState = IPlayer
         this.player_state.pos.copyFrom(pos).roundSelf(PHYSICS_POS_DECIMALS)
     }
 
-    updateControlsFromMob(params: MobControlParams): void {
+    /** @param mob - типа Mob (на сервере) */
+    updateControlsFromMob(params: MobControlParams, defaultYaw: float): void {
         const controls = this.controls
-        this.player_state.yaw = params.yaw
-        controls.forward = params.forward
-        controls.jump = params.jump
-        controls.sneak = params.sneak
-        controls.pitch = params.pitch
+        this.player_state.yaw = params.yaw ?? defaultYaw
+        if (params.forward != null) {
+            controls.forward = params.forward
+        }
+        if (params.jump != null) {
+            controls.jump = params.jump
+        }
+        if (params.sneak != null) {
+            controls.sneak = params.sneak
+        }
+        if (params.pitch != null) {
+            controls.pitch = params.pitch
+        }
     }
 
     /**

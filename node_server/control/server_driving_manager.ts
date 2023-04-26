@@ -4,7 +4,6 @@ import type {ServerPlayer} from "../server_player.js";
 import type {Mob} from "../mob.js";
 import {PrismarinePlayerControl} from "@client/prismarine-physics/using.js";
 import type {TDrivingState} from "@client/control/driving.js";
-import {DrivingPlace} from "@client/control/driving.js";
 import {ServerDriving} from "./server_driving.js";
 import {ArrayHelpers} from "@client/helpers/array_helpers.js";
 
@@ -28,19 +27,7 @@ export class ServerDrivingManager extends DrivingManager<ServerWorld> {
             return
         }
         const driving = this.getOrCreate(mob)
-        const place = driving?._tryAddPlayer(player)
-        if (place == null) {
-            controlManager.syncWithActionId(pickatEventId)
-            return
-        }
-
-        // update the player's control
-        if (place === DrivingPlace.DRIVER) {
-            driving.applyToParticipantControl(playerControl, DrivingPlace.DRIVER, true)
-            controlManager.updatePlayerStateFromControl()
-        } else {
-            driving.applyToDependentParticipants()
-        }
+        driving?._tryAddPlayer(player)
         controlManager.syncWithActionId(pickatEventId)
     }
 
@@ -60,11 +47,7 @@ export class ServerDrivingManager extends DrivingManager<ServerWorld> {
 
     tick(): void {
         for (const driving of this.drivingById.values()) {
-            if (driving.isTerminated()) {
-                this.delete(driving)
-            } else {
-                driving.awarePlayers.sendUpdate(false)
-            }
+            driving.tick()
         }
     }
 
@@ -80,9 +63,9 @@ export class ServerDrivingManager extends DrivingManager<ServerWorld> {
             const id = this.nextId++
             
             // создать DrivingState
-            let physicsOptions = vehicleConfig.physics 
-            if (drivingConfig.speed) {
-                physicsOptions = {...physicsOptions, baseSpeed: drivingConfig.speed}
+            let physicsOptions = vehicleConfig.physics
+            if (drivingConfig.physics) {
+                physicsOptions = {...physicsOptions, ...drivingConfig.physics}
             }
             const drivingState: TDrivingState = {
                 id,

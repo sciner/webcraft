@@ -17,6 +17,11 @@ const _ladder_check_tblock = new TBlock()
 const tmpVectorCursor = new Vector()
 const DX_DZ_FOUR_DIRECTIONS = [[0, 1], [-1, 0], [0, -1], [1, 0]]
 
+// Множители базовой скорости лодки относительно скорости на земле, см. https://minecraft.fandom.com/wiki/Boat#Speed
+const BOAT_SPEED_WATER_MULTIPLIER       = 4
+const BOAT_SPEED_OTHER_ICE_MULTIPLIER   = 20
+const BOAT_SPEED_BLUE_ICE_MULTIPLIER    = 31.35
+
 function makeSupportFeature(mcData, features): (feature: string) => boolean {
     return feature => features.some(({ name, versions }) => name === feature && versions.includes(mcData.version.majorVersion))
 }
@@ -33,7 +38,8 @@ type TLiquidInBB = {
 
 export class Physics {
 
-    private readonly world  : FakeWorld
+    private readonly world              : FakeWorld
+    private readonly block_manager      : typeof BLOCK
 
     // ================== options from old Physics function ===================
 
@@ -46,15 +52,16 @@ export class Physics {
     private readonly soulsandId         : int
     private readonly honeyblockId       : int // 1.15+
     private readonly cobwebLikePassable : (float | undefined)[] = [] // for cobweb-like it's passable value
-    private readonly lavaId             : int
     private readonly ladderId           : int
     private readonly vineId             : int
     private readonly bubbleColumnId     : int
+    private readonly iceIds             : int[]
 
     // =================== options from old physics object ====================
     
     private readonly scale              = PLAYER_ZOOM
     private readonly gravity            = 0.08 * this.scale // blocks/tick^2 https://minecraft.gamepedia.com/Entity#Motion_of_entities
+    private readonly jumpSpeed         = 0.42 // вертикальная скорость прыжка, без учета scale
     // Flying
     private readonly flyinGravity       = 0.06
     private readonly flyingYSpeed       = Math.fround(0.42 / 2) * this.scale
@@ -138,16 +145,16 @@ export class Physics {
     private tmpAccelerationVec = new Vector()
 
     constructor(world: World) {
-        const mcData    = FakeWorld.getMCData();
-        this.world      = new FakeWorld(world)
+        const mcData        = FakeWorld.getMCData()
+        this.world          = new FakeWorld(world)
+        this.block_manager  = world.block_manager
+        const bm            = this.block_manager
 
         // ================== options from old Physics function ===================
 
         const supportFeature = makeSupportFeature(mcData, Resources.physics.features)
         this.supportFeature_velocityBlocksOnTop = supportFeature('velocityBlocksOnTop')
         this.supportFeature_climbUsingJump =  supportFeature('climbUsingJump')
-
-        const blocksByName = this.blocksByName = mcData.blocksByName
 
         // Block Slipperiness
         // https://www.mcpk.wiki/w/index.php?title=Slipperiness
@@ -157,25 +164,25 @@ export class Physics {
         if (this.slimeBlockId) {
             blockSlipperiness[this.slimeBlockId] = 0.8
         }
-        blockSlipperiness[blocksByName.ice.id] = 0.98
-        blockSlipperiness[blocksByName.packed_ice.id] = 0.98
-        if (blocksByName.frosted_ice) { // 1.9+
-            blockSlipperiness[blocksByName.frosted_ice.id] = 0.98
+        blockSlipperiness[bm.ICE.id] = 0.98
+        blockSlipperiness[bm.PACKED_ICE.id] = 0.98
+        if (bm.FROSTED_ICE) { // 1.9+
+            blockSlipperiness[bm.FROSTED_ICE.id] = 0.98
         }
-        if (blocksByName.blue_ice) { // 1.13+
-            blockSlipperiness[blocksByName.blue_ice.id] = 0.989
+        if (bm.BLUE_ICE) { // 1.13+
+            blockSlipperiness[bm.BLUE_ICE.id] = 0.989
         }
 
         // Block ids
-        this.soulsandId     = blocksByName.soul_sand.id
-        this.honeyblockId   = blocksByName.honey_block?.id ?? BLOCK_NOT_EXISTS // 1.15+
-        for (const block of blocksByName.cobweb) {
+        this.soulsandId     = bm.SOUL_SAND.id
+        this.honeyblockId   = bm.HONEY_BLOCK?.id ?? BLOCK_NOT_EXISTS // 1.15+
+        for (const block of [bm.COBWEB, bm.SWEET_BERRY_BUSH]) {
             this.cobwebLikePassable[block.id] = block.passable
         }
-        this.lavaId         = blocksByName.lava
-        this.ladderId       = blocksByName.ladder.id
-        this.vineId         = blocksByName.vine.id
-        this.bubbleColumnId = blocksByName.bubble_column?.id ?? BLOCK_NOT_EXISTS // 1.13+
+        this.ladderId       = bm.LADDER.id
+        this.vineId         = bm.VINE.id
+        this.bubbleColumnId = bm.BUBBLE_COLUMN?.id ?? BLOCK_NOT_EXISTS // 1.13+
+        this.iceIds         = [bm.ICE, ...bm.bySuffix['_ICE']].map(mat => mat.id)
 
         // =================== options from old physics object ====================
 
@@ -836,22 +843,25 @@ export class Physics {
                     vel.y += 0.09 // 0.04
                 }
             } else if (entity.onGround && entity.jumpTicks === 0) {
-                vel.y = Math.fround(0.42 * this.scale)
-                if(this.honeyblockId != BLOCK_NOT_EXISTS) {
-                    const blockBelow = this.world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
-                    vel.y *= ((blockBelow && blockBelow.id === this.honeyblockId) ? this.honeyblockJumpSpeed : 1);
+                const jumpSpeed = options.jumpSpeed ?? this.jumpSpeed
+                if (jumpSpeed) {
+                    vel.y = Math.fround(jumpSpeed * this.scale)
+                    if(this.honeyblockId != BLOCK_NOT_EXISTS) {
+                        const blockBelow = this.world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
+                        vel.y *= ((blockBelow && blockBelow.id === this.honeyblockId) ? this.honeyblockJumpSpeed : 1);
+                    }
+                    const jumpBoost = getEffectLevel(Effect.JUMP_BOOST, entity.options.effects);
+                    if (jumpBoost > 0) {
+                        vel.y += 0.1 * jumpBoost
+                    }
+                    if (control.sprint) {
+                        // @fixed Без этого фикса игрок притормаживает при беге с прыжками
+                        const yaw = Math.PI - entity.yaw;
+                        vel.x += Math.sin(yaw) * (0.2 * this.scale)
+                        vel.z -= Math.cos(yaw) * (0.2 * this.scale)
+                    }
+                    entity.jumpTicks = this.autojumpCooldown
                 }
-                const jumpBoost = getEffectLevel(Effect.JUMP_BOOST, entity.options.effects);
-                if (jumpBoost > 0) {
-                    vel.y += 0.1 * jumpBoost
-                }
-                if (control.sprint) {
-                    // @fixed Без этого фикса игрок притормаживает при беге с прыжками
-                    const yaw = Math.PI - entity.yaw;
-                    vel.x += Math.sin(yaw) * (0.2 * this.scale)
-                    vel.z -= Math.cos(yaw) * (0.2 * this.scale)
-                }
-                entity.jumpTicks = this.autojumpCooldown
             } else if(entity.flying) {
                 if(!control.sneak) {
                     vel.y = this.flyingYSpeed;
@@ -887,8 +897,23 @@ export class Physics {
             entity.angularVelocity = 0
         }
 
-        strafe *= options.baseSpeed;
-        forward *= options.baseSpeed;
+        let speed = options.baseSpeed
+        // специальный режим вычисления скорости для лодки
+        if (options.useBoatSpeed) {
+            if (entity.isInWater) {
+                speed *= BOAT_SPEED_WATER_MULTIPLIER
+            } else {
+                const blockUnderId = this.world.getBlock(pos.offset(0, -1, 0), null, true)?.id
+                if (this.iceIds.includes(blockUnderId)) {
+                    speed *= blockUnderId === this.block_manager.BLUE_ICE?.id
+                        ? BOAT_SPEED_BLUE_ICE_MULTIPLIER
+                        : BOAT_SPEED_OTHER_ICE_MULTIPLIER
+                }
+            }
+        }
+
+        strafe *= speed
+        forward *= speed
 
         if (control.sneak) {
             if(entity.flying) {

@@ -258,7 +258,7 @@ export class BLOCK {
     static resource_pack_manager            : ResourcePackManager = null;
     static max_id                           = 0;
     static BLOCK_BY_ID: IBlockMaterial[]    = [];
-    static bySuffix                         = {}; // map of arrays
+    static bySuffix                         : Dict<IBlockMaterial[]> = {}
     static REPLACE_TO_SLAB                  = {};
     /**
      * For each block id, it contains flags describing to which classes of blocks it belongs.

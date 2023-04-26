@@ -115,7 +115,7 @@ export class FSMBrain {
 
     /** Updates the control {@link pc} */
     updateControl(new_states: MobControlParams): void {
-        this.pc.updateControlsFromMob(new_states)
+        this.pc.updateControlsFromMob(new_states, this.mob.rotate.z)
 
         /* The old code - slow
 
@@ -193,6 +193,7 @@ export class FSMBrain {
     // контроль жизней и состяния моба
     onLive() {
         const mob = this.mob;
+        const config = mob.config
         const world = mob.getWorld();
         const bm = world.block_manager
         const chunk = world.chunks.get(mob.chunk_addr);
@@ -237,7 +238,7 @@ export class FSMBrain {
             this.time_fire = Math.max(8 * MUL_1_SEC, this.time_fire);
         }
         // нехватка воздуха
-        if (this.in_water) {
+        if (this.in_water && config.suffocates) {
             this.time_fire = 0;
             if (this.timer_water_damage >= MUL_1_SEC) {
                 this.timer_water_damage = 0;
@@ -317,7 +318,6 @@ export class FSMBrain {
         mob.rotate.z = this.angleTo(this.target.state.pos);
         const forward = (dist > 1.5 && !this.is_wall && !this.is_abyss) ? true : false;
         this.updateControl({
-            yaw: mob.rotate.z,
             forward: forward,
             jump: this.is_water,
             sneak: false
@@ -326,7 +326,7 @@ export class FSMBrain {
         this.sendState();
     }
 
-    // просто стоит на месте
+    /** Стоит на месте, но иногда начинает идти; реагирует на разыне ситуации. См. также {@link doNothing} */
     doStand(delta) {
         // нашел цель
         if (this.target) {
@@ -344,13 +344,24 @@ export class FSMBrain {
         }
         const mob = this.mob;
         this.updateControl({
-            yaw: mob.rotate.z,
             forward: false,
             jump: false,
             sneak: false
         });
         this.applyControl(delta);
         this.sendState();
+    }
+
+    /** Не делает ниего, ни при каких обстоятелствах. Для неодушевленных объектов типа лодки. См. также {@link doStand} */
+    doNothing(delta: float): void {
+        this.updateControl({
+            forward: false,
+            jump: false,
+            sneak: false,
+            pitch: false
+        })
+        this.applyControl(delta)
+        this.sendState()
     }
 
     // просто ходит
@@ -378,7 +389,6 @@ export class FSMBrain {
             return;
         }
         this.updateControl({
-            yaw: mob.rotate.z,
             forward: true,
             jump: false,
             sneak: false,
@@ -425,7 +435,6 @@ export class FSMBrain {
         }
 
         this.updateControl({
-            yaw: mob.rotate.z,
             forward: this.to ? true : false,
             jump: this.in_water,
             sneak: false
@@ -443,7 +452,7 @@ export class FSMBrain {
     onDamage(val : number, type_damage : EnumDamage, actor) {
         const mob = this.mob;
         const world = mob.getWorld();
-        if (actor) {
+        if (actor && mob.config.damagePushes) {
             const velocity = mob.pos.sub(actor.state.pos).normSelf();
             velocity.y = 0.4;
             mob.addVelocity(velocity);

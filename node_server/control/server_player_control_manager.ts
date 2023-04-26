@@ -274,10 +274,17 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
                 clientDataMatches = contextEqual && newData.outputSimilar(clientData)
                 if (clientDataMatches) {
                     DEBUG_LOG_PLAYER_CONTROL_DETAIL && console.log(`    simulation matches ${newData}`)
-                } else if (contextEqual) {
-                    this.log('simulation_differs', () => `    simulation doesn't match ${clientData} ${newData}`)
-                } else {
+                } else if (clientData.inputWorldActionIds) {
+                    // Клиент ожидал серверного действия. В зависимости от типа действия результат должен был совпасть или нет.
+                    // Мы не различаем такие ситуации (не видно нужды в этом). Это ок, что не совпало.
+                    DEBUG_LOG_PLAYER_CONTROL_DETAIL && console.log(`    simulation with inputWorldActionIds doesn't match ${clientData} ${newData}`)
+                } else if (!contextEqual) {
+                    // На сервере переключили режим игры или что-то подобное. Это только сервер может делать. Несовпадение ожидаемо.
                     DEBUG_LOG_PLAYER_CONTROL_DETAIL && this.log('simulation_context_differs', () => `    simulation context doesn't match ${newData}`)
+                } else {
+                    // Возможно, отличия вызываны действиями других игроков, мобов или багом.
+                    // Это единственный случай несовпадения, который мы не ожидаем.
+                    this.log('simulation_differs', () => `    simulation doesn't match ${clientData} ${newData}`)
                 }
             } else {
                 newData.copyOutputFrom(clientData)

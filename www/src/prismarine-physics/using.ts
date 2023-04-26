@@ -28,13 +28,17 @@ export type TPrismarinePlayerSize = {
 }
 
 export type TPrismarineOptions = TPrismarinePlayerSize & {
-    baseSpeed           ? : float   // how much height can the bot step on without jump
-    stepHeight          ? : float
+    baseSpeed           ? : float
+    stepHeight          ? : float   // how much height can the bot step on without jump
     defaultSlipperiness ? : float
     effects             ? : TPrismarineEffects
+    jumpSpeed           ? : float   // вертикальная скорость прыжка. 0 отключает прыжки
 
     /** If it's defined, the object floats, and this value is its height below the surface. */
     floatSubmergedHeight? : float
+
+    /** Если это определено, то применяется специальный режим вычсления скорости, см. https://minecraft.fandom.com/wiki/Boat#Speed */
+    useBoatSpeed        ? : boolean
 
     airborneInertia     ? : float // 0.91 in Minecraft (default), 0.546 in typical old bugged jumps
     airborneAcceleration? : float // 0.02 in Minecraft (default), 0.1 in typical old bugged jumps
@@ -50,45 +54,25 @@ export function addDefaultPhysicsOptions(options: TPrismarineOptions) {
 
 // FakeWorld
 export class FakeWorld {
-    static mcData: any;
     world: World;
+    block_manager: typeof BLOCK
     block_pos: Vector;
     _pos: Vector;
     _localPos: Vector;
     tblock: TBlock;
 
-    static getMCData() {
-        if(this.mcData) {
-            return this.mcData;
-        }
-        this.mcData = {
+    static getMCData(): any {
+        return {
             effectsByName: [],
             version: {
                 majorVersion: '1.17'
-            },
-            blocksByName: {
-                ice:            BLOCK.ICE,
-                packed_ice:     BLOCK.PACKED_ICE, // 2
-                air:            BLOCK.AIR,
-                frosted_ice:    BLOCK.FROSTED_ICE || BLOCK.ICE, // 3
-                blue_ice:       BLOCK.BLUE_ICE, // 3
-                soul_sand:      BLOCK.SOUL_SAND,
-                cobweb:         [BLOCK.COBWEB, BLOCK.SWEET_BERRY_BUSH],
-                water:          [BLOCK.STILL_WATER, BLOCK.FLOWING_WATER],
-                lava:           [BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id],
-                ladder:         BLOCK.LADDER,
-                vine:           BLOCK.VINE,
-                honey_block:    null,
-                seagrass:       BLOCK.SEAGRASS,
-                kelp:           BLOCK.KELP,
-                bubble_column:  BLOCK.BUBBLE_COLUMN
             }
         };
-        return this.mcData;
     }
 
     constructor(world: World) {
         this.world = world;
+        this.block_manager = world.block_manager
         this.block_pos = new Vector(0, 0, 0);
         this._pos = new Vector(0, 0, 0);
         this._localPos = new Vector(0, 0, 0);
@@ -100,8 +84,8 @@ export class FakeWorld {
      * @throws {@link PHYSICS_CHUNK_NOT_READY_EXCEPTION} if the chunk isn't ready
      * TODO return null if air and no liquid (optimization)
      */
-    getBlock(pos : Vector, tblock? : TBlock) : FakeBlock | null {
-        const return_tblock = !!tblock
+    getBlock(pos : Vector, tblock? : TBlock, return_tblock?: boolean) : FakeBlock | null {
+        return_tblock ||= !!tblock
         const { _pos, _localPos } = this;
         tblock = tblock || this.tblock
         _pos.copyFrom(pos).flooredSelf();
