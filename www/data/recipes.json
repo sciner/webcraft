@@ -1675,5 +1675,25 @@
             "item": "madcraft:composter",
             "count": 1
         }
+    },
+    {
+        "id": "a948fb7a-ac60-4164-a2c4-700fc878504a",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "#",
+            "|"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "special:small_rock"
+            }
+        },
+        "result": {
+            "item": "madcraft:primitive_axe",
+            "count": 1
+        }
     }
 ]
