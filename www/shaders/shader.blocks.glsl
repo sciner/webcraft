@@ -59,7 +59,6 @@
     uniform vec2 u_resolution;
     uniform float u_eyeinwater;
     uniform vec3 u_shift;
-    uniform bool u_TestLightOn;
     uniform vec4 u_SunDir;
     uniform float u_localLightRadius;
     uniform float u_aoDisaturateFactor;
@@ -79,7 +78,6 @@
     uniform sampler2D u_texture;
     uniform sampler2D u_texture_n;
     uniform lowp sampler3D[10] u_lightTex;
-    uniform vec3 u_lightSize;
     uniform vec3 u_lightOverride;
 
     uniform float u_mipmap;
