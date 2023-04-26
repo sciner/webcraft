@@ -90,7 +90,6 @@ export class Brain extends FSMBrain {
         }
 
         this.updateControl({
-            yaw: mob.rotate.z,
             jump: block.jump,
             forward: true,
             sneak: block.sneak
@@ -115,7 +114,6 @@ export class Brain extends FSMBrain {
     doPollen(delta) {
         const mob = this.mob;
         this.updateControl({
-            yaw: mob.rotate.z,
             jump: false,
             forward: false,
             sneak: true
@@ -148,7 +146,6 @@ export class Brain extends FSMBrain {
         }
 
         this.updateControl({
-            yaw: mob.rotate.z,
             jump: block.jump,
             forward: true,
             sneak: block.sneak
@@ -242,7 +239,6 @@ export class Brain extends FSMBrain {
         const block = this.getFlightBlocks(true);
         const forward = (distance > 1.5) ? true : false;
         this.updateControl({
-            yaw: mob.rotate.z,
             jump: block.jump,
             forward: forward,
             sneak: block.sneak

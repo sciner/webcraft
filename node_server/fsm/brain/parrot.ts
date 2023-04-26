@@ -81,7 +81,6 @@ export class Brain extends FSMBrain {
         }
 
         this.updateControl({
-            yaw: mob.rotate.z,
             jump: jump,
             forward: true,
             sneak: block.sneak

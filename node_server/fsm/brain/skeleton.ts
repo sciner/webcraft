@@ -52,7 +52,6 @@ export class Brain extends FSMBrain {
         }
         const mob = this.mob;
         this.updateControl({
-            yaw: mob.rotate.z,
             forward: false,
             jump: false,
             sneak: false
@@ -81,7 +80,6 @@ export class Brain extends FSMBrain {
             return;
         }
         this.updateControl({
-            yaw: mob.rotate.z,
             forward: true,
             jump: false,
             sneak: false
@@ -112,7 +110,6 @@ export class Brain extends FSMBrain {
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
         this.updateControl({
-            yaw: mob.rotate.z,
             forward: true, //!(this.is_abyss | this.is_well),
             jump: this.is_water
         });

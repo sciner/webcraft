@@ -79,7 +79,6 @@ export class Brain extends FSMBrain {
         mob.rotate.z = this.angleTo(nest_pos);
 
         this.updateControl({
-            yaw: mob.rotate.z,
             forward: true,
             jump: false,
             sneak: true
