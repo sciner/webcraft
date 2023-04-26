@@ -44,7 +44,7 @@ export class ChunkRenderList {
             if (render.renderBackend.multidrawBaseExt) {
                 geomMode = CHUNK_GEOMETRY_MODE.BIG_MULTIDRAW;
             } else {
-                geomMode = CHUNK_GEOMETRY_MODE.ONE_PER_CHUNK;
+                geomMode = CHUNK_GEOMETRY_MODE.BIG_NO_MULTIDRAW;
             }
         } else {
             if (geomMode === CHUNK_GEOMETRY_MODE.BIG_MULTIDRAW) {

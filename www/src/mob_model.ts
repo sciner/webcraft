@@ -368,7 +368,7 @@ export class MobModel extends NetworkPhysicObject {
         if (armor.head != this.prev.head) {
             if (armor.head) {
                 const item = block.fromId(armor.head)
-                this._mesh.modifiers.replaceGroup('helmet', item.model.name, item.model.texture + '.png')
+                this._mesh.modifiers.replaceGroup('helmet', item.model.name, item.model.texture)
                 this._mesh.modifiers.showGroup('helmet')
             } else {
                 this._mesh.modifiers.hideGroup('helmet')
@@ -380,7 +380,7 @@ export class MobModel extends NetworkPhysicObject {
             if (armor.body) {
                 const item = block.fromId(armor.body)
                 for (let i = 0; i < 6; i++) {
-                    this._mesh.modifiers.replaceGroup('chestplate' + i, item.model.name, item.model.texture + '.png')
+                    this._mesh.modifiers.replaceGroup('chestplate' + i, item.model.name, item.model.texture)
                     this._mesh.modifiers.showGroup('chestplate' + i)
                 }
             } else {
@@ -395,7 +395,7 @@ export class MobModel extends NetworkPhysicObject {
             if (armor.leg) {
                 const item = block.fromId(armor.leg)
                 for (let i = 0; i < 10; i++) {
-                    this._mesh.modifiers.replaceGroup('pants' + i, item.model.name, item.model.texture + '.png')
+                    this._mesh.modifiers.replaceGroup('pants' + i, item.model.name, item.model.texture)
                     this._mesh.modifiers.showGroup('pants' + i)
                 }
             } else {
@@ -410,7 +410,7 @@ export class MobModel extends NetworkPhysicObject {
             if (armor.boot) {
                 const item = block.fromId(armor.boot)
                 for (let i = 0; i < 10; i++) {
-                    this._mesh.modifiers.replaceGroup('boots' + i, item.model.name, item.model.texture + '.png')
+                    this._mesh.modifiers.replaceGroup('boots' + i, item.model.name, item.model.texture)
                     this._mesh.modifiers.showGroup('boots' + i)
                 }
             } else {

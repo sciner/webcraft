@@ -19,6 +19,7 @@
         {"name": "mob/horse",           "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "mob/fox",             "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "mob/npc",             "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "mob/deer",            "shift": {"x": 0, "y": 0, "z": 0}},
 
         {"name": "transport/boat",      "shift": {"x": 0, "y": 0, "z": 0}},
 
@@ -95,9 +96,13 @@
         {"name": "iron_nugget",         "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "copper_nugget",       "shift": {"x": 0, "y": 0, "z": 0}},
 
-        {"name": "tool/iron_sword",     "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "tool/primitive_axe",  "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "tool/sunglasses",     "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "tool/axe",            "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "tool/hoe",            "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "tool/pickaxe",        "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "tool/shovel",         "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "tool/sword",          "shift": {"x": 0, "y": 0, "z": 0}},
 
         {"name": "armor/scrap_armor",   "shift": {"x": 0, "y": 0, "z": 0}}
 
@@ -283,9 +288,6 @@
         {
             "id": 642,
             "name": "BIRCH_SIGN",
-            "inventory": {
-                "move": {"x": 0, "y": -0.3, "z": 0}
-            },
             "bb": {
                 "model": "sign",
                 "set_state": [
@@ -304,9 +306,6 @@
         {
             "id": 643,
             "name": "OAK_SIGN",
-            "inventory": {
-                "move": {"x": 0, "y": -0.3, "z": 0}
-            },
             "bb": {
                 "model": "sign",
                 "set_state": [
@@ -325,9 +324,6 @@
         {
             "id": 644,
             "name": "ACACIA_SIGN",
-            "inventory": {
-                "move": {"x": 0, "y": -0.3, "z": 0}
-            },
             "bb": {
                 "model": "sign",
                 "set_state": [
@@ -346,9 +342,6 @@
         {
             "id": 645,
             "name": "SPRUCE_SIGN",
-            "inventory": {
-                "move": {"x": 0, "y": -0.3, "z": 0}
-            },
             "bb": {
                 "model": "sign",
                 "set_state": [
@@ -367,9 +360,6 @@
         {
             "id": 646,
             "name": "DARK_OAK_SIGN",
-            "inventory": {
-                "move": {"x": 0, "y": -0.3, "z": 0}
-            },
             "bb": {
                 "model": "sign",
                 "set_state": [
@@ -388,9 +378,6 @@
         {
             "id": 647,
             "name": "JUNGLE_SIGN",
-            "inventory": {
-                "move": {"x": 0, "y": -0.3, "z": 0}
-            },
             "bb": {
                 "model": "sign",
                 "set_state": [
@@ -521,10 +508,6 @@
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
                 ]
-            },
-            "_inventory": {
-                "style": "extruder",
-                "texture": "./textures/carrot_seeds.png"
             }
         },
         {
@@ -597,7 +580,7 @@
                 "model": "furnace",
                 "rotate": {"type": "cardinal_direction"},
                 "select_texture": [
-                    {"name": "furnace_lit.png", "when": {"extra_data.active": true}}
+                    {"name": "furnace_lit", "when": {"extra_data.active": true}}
                 ],
                 "particles": [
                     {"when": {"extra_data.active": true}, "list": [
@@ -620,7 +603,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "candle.png"}
+                    {"name": "candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -639,7 +622,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "white_candle.png"}
+                    {"name": "white_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -658,7 +641,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "orange_candle.png"}
+                    {"name": "orange_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -677,7 +660,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "magenta_candle.png"}
+                    {"name": "magenta_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -696,7 +679,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "light_blue_candle.png"}
+                    {"name": "light_blue_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -715,7 +698,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "yellow_candle.png"}
+                    {"name": "yellow_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -734,7 +717,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "lime_candle.png"}
+                    {"name": "lime_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -753,7 +736,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "pink_candle.png"}
+                    {"name": "pink_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -772,7 +755,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "gray_candle.png"}
+                    {"name": "gray_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -791,7 +774,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "light_gray_candle.png"}
+                    {"name": "light_gray_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -810,7 +793,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "cyan_candle.png"}
+                    {"name": "cyan_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -829,7 +812,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "purple_candle.png"}
+                    {"name": "purple_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -848,7 +831,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "blue_candle.png"}
+                    {"name": "blue_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -867,7 +850,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "brown_candle.png"}
+                    {"name": "brown_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -886,7 +869,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "green_candle.png"}
+                    {"name": "green_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -905,7 +888,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "orange_candle.png"}
+                    {"name": "orange_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -924,7 +907,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "black_candle.png"}
+                    {"name": "black_candle"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -979,16 +962,6 @@
         {
             "id": 574,
             "name": "BIRCH_DOOR",
-            "inventory": {
-                "scale": 0.75,
-                "rotate": {"x": 0, "y": -0.7853981633974483, "z": 0},
-                "move": {"x": 0, "y": -0.75, "z": -0.5},
-                "_style": "extruder",
-                "_texture": {
-                    "id": "default",
-                    "image": "item/birch_door.png"
-                }
-            },
             "bb": {
                 "model": "door",
                 "set_state": [
@@ -996,7 +969,7 @@
                     {"name": "birch"}
                 ],
                 "select_texture": [
-                    {"name": "birch.png"}
+                    {"name": "birch"}
                 ],
                 "rotate": {"type": "cardinal_direction"}
             }
@@ -1004,11 +977,6 @@
         {
             "id": 576,
             "name": "OAK_DOOR",
-            "inventory": {
-                "scale": 0.75,
-                "rotate": {"x": 0, "y": -0.7853981633974483, "z": 0},
-                "move": {"x": 0, "y": -0.75, "z": -0.5}
-            },
             "bb": {
                 "model": "door",
                 "set_state": [
@@ -1016,7 +984,7 @@
                     {"name": "oak"}
                 ],
                 "select_texture": [
-                    {"name": "oak.png"}
+                    {"name": "oak"}
                 ],
                 "rotate": {"type": "cardinal_direction"}
             }
@@ -1024,11 +992,6 @@
         {
             "id": 578,
             "name": "ACACIA_DOOR",
-            "inventory": {
-                "scale": 0.75,
-                "rotate": {"x": 0, "y": -0.7853981633974483, "z": 0},
-                "move": {"x": 0, "y": -0.75, "z": -0.5}
-            },
             "bb": {
                 "model": "door",
                 "set_state": [
@@ -1036,7 +999,7 @@
                     {"name": "acacia"}
                 ],
                 "select_texture": [
-                    {"name": "acacia.png"}
+                    {"name": "acacia"}
                 ],
                 "rotate": {"type": "cardinal_direction"}
             }
@@ -1044,11 +1007,6 @@
         {
             "id": 580,
             "name": "SPRUCE_DOOR",
-            "inventory": {
-                "scale": 0.75,
-                "rotate": {"x": 0, "y": -0.7853981633974483, "z": 0},
-                "move": {"x": 0, "y": -0.75, "z": -0.5}
-            },
             "bb": {
                 "model": "door",
                 "set_state": [
@@ -1056,7 +1014,7 @@
                     {"name": "spruce"}
                 ],
                 "select_texture": [
-                    {"name": "spruce.png"}
+                    {"name": "spruce"}
                 ],
                 "rotate": {"type": "cardinal_direction"}
             }
@@ -1064,11 +1022,6 @@
         {
             "id": 582,
             "name": "DARK_OAK_DOOR",
-            "inventory": {
-                "scale": 0.75,
-                "rotate": {"x": 0, "y": -0.7853981633974483, "z": 0},
-                "move": {"x": 0, "y": -0.75, "z": -0.5}
-            },
             "bb": {
                 "model": "door",
                 "set_state": [
@@ -1076,7 +1029,7 @@
                     {"name": "dark_oak"}
                 ],
                 "select_texture": [
-                    {"name": "dark_oak.png"}
+                    {"name": "dark_oak"}
                 ],
                 "rotate": {"type": "cardinal_direction"}
             }
@@ -1084,11 +1037,6 @@
         {
             "id": 584,
             "name": "JUNGLE_DOOR",
-            "inventory": {
-                "scale": 0.75,
-                "rotate": {"x": 0, "y": -0.7853981633974483, "z": 0},
-                "move": {"x": 0, "y": -0.75, "z": -0.5}
-            },
             "bb": {
                 "model": "door",
                 "set_state": [
@@ -1096,7 +1044,7 @@
                     {"name": "jungle"}
                 ],
                 "select_texture": [
-                    {"name": "jungle.png"}
+                    {"name": "jungle"}
                 ],
                 "rotate": {"type": "cardinal_direction"}
             }
@@ -1104,11 +1052,6 @@
         {
             "id": 590,
             "name": "IRON_DOOR",
-            "inventory": {
-                "scale": 0.75,
-                "rotate": {"x": 0, "y": -0.7853981633974483, "z": 0},
-                "move": {"x": 0, "y": -0.75, "z": -0.5}
-            },
             "bb": {
                 "model": "door",
                 "set_state": [
@@ -1116,7 +1059,7 @@
                     {"name": "iron"}
                 ],
                 "select_texture": [
-                    {"name": "iron.png"}
+                    {"name": "iron"}
                 ],
                 "rotate": {"type": "cardinal_direction"}
             }
@@ -1382,10 +1325,6 @@
         {
             "id": 1200,
             "name": "WHITE_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1402,10 +1341,6 @@
         {
             "id": 1201,
             "name": "ORANGE_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1422,10 +1357,6 @@
         {
             "id": 1202,
             "name": "MAGENTA_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1442,10 +1373,6 @@
         {
             "id": 1203,
             "name": "LIGHT_BLUE_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1462,10 +1389,6 @@
         {
             "id": 1204,
             "name": "YELLOW_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1482,10 +1405,6 @@
         {
             "id": 1205,
             "name": "LIME_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1502,10 +1421,6 @@
         {
             "id": 1206,
             "name": "PINK_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1522,10 +1437,6 @@
         {
             "id": 1207,
             "name": "GRAY_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1542,10 +1453,6 @@
         {
             "id": 1208,
             "name": "LIGHT_GRAY_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1562,10 +1469,6 @@
         {
             "id": 1209,
             "name": "CYAN_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1582,10 +1485,6 @@
         {
             "id": 1210,
             "name": "PURPLE_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1602,10 +1501,6 @@
         {
             "id": 1211,
             "name": "BLUE_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1622,10 +1517,6 @@
         {
             "id": 1212,
             "name": "BROWN_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1642,10 +1533,6 @@
         {
             "id": 1213,
             "name": "GREEN_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1662,10 +1549,6 @@
         {
             "id": 1214,
             "name": "RED_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1682,10 +1565,6 @@
         {
             "id": 1215,
             "name": "BLACK_BED",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "z": 0.5, "y": 0}
-            },
             "bb": {
                 "model": "bed",
                 "rotate": {
@@ -1702,11 +1581,6 @@
         {
             "id": 300,
             "name": "BIRCH_CHAIR",
-            "inventory": {
-                "scale": 0.9,
-                "rotate": {"x": 0, "y": 3.14159, "z": 0},
-                "move": {"x": 0, "y": -0.35, "z": 0}
-            },
             "bb": {
                 "model": "chair",
                 "rotate": {
@@ -1724,11 +1598,6 @@
         {
             "id": 301,
             "name": "OAK_CHAIR",
-            "inventory": {
-                "scale": 0.9,
-                "rotate": {"x": 0, "y": 3.14159, "z": 0},
-                "move": {"x": 0, "y": -0.35, "z": 0}
-            },
             "bb": {
                 "model": "chair",
                 "rotate": {
@@ -1746,11 +1615,6 @@
         {
             "id": 302,
             "name": "ACACIA_CHAIR",
-            "inventory": {
-                "scale": 0.9,
-                "rotate": {"x": 0, "y": 3.14159, "z": 0},
-                "move": {"x": 0, "y": -0.35, "z": 0}
-            },
             "bb": {
                 "model": "chair",
                 "rotate": {
@@ -1768,11 +1632,6 @@
         {
             "id": 303,
             "name": "SPRUCE_CHAIR",
-            "inventory": {
-                "scale": 0.9,
-                "rotate": {"x": 0, "y": 3.14159, "z": 0},
-                "move": {"x": 0, "y": -0.35, "z": 0}
-            },
             "bb": {
                 "model": "chair",
                 "rotate": {
@@ -1790,11 +1649,6 @@
         {
             "id": 304,
             "name": "DARK_OAK_CHAIR",
-            "inventory": {
-                "scale": 0.9,
-                "rotate": {"x": 0, "y": 3.14159, "z": 0},
-                "move": {"x": 0, "y": -0.35, "z": 0}
-            },
             "bb": {
                 "model": "chair",
                 "rotate": {
@@ -1812,11 +1666,6 @@
         {
             "id": 305,
             "name": "JUNGLE_CHAIR",
-            "inventory": {
-                "scale": 0.9,
-                "rotate": {"x": 0, "y": 3.14159, "z": 0},
-                "move": {"x": 0, "y": -0.35, "z": 0}
-            },
             "bb": {
                 "model": "chair",
                 "rotate": {
@@ -1834,11 +1683,6 @@
         {
             "id": 320,
             "name": "BIRCH_STOOL",
-            "inventory": {
-                "scale": 0.9,
-                "rotate": {"x": 0, "y": 3.14159, "z": 0},
-                "move": {"x": 0, "y": -0.35, "z": 0}
-            },
             "bb": {
                 "model": "stool",
                 "rotate": {
@@ -1853,11 +1697,6 @@
         {
             "id": 321,
             "name": "OAK_STOOL",
-            "inventory": {
-                "scale": 0.9,
-                "rotate": {"x": 0, "y": 3.14159, "z": 0},
-                "move": {"x": 0, "y": -0.35, "z": 0}
-            },
             "bb": {
                 "model": "stool",
                 "rotate": {
@@ -1872,11 +1711,6 @@
         {
             "id": 322,
             "name": "ACACIA_STOOL",
-            "inventory": {
-                "scale": 0.9,
-                "rotate": {"x": 0, "y": 3.14159, "z": 0},
-                "move": {"x": 0, "y": -0.35, "z": 0}
-            },
             "bb": {
                 "model": "stool",
                 "rotate": {
@@ -1891,11 +1725,6 @@
         {
             "id": 323,
             "name": "SPRUCE_STOOL",
-            "inventory": {
-                "scale": 0.9,
-                "rotate": {"x": 0, "y": 3.14159, "z": 0},
-                "move": {"x": 0, "y": -0.35, "z": 0}
-            },
             "bb": {
                 "model": "stool",
                 "rotate": {
@@ -1910,11 +1739,6 @@
         {
             "id": 324,
             "name": "DARK_OAK_STOOL",
-            "inventory": {
-                "scale": 0.9,
-                "rotate": {"x": 0, "y": 3.14159, "z": 0},
-                "move": {"x": 0, "y": -0.35, "z": 0}
-            },
             "bb": {
                 "model": "stool",
                 "rotate": {
@@ -1929,11 +1753,6 @@
         {
             "id": 325,
             "name": "JUNGLE_STOOL",
-            "inventory": {
-                "scale": 0.9,
-                "rotate": {"x": 0, "y": 3.14159, "z": 0},
-                "move": {"x": 0, "y": -0.35, "z": 0}
-            },
             "bb": {
                 "model": "stool",
                 "rotate": {
@@ -1948,11 +1767,6 @@
         {
             "id": 326,
             "name": "CRIMSON_STOOL",
-            "inventory": {
-                "scale": 0.9,
-                "rotate": {"x": 0, "y": 3.14159, "z": 0},
-                "move": {"x": 0, "y": -0.35, "z": 0}
-            },
             "bb": {
                 "model": "stool",
                 "rotate": {
@@ -1967,11 +1781,6 @@
         {
             "id": 327,
             "name": "WARPED_STOOL",
-            "inventory": {
-                "scale": 0.9,
-                "rotate": {"x": 0, "y": 3.14159, "z": 0},
-                "move": {"x": 0, "y": -0.35, "z": 0}
-            },
             "bb": {
                 "model": "stool",
                 "rotate": {
@@ -2002,10 +1811,6 @@
         {
             "id": 1004,
             "name": "SWEET_BERRY_BUSH",
-            "_inventory": {
-                "style": "extruder",
-                "texture": "item/sweet_berries.png"
-            },
             "bb": {
                 "model": "sweet_berry_bush"
             }
@@ -2032,10 +1837,6 @@
             "id": 649,
             "name": "MOB_SPAWN",
             "group": "doubleface_transparent",
-            "inventory": {
-                "scale": 0.75,
-                "move": {"x": 0, "y": -0.275, "z": 0}
-            },
             "bb": {
                 "model": "mob_spawn",
                 "rotate": {"type": "cardinal_direction"}
@@ -2140,13 +1941,342 @@
                 "model": "poppy"
             }
         },
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        {
+            "id": 606,
+            "name": "COPPER_SWORD",
+            "bb": {
+                "model": "tool/sword",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 607,
+            "name": "STONE_SWORD",
+            "bb": {
+                "model": "tool/sword",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
         {
             "id": 608,
             "name": "IRON_SWORD",
             "bb": {
-                "model": "tool/iron_sword"
+                "model": "tool/sword",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
             }
         },
+        {
+            "id": 609,
+            "name": "GOLDEN_SWORD",
+            "bb": {
+                "model": "tool/sword",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 610,
+            "name": "DIAMOND_SWORD",
+            "bb": {
+                "model": "tool/sword",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 611,
+            "name": "NETHERITE_SWORD",
+            "bb": {
+                "model": "tool/sword",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+
+
+
+        {
+            "id": 131,
+            "name": "COPPER_PICKAXE",
+            "bb": {
+                "model": "tool/pickaxe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 500,
+            "name": "STONE_PICKAXE",
+            "bb": {
+                "model": "tool/pickaxe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 553,
+            "name": "IRON_PICKAXE",
+            "bb": {
+                "model": "tool/pickaxe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 554,
+            "name": "GOLDEN_PICKAXE",
+            "bb": {
+                "model": "tool/pickaxe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 555,
+            "name": "DIAMOND_PICKAXE",
+            "bb": {
+                "model": "tool/pickaxe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 556,
+            "name": "NETHERITE_PICKAXE",
+            "bb": {
+                "model": "tool/pickaxe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+
+
+
+        {
+            "id": 137,
+            "name": "COPPER_SHOVEL",
+            "bb": {
+                "model": "tool/shovel",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 561,
+            "name": "STONE_SHOVEL",
+            "bb": {
+                "model": "tool/shovel",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 562,
+            "name": "IRON_SHOVEL",
+            "bb": {
+                "model": "tool/shovel",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 563,
+            "name": "GOLD_SHOVEL",
+            "bb": {
+                "model": "tool/shovel",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 564,
+            "name": "DIAMOND_SHOVEL",
+            "bb": {
+                "model": "tool/shovel",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 565,
+            "name": "NETHERITE_SHOVEL",
+            "bb": {
+                "model": "tool/shovel",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+
+
+    
+        {
+            "id": 566,
+            "name": "COPPER_HOE",
+            "bb": {
+                "model": "tool/hoe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 567,
+            "name": "STONE_HOE",
+            "bb": {
+                "model": "tool/hoe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 568,
+            "name": "IRON_HOE",
+            "bb": {
+                "model": "tool/hoe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 569,
+            "name": "GOLDEN_HOE",
+            "bb": {
+                "model": "tool/hoe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 570,
+            "name": "DIAMOND_HOE",
+            "bb": {
+                "model": "tool/hoe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 571,
+            "name": "NETHERITE_HOE",
+            "bb": {
+                "model": "tool/hoe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+
+
+                                
+        {
+            "id": 132,
+            "name": "COPPER_AXE",
+            "bb": {
+                "model": "tool/axe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 557,
+            "name": "STONE_AXE",
+            "bb": {
+                "model": "tool/axe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 551,
+            "name": "IRON_AXE",
+            "bb": {
+                "model": "tool/axe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 558,
+            "name": "GOLD_AXE",
+            "bb": {
+                "model": "tool/axe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 559,
+            "name": "DIAMOND_AXE",
+            "bb": {
+                "model": "tool/axe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 560,
+            "name": "NETHERITE_AXE",
+            "bb": {
+                "model": "tool/axe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+
+
+
+
+
+
+
+
+
+
         {
             "id": 798,
             "name": "PRIMITIVE_AXE",

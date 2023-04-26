@@ -47,7 +47,11 @@ export class BBModel_Model {
                 this.makeTexturePalette()
             }
             //
-            const texture = this.all_textures.get(texture_name)
+            let texture = this.all_textures.get(texture_name)
+            if(!texture) {
+                texture_name = texture_name.toLocaleLowerCase()
+                texture = this.all_textures.get(texture_name)
+            }
             if(!texture) {
                 texture_name = Array.from(this.all_textures.keys())[0]
                 // throw `error_invalid_palette|${texture_name}`
@@ -375,7 +379,7 @@ export class BBModel_Model {
                     if(!this.bone_groups.has(name)) {
                         const group = this.groups.get(name)
                         if(!group) {
-                            throw 'error_bone_group_not_found'
+                            throw `error_bone_group_not_found|${model_json.name}:${name}`
                         }
                         this.bone_groups.set(name, group)
                     }

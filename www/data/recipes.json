@@ -155,7 +155,7 @@
             }
         },
         "result": {
-            "item": "madcraft:wooden_pickaxe",
+            "item": "madcraft:copper_pickaxe",
             "count": 1
         }
     },
@@ -197,7 +197,7 @@
             }
         },
         "result": {
-            "item": "madcraft:wooden_axe",
+            "item": "madcraft:copper_axe",
             "count": 1
         }
     },
@@ -239,7 +239,7 @@
             }
         },
         "result": {
-            "item": "madcraft:wooden_shovel",
+            "item": "madcraft:copper_shovel",
             "count": 1
         }
     },
@@ -392,7 +392,7 @@
             }
         },
         "result": {
-            "item": "madcraft:wooden_hoe",
+            "item": "madcraft:copper_hoe",
             "count": 1
         }
     },
@@ -1575,7 +1575,7 @@
             }
         },
         "result": {
-            "item": "madcraft:wooden_sword",
+            "item": "madcraft:copper_sword",
             "count": 1
         }
     },
@@ -1673,6 +1673,26 @@
         },
         "result": {
             "item": "madcraft:composter",
+            "count": 1
+        }
+    },
+    {
+        "id": "a948fb7a-ac60-4164-a2c4-700fc878504a",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "#",
+            "|"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "special:small_rock"
+            }
+        },
+        "result": {
+            "item": "madcraft:primitive_axe",
             "count": 1
         }
     }
