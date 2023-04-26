@@ -62,11 +62,7 @@ export class BBModel_Compiler_Base {
         return spritesheet
     }
 
-    /**
-     * @param {*} texture
-     * @returns
-     */
-    async loadModelTexture(index, texture, tx_sz, tx_cnt) {
+    async loadModelTexture(index, texture, tx_sz : int, tx_cnt : int) {
         if(isScalar(texture)) {
             /*
                 if(!texture.endsWith('.png')) texture += '.png';
@@ -75,12 +71,17 @@ export class BBModel_Compiler_Base {
             throw 'error_texture_from_external_file_denied'
         } else if('source' in texture) {
             const image = await this.loadImage(texture.source)
+            const fixTextureName = (name : string) => {
+                name = name.replace('.png', '')
+                name = name.replace('.PNG', '')
+                return name
+            }
             return {
                 texture:    image,
                 x_size:     Math.min(Math.ceil(image.width / tx_sz), tx_cnt),
                 y_size:     Math.min(Math.ceil(image.height / tx_sz), tx_cnt),
                 id:         this.calcTextureID(index, texture),
-                name:       texture?.name ?? null
+                name:       texture.name ? fixTextureName(texture.name) : null
             }
         }
         throw 'error_unrecognize_texture_format';
@@ -89,11 +90,8 @@ export class BBModel_Compiler_Base {
     /**
      * Метод ищет атлас, куда поместятся все текстуры одной модели.
      * Если метод не нашел места ни в одном атласе, то создает ещё 1 атлас и рекурсивно вызывает сам себя (только 1 раз)
-     * @param {*} textures
-     * @param {boolean} create_if_not_place
-     * @returns
      */
-    async findPlaces(textures, create_if_not_place, tx_sz, tx_cnt, options) {
+    async findPlaces(textures, create_if_not_place : boolean = false, tx_sz : int, tx_cnt : int, options : any) {
         for(let spritesheet of this.spritesheets) {
             const places = []
             try {
@@ -125,12 +123,6 @@ export class BBModel_Compiler_Base {
         return this.findPlaces(textures, false, tx_sz, tx_cnt, options)
     }
 
-    /**
-     * @param {*} model
-     * @param {*} id
-     * @param {*} options
-     * @returns
-     */
     async prepareModel(model, id, options) {
 
         model.name = id

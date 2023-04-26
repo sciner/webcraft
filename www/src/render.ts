@@ -473,16 +473,22 @@ export class Renderer {
                 mesh.material.texture.minFilter = 'linear';
                 mesh.material.texture.magFilter = 'linear';
 
+                if(drop.block_material.name == 'COOPER_AXE') {
+                    debugger
+                }
+
                 let pers_matrix = null;
                 const mat = drop.block_material
 
                 const display = mat.bb?.model?.json?.display?.gui
                 if(display) {
                     pers_matrix = mat4.create();
-                    const tempQuat = quat.create()
 
+                    const BB_GUI_SCALE = 1.5
+
+                    const tempQuat = quat.create()
                     const position = vec3.create()
-                    const scale = vec3.set(vec3.create(), 1, 1, 1)
+                    const scale = vec3.set(vec3.create(), 1 * BB_GUI_SCALE, 1 * BB_GUI_SCALE, 1 * BB_GUI_SCALE)
                     const pivot = vec3.set(vec3.create(), 0, -0.5, 0);
                     const rotate = vec3.create();
 
@@ -491,8 +497,6 @@ export class Renderer {
                         rotate[1] = -display.rotation[1];
                         rotate[2] = -display.rotation[2];
                     }
-
-                    const BB_GUI_SCALE = 1.5;
 
                     if(display.scale) {
                         vec3.set(scale, display.scale[0] * BB_GUI_SCALE, display.scale[1] * BB_GUI_SCALE, display.scale[2] * BB_GUI_SCALE)

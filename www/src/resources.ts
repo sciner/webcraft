@@ -187,13 +187,13 @@ export class Resources {
         }));
 
         // Mob & player models
-        all.push(
-            Resources.loadJsonDatabase('/media/models/database.json', '/media/models/')
-                .then((t) => Object.assign(this.models, t.assets))
-                .then((loaded) => {
-                    console.debug("Loaded models:", loaded);
-                })
-        );
+        // all.push(
+        //     Resources.loadJsonDatabase('/media/models/database.json', '/media/models/')
+        //         .then((t) => Object.assign(this.models, t.assets))
+        //         .then((loaded) => {
+        //             console.debug("Loaded models:", loaded);
+        //         })
+        // );
 
         // Loading progress calculator
         let d = 0;
@@ -369,26 +369,26 @@ export class Resources {
 
 
     // Load skins
-    static async loadSkins() {
-        const json = await Helpers.fetchJSON('../media/models/database.json');
-        const resp = json.player_skins;
-        for(var skin of resp) {
-            skin.preview = CLIENT_SKIN_ROOT + 'preview/' + skin.file + '.png';
-            skin.file = CLIENT_SKIN_ROOT + skin.file + '.png';
-        }
-        resp.sort((a, b) => a.id - b.id);
-        return resp;
-    }
+    // static async loadSkins() {
+    //     const json = await Helpers.fetchJSON('../media/models/database.json');
+    //     const resp = json.player_skins;
+    //     for(var skin of resp) {
+    //         skin.preview = CLIENT_SKIN_ROOT + 'preview/' + skin.file + '.png';
+    //         skin.file = CLIENT_SKIN_ROOT + skin.file + '.png';
+    //     }
+    //     resp.sort((a, b) => a.id - b.id);
+    //     return resp;
+    // }
 
     // Load recipes
     static async loadRecipes() {
         return  Helpers.fetchJSON('../data/recipes.json', true);
     }
 
-    // Load models
-    static async loadModels() {
-        return  Helpers.fetchJSON('../media/models/database.json');
-    }
+    // // Load models
+    // static async loadModels() {
+    //     return  Helpers.fetchJSON('../media/models/database.json');
+    // }
 
     // Load materials
     static async loadMaterials() {

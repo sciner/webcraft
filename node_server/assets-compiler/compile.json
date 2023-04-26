@@ -624,7 +624,7 @@
         },
         {
             "id": 137,
-            "name": "WOODEN_SHOVEL",
+            "name": "COPPER_SHOVEL",
             "sound": "madcraft:block.shovel",
             "transparent": true,
             "max_in_stack": 1,
@@ -744,7 +744,7 @@
         },
         {
             "id": 566,
-            "name": "WOODEN_HOE",
+            "name": "COPPER_HOE",
             "sound": "madcraft:block.shovel",
             "transparent": true,
             "max_in_stack": 1,
@@ -864,7 +864,7 @@
         },
         {
             "id": 132,
-            "name": "WOODEN_AXE",
+            "name": "COPPER_AXE",
             "style": "extruder",
             "sound": "madcraft:axe",
             "transparent": true,
@@ -978,7 +978,7 @@
         },
         {
             "id": 131,
-            "name": "WOODEN_PICKAXE",
+            "name": "COPPER_PICKAXE",
             "style": "extruder",
             "transparent": true,
             "max_in_stack": 1,
@@ -5033,7 +5033,7 @@
         },
         {
             "id": 606,
-            "name": "WOODEN_SWORD",
+            "name": "COPPER_SWORD",
             "transparent": true,
             "max_in_stack": 1,
             "style": "extruder",

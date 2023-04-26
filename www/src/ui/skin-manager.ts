@@ -42,12 +42,14 @@ export class SkinManager {
     // Init
     async init() {
         this.reloadSkins(async (list) => {
-            const skin_id = this.load()
-            // console.log(skin_id, list)
-            await this.preview.init(list, this.$timeout)
-            this.$timeout(() => {
-                this.preview.select(skin_id)
-            }, 0, true)
+            if(this.preview.isActive) {
+                const skin_id = this.load()
+                // console.log(skin_id, list)
+                await this.preview.init(list, this.$timeout)
+                this.$timeout(() => {
+                    this.preview.select(skin_id)
+                }, 0, true)
+            }
         })
     }
 

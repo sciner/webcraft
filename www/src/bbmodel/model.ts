@@ -47,7 +47,11 @@ export class BBModel_Model {
                 this.makeTexturePalette()
             }
             //
-            const texture = this.all_textures.get(texture_name)
+            let texture = this.all_textures.get(texture_name)
+            if(!texture) {
+                texture_name = texture_name.toLocaleLowerCase()
+                texture = this.all_textures.get(texture_name)
+            }
             if(!texture) {
                 texture_name = Array.from(this.all_textures.keys())[0]
                 // throw `error_invalid_palette|${texture_name}`

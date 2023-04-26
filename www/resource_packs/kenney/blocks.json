@@ -164,7 +164,7 @@
             "side": [13, 2]
         }
     },
-    {"id": 606, "name": "WOODEN_SWORD",
+    {"id": 606, "name": "COPPER_SWORD",
         "texture": {
             "id": "default",
             "side": [0, 1]
