@@ -96,7 +96,6 @@
         {"name": "iron_nugget",         "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "copper_nugget",       "shift": {"x": 0, "y": 0, "z": 0}},
 
-        {"name": "tool/iron_sword",     "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "tool/primitive_axe",  "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "tool/sunglasses",     "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "tool/axe",            "shift": {"x": 0, "y": 0, "z": 0}},
@@ -2018,7 +2017,7 @@
         },
 
 
-        
+
         {
             "id": 131,
             "name": "COPPER_PICKAXE",

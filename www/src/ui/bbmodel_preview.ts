@@ -105,7 +105,7 @@ export class BBModel_Preview {
         // this.mesh = this.render.addBBModel(player.lerpPos.add(new Vector(0, 0, 0)), MOB_TYPE.HUMANOID, player.rotate, 'idle', 'humanoid')
         // this.mesh.modifiers.selectTextureFromPalette('', 'CHARACTER')
         // this.mesh.modifiers.appendToGroup('head', 'tool/sunglasses')
-        // this.mesh.modifiers.appendToGroup('RightArmItemPlace', 'tool/iron_sword', 'thirdperson_righthand')
+        // this.mesh.modifiers.appendToGroup('RightArmItemPlace', 'tool/sword', 'thirdperson_righthand')
         // this.mesh.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor', 'scrap_armor_copper')
         // this.mesh.modifiers.replaceGroup('chestplate4', 'armor/scrap_armor', 'scrap_armor_diamond')
         // this.mesh.modifiers.replaceGroup('chestplate5', 'armor/scrap_armor', 'scrap_armor_diamond')
@@ -124,7 +124,7 @@ export class BBModel_Preview {
         // this.mesh2 = this.render.addBBModel(player.lerpPos.add(new Vector(.5, 0, 0)), MOB_TYPE.HUMANOID, player.rotate.clone(), 'walk', 'humanoid2')
         // this.mesh2.modifiers.selectTextureFromPalette('', 'CHARACTER_F')
 
-        // this.mesh2.modifiers.appendToGroup('RightArmItemPlace', 'tool/iron_sword', 'thirdperson_righthand')
+        // this.mesh2.modifiers.appendToGroup('RightArmItemPlace', 'tool/sword', 'thirdperson_righthand')
         // this.mesh2.modifiers.replaceGroup('chestplate0', 'armor/scrap_armor', 'scrap_armor_copper')
         // this.mesh2.modifiers.replaceGroup('chestplate4', 'armor/scrap_armor', 'scrap_armor_diamond')
         // this.mesh2.modifiers.replaceGroup('chestplate5', 'armor/scrap_armor', 'scrap_armor_diamond')
