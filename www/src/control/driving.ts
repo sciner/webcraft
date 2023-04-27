@@ -80,7 +80,8 @@ export type TDrivingState = {
     combinedHeight  : float
 }
 
-const tmpVec = new Vector()
+const tmpVec_copyPosWithOffset = new Vector()
+const tmpVec_applyInterpolatedStateToDependentParticipants = new Vector()
 
 /**
  * Представляет собой логическую связь между участниками совместного движения (игроками и/или мобами).
@@ -167,7 +168,7 @@ export abstract class Driving<TManager extends DrivingManager<any>> {
         if (place !== DrivingPlace.VEHICLE) {
             yaw ??= Mth.round(this.combinedPhysicsState.yaw, PHYSICS_ROTATION_DECIMALS)
             const offset = this.config.offsets[place - 1]
-            tmpVec.copyFrom(offset)
+            const tmpVec = tmpVec_copyPosWithOffset.copyFrom(offset)
                 .rotateYawSelf(yaw)
                 .roundSelf(PHYSICS_POS_DECIMALS)
             dst.x += sign * tmpVec.x
@@ -255,12 +256,13 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
         for(let place = 0; place < this.models.length; place++) {
             const model = this.models[place]
             if (model && model !== positionProvider) {
-                this.copyPosWithOffset(model.pos, place, this.interpolatedYaw, this.interpolatedPos)
+                const tmpVec = tmpVec_applyInterpolatedStateToDependentParticipants
+                this.copyPosWithOffset(tmpVec, place, this.interpolatedYaw, this.interpolatedPos)
                 // Определить угол модели. Если это модель моего игрока, то взять угол из моего игрока.
                 let yaw = place === this.myPlayerPlace
                     ? this.myPlayer.rotate.z
                     : this.interpolatedYaw
-                model.forceLocalUpdate(model.pos, yaw)
+                model.forceLocalUpdate(tmpVec, yaw)
             }
         }
         if (this.myPlayerPlace != null && this.myPlayerPlace !== DrivingPlace.DRIVER) {

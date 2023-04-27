@@ -35,7 +35,7 @@ export class NetworkPhysicObject {
     protected pitch     : float
     protected sneak     : number | boolean
     protected _pos      : Vector
-    private _prevPos    : Vector
+    private _prevPos    : Vector    // не используется, можно убрать
     protected moving    : boolean
     private _chunk_addr : Vector
     private latency     : number
@@ -67,7 +67,7 @@ export class NetworkPhysicObject {
         this.tracked = false;
     }
 
-    get pos() {
+    get pos(): Vector {
         return this._pos;
     }
 
@@ -79,7 +79,7 @@ export class NetworkPhysicObject {
         return this.#world
     }
 
-    set pos(v) {
+    set pos(v: IVector) {
         const {
             x, y, z
         } = this._pos;
@@ -188,7 +188,7 @@ export class NetworkPhysicObject {
      */
     forceLocalUpdate(pos: IVector | null, yaw: float | null): void {
         if (pos) {
-            this.pos.copyFrom(pos)
+            this.pos = pos
             this.tPos.copyFrom(pos)
         }
         if (yaw != null) {
