@@ -18,6 +18,7 @@ export const BLOCK_DB_PROPS                 = ['power', 'entity_id', 'extra_data
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data']
 export const NO_DESTRUCTABLE_BLOCKS         = ['BEDROCK', 'STILL_WATER']
 export const DIRT_BLOCK_NAMES               = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET']
+export const LAYERING_MOVE_TO_DOWN_STYLES   = ['grass', 'tall_grass', 'wildflowers']
 
 const AIR_BLOCK_STRINGIFIED = '{"id":0}'
 
@@ -290,10 +291,15 @@ export class BLOCK {
             this.addFlag(BLOCK_FLAG.IS_DIRT, b.id)
         }
         //
+        this.addFlag(BLOCK_FLAG.NOT_CREATABLE, this.BEDROCK.id, this.UNCERTAIN_STONE.id)
         for(let block of BLOCK.getAll()) {
-            this.addFlag(BLOCK_FLAG.NOT_CREATABLE, this.BEDROCK.id, this.UNCERTAIN_STONE.id)
             if(block.name.startsWith('BLD_')) {
                 this.addFlag(BLOCK_FLAG.NOT_CREATABLE, block.id)
+            }
+            //
+            const style_name = block.style_name
+            if(LAYERING_MOVE_TO_DOWN_STYLES.includes(style_name) || block.tags.includes('layering_move_to_down')) {
+                this.addFlag(BLOCK_FLAG.LAYERING_MOVE_TO_DOWN, block.id)
             }
         }
     }
@@ -1683,11 +1689,11 @@ export class BLOCK {
         }
 
         await Promise.all(all).then(([block_styles, _]) => {
-            BLOCK.sortBlocks();
-            BLOCK.setFlags();
-            BLOCK.autoTags();
-            BLOCK.addHardcodedFlags();
+            BLOCK.sortBlocks()
+            BLOCK.autoTags()
+            BLOCK.addHardcodedFlags()
             BLOCK.checkGeneratorOptions()
+            BLOCK.setFlags()
             // Block styles
             for(let style of block_styles.values()) {
                 BLOCK.registerStyle(style);

@@ -95,6 +95,10 @@
         {"name": "gold_nugget",         "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "iron_nugget",         "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "copper_nugget",       "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "small_cactus",        "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "skull_desert",        "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "sanded_stones",       "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "small_stones_desert", "shift": {"x": 0, "y": 0, "z": 0}},
 
         {"name": "tool/primitive_axe",  "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "tool/sunglasses",     "shift": {"x": 0, "y": 0, "z": 0}},
@@ -2331,6 +2335,137 @@
             "name": "RAW_COPPER",
             "bb": {
                 "model": "raw_copper"
+            }
+        },
+        {
+            "id": 522,
+            "name": "SMALL_CACTUS",
+            "material": {
+                "id": "cactus"
+            },
+            "transparent": true,
+            "mining_time": 0,
+            "passable": 1,
+            "sound": "madcraft:block.cloth",
+            "drop_item": [
+                {
+                    "name": "CACTUS",
+                    "count": {
+                        "min": 1,
+                        "max": 1
+                    }
+                }
+            ],
+            "tags": [
+                "layering_move_to_down",
+                "no_drop_ao"
+            ],
+            "aabb": [4, 0, 4, 12, 8, 12],
+            "bb": {
+                "model": "small_cactus",
+                "import_anyway": true,
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ],
+                "set_state": [
+                    {"names": ["variant0", "variant1", "variant2", "variant3", "variant4", "variant5", "variant6", "variant7"]}
+                ]
+            }
+        },
+        {
+            "id": 799,
+            "name": "SKULL_DESERT",
+            "material": {
+                "id": "bone"
+            },
+            "transparent": true,
+            "mining_time": 0,
+            "passable": 1,
+            "sound": "madcraft:block.cloth",
+            "drop_item": [
+                {
+                    "name": "BONE",
+                    "count": {
+                        "min": 2,
+                        "max": 2
+                    }
+                }
+            ],
+            "tags": [
+                "layering_move_to_down",
+                "no_drop_ao"
+            ],
+            "aabb": [4, 0, 4, 12, 8, 12],
+            "bb": {
+                "model": "skull_desert",
+                "import_anyway": true,
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ]
+            }
+        },
+        {
+            "id": 601,
+            "name": "SANDED_STONES",
+            "material": {
+                "id": "stone"
+            },
+            "transparent": true,
+            "mining_time": 0,
+            "passable": 1,
+            "sound": "madcraft:block.stone",
+            "drop_item": [
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ],
+            "tags": [
+                "layering_move_to_down",
+                "no_drop_ao"
+            ],
+            "aabb": [0, 0, 0, 16, 2, 16],
+            "bb": {
+                "model": "sanded_stones",
+                "import_anyway": true,
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ]
+            }
+        },
+        {
+            "id": 602,
+            "name": "SMALL_STONES_DESERT",
+            "material": {
+                "id": "stone"
+            },
+            "transparent": true,
+            "mining_time": 0,
+            "passable": 1,
+            "sound": "madcraft:block.stone",
+            "drop_item": [
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ],
+            "tags": [
+                "layering_move_to_down",
+                "no_drop_ao"
+            ],
+            "aabb": [4, 0, 4, 12, 8, 12],
+            "bb": {
+                "model": "small_stones_desert",
+                "import_anyway": true,
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ]
             }
         }
     ]

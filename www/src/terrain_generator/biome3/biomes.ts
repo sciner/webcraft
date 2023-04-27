@@ -710,8 +710,12 @@ export class Biomes {
             {
                 frequency: PLANTS_FREQUENCY / 1,
                 list: [
-                    {percent: .1, blocks: [{name: 'PEBBLES'}]},
-                    {percent: .9, blocks: [{name: 'DEAD_BUSH'}]}
+                    {percent: .195, blocks: [{name: 'PEBBLES'}]},
+                    {percent: .005, blocks: [{name: 'SKULL_DESERT'}]},
+                    {percent: .1, blocks: [{name: 'SMALL_CACTUS'}]},
+                    {percent: .1, blocks: [{name: 'SANDED_STONES'}]},
+                    {percent: .1, blocks: [{name: 'SMALL_STONES_DESERT'}]},
+                    {percent: .5, blocks: [{name: 'DEAD_BUSH'}]}
                 ]
             },
             null, undefined, undefined, DESERT_BUILDINGS

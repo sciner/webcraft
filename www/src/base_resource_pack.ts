@@ -1,20 +1,20 @@
 import {Color, Helpers, AlphabetTexture, IndexedColor} from './helpers.js';
 import {Resources} from'./resources.js';
 import {TerrainTextureUniforms} from "./renders/common.js";
-import { DEFAULT_TX_SIZE, LIGHT_TYPE } from './constant.js';
+import { BLOCK_FLAG, DEFAULT_TX_SIZE, LIGHT_TYPE } from './constant.js';
 import type { TBlock } from './typed_blocks3.js';
 import type { BLOCK, FakeTBlock } from './blocks.js';
 import type { ChunkWorkerChunk } from './worker/chunk.js';
 import type { WebGLMaterial } from './renders/webgl/WebGLMaterial.js';
+import type { ResourcePackManager } from './resource_pack_manager.js';
 
 let tmpCanvas;
-
-const LAYERING_MOVE_TO_DOWN_STYLES = ['red_mushroom', 'brown_mushroom', 'sweet_berry_bush', 'petals', 'pebbles', 'burdock', 'fern', 'dead_bush', 'grass', 'tall_grass', 'wildflowers']
 
 export class BaseResourcePack {
     [key: string]: any;
 
     BLOCK : BLOCK
+    manager: ResourcePackManager
 
     constructor(block_manager : BLOCK, location, id) {
         this.BLOCK = block_manager;
@@ -37,7 +37,7 @@ export class BaseResourcePack {
         this.materials = new Map()
     }
 
-    async init(manager) {
+    async init(manager : ResourcePackManager) {
         this.manager = manager;
 
         const dir = (manager.settings?.resource_packs_basedir || '') + this.dir;
@@ -48,10 +48,10 @@ export class BaseResourcePack {
             Helpers.fetchJSON(dir + '/blocks.json', true, 'rp')
         ]).then(async ([conf, blocks]) => {
             this.conf = conf;
-            const import_blocks = conf.id != 'bbmodel' || draw_improved_blocks
-            if(import_blocks) {
-                for(let b of blocks) {
-                    await this.BLOCK.add(this, b);
+            for(let b of blocks) {
+                const import_blocks = conf.id != 'bbmodel' || draw_improved_blocks || b.bb?.import_anyway
+                if(import_blocks) {
+                    await this.BLOCK.add(this, b)
                 }
             }
         })
@@ -328,8 +328,7 @@ export class BaseResourcePack {
 
         //
         let y = pos.y
-        const style_name = tblock?.material.style_name
-        if(LAYERING_MOVE_TO_DOWN_STYLES.includes(style_name)) {
+        if(tblock?.material?.flags & BLOCK_FLAG.LAYERING_MOVE_TO_DOWN) {
             // layering
             if(neighbours && neighbours.DOWN) {
                 const under_height = neighbours.DOWN.material.height;

@@ -33,7 +33,7 @@ export default class style {
 
     // computeAABB
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
-        const aabb = new AABB().set(0, 0, 0, 1, .1, 1)
+        const aabb = new AABB().set(0, 0, 0, 1, 2/16, 1)
         const cardinal_direction = tblock.getCardinalDirection();
         const matrix = CubeSym.matrices[cardinal_direction]
         // on the ceil
@@ -63,7 +63,7 @@ export default class style {
             z = 0
         }
 
-        let random_index = (z * chunk.size.x + x) + y
+        let random_index = Math.round((z * chunk.size.x + x) + y)
         const rnd = randoms.double(random_index)
 
         // Textures

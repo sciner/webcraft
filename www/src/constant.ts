@@ -257,6 +257,7 @@ export enum BLOCK_FLAG {
     IS_DIRT                         = 0x400 | 0,
     TICKING                         = 0x800 | 0,
     RANDOM_TICKER                   = 0x1000 | 0,
+    LAYERING_MOVE_TO_DOWN           = 0x2000 | 0,
 }
 
 export enum WORKER_MESSAGE {

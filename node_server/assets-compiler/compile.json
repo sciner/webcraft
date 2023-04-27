@@ -2090,6 +2090,9 @@
             "sound": "madcraft:block.grass",
             "drop_item": {"name": "STICK", "count": [0, 1, 2], "chance": 1},
             "texture": "block/dead_bush.png",
+            "tags": [
+                "layering_move_to_down"
+            ],
             "material": {
                 "id": "plant"
             }
@@ -2256,6 +2259,9 @@
             "material": {
                 "id": "plant"
             },
+            "tags": [
+                "layering_move_to_down"
+            ],
             "composter_chance": 0.65
         },
         {
@@ -2269,6 +2275,9 @@
             "material": {
                 "id": "plant"
             },
+            "tags": [
+                "layering_move_to_down"
+            ],
             "composter_chance": 0.65
         },
         {
@@ -6368,6 +6377,7 @@
                 "id": "plant"
             },
             "tags": [
+                "layering_move_to_down",
                 "no_drop",
                 "mask_biome",
                 "swinging_in_the_wind"
@@ -6474,6 +6484,7 @@
             },
             "item": {"name": "food"},
             "tags": [
+                "layering_move_to_down",
                 "swinging_in_the_wind"
             ],
             "food": {
@@ -11390,6 +11401,7 @@
                 "block/diorite.png"
             ],
             "tags": [
+                "layering_move_to_down",
                 "_set_only_fullface",
                 "rotate_by_pos_n_6",
                 "no_drop_ao"
@@ -11416,6 +11428,7 @@
                 "id": "plant"
             },
             "tags": [
+                "layering_move_to_down",
                 "no_set_on_top",
                 "is_petals",
                 "no_drop_ao",
@@ -11438,6 +11451,7 @@
                 "id": "plant"
             },
             "tags": [
+                "layering_move_to_down",
                 "mask_biome",
                 "can_put_into_pot"
             ],
