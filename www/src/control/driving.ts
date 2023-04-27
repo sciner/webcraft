@@ -109,8 +109,7 @@ export abstract class Driving<TManager extends DrivingManager<any>> {
         this.config     = config
         this.state      = state
         // создаем копию physicsOptions потому что playerHeight может меняться
-        this.combinedPhysicsState = new PrismarinePlayerState(new Vector(), {...state.physicsOptions}, {})
-        this.combinedPhysicsState.driving = config
+        this.combinedPhysicsState = new PrismarinePlayerState(new Vector(), {...state.physicsOptions}, {}, config)
     }
 
     /**

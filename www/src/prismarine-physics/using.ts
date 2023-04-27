@@ -81,8 +81,8 @@ export class FakeWorld {
      * @throws {@link PHYSICS_CHUNK_NOT_READY_EXCEPTION} if the chunk isn't ready
      * TODO return null if air and no liquid (optimization)
      */
-    getBlock(pos : Vector, tblock? : TBlock, return_tblock?: boolean) : FakeBlock | null {
-        return_tblock ||= !!tblock
+    getBlock(pos : Vector, tblock? : TBlock) : FakeBlock | null {
+        const return_tblock = !!tblock
         const { _pos, _localPos } = this;
         tblock = tblock || this.tblock
         _pos.copyFrom(pos).flooredSelf();

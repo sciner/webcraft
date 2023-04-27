@@ -17,11 +17,6 @@ const _ladder_check_tblock = new TBlock()
 const tmpVectorCursor = new Vector()
 const DX_DZ_FOUR_DIRECTIONS = [[0, 1], [-1, 0], [0, -1], [1, 0]]
 
-// Множители базовой скорости лодки относительно скорости на земле, см. https://minecraft.fandom.com/wiki/Boat#Speed
-const BOAT_SPEED_WATER_MULTIPLIER       = 4
-const BOAT_SPEED_OTHER_ICE_MULTIPLIER   = 20
-const BOAT_SPEED_BLUE_ICE_MULTIPLIER    = 31.35
-
 function makeSupportFeature(mcData, features): (feature: string) => boolean {
     return feature => features.some(({ name, versions }) => name === feature && versions.includes(mcData.version.majorVersion))
 }
@@ -85,11 +80,6 @@ export class Physics {
         down: 0.05,
         maxDown: -0.5
     }
-    private readonly floatDrag = {  // плавучесть, например, лодки
-        up: 0.05,
-        maxUp: 0.5,
-        friction: 0.4
-    }
     private readonly negligeableVelocity = 0.003 // actually 0.005 for 1.8, but seems fine
     private readonly soulsandSpeed      = 0.4
     private readonly honeyblockSpeed    = 0.4
@@ -126,10 +116,23 @@ export class Physics {
     private readonly lavaGravity        : number
 
     // ========================= поворот при вождении =========================
-    private readonly maxAngularSpeed    = 0.2   // радиан/тик
-    private readonly angularAcceleration= 0.02  // радиан/тик^2
+    private readonly maxAngularSpeed    = 0.15  // радиан/тик
+    private readonly angularAcceleration= 0.015 // радиан/тик^2
     private readonly angularInertia     = 0.85  // аналогично другим видам инерции - на нее умножается скорость в каждом тике
     private readonly minAngularSpeed    = 0.003 // радиан/тик. Если скорость меньшей этого значения, наступает полная остановка.
+
+    // ==================== специальная значения для лодки ====================
+    private readonly floatDrag = {  // плавучесть, например, лодки
+        up: 0.05,
+        maxUp: 0.5,
+        friction: 0.4
+    }
+    // Особые значения для лодки в воде. Не подогнано точно как в майне. См. https://minecraft.fandom.com/wiki/Boat#Speed
+    private readonly boatLiquidAcceleration = 0.08
+    private readonly boatLiquidInertia = 0.9
+    // Особые значения для лодки на льду. Не подогнано точно как в майне.
+    private readonly boatOtherIceAcceleration = 0.07
+    private readonly boatBlueIceAcceleration = 0.12
 
     // ========================== temporary objects ===========================
 
@@ -460,6 +463,11 @@ export class Physics {
         }
     }
 
+    /**
+     * @param strafe - см. forward
+     * @param forward Поведение: при длине вектора (strafe, forward) <= 1, ускорение пропорционально и длине
+     *   этого вектора, и {@param multiplier}. При дальнейшкм росте длины этого вектора, ускорение уже не растет.
+     */
     private applyHeading(entity: PrismarinePlayerState, strafe: float, forward: float, multiplier: float): void {
         const length = Math.sqrt(strafe * strafe + forward * forward)
         if (length < 0.01) return
@@ -523,7 +531,13 @@ export class Physics {
                 const blockUnder = this.world.getBlock(pos.offset(0, -1, 0))
                 if (blockUnder) {
                     inertia = (this.blockSlipperiness[blockUnder.id] || options.defaultSlipperiness) * 0.91
-                    acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
+                    if (options.useBoatSpeed && this.iceIds.includes(blockUnder.id)) {
+                        acceleration = blockUnder.id === this.block_manager.BLUE_ICE?.id
+                            ? this.boatBlueIceAcceleration
+                            : this.boatOtherIceAcceleration
+                    } else {
+                        acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
+                    }
                 }
             }
 
@@ -579,7 +593,10 @@ export class Physics {
             const verticalInertia = entity.isInWater ? this.waterInertia : this.lavaInertia
             let horizontalInertia = verticalInertia
 
-            if (entity.isInWater) {
+            if (options.useBoatSpeed) {
+                horizontalInertia = this.boatLiquidInertia
+                acceleration = this.boatLiquidAcceleration
+            } else if (entity.isInWater) {
                 let strider = Math.min(entity.depthStrider, 3)
                 if (!entity.onGround) {
                     strider *= 0.5
@@ -599,25 +616,20 @@ export class Physics {
 
             const floatSubmergedHeight = options.floatSubmergedHeight
             if (floatSubmergedHeight != null) {
+                // Специальный режим плавучести.
+                // Это не физически правильное моделирование плавучести. Цель - вернуть объект на уровень воды.
                 const floatDrag = this.floatDrag
-                // It's not physically accurate buoyancy simulation, but it returns the object to its floatSubmergedHeight
-                const aboveEquilibrium = floatSubmergedHeight - entity.submergedHeight
+                const aboveEquilibrium = floatSubmergedHeight - entity.submergedHeight // насколько выше нужного уровня
                 if (aboveEquilibrium > 0) {
                     // it's too high, it should fall down
-                    if (vel.y > -aboveEquilibrium) {
-                        // increase the fall speed, but no more than necessary to reach equilibrium
-                        const gravityPercent = entity.submergedHeight / floatSubmergedHeight
-                        vel.y = Math.max(vel.y - liquidGravity * gravityPercent, -aboveEquilibrium)
-                    }
+                    const gravityPercent = entity.submergedHeight / floatSubmergedHeight
+                    vel.y = Math.max(vel.y - liquidGravity * gravityPercent, -aboveEquilibrium)
                 } else {
                     // it's too low, it should float up
-                    if (vel.y < -aboveEquilibrium) {
-                        // increase the ascension speed, but no more than necessary to reach equilibrium
-                        vel.y = Math.min(floatDrag.maxUp, vel.y + floatDrag.up, -aboveEquilibrium)
-                    }
+                    vel.y = Math.min(floatDrag.maxUp, vel.y + floatDrag.up, -aboveEquilibrium)
                 }
-                // fade oscillations if it's close to equilibrium
-                const friction = Mth.lerp(Math.abs(aboveEquilibrium), floatDrag.friction, 0)
+                // уменьшить скорость (усилить затузание колебаний) если возле поверзности воды
+                const friction = Mth.lerp(entity.submergedHeight, floatDrag.friction, 0)
                 vel.y *= (1 - friction)
             } else {
                 vel.y -= liquidGravity
@@ -896,23 +908,8 @@ export class Physics {
             entity.angularVelocity = null
         }
 
-        let speed = options.baseSpeed
-        // специальный режим вычисления скорости для лодки
-        if (options.useBoatSpeed) {
-            if (entity.isInWater) {
-                speed *= BOAT_SPEED_WATER_MULTIPLIER
-            } else {
-                const blockUnderId = this.world.getBlock(pos.offset(0, -1, 0), null, true)?.id
-                if (this.iceIds.includes(blockUnderId)) {
-                    speed *= blockUnderId === this.block_manager.BLUE_ICE?.id
-                        ? BOAT_SPEED_BLUE_ICE_MULTIPLIER
-                        : BOAT_SPEED_OTHER_ICE_MULTIPLIER
-                }
-            }
-        }
-
-        strafe *= speed
-        forward *= speed
+        strafe *= options.baseSpeed
+        forward *= options.baseSpeed
 
         if (control.sneak) {
             if(entity.flying) {
@@ -994,7 +991,7 @@ export class PrismarinePlayerState implements IPlayerControlState {
     driving ?   : TDrivingConfig    // Если задано - то это общий физический объект, контролируемый водителем
     pos         : Vector
     vel         : Vector
-    angularVelocity : float | null // Угловая скорость. Используется при езде если поворот стрелками.
+    angularVelocity : float | null = null // Угловая скорость. Используется при езде если поворот стрелками.
     yaw         = 0
     flying      = false
     onGround    = false
@@ -1015,7 +1012,7 @@ export class PrismarinePlayerState implements IPlayerControlState {
     depthStrider: float;
     passable?: float
 
-    constructor(pos: Vector, options: TPrismarineOptions, control: IPlayerControls) {
+    constructor(pos: Vector, options: TPrismarineOptions, control: IPlayerControls, driving?: TDrivingConfig) {
 
         // Input / Outputs
         this.pos                    = pos.clone()
@@ -1026,6 +1023,9 @@ export class PrismarinePlayerState implements IPlayerControlState {
 
         this.options = options
         addDefaultPhysicsOptions(options)
+
+        this.driving = driving
+        this.angularVelocity = driving?.useAngularSpeed ? 0 : null
 
         this.dolphinsGrace          = 0
         this.slowFalling            = 0

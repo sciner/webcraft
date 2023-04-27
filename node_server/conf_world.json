@@ -125,16 +125,16 @@
         },
         "transport/boat": {
             "physics": {
-                "baseSpeed": 0.2,
+                "baseSpeed": 0.4,
                 "playerHeight": 0.6,
-                "playerHalfWidth": 0.8,
-                "floatSubmergedHeight": 0.05,
+                "playerHalfWidth": 0.9,
+                "floatSubmergedHeight": 0.1,
                 "useBoatSpeed": true,
                 "jumpSpeed": 0
             },
-            "_driving": {
+            "driving": {
                 "offsets": [
-                    { "x": 0, "y": 0.7, "z": -0.5 }
+                    { "x": 0, "y": 0.2, "z": 0.5 }
                 ],
                 "useAngularSpeed": true,
                 "maxYawDelta": 1.6
