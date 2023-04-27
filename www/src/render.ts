@@ -954,11 +954,13 @@ export class Renderer {
         const {renderBackend} = this;
         if (!this.world) {
             renderBackend._emptyTexInt.bind(3);
+            renderBackend._emptyTexInt.bind(6);
             return;
         }
         const cm = this.world.chunkManager;
         // TODO: move to batcher
         cm.chunkDataTexture.getTexture(renderBackend).bind(3);
+        cm.renderList.chunkGridTex.getTexture(renderBackend).bind(6);
         const lp = cm.renderList.lightPool;
 
         // webgl bind all texture-3d-s

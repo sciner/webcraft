@@ -54,7 +54,7 @@ export class BaseTexture3D {
         }
     }
 
-    bind() {
+    bind(location?: number) {
     }
 
     isSimilar() {
