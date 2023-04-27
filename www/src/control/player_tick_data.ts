@@ -151,13 +151,22 @@ export class PlayerTickData {
     }
 
     initOutputFrom(pc: PlayerControl): void {
-        this.outControlFlags = packBooleans(pc.player_state.flying)
-        this.outPlayerFlags = packBooleans(pc.sneak)
-        this.outPos.copyFrom(pc.player_state.pos)
-        this.outVelocity.copyFrom(pc.player_state.vel)
-        const drivingCombinedState = pc.drivingCombinedState as (PrismarinePlayerState | null)
-        this.outVehicleYaw = drivingCombinedState?.yaw ?? null
-        this.outVehicleAngularVelocity = drivingCombinedState?.angularVelocity ?? null
+        if (this.contextTickMode == null) {
+            throw new Error() // сначала нужно инициализировать контекст
+        }
+        const ps = pc.player_state
+        this.outControlFlags = packBooleans(ps.flying)
+        this.outPlayerFlags = packBooleans(ps.sneak)
+        this.outPos.copyFrom(ps.pos)
+        this.outVelocity.copyFrom(ps.vel)
+        if (this.contextTickMode == PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
+            const drivingCombinedState = pc.drivingCombinedState as (PrismarinePlayerState | null)
+            this.outVehicleYaw = drivingCombinedState.yaw
+            this.outVehicleAngularVelocity = drivingCombinedState.angularVelocity
+        } else {
+            this.outVehicleYaw = null
+            this.outVehicleAngularVelocity = null
+        }
     }
 
     copyOutputFrom(src: PlayerTickData): void {
@@ -171,8 +180,10 @@ export class PlayerTickData {
 
     applyOutputToControl(pc: PlayerControl): void {
         const [flying] = unpackBooleans(this.outControlFlags, PlayerTickData.OUT_CONTROL_FLAGS_COUNT)
+        const [sneak] = unpackBooleans(this.outPlayerFlags, PlayerTickData.OUT_PLAYER_FLAGS_COUNT)
         const player_state = pc.player_state
         player_state.flying = flying
+        player_state.sneak = sneak
         player_state.pos.copyFrom(this.outPos)
         player_state.vel.copyFrom(this.outVelocity)
         const drivingCombinedState = pc.drivingCombinedState as (PrismarinePlayerState | null)
@@ -252,8 +263,11 @@ export class PlayerTickData {
 
     toString(): string {
         const ids = this.inputWorldActionIds ? `ids=[${this.inputWorldActionIds.join()}] ` : ''
-        let res = `t${this.startingPhysicsTick}+${this.physicsTicks}=t${this.endPhysicsTick} g${this.contextGameModeIndex} m${
-            this.contextTickMode} i${this.inputFlags} ${ids}${this.outPos}`
+        let res = `t${this.startingPhysicsTick}+${this.physicsTicks}=t${this.endPhysicsTick} ${ids}${this.outPos} if${this.inputFlags}`
+        if (this.contextGameModeIndex)  res += ` GM${this.contextGameModeIndex}`
+        if (this.contextTickMode)       res += ` tm${this.contextTickMode}`
+        if (this.outControlFlags)       res += ` Cf${this.outControlFlags}`
+        if (this.outPlayerFlags)        res += ` Pf${this.outPlayerFlags}`
         if (this.contextTickMode == PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
             res += `vehicle(${this.outVehicleYaw} ${this.outVehicleAngularVelocity})`
         }

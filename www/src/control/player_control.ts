@@ -28,6 +28,7 @@ export interface IPlayerControlState {
     flying      : boolean
     isInWater   : boolean
     isOnLadder? : boolean
+    sneak?      : boolean
 }
 
 /**
@@ -121,7 +122,6 @@ export abstract class PlayerControl<TState extends IPlayerControlState = IPlayer
 
     abstract get type(): PLAYER_CONTROL_TYPE
     abstract get requiresChunk(): boolean
-    abstract get sneak(): boolean
     abstract get playerHeight(): float
 
     /** @return состояние, которое участвует в симуляции (самого объекта, или общего объекта вождения) */

@@ -72,7 +72,7 @@
             "driving": {
                 "physics": {
                     "baseSpeed": 1,
-                    "jumpSpeed": 0.3
+                    "jumpSpeed": 0.35
                 },
                 "offsets": [ { "x": 0, "y": 0.75, "z": -0.1 } ]
             },

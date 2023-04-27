@@ -45,7 +45,6 @@ export class Physics {
 
     private readonly supportFeature_velocityBlocksOnTop: boolean
     private readonly supportFeature_climbUsingJump: boolean
-    private readonly blocksByName: Dict<TBlock | TBlock[] | null>
     private readonly blockSlipperiness  : (float | undefined)[] = []
     // Block ids
     private readonly slimeBlockId       : int | null
@@ -894,7 +893,7 @@ export class Physics {
             entity.yaw = Mth.round(entity.yaw, PHYSICS_ROTATION_DECIMALS)
             strafe = 0
         } else {
-            entity.angularVelocity = 0
+            entity.angularVelocity = null
         }
 
         let speed = options.baseSpeed
@@ -932,6 +931,8 @@ export class Physics {
         }
 
         this.moveEntityWithHeading(entity, strafe, forward)
+
+        entity.sneak = control.sneak && entity.onGround
     }
 }
 
@@ -993,12 +994,13 @@ export class PrismarinePlayerState implements IPlayerControlState {
     driving ?   : TDrivingConfig    // Если задано - то это общий физический объект, контролируемый водителем
     pos         : Vector
     vel         : Vector
-    angularVelocity : float // Угловая скорость. Используется при езде если поворот стрелками.
+    angularVelocity : float | null // Угловая скорость. Используется при езде если поворот стрелками.
     yaw         = 0
     flying      = false
     onGround    = false
     isInWater   = false
     isInLava    = false
+    sneak       = false
     /** If isInWater or isInLava, it shows the height of the part of the bounding box that is below the surface */
     submergedHeight?: float
     isInWeb     = false

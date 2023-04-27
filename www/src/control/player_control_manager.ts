@@ -242,7 +242,18 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
     private skipFreeCamSneakInput = false // used to skip pressing SHIFT after switching to freeCamp
     private freeCamPos = new Vector()
     private speedLogger = DEBUG_LOG_SPEED ? new PlayerSpeedLogger(DEBUG_LOG_SPEED_MODE) : null
-    private logger = new LimitedLogger('Control: ', 1000, null, DEBUG_LOG_PLAYER_CONTROL)
+    private logger = new LimitedLogger({
+        prefix: 'Control: ',
+        minInterval: 1000,
+        debugValueEnabled: 'DEBUG_LOG_PLAYER_CONTROL',
+        enabled: DEBUG_LOG_PLAYER_CONTROL
+    })
+    private fineLogger = new LimitedLogger({
+        ...this.logger.options,
+        minInterval: 0,
+        debugValueEnabled: 'DEBUG_LOG_PLAYER_CONTROL_DETAIL',
+        enabled: DEBUG_LOG_PLAYER_CONTROL_DETAIL
+    })
     /**
      * It contains data for all recent physics ticks (at least, those that are possibly not known to the server).
      * If a server sends a correction to an earlier tick, it's used to repeat the movement in the later ticks.
@@ -472,7 +483,7 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
             // Don't process more than PHYSICS_MAX_TICKS_PROCESSED. The server will correct us if we're wrong.
             const skipPhysicsTicks = physicsTicks - PHYSICS_MAX_TICKS_PROCESSED
             if (skipPhysicsTicks > 0) {
-                this.logger.log('skipping', `skipping ${skipPhysicsTicks} ticks`)
+                this.fineLogger.log('skipp_ticks', `skipping ${skipPhysicsTicks} ticks`)
                 const skippedTicksData = new ClientPlayerTickData()
                 skippedTicksData.initInputFrom(this, this.knownPhysicsTicks, skipPhysicsTicks)
                 skippedTicksData.initContextFrom(this)
@@ -595,16 +606,12 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
         if (correctedPhysicsTick <= this.knownPhysicsTicks &&
             exData.contextEqual(correctedData) && exData.outEqual(correctedData)
         ) {
-            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                console.log(`Control: correction ${debPrevKnownPhysicsTicks}->${correctedPhysicsTick} skipped`)
-            }
+            this.fineLogger.log('skip_correction', `correction ${debPrevKnownPhysicsTicks}->${correctedPhysicsTick} ${packet.log} skipped`)
             // It's possible that we have sent several packets and received several corrections,
             // so the current data might be already corrected. Do nothing then.
             return
         }
-        if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-            console.log(`Control: correction ${debPrevKnownPhysicsTicks} -> ..+${exData.physicsTicks}=${correctedPhysicsTick}`, exData.outPos, correctedData.outPos)
-        }
+        this.logger.log(packet.log, `correction ${debPrevKnownPhysicsTicks} -> ..+${exData.physicsTicks}=${correctedPhysicsTick} ${packet.log} ${exData.outPos} ${correctedData.outPos}`)
 
         // The data differs. Set the result at that tick, and invalidate the results in later ticks
         this.hasCorrection = true
@@ -624,6 +631,17 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
     }
 
     onServerAccepted(knownPhysicsTicks: int) {
+        if (this.hasCorrection) {
+            // Может быть такое: проверка физики на сервере отключена.
+            // 1. Было внешне изменение координат на сервере.
+            // 2. Сервер отослал коррекцию.
+            // 3. Сервер принял клиентские данные, не основанные на этой коррекции.
+            // 4. На клиенте есть эта еще не до концы обработанная боле ранняя коррекция, но уже пришло подтверждени более поздних данных.
+            // Хотя последние отосланные тики и приняты сервером, клиент должен их повторить чтобы
+            // отослать более новые с учетом предыдущей коррекции. Иначе серверное измение позици будет отменено клиентом.
+            // Клиент не должен забывать старые тики пока не применит коррекцию.
+            return
+        }
         const dataQueue = this.dataQueue
         while(dataQueue.length && dataQueue.getFirst().endPhysicsTick <= knownPhysicsTicks) {
             dataQueue.shift()

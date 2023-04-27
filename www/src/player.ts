@@ -254,6 +254,8 @@ export class Player implements IPlayer {
     _eating_sound:              any;
     driving?:                   ClientDriving | null
     timer_anim:                number = 0
+    /** значения, которые можно установить командой /debugplayer (и на клиенте, и на сервере) и использовать для любых целей */
+    debugValues                 = new Map<string, string>()
 
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
@@ -375,6 +377,7 @@ export class Player implements IPlayer {
             this.controlManager.onServerAccepted(cmd.data)
         })
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Qubatch.App.onError(cmd.data.message);});
+        server.AddCmdListener([ServerClient.CMD_LOG_CONSOLE], (cmd: INetworkMessage<string>) => console.log('SERVER: ', cmd.data))
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {
             Qubatch.sounds.play(cmd.data.tag, cmd.data.action, cmd.data.pos,
@@ -523,8 +526,8 @@ export class Player implements IPlayer {
     }
 
     // Return player is sneak
-    get isSneak() {
-        return this.controlManager.current.sneak
+    get isSneak(): boolean {
+        return this.controlManager.current.player_state.sneak ?? false
     }
 
     // Return player height
@@ -1381,6 +1384,26 @@ export class Player implements IPlayer {
         }
         if (this.timer_anim <= performance.now()) {
             this.state.anim = false
+        }
+    }
+
+    /**
+     * Добавлет, меняет значения или удаляет {@link debugValues} согласно аргументам команды.
+     * См. также обработчик этой команды в server_chat.ts
+     */
+    updateDebugValues(args: any[]): void {
+        for(let arg of args) {
+            if (arg.startsWith('-')) {
+                this.debugValues.delete(arg.substring(1))
+            } else {
+                let value = 'true'
+                const ind = arg.indexOf('=')
+                if (ind >= 0) {
+                    value = arg.substring(ind + 1)
+                    arg = arg.substring(0, ind)
+                }
+                this.debugValues.set(arg, value)
+            }
         }
     }
 

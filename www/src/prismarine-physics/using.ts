@@ -150,11 +150,6 @@ export class PrismarinePlayerControl extends PlayerControl<PrismarinePlayerState
 
     get requiresChunk(): boolean { return true }
 
-    get sneak(): boolean {
-        const player_state = this.player_state
-        return player_state.control.sneak && player_state.onGround
-    }
-
     get playerHeight(): float       { return this.player_state.options.playerHeight }
     get playerHalfWidth(): float    { return this.player_state.options.playerHalfWidth }
 
