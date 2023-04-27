@@ -34,6 +34,11 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
     // addPlayer
     add(cmd: {data: PlayerStateUpdate, time: number}) : PlayerModel {
         const data = cmd.data;
+
+        // Сервер присылает CMD_PLAYER_JOIN для уже существующих игроков.
+        // Ножно или удалить старого игрока перед повторным добавлением, или не создавать нового.
+        this.delete(data.id)
+
         const player = new PlayerModel({
             id:             data.id,
             pos:            data.pos,

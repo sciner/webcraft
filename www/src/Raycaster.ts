@@ -153,8 +153,7 @@ export class Raycaster {
                 if(!mob.aabb || !mob.isAlive || mob === exceptPlayerOrMob) {
                     continue
                 }
-                // @todo костыль, на сервере нет tPos
-                const tPos = mob?.tPos ? mob.tPos : mob.pos
+                const tPos = mob.pos
                 if(tPos.distance(pos) > max_distance) {
                     continue
                 }
@@ -185,8 +184,7 @@ export class Raycaster {
                 if(!player.aabb || !player.isAlive || player === exceptPlayerOrMob) {
                     continue;
                 }
-                // @todo костыль, на сервере нет tPos
-                const tPos = player?.tPos ? player.tPos : (player as any).state.pos // player может быть ServerPlayer
+                const tPos = player.pos ?? (player as any).state.pos // player может быть ServerPlayer
                 if(tPos.distance(pos) > max_distance) {
                     continue;
                 }

@@ -264,7 +264,7 @@ export class MobModel extends NetworkPhysicObject {
 
         // Draw AABB wireframe
         if(this.aabb && draw_debug_grid) {
-            this.aabb.draw(render, this.tPos, delta, true /*this.raycasted*/ );
+            this.aabb.draw(render, this.pos, delta, true /*this.raycasted*/ );
         }
 
         const mesh = this._mesh
@@ -274,7 +274,7 @@ export class MobModel extends NetworkPhysicObject {
             if(!mesh.apos) {
                 debugger
             }
-            mesh.apos.copyFrom(this._pos)
+            mesh.apos.copyFrom(this.pos)
             mesh.drawBuffered(render, delta)
         }
     }

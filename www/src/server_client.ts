@@ -41,7 +41,7 @@ export class ServerClient {
     static CMD_SET_WEATHER              = 38;
 
     // Players (others, and optionally the current player)
-    static CMD_PLAYER_JOIN              = 41;
+    static CMD_PLAYER_JOIN              = 41; // s->p (добавляет нового игрока)
     static CMD_PLAYER_LEAVE             = 42;
     static CMD_PLAYER_STATE             = 43; // server -> player
     static CMD_PLAYER_CONTROL_SESSION   = 112 // p->s (a client stated a new physics session)

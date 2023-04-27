@@ -2,7 +2,7 @@ import {Driving, DrivingPlace, TDrivingState, TDrivingConfig} from "@client/cont
 import type {Mob} from "../mob.js";
 import type {ServerPlayer} from "../server_player.js";
 import type {ServerWorld} from "../server_world.js";
-import {PHYSICS_ROTATION_DECIMALS, PLAYER_HEIGHT, PLAYER_PHYSICS_HALF_WIDTH} from "@client/constant.js";
+import {PHYSICS_ROTATION_DECIMALS, PLAYER_HEIGHT} from "@client/constant.js";
 import {Vector} from "@client/helpers/vector.js";
 import type {IAwarenessObject} from "../helpers/aware_players.js";
 import {AwarePlayers, ObjectUpdateType} from "../helpers/aware_players.js";

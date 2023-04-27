@@ -122,6 +122,10 @@ export class MobManager {
 
     // add
     add(data : TMobProps) {
+        // Сервер присылает CMD_MOB_ADD для уже существующих мобов.
+        // Ножно или удалить старого моба перед повторным добавлением, или не создавать нового.
+        this.delete(data.id)
+
         data.pitch  = data.rotate.x
         data.yaw    = data.rotate.z
         data.extra_data ??= null
@@ -139,7 +143,7 @@ export class MobManager {
     }
 
     // delete
-    delete(id) {
+    delete(id: int): void {
         const mob = this.list.get(id);
         if(mob) {
             mob.onUnload();

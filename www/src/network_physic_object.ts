@@ -29,12 +29,12 @@ export class NetworkPhysicObject {
 
     #world : World
     netBuffer           : NetworkPhysicObjectState[]
-    tPos                : Vector
-    protected tRot      : Vector
+    private tPos        : Vector
+    private tRot        : Vector
     yaw                 : float
     protected pitch     : float
     protected sneak     : number | boolean
-    protected _pos      : Vector
+    private _pos        : Vector
     private _prevPos    : Vector    // не используется, можно убрать
     protected moving    : boolean
     private _chunk_addr : Vector
@@ -205,17 +205,9 @@ export class NetworkPhysicObject {
     }
 
     updateAABB() {
-        const w = this.width;
-        const h = this.height;
-        this.aabb = this.aabb || new AABBDrawable();
-        this.aabb.set(
-            this.tPos.x - w/2,
-            this.tPos.y,
-            this.tPos.z - w/2,
-            this.tPos.x + w/2,
-            this.tPos.y + h,
-            this.tPos.z + w/2
-        );
+        this.aabb ??= new AABBDrawable();
+        // используем именно pos, а не tPos. tPos не всегда обновлен (например, когда обработали только 1 пакет из буфере)
+        this.aabb.setBottomHeightRadius(this.pos, this.height, this.width / 2)
     }
 
 }
