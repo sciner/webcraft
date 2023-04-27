@@ -134,8 +134,8 @@ export class MobModel extends NetworkPhysicObject {
             if (positionProvider === this) {
                 // обработать новую позицию, и применить ее ко всем участникам движения
                 super.processNetState()
-                driving.updateFromVehicleModel(this)
-                driving.applyToDependentParticipants()
+                driving.updateInterpolatedStateFromVehicle(this)
+                driving.applyInterpolatedStateToDependentParticipants()
                 return
             } else if (positionProvider) {
                 // есть кто-то другой, кто задает позицию этой модели; обработать только extra_data, если оно есть

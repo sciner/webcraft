@@ -22,12 +22,9 @@ export type TPrismarineEffects = {
     effects?: Effects[]
 }
 
-export type TPrismarinePlayerSize = {
+export type TPrismarineOptions = {
     playerHeight        ? : float
     playerHalfWidth     ? : float
-}
-
-export type TPrismarineOptions = TPrismarinePlayerSize & {
     baseSpeed           ? : float
     stepHeight          ? : float   // how much height can the bot step on without jump
     defaultSlipperiness ? : float

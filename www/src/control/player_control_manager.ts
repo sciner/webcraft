@@ -351,9 +351,11 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
 
             const driving = this.player.driving
             if (driving) {
-                driving.updateFromDriver(dst, this.player.rotate.z)
+                // обновить интерполированное состояние общего объекта вождения по водителю
                 driving.updateDriverInterpolatedYaw(tickFraction, this.player)
-                driving.applyToDependentParticipants()
+                driving.copyPosWithOffset(driving.interpolatedPos, DrivingPlace.DRIVER, driving.interpolatedYaw, dst,-1)
+                // обновить интерполированное состояние других участников вождения
+                driving.applyInterpolatedStateToDependentParticipants()
             }
         }
         dst.roundSelf(8)

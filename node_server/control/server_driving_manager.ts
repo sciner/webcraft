@@ -73,7 +73,7 @@ export class ServerDrivingManager extends DrivingManager<ServerWorld> {
                 mobType         : vehicleMob.type,
                 mobIds          : ArrayHelpers.create(places, null),
                 playerIds       : ArrayHelpers.create(places, null),
-                combinedSize    : {}
+                combinedHeight  : physicsOptions.playerHeight
             }
             drivingState.mobIds[0] = vehicleMob.id
             

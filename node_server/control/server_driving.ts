@@ -8,7 +8,6 @@ import type {IAwarenessObject} from "../helpers/aware_players.js";
 import {AwarePlayers, ObjectUpdateType} from "../helpers/aware_players.js";
 import {ServerClient} from "@client/server_client.js";
 import type {ServerDrivingManager} from "./server_driving_manager.js";
-import type {TPrismarinePlayerSize} from "@client/prismarine-physics/using.js";
 import {Mth} from "@client/helpers/mth.js";
 
 /** Если учстник движения отсутсвует на сервере (может не загружен?) - через сколько секунд его выкидывать. */
@@ -100,7 +99,7 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
         }
     }
 
-    /** @see Driving.applyToDependentParticipants */
+    /** Обновляет физическое состояния всех участников движения (кроме того, кто задает общею позицию), на основе общего состояния. */
     applyToDependentParticipants(): void {
         for(let place = 0; place < this.mobs.length; place++) {
             const mob = this.mobs[place]
@@ -347,24 +346,17 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
     private updateCombinedSize(): void {
         const state = this.state
         const config = this.config
-        const vehiclePhysicsOptions = state.physicsOptions
-        let playerHeight = vehiclePhysicsOptions.playerHeight
-        let playerHalfWidth = vehiclePhysicsOptions.playerHalfWidth
+        state.combinedHeight = state.physicsOptions.playerHeight
 
-        for (let place = DrivingPlace.DRIVER; place < this.state.mobIds.length; place++) {
-            if (state.playerIds[place] ?? this.state.mobIds[DrivingPlace.DRIVER] != null) {
+        for (let place = DrivingPlace.DRIVER; place < state.mobIds.length; place++) {
+            if (state.playerIds[place] ?? state.mobIds[place] != null) {
                 const offset = config.offsets[place - 1] = Vector.vectorify(config.offsets[place - 1])
 
                 // TODO use correct passenger mob size
 
-                playerHeight = Math.max(playerHeight, offset.y + PLAYER_HEIGHT)
-                playerHalfWidth = Math.max(playerHalfWidth, offset.horizontalLength() + PLAYER_PHYSICS_HALF_WIDTH)
+                state.combinedHeight = Math.max(state.combinedHeight, offset.y + PLAYER_HEIGHT)
             }
         }
-
-        const cs: TPrismarinePlayerSize = state.combinedSize
-        cs.playerHeight = playerHeight
-        cs.playerHalfWidth = playerHalfWidth
     }
 
     exportUpdateMessage(updateType: ObjectUpdateType): INetworkMessage {

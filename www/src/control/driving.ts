@@ -1,7 +1,7 @@
 import {PlayerModel} from "../player_model.js";
 import type {MobModel} from "../mob_model.js";
 import {Vector} from "../helpers/vector.js";
-import type {TPrismarineOptions, TPrismarinePlayerSize} from "../prismarine-physics/using.js";
+import type {TPrismarineOptions} from "../prismarine-physics/using.js";
 import type {Player} from "../player.js";
 import {PrismarinePlayerState} from "../prismarine-physics/index.js";
 import type {DrivingManager, ClientDrivingManager} from "./driving_manager.js";
@@ -60,7 +60,7 @@ export type TDrivingConfig = {
 export type TDrivingState = {
     // ===================== неизменные начальные данные ======================
     id              : int
-    physicsOptions  : TPrismarineOptions    // скопировано из траспортного средства
+    physicsOptions  : TPrismarineOptions    // скопировано из траспортного средства. Не меняется.
     mobType         : string    // тип моба-транспортного средства
 
     // ================= данные, меняющиеся на протяжении игры =================
@@ -71,8 +71,13 @@ export type TDrivingState = {
      */
     mobIds          : (int | null)[]
     playerIds       : (int | null)[]
-    // Общий размер текущих участников
-    combinedSize    : TPrismarinePlayerSize
+    /**
+     * Общая высота текущих участников.
+     *
+     * Ширина всегда равна ширине транспортного средства. Почему ширина не меняется: физика реализована
+     * так, что если увеличится ширина возле стенки, то объект сможет пройти сквозь стенку.
+     */
+    combinedHeight  : float
 }
 
 const tmpVec = new Vector()
@@ -102,7 +107,8 @@ export abstract class Driving<TManager extends DrivingManager<any>> {
         this.manager    = manager
         this.config     = config
         this.state      = state
-        this.combinedPhysicsState = new PrismarinePlayerState(new Vector(), state.physicsOptions, {})
+        // создаем копию physicsOptions потому что playerHeight может меняться
+        this.combinedPhysicsState = new PrismarinePlayerState(new Vector(), {...state.physicsOptions}, {})
         this.combinedPhysicsState.driving = config
     }
 
@@ -112,23 +118,17 @@ export abstract class Driving<TManager extends DrivingManager<any>> {
      */
     getSimulatedState(driverState: PrismarinePlayerState): PrismarinePlayerState {
         const ps = this.combinedPhysicsState
+        ps.options.playerHeight = this.state.combinedHeight
         this.updateFromDriverState(driverState)
         ps.copyControlsFrom(driverState)
         return ps
     }
 
-    /** Обновляет общее физическое состояние на основе позиции и угла водителя */
-    updateFromDriver(pos: IVector, yaw: float): void {
-        const ps = this.combinedPhysicsState
-        if (!this.config.useAngularSpeed) {
-            ps.yaw = Mth.round(yaw, PHYSICS_ROTATION_DECIMALS)
-        }
-        this.copyPosWithOffset(ps.pos, DrivingPlace.DRIVER, pos, -1)
-    }
-
     /** Обновляет общее физическое состояние на основе физического состояния водителя */
     updateFromDriverState(driverState: PrismarinePlayerState): void {
-        this.updateFromDriver(driverState.pos, driverState.yaw)
+        if (!this.config.useAngularSpeed) {
+            this.combinedPhysicsState.yaw = Mth.round(driverState.yaw, PHYSICS_ROTATION_DECIMALS)
+        }
         this.combinedPhysicsState.copyAdditionalDynamicFieldsFrom(driverState)
     }
 
@@ -148,30 +148,31 @@ export abstract class Driving<TManager extends DrivingManager<any>> {
         participantState.copyAdditionalDynamicFieldsFrom(combinedPhysicsState)
     }
 
-    /** Обновляет состояния всех участников движения (кроме того, кто задает общею позицию), на основе общего состояния. */
-    abstract applyToDependentParticipants(): void
-
     /**
      * Устанавливают позицию участника на основе позиции общего объекта (или наоборот)
      * dst = src + sign * смещение_повернутое_на_yaw
      * Смещение - это driverOffset, passengerOffset, или ZERO (для транспотртного средства)
      * @param dst - итоговая позиция
      * @param place - место участника вожения
+     * @param yaw - угол транспортного средства. По умолчанию берется из физического состояния.
      * @param src - известная позиция
      * @param sign - 1 или -1, см. формулу выше
-     * */
-    protected copyPosWithOffset(dst: IVector, place: DrivingPlace, src: IVector = this.combinedPhysicsState.pos, sign: float = 1): void {
-        if (place === DrivingPlace.VEHICLE) {
-            dst.x = src.x
-            dst.y = src.y
-            dst.z = src.z
-        } else {
+     */
+    copyPosWithOffset(dst: IVector, place: DrivingPlace, yaw: float | null = null,
+        src: IVector = this.combinedPhysicsState.pos, sign: float = 1
+    ): void {
+        dst.x = Mth.round(src.x, PHYSICS_POS_DECIMALS)
+        dst.y = Mth.round(src.y, PHYSICS_POS_DECIMALS)
+        dst.z = Mth.round(src.z, PHYSICS_POS_DECIMALS)
+        if (place !== DrivingPlace.VEHICLE) {
+            yaw ??= Mth.round(this.combinedPhysicsState.yaw, PHYSICS_ROTATION_DECIMALS)
             const offset = this.config.offsets[place - 1]
             tmpVec.copyFrom(offset)
-            tmpVec.rotateYawSelf(this.combinedPhysicsState.yaw)
-            dst.x = Mth.round(src.x + sign * tmpVec.x, PHYSICS_POS_DECIMALS)
-            dst.y = Mth.round(src.y + sign * tmpVec.y, PHYSICS_POS_DECIMALS)
-            dst.z = Mth.round(src.z + sign * tmpVec.z, PHYSICS_POS_DECIMALS)
+                .rotateYawSelf(yaw)
+                .roundSelf(PHYSICS_POS_DECIMALS)
+            dst.x += sign * tmpVec.x
+            dst.y += sign * tmpVec.y
+            dst.z += sign * tmpVec.z
         }
     }
 }
@@ -191,7 +192,9 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
     private prevInterpolatedYaw : float | null
     interpolatedYaw             : float
     /** Значение yaw транспортного средства при вождении в предыдущем физическом тике */
-    prevPhysicsTickVehicleYaw?: float | null
+    prevPhysicsTickVehicleYaw ? : float | null
+
+    interpolatedPos             = new Vector()
 
     constructor(manager: ClientDrivingManager, config: TDrivingConfig, state: TDrivingState) {
         super(manager, config, state)
@@ -243,20 +246,16 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
         return actionId
     }
 
-    updateFromVehicleModel(model: MobModel): void {
-        const ps = this.combinedPhysicsState
-        ps.pos.copyFrom(model.pos)  // это транспортное средство, смещение равно нулю
-        ps.yaw = model.yaw
-        this.interpolatedYaw = model.yaw
-    }
-
-    /** @see Driving.applyToDependentParticipants */
-    applyToDependentParticipants(): void {
+    /** Обновляет позицию и угол в кажде зависимых учатников движения */
+    applyInterpolatedStateToDependentParticipants(): void {
         const positionProvider = this.getPositionProvider()
+        if (positionProvider == null) {
+            return // неоткуда брать достоверные данные
+        }
         for(let place = 0; place < this.models.length; place++) {
             const model = this.models[place]
             if (model && model !== positionProvider) {
-                this.copyPosWithOffset(model.pos, place)
+                this.copyPosWithOffset(model.pos, place, this.interpolatedYaw, this.interpolatedPos)
                 // Определить угол модели. Если это модель моего игрока, то взять угол из моего игрока.
                 let yaw = place === this.myPlayerPlace
                     ? this.myPlayer.rotate.z
@@ -306,23 +305,6 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
         player.rotate.z = playerFrameYaw
     }
 
-    /**
-     * Вызывается если модель игрока/моба добавлена или получила апдейт.
-     * В зависимости от места этой модели и других участников, делает одно из двух:
-     * - синхронизирует позицию всех участников езды с этой моделью
-     * - синхронизирует позицию этой модели с остальными участниками
-     */
-    onModelAddedOrChanged(model: MobModel): void {
-        const place = this.models.indexOf(model)
-        if (place < 0) {
-            return
-        }
-        if (model === this.getPositionProvider()) {
-            this.updateCombinedStateFromVehicle(model)
-        }
-        this.applyToDependentParticipants()
-    }
-
     onMobModelAdded(mobModel: MobModel): void {
         if (this.state.mobIds.includes(mobModel.id)) {
             this.resolve()
@@ -361,9 +343,9 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
     }
 
     /** Обновляет позицию общего физ. объекта на основе позиции транспортного средства */
-    private updateCombinedStateFromVehicle(model: MobModel): void {
-        this.combinedPhysicsState.pos.copyFrom(model.pos)
-        this.combinedPhysicsState.yaw = model.yaw
+    updateInterpolatedStateFromVehicle(model: MobModel): void {
+        this.interpolatedPos.copyFrom(model.pos) // это транспортное средство, смещение равно нулю
+        this.interpolatedYaw = model.yaw
     }
 
     /**
@@ -415,8 +397,8 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
             this.models[place] = newModel
             if (newModel) {
                 newModel.driving = this
-                this.onModelAddedOrChanged(newModel)
             }
         }
     }
+
 }

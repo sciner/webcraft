@@ -57,6 +57,9 @@ export class PlayerTickData {
     outPlayerFlags: int     // boolean values that are stored in the player's state
     outPos = new Vector()
     outVelocity = new Vector()
+
+    // выходные данные, используемые только при вождении
+    outVehiclePos = new Vector()
     /** Угол поворота транспоттного средства (только во время вождения, только если поворотом транспорта нельзя свободно управлять) */
     outVehicleYaw: float | null
     /** Угловая скорость транспоттного средства (только во время вождения, только если поворотом транспорта нельзя свободно управлять) */
@@ -159,13 +162,17 @@ export class PlayerTickData {
         this.outPlayerFlags = packBooleans(ps.sneak)
         this.outPos.copyFrom(ps.pos)
         this.outVelocity.copyFrom(ps.vel)
-        if (this.contextTickMode == PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
-            const drivingCombinedState = pc.drivingCombinedState as (PrismarinePlayerState | null)
-            this.outVehicleYaw = drivingCombinedState.yaw
-            this.outVehicleAngularVelocity = drivingCombinedState.angularVelocity
-        } else {
-            this.outVehicleYaw = null
-            this.outVehicleAngularVelocity = null
+        // вождение
+        if (this.isContextDriving()) {
+            const drivingCombinedState = pc.drivingCombinedState as PrismarinePlayerState
+            this.outVehiclePos.copyFrom(drivingCombinedState.pos)
+            if (this.contextTickMode == PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
+                this.outVehicleYaw = drivingCombinedState.yaw
+                this.outVehicleAngularVelocity = drivingCombinedState.angularVelocity
+            } else {
+                this.outVehicleYaw = null
+                this.outVehicleAngularVelocity = null
+            }
         }
     }
 
@@ -174,8 +181,12 @@ export class PlayerTickData {
         this.outPlayerFlags = src.outPlayerFlags
         this.outPos.copyFrom(src.outPos)
         this.outVelocity.copyFrom(src.outVelocity)
-        this.outVehicleYaw = src.outVehicleYaw
-        this.outVehicleAngularVelocity = src.outVehicleAngularVelocity
+        // вождение
+        if (this.isContextDriving()) {
+            this.outVehiclePos.copyFrom(src.outVehiclePos)
+            this.outVehicleYaw = src.outVehicleYaw
+            this.outVehicleAngularVelocity = src.outVehicleAngularVelocity
+        }
     }
 
     applyOutputToControl(pc: PlayerControl): void {
@@ -186,10 +197,14 @@ export class PlayerTickData {
         player_state.sneak = sneak
         player_state.pos.copyFrom(this.outPos)
         player_state.vel.copyFrom(this.outVelocity)
+        // вождение
         const drivingCombinedState = pc.drivingCombinedState as (PrismarinePlayerState | null)
-        if (drivingCombinedState && this.outVehicleYaw != null) {
-            drivingCombinedState.yaw = this.outVehicleYaw
-            drivingCombinedState.angularVelocity = this.outVehicleAngularVelocity
+        if (drivingCombinedState && this.isContextDriving()) {
+            drivingCombinedState.pos.copyFrom(this.outVehiclePos)
+            if (this.outVehicleYaw != null) {
+                drivingCombinedState.yaw = this.outVehicleYaw
+                drivingCombinedState.angularVelocity = this.outVehicleAngularVelocity
+            }
         }
     }
 
@@ -198,8 +213,11 @@ export class PlayerTickData {
             this.outPlayerFlags === other.outPlayerFlags &&
             this.outPos.equal(other.outPos) &&
             this.outVelocity.equal(other.outVelocity) &&
-            this.outVehicleYaw === other.outVehicleYaw &&
-            this.outVehicleAngularVelocity === other.outVehicleAngularVelocity
+            (!this.isContextDriving() ||
+                this.outVehiclePos.equal(other.outVehiclePos) &&
+                this.outVehicleYaw === other.outVehicleYaw &&
+                this.outVehicleAngularVelocity === other.outVehicleAngularVelocity
+            )
     }
 
     writeInput(dc: OutDeltaCompressor): void {
@@ -221,9 +239,13 @@ export class PlayerTickData {
             .putInt(this.outPlayerFlags)
             .putFloatVector(this.outPos)
             .putFloatVector(this.outVelocity)
-        if (this.contextTickMode === PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
-            dc.putFloat(this.outVehicleYaw)
-            dc.putFloat(this.outVehicleAngularVelocity)
+        // вождение
+        if (this.isContextDriving()) {
+            dc.putFloatVector(this.outVehiclePos)
+            if (this.contextTickMode === PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
+                dc.putFloat(this.outVehicleYaw)
+                dc.putFloat(this.outVehicleAngularVelocity)
+            }
         }
     }
 
@@ -252,12 +274,16 @@ export class PlayerTickData {
         this.outPlayerFlags = dc.getInt()
         dc.getFloatVector(this.outPos)
         dc.getFloatVector(this.outVelocity)
-        if (this.contextTickMode === PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
-            this.outVehicleYaw = dc.getFloat()
-            this.outVehicleAngularVelocity = dc.getFloat()
-        } else {
-            this.outVehicleYaw = null
-            this.outVehicleAngularVelocity = null
+        // вождение
+        if (this.isContextDriving()) {
+            dc.getFloatVector(this.outVehiclePos)
+            if (this.contextTickMode === PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
+                this.outVehicleYaw = dc.getFloat()
+                this.outVehicleAngularVelocity = dc.getFloat()
+            } else {
+                this.outVehicleYaw = null
+                this.outVehicleAngularVelocity = null
+            }
         }
     }
 
@@ -268,10 +294,15 @@ export class PlayerTickData {
         if (this.contextTickMode)       res += ` tm${this.contextTickMode}`
         if (this.outControlFlags)       res += ` Cf${this.outControlFlags}`
         if (this.outPlayerFlags)        res += ` Pf${this.outPlayerFlags}`
-        if (this.contextTickMode == PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
-            res += `vehicle(${this.outVehicleYaw} ${this.outVehicleAngularVelocity})`
+        if (this.isContextDriving()) {
+            res += `driving(${this.outVehiclePos} ${this.outVehicleYaw} ${this.outVehicleAngularVelocity})`
         }
         return res
+    }
+
+    protected isContextDriving(): boolean {
+        const tm = this.contextTickMode
+        return tm === PLAYER_TICK_MODE.DRIVING_FREE_YAW || tm === PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED
     }
 }
 
