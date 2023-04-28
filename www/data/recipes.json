@@ -64,7 +64,6 @@
             "count": 4
         }
     },
-
     {
         "id": "11183f08-2d57-45b6-bba5-6335db8a1c6b",
         "type": "madcraft:crafting_shaped",
@@ -151,7 +150,7 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": "special:planks"
+                "item": "special:copper_ingot"
             }
         },
         "result": {
@@ -193,7 +192,7 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": "special:planks"
+                "item": "special:copper_ingot"
             }
         },
         "result": {
@@ -235,7 +234,7 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": "special:planks"
+                "item": "special:copper_ingot"
             }
         },
         "result": {
@@ -385,7 +384,7 @@
         ],
         "key": {
             "#": {
-                "item": "special:planks"
+                "item": "special:copper_ingot"
             },
             "S": {
                 "item": "madcraft:stick"
@@ -1571,7 +1570,7 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": "special:planks"
+                "item": "special:copper_ingot"
             }
         },
         "result": {
@@ -1693,6 +1692,24 @@
         },
         "result": {
             "item": "madcraft:primitive_axe",
+            "count": 1
+        }
+    },
+    {
+        "id": "322a7529-7e34-405c-aba1-b4d69217f49b",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "SS ",
+            "SS "
+        ],
+        "key": {
+            "S": {
+                "item": "madcraft:small_rock"
+            }
+        },
+        "result": {
+            "item": "madcraft:cobblestone",
             "count": 1
         }
     }
