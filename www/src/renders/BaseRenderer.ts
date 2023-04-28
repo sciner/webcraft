@@ -347,6 +347,8 @@ export class GlobalUniformGroup {
         this.updateID = 0;
         this.camPos = new Vector();
         this.useNormalMap = false;
+        this.gridChunkSize = new Vector();
+        this.gridTexSize = new Vector();
 
         this.localLigthRadius = 0;
         this.rainStrength = 0;

@@ -1,9 +1,9 @@
-import {Vector} from "../helpers/vector";
+import {Vector} from "../helpers/vector.js";
 import type {BaseTexture3D} from "../renders/BaseTexture3D.js";
 import type {ChunkLight} from "./ChunkLight";
 
 const SIZE_X = 32;
-const SIZE_Y = 16;
+const SIZE_Y = 8;
 const SIZE_X_SHIFT = 5;
 const LEN = SIZE_X * SIZE_Y * SIZE_X;
 const SIZE_X_1 = SIZE_X - 1;
@@ -13,6 +13,7 @@ export class ChunkGridTexture {
     tex: BaseTexture3D = null;
     data = new Int32Array(LEN);
     spiralMoveID: number = -1;
+    size = new Vector(SIZE_X, SIZE_Y, SIZE_X);
 
     constructor() {
     }

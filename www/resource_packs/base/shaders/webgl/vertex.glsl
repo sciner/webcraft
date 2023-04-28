@@ -16,7 +16,7 @@ void main() {
     #include<terrain_read_flags_vert>
 
     vec3 add_pos = u_add_pos;
-    vec3 nearest_chunk_pos = vec3(0.0, 0.0, 0.0);
+    vec3 chunk_corner = vec3(0.0, 0.0, 0.0);
     #include<ao_light_pass_vertex>
 
     v_color = vec4(float(a_color & uint(0x3ff)),
@@ -105,7 +105,7 @@ void main() {
     }
 
     v_world_pos = v_chunk_pos + add_pos;
-    v_chunk_pos = v_chunk_pos - nearest_chunk_pos;
+    v_chunk_pos = v_chunk_pos - chunk_corner;
 
     // Waves
     if(checkFlag(FLAG_WAVES_VERTEX)) {

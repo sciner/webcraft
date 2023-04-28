@@ -3,9 +3,8 @@ import {FLUID_TYPE_MASK, fluidLightPower} from "../fluid/FluidConst.js";
 import {BLOCK} from "../blocks.js";
 import type {RegionTexture3D} from "../renders/BaseTexture3D";
 import type {ChunkDataTexture} from "./ChunkDataTexture";
-import type {ChunkGridTexture} from "./ChunkGridTexture";
+import type {ChunkGridTexture} from "./ChunkGridTexture.js";
 import type {TypedBlocks3} from "../typed_blocks3";
-import {ChunkGrid} from "../core/ChunkGrid";
 
 export class ChunkLight {
     parentAddr: Vector;

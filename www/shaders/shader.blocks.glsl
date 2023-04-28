@@ -99,8 +99,9 @@
     uniform vec3 u_add_pos;
     uniform float u_pixelSize;
     uniform highp isampler2D u_chunkDataSampler;
-    uniform highp isampler2D u_chunkGridSampler;
-    uniform ivec4 u_lightOffset;
+    uniform highp isampler3D u_gridChunkSampler;
+    uniform vec3 u_gridChunkSize;
+    uniform vec3 u_gridChunkOffset;
     //--
 #endif
 
@@ -463,7 +464,16 @@
     ivec4 chunkData0 = ivec4(0, 0, 0, 0);
     ivec4 chunkData1 = ivec4(1 << 16, 1 << 16, 1 << 16, 0);
     if (a_chunkId < -0.5) {
-        a_position + add_pos //relative to cam
+        vec3 chunkCoord = floor((a_position - u_gridChunkOffset) / u_gridChunkSize);
+        chunk_corner = chunkCoord * u_gridChunkSize + u_gridChunkOffset;
+        //TODO: use "-" here, 0 <= chunkCoord < 2 * gridTexSize
+        int chunkIntData = texelFetch(u_gridChunkSampler, ivec3(chunkCoord) % textureSize(u_gridChunkSampler, 0), 0).r;
+        if (chunkIntData >= 0) {
+            chunkData1.x = chunkIntData & 0x1ff;
+            chunkData1.y = (chunkIntData >> 9) & 0x1ff;
+            chunkData1.z = (chunkIntData >> 18) & 0x1ff;
+            chunkData1.w = (chunkIntData >> 27) & 0xf;
+        }
     } else {
         int size = textureSize(u_chunkDataSampler, 0).x;
         int chunkId = int(a_chunkId);
