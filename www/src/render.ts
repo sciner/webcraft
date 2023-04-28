@@ -1030,6 +1030,7 @@ export class Renderer {
                     // 3. Draw mobs
                     this.drawMobs(delta);
                     // 4. Draw players and rain
+                    // После мобов, это важно. draw также обновляет состояние. Моб-транспорт должен обработаться первым и изменить позицию модели игрока.
                     this.drawPlayers(delta);
                     // 5. Draw drop items
                     this.drawDropItems(delta);
