@@ -9,7 +9,8 @@ export class BaseTexture3D {
         depth = 1,
         type = 'u8',
         filter = 'nearest',
-        data = null
+        data = null,
+        fixedSize = true
     } = {}) {
         this.width = width;
         this.height = height;
@@ -30,6 +31,7 @@ export class BaseTexture3D {
         this.ownerPool = null;
         this.isRegion = false;
         this.isEmpty = false;
+        this.fixedSize = fixedSize;
         this.emptyRegion = null;
 
         /**

@@ -22,9 +22,9 @@ export class ChunkGridTexture {
         if (this.tex) {
             return this.tex;
         }
-        this.tex = render.createTexture({
-            type: 'rgba32sint',
-            source: this.data,
+        this.tex = render.createTexture3D({
+            type: 'r32sint',
+            data: this.data,
             width: SIZE_X,
             height: SIZE_X,
             depth: SIZE_Y,

@@ -11,17 +11,20 @@ const TEXTURE_TYPE_FORMAT = {
     },
     'rgb565unorm': {
         format: 'RGB', internal: 'RGB565', type : 'UNSIGNED_SHORT_5_6_5',
-        arrClass: Uint16Array, bytesPerElement: 2,
+        arrClass: Uint16Array, bytesPerElement: 2, elementPerPixel: 1,
     },
     'rgba4unorm': {
         format: 'RGBA', internal: 'RGBA4', type : 'UNSIGNED_SHORT_4_4_4_4',
         arrClass: Uint16Array, bytesPerElement: 2,
     },
     'u8': {
-        format: 'ALPHA', type: 'UNSIGNED_BYTE',
+        format: 'ALPHA', type: 'UNSIGNED_BYTE', elementPerPixel: 1,
     },
     'rgba': {
         format: 'RGBA', type: 'UNSIGNED_BYTE',
+    },
+    'r32sint': {
+        format: 'RED', internal: 'R32I', type: 'INT', elementPerPixel: 1,
     }
 }
 
@@ -58,10 +61,25 @@ export class WebGLTexture3D extends BaseTexture3D {
 
         const formats = TEXTURE_TYPE_FORMAT[this.type];
 
+        if (this.fixedSize) {
+            if (this.prevLength === 0) {
+                gl.texStorage3D(target, 1, gl[formats.internal || formats.format],
+                    this.width, this.height, this.depth);
+                if (data) {
+                    this.prevLength = data.length;
+                } else {
+                    this.prevLength = this.width * this.height * this.depth * (formats.elementPerPixel || 4);
+                }
+            } else if (data && this.prevLength !== data.length) {
+                console.warn('Texture3D resize fail');
+                return;
+            }
+        }
         if (this.useSubRegions) {
             this.uploadSubs();
-        } else {
+        } else if (data) {
             if (this.prevLength !== data.length) {
+                // SHOULD NOT HAPPEN
                 this.prevLength = data.length;
                 gl.texImage3D(target, 0, gl[formats.internal || formats.format],
                     this.width, this.height, this.depth,
@@ -91,7 +109,7 @@ export class WebGLTexture3D extends BaseTexture3D {
         const formats = TEXTURE_TYPE_FORMAT[this.type];
 
         const target = gl.TEXTURE_3D;
-        const sz = this.width * this.height * this.depth * (formats.bytesPerElement || 4);
+        const sz = this.width * this.height * this.depth * (formats.elementPerPixel || 4);
         if (this.prevLength !== sz) {
             this.prevLength = sz;
             gl.texImage3D(target, 0, gl[formats.internal || formats.format],

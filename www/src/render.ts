@@ -954,7 +954,7 @@ export class Renderer {
         const {renderBackend} = this;
         if (!this.world) {
             renderBackend._emptyTexInt.bind(3);
-            renderBackend._emptyTexInt.bind(6);
+            renderBackend._emptyTex3DInt.bind(6);
             return;
         }
         const cm = this.world.chunkManager;
@@ -999,7 +999,7 @@ export class Renderer {
         globalUniforms.crosshairOn = this.crosshairOn;
         globalUniforms.u_eyeinwater = player.eyes_in_block?.is_water ? 1. : 0.;
         globalUniforms.gridChunkSize.copyFrom(this.world.chunkManager.grid.chunkSize);
-        globalUniforms.gridTexSize.copyFrom(renderList.chunkGridTex.size);
+        globalUniforms.gridTexSize.copyFrom(renderList.chunkGridTex.size).multiplyVecSelf(globalUniforms.gridChunkSize);
         globalUniforms.update();
 
         this.debugGeom.clear();
