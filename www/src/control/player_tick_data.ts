@@ -162,16 +162,25 @@ export class PlayerTickData {
         this.outPlayerFlags = packBooleans(ps.sneak)
         this.outPos.copyFrom(ps.pos)
         this.outVelocity.copyFrom(ps.vel)
+
         // вождение
+        const drivingCombinedState = pc.drivingCombinedState as (PrismarinePlayerState | null)
         if (this.isContextDriving()) {
-            const drivingCombinedState = pc.drivingCombinedState as PrismarinePlayerState
-            this.outVehiclePos.copyFrom(drivingCombinedState.pos)
-            if (this.contextTickMode == PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
-                this.outVehicleYaw = drivingCombinedState.yaw
-                this.outVehicleAngularVelocity = drivingCombinedState.angularVelocity
+            if (drivingCombinedState) {
+                this.outVehiclePos.copyFrom(drivingCombinedState.pos)
+                if (this.contextTickMode == PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
+                    this.outVehicleYaw = drivingCombinedState.yaw
+                    this.outVehicleAngularVelocity = drivingCombinedState.angularVelocity
+                } else {
+                    this.outVehicleYaw = null
+                    this.outVehicleAngularVelocity = null
+                }
             } else {
-                this.outVehicleYaw = null
-                this.outVehicleAngularVelocity = null
+                // Несмотря на то, что данные могут относиться к водению, drivingCombinedState может отсутствовать.
+                // Например, если на клиент пришла коррекция, но вождения еще/уже нет.
+                // Нам неоткуда взять значения, связанные с вождением.
+                // Чтобы сохранить целостность данных, пометим что в этих данных их нет.
+                this.contextTickMode = PLAYER_TICK_MODE.NORMAL
             }
         }
     }
@@ -183,9 +192,14 @@ export class PlayerTickData {
         this.outVelocity.copyFrom(src.outVelocity)
         // вождение
         if (this.isContextDriving()) {
-            this.outVehiclePos.copyFrom(src.outVehiclePos)
-            this.outVehicleYaw = src.outVehicleYaw
-            this.outVehicleAngularVelocity = src.outVehicleAngularVelocity
+            if (src.isContextDriving()) {
+                this.outVehiclePos.copyFrom(src.outVehiclePos)
+                this.outVehicleYaw = src.outVehicleYaw
+                this.outVehicleAngularVelocity = src.outVehicleAngularVelocity
+            } else {
+                // нештатная ситуация, см. комментарий в похожем месте в initOutputFrom
+                this.contextTickMode = PLAYER_TICK_MODE.NORMAL
+            }
         }
     }
 
@@ -197,8 +211,11 @@ export class PlayerTickData {
         player_state.sneak = sneak
         player_state.pos.copyFrom(this.outPos)
         player_state.vel.copyFrom(this.outVelocity)
+
         // вождение
         const drivingCombinedState = pc.drivingCombinedState as (PrismarinePlayerState | null)
+        // Несмотря на то, что данные могут относиться к водению, drivingCombinedState может отсутствовать.
+        // Например, если на клиент пришла коррекция, но вождения еще/уже нет.
         if (drivingCombinedState && this.isContextDriving()) {
             drivingCombinedState.pos.copyFrom(this.outVehiclePos)
             if (this.outVehicleYaw != null) {
