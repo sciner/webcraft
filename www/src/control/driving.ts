@@ -5,7 +5,6 @@ import type {TPrismarineOptions} from "../prismarine-physics/using.js";
 import type {Player} from "../player.js";
 import {PrismarinePlayerState} from "../prismarine-physics/index.js";
 import type {DrivingManager, ClientDrivingManager} from "./driving_manager.js";
-import {ArrayHelpers} from "../helpers/array_helpers.js";
 import {PHYSICS_POS_DECIMALS, PHYSICS_ROTATION_DECIMALS} from "../constant.js";
 import {Mth} from "../helpers/mth.js";
 import type {PrismarinePlayerControl} from "../prismarine-physics/using.js";
@@ -181,7 +180,7 @@ export abstract class Driving<TManager extends DrivingManager<any>> {
 export class ClientDriving extends Driving<ClientDrivingManager> {
 
     /** Модели участников этого двиения (игроков и мобов). Индексы - {@link DrivingPlace} */
-    private models              : (MobModel | null)[]
+    private models              : (MobModel | null | undefined)[]
 
     /** Сслыка на своего игрока - просто для удобства, даже он не участвует в этом движении */
     private myPlayer            : Player
@@ -198,7 +197,7 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
 
     constructor(manager: ClientDrivingManager, config: TDrivingConfig, state: TDrivingState) {
         super(manager, config, state)
-        this.models = ArrayHelpers.create(state.mobIds.length, null)
+        this.models = new Array(state.mobIds.length)
         this.myPlayer = manager.world.game.player
         if (this.myPlayer == null) {
             throw new Error()
@@ -356,21 +355,17 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
      */
     private resolve(): void {
         const state = this.state
-        const myPlayerId = this.myPlayer.session.user_id
+        const myPlayer = this.myPlayer
+        const myPlayerId = myPlayer.session.user_id
         const world = this.manager.world
 
         this.myPlayerPlace = null
-        this.myPlayer.driving = null
-        this.myPlayer.controlManager.prismarine.drivingCombinedState = null
         for(let place = 0; place < state.mobIds.length; place++) {
             const mobId = state.mobIds[place]
             const playerId = state.playerIds[place]
 
-            // обновить моего игрока (не его модель)
             if (playerId === myPlayerId) {
                 this.myPlayerPlace = place
-                this.myPlayer.driving = this
-                this.myPlayer.controlManager.prismarine.drivingCombinedState = this.combinedPhysicsState
             }
 
             // проврить: если корректная модель игрока/моба уже используется, ничего не делать
@@ -378,9 +373,10 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
             if (oldModel != null) {
                 const compareToId = oldModel instanceof PlayerModel ? playerId : mobId
                 if (oldModel.id === compareToId) {
-                    continue
+                    continue // модель та, что нужно; ничего не делаем
                 }
                 // эта модель не подходит, надо ее заменить (в коде ниже)
+                this.models[place] = null
                 oldModel.driving = null
             } else {
                 if (mobId == null && playerId == null) {
@@ -395,10 +391,22 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
             } else if (playerId != null) {
                 newModel = world.players.get(playerId)
             }
-            this.models[place] = newModel
-            if (newModel) {
-                newModel.driving = this
+            // на всякий случай проверим - может, модель относится к старому вождению, и оно еще не обновилось, тогда не связываться с этой моделью
+            if (newModel.driving == null) {
+                this.models[place] = newModel
+                if (newModel) {
+                    newModel.driving = this
+                }
             }
+        }
+
+        // обновить моего игрока (не его модель), после того как его место в этом
+        if (this.myPlayerPlace !== null) {
+            myPlayer.driving = this
+            myPlayer.controlManager.prismarine.drivingCombinedState = this.combinedPhysicsState
+        } else if (myPlayer.driving === this) { // если мой игрок был в этом вождении, но выбыл
+            myPlayer.driving = null
+            myPlayer.controlManager.prismarine.drivingCombinedState = null
         }
     }
 

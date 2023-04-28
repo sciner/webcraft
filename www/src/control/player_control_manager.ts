@@ -5,10 +5,7 @@ import type {Player} from "../player.js";
 import type {PacketBuffer} from "../packet_compressor.js";
 import {PrismarinePlayerControl, TPrismarineOptions} from "../prismarine-physics/using.js";
 import {SPECTATOR_SPEED_CHANGE_MAX, SPECTATOR_SPEED_CHANGE_MIN, SPECTATOR_SPEED_CHANGE_MULTIPLIER, SpectatorPlayerControl} from "./spectator-physics.js";
-import {
-    MAX_CLIENT_STATE_INTERVAL, PHYSICS_INTERVAL_MS, DEBUG_LOG_PLAYER_CONTROL,
-    PHYSICS_MAX_TICKS_PROCESSED, DEBUG_LOG_PLAYER_CONTROL_DETAIL, PHYSICS_VELOCITY_DECIMALS, PHYSICS_POS_DECIMALS
-} from "../constant.js";
+import {DEBUG_LOG_PLAYER_CONTROL, DEBUG_LOG_PLAYER_CONTROL_DETAIL, MAX_CLIENT_STATE_INTERVAL, PHYSICS_INTERVAL_MS, PHYSICS_MAX_TICKS_PROCESSED, PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS} from "../constant.js";
 import {SimpleQueue} from "../helpers/simple_queue.js";
 import type {PlayerControl} from "./player_control.js";
 import {GameMode} from "../game_mode.js";
@@ -16,7 +13,7 @@ import {MonotonicUTCDate} from "../helpers.js";
 import {ClientPlayerTickData, PLAYER_TICK_DATA_STATUS, PLAYER_TICK_MODE, PlayerTickData} from "./player_tick_data.js";
 import {ServerClient} from "../server_client.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketWriter, PlayerControlSessionPacket} from "./player_control_packets.js";
-import {PlayerSpeedLoggerMode, PlayerSpeedLogger} from "./player_speed_logger.js";
+import {PlayerSpeedLogger, PlayerSpeedLoggerMode} from "./player_speed_logger.js";
 import {LimitedLogger} from "../helpers/limited_logger.js";
 import {DrivingPlace} from "./driving.js";
 import type {PrismarinePlayerState} from "../prismarine-physics/index.js";
