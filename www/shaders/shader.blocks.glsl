@@ -32,12 +32,13 @@
     #define FLAG_RAIN_OPACITY           14
     #define FLAG_MASK_COLOR_ADD         15
     #define FLAG_TORCH_FLAME            16
-    #define DELIMITER_VERTEX     ((1 << 17) - 1)
-    #define FLAG_WAVES_VERTEX           17
-    #define LOOK_AT_CAMERA              18
-    #define LOOK_AT_CAMERA_HOR          19
-    #define FLAG_TRIANGLE               20
-    #define FLAG_MIR2_TEX               21
+    #define FLAG_FLUID_ERASE            17
+    #define DELIMITER_VERTEX     ((1 << 18) - 1)
+    #define FLAG_WAVES_VERTEX           18
+    #define LOOK_AT_CAMERA              19
+    #define LOOK_AT_CAMERA_HOR          20
+    #define FLAG_TRIANGLE               21
+    #define FLAG_MIR2_TEX               22
 
 #endif
 
