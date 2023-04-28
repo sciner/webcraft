@@ -7,7 +7,7 @@ const TEXTURE_FILTER_GL = {
 
 const TEXTURE_TYPE_FORMAT = {
     'rgba8unorm': {
-        format: 'RGBA', type : 'UNSIGNED_BYTE'
+        format: 'RGBA', internal: 'RGBA8', type : 'UNSIGNED_BYTE'
     },
     'rgb565unorm': {
         format: 'RGB', internal: 'RGB565', type : 'UNSIGNED_SHORT_5_6_5',
@@ -18,13 +18,13 @@ const TEXTURE_TYPE_FORMAT = {
         arrClass: Uint16Array, bytesPerElement: 2,
     },
     'u8': {
-        format: 'ALPHA', type: 'UNSIGNED_BYTE', elementPerPixel: 1,
+        format: 'RED', internal: 'R8', type: 'UNSIGNED_BYTE', elementPerPixel: 1,
     },
     'rgba': {
         format: 'RGBA', type: 'UNSIGNED_BYTE',
     },
     'r32sint': {
-        format: 'RED', internal: 'R32I', type: 'INT', elementPerPixel: 1,
+        format: 'RED_INTEGER', internal: 'R32I', type: 'INT', elementPerPixel: 1,
     }
 }
 

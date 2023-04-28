@@ -1644,6 +1644,7 @@ export class Renderer {
         pixiRender.shader.bind(pixiRender.plugins.batch._shader, true);
         pixiRender.reset();
         pixiRender.texture.bind(null, 3);
+        pixiRender.texture.bind(null, 6);
     }
 
     // getVideoCardInfo...
