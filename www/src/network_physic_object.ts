@@ -24,15 +24,20 @@ export type NetworkPhysicObjectState = {
     extra_data? : object
 }
 
+/**
+ * Временные объекты, используемые при интерполяции координат.
+ * Актуальные значения у объекта - {@link NetworkPhysicObject.pos}, {@link NetworkPhysicObject.yaw} и {@link NetworkPhysicObject.pitch}.
+ */
+const tPos = new Vector()
+const tRot = new Vector()
+
 // NetworkPhysicObject
 export class NetworkPhysicObject {
 
     #world : World
     netBuffer           : NetworkPhysicObjectState[]
-    private tPos        : Vector
-    private tRot        : Vector
     yaw                 : float
-    protected pitch     : float
+    pitch               : float
     protected sneak     : number | boolean
     private _pos        : Vector
     private _prevPos    : Vector    // не используется, можно убрать
@@ -60,8 +65,6 @@ export class NetworkPhysicObject {
         // Networking
         this.netBuffer = [];
         this.latency = 50;
-        this.tPos = new Vector(pos);
-        this.tRot = new Vector(rotate);
         this.aabb = null;
 
         this.tracked = false;
@@ -105,7 +108,7 @@ export class NetworkPhysicObject {
         this.netBuffer.push(data);
     }
 
-    applyState(nextPos, nextRot, sneak, extra_data) {
+    applyState(nextPos: IVector, nextRot?: IVector | null, sneak?: number | boolean, extra_data?: Dict): void {
         this.pos = nextPos;
         if(extra_data) {
             this.extra_data = extra_data;
@@ -113,6 +116,8 @@ export class NetworkPhysicObject {
         if(nextRot) {
             this.yaw = nextRot.z;
             this.pitch = nextRot.x;
+        }
+        if (sneak != null) {
             this.sneak = sneak;
         }
     }
@@ -136,9 +141,6 @@ export class NetworkPhysicObject {
                 this.netBuffer[0].extra_data || null
             );
         }
-
-        const tPos = this.tPos;
-        const tRot = this.tRot;
 
         const {
             pos: prevPos,
@@ -168,11 +170,11 @@ export class NetworkPhysicObject {
         const sneak = Mth.lerp(iterp, prevSneak, nextSneak);
         const extra_data = nextExtraData;
 
-        if(nextRot) {
-            tRot.lerpFromAngle(prevRot, nextRot, iterp, true);
-        }
+        const rot = nextRot && prevRot
+            ? tRot.lerpFromAngle(prevRot, nextRot, iterp, true)
+            : null
 
-        return this.applyState(tPos, tRot, sneak, extra_data);
+        return this.applyState(tPos, rot, sneak, extra_data);
     }
 
     update() {
@@ -189,11 +191,9 @@ export class NetworkPhysicObject {
     forceLocalUpdate(pos: IVector | null, yaw: float | null): void {
         if (pos) {
             this.pos = pos
-            this.tPos.copyFrom(pos)
         }
         if (yaw != null) {
             this.yaw = yaw
-            this.tRot.z = yaw
         }
         if (pos || yaw != null) {
             this.updateAABB()
@@ -204,7 +204,7 @@ export class NetworkPhysicObject {
         }
     }
 
-    updateAABB() {
+    updateAABB(): void {
         this.aabb ??= new AABBDrawable();
         // используем именно pos, а не tPos. tPos не всегда обновлен (например, когда обработали только 1 пакет из буфере)
         this.aabb.setBottomHeightRadius(this.pos, this.height, this.width / 2)
