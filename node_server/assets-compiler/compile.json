@@ -561,6 +561,44 @@
                 "down": "block/dirt.png",
                 "side": "block/grass_block_side_overlay.png"
             },
+            "texture_variants": [
+                "./textures/grass_block/1.png",
+                "./textures/grass_block/2.png",
+                "./textures/grass_block/3.png",
+                "./textures/grass_block/4.png",
+                "./textures/grass_block/5.png",
+                "./textures/grass_block/6.png",
+                "./textures/grass_block/7.png",
+                "./textures/grass_block/8.png",
+                "./textures/grass_block/9.png",
+                "./textures/grass_block/10.png",
+                "./textures/grass_block/11.png",
+                "./textures/grass_block/12.png",
+                "./textures/grass_block/13.png",
+                "./textures/grass_block/14.png",
+                "./textures/grass_block/15.png",
+                "./textures/grass_block/16.png",
+                "./textures/grass_block/17.png",
+                "./textures/grass_block/18.png",
+                "./textures/grass_block/19.png",
+                "./textures/grass_block/20.png",
+                "./textures/grass_block/21.png",
+                "./textures/grass_block/22.png",
+                "./textures/grass_block/23.png",
+                "./textures/grass_block/24.png",
+                "./textures/grass_block/25.png",
+                "./textures/grass_block/26.png",
+                "./textures/grass_block/27.png",
+                "./textures/grass_block/28.png",
+                "./textures/grass_block/29.png",
+                "./textures/grass_block/30.png",
+                "./textures/grass_block/31.png",
+                "./textures/grass_block/32.png",
+                "./textures/grass_block/33.png",
+                "./textures/grass_block/34.png",
+                "./textures/grass_block/35.png",
+                "./textures/grass_block/36.png"
+            ],
             "overlay_textures_weight": 99,
             "texture_overlays": {
                 "1": "block/decals/grass_block/1.png",
@@ -2024,7 +2062,7 @@
             "inventory_style": "extruder",
             "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.025},
             "texture": "block/grass.png",
-            "texture_variants": [
+            "_texture_variants": [
                 "block/grass/grass1.png",
                 "block/grass/grass2.png",
                 "block/grass/grass3.png",
@@ -2032,6 +2070,16 @@
                 "block/grass/grass5.png",
                 "block/grass/grass6.png",
                 "block/grass/grass7.png"
+            ],
+            "texture_variants": [
+                "./textures/grass/1.png",
+                "./textures/grass/2.png",
+                "./textures/grass/3.png",
+                "./textures/grass/4.png",
+                "./textures/grass/5.png",
+                "./textures/grass/6.png",
+                "./textures/grass/7.png",
+                "./textures/grass/8.png"
             ],
             "material": {
                 "id": "plant"
