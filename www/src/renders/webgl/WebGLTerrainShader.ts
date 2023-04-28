@@ -154,7 +154,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         const px = Math.floor(cx), py = Math.floor(cy), pz = Math.floor(cz);
         gl.uniform3f(this.u_camera_pos, cx - px, cz - pz, cy - py);
         gl.uniform3i(this.u_camera_posi, px, pz, py);
-        this.u_gridChunkSize && gl.uniform3f(this.u_gridChunkSize, gu.gridChunkSize.x, gu.gridChunkSize.y, gu.gridChunkSize.z);
+        this.u_gridChunkSize && gl.uniform3f(this.u_gridChunkSize, gu.gridChunkSize.x, gu.gridChunkSize.z, gu.gridChunkSize.y);
         gl.uniform2fv(this.u_resolution, gu.resolution);
         this.u_eyeinwater && gl.uniform1f(this.u_eyeinwater, gu.u_eyeinwater);
         this.u_SunDir && gl.uniform4fv(this.u_SunDir, [...gu.sunDir, gu.useSunDir ? 1 : 0]);
@@ -216,7 +216,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
                 const x = pos.x - (1 + Math.round(pos.x / gridTexSize.x)) * gridTexSize.x;
                 const y = pos.y - (1 + Math.round(pos.y / gridTexSize.y)) * gridTexSize.y;
                 const z = pos.z - (1 + Math.round(pos.z / gridTexSize.z)) * gridTexSize.z;
-                gl.uniform3f(this.u_gridChunkOffset, x, y, z);
+                gl.uniform3f(this.u_gridChunkOffset, x, z, y);
             }
         } else {
             gl.uniform3f(this.u_add_pos, -camPos.x, -camPos.z, -camPos.y);

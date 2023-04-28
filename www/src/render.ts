@@ -1435,7 +1435,6 @@ export class Renderer {
         this.renderBackend.resetBefore();
         const defTex = this.env.skyBox?.shader.texture || this.renderBackend._emptyTex;
         defTex.bind(0);
-        this.renderBackend._emptyTex3D.bind(6);
         this.maskColorTex?.bind(1);
         this.blockDayLightTex?.bind(2);
         this.checkLightTextures(bindLights);
