@@ -103,7 +103,8 @@ export class ChunkLight {
         if (this.lightTex) {
             const base = this.lightTex.baseTexture || this.lightTex;
             const {offset} = this.lightTex;
-            this.packedLightCoord = (offset.x) | (offset.z << 9) | (offset.y << 18) | (base._poolLocation << 27);
+            //offset is XZY, and packedLightCoord is XZY
+            this.packedLightCoord = (offset.x) | (offset.y << 9) | (offset.z << 18) | (base._poolLocation << 27);
         } else {
             this.packedLightCoord = -1;
         }

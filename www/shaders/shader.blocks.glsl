@@ -464,11 +464,15 @@
     ivec4 chunkData0 = ivec4(0, 0, 0, 0);
     ivec4 chunkData1 = ivec4(1 << 16, 1 << 16, 1 << 16, 0);
     if (a_chunkId < -0.5) {
-        vec3 chunkCoord = floor((a_position - u_gridChunkOffset) / u_gridChunkSize);
+        vec3 localPos = a_position;
+        if (uModelMatrixMode > 0) {
+            localPos = (uModelMatrix *  vec4(localPos.xzy, 1.0)).xzy;
+        }
+        vec3 chunkCoord = floor((localPos - u_gridChunkOffset) / u_gridChunkSize);
         chunk_corner = chunkCoord * u_gridChunkSize + u_gridChunkOffset;
         //TODO: use "-" here, 0 <= chunkCoord < 2 * gridTexSize
         int chunkIntData = texelFetch(u_gridChunkSampler, ivec3(chunkCoord) % textureSize(u_gridChunkSampler, 0), 0).r;
-        if (chunkIntData >= 0) {
+        if (chunkIntData > 0) {
             chunkData1.x = chunkIntData & 0x1ff;
             chunkData1.y = (chunkIntData >> 9) & 0x1ff;
             chunkData1.z = (chunkIntData >> 18) & 0x1ff;
@@ -577,6 +581,9 @@
                 aoVector = vec4(texture(u_lightTex[6], aoCoord0 * texSize).w, texture(u_lightTex[6], aoCoord1 * texSize).w,
                     texture(u_lightTex[6], aoCoord2 * texSize).w, texture(u_lightTex[6], aoCoord3 * texSize).w);
             }
+        } else {
+            centerSample = vec4(clamp(v_chunk_pos.z / 40.0, 0.0, 1.0)
+                , 1.0, 0.0, 0.0);
         }
         if (u_lightOverride.z > 0.5) {
             centerSample.xy = u_lightOverride.xy;
@@ -669,36 +676,33 @@ v_axisV *= sign(a_uvSize.y);
     vec4 normalSample[8];
 
     if (v_lightId < 0.5) {
+    } else if (v_lightId < 1.5) {
         for (int i = 0; i < 8; i++) {
             normalSample[i] = texelFetch(u_lightTex[0], iCoord[i], 0);
         }
-    } else if (v_lightId < 1.5) {
+    } else if (v_lightId < 2.5) {
         for (int i = 0; i < 8; i++) {
             normalSample[i] = texelFetch(u_lightTex[1], iCoord[i], 0);
         }
-    } else if (v_lightId < 2.5) {
+    } else if (v_lightId < 3.5) {
         for (int i = 0; i < 8; i++) {
             normalSample[i] = texelFetch(u_lightTex[2], iCoord[i], 0);
         }
-    } else if (v_lightId < 3.5) {
+    } else if (v_lightId < 4.5) {
         for (int i = 0; i < 8; i++) {
             normalSample[i] = texelFetch(u_lightTex[3], iCoord[i], 0);
         }
-    } else if (v_lightId < 4.5) {
+    } else if (v_lightId < 5.5) {
         for (int i = 0; i < 8; i++) {
             normalSample[i] = texelFetch(u_lightTex[4], iCoord[i], 0);
         }
-    } else if (v_lightId < 5.5) {
+    } else if (v_lightId < 6.5) {
         for (int i = 0; i < 8; i++) {
             normalSample[i] = texelFetch(u_lightTex[5], iCoord[i], 0);
         }
-    } else if (v_lightId < 6.5) {
-        for (int i = 0; i < 8; i++) {
-            normalSample[i] = texelFetch(u_lightTex[6], iCoord[i], 0);
-        }
     } else if (v_lightId < 7.5) {
         for (int i = 0; i < 8; i++) {
-            normalSample[i] = texelFetch(u_lightTex[7], iCoord[i], 0);
+            normalSample[i] = texelFetch(u_lightTex[6], iCoord[i], 0);
         }
     }
 

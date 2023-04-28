@@ -105,13 +105,13 @@ void main() {
     }
 
     v_world_pos = v_chunk_pos + add_pos;
-    v_chunk_pos = v_chunk_pos - chunk_corner;
 
     // Waves
     if(checkFlag(FLAG_WAVES_VERTEX)) {
         v_chunk_pos.z += getWaveValue();
         v_world_pos = v_chunk_pos + add_pos;
     }
+    v_chunk_pos = v_chunk_pos - chunk_corner;
 
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
