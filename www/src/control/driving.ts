@@ -215,6 +215,14 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
             : this.models[DrivingPlace.VEHICLE]
     }
 
+    /**
+     * @return true, если модель, входящая в это вождение является зависмой (т.е. не задает позицию другим моделям)
+     *   Считается, что модель входит в это вождение; это не проверяется.
+     */
+    isModelDependent(model: MobModel): boolean {
+        return this.myPlayerPlace === DrivingPlace.DRIVER || model !== this.models[DrivingPlace.VEHICLE]
+    }
+
     /** @returns true если все места заняты */
     isFull(): boolean {
         const state = this.state
@@ -392,11 +400,9 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
                 newModel = world.players.get(playerId)
             }
             // на всякий случай проверим - может, модель относится к старому вождению, и оно еще не обновилось, тогда не связываться с этой моделью
-            if (newModel.driving == null) {
+            if (newModel && newModel.driving == null) {
                 this.models[place] = newModel
-                if (newModel) {
-                    newModel.driving = this
-                }
+                newModel.driving = this
             }
         }
 

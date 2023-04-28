@@ -215,7 +215,8 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         const yaw = this.yaw;
-        if(typeof this.draw_yaw == 'undefined') {
+        if(typeof this.draw_yaw == 'undefined' || this.driving?.isModelDependent(this)) {
+            // если эта модель зависит от вождения, то использовать ее yaw без дополнительных изменений, чтобы не отличался от связанных моделей
             this.draw_yaw = yaw
         } else {
             this.draw_yaw %= Math.PI * 2;
