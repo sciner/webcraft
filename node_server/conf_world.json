@@ -130,7 +130,8 @@
                 "playerHalfWidth": 0.9,
                 "floatSubmergedHeight": 0.1,
                 "useBoatSpeed": true,
-                "jumpSpeed": 0
+                "jumpSpeed": 0,
+                "timer_panick": 0
             },
             "driving": {
                 "offsets": [

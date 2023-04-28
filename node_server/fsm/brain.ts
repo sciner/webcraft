@@ -474,10 +474,12 @@ export class FSMBrain {
     // паника моба от урона
     onPanic() {
         const mob = this.mob;
-        this.timer_panick = 80;
-        this.target = null;
-        mob.rotate.z = 2 * Math.random() * Math.PI;
-        this.stack.replaceState(this.doStand);
+        this.timer_panick = mob.config.timer_panick ?? 80;
+        if (this.timer_panick) {
+            this.target = null;
+            mob.rotate.z = 2 * Math.random() * Math.PI;
+            this.stack.replaceState(this.doStand);
+        }
     }
 
     /**

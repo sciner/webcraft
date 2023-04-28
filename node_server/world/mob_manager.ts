@@ -87,6 +87,10 @@ export class WorldMobManager {
 
     delete(id: int): void {
         const mob = this.list.get(id)
+        if (mob == null) {
+            // TODO find this bug
+            console.error('Trying to delete a non-existing mob ' + id)
+        }
         mob.driving?.onMobUnloadedOrRemoved(mob)
         this.list.delete(id);
     }
@@ -150,7 +154,12 @@ export class WorldMobManager {
                 if(!('pos' in params)) {
                     throw 'error_no_mob_pos';
                 }
-                const mob = Mob.create(world, params);
+                const type = params.skin.model_name
+                const config = world.mobs.configs[type]
+                if (config == null) {
+                    throw `Unknown mob type ${type}`
+                }
+                const mob = Mob.create(world, params, config);
                 chunk.addMob(mob);
                 return mob;
             } catch(e) {

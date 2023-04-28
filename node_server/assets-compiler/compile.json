@@ -11660,6 +11660,10 @@
             "item": {
                 "name": "boat"
             },
+            "spawn_egg": {
+                "type": "transport/boat",
+                "skin": "base"
+            },
             "material": {
                 "id": "stone"
             }

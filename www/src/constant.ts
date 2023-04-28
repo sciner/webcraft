@@ -236,6 +236,7 @@ export enum MOB_TYPE {
     SKELETON    = 'mob/skeleton',
     SNOW_GOLEM  = 'mob/snow_golem',
     ZOMBIE      = 'mob/zombie',
+    BOAT        = 'transport/boat'
 }
 
 export enum TREASURE_SOURCE {

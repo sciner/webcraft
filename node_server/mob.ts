@@ -197,7 +197,7 @@ export class Mob {
     /**
      * Create new mob
      */
-    static create(world : ServerWorld, params: MobSpawnParams) : Mob {
+    static create(world : ServerWorld, params: MobSpawnParams, config: TMobConfig) : Mob {
         // TODO: need to check mob type and skin from bbmodels
         // const model = world.models.list.get(params.type);
         // if(!model) {
@@ -214,6 +214,7 @@ export class Mob {
         params.extra_data.play_death_animation = true;
         // make indicators
         params.indicators = world.db.getDefaultPlayerIndicators();
+        params.indicators.live = config.health
         params.is_active = 1; // previously is_active was selected from DB, where it's set to 1 by default
         //
         switch(params.skin.model_name) {

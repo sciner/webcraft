@@ -3,7 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
-import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS } from "./constant.js";
+import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, MOB_TYPE} from "./constant.js";
 import {ClientPlayerControlManager} from "./control/player_control_manager.js";
 import {PlayerControl, PlayerControls} from "./control/player_control.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -18,7 +18,6 @@ import { PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js"
 import { PlayerArm } from "./player_arm.js";
 import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
-import type { PLAYER_SKIN_TYPES } from "./constant.js"
 import type {ClientDriving} from "./control/driving.js";
 import type {PlayerModel} from "./player_model.js";
 
@@ -498,7 +497,8 @@ export class Player implements IPlayer {
                 mob.punch(e)
                 return true
             }
-            if (mob.supportsDriving && !mob.driving?.isFull()) {
+            // проверяем e.number чтобы не садиться в моба сразу после его спауна при удержании мыши
+            if (e.number == 0 && mob.supportsDriving && !mob.driving?.isFull()) {
                 // Попробовать присоединиться к езде
                 this.controlManager.syncWithActionId(e.id, true)
                 return true
@@ -519,6 +519,10 @@ export class Player implements IPlayer {
         }
 
         return overChunk;
+    }
+
+    hasBobView(): boolean {
+        return this.driving?.state.mobType !== MOB_TYPE.BOAT
     }
 
     get isAlive() : boolean {

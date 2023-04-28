@@ -92,6 +92,7 @@ export class MobModel extends NetworkPhysicObject {
 
     is_sheared:         boolean = false
     gui_matrix:         float[]
+    renderLast:         boolean
 
     constructor(props : TMobProps, world : World) {
 
@@ -102,6 +103,8 @@ export class MobModel extends NetworkPhysicObject {
 
         this.type = props.skin.model_name
         this.skin = props.skin
+
+        this.renderLast = (this.type === MOB_TYPE.BOAT) // рисовать лодку после всех для спец. реима воды
 
         // load mesh
         const render = Qubatch.render as Renderer
@@ -127,7 +130,7 @@ export class MobModel extends NetworkPhysicObject {
      * 2.1 Если эта модель задает позиции другим, то вызвать родительский метод и обновить другие модели на основе этой этой
      * 2.2 Если есть кто-то другой главный в вождении (другая модель или свой игрок), то ничего не происходит
      */
-    protected processNetState(): void {
+    processNetState(): void {
         const driving = this.driving
         if (driving) {
             const positionProvider = driving.getPositionProvider()

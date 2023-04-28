@@ -122,7 +122,7 @@ export class NetworkPhysicObject {
         }
     }
 
-    protected processNetState(): void {
+    processNetState(): void {
         if (this.netBuffer.length === 0) {
             return;
         }

@@ -17,6 +17,7 @@ export type TMobConfig = {
     driving ?       : TDrivingConfig     // Параметры того, как на мобе можно ездить
     damagePushes ?  : boolean   // если true, то при нанесении урона актером, моба отбрасывает назад
     suffocates ?    : boolean   // если true, то может задохнуться под водой
+    timer_panick ?  : number    // занчение FSMBrain.timer_panick при ударе. 0 отключает режим паники
 
     /**
      * Если это true то левый клик на мобе имеет эфеект независимо от предмета в руке.
