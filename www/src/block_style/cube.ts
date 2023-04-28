@@ -574,17 +574,18 @@ export default class style {
 
         // Push vertices
         if(canDrawUP) {
-            if(material.name == 'GRASS_BLOCK') {
-                force_tex = material.texture_variants[Math.floor(Math.random() * 36)].side
-                force_tex = [
-                    (force_tex[0]+.5)/64,
-                    (force_tex[1]+.5)/64,
+            let force_tex_up = force_tex
+            if(material.name == 'GRASS_BLOCK' || material.name == 'GRASS_BLOCK_SLAB') {
+                force_tex_up = material.texture_variants[Math.floor(Math.random() * 36)].side
+                force_tex_up = [
+                    (force_tex_up[0]+.5)/64,
+                    (force_tex_up[1]+.5)/64,
                     1/64,
                     1/64
                 ]
             }
             // texture_variants
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'up', DIRECTION_UP, null, null);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex_up, lm, flags, sideFlags, upFlags, 'up', DIRECTION_UP, null, null);
             sides.up = _sides.up.set(t, f, anim_frames, lm, axes_up, autoUV)
             // overlay textures
             if(chunk?.chunkManager?.world?.settings?.overlay_textures) {
