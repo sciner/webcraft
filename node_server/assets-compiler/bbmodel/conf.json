@@ -99,6 +99,7 @@
         {"name": "skull_desert",        "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "sanded_stones",       "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "small_stones_desert", "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "pinecones",           "shift": {"x": 0, "y": 0, "z": 0}},
 
         {"name": "tool/primitive_axe",  "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "tool/sunglasses",     "shift": {"x": 0, "y": 0, "z": 0}},
@@ -2465,6 +2466,33 @@
                 "import_anyway": true,
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
+                ]
+            }
+        },
+        {
+            "id": 603,
+            "name": "PINECONES",
+            "material": {
+                "id": "plant"
+            },
+            "transparent": true,
+            "mining_time": 0,
+            "passable": 1,
+            "sound": "madcraft:block.cloth",
+            "tags": [
+                "no_drop",
+                "layering_move_to_down",
+                "no_drop_ao"
+            ],
+            "aabb": [4, 0, 4, 12, 8, 12],
+            "bb": {
+                "model": "pinecones",
+                "import_anyway": true,
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ],
+                "set_state": [
+                    {"names": ["variant0", "variant1", "variant2", "variant3"]}
                 ]
             }
         }

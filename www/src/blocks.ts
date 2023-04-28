@@ -794,7 +794,7 @@ export class BLOCK {
             !('height' in block);
     }
 
-    static isFlower(block) : boolean {
+    static isFlower(block : IBlockMaterial) : boolean {
         if(block.id == 0) {
             return false
         }

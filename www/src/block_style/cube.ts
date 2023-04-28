@@ -697,14 +697,18 @@ export default class style {
             if(!n || n.id == center_material.id) {
                 continue
             }
-            if(n.material.texture_overlays) {
+            const n_material = n.material
+            if(n_material.texture_overlays) {
+                if(center_material.layering?.full_block_name == n_material.name) {
+                    continue
+                }
                 if(center_material_have_overlay) {
                     if(center_material.id == this.block_manager.GRASS_BLOCK.id && n.id == this.block_manager.DIRT.id) {
 
                     } else if(center_material.id == this.block_manager.DIRT.id && n.id == this.block_manager.GRASS_BLOCK.id) {
                         continue
                     } else {
-                        if((n.material.overlay_textures_weight ?? n.id) < (center_material.overlay_textures_weight ?? center_material.id)) {
+                        if((n_material.overlay_textures_weight ?? n.id) < (center_material.overlay_textures_weight ?? center_material.id)) {
                             continue
                         }
                     }
@@ -712,7 +716,7 @@ export default class style {
                 let item = _overlay.materials.get(n.id)
                 if(!item) {
                     item = _overlay.items[i]
-                    item.material = n.material
+                    item.material = n_material
                     _overlay.materials.set(n.id, item)
                 }
                 item.list[i] = true
