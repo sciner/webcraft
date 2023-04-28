@@ -225,7 +225,10 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
             const s16 = BB_GUI_SCALE / 16
             if(display.translation) {
-                vec3.set(position, -display.translation[0] * s16, display.translation[1] * s16 + 0.5, -display.translation[2] * s16)
+                position[0] += -display.translation[0] * s16
+                position[1] += display.translation[1] * s16
+                position[2] += -display.translation[2] * s16
+                // vec3.set(position, -display.translation[0] * s16, display.translation[1] * s16 + 0.5, -display.translation[2] * s16)
             }
 
         } else {
