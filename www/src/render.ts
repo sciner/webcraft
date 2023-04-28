@@ -1027,10 +1027,10 @@ export class Renderer {
                 // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
                 if (shader.texture) {
                     shader.bind(true);
-                    // 3. Draw players and rain
-                    this.drawPlayers(delta);
-                    // 4. Draw mobs
+                    // 3. Draw mobs
                     this.drawMobs(delta);
+                    // 4. Draw players and rain
+                    this.drawPlayers(delta);
                     // 5. Draw drop items
                     this.drawDropItems(delta);
                     // 6. Draw meshes
