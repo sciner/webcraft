@@ -477,6 +477,7 @@
         chunkData1.y = (chunkIntData >> 9) & 0x1ff;
         chunkData1.z = (chunkIntData >> 18) & 0x1ff;
         chunkData1.w = (chunkIntData >> 27) & 0xf;
+        v_flags = v_flags | (1 << NO_AO);
     } else {
         int size = textureSize(u_chunkDataSampler, 0).x;
         int chunkId = int(a_chunkId);
