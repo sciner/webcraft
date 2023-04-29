@@ -40,11 +40,11 @@
         "stone": {"mining": {"time": 7, "instruments": ["primitive_axe", "pickaxe"], "instrument_boost": 4, "blast_resistance": 6}},
         "terracota": {"mining": {"time": 5, "instruments": ["pickaxe"], "blast_resistance": 4.2}},
         "water": {"mining": {"time": -1, "instruments": [], "blast_resistance": 100}},
-        "wood": {"mining": {"time": 4, "instruments": ["axe"], "instrument_boost": 2, "blast_resistance": 2}},
-        "copper": {"mining": {"time": 4, "instruments": ["primitive_axe", "pickaxe"], "instrument_boost": 2, "blast_resistance": 2}},
+        "wood": {"mining": {"time": 4, "instruments": ["primitive_axe","axe"], "instrument_boost": 2, "blast_resistance": 2}},
+        "copper": {"mining": {"time": 10, "instruments": ["primitive_axe", "pickaxe"], "instrument_boost": 2, "blast_resistance": 2}},
         "wool": {"mining": {"time": 2, "instruments": ["shears"], "blast_resistance": 0.8}},
         "web": {"mining": {"time": 1, "instruments": ["shears", "sword"], "blast_resistance": 0.8}},
         "cactus": {"mining": {"time": 1, "instruments": [], "blast_resistance": 0.8}},
-        "pebbles": {"mining": {"time": 0, "instruments": [], "blast_resistance": 6}}
+        "pebbles": {"mining": {"time": 0, "instruments": [], "blast_resistance": 6,  "instrument_boost": 3}}
     }
 }

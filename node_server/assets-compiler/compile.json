@@ -12245,13 +12245,13 @@
             "sound": "madcraft:axe",
             "transparent": true,
             "max_in_stack": 1,
-            "item": {"name": "instrument", "instrument_id": "axe"},
+            "item": {"name": "instrument", "instrument_id": "primitive_axe"},
             "diagonal": true,
             "power": 50,
             "damage": 3,
             "speed": 0.8,
             "material": {
-                "id": "stone"
+                "id": "pebbles"
             },
             "texture": {
                 "side": "item/stone_axe.png"
@@ -12265,7 +12265,7 @@
                 "name": "powder"
             },
             "material": {
-                "id": "powder"
+                "id": "pebbles"
             }
         },{
             "id": 1088,

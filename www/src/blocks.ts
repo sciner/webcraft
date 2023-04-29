@@ -212,27 +212,26 @@ class Block_Material implements IBlockMiningMaterial {
      * @return float
      */
     getMiningTime(instrument : object | any, force : boolean) : float {
-        let mining_time = this.mining.time;
         if(force) {
-            mining_time = 0;
-        } else if(instrument && instrument.material) {
-            const instrument_id = instrument.material.item?.instrument_id;
-            if(instrument_id) {
-                if(this.mining.instruments.indexOf(instrument_id) >= 0) {
-                    const instrument_boost = instrument.material.material.mining.instrument_boost;
-                    if(typeof instrument_boost !== 'undefined' && !isNaN(instrument_boost)) {
-                        mining_time = Math.round((mining_time / instrument_boost) * 100) / 100;
-                    }
+            return 0
+        } 
+        const mining_time = this.mining.time
+        if(instrument?.material?.item?.instrument_id) {
+            const instrument_id = instrument.material.item.instrument_id
+            if (this.mining.instruments.includes(instrument_id)) {
+                const instrument_boost = instrument.material.material.mining.instrument_boost
+                if (typeof instrument_boost !== 'undefined' && !isNaN(instrument_boost)) {
+                    return Math.round((mining_time / instrument_boost) * 100) / 100
                 }
             }
         }
-        return mining_time;
+        return mining_time
     }
 
 }
 
 // getBlockNeighbours
-export function getBlockNeighbours(world, pos) {
+export function getBlockNeighbours(world : World, pos : IVectorPoint) {
     let v = new Vector(0, 0, 0);
     return {
         UP:     world.getBlock(v.set(pos.x, pos.y + 1, pos.z)),
