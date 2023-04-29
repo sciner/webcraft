@@ -648,6 +648,13 @@ export class Player implements IPlayer {
                     if(!is_composter &&!is_cauldron && !is_plant_berry && !is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
                     }
+                    // Кидаем снежок
+                    if (cur_mat_id == BLOCK.SNOWBALL.id) {
+                        this.inMiningProcess = true
+                        this.inhand_animation_duration = 2.5 * RENDER_DEFAULT_ARM_HIT_PERIOD
+                        this.world.server.Send({name: ServerClient.CMD_USE_ITEM})
+                        return false
+                    }
                 }
             } else {
                 this.stopItemUse();

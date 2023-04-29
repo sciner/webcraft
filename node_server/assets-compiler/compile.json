@@ -12300,6 +12300,17 @@
             "material": {
                 "id": "powder"
             }
+        },{
+            "id": 1111,
+            "name": "SNOWBALL",
+            "style": "extruder",
+            "texture": "item/snowball.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
         }
     ]
 }

@@ -1,4 +1,6 @@
 import { ServerClient } from "@client/server_client.js";
+import { DEFAULT_MOB_TEXTURE_NAME } from "@client/constant.js";
+import { MobSpawnParams } from "mob.js";
 
 const TIME_CAST = 28;
 
@@ -16,12 +18,29 @@ export default class packet_reader {
 
     // use item
     static async read(player, packet) {
+        const item = player.inventory.items[player.inventory.current.index]
+        if (!item) {
+            return true
+        }
+        const bm = player.world.block_manager
+        if (item.id == bm.SNOWBALL.id) {
+            const params = new MobSpawnParams(
+                player.getEyePos(),
+                player.state.rotate,
+                {
+                    model_name: "mob/snowball",
+                    texture_name: DEFAULT_MOB_TEXTURE_NAME
+                }
+            )
+            const snowball = player.world.mobs.spawn(player, params)
+            //snowball.parent = player // @todo мб лучше передавать id
+            return true
+        }
         if (packet?.data?.cancel) {
             player.cast.id = -1;
             player.cast.time = 0;
             return false;
         }
-        const item = player.inventory.items[player.inventory.current.index];
         if (item && item.count > 0 && player.cast.time == 0) {
             player.cast.id = item.id;
             player.cast.time = TIME_CAST;

@@ -86,7 +86,7 @@ export class MobManager {
                                     };
                                     mob.applyNetState(new_state);
                                     // частицы смерти
-                                    if (new_state.extra_data && !new_state.extra_data.is_alive) {
+                                    if (new_state.extra_data && !new_state.extra_data.is_alive && new_state.extra_data.play_death_animation) {
                                         Qubatch.render.addParticles({type: 'cloud', pos: new_state.pos});
                                     }
                                 } else {
