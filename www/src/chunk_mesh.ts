@@ -35,7 +35,6 @@ export class ChunkMesh {
 
     draw(render : any, resource_pack : BaseResourcePack, group, mat) {
         const {key, chunk, texture_id, buffer} = this;
-        const {light} = chunk;
         let texMat = this.texMat;
         if (!texMat) {
             texMat = resource_pack.materials.get(key);
@@ -46,22 +45,7 @@ export class ChunkMesh {
             this.texMat = texMat;
         }
         mat = texMat;
-        let dist = Qubatch.player.lerpPos.distance(chunk.coord);
         render.batch.setObjectDrawer(render.chunk);
-        if (light.lightData && dist < 108) {
-            // in case light of chunk is SPECIAL
-            chunk.getLightTexture(render);
-            if (light.lightTex) {
-                const base = light.lightTex.baseTexture || light.lightTex;
-                if (base._poolLocation <= 0) {
-                    mat = chunk.lightMats.get(key);
-                    if (!mat) {
-                        mat = texMat.getLightMat(light.lightTex);
-                        chunk.lightMats.set(key, mat);
-                    }
-                }
-            }
-        }
         render.chunk.draw(buffer, mat, chunk);
         return true;
     }

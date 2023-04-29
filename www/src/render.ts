@@ -954,11 +954,13 @@ export class Renderer {
         const {renderBackend} = this;
         if (!this.world) {
             renderBackend._emptyTexInt.bind(3);
+            renderBackend._emptyTex3DInt.bind(6);
             return;
         }
         const cm = this.world.chunkManager;
         // TODO: move to batcher
         cm.chunkDataTexture.getTexture(renderBackend).bind(3);
+        cm.renderList.chunkGridTex.getTexture(renderBackend).bind(6);
         const lp = cm.renderList.lightPool;
 
         // webgl bind all texture-3d-s
@@ -996,6 +998,8 @@ export class Renderer {
 
         globalUniforms.crosshairOn = this.crosshairOn;
         globalUniforms.u_eyeinwater = player.eyes_in_block?.is_water ? 1. : 0.;
+        globalUniforms.gridChunkSize.copyFrom(this.world.chunkManager.grid.chunkSize);
+        globalUniforms.gridTexSize.copyFrom(renderList.chunkGridTex.size).multiplyVecSelf(globalUniforms.gridChunkSize);
         globalUniforms.update();
 
         this.debugGeom.clear();
@@ -1431,7 +1435,6 @@ export class Renderer {
         this.renderBackend.resetBefore();
         const defTex = this.env.skyBox?.shader.texture || this.renderBackend._emptyTex;
         defTex.bind(0);
-        this.renderBackend._emptyTex3D.bind(6);
         this.maskColorTex?.bind(1);
         this.blockDayLightTex?.bind(2);
         this.checkLightTextures(bindLights);
@@ -1625,7 +1628,7 @@ export class Renderer {
         // gu.sunDir = [-1, -1, 1];
         // gu.useSunDir = true;
 
-        gu.lightOverride = 0xff;
+        gu.lightOverride = 0x100ff;
 
         guiCam.use(gu, true);
         gu.update();
@@ -1640,6 +1643,7 @@ export class Renderer {
         pixiRender.shader.bind(pixiRender.plugins.batch._shader, true);
         pixiRender.reset();
         pixiRender.texture.bind(null, 3);
+        pixiRender.texture.bind(null, 6);
     }
 
     // getVideoCardInfo...

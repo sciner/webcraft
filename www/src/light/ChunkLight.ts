@@ -1,22 +1,35 @@
 import {Vector} from "../helpers.js";
 import {FLUID_TYPE_MASK, fluidLightPower} from "../fluid/FluidConst.js";
 import {BLOCK} from "../blocks.js";
+import type {RegionTexture3D} from "../renders/BaseTexture3D";
+import type {ChunkDataTexture} from "./ChunkDataTexture";
+import type {ChunkGridTexture} from "./ChunkGridTexture.js";
+import type {TypedBlocks3} from "../typed_blocks3";
 
 export class ChunkLight {
-    [key: string]: any;
+    parentAddr: Vector;
+    parentChunk: any;
+    tblocks: TypedBlocks3 = null;
+    lightTex: RegionTexture3D = null;
+    _dataTexture: ChunkDataTexture = null;
+    _dataTextureOffset = -1;
+    _dataTextureDirty = false;
+    _tempLightSource: Uint8Array = null;
+    lightData: Uint8Array = null;
+    lightTexData: Uint8Array = null;
+    hasTexture = false;
+    currentDelta: number[] = [];
+
+    packedLightCoord = -1;
+    gridPos = -1;
+    _gridTexture: ChunkGridTexture = null;
+    // grid texture checks modifications - its safe to check dirty on start
+    _gridTextureDirty = false;
+    spiralMoveID = -1;
+
     constructor(parentChunk) {
         this.parentChunk = parentChunk;
-        this.lightTex = null;
-        this.tblocks = null;
-        this._dataTexture = null;
-        this._dataTextureOffset = -1;
-        this._dataTextureDirty = false;
-        this._tempLightSource = null;
-        this.lightData = null;
-        this.lightTexData = null;
-        this.hasTexture = false;
-
-        this.currentDelta = [];
+        this.parentAddr = parentChunk.addr;
     }
 
     onGenerated(args) {
@@ -25,6 +38,7 @@ export class ChunkLight {
         chunk.tblocks.lightData = this.lightData;
         if (args.lightTexData) {
             this.hasTexture = true;
+            this._gridTextureDirty = true;
             if (this.lightTex !== null) {
                 this.lightTex.update(args.lightTexData)
             } else {
@@ -66,6 +80,33 @@ export class ChunkLight {
         this.getDataTextureOffset();
         if (this._dataTextureDirty) {
             this._dataTexture.writeChunkData(this);
+        }
+    }
+
+    checkGridTex(gridTexture: ChunkGridTexture) {
+        if (!this._gridTexture) {
+            this._gridTexture = gridTexture;
+            this._gridTextureDirty = true;
+        } else {
+            this._gridTextureDirty = this._gridTextureDirty || (this.spiralMoveID !== gridTexture.spiralMoveID);
+        }
+        this.spiralMoveID = gridTexture.spiralMoveID;
+        if (this._gridTextureDirty) {
+            this._gridTexture.writeChunkData(this);
+            this._gridTextureDirty = false;
+        }
+    }
+
+    markDirty() {
+        this._dataTextureDirty = true;
+        this._gridTextureDirty = true;
+        if (this.lightTex) {
+            const base = this.lightTex.baseTexture || this.lightTex;
+            const {offset} = this.lightTex;
+            //offset is XZY, and packedLightCoord is XZY
+            this.packedLightCoord = (offset.x) | (offset.y << 9) | (offset.z << 18) | (base._poolLocation << 27);
+        } else {
+            this.packedLightCoord = -1;
         }
     }
 
