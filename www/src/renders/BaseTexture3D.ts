@@ -9,7 +9,9 @@ export class BaseTexture3D {
         depth = 1,
         type = 'u8',
         filter = 'nearest',
-        data = null
+        wrap = 'clamp',
+        data = null,
+        fixedSize = true
     } = {}) {
         this.width = width;
         this.height = height;
@@ -17,6 +19,7 @@ export class BaseTexture3D {
         this.offset = new Vector(0, 0, 0);
         this.minFilter = filter;
         this.magFilter = filter;
+        this.wrap = wrap;
         this.type = type;
         this.data = data;
 
@@ -30,6 +33,7 @@ export class BaseTexture3D {
         this.ownerPool = null;
         this.isRegion = false;
         this.isEmpty = false;
+        this.fixedSize = fixedSize;
         this.emptyRegion = null;
 
         /**
@@ -54,7 +58,7 @@ export class BaseTexture3D {
         }
     }
 
-    bind() {
+    bind(location?: number) {
     }
 
     isSimilar() {
