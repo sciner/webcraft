@@ -5,6 +5,11 @@ const TEXTURE_FILTER_GL = {
     'nearest': 'NEAREST'
 }
 
+const TEXTURE_WRAP_GL = {
+    'clamp': 'CLAMP_TO_EDGE',
+    'repeat': 'REPEAT'
+}
+
 const TEXTURE_TYPE_FORMAT = {
     'rgba8unorm': {
         format: 'RGBA', internal: 'RGBA8', type : 'UNSIGNED_BYTE'
@@ -25,6 +30,12 @@ const TEXTURE_TYPE_FORMAT = {
     },
     'r32sint': {
         format: 'RED_INTEGER', internal: 'R32I', type: 'INT', elementPerPixel: 1,
+    },
+    'rgba32sint': {
+        format: 'RGBA_INTEGER', internal: 'RGBA32I', type: 'INT'
+    },
+    'rgba8uint': {
+        format: 'RGBA_INTEGER', internal: 'RGBA8UI', type: 'UNSIGNED_BYTE'
     }
 }
 
@@ -70,6 +81,7 @@ export class WebGLTexture3D extends BaseTexture3D {
                 } else {
                     this.prevLength = this.width * this.height * this.depth * (formats.elementPerPixel || 4);
                 }
+                this.updateStyle();
             } else if (data && this.prevLength !== data.length) {
                 console.warn('Texture3D resize fail');
                 return;
@@ -99,8 +111,8 @@ export class WebGLTexture3D extends BaseTexture3D {
         const target = gl.TEXTURE_3D;
         gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl[TEXTURE_FILTER_GL[this.minFilter]] || gl.NEAREST);
         gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl[TEXTURE_FILTER_GL[this.magFilter]] || gl.NEAREST);
-        gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl[TEXTURE_FILTER_GL[this.wrap]] || gl.CLAMP_TO_EDGE);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl[TEXTURE_FILTER_GL[this.wrap]] || gl.CLAMP_TO_EDGE);
     }
 
     uploadSubs() {

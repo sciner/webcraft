@@ -9,6 +9,7 @@ export class BaseTexture3D {
         depth = 1,
         type = 'u8',
         filter = 'nearest',
+        wrap = 'clamp',
         data = null,
         fixedSize = true
     } = {}) {
@@ -18,6 +19,7 @@ export class BaseTexture3D {
         this.offset = new Vector(0, 0, 0);
         this.minFilter = filter;
         this.magFilter = filter;
+        this.wrap = wrap;
         this.type = type;
         this.data = data;
 

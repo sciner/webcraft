@@ -119,5 +119,4 @@ export class WebGLMaterial extends BaseMaterial {
     }
 
     static texState = null;
-    static lightState = null;
 }

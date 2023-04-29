@@ -1628,7 +1628,7 @@ export class Renderer {
         // gu.sunDir = [-1, -1, 1];
         // gu.useSunDir = true;
 
-        gu.lightOverride = 0xff;
+        gu.lightOverride = 0x100ff;
 
         guiCam.use(gu, true);
         gu.update();

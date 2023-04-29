@@ -471,13 +471,12 @@
         vec3 chunkCoord = floor((localPos - u_gridChunkOffset) / u_gridChunkSize);
         chunk_corner = chunkCoord * u_gridChunkSize + u_gridChunkOffset;
         //TODO: use "-" here, 0 <= chunkCoord < 2 * gridTexSize
-        int chunkIntData = texelFetch(u_gridChunkSampler, ivec3(chunkCoord) % textureSize(u_gridChunkSampler, 0), 0).r;
-        if (chunkIntData > 0) {
-            chunkData1.x = chunkIntData & 0x1ff;
-            chunkData1.y = (chunkIntData >> 9) & 0x1ff;
-            chunkData1.z = (chunkIntData >> 18) & 0x1ff;
-            chunkData1.w = (chunkIntData >> 27) & 0xf;
-        }
+        ivec3 ts = textureSize(u_gridChunkSampler, 0);
+        int chunkIntData = texelFetch(u_gridChunkSampler, ivec3(chunkCoord) % ts, 0).r;
+        chunkData1.x = chunkIntData & 0x1ff;
+        chunkData1.y = (chunkIntData >> 9) & 0x1ff;
+        chunkData1.z = (chunkIntData >> 18) & 0x1ff;
+        chunkData1.w = (chunkIntData >> 27) & 0xf;
     } else {
         int size = textureSize(u_chunkDataSampler, 0).x;
         int chunkId = int(a_chunkId);
@@ -581,9 +580,6 @@
                 aoVector = vec4(texture(u_lightTex[6], aoCoord0 * texSize).w, texture(u_lightTex[6], aoCoord1 * texSize).w,
                     texture(u_lightTex[6], aoCoord2 * texSize).w, texture(u_lightTex[6], aoCoord3 * texSize).w);
             }
-        } else {
-            centerSample = vec4(clamp(v_chunk_pos.z / 40.0, 0.0, 1.0)
-                , 1.0, 0.0, 0.0);
         }
         if (u_lightOverride.z > 0.5) {
             centerSample.xy = u_lightOverride.xy;

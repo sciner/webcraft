@@ -503,6 +503,12 @@ export default class BaseRenderer {
         this._emptyTex3DInt.isEmpty = true;
         this._emptyTex3DInt.emptyRegion = this._emptyTex3DInt;
 
+        this._emptyTex3DUint = this.createTexture3D({
+            data: new Uint8Array(4), type: 'rgba8uint'
+        });
+        this._emptyTex3DUint.isEmpty = true;
+        this._emptyTex3DUint.emptyRegion = this._emptyTex3DUint;
+
         this.globalUniforms = new GlobalUniformGroup();
         /**
          * @type {{[key: string]: string}}
