@@ -1477,7 +1477,7 @@
             "texture": "block/stone.png",
             "drop_item": [
                 {
-                    "name": "COBBLESTONE",
+                    "name": "STONE",
                     "instrument": ["_PICKAXE"]
                 },
                 {
@@ -1861,7 +1861,7 @@
             "drop_item": [
                 {
                     "name": "RAW_IRON",
-                    "instrument": ["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -11489,6 +11489,12 @@
                 "is_tall_grass",
                 "is_tall_grass_3"
             ],
+            "drop_item": [
+                {
+                    "name": "TURF_OF_GRASS", 
+                    "count": 1
+                }
+            ],
             "composter_chance": 0.65
         },
         {
@@ -11558,6 +11564,12 @@
                 "has_short",
                 "is_tall_grass",
                 "is_tall_grass_3"
+            ],
+            "drop_item": [
+                {
+                    "name": "TURF_OF_GRASS", 
+                    "count": 1
+                }
             ]
         },
         {
@@ -12245,13 +12257,13 @@
             "sound": "madcraft:axe",
             "transparent": true,
             "max_in_stack": 1,
-            "item": {"name": "instrument", "instrument_id": "axe"},
+            "item": {"name": "instrument", "instrument_id": "primitive_axe"},
             "diagonal": true,
-            "power": 132,
-            "damage": 9,
+            "power": 50,
+            "damage": 3,
             "speed": 0.8,
             "material": {
-                "id": "stone"
+                "id": "pebbles"
             },
             "texture": {
                 "side": "item/stone_axe.png"
@@ -12265,7 +12277,7 @@
                 "name": "powder"
             },
             "material": {
-                "id": "powder"
+                "id": "pebbles"
             }
         },{
             "id": 1088,
@@ -12300,6 +12312,52 @@
             "material": {
                 "id": "powder"
             }
+        },{
+            "id": 1091,
+            "name": "COPPER_ORE",
+            "sound": "madcraft:block.stone",
+            "coocked_item": {"name": "COPPER_INGOT", "count": 1},
+            "texture": "block/copper_ore.png",
+            "material": {
+                "id": "iron"
+            },
+            "tags": [
+                "ore"
+            ],
+            "drop_item": [
+                {
+                    "name": "RAW_COPPER",
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
+        },
+        {
+            "id": 1092,
+            "name": "POOR_COPPER_ORE",
+            "inherit": "COPPER_ORE",
+            "coocked_item": null,
+            "drop_item": {"name": "COPPER_NUGGET", "min_max_count": [1, 9]}
+        },
+        {
+            "id": 1093,
+            "name": "TURF_OF_GRASS",
+            "style": "extruder",
+            "sound": "madcraft:block.grass",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            },
+            "texture": "block/seagrass.png",
+            "composter_chance": 0.3
         }
     ]
 }

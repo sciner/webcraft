@@ -362,7 +362,8 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
         WebGLMaterial.texState = this._emptyTex;
-        WebGLMaterial.lightState = null;
+        // WebGLMaterial.lightState = null;
+
         this._shader = null;
     }
 

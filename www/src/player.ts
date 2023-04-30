@@ -1,4 +1,4 @@
-import {Helpers, Vector, ObjectHelpers} from "./helpers.js";
+import {Helpers, Vector, ObjectHelpers, CAMERA_MODE} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
@@ -801,14 +801,18 @@ export class Player implements IPlayer {
     }
 
     // Returns the position of the eyes of the player for rendering.
-    getEyePos(): Vector {
-        let subY = 0;
-        if(this.state.sitting) {
-            subY = this.height * 1/3;
-        } else if(this.state.sleep) {
-            subY = this.height * 0.5
+    getEyePos(abs : boolean = false): Vector {
+        if(!abs || this.render.camera_mode == CAMERA_MODE.SHOOTER) {
+            let subY = 0;
+            if(this.state.sitting) {
+                subY = this.height * 1/3;
+            } else if(this.state.sleep) {
+                subY = this.height * 0.5
+            }
+            return this._eye_pos.set(this.lerpPos.x, this.lerpPos.y + this.height * MOB_EYE_HEIGHT_PERCENT - subY, this.lerpPos.z);
+        } else {
+            return this._eye_pos.copyFrom(this.render.camPos)
         }
-        return this._eye_pos.set(this.lerpPos.x, this.lerpPos.y + this.height * MOB_EYE_HEIGHT_PERCENT - subY, this.lerpPos.z);
     }
 
     // Return player block position
@@ -951,8 +955,9 @@ export class Player implements IPlayer {
                 this.blockPosO          = this.blockPos;
             }
             // Внутри какого блока находится глаза
-            const eye_y             = this.getEyePos().y;
-            this.headBlock          = this.world.chunkManager.getBlock(this.blockPos.x, eye_y | 0, this.blockPos.z);
+            const cam_pos = this.getEyePos(true)
+            const eye_y             = cam_pos.y;
+            this.headBlock          = this.world.chunkManager.getBlock(Math.floor(cam_pos.x), eye_y | 0, Math.floor(cam_pos.z))
             this.eyes_in_block_o    = this.eyes_in_block;
             this.eyes_in_block      = this.headBlock.material.is_portal ? this.headBlock.material : null;
             // если в воде, то проверим еще высоту воды
