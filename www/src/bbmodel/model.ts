@@ -3,11 +3,11 @@ import { EasingType } from "./easing_type.js";
 import { BBModel_Cube } from "./cube.js";
 import { BBModel_Group } from "./group.js";
 import { BBModel_Locator } from "./locator.js";
-import { DEFAULT_ATLAS_SIZE } from "../constant.js";
 import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js";
 import type { Renderer } from "../render.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { getEuler } from "../components/Transform.js";
+import { BBMODEL_ATLAS_SIZE } from "../constant.js";
 
 const VEC_2 = new Vector(2, 2, 2)
 const FIX_POS = new Vector(-8, -8, 8)
@@ -26,7 +26,7 @@ export class BBModel_Model {
 
     constructor(json) {
         // TODO: need to read from bbmodel texture pack options
-        this.tx_size = DEFAULT_ATLAS_SIZE
+        this.tx_size = BBMODEL_ATLAS_SIZE
         this.json = json
         this.elements = new Map()
         this._group_stack = []

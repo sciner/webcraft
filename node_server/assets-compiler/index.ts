@@ -1,7 +1,7 @@
 import { Compiler } from "./compiler.js";
 import { BBModel_Compiler } from "./bbmodel_compiler.js";
 import { Music_Compiler } from "./music_compiler.js";
-import { DEFAULT_TX_CNT, DEFAULT_TX_SIZE } from "@client/constant.js";
+import { BBMODEL_TX_CNT, DEFAULT_TX_SIZE } from "@client/constant.js";
 
 // Textures
 const compiler = new Compiler({
@@ -25,7 +25,7 @@ await compiler.run();
 // BBmodels
 const bbcompiler = new BBModel_Compiler({
     resolution:         DEFAULT_TX_SIZE,
-    tx_cnt:             DEFAULT_TX_CNT,
+    tx_cnt:             BBMODEL_TX_CNT,
     model_dir:          "./bbmodel/models",
     output_dir:         "../../www/resource_packs/bbmodel",
     conf:               "./bbmodel/conf.json",
