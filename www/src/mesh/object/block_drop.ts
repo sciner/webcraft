@@ -180,10 +180,6 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
         // this.update()
 
-        if(!this.chunk) {
-            return;
-        }
-
         const mat       = this.block_material
         const matrix    = this.modelMatrix
         const temp_quat = quat.create()
@@ -194,10 +190,9 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
         // Calc init values
         const addY = (performance.now() - this.pn) / 10
-        this.posFact.copyFrom(this.pos).subSelf(this.chunk.coord)
-        this.posFact.y += .5 + Math.sin(addY / 35) / Math.PI * .2
-        position.set([this.posFact.x, this.posFact.y + 3 / 16, this.posFact.z])
-
+        position.set([0,
+            3 / 16 + .5 + Math.sin(addY / 35) / Math.PI * .2,
+           0])
         const display = mat.bb?.model?.json?.display?.ground
         if(display) {
 
@@ -241,7 +236,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         mat4.multiply(_matrix_rot, _matrix_rot, matrix)
 
         // Draw mesh group
-        this.drawBuffer(render, this.chunk.coord, _matrix_rot)
+        this.drawBuffer(render, this.pos, _matrix_rot)
 
     }
 
