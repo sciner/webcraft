@@ -101,6 +101,7 @@ export class LightWorld {
                 offset: OFFSET_DAY - 1,
                 dirCount: 6,
                 nibbleSource: true,
+                filterPenalty: 2
             });
         //this.dayLight.deque.debugName = 'DayLight';
         this.dayLightSrc = new DirNibbleQueue(this, {

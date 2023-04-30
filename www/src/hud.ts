@@ -503,6 +503,10 @@ export class HUD {
                 if (desc.material.is_solid) {
                     this.block_text += ' is_solid ';
                 }
+                if (desc.caveLight !== undefined) {
+                    this.block_text += `\n cave light: ${desc.caveLight}`;
+                    this.block_text += `\n day light: ${desc.dayLight}`;
+                }
                 const ed = desc.block.extra_data
                 if (ed) {
                     var s = '';

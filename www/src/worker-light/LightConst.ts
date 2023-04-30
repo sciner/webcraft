@@ -5,7 +5,8 @@ export const maxPotential = 400;
 export const defPageSize = 1 << 12;
 
 export const MASK_SRC_AMOUNT = 31;
-export const MASK_SRC_LIQUID = 64;
+export const MASK_SRC_FILTER_BIT = 6;
+export const MASK_SRC_FILTER = 64;
 export const MASK_SRC_BLOCK = 96;
 export const MASK_SRC_AO = 128;
 export const MASK_SRC_REST = 224;
