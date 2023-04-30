@@ -441,9 +441,10 @@ export class FSMBrain {
         const mob = this.mob;
         const world = mob.getWorld();
         if (actor) {
-            const velocity = mob.pos.sub(actor.state.pos).normSelf();
-            velocity.y = 0.4;
-            mob.addVelocity(velocity);
+            const pos = actor?.pos ? actor.pos : actor.state.pos
+            const velocity = mob.pos.sub(pos).normSelf()
+            velocity.y = 0.4
+            mob.addVelocity(velocity)
         }
         mob.indicators.live -= val;
         if (mob.indicators.live <= 0) {

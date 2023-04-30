@@ -1,86 +1,11 @@
-import { FSMBrain } from "../brain.js";
-import { Vector } from "@client/helpers.js";
-import { WorldAction } from "@client/world_action.js";
-import { PLAYER_STATUS } from "@client/constant.js";
-import { Weather } from "@client/block_type/weather.js";
-import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
-
-// рыба
-const FISH = [
-    {
-        'name': 'COD',
-        'weight': 60
-    },
-    {
-        'name': 'SALMON',
-        'weight': 25
-    },
-    {
-        'name': 'TROPICAL_FISH',
-        'weight': 2
-    },
-    {
-        'name': 'PUFFERFISH',
-        'weight': 13
-    }
-]
-// мусор
-const JUNK = [
-    {
-        'name': 'LILY_PAD',
-        'weight': 17
-    },
-    {
-        'name': 'FISHING_ROD',
-        'weight': 2
-    },
-    {
-        'name': 'LEATHER',
-        'weight': 2
-    },
-    {
-        'name': 'LEATHER_BOOTS',
-        'weight': 10
-    },
-    {
-        'name': 'ROTTEN_FLESH',
-        'weight': 10
-    },
-    {
-        'name': 'STICK',
-        'weight': 5
-    },
-    {
-        'name': 'STRING',
-        'weight': 5
-    },
-    {
-        'name': 'AWKWARD',
-        'weight': 10
-    },
-    {
-        'name': 'BONE',
-        'weight': 10
-    },
-    {
-        'name': 'BOWL',
-        'weight': 10
-    },
-    {
-        'name': 'INK_SAC',
-        'weight': 1
-    }
-]
+import { FSMBrain } from "../brain.js"
+import { Vector } from "@client/helpers.js"
+import { EnumDamage } from "@client/enums/enum_damage.js"
 
 export class Brain extends FSMBrain {
 
-    parent: any;
-    timer_in_ground: number;
-    timer_catchable: number;
-    timer_caught_delay: number;
-    timer_catchable_delay: number;
-    fish_approach_angle: number;
-    velocity: Vector;
+    parent: any
+    velocity: Vector
 
     constructor(mob) {
         super(mob);
@@ -89,14 +14,10 @@ export class Brain extends FSMBrain {
         this.pc             = this.createPlayerControl(this, {
             playerHeight: .16,
             playerHalfWidth: .08
-        });
-
+        })
         this.pc.player_state.flying = true
         mob.extra_data.play_death_animation = false
-        
-        this.health = 1; // максимальное здоровье
-    
-        const power = .8
+        const power = 0.8
         const z = Math.cos(mob.rotate.z) * Math.cos(mob.rotate.x) * power
         const x = Math.sin(mob.rotate.z) * Math.cos(mob.rotate.x) * power
         const y = Math.sin(mob.rotate.x) * power
@@ -110,11 +31,27 @@ export class Brain extends FSMBrain {
     }
 
     doStand(delta) {
+        const mob = this.mob
         if (this.pc.player_state.isCollidedVertically || this.pc.player_state.isCollidedHorizontally) {
             this.mob.kill()
             return
         }
-        this.velocity.y -= 0.01
+        const rotate = new Vector(Math.sin(mob.rotate.z), 0, Math.cos(mob.rotate.z))
+        const pos = mob.pos.add(rotate.mulScalar(.4)) // @todo вроде попроавлено в раейкастере
+        const ray = this.raycaster.get(pos, rotate, 2)
+        // если на пути встретился моб
+        if (ray?.mob) {
+            ray.mob.setDamage(2, EnumDamage.SNOWBALL, mob)
+            mob.kill()
+            return
+        }
+        // если на пути встретился игрок
+        if (ray?.player) {
+            ray.player.setDamage(2, EnumDamage.SNOWBALL, mob)
+            mob.kill()
+            return
+        }
+        this.velocity.y -= 0.02
         this.pc.player_state.vel = new Vector(this.velocity.x, this.velocity.y, this.velocity.z)
         this.applyControl(delta)
         this.sendState()

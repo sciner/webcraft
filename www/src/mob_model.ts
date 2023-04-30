@@ -212,7 +212,10 @@ export class MobModel extends NetworkPhysicObject {
      * Draw mob model
      */
     draw(render : Renderer, camPos : Vector, delta : float, speed? : float, draw_debug_grid : boolean = false) {
-
+        if(!this.isAlive) {
+            return false
+        }
+        
         this.update(render, camPos, delta, speed);
 
         // TODO: need to migrate to bbmodels

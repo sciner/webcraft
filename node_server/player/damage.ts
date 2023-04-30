@@ -66,7 +66,7 @@ export class ServerPlayerDamage {
         max_live += 2 * health_boost_lvl;
 
         let damage = this.damage
-
+        
         // Урон от падения 
         const ground = player.controlManager.prismarine.player_state.onGround
         if (!this.#ground) {

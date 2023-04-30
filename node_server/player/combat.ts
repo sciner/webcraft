@@ -2,11 +2,13 @@ import type { ServerPlayer } from "../server_player.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
 
 export class ServerPlayerCombat {
+    
     #player: ServerPlayer
     #cooldowm: number
 
     constructor(player : ServerPlayer) {
-        this.#player = player;
+        this.#player = player
+        this.#cooldowm = performance.now()
     }
 
     // урон от оружия
