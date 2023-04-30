@@ -297,10 +297,6 @@ export class PickAt {
                 );
                 a_pos = this.chunk.coord;
             }
-            const light = this.chunk.getLightTexture(render.renderBackend);
-            if(light) {
-                this.material_damage.changeLighTex(light);
-            }
 
             render.renderBackend.drawMesh(damage_block.mesh, this.material_damage, a_pos, matrix || this.modelMatrix);
         }

@@ -162,6 +162,7 @@ export class SpiralGrid {
     center:         Vector = new Vector()
     size:           SpiralSize = null
     cullIDs:        number[] = []
+    moveID = 0;
 
     constructor(marginVec: IVector = new Vector()) {
         this.size = new SpiralSize(marginVec);
@@ -185,6 +186,7 @@ export class SpiralGrid {
             entries[i].copyTranslate(spiral_moves_3d[i], center);
             entriesByYZ[i] = entries[size.indexByYZ[i]];
         }
+        this.moveID++;
     }
 
     translate(newCenter: IVector) {
@@ -208,6 +210,7 @@ export class SpiralGrid {
             entries[i].newValue = null;
         }
         this.center.copyFrom(newCenter);
+        this.moveID++;
     }
 
     makeOrTranslate(center: Vector, marginVec: IVector) {
