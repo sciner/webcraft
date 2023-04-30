@@ -11489,6 +11489,12 @@
                 "is_tall_grass",
                 "is_tall_grass_3"
             ],
+            "drop_item": [
+                {
+                    "name": "TURF_OF_GRASS", 
+                    "count": 1
+                }
+            ],
             "composter_chance": 0.65
         },
         {
@@ -11558,6 +11564,12 @@
                 "has_short",
                 "is_tall_grass",
                 "is_tall_grass_3"
+            ],
+            "drop_item": [
+                {
+                    "name": "TURF_OF_GRASS", 
+                    "count": 1
+                }
             ]
         },
         {
@@ -12332,6 +12344,20 @@
             "inherit": "COPPER_ORE",
             "coocked_item": null,
             "drop_item": {"name": "COPPER_NUGGET", "min_max_count": [1, 9]}
+        },
+        {
+            "id": 1093,
+            "name": "TURF_OF_GRASS",
+            "style": "extruder",
+            "sound": "madcraft:block.grass",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            },
+            "texture": "block/seagrass.png",
+            "composter_chance": 0.3
         }
     ]
 }
