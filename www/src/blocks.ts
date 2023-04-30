@@ -218,11 +218,9 @@ class Block_Material implements IBlockMiningMaterial {
         const mining_time = this.mining.time
         if(instrument?.material?.item?.instrument_id) {
             const instrument_id = instrument.material.item.instrument_id
-            if (this.mining.instruments.includes(instrument_id)) {
-                const instrument_boost = instrument.material.material.mining.instrument_boost
-                if (typeof instrument_boost !== 'undefined' && !isNaN(instrument_boost)) {
-                    return Math.round((mining_time / instrument_boost) * 100) / 100
-                }
+            const boost = instrument.material.material.mining.instruments
+            if (boost[instrument_id]) {
+                return Math.round((mining_time / boost[instrument_id]) * 100) / 100
             }
         }
         return mining_time
