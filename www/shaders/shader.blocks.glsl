@@ -890,7 +890,7 @@ v_axisV *= sign(a_uvSize.y);
 
     float flame_frame = .6;
     // TODO: depends on bbmodel texture size
-    float tex_scale = 256.;
+    float tex_scale = 3072. / 8.;
     vec2 uv = v_texcoord0;
     vec2 flame_pixelate = vec2(5., 1.) * 96.;
     uv = vec2(mod(uv.x * tex_scale, 1.) / 5. + flame_frame, mod(uv.y * -tex_scale, 1.));
