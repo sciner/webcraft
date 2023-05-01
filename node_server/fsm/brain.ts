@@ -440,7 +440,7 @@ export class FSMBrain {
     onDamage(val : number, type_damage : EnumDamage, actor) {
         const mob = this.mob;
         const world = mob.getWorld();
-        if (actor) {
+        if (actor &&  [EnumDamage.CRIT, EnumDamage.SNOWBALL].includes(type_damage)) {
             const pos = actor?.state?.pos ? actor.state.pos : actor.pos
             const velocity = mob.pos.sub(pos).normSelf()
             velocity.y = 0.2

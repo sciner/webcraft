@@ -251,6 +251,7 @@ export class Player implements IPlayer {
     _eating_sound_tick:         number;
     _eating_sound:              any;
     timer_anim:                number = 0
+    #timer_attack:              number = 0
 
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
@@ -406,18 +407,25 @@ export class Player implements IPlayer {
             return this.onPickAtTarget(e, times, number)
         }, (e : IPickatEvent) => {
             if (e.button_id == MOUSE.BUTTON_LEFT) {
-                this.setAnimation('attack', 1, .5)
-                setTimeout(() => {
-                    this.world.server.Send({
-                        name: ServerClient.CMD_USE_WEAPON,
-                        data: {
-                            target: {
-                                pid: e.interactPlayerID,
-                                mid: e.interactMobID
+                const instrument = this.getCurrentInstrument()
+                const speed = instrument?.speed ? instrument.speed : 1
+                const time = (e.start_time - this.#timer_attack) * speed
+                if (time > 1000) {
+                    this.setAnimation('attack', 1, .5)
+                    // отстрочка от анимации
+                    setTimeout(() => {
+                        this.world.server.Send({
+                            name: ServerClient.CMD_USE_WEAPON,
+                            data: {
+                                target: {
+                                    pid: e.interactPlayerID,
+                                    mid: e.interactMobID
+                                }
                             }
-                        }
-                    })
-                }, 50)
+                        })
+                    }, 50)
+                    this.#timer_attack = e.start_time
+                }
             } else {
                 const instrument = this.getCurrentInstrument()
                 const speed = instrument?.speed ? instrument.speed : 1

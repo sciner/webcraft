@@ -6,6 +6,7 @@ export enum EnumDamage {
     EXPLOSION = 3,
     PUNCH = 4,
     SNOWBALL,
+    CRIT,
     OTHER
 
 }

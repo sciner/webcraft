@@ -4,7 +4,7 @@ import { Vector } from "@client/helpers.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import type { ServerPlayer } from "../server_player.js";
 import { PLAYER_STATUS } from "@client/constant.js";
-import type { EnumDamage } from "@client/enums/enum_damage.js";
+import { EnumDamage } from "@client/enums/enum_damage.js";
 
 const INSTANT_DAMAGE_TICKS = 10
 const INSTANT_HEALTH_TICKS = 10
@@ -249,8 +249,7 @@ export class ServerPlayerDamage {
         // армор
         damage = Math.round((damage * (32 - this.player.inventory.getArmorLevel())) / 32);
         if (damage > 0) {
-            console.log(this.actor)
-            if (this.actor) {
+            if (this.actor && [EnumDamage.CRIT, EnumDamage.SNOWBALL].includes(this.type_damage)) {
                 const pos = this.actor?.state?.pos ? this.actor.state.pos : this.actor.pos
                 const velocity = player.state.pos.sub(pos).normSelf()
                 velocity.y = 0.2
