@@ -69,10 +69,10 @@ export class DirNibbleQueue {
             const curBlock = uint8View[blockCoord + OFFSET_SOURCE];
             if ((curBlock & MASK_SRC_REST) > 0) {
                 columnTop = 0;
-                foundBlock = true;
-                if ((curBlock & MASK_SRC_REST) == MASK_SRC_DAYLIGHT) {
+                if (!foundBlock && (curBlock & MASK_SRC_REST) == MASK_SRC_DAYLIGHT) {
                     foundDayLightBlock = MASK_SRC_DAYLIGHT;
                 }
+                foundBlock = true;
             } else {
                 if (!foundBlock) {
                     columnBottom++;
