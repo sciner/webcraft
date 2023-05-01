@@ -641,10 +641,7 @@ export class ChunkWorkerChunk implements IChunk {
 
         }
 
-        /**
-         * @param {string} material_key
-         */
-        const getMaterialBuf = (material_key) => {
+        const getMaterialBuf = (material_key : string) => {
 
             // material.group, material.material_key
             if (!materialToId.has(material_key)) {
@@ -669,10 +666,7 @@ export class ChunkWorkerChunk implements IChunk {
 
         }
 
-        /**
-         * @param {FakeVertices} fv
-         */
-        const processFakeVertices = (fv) => {
+        const processFakeVertices = (fv : FakeVertices) => {
             const matBuf = getMaterialBuf(fv.material_key)
             matBuf.buf.vertices.push(...fv.vertices)
         }

@@ -100,8 +100,8 @@ class Block {
 }
 
 export class FakeVertices {
-    material_key: string;
-    vertices: float[];
+    material_key: string
+    vertices: float[]
 
     constructor(material_key : string, vertices : float[]) {
         this.material_key = material_key
