@@ -16,7 +16,7 @@ export default class emitter extends BaseEmitter {
 
         super(mesh_manager, pos, args)
 
-        this.block_manager  = args.block_manager;
+        this.block_manager  = Qubatch.world.block_manager
         this.max_distance   = 32;
 
         // get chunk

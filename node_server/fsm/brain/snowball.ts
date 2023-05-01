@@ -1,6 +1,7 @@
 import { FSMBrain } from "../brain.js"
 import { Vector } from "@client/helpers.js"
 import { EnumDamage } from "@client/enums/enum_damage.js"
+import { WorldAction } from "@client/world_action.js"
 
 export class Brain extends FSMBrain {
 
@@ -31,7 +32,7 @@ export class Brain extends FSMBrain {
     doStand(delta) {
         const mob = this.mob
         if (this.pc.player_state.isCollidedVertically || this.pc.player_state.isCollidedHorizontally) {
-            this.mob.kill()
+            this.onKill(null, null)
             return
         }
         const rotate = new Vector(Math.sin(mob.rotate.z), 0, Math.cos(mob.rotate.z))
@@ -39,14 +40,14 @@ export class Brain extends FSMBrain {
         const ray = this.raycaster.get(pos, rotate, 2)
         // если на пути встретился моб
         if (ray?.mob) {
-            ray.mob.setDamage(2, EnumDamage.SNOWBALL, mob)
-            mob.kill()
+            ray.mob.setDamage(1, EnumDamage.SNOWBALL, mob)
+            this.onKill(null, null)
             return
         }
         // если на пути встретился игрок
         if (ray?.player) {
-            ray.player.setDamage(2, EnumDamage.SNOWBALL, mob)
-            mob.kill()
+            ray.player.setDamage(1, EnumDamage.SNOWBALL, mob)
+            this.onKill(null, null)
             return
         }
         this.velocity.y -= .3 * delta
@@ -57,6 +58,23 @@ export class Brain extends FSMBrain {
    
     // Если убили моба
     onKill(actor, type_damage) {
+        const mob = this.mob
+        mob.kill()
+        const world = mob.getWorld()
+        const actions = new WorldAction()
+        actions.addParticles([
+            {
+                type: 'destroy_block', 
+                pos: mob.pos, 
+                block: {
+                    id: 80
+                },
+                force: 1,
+                scale: 1,
+                small: false
+            }
+        ])
+        world.actions_queue.add(actor, actions)
         return false
     }
     
