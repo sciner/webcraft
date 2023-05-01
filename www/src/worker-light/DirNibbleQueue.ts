@@ -181,6 +181,7 @@ export class DirNibbleQueue {
             const coordBytes = nibCoord * nibStride;
             const old = nibbles[coordBytes + OFFSET_COLUMN_DAY];
             const column = nibbles[coordBytes + OFFSET_COLUMN_TOP];
+            const blockDayLight = nibbles[coordBytes + OFFSET_COLUMN_BOTTOM] + y - MASK_SRC_DAYLIGHT;
             //TODO: use nibDim from up chunk, it can be different
             let val = 0;
             const upBytes = coordBytes + cy * nibStride;
@@ -219,7 +220,7 @@ export class DirNibbleQueue {
             for (let y1 = y; y1 < lim; y1++) {
                 const curLight = uint8View[coord * strideBytes + qOffset];
                 const nibColumn = column - (lim - y1);
-                const newLight = (nibColumn >= 0 && val > nibColumn) ? defLight : 0;
+                const newLight = (nibColumn >= 0 && val > nibColumn || y < blockDayLight) ? defLight : 0;
                 if ((newLight !== defLight) !== (curLight !== defLight)) {
                     // world.dayLight.add(chunk, coord, Math.max(newLight, curLight), world.getPotential(x, y, z));
                     world.dayLight.addNow(chunk, coord, x, y1, z, newLight);

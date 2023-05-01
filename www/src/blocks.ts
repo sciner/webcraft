@@ -336,7 +336,7 @@ export class BLOCK {
             let power = material.light_power.a;
             if (power === 251) {
                 // daylight block!
-                val = 32;
+                val = 32 + 15;
             } else {
                 val = Math.floor(power / 16.0);
             }
