@@ -16,7 +16,7 @@ export class Brain extends FSMBrain {
         })
         this.pc.player_state.flying = true
         mob.extra_data.play_death_animation = false
-        const power = 0.8
+        const power = 0.9
         const z = Math.cos(mob.rotate.z) * Math.cos(mob.rotate.x) * power
         const x = Math.sin(mob.rotate.z) * Math.cos(mob.rotate.x) * power
         const y = Math.sin(mob.rotate.x) * power

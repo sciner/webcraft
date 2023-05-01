@@ -27,7 +27,7 @@ export default class packet_reader {
         if (item.id == bm.SNOWBALL.id) {
             // смещение, что бы себя не бить
             const rotate = new Vector(Math.sin(player.state.rotate.z), 0, Math.cos(player.state.rotate.z))
-            const pos = player.getEyePos().offset(0, -.3, 0).add(rotate.mulScalar(PLAYER_DIAMETER / 2))
+            const pos = player.getEyePos().add(rotate.mulScalar(2))
             const params = new MobSpawnParams(
                 pos,
                 player.state.rotate,
