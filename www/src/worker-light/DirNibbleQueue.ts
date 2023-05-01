@@ -325,10 +325,14 @@ export class DirNibbleQueue {
                     const baseXZ = cx * x + cz * z + shiftCoord;
                     let foundBlock = false;
                     let columnBottom = 0, columnTop = 0;
+                    let foundDayLightBlock = 0;
                     for (let y1 = start; y1 < lim; y1++) {
                         const curBlock = uint8View[(baseXZ + cy * y1) * strideBytes + OFFSET_SOURCE];
                         if ((curBlock & MASK_SRC_REST) > 0) {
                             columnTop = 0;
+                            if (!foundBlock && (curBlock & MASK_SRC_REST) == MASK_SRC_DAYLIGHT) {
+                                foundDayLightBlock = MASK_SRC_DAYLIGHT;
+                            }
                             foundBlock = true;
                         } else {
                             if (!foundBlock) {
@@ -337,6 +341,7 @@ export class DirNibbleQueue {
                             columnTop++;
                         }
                     }
+                    columnBottom |= foundDayLightBlock;
                     nibbles[(baseXZ + cy * (colNum + aabb.y_min)) * nibbleStrideBytes + OFFSET_COLUMN_BOTTOM] = columnBottom;
                     nibbles[(baseXZ + cy * (colNum + aabb.y_min)) * nibbleStrideBytes + OFFSET_COLUMN_TOP] = columnTop;
                 }
