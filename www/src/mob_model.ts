@@ -138,7 +138,7 @@ export class MobModel extends NetworkPhysicObject {
         this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend)
 
         const mesh = this._mesh
-        if(mesh && this.lightTex) {
+        if(mesh) {
             // mesh.gl_material.changeLighTex(this.lightTex)
             // mesh.gl_material.lightTex = this.lightTex
             if (this.#timer_demage > performance.now()) {

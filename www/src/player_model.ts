@@ -372,7 +372,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     }
 
     get isAlive() : boolean {
-        return super.is_alive
+        return super.isAlive
     }
 
 }

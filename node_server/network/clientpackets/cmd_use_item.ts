@@ -1,5 +1,5 @@
 import { ServerClient } from "@client/server_client.js";
-import { DEFAULT_MOB_TEXTURE_NAME } from "@client/constant.js";
+import { DEFAULT_MOB_TEXTURE_NAME, PLAYER_DIAMETER } from "@client/constant.js";
 import { MobSpawnParams } from "mob.js";
 import { Vector } from "@client/helpers.js";
 
@@ -27,7 +27,7 @@ export default class packet_reader {
         if (item.id == bm.SNOWBALL.id) {
             // смещение, что бы себя не бить
             const rotate = new Vector(Math.sin(player.state.rotate.z), 0, Math.cos(player.state.rotate.z))
-            const pos = player.getEyePos().add(rotate)
+            const pos = player.getEyePos().add(rotate.mulScalar(PLAYER_DIAMETER / 2))
             const params = new MobSpawnParams(
                 pos,
                 player.state.rotate,
@@ -37,6 +37,7 @@ export default class packet_reader {
                 }
             )
             const snowball = player.world.mobs.spawn(player, params)
+            player.inventory.decrement()
             return true
         }
         if (packet?.data?.cancel) {

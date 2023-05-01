@@ -8,9 +8,7 @@ export class Brain extends FSMBrain {
     velocity: Vector
 
     constructor(mob) {
-        super(mob);
-        this.prevPos        = new Vector(mob.pos);
-        this.lerpPos        = new Vector(mob.pos);
+        super(mob)
         this.pc             = this.createPlayerControl(this, {
             playerHeight: .16,
             playerHalfWidth: .08
@@ -51,7 +49,7 @@ export class Brain extends FSMBrain {
             mob.kill()
             return
         }
-        this.velocity.y -= 0.02
+        this.velocity.y -= .3 * delta
         this.pc.player_state.vel = new Vector(this.velocity.x, this.velocity.y, this.velocity.z)
         this.applyControl(delta)
         this.sendState()
