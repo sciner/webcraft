@@ -35,7 +35,8 @@ export class Chunk {
         this.waveCounter = 0;
         this.crc = 0;
 
-        this.disperse = this.addr.y >= 0 ? DISPERSE_MIN + 1 : 0;
+        this.disperse = DISPERSE_MIN + 1;
+        //TODO: copy default layer light here
 
         const grid = this.world.chunkManager.lightBase.grid;
         this.lightChunk = new DataChunk({
@@ -101,9 +102,7 @@ export class Chunk {
         const {shiftCoord, cx, cy, cz} = lightChunk;
         let found = false;
 
-        if (lightChunk.pos.y >= 0) {
-            world.dayLightSrc.fillOuter(this);
-        }
+        world.dayLightSrc.fillOuter(this);
 
         const ambientLight = world.light.ambientLight;
         for (let i = 0; i < portals.length; i++) {

@@ -22,7 +22,7 @@ import {
     OFFSET_WAVE,
     NORMAL_DX,
     NORMAL_MASK,
-    OFFSET_NORMAL, NORMAL_DEF, MASK_SRC_FILTER, MASK_SRC_FILTER_BIT,
+    OFFSET_NORMAL, NORMAL_DEF, MASK_SRC_FILTER, MASK_SRC_FILTER_BIT, OFFSET_COLUMN_BOTTOM, MASK_SRC_DAYLIGHT,
 } from './LightConst.js';
 
 export class LightQueue {
@@ -215,6 +215,9 @@ export class LightQueue {
                 const lim = Math.min(nibDim * (nibY + 1), aabb.y_max - aabb.y_min);
                 const nibColumn = nibbles[nibCoord + OFFSET_COLUMN_TOP] - (lim - localY);
                 val = (nibColumn >= 0 && nibbles[nibCoord + OFFSET_COLUMN_DAY] > nibColumn) ? world.defDayLight : 0;
+                if (localY % nibDim < nibbles[nibCoord + OFFSET_COLUMN_BOTTOM] - MASK_SRC_DAYLIGHT) {
+                    val = world.defDayLight;
+                }
             }
             val = Math.max(val, ambientLight);
             const old = uint8View[coordBytes + OFFSET_LIGHT];

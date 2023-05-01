@@ -6,6 +6,7 @@ export const defPageSize = 1 << 12;
 
 export const MASK_SRC_AMOUNT = 31;
 export const MASK_SRC_FILTER_BIT = 6;
+export const MASK_SRC_DAYLIGHT = 32;
 export const MASK_SRC_FILTER = 64;
 export const MASK_SRC_BLOCK = 96;
 export const MASK_SRC_AO = 128;

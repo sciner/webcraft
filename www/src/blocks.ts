@@ -214,7 +214,7 @@ class Block_Material implements IBlockMiningMaterial {
     getMiningTime(instrument : object | any, force : boolean) : float {
         if(force) {
             return 0
-        } 
+        }
         const mining_time = this.mining.time
         if(instrument?.material?.item?.instrument_id) {
             const instrument_id = instrument.material.item.instrument_id
@@ -331,8 +331,15 @@ export class BLOCK {
         let val = 0;
         if (material.is_water) {
             return 64;
+
         } else if(material.light_power) {
-            val = Math.floor(material.light_power.a / 16.0);
+            let power = material.light_power.a;
+            if (power === 251) {
+                // daylight block!
+                val = 32;
+            } else {
+                val = Math.floor(power / 16.0);
+            }
         } else if (!material.transparent) {
             val = 96;
         }

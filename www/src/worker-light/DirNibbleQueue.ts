@@ -2,7 +2,7 @@ import {MultiQueue} from "../light/MultiQueue.js";
 import {
     BITS_QUEUE_BLOCK_INDEX, defPageSize, DIR_DOWN, dx, dy, dz,
     MASK_QUEUE_BLOCK_INDEX,
-    MASK_QUEUE_FORCE, MASK_SRC_BLOCK,
+    MASK_QUEUE_FORCE, MASK_SRC_AO, MASK_SRC_BLOCK, MASK_SRC_DAYLIGHT,
     MASK_SRC_REST, maxLight, OFFSET_COLUMN_BOTTOM, OFFSET_COLUMN_DAY, OFFSET_COLUMN_TOP, OFFSET_DAY, OFFSET_LIGHT,
     OFFSET_SOURCE
 } from "./LightConst.js";
@@ -64,11 +64,15 @@ export class DirNibbleQueue {
 
         let foundBlock = false;
         let columnBottom = 0, columnTop = 0;
+        let foundDayLightBlock = 0;
         for (let y1 = 0; y1 < height; y1++) {
             const curBlock = uint8View[blockCoord + OFFSET_SOURCE];
             if ((curBlock & MASK_SRC_REST) > 0) {
                 columnTop = 0;
                 foundBlock = true;
+                if ((curBlock & MASK_SRC_REST) == MASK_SRC_DAYLIGHT) {
+                    foundDayLightBlock = MASK_SRC_DAYLIGHT;
+                }
             } else {
                 if (!foundBlock) {
                     columnBottom++;
@@ -77,6 +81,7 @@ export class DirNibbleQueue {
             }
             blockCoord += cy * strideBytes;
         }
+        columnBottom |= foundDayLightBlock;
         if (nibbles[nibCoord + OFFSET_COLUMN_BOTTOM] === columnBottom
             && nibbles[nibCoord + OFFSET_COLUMN_TOP] === columnTop
             && !force) {
@@ -181,6 +186,10 @@ export class DirNibbleQueue {
             const upBytes = coordBytes + cy * nibStride;
             let upColumn = nibbles[upBytes + OFFSET_COLUMN_BOTTOM];
             const upDay = nibbles[upBytes + OFFSET_COLUMN_DAY];
+            if (upColumn >= MASK_SRC_DAYLIGHT) {
+                val = column + upBytes - MASK_SRC_DAYLIGHT;
+                upColumn -= MASK_SRC_DAYLIGHT;
+            }
             if (upColumn >= nibDim && upDay > 0) {
                 val = Math.min(column + upDay, 2 * nibDim);
             } else if (disperse > 0) {
