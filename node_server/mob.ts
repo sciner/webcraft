@@ -6,7 +6,7 @@ import { DBWorldMob, MobRow } from "./db/world/mob.js"
 import { AABB } from "@client/core/AABB.js";
 import type { ServerWorld } from "./server_world.js";
 import type { FSMBrain } from "./fsm/brain.js";
-import { EnumDamage } from "@client/enums/enum_damage.js";
+import type { EnumDamage } from "@client/enums/enum_damage.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
 import type { Indicators, PlayerSkin } from "@client/player.js";
 import type { ServerPlayer } from "./server_player.js";
@@ -199,8 +199,8 @@ export class Mob {
         if(!params.extra_data) {
             params.extra_data = {};
         }
-        params.extra_data.is_alive = true;
-        params.extra_data.play_death_animation = true;
+        params.extra_data.health = 100
+        params.extra_data.play_death_animation = true
         // make indicators
         params.indicators = world.db.getDefaultPlayerIndicators();
         params.is_active = 1; // previously is_active was selected from DB, where it's set to 1 by default
@@ -215,11 +215,10 @@ export class Mob {
     }
 
     tick(delta: float): void {
-        if(this.indicators.live == 0) {
-            return;
+        if (this.extra_data.health == 0) {
+            return
         }
-        //
-        this.#brain.tick(delta);
+        this.#brain.tick(delta)
     }
 
     addVelocity(vec: Vector) {
@@ -239,7 +238,7 @@ export class Mob {
      * @retrun true if there is anything to save in a world transaction
      */
     onUnload(chunk : ServerChunk = null) {
-        console.debug(`Mob unloaded ${this.entity_id}, ${this.id}`);
+        //console.debug(`Mob unloaded ${this.entity_id}, ${this.id}`);
         const world = this.#world;
         world.mobs.delete(this.id);
         chunk = chunk ?? world.chunkManager.get(this.chunk_addr);
@@ -271,24 +270,14 @@ export class Mob {
         return this.#brain.onUse(actor, item_id);
     }
 
-    punch(server_player: ServerPlayer, params) {
-        if(params.button_id == MOUSE.BUTTON_RIGHT) {
-            this.#brain.onUse(server_player, server_player.state.hands.right.id);
-        } else if(params.button_id == MOUSE.BUTTON_LEFT) {
-            if(this.indicators.live > 0) {
-                this.#brain.onDamage(5, EnumDamage.PUNCH, server_player);
-            }
-        }
-    }
-
     // Kill
     kill(): void {
         if(this.already_killed) {
             return;
         }
-        this.already_killed = true;
-        this.indicators.live = 0;
-        this.extra_data.is_alive = false;
+        this.already_killed = true
+        this.indicators.live = 0
+        this.extra_data.health = 0
         this.#brain.sendState();
     }
 
@@ -301,7 +290,7 @@ export class Mob {
     }
 
     get isAlive() : boolean {
-        return this.indicators.live > 0;
+        return this.extra_data.health > 0
     }
 
     // если игрока нет, он умер или сменил игровой режим на безопасный, то его нельзя атаковать

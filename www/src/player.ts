@@ -417,7 +417,7 @@ export class Player implements IPlayer {
                             }
                         }
                     })
-                }, 500)
+                }, 50)
             } else {
                 const instrument = this.getCurrentInstrument()
                 const speed = instrument?.speed ? instrument.speed : 1
@@ -427,27 +427,15 @@ export class Player implements IPlayer {
                 }
                 this.mineTime = 0
                 if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
-                    this.inAttackProcess = ATTACK_PROCESS_ONGOING;
+                    this.inAttackProcess = ATTACK_PROCESS_ONGOING
                     this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD / speed
                 }
-                this.timer_attack = e.start_time
-                if (e.interactPlayerID) {
-                    const player = Qubatch.world.players.get(e.interactPlayerID);
-                    if (player) {
-                        player.punch(e);
-                    }
-                }
-                if (e.interactMobID) {
-                    const mob = Qubatch.world.mobs.get(e.interactMobID);
-                    if (mob) {
-                        mob.punch(e);
-                    }
-                }
+                this.timer_attack = e.start_time  
                 if (e.interactMobID || e.interactPlayerID) {
                     this.world.server.Send({
                         name: ServerClient.CMD_PICKAT_ACTION,
                         data: e
-                    });
+                    })
                 }
             }
         }, (bPos: IPickatEventPos) => {

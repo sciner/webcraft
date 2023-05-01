@@ -14,7 +14,7 @@ export class Brain extends FSMBrain {
             playerHeight: 1.8,
             stepHeight: 1
         });
-        this.health = 20;    // максимальное здоровье
+        this.setMaxHealth(20)   // максимальное здоровье
         // Начинаем с просто "Стоять"
         this.stack.pushState(this.doStand);
     }

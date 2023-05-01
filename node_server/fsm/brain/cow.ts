@@ -16,7 +16,7 @@ export class Brain extends FSMBrain {
             playerHalfWidth: .45
         });
         this.stack.pushState(this.doStand);
-        this.health = 10; // максимальное здоровье
+        this.setMaxHealth(10) // максимальное здоровье
         this.distance_view = 6; // дистанция на которм виден игрок
         this.targets = [
             mob.getWorld().block_manager.WHEAT.id

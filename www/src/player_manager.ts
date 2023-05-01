@@ -67,9 +67,9 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
             return;
         }
 
-        player.distance = data.dist;
-        player.armor = data.armor;
-        player.health = data.health;
+        player.distance = data.dist
+        player.armor = data.armor
+        player.health = data.health
         player.sleep = data.sleep
         player.anim = data.anim
         player.sitting = data.sitting

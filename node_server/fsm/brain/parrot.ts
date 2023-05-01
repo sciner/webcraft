@@ -27,7 +27,7 @@ export class Brain extends FSMBrain {
         this.live = 10;
         this.fly = 0;
 
-        this.health = 10;    // максимальное здоровье
+        this.setMaxHealth(10)    // максимальное здоровье
         
         this.stack.pushState(this.doForward);
         

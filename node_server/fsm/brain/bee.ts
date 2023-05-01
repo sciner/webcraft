@@ -34,7 +34,7 @@ export class Brain extends FSMBrain {
             playerHalfWidth: 0.3,
         });
 
-        this.health = 10;
+        this.setMaxHealth(10)
 
         this.pc.player_state.flying = true;// @todo костыль от сброса полета при касании земли
 

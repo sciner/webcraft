@@ -28,7 +28,7 @@ export class Brain extends FSMBrain {
             stepHeight: 1,
             playerHalfWidth: .45
         });
-        this.health = 20; // максимальное здоровье
+        this.setMaxHealth(20) // максимальное здоровье
         this.distance_view = 40; // дистанция на которм виден игрок
         mob.extra_data.play_death_animation = false;
         this.detonationTime = 0;
