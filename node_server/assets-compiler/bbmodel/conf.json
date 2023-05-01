@@ -2507,6 +2507,12 @@
             "bb": {
                 "model": "poor_copper_ore"
             }
+        },{
+            "id": 14,
+            "name": "GOLD_ORE",
+            "bb": {
+                "model": "gold_ore"
+            }
         }
     ]
 }
