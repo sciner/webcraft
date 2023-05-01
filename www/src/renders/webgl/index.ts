@@ -336,7 +336,7 @@ export default class WebGLRenderer extends BaseRenderer {
 
         const gl = this.gl = this.view.getContext('webgl2', {...this.options, stencil: true});
         this.resetBefore();
-        for (let i = 6; i < 16; i++) {
+        for (let i = 7; i < 16; i++) {
             this._emptyTex3D.bind(i);
         }
         this.multidrawExt = gl.getExtension('WEBGL_multi_draw');
