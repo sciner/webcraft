@@ -249,6 +249,13 @@ export class ServerPlayerDamage {
         // армор
         damage = Math.round((damage * (32 - this.player.inventory.getArmorLevel())) / 32);
         if (damage > 0) {
+            console.log(this.actor)
+            if (this.actor) {
+                const pos = this.actor?.state?.pos ? this.actor.state.pos : this.actor.pos
+                const velocity = player.state.pos.sub(pos).normSelf()
+                velocity.y = 0.2
+                player.controlManager.prismarine.player_state.vel.addSelf(velocity)
+            }
             player.live_level = Math.max(player.live_level - damage, 0);
         }
         this.damage = 0;
