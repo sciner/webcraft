@@ -55,6 +55,10 @@ export class BBModel_Group extends BBModel_Child {
         }
     }
 
+    isBone() : boolean {
+        return this.model.bone_groups.has(this.name)
+    }
+
     drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : imat4, bone_matrix: float[] = null, vertices : float[], emmit_particles_func? : Function, replace : boolean = false) {
 
         // Hide some groups
@@ -82,7 +86,7 @@ export class BBModel_Group extends BBModel_Child {
         this.playAnimations(mx, mesh)
         mat4.multiply(mx, mx, this.matrix)
 
-        const im_bone = this.model.bone_groups.has(this.name) || replace
+        const im_bone = this.isBone() || replace
         if(bone_matrix) {
             if (im_bone) {
                 bone_matrix = mat4.create()

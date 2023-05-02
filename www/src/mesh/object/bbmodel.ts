@@ -169,10 +169,33 @@ class MeshObjectModifiers {
 
     }
 
+    private _destroyParentGroupGeom(group_name : string) {
+        const mesh = this.mesh
+        let group : any = mesh.model.groups.get(group_name)
+        if(!group.isBone()) {
+            mesh.vertices_pushed.delete(group.name)
+            while(true) {
+                group = group.parent
+                if(group) {
+                    mesh.vertices_pushed.delete(group.name)
+                    if(group.isBone()) {
+                        const geom = mesh.geometries.get(group.name)
+                        if(geom) {
+                            geom.destroy()
+                            mesh.geometries.delete(group.name)
+                        }
+                        break
+                    }
+                }
+            }
+        }
+    }
+
     hideGroup(group_name : string) : boolean {
         if(this.hide_list.includes(group_name)) {
             return false
         }
+        this._destroyParentGroupGeom(group_name)
         this.hide_list.push(group_name)
         this.mesh.hide_groups.push(group_name)
         return true
@@ -185,6 +208,7 @@ class MeshObjectModifiers {
                 list.splice(index, 1)
             }
         }
+        this._destroyParentGroupGeom(group_name)
     }
 
     selectTextureFromPalette(group_name : string, texture_name : string) {
