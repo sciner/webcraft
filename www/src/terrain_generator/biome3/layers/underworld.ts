@@ -52,7 +52,7 @@ export default class Biome3LayerUnderworld extends Biome3LayerOverworld {
         if(is_highest) {
 
             const stone_block_id = 9
-            const block_id = 87
+            const block_id = 89
             const sz = chunk.size.y
 
             for(let x = 0; x < chunk.size.x; x++) {
