@@ -3,7 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
-import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS } from "./constant.js";
+import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN } from "./constant.js";
 import {ClientPlayerControlManager} from "./control/player_control_manager.js";
 import {PlayerControl, PlayerControls} from "./control/player_control.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -410,10 +410,11 @@ export class Player implements IPlayer {
                 const instrument = this.getCurrentInstrument()
                 const speed = instrument?.speed ? instrument.speed : 1
                 const time = (e.start_time - this.#timer_attack) * speed
-                if (time > 1000) {
-                    this.setAnimation('attack', 1, .5)
+                if (time > ATTACK_COOLDOWN) {
+                    this.setAnimation('attack', speed, ATTACK_COOLDOWN / 1000)
                     // отстрочка от анимации
                     setTimeout(() => {
+                        console.log('attack: ' + time)
                         this.world.server.Send({
                             name: ServerClient.CMD_USE_WEAPON,
                             data: {

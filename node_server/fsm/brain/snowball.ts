@@ -75,7 +75,7 @@ export class Brain extends FSMBrain {
             }
         ])
         world.actions_queue.add(actor, actions)
-        return false
+        return true
     }
     
     // если использовали предмет
