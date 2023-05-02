@@ -388,11 +388,9 @@ export class MobModel extends NetworkPhysicObject {
         if (armor.backpack != this.prev.backpack) {
             if (armor.backpack) {
                 const item = block.fromId(armor.backpack)
-                console.log('show')
-                //this._mesh.modifiers.replaceGroup('backpack', item.model.name, item.model.texture)
+                this._mesh.modifiers.replaceGroup('backpack', item.model.name, item.model.texture)
                 this._mesh.modifiers.showGroup('backpack')
             } else {
-                console.log('hide')
                 this._mesh.modifiers.hideGroup('backpack')
             }
             this.prev.backpack = armor.backpack

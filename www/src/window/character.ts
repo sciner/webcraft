@@ -1,7 +1,7 @@
 import { Label } from "../ui/wm.js";
 import { BaseCraftWindow, PaperDollSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_SLOT_BACKPACK, UI_THEME } from "../constant.js";
+import { INVENTORY_HOTBAR_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT, UI_THEME } from "../constant.js";
 import type { InventoryRecipeWindow } from "./inventory_recipe.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import type { InGameMain } from "./ingamemain.js";
@@ -73,12 +73,6 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
                 this.player.getModel().updateArmor()
             }
         }
-
-        // Add label
-        //const lblBackpackWidth = (slots_width - UI_THEME.window_padding) * this.zoom
-        //const lblBackpackHeight = 30 * this.zoom
-        //this.addLabel(x * this.zoom, UI_THEME.window_padding * this.zoom, lblBackpackWidth, lblBackpackHeight, Lang.backpack)
-
     }
 
     // Обработчик открытия формы
@@ -118,19 +112,11 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         const PLAYER_BOX_HEIGHT = (this.cell_size + margin) * 4 - margin
         const PLAYER_BOX_WIDTH = PLAYER_BOX_HEIGHT * (sprite_character_back.width / sprite_character_back.height)
 
+        this.#player_box_width = PLAYER_BOX_WIDTH
+
         this.lblPlayerBox = new Label(armor_slot.x + armor_slot.w + margin, armor_slot.y, PLAYER_BOX_WIDTH, PLAYER_BOX_HEIGHT, 'lblPlayerBox', null, null)
         // this.lblPlayerBox.setBackground(sprite_character_back)
         this.lblPlayerBox.style.background.color = '#00000000'
-
-        // Add locked armor slots
-        for(let lbl of ct.inventory_slots) {
-            if(lbl instanceof PaperDollSlot) {
-                const x = this.lblPlayerBox.x + this.lblPlayerBox.w + margin
-                const l = new Label(x, lbl.y, lbl.w, lbl.w, `${lbl.id}_fake`)
-                l.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
-                ct.add(l)
-            }
-        }
 
         ct.add(this.lblPlayerBox)
     }
@@ -171,7 +157,7 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
 
     createRightPaperDoll(sz : float) {
         const ct = this;
-        const x = (200 + UI_THEME.window_padding) * this.zoom
+        const x = (this.#player_box_width + UI_THEME.window_padding) * this.zoom
 
         let y = 16 * this.zoom
 
@@ -181,10 +167,15 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
             return resp
         }
         
-        const lblSlotBackPack = new PaperDollSlot(x, getY(), sz, PLAYER_SLOT_BACKPACK, this)
+        const lblSlotBackPack = new PaperDollSlot(x, getY(), sz, PAPERDOLL_BACKPACK, this)
         ct.add(lblSlotBackPack)
         ct.inventory_slots.push(lblSlotBackPack)
         this.paperdoll.push(lblSlotBackPack)
+
+        const lblSlotToolBelt = new PaperDollSlot(x, getY(), sz, PAPERDOLL_TOOLBELT, this)
+        ct.add(lblSlotToolBelt)
+        ct.inventory_slots.push(lblSlotToolBelt)
+        this.paperdoll.push(lblSlotToolBelt)
     }
 
 }

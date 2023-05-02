@@ -66,9 +66,9 @@ export const DEFAULT_LIGHT_TYPE_ID          = LIGHT_TYPE.SMOOTH
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;
-export const INVENTORY_SLOT_COUNT           = 42;
+export const INVENTORY_SLOT_COUNT           = 43;
 export const INVENTORY_VISIBLE_SLOT_COUNT   = 36;
-export const INVENTORY_DRAG_SLOT_INDEX      = 41;
+export const INVENTORY_DRAG_SLOT_INDEX      = 42;
 export const INVENTORY_HOTBAR_SLOT_COUNT    = 9;
 export const MAGIC_ROTATE_DIV               = 900;
 export const DRAW_SLOT_INDEX                = false;
@@ -371,7 +371,8 @@ export const PLAYER_ARMOR_SLOT_BOOTS        = 36; // boots
 export const PLAYER_ARMOR_SLOT_LEGGINGS     = 37; // legs
 export const PLAYER_ARMOR_SLOT_CHESTPLATE   = 38; // body
 export const PLAYER_ARMOR_SLOT_HELMET       = 39; // head
-export const PLAYER_SLOT_BACKPACK     = 40; // backpack
+export const PAPERDOLL_BACKPACK     = 40; // backpack
+export const PAPERDOLL_TOOLBELT     = 41; // backpack
 
 // portal
 export const PORTAL_USE_INTERVAL            = 5000; // ms

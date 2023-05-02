@@ -1,6 +1,6 @@
 import { ArrayOrMap, Helpers, Vector} from "./helpers.js";
 import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT,
-    INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_BOOTS, PLAYER_SLOT_BACKPACK } from "./constant.js";
+    INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_BOOTS, PAPERDOLL_BACKPACK } from "./constant.js";
 import { BLOCK } from "./blocks.js"
 import {InventoryComparator, TUsedRecipe} from "./inventory_comparator.js";
 import type { ArmorState, Player } from "./player.js";
@@ -539,7 +539,7 @@ export abstract class Inventory {
             body: this.items[PLAYER_ARMOR_SLOT_CHESTPLATE]?.id,
             leg: this.items[PLAYER_ARMOR_SLOT_LEGGINGS]?.id,
             boot: this.items[PLAYER_ARMOR_SLOT_BOOTS]?.id,
-            backpack: this.items[PLAYER_SLOT_BACKPACK]?.id,
+            backpack: this.items[PAPERDOLL_BACKPACK]?.id,
         }
     }
 

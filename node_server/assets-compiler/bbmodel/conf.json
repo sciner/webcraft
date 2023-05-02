@@ -108,7 +108,8 @@
         {"name": "tool/pickaxe",        "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "tool/shovel",         "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "tool/sword",          "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "tool/backpack_basic",          "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "tool/backpack_basic", "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "tool/toolbelt_basic", "shift": {"x": 0, "y": 0, "z": 0}},
 
         {"name": "armor/scrap_armor",   "shift": {"x": 0, "y": 0, "z": 0}}
 
@@ -2513,6 +2514,12 @@
             "name": "BACKPACK_BASIC",
             "bb": {
                 "model": "tool/backpack_basic"
+            }
+        },{
+            "id": 1095,
+            "name": "TOOLBELT_BASIC",
+            "bb": {
+                "model": "tool/toolbelt_basic"
             }
         }
     ]

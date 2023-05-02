@@ -12376,6 +12376,24 @@
                 "name": "tool/backpack_basic",
                 "texture": "backpack_basic" 
             }
+        },{
+            "id": 1095,
+            "name": "TOOLBELT_BASIC",
+            "style": "extruder",
+            "texture": "item/turtle_helmet.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "powder"
+            },
+            "armor": {
+                "slot": 41,
+                "durability": 276,
+                "damage": 0
+            },
+            "model": {
+                "name": "tool/toolbelt_basic",
+                "texture": "toolbelt_basic" 
+            }
         }
     ]
 }
