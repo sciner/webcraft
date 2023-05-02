@@ -768,6 +768,7 @@ export class CompileData {
             {name: 'MOSS_STONE', 'texture': "block/mossy_cobblestone.png", "sound": "madcraft:block.stone", "material": {"id": "stone"}},
             {name: 'MOSS_BLOCK', 'texture': "./textures/moss_block.png", "sound": "madcraft:block.grass", "material": {"id": "cobblestone"}},
             {name: 'COBBLESTONE', 'texture': "block/cobblestone.png", "sound": "madcraft:block.stone", "material": {"id": "stone"}},
+            {name: 'SAND', 'texture': `block/sand.png`},
         ];
         for(let p of PALETTE) {
             let b = {
