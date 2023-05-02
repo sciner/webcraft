@@ -97,7 +97,7 @@ export class LightQueue {
             return;
         }
         const old = uint8View[coordBytes];
-        chunkWave.arr[coord] = old + MASK_WAVE_FORCE;
+        chunkWave.arr[coord] = old + MASK_WAVE_FORCE + 1;
         const waveNum = Math.max(value, old);
 
         let potential = this.world.getPotential(x, y, z);

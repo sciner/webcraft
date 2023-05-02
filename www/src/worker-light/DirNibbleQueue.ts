@@ -426,7 +426,7 @@ export class DirNibbleQueue {
                             break;
                         }
                         const bottomDayLight = nibbles[coord * nibbleStrideBytes + OFFSET_COLUMN_BOTTOM] - MASK_SRC_DAYLIGHT;
-                        if (bottomDayLight) {
+                        if (bottomDayLight > 0) {
                             top = bottomDayLight;
                             let coord0 = x * cx + z * cz + (aabb.y_min + y * nibDim) * cy + shiftCoord;
                             for (let y0 = 0; y0 < bottomDayLight; y0++) {
