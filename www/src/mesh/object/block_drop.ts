@@ -227,7 +227,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         // rotate
         mat4.identity(_matrix_rot)
         quat.fromEuler(temp_quat, 0, addY/60/Math.PI*180, 0, 'xyz')
-        pivot.set(position)
+        // pivot.set(position)
         vec3.set(position, 0, 0, 0)
         vec3.set(scale, 1, 1, 1)
         mat4.fromRotationTranslationScaleOrigin(_matrix_rot, temp_quat, position, scale, pivot)
