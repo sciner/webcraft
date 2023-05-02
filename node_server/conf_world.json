@@ -103,6 +103,13 @@
                 "playerHeight": 0.6,
                 "playerHalfWidth": 0.3
             },
+            "driving": {
+                "physics": {
+                    "baseSpeed": 1,
+                    "jumpSpeed": 0.3
+                },
+                "offsets": [ { "x": 0, "y": 0.25, "z": -0.1 } ]
+            },
             "health": 10
         },
         "mob/parrot": {
