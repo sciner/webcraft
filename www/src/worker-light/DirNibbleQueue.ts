@@ -404,6 +404,7 @@ export class DirNibbleQueue {
                     ? nibbles[coord * nibbleStrideBytes + OFFSET_COLUMN_DAY] : 0;
                 top = Math.max(top, topBottom - MASK_SRC_DAYLIGHT);
                 if (top === 0 && !foundDayLightBlock) {
+                    foundShadow = true;
                     continue;
                 }
                 for (let y = nibHeight - 1; y >= 0; y--) {

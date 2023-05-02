@@ -38,7 +38,7 @@ class UnderworldTerrainMapManager extends TerrainMapManager3 {
 export default class Biome3LayerUnderworld extends Biome3LayerOverworld {
 
     filter_biome_list: int[] = [501]
-    dayLightDefaultValue: int = 15
+    dayLightDefaultValue: int = 0
 
     init(generator : Terrain_Generator) : Biome3LayerUnderworld {
         const {seed, world_id, noise2d, noise3d, block_manager, options} = generator
