@@ -1101,7 +1101,6 @@
             "drop_item": [
                 {
                     "name": "BIRCH_SAPLING",
-                    "count": 1,
                     "chance": 0.05
                 },
                 {
@@ -1114,7 +1113,6 @@
                 },
                 {
                     "name": "APPLE",
-                    "count": 1,
                     "chance": 0.005
                 }
             ],
@@ -2022,7 +2020,15 @@
             "style": "planting",
             "sound": "madcraft:block.grass",
             "inventory_style": "extruder",
-            "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.025},
+            "drop_item": [
+                {
+                    "name": "WHEAT_SEEDS", 
+                    "chance": 0.025
+                },{
+                    "name": "TURF_OF_GRASS", 
+                    "count": 1
+                }
+            ],
             "texture": "block/grass.png",
             "texture_variants": [
                 "block/grass/grass1.png",
@@ -4579,7 +4585,14 @@
             "transparent": true,
             "style": "planting",
             "sound": "madcraft:block.grass",
-            "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.025},
+            "drop_item": [
+                {
+                    "name": "WHEAT_SEEDS", 
+                    "chance": 0.025
+                },{
+                    "name": "TURF_OF_GRASS"
+                }
+            ],
             "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
             "inventory": {
                 "style": "extruder",
@@ -11552,8 +11565,7 @@
             ],
             "drop_item": [
                 {
-                    "name": "TURF_OF_GRASS", 
-                    "count": 1
+                    "name": "TURF_OF_GRASS"
                 }
             ],
             "composter_chance": 0.65
@@ -11628,8 +11640,7 @@
             ],
             "drop_item": [
                 {
-                    "name": "TURF_OF_GRASS", 
-                    "count": 1
+                    "name": "TURF_OF_GRASS"
                 }
             ]
         },
