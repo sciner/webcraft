@@ -400,7 +400,7 @@ export class LightQueue {
                 }
             }
         }
-        if (chunkWave && chunkWave.refCounter === 0) {
+        if (chunkWave?.refCounter === 0) {
             chunk.freeWave(qOffset);
         }
         deque.peekNonEmpty();
