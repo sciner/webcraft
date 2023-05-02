@@ -122,6 +122,7 @@ class BottomCavesMapManager extends TerrainMapManagerBase {
 export default class Biome3LayerBottomCaves extends Biome3LayerBase {
 
     filter_biome_list: int[] = [501]
+    dayLightDefaultValue: int = 0
     grid: ChunkGrid
     biome: any
     n3d: Function

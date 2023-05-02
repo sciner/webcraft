@@ -258,13 +258,14 @@ export class WorkerWorld {
                 // Return chunk object
                 const non_zero = chunk.refreshNonZero();
                 const ci2: TChunkWorkerMessageBlocksGenerated = {
-                    addr: chunk.addr,
-                    uniqId: chunk.uniqId,
-                    // key: ci.key,
-                    tblocks: non_zero > 0 ? chunk.tblocks.saveState() : null,
-                    packedCells: chunk.packCells(),
-                    tickers: non_zero ? chunk.scanTickingBlocks() : null,
-                    genQueueSize: genQueue.size()
+                    addr:                   chunk.addr,
+                    dayLightDefaultValue:   chunk.layer.dayLightDefaultValue,
+                    uniqId:                 chunk.uniqId,
+                    // key:                 ci.key,
+                    tblocks:                non_zero > 0 ? chunk.tblocks.saveState() : null,
+                    packedCells:            chunk.packCells(),
+                    tickers:                non_zero ? chunk.scanTickingBlocks() : null,
+                    genQueueSize:           genQueue.size()
                 }
 
                 // Update and log timers - after the chunk finished exporting

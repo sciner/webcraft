@@ -51,7 +51,7 @@ export class ChunkLight {
         return this.parentChunk.chunkManager;
     }
 
-    init() {
+    init(dayLightDefaultValue : int) {
         const chunk = this.parentChunk;
         const chunkManager = chunk.chunkManager;
         if (!chunkManager.use_light) {
