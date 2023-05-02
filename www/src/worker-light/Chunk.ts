@@ -28,6 +28,7 @@ export class Chunk {
         this.addr = new Vector(args.addr.x, args.addr.y, args.addr.z);
         //TODO: this is from grid!
         this.size = new Vector(args.size.x, args.size.y, args.size.z);
+        this.chunkWave = [null, null, null, null];
         this.uniqId = args.uniqId;
         this.lastID = 0;
         this.lastAO = 0;
@@ -61,6 +62,26 @@ export class Chunk {
         this.outerLen = this.lightChunk.outerLen;
 
         this.groundLevel = new ChunkGroundLevel(this);
+    }
+
+    freeWave(qOffset: number) {
+        const arr = this.chunkWave[qOffset];
+        if (arr && arr.refCounter === 0) {
+            this.world.gridPool.freeUint8(arr);
+            this.chunkWave[qOffset] = null;
+        }
+    }
+
+    checkWave(qOffset: number, coord: number, waveNum: number) {
+        const arr = this.chunkWave[qOffset];
+        if (arr) {
+            if (arr.arr[coord] >= waveNum) {
+                return null;
+            }
+        } else {
+            return this.chunkWave[qOffset] = this.world.gridPool.allocUint8();
+        }
+        return arr;
     }
 
     get chunkManager() {

@@ -14,11 +14,10 @@ export const MASK_SRC_REST = 224;
 
 export const OFFSET_SOURCE = 0;
 export const OFFSET_LIGHT = 1;
-export const OFFSET_WAVE = 2;
-export const OFFSET_DAY = 3;
-export const LIGHT_STRIDE_BYTES = 5;
-export const OFFSET_NORMAL = 5;
-export const LIGHT_STRIDE_BYTES_NORMAL = 9;
+export const OFFSET_DAY = 2;
+export const LIGHT_STRIDE_BYTES = 3;
+export const OFFSET_NORMAL = 3;
+export const LIGHT_STRIDE_BYTES_NORMAL = 7;
 
 export const NORMAL_CX = 32;
 export const NORMAL_SCALE = 8;

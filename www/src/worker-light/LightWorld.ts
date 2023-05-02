@@ -14,6 +14,7 @@ import {DirNibbleQueue} from "./DirNibbleQueue.js";
 import {WorldGroundLevel} from "./GroundLevel.js"
 import {Chunk} from "./Chunk.js";
 import {ChunkGrid} from "../core/ChunkGrid.js";
+import {ChunkGridPool} from "../core/ChunkGridPool.js";
 
 export class LightWorkerChunkManager {
     [key: string]: any;
@@ -113,6 +114,8 @@ export class LightWorld {
         this.isEmptyQueue = true;
 
         this.groundLevel = new WorldGroundLevel(this);
+
+        this.gridPool = new ChunkGridPool(this.chunkManager.grid);
 
         this.renderOptions = {
             hasNormals: false,

@@ -19,10 +19,9 @@ import {
     MASK_SRC_AMOUNT,
     OFFSET_COLUMN_DAY,
     OFFSET_COLUMN_TOP,
-    OFFSET_WAVE,
     NORMAL_DX,
     NORMAL_MASK,
-    OFFSET_NORMAL, NORMAL_DEF, MASK_SRC_FILTER, MASK_SRC_FILTER_BIT, OFFSET_COLUMN_BOTTOM, MASK_SRC_DAYLIGHT,
+    OFFSET_NORMAL, NORMAL_DEF, MASK_SRC_FILTER_BIT, OFFSET_COLUMN_BOTTOM, MASK_SRC_DAYLIGHT,
 } from './LightConst.js';
 
 export class LightQueue {
@@ -69,12 +68,11 @@ export class LightQueue {
         if (waveNum < 0 || waveNum > maxLight) {
             waveNum = maxLight;
         }
-        const {uint8View, strideBytes} = chunk.lightChunk;
-        const coordBytes = coord * strideBytes + this.qOffset + OFFSET_WAVE;
-        if (uint8View[coordBytes] > waveNum) {
+        let chunkWave = chunk.checkWave(this.qOffset, coord, waveNum + 1);
+        if (!chunkWave) {
             return;
         }
-        uint8View[coordBytes] = waveNum + 1;
+        chunkWave.arr[coord] = waveNum + 1;
         if (potential < 0) {
             potential = 0;
         }
@@ -84,6 +82,7 @@ export class LightQueue {
         this.deque.push(waveNum + potential, chunk.dataIdShift + coord);
         this.filled++;
         chunk.waveCounter++;
+        chunkWave.refCounter++;
     }
 
     addNow(chunk, coord, x, y, z, value) {
@@ -91,24 +90,26 @@ export class LightQueue {
         //test demo with force: {incr: 422083, decr: 3503}
         const qOffset = this.qOffset;
         const {uint8View, strideBytes, portals, safeAABB} = chunk.lightChunk;
-        const coordBytes = coord * strideBytes + qOffset;
-        if (uint8View[coordBytes + OFFSET_WAVE] >= MASK_WAVE_FORCE) {
-            uint8View[coordBytes + OFFSET_LIGHT] = value;
+        const coordBytes = coord * strideBytes + qOffset + OFFSET_LIGHT;
+        let chunkWave = chunk.checkWave(this.qOffset, coord, MASK_WAVE_FORCE);
+        if (!chunkWave) {
+            uint8View[coordBytes] = value;
             return;
         }
-        const old = uint8View[coordBytes + OFFSET_LIGHT];
-        uint8View[coordBytes + OFFSET_WAVE] = old + MASK_WAVE_FORCE;
+        const old = uint8View[coordBytes];
+        chunkWave.arr[coord] = old + MASK_WAVE_FORCE;
         const waveNum = Math.max(value, old);
 
         let potential = this.world.getPotential(x, y, z);
         this.deque.push(waveNum + potential, chunk.dataIdShift + coord);
         this.filled++;
         chunk.waveCounter++;
+        chunkWave.refCounter++;
         chunk.lastID++;
         this.counter.now++;
 
         //TODO: inline setting to dirNibbleQueue
-        uint8View[coordBytes + OFFSET_LIGHT] = value;
+        uint8View[coordBytes] = value;
         if (!safeAABB.contains(x, y, z)) {
             for (let p = 0; p < portals.length; p++) {
                 if (portals[p].aabb.contains(x, y, z)) {
@@ -139,6 +140,7 @@ export class LightQueue {
         let dif26 = null;
         let sx = 0, sy = 0, sz = 0;
         let curWave = null;
+        let chunkWave = null;
 
         let nibbles = null;
         let nibDim = 0, nibStride = 0;
@@ -163,7 +165,11 @@ export class LightQueue {
             //     continue;
             // }
             if (chunk !== newChunk) {
+                if (chunkWave?.refCounter === 0) {
+                    chunk.freeWave(qOffset);
+                }
                 chunk = newChunk;
+                chunkWave = chunk.chunkWave[qOffset];
                 lightChunk = chunk.lightChunk;
                 uint8View = lightChunk.uint8View;
                 dataView = lightChunk.dataView;
@@ -189,6 +195,9 @@ export class LightQueue {
                 if (nibbleSource && !nibbles) {
                     continue;
                 }
+            }
+            if (!chunkWave) {
+                continue;
             }
             const coordBytes = coord * strideBytes + qOffset;
 
@@ -221,8 +230,9 @@ export class LightQueue {
             }
             val = Math.max(val, ambientLight);
             const old = uint8View[coordBytes + OFFSET_LIGHT];
-            let prevLight = uint8View[coordBytes + OFFSET_WAVE];
-            uint8View[coordBytes + OFFSET_WAVE] = 0;
+            let prevLight = chunkWave.arr[coord];
+            chunkWave.arr[coord] = 0;
+            chunkWave.refCounter--;
             let force = prevLight >= MASK_WAVE_FORCE;
             if (force) {
                 prevLight -= MASK_WAVE_FORCE;
@@ -389,6 +399,9 @@ export class LightQueue {
                     }
                 }
             }
+        }
+        if (chunkWave && chunkWave.refCounter === 0) {
+            chunk.freeWave(qOffset);
         }
         deque.peekNonEmpty();
         return false;
