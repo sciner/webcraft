@@ -230,7 +230,7 @@ export class LightQueue {
             }
             val = Math.max(val, ambientLight);
             const old = uint8View[coordBytes + OFFSET_LIGHT];
-            let prevLight = chunkWave.arr[coord];
+            let prevLight = chunkWave.arr[coord] - 1;
             chunkWave.arr[coord] = 0;
             chunkWave.refCounter--;
             let force = prevLight >= MASK_WAVE_FORCE;

@@ -190,7 +190,7 @@ export class DirNibbleQueue {
             let upColumn = nibbles[upBytes + OFFSET_COLUMN_BOTTOM];
             const upDay = nibbles[upBytes + OFFSET_COLUMN_DAY];
             if (upColumn >= MASK_SRC_DAYLIGHT) {
-                val = column + upBytes - MASK_SRC_DAYLIGHT;
+                val = column + upColumn - MASK_SRC_DAYLIGHT;
                 upColumn -= MASK_SRC_DAYLIGHT;
             }
             if (upColumn >= nibDim && upDay > 0) {
@@ -222,7 +222,7 @@ export class DirNibbleQueue {
             for (let y1 = y; y1 < lim; y1++) {
                 const curLight = uint8View[coord * strideBytes + qOffset];
                 const nibColumn = column - (lim - y1);
-                const newLight = (nibColumn >= 0 && val > nibColumn || y < blockDayLight) ? defLight : 0;
+                const newLight = (nibColumn >= 0 && val > nibColumn || y1 < blockDayLight) ? defLight : 0;
                 if ((newLight !== defLight) !== (curLight !== defLight)) {
                     // world.dayLight.add(chunk, coord, Math.max(newLight, curLight), world.getPotential(x, y, z));
                     world.dayLight.addNow(chunk, coord, x, y1, z, newLight);
@@ -403,10 +403,15 @@ export class DirNibbleQueue {
                 let top = topBottom >= nibDim
                     ? nibbles[coord * nibbleStrideBytes + OFFSET_COLUMN_DAY] : 0;
                 top = Math.max(top, topBottom - MASK_SRC_DAYLIGHT);
-                for (let y = nibHeight - 1; y >= 0 && top > 0; y--) {
+                if (top === 0 && !foundDayLightBlock) {
+                    continue;
+                }
+                for (let y = nibHeight - 1; y >= 0; y--) {
                     coord -= cy;
                     const column = nibbles[coord * nibbleStrideBytes + OFFSET_COLUMN_TOP];
-                    top = Math.min(top + column, 2 * nibDim);
+                    if (top > 0) {
+                        top = Math.min(top + column, 2 * nibDim);
+                    }
                     nibbles[coord * nibbleStrideBytes + OFFSET_COLUMN_DAY] = top;
                     let coord0 = x * cx + z * cz + (aabb.y_min + (y + 1) * nibDim) * cy + shiftCoord;
                     for (let y0 = 0; y0 < column; y0++) {
@@ -423,7 +428,7 @@ export class DirNibbleQueue {
                         if (bottomDayLight) {
                             top = bottomDayLight;
                             let coord0 = x * cx + z * cz + (aabb.y_min + y * nibDim) * cy + shiftCoord;
-                            for (let i = 0; i < bottomDayLight; i++) {
+                            for (let y0 = 0; y0 < bottomDayLight; y0++) {
                                 uint8View[coord0 * strideBytes + OFFSET_DAY] = defDayLight;
                                 coord0 += cy;
                             }
