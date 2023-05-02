@@ -371,6 +371,7 @@ export const PLAYER_ARMOR_SLOT_BOOTS        = 36; // boots
 export const PLAYER_ARMOR_SLOT_LEGGINGS     = 37; // legs
 export const PLAYER_ARMOR_SLOT_CHESTPLATE   = 38; // body
 export const PLAYER_ARMOR_SLOT_HELMET       = 39; // head
+export const PLAYER_SLOT_BACKPACK     = 40; // backpack
 
 // portal
 export const PORTAL_USE_INTERVAL            = 5000; // ms

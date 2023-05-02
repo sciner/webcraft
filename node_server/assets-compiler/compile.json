@@ -12358,6 +12358,24 @@
             },
             "texture": "block/seagrass.png",
             "composter_chance": 0.3
+        },{
+            "id": 1094,
+            "name": "BACKPACK_BASIC",
+            "style": "extruder",
+            "texture": "item/turtle_helmet.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "powder"
+            },
+            "armor": {
+                "slot": 40,
+                "durability": 276,
+                "damage": 0
+            },
+            "model": {
+                "name": "tool/backpack_basic",
+                "texture": "backpack_basic" 
+            }
         }
     ]
 }

@@ -561,7 +561,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         const srcBlock = BLOCK.fromId(srcItem.id)
         // 0. Поиск специализированных слотов брони
         for(let slot of target_list) {
-            if(slot instanceof ArmorSlot && srcBlock.armor && slot.slot_index == srcBlock.armor.slot) {
+            if(slot instanceof PaperDollSlot && srcBlock.armor && slot.slot_index == srcBlock.armor.slot) {
                 const item = slot.getItem();
                 if(!slot.readonly && !item) {
                     slot.setItem({...srcItem})
@@ -637,7 +637,7 @@ export class CraftTableRecipeSlot extends CraftTableInventorySlot {
 
 }
 
-export class ArmorSlot extends CraftTableInventorySlot {
+export class PaperDollSlot extends CraftTableInventorySlot {
     [key: string]: any;
 
     constructor(x, y, s, id, ct) {
