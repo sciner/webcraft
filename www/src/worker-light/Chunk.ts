@@ -30,7 +30,7 @@ export class Chunk {
         this.size = new Vector(args.size.x, args.size.y, args.size.z);
         this.chunkWave = [null, null, null, null];
         this.uniqId = args.uniqId;
-        this.defaultDaylightValue = args.defaultDaylightValue || 15;
+        this.dayLightDefaultValue = args.dayLightDefaultValue ?? 15;
         this.lastID = 0;
         this.lastAO = 0;
         this.sentID = 0;

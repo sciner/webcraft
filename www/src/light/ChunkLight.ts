@@ -63,7 +63,8 @@ export class ChunkLight {
                 size: chunk.size,
                 uniqId: chunk.uniqId,
                 light_buffer: this.genLightSourceBuf().buffer,
-                dataId: this.getDataTextureOffset()
+                dataId: this.getDataTextureOffset(),
+                dayLightDefaultValue
             }]);
     }
 

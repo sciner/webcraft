@@ -16,7 +16,7 @@ export declare type IClusterList = {chance: float, class: any}[]
 const UNDERWORLD_CLUSTER_LIST : IClusterList = [
     {chance: .2, class: ClusterVilage},
     {chance: 1, class: NetherClusterStructures},
-] 
+]
 
 class UnderworldTerrainMapManager extends TerrainMapManager3 {
 
@@ -49,7 +49,7 @@ export default class Biome3LayerUnderworld extends Biome3LayerOverworld {
 
     generate(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lowest?: boolean, is_highest ?: boolean) : Biome3TerrainMap {
         const resp = super.generate(chunk, seed, rnd, is_lowest, is_highest)
-        
+
         if(is_highest) {
 
             const stone_block_id = 9

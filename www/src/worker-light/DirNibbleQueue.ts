@@ -308,7 +308,7 @@ export class DirNibbleQueue {
 
     fillOuter(chunk) {
         const {disperse, world} = this;
-        const {lightChunk, defaultDaylightValue} = chunk;
+        const {lightChunk, dayLightDefaultValue} = chunk;
         const {aabb, uint8View, strideBytes} = lightChunk;
         const {shiftCoord, cx, cy, cz, dif26} = lightChunk;
         const {nibbles, nibbleDims, nibbleSize, nibbleStrideBytes} = lightChunk;
@@ -359,7 +359,7 @@ export class DirNibbleQueue {
         for (let z = aabb.z_min; z < aabb.z_max; z++)
             for (let x = aabb.x_min; x < aabb.x_max; x++) {
                 let coord = x * cx + z * cz + shiftCoord + cy * (aabb.y_min + nibHeight);
-                nibbles[coord * nibbleStrideBytes + OFFSET_COLUMN_DAY] = defaultDaylightValue > 0 ? 2 * nibDim : 0;
+                nibbles[coord * nibbleStrideBytes + OFFSET_COLUMN_DAY] = dayLightDefaultValue > 0 ? 2 * nibDim : 0;
                 nibbles[coord * nibbleStrideBytes + OFFSET_COLUMN_BOTTOM] = nibDim;
             }
         // ABOVE chunks
