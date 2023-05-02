@@ -412,14 +412,14 @@ export class DirNibbleQueue {
                     const column = nibbles[coord * nibbleStrideBytes + OFFSET_COLUMN_TOP];
                     if (top > 0) {
                         top = Math.min(top + column, 2 * nibDim);
+                        nibbles[coord * nibbleStrideBytes + OFFSET_COLUMN_DAY] = top;
+                        let coord0 = x * cx + z * cz + (aabb.y_min + (y + 1) * nibDim) * cy + shiftCoord;
+                        for (let y0 = 0; y0 < column; y0++) {
+                            coord0 -= cy;
+                            uint8View[coord0 * strideBytes + OFFSET_DAY] = defDayLight;
+                        }
                     }
-                    nibbles[coord * nibbleStrideBytes + OFFSET_COLUMN_DAY] = top;
-                    let coord0 = x * cx + z * cz + (aabb.y_min + (y + 1) * nibDim) * cy + shiftCoord;
-                    for (let y0 = 0; y0 < column; y0++) {
-                        coord0 -= cy;
-                        uint8View[coord0 * strideBytes + OFFSET_DAY] = defDayLight;
-                    }
-                    if (column < nibDim) {
+                    if (column < nibDim || top === 0) {
                         top = 0;
                         foundShadow = true;
                         if (!foundDayLightBlock) {
