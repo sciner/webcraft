@@ -210,6 +210,20 @@ export const UI_THEME = {
             color: '#3a576f',
             size: 36
         }
+    },
+    popup: {
+        title: {
+            font: {
+                color: '#feaa25',
+                size: 22
+            }
+        },
+        text: {
+            font: {
+                color: '#5bc4da',
+                size: 12
+            }
+        }
     }
 }
 

@@ -3,17 +3,18 @@ import { ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../he
 import { INVENTORY_HOTBAR_SLOT_COUNT,
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE, UI_THEME } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
-import { Label, SimpleBlockSlot, Window } from "../ui/wm.js";
+import { Label, SimpleBlockSlot, Window, Button, ToggleButton } from "../ui/wm.js";
 import { Recipe } from "../recipes.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
 import { Enchantments } from "../enchantments.js";
 import { getBlockImage } from "./tools/blocks.js";
 import type { PlayerInventory } from "../player_inventory.js";
-import type { SpriteAtlas } from "../core/sprite_atlas.js";
+import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Resources } from "../resources.js";
 import type {Hotbar} from "../hotbar.js";
 import type {CreativeInventoryWindow} from "./creative_inventory.js";
+import { Lang } from "../lang.js";
 
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55'
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF'
@@ -801,17 +802,81 @@ export class BaseCraftWindow extends BaseInventoryWindow {
 
     }
 
-    createDeleteSlot() {
-        const lblSlot = new Label(x, y, this.cell_size, this.cell_size, `lblSlot${index}`, null, null)
-            
-            //this.inventory_slots.push(lblSlot)
-            const hud_atlas = Resources.atlas.get('hud')
-            lblSlot.setIcon(hud_atlas.getSpriteFromMap('trashbin'))
-            lblSlot.setBackground(hud_atlas.getSpriteFromMap('window_slot'))
-            const self = this
-            lblSlot.onMouseMove = function() {
+    createDeleteSlot(sz: float) {
+        const  ct = this
+        const padding = UI_THEME.window_padding * this.zoom
+        const width = 504 / 1.5
+        const height = 286 / 1.5
+        const form_atlas = new SpriteAtlas()
+        const confirm = new Window((this.w - width * this.zoom) / 2, (this.h - height * this.zoom) / 2 - sz, width * this.zoom, height * this.zoom, 'confirm_delete')
+        form_atlas.fromFile('./media/gui/popup.png').then(async (atlas : SpriteAtlas) => {
+            confirm.setBackground(await atlas.getSprite(0, 0, width * 3, height * 3), 'none', this.zoom / 2.0)
+        })
+        confirm.z = 1
+        confirm.hide()
+        this.add(confirm)
+
+        const title = new Label(38 * this.zoom, 20 * this.zoom, 0, 0, `lblConfirmTitle`, '', Lang.delete_item + '?')
+        title.style.font.size = UI_THEME.popup.title.font.size
+        title.style.font.color = UI_THEME.popup.title.font.color
+        confirm.add(title)
+
+        const text = new Label(38 * this.zoom, 60 * this.zoom, 0, 0, `lblConfirmText`, '', Lang.lost_item)
+        text.style.font.size = UI_THEME.popup.text.font.size
+        text.style.font.color = UI_THEME.popup.text.font.color
+        confirm.add(text)
+
+        const hud_atlas = Resources.atlas.get('hud')
+        const btnSwitch = new Label(38 * this.zoom, 140 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnSwitch', ' ', '        ' + Lang.do_not_show)
+        btnSwitch.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
+        btnSwitch.onDrop = btnSwitch.onMouseDown = function() {
+            btnSwitch.toggled = (btnSwitch.toggled) ? false : true
+            if (btnSwitch.toggled) {
+                btnSwitch.setIcon(hud_atlas.getSpriteFromMap('check'))
+            } else {
+                btnSwitch.setIcon(null)
             }
-            this.add(lblSlot);
+        }
+        confirm.add(btnSwitch)
+
+        const btnYes = new Button(50 * this.zoom, 90 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
+        btnYes.onDrop = btnYes.onMouseDown = function() {
+            confirm.hide()
+            const item = ct.inventory.clearDragItem(false)
+            ct.world.server.InventoryNewState({
+                state: ct.inventory.exportItems(),
+                thrown_items: [item],
+                delete: true
+            })
+            if (btnSwitch?.toggled) {
+                Qubatch.settings.check_delete_item = false
+                Qubatch.settings.save()
+            }
+        }
+        confirm.add(btnYes)
+        const btnNo = new Button(200 * this.zoom, 90 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
+        btnNo.onDrop = btnNo.onMouseDown = function() {
+            ct.inventory.clearDragItem(true)
+            confirm.hide()
+        }
+        confirm.add(btnNo)
+
+        const delete_slot = new Label(this.w - 2 * sz, this.h - sz - padding, sz, sz, `lblDeleteSlot`)
+        delete_slot.setBackground(hud_atlas.getSpriteFromMap('window_slot'))
+        delete_slot.setIcon(hud_atlas.getSpriteFromMap('trashbin'))
+        delete_slot.onDrop = function() {
+            if (Qubatch.settings.check_delete_item) {
+                confirm.show()
+            } else {
+                const item = ct.inventory.clearDragItem(false)
+                ct.world.server.InventoryNewState({
+                    state: ct.inventory.exportItems(),
+                    thrown_items: [item],
+                    delete: true
+                })
+            }
+        }
+        this.add(delete_slot)
     }
 
     /** @return the list of items from drag and craft slots that couldn't be cleared */

@@ -58,6 +58,9 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         const y = 35
         this.createInventorySlots(this.cell_size, x, y, UI_THEME.window_padding, undefined, true)
 
+        // слот для удаления преметов
+        this.createDeleteSlot(this.cell_size)
+
         // Создания слота для армора
         this.createLeftPaperDoll(this.cell_size)
 
@@ -71,6 +74,8 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
                 this.player.getModel().updateArmor()
             }
         }
+
+        
     }
 
     // Обработчик открытия формы

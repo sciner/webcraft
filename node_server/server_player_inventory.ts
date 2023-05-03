@@ -94,7 +94,7 @@ export class ServerPlayerInventory extends Inventory {
                 const dontCheckEqual = params.dont_check_equal && !used_recipes?.length && this.player.game_mode.isCreative();
                 const changeIsValid = this.sanitizeAndValidateClientItemsChange(new_items, !dontCheckEqual, used_recipes, recipeMan, params.thrown_items);
                 if(changeIsValid) {
-                    if (params.thrown_items) {
+                    if (params.thrown_items && !params?.delete) {
                         const yaw = params.throw_yaw
                         const mergedThrownItems = InventoryComparator.groupToSimpleItems(params.thrown_items).values()
                         for(const item of mergedThrownItems) {

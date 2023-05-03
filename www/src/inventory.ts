@@ -31,6 +31,7 @@ export type TInventoryStateChangeMessage = {
     thrown_items?: (IInventoryItem | null)[] | null
     throw_yaw?: float
     dont_check_equal?: boolean
+    delete?: boolean
 }
 
 /** A base class for ServerPlayerInventory and the client inventory {@link PlayerInventory} */
