@@ -27,6 +27,8 @@ import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
 
 import type { Player, PlayerStateUpdate } from "./player.js";
 import type { HUD } from "./hud.js";
+import {ServerClient} from "./server_client.js";
+import {canSwitchFlying} from "./control/player_control.js";
 
 // TrackerPlayer
 (globalThis as any).TrackerPlayer = new Tracker_Player();
@@ -466,6 +468,11 @@ export class GameClass {
                         }
                         break;
                     }
+                    case KEY.Z:
+                        if (e.down) {
+                            player.leaveDriving()
+                        }
+                        break
                     // [F4] set spawnpoint
                     case KEY.F4: {
                         if(e.down) {
@@ -644,7 +651,9 @@ export class GameClass {
                     if(e.keyCode == KEY.W) {
                         player.controls.sprint = true;
                     } else if (e.keyCode == KEY.SPACE) {
-                        if(player.game_mode.canFly() && !player.in_water && !player.onGround) {
+                        if(!player.in_water && !player.onGround &&
+                            canSwitchFlying(player.game_mode.current, player.driving)
+                        ) {
                             player.controlManager.instantControls.switchFlying = true
                         }
                     }

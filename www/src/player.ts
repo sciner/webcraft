@@ -692,10 +692,19 @@ export class Player implements IPlayer {
     }
 
     standUp() {
-        if(this.driving || this.state.sitting || this.state.sleep) {
+        if(this.state.sitting || this.state.sleep) {
             this.world.server.Send({
                 name: ServerClient.CMD_STANDUP_STRAIGHT,
-                data: this.driving?.standUpGetId() ?? null
+                data: null
+            })
+        }
+    }
+
+    leaveDriving(): void {
+        if (this.driving) {
+            this.world.server.Send({
+                name: ServerClient.CMD_STANDUP_STRAIGHT,
+                data: this.driving.standUpGetId()
             })
         }
     }

@@ -5,7 +5,7 @@ export enum GAME_MODE {
     SPECTATOR = 'spectator',
 }
 
-type GameModeData = {
+export type GameModeData = {
     id              : GAME_MODE
     index ?         : int
     title           : string

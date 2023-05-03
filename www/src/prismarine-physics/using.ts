@@ -212,6 +212,10 @@ export class PrismarinePlayerControl extends PlayerControl<PrismarinePlayerState
         dst.angularVelocity = src.angularVelocity
         dst.jumpQueued  = src.jumpQueued
         dst.jumpTicks   = src.jumpTicks
+        dst.flying      = src.flying
+        dst.onGround    = src.onGround
+        dst.isInWater   = src.isInWater
+        dst.isInLava    = src.isInLava
     }
 
     validateWithoutSimulation(prevData: PlayerTickData | null, data: PlayerTickData): boolean {

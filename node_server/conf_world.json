@@ -108,6 +108,7 @@
                     "baseSpeed": 1,
                     "jumpSpeed": 0.3
                 },
+                "canFly": true,
                 "offsets": [ { "x": 0, "y": 0.25, "z": -0.1 } ]
             },
             "health": 10

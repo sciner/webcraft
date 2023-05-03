@@ -4,6 +4,8 @@ import type {Vector} from "../helpers/vector.js";
 import type {PlayerTickData} from "./player_tick_data.js";
 import {PHYSICS_POS_DECIMALS} from "../constant.js";
 import type {ClientPlayerControlManager} from "./player_control_manager.js";
+import {GAME_MODE, GameModeData} from "../game_mode.js";
+import type {Driving} from "./driving.js";
 
 export enum PLAYER_CONTROL_TYPE {
     PRISMARINE,
@@ -46,6 +48,10 @@ export interface IPlayerControls {
     sprint ?    : boolean
     sneak ?     : boolean
     pitch ?     : boolean   // only for mob
+}
+
+export function canSwitchFlying(gameMode: GameModeData, driving: Driving<any> | null): boolean {
+    return gameMode.id === GAME_MODE.CREATIVE && driving == null || driving?.config.canFly
 }
 
 /** It stores and processes player's input on the client. */

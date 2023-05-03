@@ -1051,7 +1051,10 @@ export class PrismarinePlayerState implements IPlayerControlState {
      */
     copyAdditionalDynamicFieldsFrom(other: PrismarinePlayerState): void {
         this.vel.copyFrom(other.vel)
-        this.flying = other.flying
+        this.flying     = other.flying
+        this.onGround   = other.onGround
+        this.isInWater  = other.isInWater
+        this.isInLava   = other.isInLava
     }
 
     copyControlsFrom(other: PrismarinePlayerState): void {

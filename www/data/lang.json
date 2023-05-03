@@ -70,6 +70,7 @@
         "browser_not_supported_1": {"en": "The browser you are using is not supported.", "ru": "Браузер, который вы используете, не поддерживается.","fr": "Le navigateur que vous utilisez n'est pas pris en charge.","es":"El navegador que está utilizando no es compatible.","man":"不支持您使用的浏览器。","hind":""},
         "browser_not_supported_2": {"en": "Please use", "ru": "Пожалуйста используйте","fr": "Utilisez un navigateur compatible","es":"Por favor use","man":"請用","hind":""},
         "press_lshift_for_dismount": {"en": "Press LSHIFT for dismount", "ru": "Пожалуйста нажмите LSHIFT (левый шифт), чтобы слезть", "fr": "Appuyez sur LSHIFT pour démonter", "es": "Presione MAYÚS IZQUIERDA para desmontar","man":"按 LSHIFT 卸载","hind":""},
+        "press_Z_for_dismount": {"en": "Press Z for dismount", "ru": "Пожалуйста нажмите Z, чтобы слезть", "fr": "Appuyez sur Z pour démonter", "es": "Presione Z para desmontar","man":"按 Z 卸载","hind":""},
         "kb_help_wasd": {"en": "Moving", "ru": "Движение", "fr": "En mouvement", "es": "Moviente","man":"移动","hind":""},
         "kb_help_f4": {"en": "Set position as spawnpoint", "ru": "Установить точку возрождения", "fr": "Définir la position comme point d'apparition", "es": "Establecer posición como punto de generación","man":"将位置设置为生成点","hind":""},
         "kb_help_r": {"en": "Respawn", "ru": "Телепорт на спавн", "fr": "Réapparition", "es": "reaparecer","man":"重生","hind":""},

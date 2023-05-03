@@ -8,6 +8,7 @@ import type {PLAYER_CONTROL_TYPE} from "./player_control.js";
 import {ObjectHelpers} from "../helpers/object_helpers.js";
 import type {Player} from "../player.js";
 import type {PrismarinePlayerState} from "../prismarine-physics/index.js";
+import {canSwitchFlying} from "./player_control.js";
 
 export enum PLAYER_TICK_DATA_STATUS {
     NEW = 1,
@@ -21,7 +22,9 @@ export enum PLAYER_TICK_MODE {
     SITTING_OR_LYING,
     FLYING,
     DRIVING_FREE_YAW, // вождение, со свободным поворотом мышью
-    DRIVING_ANGULAR_SPEED // вождение, с медленным поворотом транспортного средства стрелками
+    DRIVING_ANGULAR_SPEED, // вождение, с медленным поворотом транспортного средства стрелками
+    DRIVING_FLYING_FREE_YAW,
+    DRIVING_FLYING_ANGULAR_SPEED
 }
 
 /** It represents input and output of player controls & physics in one several consecutive physics ticks. */
@@ -117,7 +120,8 @@ export class PlayerTickData {
         player_state.yaw = this.inputRotation.z
 
         const game_mode = GameMode.byIndex[this.contextGameModeIndex]
-        if (controlsEnabled && switchFlying && game_mode.id === GAME_MODE.CREATIVE && !controlManager.player.driving) {
+        const driving = controlManager.player.driving
+        if (controlsEnabled && switchFlying && canSwitchFlying(game_mode, driving)) {
             player_state.flying = !player_state.flying
         }
     }
@@ -131,9 +135,15 @@ export class PlayerTickData {
         if (state.sitting || state.sleep) {
             this.contextTickMode = PLAYER_TICK_MODE.SITTING_OR_LYING
         } else if (player.driving) {
-            this.contextTickMode = player.driving.config.useAngularSpeed
-                ? PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED
-                : PLAYER_TICK_MODE.DRIVING_FREE_YAW
+            if (pc.player_state.flying) {
+                this.contextTickMode = player.driving.config.useAngularSpeed
+                    ? PLAYER_TICK_MODE.DRIVING_FLYING_ANGULAR_SPEED
+                    : PLAYER_TICK_MODE.DRIVING_FLYING_FREE_YAW
+            } else {
+                this.contextTickMode = player.driving.config.useAngularSpeed
+                    ? PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED
+                    : PLAYER_TICK_MODE.DRIVING_FREE_YAW
+            }
         } else if (pc.player_state.flying) {
             this.contextTickMode = PLAYER_TICK_MODE.FLYING
         } else {
@@ -168,7 +178,7 @@ export class PlayerTickData {
         if (this.isContextDriving()) {
             if (drivingCombinedState) {
                 this.outVehiclePos.copyFrom(drivingCombinedState.pos)
-                if (this.contextTickMode == PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
+                if (this.isContextDrivingAngularSpeed()) {
                     this.outVehicleYaw = drivingCombinedState.yaw
                     this.outVehicleAngularVelocity = drivingCombinedState.angularVelocity
                 } else {
@@ -259,7 +269,7 @@ export class PlayerTickData {
         // вождение
         if (this.isContextDriving()) {
             dc.putFloatVector(this.outVehiclePos)
-            if (this.contextTickMode === PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
+            if (this.isContextDrivingAngularSpeed()) {
                 dc.putFloat(this.outVehicleYaw)
                 dc.putFloat(this.outVehicleAngularVelocity)
             }
@@ -294,7 +304,7 @@ export class PlayerTickData {
         // вождение
         if (this.isContextDriving()) {
             dc.getFloatVector(this.outVehiclePos)
-            if (this.contextTickMode === PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED) {
+            if (this.isContextDrivingAngularSpeed()) {
                 this.outVehicleYaw = dc.getFloat()
                 this.outVehicleAngularVelocity = dc.getFloat()
             } else {
@@ -319,7 +329,12 @@ export class PlayerTickData {
 
     protected isContextDriving(): boolean {
         const tm = this.contextTickMode
-        return tm === PLAYER_TICK_MODE.DRIVING_FREE_YAW || tm === PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED
+        return tm >= PLAYER_TICK_MODE.DRIVING_FREE_YAW && tm <= PLAYER_TICK_MODE.DRIVING_FLYING_ANGULAR_SPEED
+    }
+
+    protected isContextDrivingAngularSpeed(): boolean {
+        const tm = this.contextTickMode
+        return tm === PLAYER_TICK_MODE.DRIVING_ANGULAR_SPEED && tm <= PLAYER_TICK_MODE.DRIVING_FLYING_ANGULAR_SPEED
     }
 }
 

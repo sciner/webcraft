@@ -421,6 +421,7 @@ export const KEY = {
     T: 84,
     V: 86,
     W: 87,
+    Z: 90,
     WIN: 91,
     F1: 112,
     F2: 113,

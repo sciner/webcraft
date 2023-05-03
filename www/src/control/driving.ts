@@ -26,6 +26,8 @@ export type TDrivingConfig = {
     /** Содержит переопределенные настройки физики, используемые когда мобом управляет игрок */
     physics ?       : TPrismarineOptions
 
+    canFly ?        : boolean
+
     /**
      * Если значение не определено, используется DEFAULT_DRIVING_SOUND (см. на сервере)
      * Если null - то без звука.

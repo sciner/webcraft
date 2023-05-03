@@ -41,7 +41,7 @@ export class ClientDrivingManager extends DrivingManager<World> {
                     driving = new ClientDriving(this, config, state)
                     this.drivingById.set(state.id, driving)
                     if (driving.getMyPlayerPlace() != null) {
-                        this.world.game.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000)
+                        this.world.game.hotbar.strings.setText(1, Lang.press_Z_for_dismount, 4000)
                         if (physicsState) {
                             driving.combinedPhysicsState.importPOJO(physicsState)
                         }
