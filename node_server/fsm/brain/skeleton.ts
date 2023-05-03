@@ -21,7 +21,7 @@ export class Brain extends FSMBrain {
             stepHeight: 1
         });
         this.stack.pushState(this.doStand);
-        this.health = 20;       // максимальное здоровье
+        this.setMaxHealth(20)       // максимальное здоровье
         this.distance_view = 16; // дистанция на которм виден игрок
         this.distance_attack = 1.5; // дистанция для атаки
         this.timer_attack = 0;

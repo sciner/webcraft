@@ -64,9 +64,16 @@ export function swapMatrixYZ(matrix) {
 export class InHandOverlay {
     [key: string]: any;
 
-    world : World
+    world               : World
+    inHandItemMesh ?    : Mesh_Object_Block_Drop = null
+    camera              : Camera
+    wasEating           : boolean = false
+    inHandItemBroken    : boolean = false
+    inHandItemId        : int = -1
+    changeAnimation     : boolean = true
+    changAnimationTime  : float = 0
 
-    constructor (world : World, skinId, render) {
+    constructor(world : World, skinId, render) {
 
         // overlay camera
         this.camera = new Camera({
@@ -79,18 +86,8 @@ export class InHandOverlay {
             height: render.camera.height,
         });
 
-        /**
-         * @type {Mesh_Object_Block_Drop}
-         */
-        this.inHandItemMesh = null;
-        this.inHandItemBroken = false;
-        this.inHandItemId = -1;
+        this.world = world
 
-        this.changeAnimation = true;
-        this.changAnimationTime = 0;
-
-        this.wasEating = false;
-        this.world = world;
     }
 
     reconstructInHandItem(block) {

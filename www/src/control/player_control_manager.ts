@@ -119,7 +119,9 @@ export abstract class PlayerControlManager {
      * The result is read-only. It's valid only until the next change.
      * Do not modify it directly or store a reference to it.
      */
-    getPos(): Vector { return this.current.player_state.pos }
+    getPos(): Vector {
+        return this.current.player_state.pos
+    }
 
     /**
      * @param worldActionId - id of the associated WorldAction. If it's not null, has the following effect:
@@ -228,7 +230,6 @@ export class ClientPlayerControlManager extends PlayerControlManager {
 
     private knownInputTime: float = 0
     private prevPhysicsTickPos = new Vector() // used to interpolate pos within the tick
-    private skipFreeCamSneakInput = false // used to skip pressing SHIFT after switching to freeCamp
     private freeCamPos = new Vector()
     private speedLogger = DEBUG_LOG_SPEED ? new PlayerSpeedLogger(DEBUG_LOG_SPEED_MODE) : null
     private logger = new LimitedLogger('Control: ', 1000, null, DEBUG_LOG_PLAYER_CONTROL)
@@ -312,15 +313,19 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         this.speedLogger?.add(pos, dst)
     }
 
+    toggleFreeCam() {
+        this.isFreeCam = !this.isFreeCam
+    }
+
     get isFreeCam(): boolean { return this.#isFreeCam }
 
     set isFreeCam(v: boolean) {
         this.#isFreeCam = v
         if (v) {
             const pos = this.player.getEyePos()
+            // const rotate = this.player.rotate
             this.freeCamSpectator.resetState()
             this.freeCamSpectator.setPos(pos)
-            this.skipFreeCamSneakInput = true
         }
         this.speedLogger?.reset()
     }
@@ -357,6 +362,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         if (this.current === this.spectator) {
             this.spectator.updateFrame(this)
         }
+
         if (this.#isFreeCam) {
             this.updateFreeCamFrame()
         }
@@ -582,7 +588,9 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         }
     }
 
-    /** Sends an update, if there is anything that must be sent now */
+    /**
+     * Sends an update, if there is anything that must be sent now
+     */
     private sendUpdate(): void {
         // find unsent data
         const dataQueue = this.dataQueue
@@ -646,11 +654,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
 
     private updateFreeCamFrame() {
         const pc = this.freeCamSpectator
-        // skip pressing SHIFT after switching to freeCam
-        if (this.skipFreeCamSneakInput) {
-            this.skipFreeCamSneakInput &&= pc.controls.sneak
-            pc.controls.sneak = false
-        }
         pc.updateFrame(this)
     }
+
 }

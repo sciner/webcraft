@@ -12340,7 +12340,8 @@
             "texture": {
                 "side": "item/stone_axe.png"
             }
-        },{
+        },
+        {
             "id": 1087,
             "name": "SMALL_ROCK",
             "style": "extruder",
@@ -12351,7 +12352,8 @@
             "material": {
                 "id": "pebbles"
             }
-        },{
+        },
+        {
             "id": 1088,
             "name": "RAW_GOLD",
             "coocked_item": {"name": "GOLD_INGOT", "count": 1},
@@ -12363,7 +12365,8 @@
             "material": {
                 "id": "gold"
             }
-        },{
+        },
+        {
             "id": 1089,
             "name": "RAW_IRON",
             "coocked_item": {"name": "IRON_INGOT", "count": 1},
@@ -12375,7 +12378,8 @@
             "material": {
                 "id": "iron"
             }
-        },{
+        },
+        {
             "id": 1090,
             "name": "RAW_COPPER",
             "style": "extruder",
@@ -12387,7 +12391,20 @@
             "material": {
                 "id": "powder"
             }
-        },{
+        },
+        {
+            "id": 1111,
+            "name": "SNOWBALL",
+            "style": "extruder",
+            "texture": "item/snowball.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
             "id": 1091,
             "name": "COPPER_ORE",
             "sound": "madcraft:block.stone",
@@ -12441,12 +12458,6 @@
             "name": "TURF_OF_GRASS",
             "style": "extruder",
             "sound": "madcraft:block.grass",
-            "item": {
-                "name": "powder"
-            },
-            "material": {
-                "id": "powder"
-            },
             "texture": "block/seagrass.png",
             "composter_chance": 0.3
         },

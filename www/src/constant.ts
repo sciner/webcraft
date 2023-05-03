@@ -235,6 +235,7 @@ export enum MOB_TYPE {
     PIG         = 'mob/pig',
     SHEEP       = 'mob/sheep',
     SKELETON    = 'mob/skeleton',
+    SNOWBALL    = 'mob/snowball',
     SNOW_GOLEM  = 'mob/snow_golem',
     ZOMBIE      = 'mob/zombie',
 }
@@ -381,6 +382,9 @@ export const MAX_CHUNK_Y_DIFF_FOR_PORTAL    = 3;
 // World types
 export const WORLD_TYPE_NORMAL              = 1;
 export const WORLD_TYPE_BUILDING_SCHEMAS    = 2;
+
+// attack
+export const ATTACK_COOLDOWN                = 500
 
 export const MOUSE = {
     DOWN: 1,

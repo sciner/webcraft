@@ -23,7 +23,6 @@ export class FSMBrain {
     stack: FSMStack;
     raycaster: Raycaster;
     _eye_pos: Vector;
-    health: number;
     distance_view: number;
     timer_health: number;
     timer_panick: number;
@@ -49,6 +48,8 @@ export class FSMBrain {
     is_gate: boolean;
     targets: any;
 
+    #max_health: number
+
     constructor(mob: Mob) {
         this.mob = mob;
         this.stack = new FSMStack();
@@ -56,7 +57,6 @@ export class FSMBrain {
         this.#pos = new Vector(0, 0, 0);
         this._eye_pos = new Vector(0, 0, 0);
         // инфо
-        this.health = 1;
         this.distance_view = 0;
         // таймеры
         this.timer_health = 0;
@@ -263,7 +263,7 @@ export class FSMBrain {
         this.mob.extra_data.time_fire = this.time_fire;
         // регенерация жизни
         if (this.timer_health >= 10 * MUL_1_SEC) {
-            mob.indicators.live = Math.min(mob.indicators.live + 1, this.health);
+            mob.indicators.live = Math.min(mob.indicators.live + 1, this.#max_health)
             this.timer_health = 0;
         } else {
             this.timer_health++;
@@ -440,12 +440,14 @@ export class FSMBrain {
     onDamage(val : number, type_damage : EnumDamage, actor) {
         const mob = this.mob;
         const world = mob.getWorld();
-        if (actor) {
-            const velocity = mob.pos.sub(actor.state.pos).normSelf();
-            velocity.y = 0.4;
-            mob.addVelocity(velocity);
+        if (actor &&  [EnumDamage.CRIT, EnumDamage.SNOWBALL].includes(type_damage)) {
+            const pos = actor?.state?.pos ? actor.state.pos : actor.pos
+            const velocity = mob.pos.sub(pos).normSelf()
+            velocity.y = 0.2
+            mob.addVelocity(velocity)
         }
-        mob.indicators.live -= val;
+        mob.indicators.live -= val
+        mob.extra_data.health = Math.round(mob.indicators.live * 100 / this.#max_health)
         if (mob.indicators.live <= 0) {
             mob.kill();
             this.onKill(actor, type_damage);
@@ -483,6 +485,12 @@ export class FSMBrain {
      */
     onUse(actor : any, item : any) : boolean{
         return false;
+    }
+
+    // Установка жизни
+    setMaxHealth(health: number) {
+        this.#max_health = health
+        this.mob.indicators.live = health
     }
 
 }

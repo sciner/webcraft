@@ -27,7 +27,7 @@ export class Brain extends FSMBrain {
         this.egg_timer = performance.now();
         this.nest_timer = 0;
         this.nest = null;   // гнездо 
-        this.health = 4;    // максимальное здоровье
+        this.setMaxHealth(4)    // максимальное здоровье
         this.distance_view = 6; // дистанция на которм виден игрок
         const bm = mob.getWorld().block_manager
         this.targets = [

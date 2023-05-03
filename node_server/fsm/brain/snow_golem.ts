@@ -17,6 +17,7 @@ export class Brain extends FSMBrain {
         });
         // Начинаем с просто "Стоять"
         this.stack.pushState(this.doStand);
+        this.setMaxHealth(20)
     }
 
 }

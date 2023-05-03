@@ -316,9 +316,9 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     }
 
     // value: -1 ... 0 ... 1
-    setBodyRotate(value) {
-        this.body_rotate = value;
-    }
+    // setBodyRotate(value) {
+    //     this.body_rotate = value;
+    // }
 
     updateArmSwingProgress(delta) {
         const asa = this.getArmSwingAnimationEnd();
@@ -372,7 +372,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     }
 
     get isAlive() : boolean {
-        return this.health > 0;
+        return super.isAlive
     }
 
 }

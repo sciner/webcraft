@@ -18,7 +18,7 @@ export class Brain extends FSMBrain {
             playerHalfWidth: .45
         });
         this.stack.pushState(this.doBoat);
-        this.health = 1; // максимальное здоровье
+        this.setMaxHealth(1) // максимальное здоровье
 
         this.target = null
     }

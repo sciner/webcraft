@@ -5,6 +5,7 @@ import { AABB } from '../core/AABB.js';
 import type { BaseResourcePack } from '../base_resource_pack.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { Renderer } from '../render.js';
+import type { WebGLMaterial } from '../renders/webgl/WebGLMaterial.js';
 
 // Chunk
 export const FakeChunk = {
@@ -28,6 +29,12 @@ let neighbours_map = [
 // Mesh group
 export class MeshGroup {
     [key: string]: any;
+    meshes : Map<string, {
+        buffer?:        GeometryTerrain;
+        resource_pack:  BaseResourcePack,
+        vertices:       any[],
+        material:       WebGLMaterial
+    }>
 
     constructor() {
         this.vc         = new VectorCollector();

@@ -19,7 +19,7 @@ export class Brain extends FSMBrain {
             playerHalfWidth: .45
         });
         this.stack.pushState(this.doStand);
-        this.health = 8; // максимальное здоровье
+        this.setMaxHealth(8) // максимальное здоровье
         this.distance_view = 6; // дистанция на которм виден игрок
         this.count_grass = 0;  // количество травы
         this.targets = [

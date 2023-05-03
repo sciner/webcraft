@@ -83,7 +83,7 @@ export class Renderer {
     meshes:                 MeshManager
     camera:                 Camera
     debugGeom:              LineGeometry
-    inHandOverlay?:         any
+    inHandOverlay?:         InHandOverlay
     canvas:                 any
     drop_item_meshes:       any[]
     settings:               any
@@ -1120,7 +1120,7 @@ export class Renderer {
         // @todo и тут тоже не должно быть
         this.defaultShader.bind();
         if(!player.game_mode.isSpectator() && Qubatch.hud.active && !player.controlManager.isFreeCam) {
-            this.drawInhandItem(delta);
+            this.drawInhandItem(delta)
         }
 
         // 4. Draw HUD
@@ -1139,14 +1139,23 @@ export class Renderer {
     }
 
     //
-    drawInhandItem(dt) {
+    drawInhandItem(delta : float) {
 
         if (!this.inHandOverlay) {
             this.inHandOverlay = new InHandOverlay(this.world, this.player.skin, this);
         }
 
         if(this.camera_mode == CAMERA_MODE.SHOOTER) {
-            this.inHandOverlay.draw(this, dt);
+            // reset tintColor
+            const meshes = this.inHandOverlay?.inHandItemMesh?.mesh_group?.meshes
+            if(meshes) {
+                for(const mesh of meshes.values()) {
+                    if(mesh.material.tintColor) {
+                        mesh.material.tintColor.set(0, 0, 0, 0)
+                    }
+                }
+            }
+            this.inHandOverlay.draw(this, delta);
         }
 
         // we should reset camera state because a viewMatrix used for picking

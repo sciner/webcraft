@@ -62,7 +62,7 @@ export class MobManager {
             this.#world.server.AddCmdListener([ServerClient.CMD_MOB_ADD, ServerClient.CMD_MOB_DELETE, ServerClient.CMD_MOB_UPDATE], (cmd) => {
                 switch(cmd.name) {
                     case ServerClient.CMD_MOB_ADD: {
-                        for(let mob of cmd.data) {
+                        for(const mob of cmd.data) {
                             // console.log('Mob added: ' + mob.id, mob.pos);
                             this.add(mob);
                         }
@@ -84,9 +84,12 @@ export class MobManager {
                                         extra_data: cmd.data[i + 5],
                                         time: cmd.time
                                     };
-                                    mob.applyNetState(new_state);
+                                    mob.applyNetState(new_state)
+                                    if (new_state?.extra_data) {
+                                        mob.health = new_state.extra_data.health
+                                    }
                                     // частицы смерти
-                                    if (new_state.extra_data && !new_state.extra_data.is_alive) {
+                                    if (new_state.extra_data && new_state.extra_data.health == 0 && new_state.extra_data.play_death_animation) {
                                         Qubatch.render.addParticles({type: 'cloud', pos: new_state.pos});
                                     }
                                 } else {
@@ -94,7 +97,7 @@ export class MobManager {
                                 }
                             }
                         } else {
-                            let mob = this.list.get(cmd.data.id);
+                            const mob = this.list.get(cmd.data.id);
                             if(mob) {
                                 mob.applyNetState({
                                     pos: cmd.data.pos,
@@ -108,7 +111,7 @@ export class MobManager {
                         break;
                     }
                     case ServerClient.CMD_MOB_DELETE: {
-                        for(let mob_id of cmd.data) {
+                        for(const mob_id of cmd.data) {
                             this.delete(mob_id);
                         }
                         break;
