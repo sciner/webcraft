@@ -847,9 +847,9 @@ export class Renderer {
         let nightshift = 1.;
         let preset = PRESET_NAMES.NORMAL;
 
-        // if(player.pos.y < 0 && this.world.info.generator.id !== 'flat') {
-        //     nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
-        // }
+        if(player.pos.y < 0 && this.world.info.generator.id !== 'flat') {
+             nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
+        }
 
         const getPlayerBlockColor = () : Color | null => {
             const cm = this.world.chunkManager;

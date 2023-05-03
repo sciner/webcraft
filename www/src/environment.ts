@@ -557,6 +557,7 @@ export class Environment {
     chunkBlockDist:          number;
     sunDir:                 number[];
     brightness:             number;
+    //TODO: rename to darkShift
     nightshift:             number;
     _skyColor:              number[];
     horizonBrightness:      number;
@@ -643,7 +644,7 @@ export class Environment {
     }
 
     get fullBrightness() {
-        return this.brightness * this.nightshift * this._computedBrightness;
+        return this.brightness * this._computedBrightness;
     }
 
     /**
@@ -822,7 +823,7 @@ export class Environment {
             disabled = true;
         }
         if (disabled || groundLevelEastimtion == null) {
-            this.horizonBrightness = this.nightshift;
+            this.horizonBrightness = 1.0;
             if (disabled) {
                 // when it becomes enabled, it's instant.
                 this.hbLastTime = -Infinity;
@@ -835,7 +836,6 @@ export class Environment {
         var newHorizonBrightness = Mth.lerpAny(elevation,
             -HORIZON_BRIGHTNESS_MIN_DEPTH, 1,
             -HORIZON_BRIGHTNESS_MAX_DEPTH, 0);
-        newHorizonBrightness = Math.min(newHorizonBrightness, this.nightshift);
         // temporal smoothing (helps when many chunks change quickly)
         const maxDelta = this.hbLastPos.distance(playerPos) < 10
             ? (performance.now() - this.hbLastTime) * 0.001 * HORIZON_MAX_BRIGHTNES_PER_SECOND
@@ -887,8 +887,10 @@ export class Environment {
 
         this._computedBrightness = lum * this.lerpWeatherValue(weather => Weather.GLOBAL_BRIGHTNESS[weather]);
 
-        const value = this.brightness * lum * this.lerpWeatherValue(weather => Weather.FOG_BRIGHTNESS[weather]);;
-        const mult = Math.max(p.illuminate, Math.min(1, value * 2) * this.horizonBrightness * value);
+        const fogBrightness = lum * this.lerpWeatherValue(weather => Weather.FOG_BRIGHTNESS[weather]);
+        const underDark = (this.horizonBrightness * this.brightness * lum) * this.nightshift + (1.0 - this.nightshift);
+        let value = fogBrightness * underDark;
+        const mult = Math.max(p.illuminate, Math.min(1, value * 2) * value);
 
         for (let i = 0; i < 3; i ++) {
             this.rawInterpolatedFog[i]     = fogColor[i] * mult;
@@ -968,7 +970,7 @@ export class Environment {
         const uniforms = this.skyBox.shader.uniforms;
 
         for(let i = 0; i < 3; i++) {
-            this._skyColor[i] = this.lerpWeatherValue(weather => Weather.SKY_COLOR[weather][i])
+            this._skyColor[i] = this.lerpWeatherValue(weather => Weather.SKY_COLOR[weather][i]) * this.nightshift;
         }
         uniforms['u_baseColor'].value = this._skyColor
         uniforms['u_nightshift'].value = this.nightshift;
