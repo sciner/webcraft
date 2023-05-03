@@ -1449,7 +1449,7 @@
                 "r": 255,
                 "g": 235,
                 "b": 35,
-                "a": 251
+                "a": 255
             },
             "material": {
                 "id": "stone"
@@ -12358,6 +12358,24 @@
             },
             "texture": "block/seagrass.png",
             "composter_chance": 0.3
+        },
+        {
+            "id": 489,
+            "name": "SKYLIGHT",
+            "light_power": {
+                "r": 255,
+                "g": 235,
+                "b": 35,
+                "a": 251
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "daylight_block"
+            ],
+            "sound": "madcraft:block.stone",
+            "texture": "block/skylight.png"
         }
     ]
 }

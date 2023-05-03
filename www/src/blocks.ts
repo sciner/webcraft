@@ -8,6 +8,8 @@ import { BLOCK_FLAG, BLOCK_GROUP_TAG, DEFAULT_STYLE_NAME, LEAVES_TYPE } from "./
 import type { TBlock } from "./typed_blocks3.js";
 import type { World } from "./world.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
+import { MASK_SRC_AO, MASK_SRC_BLOCK, MASK_SRC_DAYLIGHT, MASK_SRC_NONE } from './worker-light/LightConst.js';
+import { MASK_SRC_FILTER } from './worker-light/LightConst.js';
 
 export const TRANS_TEX                      = [4, 12]
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64
@@ -324,26 +326,24 @@ export class BLOCK {
             : mat.title;
     }
 
-    static getLightPower(material) : number {
+    static getLightPower(material : IBlockMaterial) : number {
         if (!material) {
-            return 0;
+            return MASK_SRC_NONE
         }
-        let val = 0;
+        let val = MASK_SRC_NONE
         if (material.is_water) {
-            return 64;
-
+            return MASK_SRC_FILTER
         } else if(material.light_power) {
             let power = material.light_power.a;
-            if (power === 251) {
-                // daylight block!
-                val = 32 + 15;
+            if (material.tags.includes('daylight_block')) {
+                val = MASK_SRC_DAYLIGHT
             } else {
                 val = Math.floor(power / 16.0);
             }
         } else if (!material.transparent) {
-            val = 96;
+            val = MASK_SRC_BLOCK
         }
-        return val + (material.visible_for_ao ? 128 : 0);
+        return val + (material.visible_for_ao ? MASK_SRC_AO : MASK_SRC_NONE);
     }
 
     /**

@@ -4,6 +4,7 @@ export const maxLight = 31;
 export const maxPotential = 400;
 export const defPageSize = 1 << 12;
 
+export const MASK_SRC_NONE = 0;
 export const MASK_SRC_AMOUNT = 31;
 export const MASK_SRC_FILTER_BIT = 6;
 export const MASK_SRC_DAYLIGHT = 32;

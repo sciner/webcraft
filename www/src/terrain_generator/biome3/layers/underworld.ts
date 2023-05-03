@@ -53,20 +53,22 @@ export default class Biome3LayerUnderworld extends Biome3LayerOverworld {
         if(is_highest) {
 
             const stone_block_id = 9
-            const block_id = 89
+            const block_id = this.block_manager.NETHERRACK.id
+            const light_block_id = this.block_manager.SKYLIGHT.id
             const sz = chunk.size.y
 
             for(let x = 0; x < chunk.size.x; x++) {
                 for(let z = 0; z < chunk.size.z; z++) {
                     const hx = (chunk.coord.x + x)
                     const hz = (chunk.coord.z + z)
-                    let n = this.noise2d(hx/32, hz/32) * .667
+                    const ns = this.noise2d(hx/32, hz/32)
+                    let n = ns * .667
                     let n2 = Math.ceil((n / .667 + 1) * 3)
                     n += this.noise2d(hx/16, hz/16) * 0.333
                     n += 1
                     const h = Math.round(n * 10 + 3)
                     for(let y = chunk.size.y - h; y < chunk.size.y; y++) {
-                        chunk.setBlockIndirect(x, y, z, y > sz - n2 ? stone_block_id : block_id)
+                        chunk.setBlockIndirect(x, y, z, y > sz - n2 ? stone_block_id : ((Math.round(ns * 100) % 5) == 0 ? light_block_id : block_id))
                     }
                 }
             }
