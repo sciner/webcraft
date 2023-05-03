@@ -607,6 +607,7 @@ export class ServerChunk {
 
         // load various data in parallel
         const chunkRecordMobsPromise = this.world.db.chunks.getChunkOfChunk(this).then( async chunkRecord => {
+            const mobs = this.world.mobs
             this.chunkRecord = chunkRecord;
             this.chunkRecord.chunk = this; // some fields are taken directly from the chunk when inserting/updateing chunkRecord
             // now we can load things that required chunkRecord
@@ -616,6 +617,12 @@ export class ServerChunk {
             }
             const loadedMobs = await this.world.db.mobs.loadInChunk(this);
             for(const [mob, driving_data] of loadedMobs) {
+                if (mobs.get(mob.id) || mobs.inactiveById.has(mob.id) || mobs.inactiveByIdBeingWritten?.has(mob.id)) {
+                    // Возможно, этот моб уже существует в мире. Например, он вышел из своего чанка в этот чанк
+                    // (еще не загруженый). Если так - он сам присоединится к нужному чанку, не создавать копию.
+                    // Не уверен возможно ли что он деактивирован, но на всякий случай проверим и это.
+                    continue
+                }
                 mob.moveToChunk(this, false) // не высылать апдейт - потом чанк вышлет его для всех мобов вместе
                 mob.onAddedOrRestored()
                 this.world.drivingManager.onParticipantLoaded(mob, driving_data)

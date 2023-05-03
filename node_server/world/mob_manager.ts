@@ -1,6 +1,6 @@
 import { Vector } from "@client/helpers.js";
 import { Mob, MobSpawnParams } from "../mob.js";
-import { DEAD_MOB_TTL } from "../server_constant.js";
+import {DEAD_MOB_TTL, MOB_WITHOUT_CHUNK_TTL_SECONDS} from "../server_constant.js";
 import type { ServerPlayer } from "../server_player.js";
 import type { ServerWorld } from "../server_world.js";
 import { WorldTickStat } from "./tick_stat.js";
@@ -17,8 +17,10 @@ export class WorldMobManager {
     ticks_stat_by_mob_type:         Map<string, WorldTickStat> = new Map()
 
     /**
-     * Неактивные или удаленные мобы в памяти. Они будут записаны в БД в ближайшей транзакции и забыты.
+     * Логически удаленные из игры (деактивированные или мертвые мобы) в памяти.
+     * Они будут записаны в БД в ближайшей транзакции и забыты.
      * Живые мобы из этого списка могут быть ре-активированы и перемещены в {@link list}.
+     * Если моб логически в игре (живой, аткивный), он не может быть в этом списке. Чанки при звгрузке не ищут мобов там.
      *
      * О реализации: для убитых мобов м могли бы хранить только id, но бывают также убитые мобы в выгруженных
      * чанках, поэому проще хранить и тут целых мобов.
@@ -33,6 +35,8 @@ export class WorldMobManager {
     inactiveByIdBeingWritten:       Map<int, Mob> | null = null
 
     configs:                        Dict<TMobConfig>
+
+    private tmp_tick_chunk_addr     = new Vector()
 
     static STAT_NAMES = ['update_chunks', 'unload', 'other', 'onLive', 'onFind']
     static MOB_STAT_NAMES = ['onLive', 'onFind']
@@ -105,6 +109,7 @@ export class WorldMobManager {
 
     tick(delta: float): void {
         const world = this.world;
+        const now = performance.now()
         this.ticks_stat.start()
         for(const stat of this.ticks_stat_by_mob_type.values()) {
             stat.start()
@@ -112,12 +117,21 @@ export class WorldMobManager {
         // !Warning. All mobs must update chunks before ticks
         for(let mob of this.list.values()) {
             if(mob.isAlive) {
-                const chunk_addr = mob.chunk_addr;
+                const chunk_addr = world.grid.toChunkAddr(mob.pos, this.tmp_tick_chunk_addr)
                 const inChunk = mob.inChunk
                 if (!inChunk || !inChunk.addr.equal(chunk_addr)) {
                     const chunk_new = world.chunks.get(chunk_addr)
                     if (chunk_new !== inChunk) {
                         mob.moveToChunk(chunk_new)
+                    }
+                    // Если моб уже давно без чанка и сохранен в БД - забыть его
+                    if (chunk_new == null) {
+                        mob.noticedWithoutChunkTime ??= now
+                        if (mob.noticedWithoutChunkTime < now - MOB_WITHOUT_CHUNK_TTL_SECONDS * 1000 &&
+                            (mob.dirtyFlags & (~Mob.DIRTY_FLAG_SAVED_DEAD)) == 0
+                        ) {
+                            mob.onUnload()
+                        }
                     }
                 }
             }

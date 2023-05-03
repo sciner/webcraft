@@ -90,7 +90,6 @@ export class Mob {
 
     #world : ServerWorld;
     #brain : FSMBrain;
-    #chunk_addr : Vector;
     #forward : Vector;
     #prev_state: MobState
     readonly config: TMobConfig
@@ -137,6 +136,13 @@ export class Mob {
      */
     inChunk: ServerChunk | null = null
 
+    /** Самое ранее время когда моб замечен без чанка. Используется чтобы забывать мобов, которые долго без чанка. */
+    noticedWithoutChunkTime: number | null = null
+
+    /**
+     * Конструктор моба не должен иметь побочных эффектов. Возможно, созданный моб не будет добавлен в мир
+     * (например, если он уже есть в памяти без чанка).
+     */
     constructor(world : ServerWorld, config: TMobConfig, params: MobSpawnParams, existsInDB: boolean) {
         this.#world         = world;
         this.config         = config
@@ -158,7 +164,6 @@ export class Mob {
         this.extra_data     = params.extra_data || {};
         this.dirtyFlags     = existsInDB ? 0 : Mob.DIRTY_FLAG_NEW;
         // Private properties
-        this.#chunk_addr    = new Vector();
         this.#forward       = new Vector(0, 1, 0);
         this.#brain         = world.brains.get(this.config.brain, this);
         this.width          = this.#brain.pc.playerHalfWidth * 2;
@@ -194,11 +199,6 @@ export class Mob {
             this.pos.z + this.width / 2
         )
         return this._aabb
-    }
-
-    /** Адрес чанка, к которому должен относиться этот моб. Может отличаться от {@link inChunk}. */
-    get chunk_addr() : Vector {
-        return this.#world.grid.toChunkAddr(this.pos, this.#chunk_addr);
     }
 
     get forward() : Vector {
@@ -287,8 +287,13 @@ export class Mob {
 
     /**
      * Вызывает действия, связанные с выгрузкой из памяти моба.
+     *
      * Выгрузка может быть как вместе с выгружаемым чанком, так и только это моба. Во стором случае
      * вызывающий должен не забыть удалить моба из чанка.
+     *
+     * Выгрузка может быть в список выгруженых мобов, или моб может быть забыт полностью. Об этом должен
+     * заботиться вызывающий.
+     *
      * @return true если есть что сохранять в мировой транзакци для этого моба
      */
     onUnload(): boolean {
@@ -309,6 +314,7 @@ export class Mob {
         const world = this.#world
         world.mobs.list.set(this.id, this)
         world.drivingManager.onMobAddedOrRestored(this)
+        this.noticedWithoutChunkTime = null // если был долго выгружен без чанка - не должен сразу удаляться
     }
 
     /**
@@ -341,6 +347,7 @@ export class Mob {
                     data: [this.exportMobModelConstructorProps()]
                 }])
             }
+            this.noticedWithoutChunkTime = null
         }
         this.inChunk = chunk
     }

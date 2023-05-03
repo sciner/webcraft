@@ -19,7 +19,6 @@ export class FSMBrain {
     world: ServerWorld
     prevPos: Vector;
     lerpPos: Vector;
-    #chunk_addr = new Vector();
     mob: Mob;
     stack: FSMStack;
     _eye_pos: Vector;
@@ -77,9 +76,7 @@ export class FSMBrain {
     }
 
     tick(delta) {
-        const world = this.mob.getWorld();
-        this.#chunk_addr = world.chunkManager.grid.toChunkAddr(this.mob.pos, this.#chunk_addr);
-        const chunk = world.chunks.get(this.#chunk_addr);
+        const chunk = this.mob.inChunk
         if (!chunk?.isReady()) {
             return
         }

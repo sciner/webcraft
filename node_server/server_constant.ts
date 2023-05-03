@@ -80,6 +80,7 @@ export const IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB = true;
 export const DEAD_MOB_TTL       = 1000;     // time between the mob is detected dead and unloaded
 export const MOB_SAVE_PERIOD    = 10000;
 export const MOB_SAVE_DISTANCE  = 4;     // force saving if travelled more than this number of blocks
+export const MOB_WITHOUT_CHUNK_TTL_SECONDS = 60 // если моб без чанка дольше этого времени, он забывается
 
 // ============================= game mechanics ============================
 
