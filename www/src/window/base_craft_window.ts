@@ -801,6 +801,19 @@ export class BaseCraftWindow extends BaseInventoryWindow {
 
     }
 
+    createDeleteSlot() {
+        const lblSlot = new Label(x, y, this.cell_size, this.cell_size, `lblSlot${index}`, null, null)
+            
+            //this.inventory_slots.push(lblSlot)
+            const hud_atlas = Resources.atlas.get('hud')
+            lblSlot.setIcon(hud_atlas.getSpriteFromMap('trashbin'))
+            lblSlot.setBackground(hud_atlas.getSpriteFromMap('window_slot'))
+            const self = this
+            lblSlot.onMouseMove = function() {
+            }
+            this.add(lblSlot);
+    }
+
     /** @return the list of items from drag and craft slots that couldn't be cleared */
     clearCraft(): IInventoryItem[] | null {
         const remainingItems: IInventoryItem[] = []

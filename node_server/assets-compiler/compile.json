@@ -12363,6 +12363,7 @@
             "name": "BACKPACK_BASIC",
             "style": "extruder",
             "texture": "item/turtle_helmet.png",
+            "max_in_stack": 1,
             "item": {"name": "armor"},
             "material": {
                 "id": "powder"
@@ -12379,6 +12380,7 @@
         },{
             "id": 1095,
             "name": "TOOLBELT_BASIC",
+            "max_in_stack": 1,
             "style": "extruder",
             "texture": "item/turtle_helmet.png",
             "item": {"name": "armor"},

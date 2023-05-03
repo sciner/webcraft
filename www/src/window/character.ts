@@ -1,7 +1,7 @@
 import { Label } from "../ui/wm.js";
 import { BaseCraftWindow, PaperDollSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_HOTBAR_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT, UI_THEME } from "../constant.js";
+import { INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT, UI_THEME } from "../constant.js";
 import type { InventoryRecipeWindow } from "./inventory_recipe.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import type { InGameMain } from "./ingamemain.js";
@@ -20,8 +20,6 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
 
     slot_empty = 'slot_empty'
     slot_full = 'slot_full'
-
-    #player_box_width : number = 0
 
     constructor(player : Player, inventory : PlayerInventory) {
 
@@ -112,8 +110,6 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         const PLAYER_BOX_HEIGHT = (this.cell_size + margin) * 4 - margin
         const PLAYER_BOX_WIDTH = PLAYER_BOX_HEIGHT * (sprite_character_back.width / sprite_character_back.height)
 
-        this.#player_box_width = PLAYER_BOX_WIDTH
-
         this.lblPlayerBox = new Label(armor_slot.x + armor_slot.w + margin, armor_slot.y, PLAYER_BOX_WIDTH, PLAYER_BOX_HEIGHT, 'lblPlayerBox', null, null)
         // this.lblPlayerBox.setBackground(sprite_character_back)
         this.lblPlayerBox.style.background.color = '#00000000'
@@ -156,8 +152,8 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
     }
 
     createRightPaperDoll(sz : float) {
-        const ct = this;
-        const x = (this.#player_box_width + UI_THEME.window_padding) * this.zoom
+        const ct = this
+        const x = this.lblPlayerBox.x + this.lblPlayerBox.w + UI_THEME.window_padding * this.zoom
 
         let y = 16 * this.zoom
 
@@ -176,6 +172,14 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         ct.add(lblSlotToolBelt)
         ct.inventory_slots.push(lblSlotToolBelt)
         this.paperdoll.push(lblSlotToolBelt)
+
+        const lblSlotFakeOne = new Label(x, getY(), sz, sz, 'fake_labl_slot_one')
+        lblSlotFakeOne.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
+        ct.add(lblSlotFakeOne)
+
+        const lblSlotFakeTwo = new Label(x, getY(), sz, sz, 'fake_labl_slot_two')
+        lblSlotFakeTwo.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
+        ct.add(lblSlotFakeTwo)
     }
 
 }

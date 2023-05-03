@@ -14,6 +14,7 @@ export default class packet_reader {
 
     // Apply new inventory state
     static async read(player, packet) {
+        console.log('CMD_INVENTORY_NEW_STATE')
         player.inventory.newState(packet.data);
         return true;
     }
