@@ -9,6 +9,7 @@ export declare type IFogPreset = {
     color:          [number,number, number, number ] | Gradient | Color | IAnyColorRecordMap,
     addColor:       [number,number, number, number ] | Gradient | Color | number | IAnyColorRecordMap,
     density:        number,
+    fixLum?:        float,
     illuminate? :   number,
 }
 
@@ -37,6 +38,7 @@ export class FogPreset {
 
         this.hasAddColor = false;
         this.addColorAlpha = 1;
+        this.fixLum = undefined
 
         /**
          * @type {IFogPreset}
@@ -82,6 +84,7 @@ export class FogPreset {
         }
 
         this.density    = this.preset.density;
+        this.fixLum     = this.preset.fixLum;
         this.illuminate = this.preset.illuminate || 0;
 
         return this;
@@ -104,6 +107,7 @@ export class FogPreset {
             color,
             addColor,
             density,
+            fixLum,
             ...other
         } = fogPreset;
 
@@ -114,6 +118,7 @@ export class FogPreset {
         }
 
         this.preset = {
+            fixLum  : fixLum,
             color   : new Gradient(color),
             addColor: this.hasAddColor ? new Gradient(addColor) : addColor,
             density : density,
@@ -883,13 +888,13 @@ export class Environment {
 
         base.eval(this._sunFactor);
 
-        const lum = easeOutExpo( Mth.clamp((-1 + 2 * this._sunFactor) * 0.8 + 0.2, 0, 1)) ;// base.color.lum() / this._refLum;
+        const lum = p.fixLum ?? easeOutExpo( Mth.clamp((-1 + 2 * this._sunFactor) * 0.8 + 0.2, 0, 1)) // base.color.lum() / this._refLum;
 
         this._computedBrightness = lum * this.lerpWeatherValue(weather => Weather.GLOBAL_BRIGHTNESS[weather]);
 
         const fogBrightness = lum * this.lerpWeatherValue(weather => Weather.FOG_BRIGHTNESS[weather]);
         const underDark = (this.horizonBrightness * this.brightness * lum) * this.nightshift + (1.0 - this.nightshift);
-        let value = fogBrightness * underDark;
+        const value = fogBrightness * underDark;
         const mult = Math.max(p.illuminate, Math.min(1, value * 2) * value);
 
         for (let i = 0; i < 3; i ++) {

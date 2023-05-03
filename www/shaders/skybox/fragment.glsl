@@ -90,7 +90,7 @@ void main() {
     color = mix(color, overlay.rgb * 0.5, overlay.a * u_nightshift);
 
     // fog tint
-    color = mix(color, u_fogColor.rgb, 1. - pow(1. - u_fogAddColor.a, 2.0));
+    color = mix(color, u_fogColor.rgb, (1. - pow(1. - u_fogAddColor.a, 2.0)) * u_nightshift + (1.0 - u_nightshift));
 
     // special effect for sunrise 
     color = mix(color, u_fogColor.rgb, u_fogColor.a);
