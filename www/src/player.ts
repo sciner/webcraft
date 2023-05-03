@@ -342,9 +342,9 @@ export class Player implements IPlayer {
         this.oBob                   = 0;
         this.step_count             = 0;
         this._prevActionTime        = performance.now();
-        this.body_rotate            = 0;
-        this.body_rotate_o          = 0;
-        this.body_rotate_speed      = BODY_ROTATE_SPEED;
+        // this.body_rotate            = 0;
+        // this.body_rotate_o          = 0;
+        // this.body_rotate_speed      = BODY_ROTATE_SPEED;
         this.mineTime               = 0;
         this.timer_attack           = 0
         //
@@ -897,7 +897,7 @@ export class Player implements IPlayer {
             //
             const pc = this.controlManager.current;
             this.posO.copyFrom(this.lerpPos);
-            this.checkBodyRot(delta);
+            // this.checkBodyRot(delta);
             // Physics tick
             this.updateControl()
             const minMovingDist = delta * MOVING_MIN_BLOCKS_PER_SECOND;
@@ -1018,23 +1018,23 @@ export class Player implements IPlayer {
         return tb.getInterpolatedLightValue(this.lerpPos.sub(tb.dataChunk.pos));
     }
 
-    checkBodyRot(delta: float): void {
-        const pc = this.getPlayerControl();
-        const value = delta * this.body_rotate_speed;
-        if(pc.controls.right && !pc.controls.left) {
-            this.body_rotate = Math.min(this.body_rotate + value, 1);
-        } else if(pc.controls.left && !pc.controls.right) {
-            this.body_rotate = Math.max(this.body_rotate - value, -1);
-        } else if(pc.controls.forward || pc.controls.back) {
-            if(this.body_rotate < 0) this.body_rotate = Math.min(this.body_rotate + value, 0);
-            if(this.body_rotate > 0) this.body_rotate = Math.max(this.body_rotate - value, 0);
-        }
-        if(this.body_rotate_o != this.body_rotate) {
-            // body rot changes
-            this.body_rotate_o = this.body_rotate;
-            this.triggerEvent('body_rot_changed', {value: this.body_rotate});
-        }
-    }
+    // checkBodyRot(delta: float): void {
+    //     const pc = this.getPlayerControl();
+    //     const value = delta * this.body_rotate_speed;
+    //     if(pc.controls.right && !pc.controls.left) {
+    //         this.body_rotate = Math.min(this.body_rotate + value, 1);
+    //     } else if(pc.controls.left && !pc.controls.right) {
+    //         this.body_rotate = Math.max(this.body_rotate - value, -1);
+    //     } else if(pc.controls.forward || pc.controls.back) {
+    //         if(this.body_rotate < 0) this.body_rotate = Math.min(this.body_rotate + value, 0);
+    //         if(this.body_rotate > 0) this.body_rotate = Math.max(this.body_rotate - value, 0);
+    //     }
+    //     if(this.body_rotate_o != this.body_rotate) {
+    //         // body rot changes
+    //         this.body_rotate_o = this.body_rotate;
+    //         this.triggerEvent('body_rot_changed', {value: this.body_rotate});
+    //     }
+    // }
 
     triggerEvent(name : string, args : object = null) {
         switch(name) {
@@ -1071,13 +1071,13 @@ export class Player implements IPlayer {
                 Qubatch.sounds.play('madcraft:environment', 'exiting_water');
                 break;
             }
-            case 'body_rot_changed': {
-                const itsme = this.getModel()
-                if(itsme) {
-                    itsme.setBodyRotate((args as any).value);
-                }
-                break;
-            }
+            // case 'body_rot_changed': {
+            //     const itsme = this.getModel()
+            //     if(itsme) {
+            //         itsme.setBodyRotate((args as any).value);
+            //     }
+            //     break;
+            // }
         }
     }
 
@@ -1089,7 +1089,7 @@ export class Player implements IPlayer {
     }
 
     // Emulate user keyboard control
-    walk(direction, duration) {
+    walk(direction : string, duration : float) {
         this.controls.forward = direction == 'forward';
         this.controls.back = direction == 'back';
         this.controls.left = direction == 'left';

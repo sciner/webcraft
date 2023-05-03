@@ -7,6 +7,8 @@ export class Brain extends FSMBrain {
 
     parent: any
     velocity: Vector
+    _rotate: Vector = new Vector()
+    _rotate2: Vector = new Vector()
 
     constructor(mob) {
         super(mob)
@@ -29,14 +31,15 @@ export class Brain extends FSMBrain {
 
     }
 
-    doStand(delta) {
+    doStand(delta : float) {
         const mob = this.mob
         if (this.pc.player_state.isCollidedVertically || this.pc.player_state.isCollidedHorizontally) {
             this.onKill(null, null)
             return
         }
-        const rotate = new Vector(Math.sin(mob.rotate.z), 0, Math.cos(mob.rotate.z))
-        const pos = mob.pos.add(rotate.mulScalar(.4)) // @todo вроде попроавлено в раейкастере
+        const rotate = this._rotate.setScalar(Math.sin(mob.rotate.z), 0, Math.cos(mob.rotate.z))
+        const rotate2 = this._rotate2.copyFrom(rotate).mulScalarSelf(.4)
+        const pos = mob.pos.add(rotate2) // @todo вроде поправлено в рейкастере
         const ray = this.raycaster.get(pos, rotate, 2)
         // если на пути встретился моб
         if (ray?.mob) {

@@ -943,7 +943,7 @@ function getEffectLevel(val: int, effects?: TPrismarineEffects): int {
 export class PlayerState implements IPlayerControlState {
     options     : TPrismarineOptions
     pos         : Vector
-    vel         : Vector
+    vel         : Vector = new Vector(0, 0, 0)
     flying      = false
     onGround    = false
     isInWater   = false
@@ -967,7 +967,6 @@ export class PlayerState implements IPlayerControlState {
 
         // Input / Outputs
         this.pos                    = pos.clone()
-        this.vel                    = new Vector(0, 0, 0)
 
         // Input only (not modified)
         this.control                = control

@@ -1,7 +1,8 @@
 import { ServerClient } from "@client/server_client.js";
-import { DEFAULT_MOB_TEXTURE_NAME, PLAYER_DIAMETER } from "@client/constant.js";
+import { DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE } from "@client/constant.js";
 import { MobSpawnParams } from "mob.js";
 import { Vector } from "@client/helpers.js";
+import type { ServerPlayer } from "server_player";
 
 const TIME_CAST = 28;
 
@@ -18,7 +19,7 @@ export default class packet_reader {
     }
 
     // use item
-    static async read(player, packet) {
+    static async read(player : ServerPlayer, packet) {
         const item = player.inventory.items[player.inventory.current.index]
         if (!item) {
             return true
@@ -32,7 +33,7 @@ export default class packet_reader {
                 pos,
                 player.state.rotate,
                 {
-                    model_name: "mob/snowball",
+                    model_name: MOB_TYPE.SNOWBALL,
                     texture_name: DEFAULT_MOB_TEXTURE_NAME
                 }
             )

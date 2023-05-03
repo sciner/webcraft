@@ -45,10 +45,10 @@ export class MobState {
     rotate: Vector;
     extra_data: any;
 
-    constructor(id : int, pos : Vector, rotate : Vector, extra_data) {
+    constructor(id : int, pos : Vector, rotate : Vector, extra_data : any) {
         this.id = id;
-        this.pos = new Vector(pos).round(3);
-        this.rotate = new Vector(rotate).round(3);
+        this.pos = new Vector(pos).roundSelf(3)
+        this.rotate = new Vector(rotate).roundSelf(3)
         this.extra_data = JSON.parse(JSON.stringify(extra_data))
         if(this.extra_data?.time_fire !== undefined) {
             this.extra_data.in_fire = this.extra_data.time_fire > 0

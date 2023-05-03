@@ -233,6 +233,7 @@ export enum MOB_TYPE {
     PIG         = 'mob/pig',
     SHEEP       = 'mob/sheep',
     SKELETON    = 'mob/skeleton',
+    SNOWBALL    = 'mob/snowball',
     SNOW_GOLEM  = 'mob/snow_golem',
     ZOMBIE      = 'mob/zombie',
 }
