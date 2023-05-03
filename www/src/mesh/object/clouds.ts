@@ -134,7 +134,7 @@ export default class Mesh_Object_Clouds {
         const z = Math.floor(cam_pos.z / size) * size;
         const material = render.defaultShader.materials.transparent;
 
-        render.lightUniforms.pushOverride(0x100ff);
+        render.lightUniforms.pushOverride(0x10000);
         /*
             for(let mx = -2; mx <= 2; mx++) {
                 for(let mz = -2; mz <= 2; mz++) {
