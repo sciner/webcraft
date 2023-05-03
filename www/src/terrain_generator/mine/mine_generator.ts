@@ -7,6 +7,7 @@ import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { Biome3LayerBase } from "../biome3/layers/base.js";
 
 const BARREL_CHANCE     = 0.02
+const BARREL_EXTRA_DATA = {slots: {}}
 const SIZE_CLUSTER      = 8
 const EMPTY_CHANCE      = 0.25
 const LANTERN_ROT_UP    = new Vector(0, -1, 0)
@@ -304,8 +305,8 @@ export class MineGenerator {
         this.genGroundDecor(chunk, node, random, 0, 1, csx1, csx, 1, csx1, dir, BLOCK.PEBBLES, 0.04)
 
         // бочки
-        this.genWallDecor(chunk, node, random, 1, 1, 0, 1, 1, csx, dir, true, BLOCK.BARREL, BARREL_CHANCE)
-        this.genWallDecor(chunk, node, random, 3, 1, 0, 3, 1, csx, dir, true, BLOCK.BARREL, BARREL_CHANCE)
+        this.genWallDecor(chunk, node, random, 1, 1, 0, 1, 1, csx, dir, true, BLOCK.BARREL, BARREL_CHANCE, undefined, BARREL_EXTRA_DATA)
+        this.genWallDecor(chunk, node, random, 3, 1, 0, 3, 1, csx, dir, true, BLOCK.BARREL, BARREL_CHANCE, undefined, BARREL_EXTRA_DATA)
         this.genGroundDecor(chunk, node, random, 0, 1, csx3, csx, 1, csx3, dir, BLOCK.BARREL, BARREL_CHANCE)
         this.genGroundDecor(chunk, node, random, 0, 1, csx1, csx, 1, csx1, dir, BLOCK.BARREL, BARREL_CHANCE)
     }
@@ -582,7 +583,9 @@ export class MineGenerator {
                         const is_chance = (chance == 1) ?  true : random.double() < chance;
                         if (is_chance == true && temp_block != null && temp_block.id == 0 && temp_block.fluid == 0) {
                             let rotate = null
+                            let extra_data = null
                             if(block_item.id == BLOCK.BARREL.id) {
+                                extra_data = BARREL_EXTRA_DATA
                                 const r = random.double()
                                 if(r < .2) {
                                     rotate = Vector.YP.clone()
@@ -596,7 +599,7 @@ export class MineGenerator {
                                     rotate = new Vector(CD_ROT.EAST, 0, 0)
                                 }
                             }
-                            this.setBlock(chunk, node, vec.x, vec.y, vec.z, block_item, true, rotate);
+                            this.setBlock(chunk, node, vec.x, vec.y, vec.z, block_item, true, rotate, extra_data)
                         }
                     }
                 }

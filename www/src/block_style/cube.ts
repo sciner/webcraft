@@ -32,6 +32,8 @@ const _pl = new QuadPlane()
 const _vec = new Vector(0, 0, 0);
 const _sideParams = new TCalcSideParamsResult()
 
+let _grass_block_edge_tex : tupleFloat4 | null = null
+
 // overlay texture temp objects
 class OverlayTextureItem {
     list: boolean[] = [false, false, false, false]
@@ -88,7 +90,8 @@ const UP_AXES = [
 
 // Used for grass pseudo-random rotation
 const randoms = new FastRandom('random_dirt_rotations', MAX_CHUNK_SQUARE, 100, true)
-const OVERLAY_TEXTURE_MATERIAL_KEYS = []
+const OVERLAY_TEXTURE_MATERIAL_KEYS : string[] = []
+const OVERLAY_TEXTURE_MATERIAL_KEYS_DOUBLEFACE : string[] = []
 
 export default class style {
     [key: string]: any;
@@ -100,6 +103,9 @@ export default class style {
         OVERLAY_TEXTURE_MATERIAL_KEYS.push(
             block_manager.DECAL1.material_key,
             block_manager.DECAL2.material_key,
+        )
+        OVERLAY_TEXTURE_MATERIAL_KEYS_DOUBLEFACE.push(
+            block_manager.COBWEB.material_key
         )
         return new BlockStyleRegInfo(
             ['cube'],
@@ -413,7 +419,7 @@ export default class style {
         const cavity_id             = (material.is_log && !(block instanceof FakeTBlock)) ? block.extra_data?.cavity : null // for tree logs
         const sides                 = {} as IBlockSides
 
-        let emmited_blocks:         [] = undefined
+        let emmited_blocks:         any[] = undefined
         let autoUV                  = true
         let axes_up                 = null
         let axes_down               = null
@@ -580,6 +586,36 @@ export default class style {
             if(chunk?.chunkManager?.world?.settings?.overlay_textures) {
                 emmited_blocks = []
                 style.pushOverlayTextures(material, emmited_blocks, bm, chunk, x, y, z, neighbours, dirt_color, matrix, pivot)
+
+                if(material.name == 'GRASS_BLOCK' || material.name == 'GRASS_BLOCK_SLAB') {
+                    if(!_grass_block_edge_tex) {
+                        _grass_block_edge_tex = bm.calcMaterialTexture(bm.GRASS_BLOCK, DIRECTION.UP, 1, 1, undefined, undefined, undefined, '1')
+                    }
+                    const c = _grass_block_edge_tex
+                    const d1 = 1
+                    const dm1 = -1
+                    const pp = lm.pack()
+                    const h2 = height == 1 ? .5 : 0
+                    const fo = f // | QUAD_FLAGS.NORMAL_UP
+                    // const overlay_vertices : float[] = []
+                    // north
+                    if(neighbours.NORTH.material.transparent) {
+                        vertices.push(x + .5, z + 1.25, y + h2, 1, 0, 0, 0, .5, dm1, c[0], c[1], c[2], c[3], pp, fo)
+                    }
+                    // south
+                    if(neighbours.SOUTH.material.transparent) {
+                        vertices.push(x + .5, z - .25, y + h2, 1, 0, 0, 0, .5, d1, c[0], c[1], c[2], -c[3], pp, fo)
+                    }
+                    // west
+                    if(neighbours.WEST.material.transparent) {
+                        vertices.push(x - .25, z + .5, y + h2, 0, 1, 0, -.5, 0, dm1, c[0], c[1], c[2], c[3], pp, fo)
+                    }
+                    // east
+                    if(neighbours.EAST.material.transparent) {
+                        vertices.push(x + 1.25, z + .5, y + h2, 0, 1, 0, -.5, 0, d1, c[0], c[1], c[2], -c[3], pp, fo)
+                    }
+                    // emmited_blocks.push(new FakeVertices(OVERLAY_TEXTURE_MATERIAL_KEYS_DOUBLEFACE[0], overlay_vertices))
+                }
             }
         }
         if(canDrawDOWN) {

@@ -4,7 +4,6 @@ import type { PlayerInventory } from "../player_inventory.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 
 export class BarrelWindow extends BaseChestWindow {
-    [key: string]: any;
 
     constructor(inventory : PlayerInventory) {
 

@@ -31,7 +31,7 @@ type PickAtOnInteractEntity = (IPickatEvent) => void
 type PickAtOnInteractFluid  = (IPickatEventPos) => boolean
 
 export class PickAt {
-    
+
     raycaster:          Raycaster
     chunk_addr:         Vector
     _temp_pos :         Vector = new Vector(0, 0, 0)
@@ -395,13 +395,23 @@ export class PickAt {
             this.targetDescription = null;
             return;
         }
+
+
+        const lightValue = block.lightValue;
         this.targetDescription = {
             worldPos:   pos,
             posInChunk: pos.clone().subSelf(block.tb.dataChunk.pos),
             chunkAddr:  this.grid.toChunkAddr(pos),
             block:      block.clonePOJO(),
             material:   block.material,
-            fluid:      block.fluid
+            fluid:      block.fluid,
+        }
+        let normal = ((pos_ as any).n);
+        if (normal) {
+            const neibBlock = this.world.chunkManager.getBlock(pos.add(normal));
+            const lightValue = neibBlock.lightValue || 0;
+            this.targetDescription.caveLight = ((lightValue & 255) / 17);
+            this.targetDescription.dayLight = (15 - ((lightValue >> 8) & 255) / 17);
         }
     }
 

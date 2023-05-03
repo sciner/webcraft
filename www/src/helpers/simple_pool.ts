@@ -4,11 +4,13 @@ export interface PoolElement {
 
 export class SimplePool<T extends PoolElement = any> {
     arr: T[] = [];
+    arg1: any;
     sz = 0;
-    clazz: new () => T;
+    clazz: new (arg1?: any) => T;
 
-    constructor(clazz: new () => T) {
+    constructor(clazz: new (arg1?: any) => T, arg1?: any) {
         this.clazz = clazz;
+        this.arg1 = arg1;
     }
 
     alloc() {
@@ -18,7 +20,7 @@ export class SimplePool<T extends PoolElement = any> {
             this.arr[this.sz] = null;
             return elem;
         }
-        return new this.clazz();
+        return new this.clazz(this.arg1);
     }
 
     free(item) {

@@ -17,14 +17,13 @@ type TScannedTickers = {
 }
 
 type TChunkWorkerMessageBlocksGenerated = {
-    addr        : IVector
-    uniqId      : int
-    tblocks
-    packedCells : Int16Array
-    genQueueSize?: int
-
+    addr:                 IVector
+    uniqId:               int
+    tblocks:              any
+    packedCells:          Int16Array
+    genQueueSize?:        int
+    dayLightDefaultValue: int
+    tickers:              TScannedTickers | null
     // randomTickersCount: int
     // tickerFlatIndices: int[]
-
-    tickers     : TScannedTickers | null
 }
