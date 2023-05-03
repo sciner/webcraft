@@ -816,7 +816,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         confirm.hide()
         this.add(confirm)
 
-        const title = new Label(38 * this.zoom, 20 * this.zoom, 0, 0, `lblConfirmTitle`, '', Lang.delete_item + '?')
+        const title = new Label(38 * this.zoom, 25 * this.zoom, 0, 0, `lblConfirmTitle`, '', Lang.delete_item + '?')
         title.style.font.size = UI_THEME.popup.title.font.size
         title.style.font.color = UI_THEME.popup.title.font.color
         confirm.add(title)
@@ -827,7 +827,9 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         confirm.add(text)
 
         const hud_atlas = Resources.atlas.get('hud')
-        const btnSwitch = new Label(38 * this.zoom, 140 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnSwitch', ' ', '        ' + Lang.do_not_show)
+        const btnSwitch = new Label(38 * this.zoom, 140 * this.zoom, 16 * this.zoom, 16 * this.zoom, 'btnSwitch', ' ', '        ' + Lang.do_not_show)
+        btnSwitch.style.font.size = UI_THEME.popup.text.font.size
+        btnSwitch.style.font.color = '#507ea4'
         btnSwitch.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
         btnSwitch.onDrop = btnSwitch.onMouseDown = function() {
             btnSwitch.toggled = (btnSwitch.toggled) ? false : true
@@ -839,7 +841,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         }
         confirm.add(btnSwitch)
 
-        const btnYes = new Button(50 * this.zoom, 90 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
+        const btnYes = new Button(50 * this.zoom, 90 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
         btnYes.onDrop = btnYes.onMouseDown = function() {
             confirm.hide()
             const item = ct.inventory.clearDragItem(false)
@@ -854,7 +856,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             }
         }
         confirm.add(btnYes)
-        const btnNo = new Button(200 * this.zoom, 90 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
+        const btnNo = new Button(185 * this.zoom, 90 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
         btnNo.onDrop = btnNo.onMouseDown = function() {
             ct.inventory.clearDragItem(true)
             confirm.hide()

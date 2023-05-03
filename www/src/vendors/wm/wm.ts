@@ -1744,7 +1744,7 @@ export class ToggleButton extends Button {
         this.style.font.color = this.toggled ? this.toggled_font_color : this.untoggled_font_color
     }
 
-    onMouseDown() {
+    onMouseDown(e) {
         super.onMouseDown()
         this.toggled = (this.toggled) ? false : true
         this.style.background.color = this.toggled ? this.toggled_bgcolor : this.untoggled_bgcolor

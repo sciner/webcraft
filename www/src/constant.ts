@@ -215,7 +215,7 @@ export const UI_THEME = {
         title: {
             font: {
                 color: '#feaa25',
-                size: 22
+                size: 16
             }
         },
         text: {
