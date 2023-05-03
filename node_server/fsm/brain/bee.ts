@@ -1,7 +1,7 @@
 import { FSMBrain } from "../brain.js";
 import { Vector } from "@client/helpers.js";
 import { WorldAction } from "@client/world_action.js";
-import { BeeNest } from "@client/block_type/bee_nest.js";
+import { BeeNest } from "../../block_type/bee_nest.js";
 import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
 import { Effect } from "@client/block_type/effect.js";
 import type { EnumDamage } from "@client/enums/enum_damage.js";

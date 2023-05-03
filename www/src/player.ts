@@ -500,6 +500,7 @@ export class Player implements IPlayer {
             // проверяем e.number чтобы не садиться в моба сразу после его спауна при удержании мыши
             if (e.number == 0 && mob.supportsDriving && !mob.driving?.isFull()) {
                 // Попробовать присоединиться к езде
+                this.controlManager.triedDrving = true
                 this.controlManager.syncWithActionId(e.id, true)
                 return true
             }

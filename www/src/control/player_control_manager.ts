@@ -265,6 +265,7 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
     private hasCorrection = false
     private correctionPacket = new PlayerControlCorrectionPacket()
     private _disbaleControlsUntilServerTick: int | null = null
+    triedDrving = false // true если игрок хоть раз попытался начать вождение
 
     constructor(player: Player) {
         super(player)
@@ -347,9 +348,9 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
             }
 
             const driving = this.player.driving
-            if (driving) {
+            if (driving?.physicsInitialized) {
                 // обновить интерполированное состояние общего объекта вождения по водителю
-                driving.updateDriverInterpolatedYaw(tickFraction, this.player)
+                driving.updateDriverInterpolatedYaw(tickFraction, this.player, this.triedDrving)
                 driving.copyPosWithOffset(driving.interpolatedPos, DrivingPlace.DRIVER, driving.interpolatedYaw, dst,-1)
                 // обновить интерполированное состояние других участников вождения
                 driving.applyInterpolatedStateToDependentParticipants()
@@ -724,7 +725,7 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
     protected onBeforeSimulatingTick(pc: PlayerControl): void {
         this.prevPhysicsTickPos.copyFrom(pc.player_state.pos)
         const driving = this.player.driving
-        if (driving) {
+        if (driving?.physicsInitialized) {
             driving.prevPhysicsTickVehicleYaw = pc.drivingCombinedState?.yaw
         }
     }

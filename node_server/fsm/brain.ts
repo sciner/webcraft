@@ -97,7 +97,7 @@ export class FSMBrain {
     sendState() {
         const mob = this.mob;
         const world = mob.getWorld();
-        const chunk_over = world.chunks.get(mob.chunk_addr);
+        const chunk_over = mob.inChunk
         if (!chunk_over) {
             return;
         }
@@ -196,7 +196,7 @@ export class FSMBrain {
         const config = mob.config
         const world = mob.getWorld();
         const bm = world.block_manager
-        const chunk = world.chunks.get(mob.chunk_addr);
+        const chunk = mob.inChunk
         if (!chunk) {
             return;
         }
@@ -452,7 +452,7 @@ export class FSMBrain {
     onDamage(val : number, type_damage : EnumDamage, actor) {
         const mob = this.mob;
         const world = mob.getWorld();
-        if (actor && mob.config.damagePushes) {
+        if (actor && mob.config.damagePushes && !mob.driving) {
             const velocity = mob.pos.sub(actor.state.pos).normSelf();
             velocity.y = 0.4;
             mob.addVelocity(velocity);
@@ -475,7 +475,7 @@ export class FSMBrain {
     onPanic() {
         const mob = this.mob;
         this.timer_panick = mob.config.timer_panick ?? 80;
-        if (this.timer_panick) {
+        if (this.timer_panick && !mob.driving) {
             this.target = null;
             mob.rotate.z = 2 * Math.random() * Math.PI;
             this.stack.replaceState(this.doStand);

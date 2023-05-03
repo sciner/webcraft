@@ -45,6 +45,12 @@ type DropItemParams = {
     force ? : boolean
 }
 
+export type ActivateMobParams = {
+    id          : int
+    spawn_pos   : IVector
+    rotate      : IVector
+}
+
 export type TActionBlock = {
     pos             : Vector
     action_id       : int
@@ -559,7 +565,7 @@ export class WorldAction {
     drop_items: DropItemParams[]
     blocks: ActionBlocks
     mobs: {
-        activate: any[]
+        activate: ActivateMobParams[]
         spawn: any[] // it should be MobSpawnParams, but it's server class
     }
     sitting? : TSittingState
@@ -907,7 +913,7 @@ export class WorldAction {
     }
 
     // Activate mob (активация ранее созданного моба)
-    activateMob(params) {
+    activateMob(params: ActivateMobParams): void {
         this.mobs.activate.push(params);
     }
 

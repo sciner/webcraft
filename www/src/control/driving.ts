@@ -111,6 +111,8 @@ export abstract class Driving<TManager extends DrivingManager<any>> {
         this.combinedPhysicsState = new PrismarinePlayerState(new Vector(), {...state.physicsOptions}, {}, config)
     }
 
+    get id(): int { return this.state.id }
+
     /**
      * Подготавливает к симуляции и возвращает состоянии общего физического объекта,
      * состоящего из участников движения, обновляя его на основе параметров состояния водителя.
@@ -194,7 +196,12 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
     prevPhysicsTickVehicleYaw ? : float | null
 
     interpolatedPos             = new Vector()
+    physicsInitialized          = false
 
+    /**
+     * @param myPlayer - ссылка на моего игрока (опционально). Нужна если вождение создается до того,
+     * как игрок сохранен в мире (одновременно с созданием моего игрока).
+     */
     constructor(manager: ClientDrivingManager, config: TDrivingConfig, state: TDrivingState) {
         super(manager, config, state)
         this.models = new Array(state.mobIds.length)
@@ -203,6 +210,11 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
             throw new Error()
         }
         this.onNewState(state)
+    }
+
+    getSimulatedState(driverState: PrismarinePlayerState): PrismarinePlayerState {
+        this.physicsInitialized = true
+        return super.getSimulatedState(driverState)
     }
 
     getVehicleModel(): MobModel | null { return this.models[DrivingPlace.VEHICLE] }
@@ -256,7 +268,7 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
     /** Обновляет позицию и угол в кажде зависимых учатников движения */
     applyInterpolatedStateToDependentParticipants(): void {
         const positionProvider = this.getPositionProvider()
-        if (positionProvider == null) {
+        if (positionProvider == null || !this.physicsInitialized) {
             return // неоткуда брать достоверные данные
         }
         for(let place = 0; place < this.models.length; place++) {
@@ -280,7 +292,7 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
     }
 
     /** Обновляет угол в текущем кадре у этоого вождения и/или моего игрока-водителя (в зависимости от {@link TDrivingConfig.useAngularSpeed}). */
-    updateDriverInterpolatedYaw(tickFraction: float, player: Player): void {
+    updateDriverInterpolatedYaw(tickFraction: float, player: Player, playerInitiatedDriving: boolean): void {
         const config = this.config
         if (!config.useAngularSpeed) {
             // Установить угол общего объекта по углу водителя (который непосредственно управляется мышью)
@@ -295,11 +307,14 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
             : combinedPhysicsState.yaw
 
         // Обновить угол водителя в кадре
-        let playerFrameYaw = this.prevInterpolatedYaw != null
+        let playerFrameYaw = player.rotate.z
+        if (this.prevInterpolatedYaw != null) {
             // изменить угол поворота водителя водителя на столько же, на сколько изменился угол транспортного средства
-            ? player.rotate.z + this.interpolatedYaw - this.prevInterpolatedYaw
-            // игрок только что сел - установить угол принудительно как у транспортного средства
-            : this.interpolatedYaw
+            playerFrameYaw += this.interpolatedYaw - this.prevInterpolatedYaw
+        } else if (playerInitiatedDriving) {
+            // игрок только что сел по своей инициативе - установить угол принудительно как у транспортного средства
+            playerFrameYaw = this.interpolatedYaw
+        }
         // угол водителя не должен слишликом отличаться от угла тр. средства
         const maxYawDelta = config.maxYawDelta ?? DEFAULT_MAX_DRIVER_YAW_DELTA
         if (maxYawDelta < Math.PI) {
@@ -352,6 +367,7 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
 
     /** Обновляет позицию общего физ. объекта на основе позиции транспортного средства */
     updateInterpolatedStateFromVehicle(model: MobModel): void {
+        this.physicsInitialized = true
         this.interpolatedPos.copyFrom(model.pos) // это транспортное средство, смещение равно нулю
         this.interpolatedYaw = model.yaw
     }

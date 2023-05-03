@@ -120,7 +120,9 @@ export class ServerPlayer extends Player {
     lastSentPacketTime = Infinity   // performance.now()
     _world_edit_copy: any
     // @ts-ignore
-    declare driving?: ServerDriving | null
+    declare driving: ServerDriving | null = null
+    /** См. комментарий к аналогичному полю {@link Mob.drivingId} */
+    drivingId: int | null = null
     #timer_immunity: number
 
     // These flags show what must be saved to DB
@@ -134,6 +136,14 @@ export class ServerPlayer extends Player {
 
     constructor() {
         super();
+
+        /**
+         * Эти поля определены в {@link Player}, но не на сервере. На сервере к ним нельзя обращаться.
+         * Сотрем их чтобы легче выявлять баги.
+         */
+        this.rotate = null
+        this.pos = null
+
         this.indicators_changed     = true;
         this.chunk_addr             = new Vector(0, 0, 0);
         this._eye_pos               = new Vector(0, 0, 0);
@@ -177,6 +187,7 @@ export class ServerPlayer extends Player {
         this.oxygen_level = this.state.indicators.oxygen;
         this.inventory = new ServerPlayerInventory(this, init_info.inventory);
         this.status = init_info.status;
+        this.drivingId = init_info.driving_id ?? null
         this.world_data = init_info.world_data;
         this.prev_world_data = ObjectHelpers.deepClone(this.world_data);
         // GameMode
@@ -192,6 +203,10 @@ export class ServerPlayer extends Player {
             await this.world.db.changeGameMode(this, mode.id);
         };
         this.controlManager = new ServerPlayerControlManager(this as any)
+        // Обычно это не нужно, устанавливается перед симуляцией. Но это частное решение нужно если player_state
+        // используется до симуляции (например, при инициализации вождения)
+        this.controlManager.current.player_state.yaw = this.state.rotate.z
+
         this.effects = new ServerPlayerEffects(this);
         this.combat = new ServerPlayerCombat(this)
     }

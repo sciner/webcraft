@@ -122,14 +122,16 @@ export class MobManager {
 
     // add
     add(data : TMobProps) {
-        // Сервер присылает CMD_MOB_ADD для уже существующих мобов.
-        // Ножно или удалить старого моба перед повторным добавлением, или не создавать нового.
-        this.delete(data.id)
+        // Сервер присылает CMD_MOB_ADD для уже существующих мобов. Не создавать повторно.
+        let mob = this.list.get(data.id)
+        if (mob) {
+            return
+        }
 
         data.pitch  = data.rotate.x
         data.yaw    = data.rotate.z
         data.extra_data ??= null
-        const mob = new MobModel(data, this.#world)
+        mob = new MobModel(data, this.#world)
 
         mob.pos.y += 1/200
 

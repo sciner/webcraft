@@ -91,12 +91,12 @@ export class ServerClient {
     static CMD_INVENTORY_NEW_STATE      = 90; // player -> server
 
     // Mobs
-	static CMD_MOB_ADD                  = 70;
+	static CMD_MOB_ADD                  = 70; // s->p: высылается каждый раз, когда моб добаляется в новый чанк
 	static CMD_MOB_DELETE               = 71;
     static CMD_MOB_UPDATE               = 72;
 
-    // Driving
-    static CMD_DRIVING_ADD_OR_UPDATE    = 121 // s->p
+    // Вождение
+    static CMD_DRIVING_ADD_OR_UPDATE    = 121 // s->p: создание вождения или уделение/добавление участников
     static CMD_DRIVING_DELETE           = 122 // s->p
 
     // Drop items

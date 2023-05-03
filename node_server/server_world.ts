@@ -46,6 +46,7 @@ import {ServerDrivingManager} from "./control/server_driving_manager.js";
 import {preprocessMobConfigs, TMobConfig} from "./mob/mob_config.js";
 import {Raycaster} from "@client/Raycaster.js";
 import type { ServerGame } from "server_game.js";
+import {ObjectUpdateType} from "./helpers/aware_players.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -70,6 +71,7 @@ export class ServerWorld implements IWorld {
     models: ModelManager;
     chat: ServerChat;
     chunks: ServerChunkManager;
+    grid: ChunkGrid  // свойство ServerChunkManager, тут для удобства, т.к. используется повсеместно, а объекты обычно имеют ссылку на world
     quests: QuestManager;
     actions_queue: WorldActionQueue;
     admins: WorldAdminManager;
@@ -167,12 +169,13 @@ export class ServerWorld implements IWorld {
         this.models         = new ModelManager();
         this.chat           = new ServerChat(this);
         this.chunks         = new ServerChunkManager(this, this.random_tickers);
+        this.grid           = this.chunkManager.grid
         this.quests         = new QuestManager(this);
         this.actions_queue  = new WorldActionQueue(this);
         this.admins         = new WorldAdminManager(this);
         this.chests         = new WorldChestManager(this);
         this.mobs           = new WorldMobManager(this);
-        this.drivingManager  = new ServerDrivingManager(this);
+        this.drivingManager = new ServerDrivingManager(this);
         this.packets_queue  = new WorldPacketQueue(this);
         // statistics
         this.ticks_stat     = new WorldTickStat();
@@ -465,7 +468,7 @@ export class ServerWorld implements IWorld {
             this.chunks.randomTick(this.ticks_stat.number);
             this.ticks_stat.add('chunks_random_tick');
             // 2.
-            await this.mobs.tick(delta);
+            this.mobs.tick(delta);
             this.ticks_stat.add('mobs');
             // 3.
             for(const player of this.players.values()) {
@@ -566,7 +569,9 @@ export class ServerWorld implements IWorld {
         // 2. Insert to DB if new player
         timer.start('registerPlayer');
         console.log(`awaiting registerPlayer, token=${rndToken}`);
-        player.init(await this.db.registerPlayer(this, player));
+        const playerInfo = await this.db.registerPlayer(this, player)
+        player.init(playerInfo);
+        this.drivingManager.onParticipantLoaded(player, playerInfo.driving_data)
         console.log(`finished registerPlayer, token=${rndToken}`);
         player.skin = skin;
         player.updateHands();
@@ -614,11 +619,15 @@ export class ServerWorld implements IWorld {
             },
             world_data: player.world_data
         }
-        player.sendPackets([{name: ServerClient.CMD_CONNECTED, data}]);
+        const packets: INetworkMessage[] = [{ name: ServerClient.CMD_CONNECTED, data }]
+        if (player.driving) { // Если игрок в вождении - послать его сразу
+            packets.push(player.driving.exportUpdateMessage(ObjectUpdateType.ADD))
+        }
         // 10. Add night vision for building world
         if(this.isBuildingWorld()) {
-            player.sendPackets([player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true)])
+            packets.push(player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true))
         }
+        player.sendPackets(packets)
         if (timer.sum > 50) {
             const values = JSON.stringify(timer.round().filter().export())
             this.chat.sendSystemChatMessageToSelectedPlayers('!langTimes in onPlayer(), ms: ' + values, player)
@@ -663,12 +672,12 @@ export class ServerWorld implements IWorld {
      * @param except_players  ID of players.
      *   It's ignored if {@link selected_players} is ServerPlayer.
      */
-    sendSelected(packets: INetworkMessage[], selected_players: Iterable<number> | ServerPlayer, except_players?: number[]) {
+    sendSelected(packets: INetworkMessage[], selected_players: Iterable<int> | ServerPlayer, except_players?: int[]) {
         if ((selected_players as ServerPlayer).sendPackets) { // fast check if it's a ServerPlayer
             (selected_players as ServerPlayer).sendPackets(packets)
             return
         }
-        for (const user_id of selected_players as Iterable<number>) {
+        for (const user_id of selected_players as Iterable<int>) {
             if (except_players?.includes(user_id)) {
                 continue;
             }
@@ -1113,10 +1122,8 @@ export class ServerWorld implements IWorld {
             }
         }
         // Activate mobs
-        // мало кода, но работает медленнее ;)
-        // actions.mobs.activate.map((_, v) => await this.mobs.activate(v.entity_id, v.spawn_pos, v.rotate));
         for(const params of actions.mobs.activate) {
-            await this.mobs.activate(params.entity_id, params.spawn_pos, params.rotate);
+            await this.mobs.activate(params.id, params.spawn_pos, params.rotate);
         }
     }
 

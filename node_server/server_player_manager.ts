@@ -18,7 +18,7 @@ export class ServerPlayerManager extends AbstractPlayerManager<ServerWorld, Serv
     add(player: ServerPlayer): void {
         const user_id = player.session.user_id
         this.list.set(user_id, player)
-        this.world.drivingManager.onPlayerAdded(player)
+        this.world.drivingManager.onPlayerAddedOrRestored(player)
     }
 
     delete(user_id: number): boolean {

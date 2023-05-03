@@ -21,6 +21,17 @@ import {LimitedLogger} from "@client/helpers/limited_logger.js";
 const MAX_ACCUMULATED_DISTANCE_INCREMENT = 1.0 // to handle sudden big pos changes (if they ever happen)
 const MAX_CLIENT_QUEUE_LENGTH = MAX_PACKET_LAG_SECONDS * 1000 / PHYSICS_INTERVAL_MS | 0 // a protection against memory leaks if there is garbage input
 
+/**
+ * Если true, то при малом отличии данных клиента от сервера (см. {@link ACCEPTABLE_PLAYER_POS_ERROR} и т.п.)
+ * сервер сохраняет у себя данные клиента. Т.е. ошибка на сервере не накапливаются. Меньше коррекций, но
+ * возможность читерства.
+ *
+ * Если false, то сервер в такой ситуации не шлет коррекцию (пока ошибка не станет больше порогового значения),
+ * но и не сохраняет у себя данные клиента. Читерство невозможно, но возможно больше коррекций из-за ошибок
+ * окргления и подобного (в идеале их не должно быть быть, но может быть есть).
+ */
+const ACCEPT_SMALL_CLIENT_ERRORS = true
+
 // @ts-expect-error
 export class ServerPlayerControlManager extends PlayerControlManager<ServerPlayer> {
     private lastData: ServerPlayerTickData
@@ -301,6 +312,9 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
                 if (clientDataMatches) {
                     DEBUG_LOG_PLAYER_CONTROL_DETAIL && console.log(`    simulation matches ${newData}`)
                     correctionReason = null
+                    if (ACCEPT_SMALL_CLIENT_ERRORS) {
+                        newData.copyOutputFrom(clientData)
+                    }
                 } else if (clientData.inputWorldActionIds) {
                     // Клиент ожидал серверного действия. В зависимости от типа действия результат должен был совпасть или нет.
                     // Мы не различаем такие ситуации (не видно нужды в этом). Это ок, что не совпало.

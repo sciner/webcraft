@@ -4,6 +4,13 @@ import type {MobModel} from "../mob_model.js";
 import {ClientDriving, TDrivingConfig, TDrivingState} from "./driving.js";
 import type {PlayerModel} from "../player_model.js";
 import {Lang} from "../lang.js";
+import type {TPrismarinePlayerStatePOJO} from "../prismarine-physics/index.js";
+
+/**
+ * 3-й параметр используется только при создании вождения, только для водителя.
+ * Для карткости команды создания и обновления вождения объединены в одну.
+ */
+export type TCmdDrivingAddOrUpdate = [TDrivingConfig, TDrivingState, TPrismarinePlayerStatePOJO | null]
 
 /**
  * Менеджер езды - создет, удаляет, обновляет сохраняет экземпляры {@link Driving}
@@ -26,7 +33,7 @@ export class ClientDrivingManager extends DrivingManager<World> {
     onCmd(cmd: INetworkMessage): void {
         switch (cmd.name) {
             case ServerClient.CMD_DRIVING_ADD_OR_UPDATE: {
-                const [config, state] = cmd.data as [TDrivingConfig, TDrivingState]
+                const [config, state, physicsState] = cmd.data as TCmdDrivingAddOrUpdate
                 let driving = this.drivingById.get(state.id)
                 if (driving) {
                     driving.onNewState(state)
@@ -35,6 +42,9 @@ export class ClientDrivingManager extends DrivingManager<World> {
                     this.drivingById.set(state.id, driving)
                     if (driving.getMyPlayerPlace() != null) {
                         this.world.game.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000)
+                        if (physicsState) {
+                            driving.combinedPhysicsState.importPOJO(physicsState)
+                        }
                     }
                 }
                 break

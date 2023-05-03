@@ -986,6 +986,8 @@ function getEffectLevel(val: int, effects?: TPrismarineEffects): int {
     return 0;
 }
 
+export type TPrismarinePlayerStatePOJO = Dict
+
 export class PrismarinePlayerState implements IPlayerControlState {
     options     : TPrismarineOptions
     driving ?   : TDrivingConfig    // Если задано - то это общий физический объект, контролируемый водителем
@@ -1054,5 +1056,29 @@ export class PrismarinePlayerState implements IPlayerControlState {
 
     copyControlsFrom(other: PrismarinePlayerState): void {
         Object.assign(this.control, other.control)
+    }
+
+    // TODO уточнить семантику - что именно экспортируется
+    exportPOJO(): TPrismarinePlayerStatePOJO {
+        const data: TPrismarinePlayerStatePOJO = {
+            pos: this.pos.clone(),
+            vel: this.vel.clone(),
+            yaw: this.yaw,
+            flying: this.flying,
+            sneak: this.sneak
+        }
+        if (this.angularVelocity != null) {
+            data.angularVelocity = this.angularVelocity
+        }
+        return data
+    }
+
+    importPOJO(data: TPrismarinePlayerStatePOJO): void {
+        this.pos.copyFrom(data.pos)
+        this.vel.copyFrom(data.vel)
+        this.yaw = data.yaw
+        this.flying = data.flying ?? false
+        this.sneak = data.sneak ?? false
+        this.angularVelocity = data.angularVelocity ?? null
     }
 }

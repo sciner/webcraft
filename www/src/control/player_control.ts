@@ -106,7 +106,7 @@ export abstract class PlayerControl<TState extends IPlayerControlState = IPlayer
      * Копия состояния (или подмножества его полей), которые могут меняются при симуляции
      * и могут быть испорчены при неудачной симуляции
      */
-    abstract backupState: any
+    abstract backupState: Dict
 
     protected constructor() {
         this.controls = {
