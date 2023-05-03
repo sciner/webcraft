@@ -387,6 +387,7 @@ export class Mob {
         this.is_active = false;
         this.dirtyFlags |= Mob.DIRTY_FLAG_FULL_UPDATE;
         this.#world.mobs.inactiveById.set(this.id, this);
+        this.moveToChunk(null);
         this.onUnload();
     }
 
