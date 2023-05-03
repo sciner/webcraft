@@ -774,7 +774,15 @@ export class Biomes {
         this.addBiome('Долина песка душ', 2, 0);
         */
 
-        this.addBiome(500, 'Летающие острова', .911, .911);
+        this.addBiome(500, 'Летающие острова', .911, .911, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+            undefined, undefined, undefined, undefined, undefined,
+            {
+                color: [205 / 255, 200 / 255, 150 / 255, 0.1],
+                addColor: [205 / 255, 200 / 255, 150 / 255, 0.1],
+                density: 0.05,
+                illuminate: 0.15,
+            }
+        )
         this.addBiome(
             501,
             'Эреб',

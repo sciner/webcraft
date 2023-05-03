@@ -63,7 +63,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             {type: 'lava', bottom: -4, up: -4},
             {type: 'underworld', bottom: -4, up: 0},
             {type: 'overworld', bottom: 0, up: 7},
-            {type: 'end', bottom: 25, up: 30}
+            // {type: 'end', bottom: 25, up: 30}
+            {type: 'flying_island', bottom: 25, up: 30}
         ])
 
         return true

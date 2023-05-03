@@ -85,7 +85,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
             this.templates.set(schema_name, template)
         }
 
-        this.start_coord = this.coord.clone().addScalarSelf(size_half_x + sh_x, 39, size_half_z + sh_z)
+        this.start_coord = this.coord.clone().addScalarSelf(size_half_x + sh_x, 70, size_half_z + sh_z)
 
         this.addCity(new Vector(0, 0, 0), 0, this.random)
 
