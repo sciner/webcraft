@@ -828,7 +828,13 @@ export class Biomes {
                 {value: 0, block_name: 'SMOOTH_BASALT'},
                 {value: .5, block_name: 'NETHER_BRICKS'},
                 {value: 1, block_name: 'SOUL_SAND'}
-            ]
+            ],
+            {
+                color: [78 / 255, 27 / 255, 21 / 255, 0.1],
+                addColor: [78 / 255, 27 / 255, 21 / 255, 0.1],
+                density: 0.05,
+                illuminate: 0.15,
+            }
         );
 
     }
