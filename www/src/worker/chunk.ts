@@ -15,6 +15,7 @@ import type { WorkerWorld } from "./world.js";
 import type { FluidChunk } from "../fluid/FluidChunk.js";
 import {BLOCK_FLAG, NO_TICK_BLOCKS} from "../constant.js";
 import type { ChunkGrid } from "../core/ChunkGrid.js";
+import type { Biome3LayerBase } from "../terrain_generator/biome3/layers/base.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
@@ -104,7 +105,7 @@ export class ChunkWorkerChunk implements IChunk {
     size:                       Vector
     id:                         any
 
-    layer?:                     any
+    layer?:                     Biome3LayerBase
     cluster?:                   any
     dataChunk?:                 any
     dataId?:                    any

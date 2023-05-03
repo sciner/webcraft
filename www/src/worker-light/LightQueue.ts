@@ -19,20 +19,21 @@ import {
     MASK_SRC_AMOUNT,
     OFFSET_COLUMN_DAY,
     OFFSET_COLUMN_TOP,
-    OFFSET_WAVE,
     NORMAL_DX,
     NORMAL_MASK,
-    OFFSET_NORMAL, NORMAL_DEF,
+    OFFSET_NORMAL, NORMAL_DEF, MASK_SRC_FILTER_BIT, OFFSET_COLUMN_BOTTOM, MASK_SRC_DAYLIGHT,
 } from './LightConst.js';
 
 export class LightQueue {
     [key: string]: any;
-    constructor(world, {offset, dirCount, nibbleSource = false}) {
+    constructor(world, {offset, dirCount, nibbleSource = false, filterPenalty = 0}) {
         this.world = world;
         // deque structure=
         this.deque = new MultiQueue({pageSize: defPageSize, maxPriority: maxLight + maxPotential});
         this.filled = 0;
         this.nibbleSource = nibbleSource;
+        this.filterPenalty = filterPenalty;
+        this.shade = false;
         // offset in data
         this.qOffset = offset || 0;
         this.dirCount = dirCount || DIR_COUNT;
@@ -44,7 +45,7 @@ export class LightQueue {
         }
 
         this.tmpLights = [];
-        for (let i = 0; i < 2 * this.dirCount; i++) {
+        for (let i = 0; i < 3 * this.dirCount; i++) {
             this.tmpLights.push(0);
         }
         this.ambientLight = 0;
@@ -67,12 +68,11 @@ export class LightQueue {
         if (waveNum < 0 || waveNum > maxLight) {
             waveNum = maxLight;
         }
-        const {uint8View, strideBytes} = chunk.lightChunk;
-        const coordBytes = coord * strideBytes + this.qOffset + OFFSET_WAVE;
-        if (uint8View[coordBytes] > waveNum) {
+        let chunkWave = chunk.checkWave(this.qOffset, coord, waveNum + 1);
+        if (!chunkWave) {
             return;
         }
-        uint8View[coordBytes] = waveNum + 1;
+        chunkWave.arr[coord] = waveNum + 1;
         if (potential < 0) {
             potential = 0;
         }
@@ -82,6 +82,7 @@ export class LightQueue {
         this.deque.push(waveNum + potential, chunk.dataIdShift + coord);
         this.filled++;
         chunk.waveCounter++;
+        chunkWave.refCounter++;
     }
 
     addNow(chunk, coord, x, y, z, value) {
@@ -89,24 +90,26 @@ export class LightQueue {
         //test demo with force: {incr: 422083, decr: 3503}
         const qOffset = this.qOffset;
         const {uint8View, strideBytes, portals, safeAABB} = chunk.lightChunk;
-        const coordBytes = coord * strideBytes + qOffset;
-        if (uint8View[coordBytes + OFFSET_WAVE] >= MASK_WAVE_FORCE) {
-            uint8View[coordBytes + OFFSET_LIGHT] = value;
+        const coordBytes = coord * strideBytes + qOffset + OFFSET_LIGHT;
+        let chunkWave = chunk.checkWave(this.qOffset, coord, MASK_WAVE_FORCE);
+        if (!chunkWave) {
+            uint8View[coordBytes] = value;
             return;
         }
-        const old = uint8View[coordBytes + OFFSET_LIGHT];
-        uint8View[coordBytes + OFFSET_WAVE] = old + MASK_WAVE_FORCE;
+        const old = uint8View[coordBytes];
+        chunkWave.arr[coord] = old + MASK_WAVE_FORCE + 1;
         const waveNum = Math.max(value, old);
 
         let potential = this.world.getPotential(x, y, z);
         this.deque.push(waveNum + potential, chunk.dataIdShift + coord);
         this.filled++;
         chunk.waveCounter++;
+        chunkWave.refCounter++;
         chunk.lastID++;
         this.counter.now++;
 
         //TODO: inline setting to dirNibbleQueue
-        uint8View[coordBytes + OFFSET_LIGHT] = value;
+        uint8View[coordBytes] = value;
         if (!safeAABB.contains(x, y, z)) {
             for (let p = 0; p < portals.length; p++) {
                 if (portals[p].aabb.contains(x, y, z)) {
@@ -119,7 +122,7 @@ export class LightQueue {
     }
 
     doIter(times) {
-        const {qOffset, dirCount, deque, world, nibbleSource, tmpLights, offsetNormal, ambientLight} = this;
+        const {qOffset, dirCount, deque, world, nibbleSource, tmpLights, offsetNormal, ambientLight, filterPenalty} = this;
         const {chunkById} = world.chunkManager;
         const apc = world.chunkManager.activePotentialCenter;
         const hasNormals = offsetNormal > 0;
@@ -137,6 +140,7 @@ export class LightQueue {
         let dif26 = null;
         let sx = 0, sy = 0, sz = 0;
         let curWave = null;
+        let chunkWave = null;
 
         let nibbles = null;
         let nibDim = 0, nibStride = 0;
@@ -161,7 +165,11 @@ export class LightQueue {
             //     continue;
             // }
             if (chunk !== newChunk) {
+                if (chunkWave?.refCounter === 0) {
+                    chunk.freeWave(qOffset);
+                }
                 chunk = newChunk;
+                chunkWave = chunk.chunkWave[qOffset];
                 lightChunk = chunk.lightChunk;
                 uint8View = lightChunk.uint8View;
                 dataView = lightChunk.dataView;
@@ -188,6 +196,9 @@ export class LightQueue {
                     continue;
                 }
             }
+            if (!chunkWave) {
+                continue;
+            }
             const coordBytes = coord * strideBytes + qOffset;
 
             let tmp = coord;
@@ -213,11 +224,15 @@ export class LightQueue {
                 const lim = Math.min(nibDim * (nibY + 1), aabb.y_max - aabb.y_min);
                 const nibColumn = nibbles[nibCoord + OFFSET_COLUMN_TOP] - (lim - localY);
                 val = (nibColumn >= 0 && nibbles[nibCoord + OFFSET_COLUMN_DAY] > nibColumn) ? world.defDayLight : 0;
+                if (localY % nibDim < nibbles[nibCoord + OFFSET_COLUMN_BOTTOM] - MASK_SRC_DAYLIGHT) {
+                    val = world.defDayLight;
+                }
             }
             val = Math.max(val, ambientLight);
             const old = uint8View[coordBytes + OFFSET_LIGHT];
-            let prevLight = uint8View[coordBytes + OFFSET_WAVE];
-            uint8View[coordBytes + OFFSET_WAVE] = 0;
+            let prevLight = chunkWave.arr[coord] - 1;
+            chunkWave.arr[coord] = 0;
+            chunkWave.refCounter--;
             let force = prevLight >= MASK_WAVE_FORCE;
             if (force) {
                 prevLight -= MASK_WAVE_FORCE;
@@ -230,7 +245,8 @@ export class LightQueue {
             }
             let decrMask = 0;
             let block = false;
-            if ((uint8View[coord * strideBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK) {
+            const src0 = uint8View[coord * strideBytes + OFFSET_SOURCE];
+            if ((src0 & MASK_SRC_BLOCK) === MASK_SRC_BLOCK) {
                 val = 0;
                 block = true;
             }
@@ -240,6 +256,7 @@ export class LightQueue {
 
             let normalAccX = 0, normalAccY = 0, normalAccZ = 0;
             let foundNormals = 0;
+            let penalty = filterPenalty * ((src0 >> MASK_SRC_FILTER_BIT) & 1);
             for (let d = 0; d < dirCount; d++) {
                 if ((blockMask & (1 << d)) !== 0) {
                     continue;
@@ -252,20 +269,23 @@ export class LightQueue {
                         + NORMAL_DX[d]) & NORMAL_MASK;
                 }
 
-                if ((uint8View[coord2 * strideBytes + OFFSET_SOURCE] & MASK_SRC_BLOCK) === MASK_SRC_BLOCK) {
+                let src2 = uint8View[coord2 * strideBytes + OFFSET_SOURCE];
+                let pen2 = dlen[d] + filterPenalty * ((src2 >> MASK_SRC_FILTER_BIT) & 1);
+                if ((src2 & MASK_SRC_BLOCK) === MASK_SRC_BLOCK) {
                     light = 0;
                     blockMask |= dmask[d];
                 } else {
-                    if (val < prevLight && light > 0 && light === prevLight - dlen[d]) {
+                    if (val < prevLight && light > 0
+                        && (light === prevLight - pen2)) {
                         // dependant cell - dont update val on it!
                         decrMask |= 1 << d;
                     } else if (!block) {
-                        if (val < light - dlen[d]) {
-                            val = light - dlen[d];
+                        if (val < light - dlen[d] - penalty) {
+                            val = light - dlen[d] - penalty;
                             normalAccX = normalAccY = normalAccZ = 0;
                             foundNormals = 0;
                         }
-                        if (hasNormals && val === light - dlen[d]) {
+                        if (hasNormals && val === light - dlen[d] - penalty) {
                             foundNormals++;
                             normalAccX += (normal & 0xff) - 0x80;
                             normalAccY += ((normal >> 8) & 0xff) - 0x80;
@@ -274,7 +294,8 @@ export class LightQueue {
                     }
                 }
                 tmpLights[d] = light;
-                tmpLights[d + 26] = normal;
+                tmpLights[d + 26] = pen2;
+                tmpLights[d + 52] = normal;
             }
 
             if (foundNormals > 0) {
@@ -286,8 +307,8 @@ export class LightQueue {
             let incMask = 0;
             for (let d = 0; d < dirCount; d++) {
                 if ((blockMask & (1 << d)) === 0) {
-                    if (tmpLights[d] < val - dlen[d]
-                        || tmpLights[d] === val - dlen[d] && tmpLights[d + 26] !== normalVal) {
+                    if (tmpLights[d] < val - tmpLights[d + 26]
+                        || tmpLights[d] === val - tmpLights[d + 26] && tmpLights[d + 52] !== normalVal) {
                         incMask |= 1 << d;
                     }
                 }
@@ -322,12 +343,11 @@ export class LightQueue {
                         continue;
                     }
                     let coord2 = coord + dif26[d];
-                    const light = tmpLights[d];
                     if (apc) {
                         neibDist = (Math.abs(x - apc.x + dx[d]) + Math.abs(y - apc.y + dy[d]) + Math.abs(z - apc.z + dz[d])) * dlen[0];
                         neibPotential = maxPotential - Math.min(maxPotential, neibDist);
                     }
-                    const waveNum = Math.max(light, val - dlen[d]);
+                    const waveNum = Math.max(tmpLights[d], val - tmpLights[d + 26]);
                     this.add(chunk, coord2, waveNum, neibPotential);
                 }
             } else {
@@ -354,12 +374,11 @@ export class LightQueue {
                         if (chunk2.aabb.contains(x2, y2, z2)) {
                             modMask &= ~(1 << d);
                             const coord2 = chunk2.indexByWorld(x2, y2, z2);
-                            const light = tmpLights[d];
                             if (apc) {
                                 neibDist = (Math.abs(x2 - apc.x) + Math.abs(y2 - apc.y) + Math.abs(z2 - apc.z)) * dlen[0];
                                 neibPotential = maxPotential - Math.min(maxPotential, neibDist);
                             }
-                            const waveNum = Math.max(light, val - dlen[d]);
+                            const waveNum = Math.max(tmpLights[d], val - tmpLights[d + 26]);
                             this.add(chunk2.rev, coord2, waveNum, neibPotential);
                         }
                     }
@@ -371,16 +390,18 @@ export class LightQueue {
                     let x2 = x + dx[d], y2 = y + dy[d], z2 = z + dz[d];
                     let coord2 = coord + dif26[d];
                     if (lightChunk.aabb.contains(x2, y2, z2)) {
-                        const light = tmpLights[d];
                         if (apc) {
                             neibDist = (Math.abs(x2 - apc.x) + Math.abs(y2 - apc.y) + Math.abs(z2 - apc.z)) * dlen[0];
                             neibPotential = maxPotential - Math.min(maxPotential, neibDist);
                         }
-                        const waveNum = Math.max(light, val - dlen[d]);
+                        const waveNum = Math.max(tmpLights[d], val - tmpLights[d + 26]);
                         this.add(chunk, coord2, waveNum, neibPotential);
                     }
                 }
             }
+        }
+        if (chunkWave?.refCounter === 0) {
+            chunk.freeWave(qOffset);
         }
         deque.peekNonEmpty();
         return false;

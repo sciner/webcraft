@@ -9,6 +9,7 @@ export declare type IFogPreset = {
     color:          [number,number, number, number ] | Gradient | Color | IAnyColorRecordMap,
     addColor:       [number,number, number, number ] | Gradient | Color | number | IAnyColorRecordMap,
     density:        number,
+    fixLum?:        float,
     illuminate? :   number,
 }
 
@@ -37,6 +38,7 @@ export class FogPreset {
 
         this.hasAddColor = false;
         this.addColorAlpha = 1;
+        this.fixLum = undefined
 
         /**
          * @type {IFogPreset}
@@ -82,6 +84,7 @@ export class FogPreset {
         }
 
         this.density    = this.preset.density;
+        this.fixLum     = this.preset.fixLum;
         this.illuminate = this.preset.illuminate || 0;
 
         return this;
@@ -104,6 +107,7 @@ export class FogPreset {
             color,
             addColor,
             density,
+            fixLum,
             ...other
         } = fogPreset;
 
@@ -114,6 +118,7 @@ export class FogPreset {
         }
 
         this.preset = {
+            fixLum  : fixLum,
             color   : new Gradient(color),
             addColor: this.hasAddColor ? new Gradient(addColor) : addColor,
             density : density,
@@ -557,6 +562,7 @@ export class Environment {
     chunkBlockDist:          number;
     sunDir:                 number[];
     brightness:             number;
+    //TODO: rename to darkShift
     nightshift:             number;
     _skyColor:              number[];
     horizonBrightness:      number;
@@ -643,7 +649,7 @@ export class Environment {
     }
 
     get fullBrightness() {
-        return this.brightness * this.nightshift * this._computedBrightness;
+        return this.brightness * this._computedBrightness;
     }
 
     /**
@@ -822,7 +828,7 @@ export class Environment {
             disabled = true;
         }
         if (disabled || groundLevelEastimtion == null) {
-            this.horizonBrightness = this.nightshift;
+            this.horizonBrightness = 1.0;
             if (disabled) {
                 // when it becomes enabled, it's instant.
                 this.hbLastTime = -Infinity;
@@ -835,7 +841,6 @@ export class Environment {
         var newHorizonBrightness = Mth.lerpAny(elevation,
             -HORIZON_BRIGHTNESS_MIN_DEPTH, 1,
             -HORIZON_BRIGHTNESS_MAX_DEPTH, 0);
-        newHorizonBrightness = Math.min(newHorizonBrightness, this.nightshift);
         // temporal smoothing (helps when many chunks change quickly)
         const maxDelta = this.hbLastPos.distance(playerPos) < 10
             ? (performance.now() - this.hbLastTime) * 0.001 * HORIZON_MAX_BRIGHTNES_PER_SECOND
@@ -883,12 +888,14 @@ export class Environment {
 
         base.eval(this._sunFactor);
 
-        const lum = easeOutExpo( Mth.clamp((-1 + 2 * this._sunFactor) * 0.8 + 0.2, 0, 1)) ;// base.color.lum() / this._refLum;
+        const lum = p.fixLum ?? easeOutExpo( Mth.clamp((-1 + 2 * this._sunFactor) * 0.8 + 0.2, 0, 1)) // base.color.lum() / this._refLum;
 
         this._computedBrightness = lum * this.lerpWeatherValue(weather => Weather.GLOBAL_BRIGHTNESS[weather]);
 
-        const value = this.brightness * lum * this.lerpWeatherValue(weather => Weather.FOG_BRIGHTNESS[weather]);;
-        const mult = Math.max(p.illuminate, Math.min(1, value * 2) * this.horizonBrightness * value);
+        const fogBrightness = lum * this.lerpWeatherValue(weather => Weather.FOG_BRIGHTNESS[weather]);
+        const underDark = (this.horizonBrightness * this.brightness * lum) * this.nightshift + (1.0 - this.nightshift);
+        const value = fogBrightness * underDark;
+        const mult = Math.max(p.illuminate, Math.min(1, value * 2) * value);
 
         for (let i = 0; i < 3; i ++) {
             this.rawInterpolatedFog[i]     = fogColor[i] * mult;
@@ -968,7 +975,7 @@ export class Environment {
         const uniforms = this.skyBox.shader.uniforms;
 
         for(let i = 0; i < 3; i++) {
-            this._skyColor[i] = this.lerpWeatherValue(weather => Weather.SKY_COLOR[weather][i])
+            this._skyColor[i] = this.lerpWeatherValue(weather => Weather.SKY_COLOR[weather][i]) * this.nightshift;
         }
         uniforms['u_baseColor'].value = this._skyColor
         uniforms['u_nightshift'].value = this.nightshift;

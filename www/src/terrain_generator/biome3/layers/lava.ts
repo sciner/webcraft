@@ -8,6 +8,7 @@ import { Biome3LayerBase } from "./base.js";
 export default class Biome3LayerLava extends Biome3LayerBase {
 
     declare maps: Map<any, any> | any
+    dayLightDefaultValue: int = 0
 
     init(generator : any) : Biome3LayerLava {
         super.init(generator)

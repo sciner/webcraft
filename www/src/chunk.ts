@@ -145,7 +145,7 @@ export class Chunk {
         chunkManager.dataWorld.syncOuter(this);
         chunkManager.chunks_state.blocksGenerated(this)
         this.inited = true;
-        this.light.init();
+        this.light.init(args.dayLightDefaultValue)
     }
 
     // onVerticesGenerated ... Webworker callback method

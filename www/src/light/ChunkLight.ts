@@ -51,7 +51,7 @@ export class ChunkLight {
         return this.parentChunk.chunkManager;
     }
 
-    init() {
+    init(dayLightDefaultValue : int) {
         const chunk = this.parentChunk;
         const chunkManager = chunk.chunkManager;
         if (!chunkManager.use_light) {
@@ -63,7 +63,8 @@ export class ChunkLight {
                 size: chunk.size,
                 uniqId: chunk.uniqId,
                 light_buffer: this.genLightSourceBuf().buffer,
-                dataId: this.getDataTextureOffset()
+                dataId: this.getDataTextureOffset(),
+                dayLightDefaultValue
             }]);
     }
 

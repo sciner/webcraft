@@ -848,7 +848,7 @@ export class Renderer {
         let preset = PRESET_NAMES.NORMAL;
 
         if(player.pos.y < 0 && this.world.info.generator.id !== 'flat') {
-            nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
+             nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
         }
 
         const getPlayerBlockColor = () : Color | null => {
