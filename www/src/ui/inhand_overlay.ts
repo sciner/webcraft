@@ -193,7 +193,7 @@ export class InHandOverlay {
     draw(render, delta) {
 
         const {
-            player, globalUniforms, renderBackend
+            player, globalUniforms, lightUniforms, renderBackend
         } = render;
 
         this.player = player;
@@ -221,15 +221,15 @@ export class InHandOverlay {
         //TODO: remove it
         camera.use(globalUniforms, false);
         globalUniforms.brightness = Math.max(0.4, render.env.fullBrightness);
-        let globOverride = globalUniforms.lightOverride;
-        globalUniforms.lightOverride = player.getInterpolatedHeadLight() | 0x10000;
 
+        let lightOverride = player.getInterpolatedHeadLight() | 0x10000;
         let inHandLight = inHandItemMesh?.block_material?.light_power?.a || 0;
         if (inHandLight > 0) {
-            globalUniforms.lightOverride = (globalUniforms.lightOverride & 0xff00)
-                | (Math.max(globalUniforms.lightOverride & 0x00ff, inHandLight & 0xff))
+            lightOverride = (lightOverride & 0xff00)
+                | (Math.max(lightOverride & 0x00ff, inHandLight & 0xff))
                 | 0x10000;
         }
+        lightUniforms.pushOverride(lightOverride);
 
         globalUniforms.update();
 
@@ -297,8 +297,7 @@ export class InHandOverlay {
         }
         renderBackend.endPass();
 
-        globalUniforms.lightOverride = globOverride;
-        globalUniforms.update();
+        lightUniforms.popOverride();
     }
 
     /**

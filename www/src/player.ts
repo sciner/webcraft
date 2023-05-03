@@ -1009,14 +1009,14 @@ export class Player implements IPlayer {
     }
 
     getInterpolatedHeadLight() {
-        if(this.render.globalUniforms.lightOverride === 0xff) {
+        if(this.render.lightUniforms.override === 0xff) {
             return 0xff
         }
         if (!this.headBlock || !this.headBlock.tb) {
             return 0;
         }
         const {tb} = this.headBlock;
-        return tb.getInterpolatedLightValue(this.lerpPos.sub(tb.dataChunk.pos));
+        return tb.getInterpolatedLightValue(this.getEyePos(true).sub(tb.dataChunk.pos));
     }
 
     checkBodyRot(delta: float): void {
