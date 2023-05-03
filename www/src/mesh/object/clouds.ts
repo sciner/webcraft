@@ -134,19 +134,14 @@ export default class Mesh_Object_Clouds {
         const z = Math.floor(cam_pos.z / size) * size;
         const material = render.defaultShader.materials.transparent;
 
+        render.lightUniforms.pushOverride(0x10000);
         /*
-            const {globalUniforms} = render;
-            let globOverride = globalUniforms.lightOverride;
-            globalUniforms.lightOverride = 0;
-            globalUniforms.update();
             for(let mx = -2; mx <= 2; mx++) {
                 for(let mz = -2; mz <= 2; mz++) {
                     this.pos.set(x + mx * size + 1/2, cam_pos.y, z + mz * size + 1/2);
                     render.renderBackend.drawMesh(this.buffer, material, this.pos, this.modelMatrix);
                 }
             }
-            globalUniforms.lightOverride = globOverride;
-            globalUniforms.update();
         */
 
         const context = render.renderBackend
@@ -163,6 +158,7 @@ export default class Mesh_Object_Clouds {
                 context.stat.drawcalls++
             }
         }
+        render.lightUniforms.popOverride();
 
     }
 

@@ -16,6 +16,7 @@ void main() {
     #include<terrain_read_flags_vert>
 
     vec3 add_pos = u_add_pos;
+    vec3 chunk_corner = vec3(0.0, 0.0, 0.0);
     #include<ao_light_pass_vertex>
 
     v_color = vec4(float(a_color & uint(0x3ff)),
@@ -110,6 +111,7 @@ void main() {
         v_chunk_pos.z += getWaveValue();
         v_world_pos = v_chunk_pos + add_pos;
     }
+    v_chunk_pos = v_chunk_pos - chunk_corner;
 
     v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);

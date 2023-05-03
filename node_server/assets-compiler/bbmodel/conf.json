@@ -2496,6 +2496,24 @@
                     {"names": ["variant0", "variant1", "variant2", "variant3"]}
                 ]
             }
+        },{
+            "id": 1091,
+            "name": "COPPER_ORE",
+            "bb": {
+                "model": "copper_ore"
+            }
+        },{
+            "id": 1092,
+            "name": "POOR_COPPER_ORE",
+            "bb": {
+                "model": "poor_copper_ore"
+            }
+        },{
+            "id": 14,
+            "name": "GOLD_ORE",
+            "bb": {
+                "model": "gold_ore"
+            }
         }
     ]
 }

@@ -53,8 +53,10 @@ export const DIRT_PALETTE_SIZE              = 128
 export const GRASS_COLOR_SHIFT_FACTOR       = 6
 
 export const DEFAULT_TX_CNT                 = 64;
+export const BBMODEL_TX_CNT                 = 96;
 export const DEFAULT_TX_SIZE                = 32;
 export const DEFAULT_ATLAS_SIZE             = DEFAULT_TX_CNT * DEFAULT_TX_SIZE;
+export const BBMODEL_ATLAS_SIZE             = BBMODEL_TX_CNT * DEFAULT_TX_SIZE;
 export const COVER_STYLE_SIDES              = Object.freeze(['up', 'down', 'south', 'north', 'west', 'east'])
 export const NOT_SPAWNABLE_BUT_INHAND_BLOCKS= Object.freeze(['BEDROCK'])
 export const ITEM_LABEL_MAX_LENGTH          = 19;

@@ -336,7 +336,7 @@ export default class WebGLRenderer extends BaseRenderer {
 
         const gl = this.gl = this.view.getContext('webgl2', {...this.options, stencil: true});
         this.resetBefore();
-        for (let i = 6; i < 16; i++) {
+        for (let i = 7; i < 16; i++) {
             this._emptyTex3D.bind(i);
         }
         this.multidrawExt = gl.getExtension('WEBGL_multi_draw');
@@ -362,7 +362,8 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
         WebGLMaterial.texState = this._emptyTex;
-        WebGLMaterial.lightState = null;
+        // WebGLMaterial.lightState = null;
+
         this._shader = null;
     }
 

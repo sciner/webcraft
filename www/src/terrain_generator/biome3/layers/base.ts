@@ -12,14 +12,15 @@ import type { Biome3TerrainMap } from "../terrain/map";
  * Generate underworld infinity air
  */
 export class Biome3LayerBase {
-    noise2d:            Function
-    noise3d:            Function
-    block_manager:      BLOCK
-    maps:               TerrainMapManagerBase // | Map<any, any>
-    generator:          Terrain_Generator
-    clusterManager:     ClusterManager
-    seed:               string
-    filter_biome_list:  int[] = []
+    noise2d:                Function
+    noise3d:                Function
+    block_manager:          BLOCK
+    maps:                   TerrainMapManagerBase // | Map<any, any>
+    generator:              Terrain_Generator
+    clusterManager:         ClusterManager
+    seed:                   string
+    filter_biome_list:      int[] = []
+    dayLightDefaultValue:   int = 15
 
     init(generator : any) : Biome3LayerBase {
 

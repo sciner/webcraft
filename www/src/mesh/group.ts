@@ -165,21 +165,14 @@ export class MeshGroup {
     }
 
     // Draw meshes
-    draw(render : Renderer, pos : Vector, matrix : imat4, light_texture) {
+    draw(render : Renderer, pos : Vector, matrix : imat4) {
         this.meshes.forEach((mesh, _, map) => {
-            if(light_texture) {
-                mesh.material.changeLighTex(light_texture);
-            }
             render.renderBackend.drawMesh(
                 mesh.buffer,
                 mesh.material,
                 pos,
                 matrix
             );
-            if(light_texture) {
-                mesh.material.lightTex = null;
-                mesh.material.shader.unbind();
-            }
         });
     }
 

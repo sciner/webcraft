@@ -106,6 +106,7 @@ export class BaseTerrainShader extends BaseShader {
         super(context, options);
 
         this.globalUniforms = context.globalUniforms;
+        this.lightUniforms = context.lightUniforms;
         this.modelMatrix        = mat4.create();
 
         this.blockSize = 1;

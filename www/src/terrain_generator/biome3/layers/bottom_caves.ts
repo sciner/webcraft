@@ -15,10 +15,7 @@ import type Terrain_Generator from "../index.js";
 import { TerrainMapManagerBase } from "../terrain/manager_base.js";
 import { Biome3TerrainMap } from "../terrain/map.js";
 import { Biome3LayerBase } from "./base.js";
-import { createNoise2D, createNoise3D } from '../../../../vendors/simplex-noise.js';
-
-const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
-const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
+import {  createNoise3D } from '../../../../vendors/simplex-noise.js';
 
 const rotates = [
     new Vector(CubeSym.ROT_Z, 0, 0),
@@ -52,7 +49,7 @@ class BottomCavesMapManager extends TerrainMapManagerBase {
 
     constructor(world: WorkerWorld, seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer : Biome3LayerBottomCaves) {
         super(world, seed, world_id, noise2d, noise3d, block_manager, generator_options, layer)
-        this._biome = this.biomes.byName.get('Эреб')
+        this._biome = this.biomes.byName.get('Пещеры нижнего мира')
     }
 
     // generate map
@@ -121,7 +118,8 @@ class BottomCavesMapManager extends TerrainMapManagerBase {
 
 export default class Biome3LayerBottomCaves extends Biome3LayerBase {
 
-    filter_biome_list: int[] = [501]
+    filter_biome_list: int[] = [502]
+    dayLightDefaultValue: int = 0
     grid: ChunkGrid
     biome: any
     n3d: Function

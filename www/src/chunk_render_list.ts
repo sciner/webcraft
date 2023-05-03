@@ -13,6 +13,7 @@ import type {BaseResourcePack} from "./base_resource_pack.js";
 import type {ChunkMesh} from "./chunk_mesh.js";
 import {SpiralCulling} from "./render_tree/spiral_culling.js";
 import {CHUNK_GEOMETRY_MODE, CHUNK_GEOMETRY_ALLOC} from "./constant.js";
+import {ChunkGridTexture} from "./light/ChunkGridTexture.js";
 
 const MAX_APPLY_VERTICES_COUNT = 20;
 
@@ -25,6 +26,7 @@ export class ChunkRenderList {
     prev_render_dist = -1;
     spiral = new SpiralGrid();
     culling = new SpiralCulling(this.spiral);
+    chunkGridTex = new ChunkGridTexture();
 
     constructor(chunkManager: ChunkManager) {
         this.chunkManager = chunkManager;
@@ -123,6 +125,7 @@ export class ChunkRenderList {
         const player = render.player;
         const chunk_render_dist = player.state.chunk_render_dist;
         const player_chunk_addr = player.chunkAddr;
+        const use_light = chunkManager.use_light;
 
         // if(!globalThis.dfdf)globalThis.dfdf=0
         // if(Math.random() < .01)console.log(globalThis.dfdf)
@@ -139,6 +142,7 @@ export class ChunkRenderList {
                     entry.chunk = chunkManager.chunks.get(entry.pos);
                 }
             }
+            this.chunkGridTex.spiralMoveID = spiral.moveID;
 
             const msg = {
                 pos: player.pos,
@@ -176,6 +180,9 @@ export class ChunkRenderList {
             }
             chunk.cullID = cullID;
             // actualize light
+            if (use_light && entries[i].dist <= 16) {
+                chunk.light.checkGridTex(this.chunkGridTex);
+            }
             chunk.prepareRender(render.renderBackend);
             if (chunk.need_apply_vertices) {
                 if (this.bufferPool.checkHeuristicSize(chunk.vertices_args_size)) {
