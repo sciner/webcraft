@@ -55,7 +55,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.hasModelMatrix = false;
 
         this._material = null;
-
+        this._lightOverride = -2;
         this.globalID = -1;
     }
 
@@ -164,12 +164,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform1f(this.u_crosshairOn, gu.crosshairOn);
         gl.uniform1f(this.u_time, gu.time);
         gl.uniform1f(this.u_rain_strength, gu.rainStrength);
-
-        if (gu.lightOverride >= 0) {
-            gl.uniform3f(this.u_lightOverride, ((gu.lightOverride & 0xff) / 255.0), (((gu.lightOverride >> 8) & 0xff) / 255.0),  1.0 + (gu.lightOverride >> 16));
-        } else {
-            gl.uniform3f(this.u_lightOverride, 0.0, 0.0, 0.0);
-        }
     }
 
     setStaticUniforms() {
@@ -197,6 +191,15 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         const gu = this.globalUniforms;
         if (this.globalID === -1) {
             this.setStaticUniforms();
+        }
+        const lu = this.lightUniforms;
+        if (this._lightOverride !== lu.override) {
+            let val = this._lightOverride = lu.override;
+            if (val >= 0) {
+                gl.uniform3f(this.u_lightOverride, ((val & 0xff) / 255.0), (((val >> 8) & 0xff) / 255.0),  1.0 + (val >> 16));
+            } else {
+                gl.uniform3f(this.u_lightOverride, 0.0, 0.0, 0.0);
+            }
         }
         if (this.globalID === gu.updateID) {
             return;
