@@ -12376,6 +12376,9 @@
             "model": {
                 "name": "tool/backpack_basic",
                 "texture": "backpack_basic" 
+            },
+            "extra_data": {
+                "slot": 5
             }
         },{
             "id": 1095,
@@ -12395,6 +12398,9 @@
             "model": {
                 "name": "tool/toolbelt_basic",
                 "texture": "toolbelt_basic" 
+            },
+            "extra_data": {
+                "slot": 5
             }
         }
     ]

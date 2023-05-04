@@ -1,6 +1,6 @@
 import { ArrayOrMap, Helpers, Vector} from "./helpers.js";
 import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT,
-    INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_BOOTS, PAPERDOLL_BACKPACK } from "./constant.js";
+    INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_BOOTS, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT } from "./constant.js";
 import { BLOCK } from "./blocks.js"
 import {InventoryComparator, TUsedRecipe} from "./inventory_comparator.js";
 import type { ArmorState, Player } from "./player.js";
@@ -641,5 +641,20 @@ export abstract class Inventory {
         }
         return true;
     }*/
+
+    /**
+     * Возвращает количество слотов в инвентаре
+     * @returns {int}
+     */
+    getCountSlot() : int {
+        let resp = 4
+        for (const slot_index of [PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT]) {
+            if (this.items[slot_index]) {
+                const item = this.block_manager.fromId(this.items[slot_index].id)
+                resp += item.extra_data?.slot ?? 0
+            }
+        }
+        return resp
+    }
 
 }

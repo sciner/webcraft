@@ -788,9 +788,9 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             createSlot(x, y)
         }
 
+        const hud_atlas = Resources.atlas.get('hud')
         // потенциальные, заблокированные слоты
         if(draw_potential_slots) {
-            const hud_atlas = Resources.atlas.get('hud')
             for(let i = INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i < INVENTORY_VISIBLE_SLOT_COUNT * 2; i++) {
                 const x = sx + (i % xcnt) * (sz + margin)
                 const y = sy + Math.floor(i / xcnt) * (sz + margin)
@@ -800,13 +800,31 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             }
         }
 
+        // кнопка сортировки
+        const ct = this
+        const btnSort = new Button(0, 0, 12, 12, 'btnSort')
+        btnSort.onMouseDown = function() {
+            ct.autoSortItems(true, 4)
+        }
+        this.add(btnSort)
     }
 
+    /*
+    * Слот удаления предметов из инвенторя
+    */
     createDeleteSlot(sz: float) {
-        const  ct = this
+        const deleteItem = (ct) => {
+            const item = ct.inventory.clearDragItem(false)
+            ct.world.server.InventoryNewState({
+                state: ct.inventory.exportItems(),
+                thrown_items: [item],
+                delete: true
+            })
+        }
+        const ct = this
         const padding = UI_THEME.window_padding * this.zoom
-        const width = 504 / 1.5
-        const height = 286 / 1.5
+        const width = 336
+        const height = 190
         const form_atlas = new SpriteAtlas()
         const confirm = new Window((this.w - width * this.zoom) / 2, (this.h - height * this.zoom) / 2 - sz, width * this.zoom, height * this.zoom, 'confirm_delete')
         form_atlas.fromFile('./media/gui/popup.png').then(async (atlas : SpriteAtlas) => {
@@ -844,12 +862,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         const btnYes = new Button(50 * this.zoom, 90 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
         btnYes.onDrop = btnYes.onMouseDown = function() {
             confirm.hide()
-            const item = ct.inventory.clearDragItem(false)
-            ct.world.server.InventoryNewState({
-                state: ct.inventory.exportItems(),
-                thrown_items: [item],
-                delete: true
-            })
+            deleteItem(ct)
             if (btnSwitch?.toggled) {
                 Qubatch.settings.check_delete_item = false
                 Qubatch.settings.save()
@@ -870,12 +883,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             if (Qubatch.settings.check_delete_item) {
                 confirm.show()
             } else {
-                const item = ct.inventory.clearDragItem(false)
-                ct.world.server.InventoryNewState({
-                    state: ct.inventory.exportItems(),
-                    thrown_items: [item],
-                    delete: true
-                })
+                deleteItem(ct)
             }
         }
         this.add(delete_slot)

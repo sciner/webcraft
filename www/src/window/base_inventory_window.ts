@@ -1,4 +1,4 @@
-import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX } from "../constant.js";
+import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT } from "../constant.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BlankWindow } from "./blank.js";
 import type {PlayerInventory} from "../player_inventory.js";
@@ -103,4 +103,97 @@ export class BaseInventoryWindow extends BlankWindow {
     }
 
     // TODO move more shared code from BaseChestWindow and BaseCraftWindow here.
+
+    /*
+    * Автоматическая сортировка инвентаря
+    */
+    autoSortItems(full: boolean = false, shift: number = 0) {
+        const items = this.inventory.items
+        const bm = this.world.block_manager
+
+        for (let i = INVENTORY_HOTBAR_SLOT_COUNT; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
+            if (items[i]) {
+                const max_stack = bm.getItemMaxStack(items[i])
+                for (let j = i + 1; j < INVENTORY_VISIBLE_SLOT_COUNT; j++) {
+                    if (items[j] && items[i].id == items[j].id) {
+                        const count = items[i].count + items[j].count
+                        if (count <= max_stack) {
+                            items[i].count += items[j].count
+                            items[j] = null
+                        } else {
+                            items[i].count = max_stack
+                            items[j].count = count - max_stack
+                        }
+                    }
+                }
+            }
+        }
+
+        for (let i = INVENTORY_HOTBAR_SLOT_COUNT; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
+            if (!items[i]) {
+                for (let j = i + 1; j < INVENTORY_VISIBLE_SLOT_COUNT; j++) {
+                    if (items[j]) {
+                        items[i] = {id: items[j].id, count: items[j].count}
+                        items[j] = null
+                        break
+                    }
+                }
+            }
+        }
+        
+        if (!full) {
+            this.world.server.InventoryNewState({
+                state: this.inventory.exportItems()
+            })
+            return true
+        }
+
+        for (let i = shift; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+            if (items[i]) {
+                const max_stack = bm.getItemMaxStack(items[i])
+                for (let j = INVENTORY_HOTBAR_SLOT_COUNT; j < INVENTORY_VISIBLE_SLOT_COUNT; j++) {
+                    if (items[j] && items[i].id == items[j].id) {
+                        const count = items[i].count + items[j].count
+                        if (count <= max_stack) {
+                            items[j].count += items[i].count
+                            items[i] = null
+                            break
+                        } else {
+                            items[j].count = max_stack
+                            items[i].count = count - max_stack
+                        }
+                    }
+                }
+            }
+        }
+
+        for (let i = shift; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+            if (items[i]) {
+                for (let j = INVENTORY_HOTBAR_SLOT_COUNT; j < INVENTORY_VISIBLE_SLOT_COUNT; j++) {
+                    if (!items[j]) {
+                        items[j] = {id: items[i].id, count: items[i].count}
+                        items[i] = null
+                        break
+                    }
+                }
+            }
+        }
+
+        const thrown_items = []
+
+        for (let i = shift; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+            if (items[i]) {
+                thrown_items.push(items[i])
+                items[i] = null
+            }
+        }
+
+        this.world.server.InventoryNewState({
+            state: this.inventory.exportItems(),
+            thrown_items: thrown_items,
+        })
+
+        return true
+    }
+
 }

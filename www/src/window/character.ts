@@ -75,7 +75,6 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
             }
         }
 
-        
     }
 
     // Обработчик открытия формы
