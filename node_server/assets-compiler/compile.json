@@ -11763,8 +11763,11 @@
                 "skin": "base"
             },
             "material": {
-                "id": "stone"
-            }
+                "id": "wood"
+            },
+            "tags": [
+                "set_on_water"
+            ]
         },
         {
             "id": 1057,

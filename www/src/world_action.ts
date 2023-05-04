@@ -1538,9 +1538,18 @@ function chSpawnMob(e, world, pos, player, world_block, world_material, mat_bloc
         actions.decrement = true;
         return true;
     }
-    pos.x += pos.n.x + .5
-    pos.y += pos.n.y;
-    pos.z += pos.n.z + .5;
+    if (pos.n) {
+        pos.x += pos.n.x + .5
+        pos.y += pos.n.y;
+        pos.z += pos.n.z + .5;
+    } else {
+        // Если спауним на воде - pos.n нет, но надо немного поднять позицию.
+        // Насколько лучше поднять - зависит от mobConfig.config.physics.floatSubmergedHeight,
+        // но этот метод в клиентском коде, хотя и серверный :(
+        pos.x += 0.5
+        pos.y += 0.5
+        pos.z += 0.5
+    }
     actions.chat_message = {text: `/spawnmob ${pos.x} ${pos.y} ${pos.z} ${mat_block.spawn_egg.type} ${mat_block.spawn_egg.skin}`};
     actions.decrement = true;
     return true;
@@ -2329,7 +2338,7 @@ function restrictPlanting(e, world, pos, player, world_block, world_material, ma
 
 //
 function setOnWater(e, world, pos, player, world_block : TBlock, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
-    if(!mat_block || !mat_block.tags.includes('set_on_water')) {
+    if(!mat_block || !mat_block.tags.includes('set_on_water') || mat_block.spawn_egg) {
         return false;
     }
     if(world_block.isWater) {
