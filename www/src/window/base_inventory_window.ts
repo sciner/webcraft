@@ -147,6 +147,7 @@ export class BaseInventoryWindow extends BlankWindow {
             })
             return true
         }
+
         const count_hotbar = this.inventory.getCountHotbar() + 1
         for (let i = count_hotbar; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
             if (items[i]) {
@@ -185,82 +186,7 @@ export class BaseInventoryWindow extends BlankWindow {
             }
         }
 
-        this.world.server.InventoryNewState({
-            state: this.inventory.exportItems(),
-            thrown_items: thrown_items,
-        })
-
-      /*  for (let i = INVENTORY_HOTBAR_SLOT_COUNT; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
-            if (items[i]) {
-                const max_stack = bm.getItemMaxStack(items[i])
-                for (let j = i + 1; j < INVENTORY_VISIBLE_SLOT_COUNT; j++) {
-                    if (items[j] && items[i].id == items[j].id) {
-                        const count = items[i].count + items[j].count
-                        if (count <= max_stack) {
-                            items[i].count += items[j].count
-                            items[j] = null
-                        } else {
-                            items[i].count = max_stack
-                            items[j].count = count - max_stack
-                        }
-                    }
-                }
-            }
-        }
-
-        for (let i = INVENTORY_HOTBAR_SLOT_COUNT; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
-            if (!items[i]) {
-                for (let j = i + 1; j < INVENTORY_VISIBLE_SLOT_COUNT; j++) {
-                    if (items[j]) {
-                        items[i] = {id: items[j].id, count: items[j].count}
-                        items[j] = null
-                        break
-                    }
-                }
-            }
-        }
-        
-        if (!full) {
-            this.world.server.InventoryNewState({
-                state: this.inventory.exportItems()
-            })
-            return true
-        }
-
-        for (let i = shift; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            if (items[i]) {
-                const max_stack = bm.getItemMaxStack(items[i])
-                for (let j = INVENTORY_HOTBAR_SLOT_COUNT; j < INVENTORY_VISIBLE_SLOT_COUNT; j++) {
-                    if (items[j] && items[i].id == items[j].id) {
-                        const count = items[i].count + items[j].count
-                        if (count <= max_stack) {
-                            items[j].count += items[i].count
-                            items[i] = null
-                            break
-                        } else {
-                            items[j].count = max_stack
-                            items[i].count = count - max_stack
-                        }
-                    }
-                }
-            }
-        }
-
-        for (let i = shift; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            if (items[i]) {
-                for (let j = INVENTORY_HOTBAR_SLOT_COUNT; j < INVENTORY_VISIBLE_SLOT_COUNT; j++) {
-                    if (!items[j]) {
-                        items[j] = {id: items[i].id, count: items[i].count}
-                        items[i] = null
-                        break
-                    }
-                }
-            }
-        }
-
-        const thrown_items = []
-
-        for (let i = shift; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+        for (let i = count_bag; i < INVENTORY_SLOT_MAX; i++) {
             if (items[i]) {
                 thrown_items.push(items[i])
                 items[i] = null
@@ -270,7 +196,7 @@ export class BaseInventoryWindow extends BlankWindow {
         this.world.server.InventoryNewState({
             state: this.inventory.exportItems(),
             thrown_items: thrown_items,
-        })*/
+        })
 
         return true
     }

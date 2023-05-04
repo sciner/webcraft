@@ -791,11 +791,17 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             createSlot(x, y)
         }
 
+    }
+
+    createButtonSort(x: int, y: int) {
+        const hud_atlas = Resources.atlas.get('hud')
         // кнопка сортировки
-        const ct = this
-        const btnSort = new Button(0, 0, 12, 12, 'btnSort')
-        btnSort.onMouseDown = function() {
-            ct.autoSortItems(true)
+        const btnSort = new Button(x, y, 16 * this.zoom, 16 * this.zoom, 'btnSort')
+        btnSort.setIcon(hud_atlas.getSpriteFromMap('sort'))
+        btnSort.z = 1
+        btnSort.onMouseDown = () => {
+            this.autoSortItems()
+            this.refresh()
         }
         this.add(btnSort)
     }

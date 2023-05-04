@@ -58,6 +58,9 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         const y = 35
         this.createInventorySlots(this.cell_size, x, y, UI_THEME.window_padding, undefined, true)
 
+        // кнопка сортировки
+        this.createButtonSort(this.w - 16 * this.zoom - UI_THEME.window_padding * this.zoom, UI_THEME.window_padding * this.zoom)
+        
         // слот для удаления преметов
         this.createDeleteSlot(this.cell_size)
 
@@ -72,7 +75,6 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         // обновить gui
         this.refresh()
 
-        const ct = this
         for(const slot of this.paperdoll) {
             slot.onMouseLeave = () => {
                 this.player.getModel().updateArmor()
