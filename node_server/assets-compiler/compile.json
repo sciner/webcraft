@@ -12369,7 +12369,7 @@
                 "id": "powder"
             },
             "armor": {
-                "slot": 40,
+                "slot": 84,
                 "durability": 276,
                 "damage": 0
             },
@@ -12391,7 +12391,7 @@
                 "id": "powder"
             },
             "armor": {
-                "slot": 41,
+                "slot": 85,
                 "durability": 276,
                 "damage": 0
             },

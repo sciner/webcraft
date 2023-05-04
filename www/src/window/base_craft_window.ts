@@ -791,18 +791,16 @@ export class BaseCraftWindow extends BaseInventoryWindow {
             createSlot(x, y)
         }
 
-        this.updateGui()
-
         // кнопка сортировки
-       // const ct = this
-        //const btnSort = new Button(0, 0, 12, 12, 'btnSort')
-       // btnSort.onMouseDown = function() {
-          //  ct.autoSortItems(true, 4)
-        //}
-       // this.add(btnSort)
+        const ct = this
+        const btnSort = new Button(0, 0, 12, 12, 'btnSort')
+        btnSort.onMouseDown = function() {
+            ct.autoSortItems(true)
+        }
+        this.add(btnSort)
     }
 
-    updateGui() {
+    refresh() {
         let count = this.inventory.getCountHotbar()
         for (let i = 0; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
             this.inventory_slots[i].disabled = (i > count) ? true : false
@@ -810,7 +808,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         }
         count = INVENTORY_HOTBAR_SLOT_MAX + this.inventory.getCountSlot()
         for (let i = INVENTORY_HOTBAR_SLOT_MAX; i < INVENTORY_HOTBAR_SLOT_MAX + INVENTORY_SLOT_MAX; i++) {
-            this.inventory_slots[i].disabled = (i > count) ? true : false
+            this.inventory_slots[i].disabled = (i >= count) ? true : false
             this.inventory_slots[i].refresh()
         }
     }

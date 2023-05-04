@@ -111,11 +111,61 @@ export class BaseInventoryWindow extends BlankWindow {
         const items = this.inventory.items
         const bm = this.world.block_manager
 
-        
         const count_bag = this.inventory.getCountSlot()
+        for (let i = INVENTORY_HOTBAR_SLOT_MAX; i < INVENTORY_SLOT_MAX; i++) {
+            if (items[i]) {
+                const max_stack = bm.getItemMaxStack(items[i])
+                for (let j = i + 1; j < INVENTORY_SLOT_MAX; j++) {
+                    if (items[j] && items[i].id == items[j].id) {
+                        const count = items[i].count + items[j].count
+                        if (count <= max_stack) {
+                            items[i].count += items[j].count
+                            items[j] = null
+                        } else {
+                            items[i].count = max_stack
+                            items[j].count = count - max_stack
+                        }
+                    }
+                }
+            }
+        }
+        for (let i = INVENTORY_HOTBAR_SLOT_MAX; i < INVENTORY_SLOT_MAX; i++) {
+            if (!items[i]) {
+                for (let j = i + 1; j < INVENTORY_SLOT_MAX; j++) {
+                    if (items[j]) {
+                        items[i] = {id: items[j].id, count: items[j].count}
+                        items[j] = null
+                        break
+                    }
+                }
+            }
+        }
 
-        
+        if (!full) {
+            this.world.server.InventoryNewState({
+                state: this.inventory.exportItems()
+            })
+            return true
+        }
         const count_hotbar = this.inventory.getCountHotbar() + 1
+        for (let i = count_hotbar; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
+            if (items[i]) {
+                const max_stack = bm.getItemMaxStack(items[i])
+                for (let j = INVENTORY_HOTBAR_SLOT_MAX; j < INVENTORY_HOTBAR_SLOT_MAX + count_bag; j++) {
+                    if (items[j] && items[i].id == items[j].id) {
+                        const count = items[i].count + items[j].count
+                        if (count <= max_stack) {
+                            items[j].count += items[i].count
+                            items[i] = null
+                            break
+                        } else {
+                            items[j].count = max_stack
+                            items[i].count = count - max_stack
+                        }
+                    }
+                }
+            }
+        }
         for (let i = count_hotbar; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
             if (items[i]) {
                 for (let j = INVENTORY_HOTBAR_SLOT_MAX; j < INVENTORY_HOTBAR_SLOT_MAX + count_bag; j++) {

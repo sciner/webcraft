@@ -66,19 +66,19 @@ export const DEFAULT_LIGHT_TYPE_ID          = LIGHT_TYPE.SMOOTH
 
 export const INVENTORY_SLOT_SIZE            = 36;
 export const HAND_ANIMATION_SPEED           = 20;
-export const INVENTORY_SLOT_COUNT           = 43;
+export const INVENTORY_SLOT_COUNT           = 100;
 export const INVENTORY_VISIBLE_SLOT_COUNT   = 36;
-export const INVENTORY_DRAG_SLOT_INDEX      = 42;
+export const INVENTORY_DRAG_SLOT_INDEX      = 99;
 export const INVENTORY_HOTBAR_SLOT_COUNT    = 9;
 
 export const MAGIC_ROTATE_DIV               = 900;
 export const DRAW_SLOT_INDEX                = false;
 
-export const INVENTORY_SLOT_MIN             = 9
-export const INVENTORY_SLOT_MAX             = 27
+export const INVENTORY_SLOT_MIN             = 27
+export const INVENTORY_SLOT_MAX             = 72
 
 export const INVENTORY_HOTBAR_SLOT_MAX      = 12
-export const INVENTORY_HOTBAR_SLOT_MIN      = 7
+export const INVENTORY_HOTBAR_SLOT_MIN      = 4
 
 export const DEFAULT_CHEST_SLOT_COUNT       = 27;
 // It's added to pickatDistance on the client.
@@ -392,8 +392,8 @@ export const PLAYER_ARMOR_SLOT_BOOTS        = 36; // boots
 export const PLAYER_ARMOR_SLOT_LEGGINGS     = 37; // legs
 export const PLAYER_ARMOR_SLOT_CHESTPLATE   = 38; // body
 export const PLAYER_ARMOR_SLOT_HELMET       = 39; // head
-export const PAPERDOLL_BACKPACK     = 40; // backpack
-export const PAPERDOLL_TOOLBELT     = 41; // backpack
+export const PAPERDOLL_BACKPACK             = 84; // backpack
+export const PAPERDOLL_TOOLBELT             = 85; // toolbet
 
 // portal
 export const PORTAL_USE_INTERVAL            = 5000; // ms

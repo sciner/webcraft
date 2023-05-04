@@ -69,11 +69,14 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
 
         this.createRightPaperDoll(this.cell_size)
 
+        // обновить gui
+        this.refresh()
+
         const ct = this
         for(const slot of this.paperdoll) {
             slot.onMouseLeave = () => {
                 this.player.getModel().updateArmor()
-                this.updateGui()
+                this.refresh()
                 this.autoSortItems(true)
             }
         }
