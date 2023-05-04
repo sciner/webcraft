@@ -119,8 +119,9 @@ export class SpectatorPlayerControl extends PlayerControl {
     private tmpTickData = new ClientPlayerTickData()
 
     private oldSpectator: OldSpectatorPlayerControl | null = null
+    private isFreeCam: boolean
 
-    constructor(world: World, start_position: Vector, useOldSpectator: Boolean = false) {
+    constructor(world: World, start_position: Vector, useOldSpectator = false, isFreeCam = false) {
         super()
         this.world = world
         this.player_state = {
@@ -131,6 +132,7 @@ export class SpectatorPlayerControl extends PlayerControl {
             flying: true,
             isInWater: false
         }
+        this.isFreeCam = isFreeCam
 
         if (useOldSpectator) {
             const os = this.oldSpectator = new OldSpectatorPlayerControl(world, start_position)
@@ -163,7 +165,7 @@ export class SpectatorPlayerControl extends PlayerControl {
         this.prevTime = now
 
         // copy player's input to this control
-        this.tmpTickData.initInputFrom(controlManager, 1, 1)
+        this.tmpTickData.initInputFrom(controlManager, 1, 1, this.isFreeCam)
         this.tmpTickData.initContextFrom(controlManager)
         this.tmpTickData.applyInputTo(controlManager, this)
 

@@ -704,8 +704,9 @@ export class GameClass {
         this.world.chunkManager.update(player.pos, delta);
 
         // change camera location
-        const camPos = isFreeCam ? player.controlManager.getFreeCampPos() : player.getEyePos()
-        this.render.setCamera(player, camPos, player.rotate, isFreeCam)
+        const camPos = player.controlManager.getCampPos()
+        const camRotation = player.controlManager.getCamRotation()
+        this.render.setCamera(player, camPos, camRotation, isFreeCam)
 
         // Update world
         // this is necessary

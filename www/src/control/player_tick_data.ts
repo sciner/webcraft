@@ -230,7 +230,7 @@ export class ClientPlayerTickData extends PlayerTickData {
      */
     invalidated?: boolean
 
-    initInputFrom(controlManager: ClientPlayerControlManager, startingPhysicsTick: int, physicsTicks: int) {
+    initInputFrom(controlManager: ClientPlayerControlManager, startingPhysicsTick: int, physicsTicks: int, fromCamera = false) {
         const player = controlManager.player
         const state = player.state
         const controls = player.controls
@@ -247,7 +247,8 @@ export class ClientPlayerTickData extends PlayerTickData {
                 controlManager.instantControls.switchFlying
             ) : 0
         player.controlManager.instantControls.switchFlying = false
-        this.inputRotation.copyFrom(player.rotate).roundSelf(PHYSICS_ROTATION_DECIMALS)
+        const rotation = fromCamera ? player.controlManager.getCamRotation() : player.rotate
+        this.inputRotation.copyFrom(rotation).roundSelf(PHYSICS_ROTATION_DECIMALS)
         this.physicsTicks = physicsTicks
         this.startingPhysicsTick = startingPhysicsTick
     }
