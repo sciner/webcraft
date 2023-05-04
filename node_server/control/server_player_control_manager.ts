@@ -17,6 +17,7 @@ import {ServerPlayerTickData} from "./server_player_tick_data.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketReader, PlayerControlSessionPacket} from "@client/control/player_control_packets.js";
 import type {PlayerTickData} from "@client/control/player_tick_data.js";
 import {LimitedLogger} from "@client/helpers/limited_logger.js";
+import {PLAYER_TICK_MODE} from "@client/control/player_tick_data.js";
 
 const MAX_ACCUMULATED_DISTANCE_INCREMENT = 1.0 // to handle sudden big pos changes (if they ever happen)
 const MAX_CLIENT_QUEUE_LENGTH = MAX_PACKET_LAG_SECONDS * 1000 / PHYSICS_INTERVAL_MS | 0 // a protection against memory leaks if there is garbage input
@@ -59,6 +60,7 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
     private accumulatedExhaustionDistance = 0
     private accumulatedSleepSittingDistance = 0
     private lastCmdSentTime = performance.now()
+    private lastStandUpFixTime = -Infinity
     private logger: LimitedLogger
     private fineLogger: LimitedLogger
 
@@ -324,6 +326,14 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
                     // На сервере переключили режим игры или что-то подобное. Это только сервер может делать. Несовпадение ожидаемо.
                     DEBUG_LOG_PLAYER_CONTROL_DETAIL && this.log('simulation_context_differs', () => `    simulation context doesn't match ${newData}`)
                     correctionReason = 'context_differs'
+                    // Устранение рассинхронизаци, которая не должна обычно возникать, но может возникнуть из-за багов
+                    if (clientData.contextTickMode === PLAYER_TICK_MODE.SITTING_OR_LYING &&
+                        newData.contextTickMode !== PLAYER_TICK_MODE.SITTING_OR_LYING &&
+                        this.lastStandUpFixTime < performance.now() - 2000
+                    ) {
+                        player.standUp()
+                        this.lastStandUpFixTime = performance.now()
+                    }
                 } else {
                     // Возможно, отличия вызываны действиями других игроков, мобов или багом.
                     // Это единственный случай несовпадения, который мы не ожидаем.
