@@ -70,8 +70,15 @@ export const INVENTORY_SLOT_COUNT           = 43;
 export const INVENTORY_VISIBLE_SLOT_COUNT   = 36;
 export const INVENTORY_DRAG_SLOT_INDEX      = 42;
 export const INVENTORY_HOTBAR_SLOT_COUNT    = 9;
+
 export const MAGIC_ROTATE_DIV               = 900;
 export const DRAW_SLOT_INDEX                = false;
+
+export const INVENTORY_SLOT_MIN             = 9
+export const INVENTORY_SLOT_MAX             = 27
+
+export const INVENTORY_HOTBAR_SLOT_MAX      = 12
+export const INVENTORY_HOTBAR_SLOT_MIN      = 7
 
 export const DEFAULT_CHEST_SLOT_COUNT       = 27;
 // It's added to pickatDistance on the client.

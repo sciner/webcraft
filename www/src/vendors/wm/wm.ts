@@ -1278,6 +1278,7 @@ class Tooltip extends Label {
 
 export class SimpleBlockSlot extends Window {
 
+    #disabled : boolean         = false
     bar :       Label           = null
     bar_value : Label           = null
     hud_atlas : SpriteAtlas     = null
@@ -1367,6 +1368,14 @@ export class SimpleBlockSlot extends Window {
 
         let label = null
 
+        if (this.#disabled) {
+            this.setIcon(null)
+            this.setBackground(hud_atlas.getSpriteFromMap(this.slot_locked))
+            this.bar.visible = false
+            this.text = null
+            return true
+        }
+
         // draw count && instrument livebar
         if(item) {
 
@@ -1407,6 +1416,13 @@ export class SimpleBlockSlot extends Window {
 
     }
 
+    set disabled(val) {
+        this.#disabled = val
+    }
+
+    get disabled() {
+        return this.#disabled
+    }
 }
 
 //

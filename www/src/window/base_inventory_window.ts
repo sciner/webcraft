@@ -1,4 +1,4 @@
-import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT } from "../constant.js";
+import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_MAX, INVENTORY_SLOT_MAX } from "../constant.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BlankWindow } from "./blank.js";
 import type {PlayerInventory} from "../player_inventory.js";
@@ -107,11 +107,40 @@ export class BaseInventoryWindow extends BlankWindow {
     /*
     * Автоматическая сортировка инвентаря
     */
-    autoSortItems(full: boolean = false, shift: number = 0) {
+    autoSortItems(full: boolean = false) {
         const items = this.inventory.items
         const bm = this.world.block_manager
 
-        for (let i = INVENTORY_HOTBAR_SLOT_COUNT; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
+        
+        const count_bag = this.inventory.getCountSlot()
+
+        
+        const count_hotbar = this.inventory.getCountHotbar() + 1
+        for (let i = count_hotbar; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
+            if (items[i]) {
+                for (let j = INVENTORY_HOTBAR_SLOT_MAX; j < INVENTORY_HOTBAR_SLOT_MAX + count_bag; j++) {
+                    if (!items[j]) {
+                        items[j] = {id: items[i].id, count: items[i].count}
+                        items[i] = null
+                        break
+                    }
+                }
+            }
+        }
+        const thrown_items = []
+        for (let i = count_hotbar; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
+            if (items[i]) {
+                thrown_items.push(items[i])
+                items[i] = null
+            }
+        }
+
+        this.world.server.InventoryNewState({
+            state: this.inventory.exportItems(),
+            thrown_items: thrown_items,
+        })
+
+      /*  for (let i = INVENTORY_HOTBAR_SLOT_COUNT; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
             if (items[i]) {
                 const max_stack = bm.getItemMaxStack(items[i])
                 for (let j = i + 1; j < INVENTORY_VISIBLE_SLOT_COUNT; j++) {
@@ -191,7 +220,7 @@ export class BaseInventoryWindow extends BlankWindow {
         this.world.server.InventoryNewState({
             state: this.inventory.exportItems(),
             thrown_items: thrown_items,
-        })
+        })*/
 
         return true
     }

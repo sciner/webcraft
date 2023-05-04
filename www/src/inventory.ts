@@ -1,6 +1,6 @@
 import { ArrayOrMap, Helpers, Vector} from "./helpers.js";
 import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT,
-    INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_BOOTS, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT } from "./constant.js";
+    INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_BOOTS, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT, INVENTORY_HOTBAR_SLOT_MIN, INVENTORY_HOTBAR_SLOT_MAX, INVENTORY_SLOT_MIN, INVENTORY_SLOT_MAX } from "./constant.js";
 import { BLOCK } from "./blocks.js"
 import {InventoryComparator, TUsedRecipe} from "./inventory_comparator.js";
 import type { ArmorState, Player } from "./player.js";
@@ -647,14 +647,29 @@ export abstract class Inventory {
      * @returns {int}
      */
     getCountSlot() : int {
-        let resp = 4
+        let resp = INVENTORY_SLOT_MIN
         for (const slot_index of [PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT]) {
             if (this.items[slot_index]) {
                 const item = this.block_manager.fromId(this.items[slot_index].id)
                 resp += item.extra_data?.slot ?? 0
             }
         }
-        return resp
+        return Math.min(resp, INVENTORY_SLOT_MAX)
+    }
+
+    /** 
+    * Коичество слотов в hotbar
+    * @returns {int}
+    */
+    getCountHotbar(): int {
+        let resp = INVENTORY_HOTBAR_SLOT_MIN
+        for (const slot_index of [PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT]) {
+            if (this.items[slot_index]) {
+                const item = this.block_manager.fromId(this.items[slot_index].id)
+                resp += item.extra_data?.hotbar ?? 0
+            }
+        }
+        return Math.min(resp, INVENTORY_HOTBAR_SLOT_MAX)
     }
 
 }

@@ -86,6 +86,7 @@ export class ServerPlayerInventory extends Inventory {
             }
             // New state
             if('items' in state) {
+                console.log(state.items)
                 const new_items = state.items;
                 const recipeMan = used_recipes?.length &&
                     await InventoryComparator.getRecipeManager(params.recipe_manager_type);

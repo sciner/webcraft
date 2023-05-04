@@ -1,7 +1,7 @@
 import {BLOCK} from "../blocks.js";
 import { ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../helpers.js";
 import { INVENTORY_HOTBAR_SLOT_COUNT,
-    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE, UI_THEME } from "../constant.js";
+    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE, UI_THEME, INVENTORY_HOTBAR_SLOT_MAX, INVENTORY_SLOT_MAX } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
 import { Label, SimpleBlockSlot, Window, Button, ToggleButton } from "../ui/wm.js";
 import { Recipe } from "../recipes.js";
@@ -88,6 +88,9 @@ export class CraftTableSlot extends SimpleBlockSlot {
 
     //
     get tooltip() {
+        if (this.disabled) {
+            return
+        }
         let resp = null;
         let item = this.getItem();
         if(item) {
@@ -357,7 +360,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             // Drop
             this.onDrop = function(e) {
 
-                if (this.options.disableIfLoading && this.ct.loading) {
+                if (this.options.disableIfLoading && this.ct.loading || this.disabled) {
                     return
                 }
                 const player      = Qubatch.player
@@ -461,7 +464,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
     // Mouse down
     onMouseDown(e) {
 
-        if (this.options.disableIfLoading && this.ct.loading) {
+        if (this.options.disableIfLoading && this.ct.loading || this.disabled) {
             return
         }
 
@@ -774,39 +777,42 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         // не менять порядок нижних и верхних!
         // иначе нарушится их порядок в массиве ct.inventory_slots
         // нижний ряд (видимые на хотбаре)
-        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            const x = belt_x + (i % xcnt) * (sz + margin)
+        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
+            const x = belt_x + (i % INVENTORY_HOTBAR_SLOT_MAX) * (sz + margin)
             // const y = (sy + 120 * this.zoom) + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom + margin)
             const y = belt_y
             createSlot(x, y)
         }
 
         // верхние 3 ряда
-        for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+        for(let i = 0; i < INVENTORY_SLOT_MAX; i++) {
             const x = sx + (i % xcnt) * (sz + margin)
             const y = sy + Math.floor(i / xcnt) * (sz + margin)
             createSlot(x, y)
         }
 
-        const hud_atlas = Resources.atlas.get('hud')
-        // потенциальные, заблокированные слоты
-        if(draw_potential_slots) {
-            for(let i = INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i < INVENTORY_VISIBLE_SLOT_COUNT * 2; i++) {
-                const x = sx + (i % xcnt) * (sz + margin)
-                const y = sy + Math.floor(i / xcnt) * (sz + margin)
-                const lblSlot = new Label(x, y, sz, sz, `lblPotentialSlot${i}`)
-                lblSlot.setBackground(hud_atlas.getSpriteFromMap('window_slot_locked'))
-                this.add(lblSlot)
-            }
-        }
+        this.updateGui()
 
         // кнопка сортировки
-        const ct = this
-        const btnSort = new Button(0, 0, 12, 12, 'btnSort')
-        btnSort.onMouseDown = function() {
-            ct.autoSortItems(true, 4)
+       // const ct = this
+        //const btnSort = new Button(0, 0, 12, 12, 'btnSort')
+       // btnSort.onMouseDown = function() {
+          //  ct.autoSortItems(true, 4)
+        //}
+       // this.add(btnSort)
+    }
+
+    updateGui() {
+        let count = this.inventory.getCountHotbar()
+        for (let i = 0; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
+            this.inventory_slots[i].disabled = (i > count) ? true : false
+            this.inventory_slots[i].refresh()
         }
-        this.add(btnSort)
+        count = INVENTORY_HOTBAR_SLOT_MAX + this.inventory.getCountSlot()
+        for (let i = INVENTORY_HOTBAR_SLOT_MAX; i < INVENTORY_HOTBAR_SLOT_MAX + INVENTORY_SLOT_MAX; i++) {
+            this.inventory_slots[i].disabled = (i > count) ? true : false
+            this.inventory_slots[i].refresh()
+        }
     }
 
     /*
