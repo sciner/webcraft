@@ -47,8 +47,6 @@ export class FSMBrain {
     is_gate: boolean;
     targets: any;
 
-    #max_health: number
-
     constructor(mob: Mob) {
         this.mob = mob;
         this.stack = new FSMStack();
@@ -464,7 +462,7 @@ export class FSMBrain {
             mob.addVelocity(velocity)
         }
         mob.indicators.live -= val
-        mob.extra_data.health = Math.round(mob.indicators.live * 100 / this.#max_health)
+        mob.extra_data.health = Math.round(mob.indicators.live * 100 / mob.config.health)
         if (mob.indicators.live <= 0) {
             mob.kill();
             this.onKill(actor, type_damage);
@@ -504,12 +502,6 @@ export class FSMBrain {
      */
     onUse(actor : any, item : any) : boolean{
         return false;
-    }
-
-    // Установка жизни
-    setMaxHealth(health: number) {
-        this.#max_health = health
-        this.mob.indicators.live = health
     }
 
 }

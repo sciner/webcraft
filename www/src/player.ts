@@ -490,11 +490,7 @@ export class Player implements IPlayer {
     /** См. также ServerPlayer.onUseItemOnEntity */
     private onInteractEntityClient(e: IPickatEvent, instrumentHand: Instrument_Hand): boolean {
         if (e.interactPlayerID != null) {
-            const player = this.world.players.get(e.interactPlayerID);
-            if (player) {
-                player.punch(e);
-                return true
-            }
+            return true
         }
         if (e.interactMobID != null) {
             const mob = this.world.mobs.get(e.interactMobID)
@@ -503,7 +499,6 @@ export class Player implements IPlayer {
             }
             if (mob.hasUse || instrumentHand.material?.tags.includes('use_on_mob')) {
                 // Попробовать действие или использование предмета на мобе (сервер знает что)
-                mob.punch(e)
                 return true
             }
             // проверяем e.number чтобы не садиться в моба сразу после его спауна при удержании мыши
