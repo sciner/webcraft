@@ -233,6 +233,9 @@ export class MobModel extends NetworkPhysicObject {
             }
             mesh.apos.copyFrom(this._pos)
             mesh.drawBuffered(render, delta)
+            if(mesh.gl_material.tintColor) {
+                mesh.gl_material.tintColor.set(0, 0, 0, 0)
+            }
         }
     }
 

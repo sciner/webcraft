@@ -1146,15 +1146,6 @@ export class Renderer {
         }
 
         if(this.camera_mode == CAMERA_MODE.SHOOTER) {
-            // reset tintColor
-            const meshes = this.inHandOverlay?.inHandItemMesh?.mesh_group?.meshes
-            if(meshes) {
-                for(const mesh of meshes.values()) {
-                    if(mesh.material.tintColor) {
-                        mesh.material.tintColor.set(0, 0, 0, 0)
-                    }
-                }
-            }
             this.inHandOverlay.draw(this, delta);
         }
 
