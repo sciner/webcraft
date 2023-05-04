@@ -841,6 +841,9 @@ export class ServerPlayer extends Player {
      */
     teleport(params: TeleportParams): void {
         this.cancelDriving()
+        if (this.state.sitting || this.state.sleep) {
+            this.standUp()
+        }
         const world = this.world;
         let new_pos = null;
         let teleported_player = this;
@@ -1082,6 +1085,21 @@ export class ServerPlayer extends Player {
             speed
         }
         this.timer_anim = performance.now() + (time * 1000) / speed
+    }
+
+    standUp(): void {
+        this.state.sitting = false
+        this.state.sleep = false
+        this.sendPackets([
+            {
+                name: ServerClient.CMD_PLAY_SOUND,
+                data: {tag: 'madcraft:block.cloth', action: 'hit'}
+            },
+            {
+                name: ServerClient.CMD_STANDUP_STRAIGHT,
+                data: null
+            }
+        ])
     }
 
     /*

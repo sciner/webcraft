@@ -24,19 +24,7 @@ export default class packet_reader {
         }
         if (pos) {
             player.state.pos = pos
-            player.state.sitting = false
-            player.state.sleep = false
-            const packets_for_player = [
-                {
-                    name: ServerClient.CMD_PLAY_SOUND,
-                    data: {tag: 'madcraft:block.cloth', action: 'hit'}
-                },
-                {
-                    name: ServerClient.CMD_STANDUP_STRAIGHT,
-                    data: null
-                }
-            ]
-            player.sendPackets(packets_for_player)
+            player.standUp()
         }
         return true
     }

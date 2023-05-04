@@ -566,9 +566,7 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
             this.accumulatedSleepSittingDistance += distance
             if (this.accumulatedSleepSittingDistance > WAKEUP_MOVEMENT_DISTANCE) {
                 this.accumulatedSleepSittingDistance = 0
-                ps.sitting = false
-                ps.sleep = false
-                this.serverPlayer.sendPackets([{name: ServerClient.CMD_STANDUP_STRAIGHT, data: null}])
+                this.serverPlayer.standUp()
             }
         }
 

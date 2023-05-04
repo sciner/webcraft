@@ -94,7 +94,6 @@ export type TAnimState = {
 type PlayerStateDynamicPart = {
     pos         : Vector
     rotate      : Vector
-    lies ?      : boolean
     sitting ?   : false | TSittingState
     sneak ?     : boolean
     sleep ?     : false | TSleepState
