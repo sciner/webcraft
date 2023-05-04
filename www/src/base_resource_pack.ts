@@ -318,7 +318,7 @@ export class BaseResourcePack {
     }
 
     // Push vertices
-    pushVertices(tblock : TBlock | FakeTBlock, vertices : Float32Array | float[], chunk : ChunkWorkerChunk, pos : IVector, neighbours : any, biome? : any, dirt_color? : IndexedColor, unknown? : any, _matrix? : imat4, _pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture, draw_style? : string) {
+    pushVertices(tblock : TBlock | FakeTBlock, vertices : Float32Array | float[], chunk : ChunkWorkerChunk, pos : IVector, neighbours : any, biome? : any, dirt_color? : IndexedColor, unknown? : any, _matrix? : imat4, _pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture, draw_style? : string, neibIDs : int[] = []) {
 
         const style = draw_style ? draw_style : tblock.material.style;
         const module = this.BLOCK.styles.get(style);
@@ -348,7 +348,7 @@ export class BaseResourcePack {
         }*/
 
         // let p = performance.now();
-        const resp = module.func(tblock, vertices, chunk, pos.x, y, pos.z, neighbours, biome, dirt_color, unknown, _matrix, _pivot, force_tex);
+        const resp = module.func(tblock, vertices, chunk, pos.x, y, pos.z, neighbours, biome, dirt_color, unknown, _matrix, _pivot, force_tex, neibIDs);
         // stat.count++;
         // stat.time += (performance.now() - p);
         if (vertices.length % 15 > 0) {
