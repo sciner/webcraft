@@ -1224,6 +1224,9 @@ export class BLOCK {
         if(overlay_name && material?.texture_overlays) {
             mat_texture = material.texture_overlays[overlay_name]
         }
+        if(overlay_name && material?.connected_sides) {
+            mat_texture = material.connected_sides[overlay_name]
+        }
 
         const tx_cnt = force_tex?.tx_cnt || material.tx_cnt;
         let texture = force_tex || mat_texture;

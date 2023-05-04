@@ -581,6 +581,10 @@ export default class style {
         // Push vertices
         if(canDrawUP) {
             const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'up', DIRECTION_UP, null, null);
+            // connected_sides
+            if(material.connected_sides) {
+                axes_up = style.pushConnectedSides(material, neighbours, t, bm)
+            }
             sides.up = _sides.up.set(t, f, anim_frames, lm, axes_up, autoUV)
             // overlay textures
             if(chunk?.chunkManager?.world?.settings?.overlay_textures) {
@@ -661,6 +665,95 @@ export default class style {
         }
 
         return emmited_blocks
+
+    }
+    
+    static pushConnectedSides(material, neighbours, t, bm) {
+
+        _overlay.neightbours[0] = neighbours.WEST
+        _overlay.neightbours[1] = neighbours.SOUTH
+        _overlay.neightbours[2] = neighbours.EAST
+        _overlay.neightbours[3] = neighbours.NORTH
+
+        const sides = [false, false, false, false]
+        let cnt = 0
+        // if(material.id == neighbours.WEST.id) cnt++;
+        cnt += (sides[DIRECTION.WEST] = material.id == neighbours.WEST.id) ? 1 : 0
+        cnt += (sides[DIRECTION.SOUTH] = material.id == neighbours.SOUTH.id) ? 1 : 0
+        cnt += (sides[DIRECTION.EAST] = material.id == neighbours.EAST.id) ? 1 : 0
+        cnt += (sides[DIRECTION.NORTH] = material.id == neighbours.NORTH.id) ? 1 : 0
+
+        let tname = null
+        let rot = 0
+
+        if(cnt == 0) {
+            tname = 'all'
+        } else if(cnt == 4) {
+            tname = '0'
+        } else if(cnt == 2) {
+            tname = (sides[DIRECTION.WEST] == sides[DIRECTION.EAST]) ? 'opposite' : 'corner'
+            if(tname == 'opposite')  {
+                if(!sides[DIRECTION.EAST]) rot = DIRECTION.EAST
+            } else {
+                if(sides[DIRECTION.EAST] && sides[DIRECTION.NORTH]) {
+                    rot = DIRECTION.WEST
+                }
+                if(sides[DIRECTION.WEST] && sides[DIRECTION.NORTH]) {
+                    rot = DIRECTION.EAST
+                }
+                if(sides[DIRECTION.WEST] && sides[DIRECTION.SOUTH]) {
+                    rot = -1
+                }
+            }
+        } else if(cnt == 1) {
+            tname = '3'
+            if(sides[DIRECTION.EAST]) rot = DIRECTION.WEST
+            if(sides[DIRECTION.WEST]) rot = DIRECTION.EAST
+            if(sides[DIRECTION.NORTH]) rot = DIRECTION.SOUTH
+        } else {
+            tname = '1'
+            if(!sides[DIRECTION.SOUTH]) rot = DIRECTION.SOUTH
+            if(!sides[DIRECTION.WEST]) rot = DIRECTION.WEST
+            if(!sides[DIRECTION.EAST]) rot = DIRECTION.EAST
+        }
+
+        let axes_up = null
+
+        if(tname) {
+            const t2 = bm.calcMaterialTexture(material, DIRECTION.UP, 1, 1, undefined, undefined, undefined, tname)
+            t[0] = t2[0]
+            t[1] = t2[1]
+            t[2] = t2[2]
+            t[3] = t2[3]
+            switch(rot) {
+                case -1: {
+                    axes_up = UP_AXES[1]
+                    t[2] *= -1
+                    break
+                }
+                case DIRECTION.EAST: {
+                    axes_up = UP_AXES[0] // east
+                    break
+                }
+                case DIRECTION.NORTH: {
+                    axes_up = UP_AXES[1]
+                    break
+                }
+                case DIRECTION.SOUTH: {
+                    axes_up = UP_AXES[1]
+                    t[3] *= -1
+                    break
+                }
+                case DIRECTION.WEST: {
+                    axes_up = UP_AXES[0] // north
+                    t[3] *= -1
+                    break
+                }
+            }
+
+            return axes_up
+
+        }
 
     }
 

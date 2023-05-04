@@ -337,6 +337,7 @@ interface IBlockMaterial {
     texture: any
     hanging_textures?: string[]
     texture_overlays: any
+    connected_sides: any
     texture_animations: any
     multiply_color: IColor
     mask_color: IColor

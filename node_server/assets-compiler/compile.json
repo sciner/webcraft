@@ -12458,6 +12458,12 @@
             "name": "TURF_OF_GRASS",
             "style": "extruder",
             "sound": "madcraft:block.grass",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            },
             "texture": "block/seagrass.png",
             "composter_chance": 0.3
         },
@@ -12478,6 +12484,28 @@
             ],
             "sound": "madcraft:block.stone",
             "texture": "block/skylight.png"
+        },
+        {
+            "id": 490,
+            "name": "STONE2",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": {
+                "side": "block/decals/frame/all.png"
+            },
+            "tags": [
+                "do_not_remove_this_tag"
+            ],
+            "connected_sides": {
+                "0": "block/decals/frame/0.png",
+                "1": "block/decals/frame/1.png",
+                "corner": "block/decals/frame/corner.png",
+                "3": "block/decals/frame/3.png",
+                "all": "block/decals/frame/all.png",
+                "opposite": "block/decals/frame/opposite.png"
+            }
         }
     ]
 }
