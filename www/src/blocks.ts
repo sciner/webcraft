@@ -814,10 +814,10 @@ export class BLOCK {
         return this.flags[block_id] & BLOCK_FLAG.SOLID
     }
 
-    static isSimpleQube(block) : boolean {
+    static isSimpleQube(block : IBlockMaterial) : boolean {
         return block.is_solid &&
             !block.transparent &&
-            block.tags.length == 0 &&
+            (block.tags.filter(tag => !tag.startsWith('#')).length == 0) &&
             block.texture &&
             Object.keys(block.texture).length == 1;
     }
