@@ -14,6 +14,7 @@ import { Biomes } from "./terrain_generator/biome3/biomes.js";
 import {ChunkRenderList} from "./chunk_render_list.js";
 import type { World } from "./world.js";
 import type { ChunkGrid } from "./core/ChunkGrid.js";
+import { AABB } from "./core/AABB.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
@@ -242,8 +243,14 @@ export class ChunkManager {
             // if(sizeOf(e.data) > 700000) debugger
             switch(cmd) {
                 case 'world_inited':
-                case 'worker_inited': {
-                    that.worker_inited = --that.worker_counter === 0;
+                    case 'worker_inited': {
+                        that.worker_inited = --that.worker_counter === 0;
+                        break;
+                    }
+                case '_debug_aabb': {
+                    const aabb = new AABB()
+                    aabb.copyFrom(args)
+                    Qubatch.render._debug_aabb.push(aabb)
                     break;
                 }
                 case 'blocks_generated': {

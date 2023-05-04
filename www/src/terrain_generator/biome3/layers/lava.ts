@@ -1,4 +1,4 @@
-import { DAYLIGHT_VALUE } from "../../../constant";
+import { DAYLIGHT_VALUE } from "../../../constant.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk";
 import type { Default_Terrain_Map } from "../../default";
 import { Biome3LayerBase } from "./base.js";

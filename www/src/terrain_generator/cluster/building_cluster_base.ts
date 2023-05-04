@@ -107,12 +107,21 @@ export class ClusterBuildingBase extends ClusterBase {
             if(calc_building_y && b.entrance.y == Infinity) {
                 b.aabb.y_min = chunk.coord.y - BUILDING_AABB_MARGIN;
                 b.aabb.y_max = b.aabb.y_min + b.size.y + BUILDING_AABB_MARGIN * 2;
+                // if(chunk.addr.equal(new Vector(94756, 1, -22351))) {
+                    // if(b.id == '1516108,0,-357611') {
+                        // console.log(chunk.coord.y)
+                    // }
+                // }
                 if(b.aabb.intersect(chunk.aabb)) {
                     b.findYOld(chunk, maps);
                 }
             }
 
             if(b.entrance.y != Infinity) {
+                // if(!b._debug_aabb_sent) {
+                //     b._debug_aabb_sent = true
+                //     QubatchChunkWorker.postMessage(['_debug_aabb', b.aabb])
+                // }
                 this.drawBulding(chunk, maps, b, map)
             }
 

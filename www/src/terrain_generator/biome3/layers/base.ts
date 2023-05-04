@@ -1,3 +1,4 @@
+import { DAYLIGHT_VALUE } from "../../../constant.js";
 import type Terrain_Generator from "../index";
 import type { BLOCK } from "../../../blocks";
 import type { Vector } from "../../../helpers";
@@ -7,7 +8,6 @@ import type { Default_Terrain_Map } from "../../default";
 import type { Biome } from "../biomes";
 import type { TerrainMapManagerBase } from "../terrain/manager_base";
 import type { Biome3TerrainMap } from "../terrain/map";
-import { DAYLIGHT_VALUE } from "../../../constant";
 
 /**
  * Generate underworld infinity air

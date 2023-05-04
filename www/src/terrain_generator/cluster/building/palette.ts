@@ -6,28 +6,16 @@ import { BuildingTemplate } from "../building_template.js";
 export class BuildingPalettes {
     [key: string]: any;
 
+    list: {[key: string]: BuldingPalette}
+
     constructor(cluster, rules, bm) {
-        /**
-         * @type {Object.<string, BuldingPalette>}
-        */
         this.list = {};
         for(let k in rules) {
             this.list[k] = new BuldingPalette(cluster, rules[k], bm);
         }
     }
 
-    /**
-     * @param {*} cluster
-     * @param {*} seed
-     * @param {int} door_direction
-     * @param {Vector} size
-     * @param {Vector} coord
-     * @param {Vector} entrance
-     * @param {boolean} is_crossroad
-     *
-     * @returns
-     */
-    next(cluster, seed, door_direction, size, coord, entrance, is_crossroad = false) {
+    next(cluster, seed, door_direction : int, size : Vector, coord : Vector, entrance : Vector, is_crossroad : boolean = false) {
 
         // generate random building from palette
         let building = null

@@ -113,6 +113,7 @@ export class Renderer {
     cullID:                 int = 0
     lastDeltaForMeGui:      int = 0
     nightVision:            boolean = false;
+    _debug_aabb:            AABB[] = []
 
     constructor(qubatchRenderSurfaceId : string) {
         this.canvas             = document.getElementById(qubatchRenderSurfaceId);
@@ -1056,6 +1057,17 @@ export class Renderer {
         renderList.checkFence();
         this.lightUniforms.popOverride();
 
+        if(this._debug_aabb) {
+            for(let aabb of this._debug_aabb) {
+                this.debugGeom.addBlockGrid({
+                    pos:        new Vector(aabb.x_min, aabb.y_min, aabb.z_min),
+                    size:       aabb.size,
+                    lineWidth:  .15,
+                    colorABGR:  0xFFFF0000, // ABGR
+                })
+            }
+        }
+
         const overChunk = player.getOverChunk();
         if (overChunk) {
             // chunk
@@ -1065,7 +1077,7 @@ export class Renderer {
                     pos:        overChunk.coord,
                     size:       overChunk.size,
                     lineWidth:  .15,
-                    colorBGRA:  0xFF00FF00,
+                    colorABGR:  0xFF00FF00, // ABGR
                 })
             }
             // cluster
@@ -1075,7 +1087,7 @@ export class Renderer {
                 this.debugGeom.addAABB(new AABB(
                     cluster_coord.x, cluster_coord.y, cluster_coord.z,
                     cluster_coord.x + CSZ.x, cluster_coord.y + CSZ.y, cluster_coord.z + CSZ.z
-                ), {lineWidth: .25, colorBGRA: 0xFFFFFFFF})
+                ), {lineWidth: .25, colorABGR: 0xFFFFFFFF}) // ABGR
             }
         }
 
@@ -1092,19 +1104,19 @@ export class Renderer {
                     this.debugGeom.addAABB(new AABB(
                         _schema_coord.x, _schema_coord.y, _schema_coord.z,
                         _schema_coord.x + _schema_size.x, _schema_coord.y + _schema_size.y, _schema_coord.z + _schema_size.z
-                    ), {lineWidth: .15, colorBGRA: 0xFFFFFFFF})
+                    ), {lineWidth: .15, colorABGR: 0xFFFFFFFF}) // ABGR
                     // door
                     const dbtm = schema.world.entrance
                     this.debugGeom.addAABB(new AABB(
                         dbtm.x, dbtm.y, dbtm.z,
                         dbtm.x + 1, dbtm.y + 2, dbtm.z + 1
-                    ), {lineWidth: .15, colorBGRA: 0xFFFF00FF})
+                    ), {lineWidth: .15, colorABGR: 0xFFFF00FF})
                     /*
                     this.debugGeom.addBlockGrid({
                         pos:        _schema_coord,
                         size:       _schema_size,
                         lineWidth:  .15,
-                        colorBGRA:  0xFFFFFFFF,
+                        colorABGR:  0xFFFFFFFF, // ABGR
                     })
                     */
                 }
