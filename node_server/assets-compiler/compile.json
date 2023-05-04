@@ -12493,7 +12493,7 @@
                 "id": "stone"
             },
             "texture": {
-                "side": "block/decals/reinforced_concrete/12.png"
+                "side": "block/decals/reinforced_concrete/all.png"
             },
             "tags": [
                 "do_not_remove_this_tag"
