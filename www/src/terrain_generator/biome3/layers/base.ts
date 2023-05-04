@@ -7,6 +7,7 @@ import type { Default_Terrain_Map } from "../../default";
 import type { Biome } from "../biomes";
 import type { TerrainMapManagerBase } from "../terrain/manager_base";
 import type { Biome3TerrainMap } from "../terrain/map";
+import { DAYLIGHT_VALUE } from "../../../constant";
 
 /**
  * Generate underworld infinity air
@@ -20,7 +21,7 @@ export class Biome3LayerBase {
     clusterManager:         ClusterManager
     seed:                   string
     filter_biome_list:      int[] = []
-    dayLightDefaultValue:   int = 15
+    dayLightDefaultValue:   int = DAYLIGHT_VALUE.FULL
 
     init(generator : any) : Biome3LayerBase {
 

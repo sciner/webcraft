@@ -10,6 +10,7 @@ import type { Biome3LayerBase } from "./base.js";
 import { ClusterVilage } from "../../cluster/vilage.js";
 import { NetherClusterStructures } from "../../cluster/nether_structures.js";
 import type { WorkerWorld } from "../../../worker/world.js";
+import { DAYLIGHT_VALUE } from "../../../constant.js";
 
 export declare type IClusterList = {chance: float, class: any}[]
 
@@ -38,7 +39,7 @@ class UnderworldTerrainMapManager extends TerrainMapManager3 {
 export default class Biome3LayerUnderworld extends Biome3LayerOverworld {
 
     filter_biome_list: int[] = [501]
-    dayLightDefaultValue: int = 15
+    dayLightDefaultValue: int = DAYLIGHT_VALUE.FULL
 
     init(generator : Terrain_Generator) : Biome3LayerUnderworld {
         const {seed, world_id, noise2d, noise3d, block_manager, options} = generator
