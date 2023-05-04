@@ -240,6 +240,11 @@ export class AABB {
             && box.z_min < this.z_max && this.z_min < box.z_max);
     }
 
+    intersecXZ(box : IAABB) : boolean {
+        return (box.x_min < this.x_max && this.x_min < box.x_max
+            && box.z_min < this.z_max && this.z_min < box.z_max);
+    }
+
     /**
      * rotated around 0
      */

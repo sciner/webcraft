@@ -12,20 +12,38 @@ export class BuildingBlocks extends Building {
 
     constructor(cluster: any, seed: float, coord: Vector, entrance: Vector, door_direction: int, size: Vector, building_template: any) {
         super(cluster, seed, coord, entrance, door_direction, size, building_template)
+        // this.aabb
         this.chunks = new VectorCollector()
         this.transformer = new VectorCardinalTransformer()
+
+        // Calc real AABB from blocks
+        this.aabb.reset()
+        const pos               = new Vector(0, 0, 0)
+        // const actual_aabb       = new AABB().reset()
+        const blocks            = this.building_template.rot[(this.direction + 2) % 4]
+        const obj               = this
+        obj.initTransformerToChunk(this.transformer, Vector.ZERO)
+        // split all blocks by chunks
+        for(let i = 0; i < blocks.length; i++) {
+            const block = blocks[i]
+            this.transformer.transform(block.move, pos)
+            this.aabb.addPoint(pos.x, pos.y, pos.z)
+            this.aabb.addPoint(pos.x + 1, pos.y + 1, pos.z + 1)
+        }
+        // this.aabb.copyFrom(actual_aabb)
+        this.size.copyFrom(this.aabb.size)
+
     }
 
     //
     addBlocks(cluster ? : ClusterBase) {
 
-        const dir               = this.direction
         const pos               = new Vector(0, 0, 0)
         const chunk_addr        = new Vector(0, 0, 0)
         const prev_chunk_addr   = new Vector(Infinity, Infinity, Infinity)
         const actual_aabb       = new AABB().reset()
         const grid              = (cluster || this.cluster).clusterManager.world.chunkManager.grid
-        const blocks            = this.building_template.rot[(dir + 2) % 4]
+        const blocks            = this.building_template.rot[(this.direction + 2) % 4]
 
         let chunk_build_blocks: any[]
         let chunk_blocks: any[]
