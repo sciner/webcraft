@@ -28,6 +28,9 @@ export type TDrivingConfig = {
 
     canFly ?        : boolean
 
+    /** Если true, то при выгрузке единственного игрока, мобы и вождение тоже выгружаются. Иначе остаются в игре. */
+    unloads ?       : boolean
+
     /**
      * Если значение не определено, используется DEFAULT_DRIVING_SOUND (см. на сервере)
      * Если null - то без звука.
@@ -237,11 +240,15 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
         return this.myPlayerPlace === DrivingPlace.DRIVER || model !== this.models[DrivingPlace.VEHICLE]
     }
 
-    /** @returns true если все места заняты */
+    /**
+     * @returns true если точно известно что все места заняты (нет возможности сесть). Место занято, если:
+     *  - числится id моба
+     *  - присутствует модель игрока (если только id игрока, то возможно получится заменить его - сервер решит)
+     */
     isFull(): boolean {
         const state = this.state
         for(let place = DrivingPlace.DRIVER; place < state.mobIds.length; place++) {
-            if (state.mobIds[place] ?? state.playerIds[place] == null) {
+            if (this.models[place] == null && state.mobIds[place] == null) {
                 return false
             }
         }

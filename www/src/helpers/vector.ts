@@ -13,6 +13,7 @@ export class Vector implements IVector {
     static ZN = new Vector(0.0, 0.0, -1.0);
     static ZP = new Vector(0.0, 0.0, 1.0);
     static ZERO = new Vector(0.0, 0.0, 0.0);
+    static INFINITY = new Vector(Infinity, Infinity, Infinity);
 
     static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
     static DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP]

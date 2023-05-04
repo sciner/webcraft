@@ -118,7 +118,7 @@ export class ServerDrivingManager extends DrivingManager<ServerWorld> {
         // Это также проверяется при исчезновении игрока, но на всякий случай (вдруг чего-то учли) пусть проверяется и периодически.
         if ((this.world.ticks_stat.number + 234) % 373 === 0) {
             for (const driving of this.drivingById.values()) {
-                if (driving.shouldBeUnloaded()) {
+                if (driving.shouldUnload()) {
                     this.unload(driving)
                 }
             }
@@ -126,13 +126,9 @@ export class ServerDrivingManager extends DrivingManager<ServerWorld> {
     }
 
     unload(driving: ServerDriving): void {
+        driving.onUnload()
         this.drivingById.delete(driving.id)
         this.unloadedDrivingById.set(driving.id, driving)
-        for(const mob of driving.getMobs()) {
-            mob.deactivate()
-        }
-        driving.disconnectAll()
-        driving.awarePlayers.sendDelete()
     }
 
     /** Логически удаляет вождение (навсегда, из БД). */
@@ -179,7 +175,7 @@ export class ServerDrivingManager extends DrivingManager<ServerWorld> {
             drivingState.mobIds[0] = vehicleMob.id
             
             driving = new ServerDriving(this, drivingConfig, drivingState, false)
-            driving.initFromVehicle(vehicleMob)
+            driving.updateFromVehicle(vehicleMob)
             driving.resolve()
             this.drivingById.set(id, driving)
         }
@@ -194,7 +190,14 @@ export class ServerDrivingManager extends DrivingManager<ServerWorld> {
         let state: TDrivingState
         let physics
         try {
-            [state, physics] = JSON.parse(driving_data)
+            let parsed = JSON.parse(driving_data)
+
+            // TODO remove old format compatibility
+            if (Array.isArray(parsed)) {
+                parsed = { state: parsed[0], physics: parsed[1] }
+            }
+
+            ({ state, physics } = parsed)
         } catch (e) {
             return null
         }

@@ -339,7 +339,7 @@ export class World implements IWorld {
             player.controlManager.setVelocity(0, 0, 0)
                 .syncWithActionId(actions.id, false)
                 .suppressLerpPos()
-            Qubatch.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000);
+            Qubatch.hotbar.strings.setText(1, Lang.press_lshift_to_dismount, 4000);
         }
         // Sleep
         if(actions.sleep) {
@@ -349,7 +349,7 @@ export class World implements IWorld {
             player.controlManager.setVelocity(0, 0, 0)
                 .syncWithActionId(actions.id, false)
                 .suppressLerpPos()
-            Qubatch.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000)
+            Qubatch.hotbar.strings.setText(1, Lang.press_lshift_to_dismount, 4000)
         }
     }
 

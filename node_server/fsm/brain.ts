@@ -21,6 +21,7 @@ export class FSMBrain {
     lerpPos: Vector;
     mob: Mob;
     stack: FSMStack;
+    enabled = true // true если моб контролирует себя (а не кто-то контролирует его в вождении). Только вождение может менять это поле!
     _eye_pos: Vector;
     timer_health: number;
     timer_panick: number;
@@ -81,12 +82,18 @@ export class FSMBrain {
             return
         }
         this.onLive();
-        if (this.mob.driving) {
+        if (!this.enabled) {
             return
         }
         const stateFunctionUsed = this.stack.tick(delta, this);
         if (stateFunctionUsed) {
             this.addStat(stateFunctionUsed.name, true);
+        }
+        const driving = this.mob.driving
+        if (driving) {
+            // есть вождение, но моб сам им управляет. Обновить состояние вождения.
+            driving.updateFromVehicle(this.mob)
+            driving.applyToDependentParticipants(false)
         }
     }
 
@@ -133,13 +140,12 @@ export class FSMBrain {
     }
 
     applyControl(delta : float) {
-        if (this.mob.driving?.hasPlayerDriver) {
+        if (!this.enabled) {
             return
         }
         this.pc.tick(delta);// * (this.timer_panick > 0 ? 4 : 1));
         this.mob.updateStateFromControl()
     }
-
 
     // угол между таргетом и мобом
     angleTo(target) {
@@ -449,7 +455,7 @@ export class FSMBrain {
     onDamage(val : number, type_damage : EnumDamage, actor) {
         const mob = this.mob;
         const world = mob.getWorld();
-        if (actor && mob.config.damagePushes && !mob.driving) {
+        if (actor && mob.config.damagePushes && this.enabled) {
             const velocity = mob.pos.sub(actor.state.pos).normSelf();
             velocity.y = 0.4;
             mob.addVelocity(velocity);
@@ -472,7 +478,7 @@ export class FSMBrain {
     onPanic() {
         const mob = this.mob;
         this.timer_panick = mob.config.timer_panick ?? 80;
-        if (this.timer_panick && !mob.driving) {
+        if (this.timer_panick && this.enabled) {
             this.target = null;
             mob.rotate.z = 2 * Math.random() * Math.PI;
             this.stack.replaceState(this.doStand);

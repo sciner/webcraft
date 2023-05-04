@@ -109,6 +109,7 @@
                     "jumpSpeed": 0.3
                 },
                 "canFly": true,
+                "unloads": true,
                 "offsets": [ { "x": 0, "y": 0.25, "z": -0.1 } ]
             },
             "health": 10

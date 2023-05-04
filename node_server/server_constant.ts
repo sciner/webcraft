@@ -1,9 +1,11 @@
 import { MAX_PACKET_LAG_SECONDS } from "@client/constant.js"
 
-// ========================= network =============================
+// =================================== сеть ===================================
 
 /** The server sends a command to each player at least once per this interval of time. */
 export const SERVER_SEND_CMD_MAX_INTERVAL = 1000
+
+// ================================ управление ================================
 
 // by how many blocks the client's pos may differ without needing correction
 export const ACCEPTABLE_PLAYER_POS_ERROR = 0.01
@@ -26,7 +28,24 @@ export const DONT_VALIDATE_AFTER_MODE_CHANGE_MS = 2000
  */
 export const SERVER_UNCERTAINTY_SECONDS = MAX_PACKET_LAG_SECONDS
 
-// database
+// ================================= вождние ==================================
+
+/**
+ * Если моб-учстник движения отсутсвует на сервере (может не загружен из-за тормозов, или нарушилась целостность
+ * данных из-за бага), но числится в вождении - через сколько секунд его выкидывать из вождения.
+ */
+export const DRIVING_ABSENT_MOB_TTL_SECONDS = 30
+
+/**
+ * Если игрок-учстник движения отсутсвует на сервере (вышел из игры), но числится в вождении, он будет из него удален,
+ * если транспортное средство сместится более чем на это расстояние от того места, где он участник был последний раз.
+ */
+export const DRIVING_ABSENT_PLAYER_DISTANCE = 20
+
+/** Через сколько секунд после временного исчезновения из игры игрока-водителя начинает работать ИИ моба. */
+export const DRIVING_ABSENT_PLAYER_MOB_BRAIN_DELAY_SECONDS = 10
+
+// ==================================== БД ====================================
 
 /**
  * If it's true, indicators are saved in DB in the old format, preserving backwards compatibility,
