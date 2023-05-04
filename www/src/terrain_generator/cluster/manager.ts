@@ -10,7 +10,7 @@ import type { IClusterList } from "../biome3/layers/underworld.js";
 // TODO: This is must be moved to world generators on server
 // but in constructor of ClusterManager generator options is empty
 export const CLUSTER_SIZE = new Vector(128, 256, 128)
-export const CLUSTER_SIZE_V2 = new Vector(256, 200, 256)
+export const CLUSTER_SIZE_BIOME3 = new Vector(288, 200, 288)
 
 // ClusterManager
 export class ClusterManager {
@@ -31,7 +31,7 @@ export class ClusterManager {
         this.layer = layer
         this.world = world
         this.chunkManager = world.chunkManager
-        this.size = new Vector(layer ? CLUSTER_SIZE_V2 : CLUSTER_SIZE)
+        this.size = new Vector().copyFrom(layer ? CLUSTER_SIZE_BIOME3 : CLUSTER_SIZE)
         for(let structure of cluster_list) {
             this.registerCluster(structure.chance, structure.class)
         }

@@ -32,6 +32,8 @@ const _pl = new QuadPlane()
 const _vec = new Vector(0, 0, 0);
 const _sideParams = new TCalcSideParamsResult()
 
+let _grass_block_edge_tex : tupleFloat4 | null = null
+
 // overlay texture temp objects
 class OverlayTextureItem {
     list: boolean[] = [false, false, false, false]
@@ -88,7 +90,8 @@ const UP_AXES = [
 
 // Used for grass pseudo-random rotation
 const randoms = new FastRandom('random_dirt_rotations', MAX_CHUNK_SQUARE, 100, true)
-const OVERLAY_TEXTURE_MATERIAL_KEYS = []
+const OVERLAY_TEXTURE_MATERIAL_KEYS : string[] = []
+const OVERLAY_TEXTURE_MATERIAL_KEYS_DOUBLEFACE : string[] = []
 
 export default class style {
     [key: string]: any;
@@ -100,6 +103,9 @@ export default class style {
         OVERLAY_TEXTURE_MATERIAL_KEYS.push(
             block_manager.DECAL1.material_key,
             block_manager.DECAL2.material_key,
+        )
+        OVERLAY_TEXTURE_MATERIAL_KEYS_DOUBLEFACE.push(
+            block_manager.COBWEB.material_key
         )
         return new BlockStyleRegInfo(
             ['cube'],
@@ -413,7 +419,7 @@ export default class style {
         const cavity_id             = (material.is_log && !(block instanceof FakeTBlock)) ? block.extra_data?.cavity : null // for tree logs
         const sides                 = {} as IBlockSides
 
-        let emmited_blocks:         [] = undefined
+        let emmited_blocks:         any[] = undefined
         let autoUV                  = true
         let axes_up                 = null
         let axes_down               = null
@@ -575,11 +581,45 @@ export default class style {
         // Push vertices
         if(canDrawUP) {
             const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'up', DIRECTION_UP, null, null);
+            // connected_sides
+            if(material.connected_sides) {
+                axes_up = style.pushConnectedSides(material, neighbours, t, bm)
+            }
             sides.up = _sides.up.set(t, f, anim_frames, lm, axes_up, autoUV)
             // overlay textures
             if(chunk?.chunkManager?.world?.settings?.overlay_textures) {
                 emmited_blocks = []
                 style.pushOverlayTextures(material, emmited_blocks, bm, chunk, x, y, z, neighbours, dirt_color, matrix, pivot)
+
+                if(material.name == 'GRASS_BLOCK' || material.name == 'GRASS_BLOCK_SLAB') {
+                    if(!_grass_block_edge_tex) {
+                        _grass_block_edge_tex = bm.calcMaterialTexture(bm.GRASS_BLOCK, DIRECTION.UP, 1, 1, undefined, undefined, undefined, '1')
+                    }
+                    const c = _grass_block_edge_tex
+                    const d1 = 1
+                    const dm1 = -1
+                    const pp = lm.pack()
+                    const h2 = height == 1 ? .5 : 0
+                    const fo = f // | QUAD_FLAGS.NORMAL_UP
+                    // const overlay_vertices : float[] = []
+                    // north
+                    if(neighbours.NORTH.material.transparent) {
+                        vertices.push(x + .5, z + 1.25, y + h2, 1, 0, 0, 0, .5, dm1, c[0], c[1], c[2], c[3], pp, fo)
+                    }
+                    // south
+                    if(neighbours.SOUTH.material.transparent) {
+                        vertices.push(x + .5, z - .25, y + h2, 1, 0, 0, 0, .5, d1, c[0], c[1], c[2], -c[3], pp, fo)
+                    }
+                    // west
+                    if(neighbours.WEST.material.transparent) {
+                        vertices.push(x - .25, z + .5, y + h2, 0, 1, 0, -.5, 0, dm1, c[0], c[1], c[2], c[3], pp, fo)
+                    }
+                    // east
+                    if(neighbours.EAST.material.transparent) {
+                        vertices.push(x + 1.25, z + .5, y + h2, 0, 1, 0, -.5, 0, d1, c[0], c[1], c[2], -c[3], pp, fo)
+                    }
+                    // emmited_blocks.push(new FakeVertices(OVERLAY_TEXTURE_MATERIAL_KEYS_DOUBLEFACE[0], overlay_vertices))
+                }
             }
         }
         if(canDrawDOWN) {
@@ -625,6 +665,95 @@ export default class style {
         }
 
         return emmited_blocks
+
+    }
+    
+    static pushConnectedSides(material, neighbours, t, bm) {
+
+        _overlay.neightbours[0] = neighbours.WEST
+        _overlay.neightbours[1] = neighbours.SOUTH
+        _overlay.neightbours[2] = neighbours.EAST
+        _overlay.neightbours[3] = neighbours.NORTH
+
+        const sides = [false, false, false, false]
+        let cnt = 0
+        // if(material.id == neighbours.WEST.id) cnt++;
+        cnt += (sides[DIRECTION.WEST] = material.id == neighbours.WEST.id) ? 1 : 0
+        cnt += (sides[DIRECTION.SOUTH] = material.id == neighbours.SOUTH.id) ? 1 : 0
+        cnt += (sides[DIRECTION.EAST] = material.id == neighbours.EAST.id) ? 1 : 0
+        cnt += (sides[DIRECTION.NORTH] = material.id == neighbours.NORTH.id) ? 1 : 0
+
+        let tname = null
+        let rot = 0
+
+        if(cnt == 0) {
+            tname = 'all'
+        } else if(cnt == 4) {
+            tname = '0'
+        } else if(cnt == 2) {
+            tname = (sides[DIRECTION.WEST] == sides[DIRECTION.EAST]) ? 'opposite' : 'corner'
+            if(tname == 'opposite')  {
+                if(!sides[DIRECTION.EAST]) rot = DIRECTION.EAST
+            } else {
+                if(sides[DIRECTION.EAST] && sides[DIRECTION.NORTH]) {
+                    rot = DIRECTION.WEST
+                }
+                if(sides[DIRECTION.WEST] && sides[DIRECTION.NORTH]) {
+                    rot = DIRECTION.EAST
+                }
+                if(sides[DIRECTION.WEST] && sides[DIRECTION.SOUTH]) {
+                    rot = -1
+                }
+            }
+        } else if(cnt == 1) {
+            tname = '3'
+            if(sides[DIRECTION.EAST]) rot = DIRECTION.WEST
+            if(sides[DIRECTION.WEST]) rot = DIRECTION.EAST
+            if(sides[DIRECTION.NORTH]) rot = DIRECTION.SOUTH
+        } else {
+            tname = '1'
+            if(!sides[DIRECTION.SOUTH]) rot = DIRECTION.SOUTH
+            if(!sides[DIRECTION.WEST]) rot = DIRECTION.WEST
+            if(!sides[DIRECTION.EAST]) rot = DIRECTION.EAST
+        }
+
+        let axes_up = null
+
+        if(tname) {
+            const t2 = bm.calcMaterialTexture(material, DIRECTION.UP, 1, 1, undefined, undefined, undefined, tname)
+            t[0] = t2[0]
+            t[1] = t2[1]
+            t[2] = t2[2]
+            t[3] = t2[3]
+            switch(rot) {
+                case -1: {
+                    axes_up = UP_AXES[1]
+                    t[2] *= -1
+                    break
+                }
+                case DIRECTION.EAST: {
+                    axes_up = UP_AXES[0] // east
+                    break
+                }
+                case DIRECTION.NORTH: {
+                    axes_up = UP_AXES[1]
+                    break
+                }
+                case DIRECTION.SOUTH: {
+                    axes_up = UP_AXES[1]
+                    t[3] *= -1
+                    break
+                }
+                case DIRECTION.WEST: {
+                    axes_up = UP_AXES[0] // north
+                    t[3] *= -1
+                    break
+                }
+            }
+
+            return axes_up
+
+        }
 
     }
 
@@ -697,14 +826,18 @@ export default class style {
             if(!n || n.id == center_material.id) {
                 continue
             }
-            if(n.material.texture_overlays) {
+            const n_material = n.material
+            if(n_material.texture_overlays) {
+                if(center_material.layering?.full_block_name == n_material.name) {
+                    continue
+                }
                 if(center_material_have_overlay) {
                     if(center_material.id == this.block_manager.GRASS_BLOCK.id && n.id == this.block_manager.DIRT.id) {
 
                     } else if(center_material.id == this.block_manager.DIRT.id && n.id == this.block_manager.GRASS_BLOCK.id) {
                         continue
                     } else {
-                        if((n.material.overlay_textures_weight ?? n.id) < (center_material.overlay_textures_weight ?? center_material.id)) {
+                        if((n_material.overlay_textures_weight ?? n.id) < (center_material.overlay_textures_weight ?? center_material.id)) {
                             continue
                         }
                     }
@@ -712,7 +845,7 @@ export default class style {
                 let item = _overlay.materials.get(n.id)
                 if(!item) {
                     item = _overlay.items[i]
-                    item.material = n.material
+                    item.material = n_material
                     _overlay.materials.set(n.id, item)
                 }
                 item.list[i] = true

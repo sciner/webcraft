@@ -98,10 +98,13 @@ declare interface TWorldInfo {
 
 /** A subset of the game settings needed for the chunk worker and BLOCK class */
 interface TBlocksSettings {
-    json_url?: string
-    texture_pack?: string
-    resource_packs_url?: string
-    overlay_textures?: boolean
+    json_url?:                  string
+    texture_pack?:              string
+    resource_packs_url?:        string
+    overlay_textures?:          boolean
+    draw_improved_blocks?:      boolean
+    beautiful_leaves?:          boolean
+    resource_packs_basedir?:    string
 }
 
 interface TWorldSettings extends TBlocksSettings {
@@ -333,6 +336,7 @@ interface IBlockMaterial {
     material_key: string
     texture: any
     texture_overlays: any
+    connected_sides: any
     texture_animations: any
     multiply_color: IColor
     mask_color: IColor
@@ -413,6 +417,7 @@ interface IBlockMaterial {
     sound: string
     inventory_icon_id?: number
     max_in_stack: number
+    aabb: tupleFloat6
 }
 
 interface INetworkMessage<DataT = any> {

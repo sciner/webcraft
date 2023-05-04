@@ -53,8 +53,10 @@ export const DIRT_PALETTE_SIZE              = 128
 export const GRASS_COLOR_SHIFT_FACTOR       = 6
 
 export const DEFAULT_TX_CNT                 = 64;
+export const BBMODEL_TX_CNT                 = 96;
 export const DEFAULT_TX_SIZE                = 32;
 export const DEFAULT_ATLAS_SIZE             = DEFAULT_TX_CNT * DEFAULT_TX_SIZE;
+export const BBMODEL_ATLAS_SIZE             = BBMODEL_TX_CNT * DEFAULT_TX_SIZE;
 export const COVER_STYLE_SIDES              = Object.freeze(['up', 'down', 'south', 'north', 'west', 'east'])
 export const NOT_SPAWNABLE_BUT_INHAND_BLOCKS= Object.freeze(['BEDROCK'])
 export const ITEM_LABEL_MAX_LENGTH          = 19;
@@ -234,6 +236,7 @@ export enum MOB_TYPE {
     PIG         = 'mob/pig',
     SHEEP       = 'mob/sheep',
     SKELETON    = 'mob/skeleton',
+    SNOWBALL    = 'mob/snowball',
     SNOW_GOLEM  = 'mob/snow_golem',
     ZOMBIE      = 'mob/zombie',
     BOAT        = 'transport/boat'
@@ -259,6 +262,7 @@ export enum BLOCK_FLAG {
     IS_DIRT                         = 0x400 | 0,
     TICKING                         = 0x800 | 0,
     RANDOM_TICKER                   = 0x1000 | 0,
+    LAYERING_MOVE_TO_DOWN           = 0x2000 | 0,
 }
 
 export enum WORKER_MESSAGE {
@@ -381,6 +385,9 @@ export const MAX_CHUNK_Y_DIFF_FOR_PORTAL    = 3;
 // World types
 export const WORLD_TYPE_NORMAL              = 1;
 export const WORLD_TYPE_BUILDING_SCHEMAS    = 2;
+
+// attack
+export const ATTACK_COOLDOWN                = 500
 
 export const MOUSE = {
     DOWN: 1,

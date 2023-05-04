@@ -36,7 +36,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_pixelSize        = gl.getUniformLocation(program, 'u_pixelSize');
         this.u_resolution       = gl.getUniformLocation(program, 'u_resolution');
         this.u_eyeinwater       = gl.getUniformLocation(program, 'u_eyeinwater');
-        this.u_TestLightOn      = gl.getUniformLocation(program, 'u_TestLightOn');
         this.u_SunDir           = gl.getUniformLocation(program, 'u_SunDir');
         this.u_mipmap           = gl.getUniformLocation(program, 'u_mipmap');
         this.u_chunkBlockDist   = gl.getUniformLocation(program, 'u_chunkBlockDist');
@@ -44,7 +43,9 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_localLightRadius = gl.getUniformLocation(program, 'u_localLightRadius');
         this.u_time             = gl.getUniformLocation(program, 'u_time');
         this.u_lightOverride    = gl.getUniformLocation(program, 'u_lightOverride');
-        this.u_rain_strength       = gl.getUniformLocation(program, 'u_rain_strength');
+        this.u_rain_strength    = gl.getUniformLocation(program, 'u_rain_strength');
+        this.u_gridChunkSize    = gl.getUniformLocation(program, 'u_gridChunkSize');
+        this.u_gridChunkOffset  = gl.getUniformLocation(program, 'u_gridChunkOffset');
 
         this.locateUniforms();
 
@@ -54,7 +55,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.hasModelMatrix = false;
 
         this._material = null;
-
+        this._lightOverride = -2;
         this.globalID = -1;
     }
 
@@ -80,10 +81,10 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_texture_n        = gl.getUniformLocation(program, 'u_texture_n');
         this.u_lightTex         = gl.getUniformLocation(program, 'u_lightTex');
         this.u_lightOffset      = gl.getUniformLocation(program, 'u_lightOffset');
-        this.u_lightSize        = gl.getUniformLocation(program, 'u_lightSize');
         this.u_opaqueThreshold  = gl.getUniformLocation(program, 'u_opaqueThreshold');
         this.u_tintColor        = gl.getUniformLocation(program, 'u_tintColor');
         this.u_chunkDataSampler = gl.getUniformLocation(program, 'u_chunkDataSampler');
+        this.u_gridChunkSampler = gl.getUniformLocation(program, 'u_gridChunkSampler');
         this.u_blockDayLightSampler = gl.getUniformLocation(program, 'u_blockDayLightSampler');
         this.u_maskColorSampler = gl.getUniformLocation(program, 'u_maskColorSampler');
         this.u_useNormalMap     = gl.getUniformLocation(program, 'u_useNormalMap');
@@ -147,29 +148,22 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform4fv(this.u_fogAddColor, gu.fogAddColor);
         gl.uniform1f(this.u_brightness, Math.max(gu.brightness, MIN_BRIGHTNESS));
         gl.uniform1f(this.u_chunkBlockDist, gu.chunkBlockDist);
-        gl.uniform1f(this.u_useNormalMap, gu.useNormalMap);
+        this.u_useNormalMap && gl.uniform1f(this.u_useNormalMap, gu.useNormalMap);
 
         const cx = gu.camPos.x, cy = gu.camPos.y, cz = gu.camPos.z;
         const px = Math.floor(cx), py = Math.floor(cy), pz = Math.floor(cz);
         gl.uniform3f(this.u_camera_pos, cx - px, cz - pz, cy - py);
         gl.uniform3i(this.u_camera_posi, px, pz, py);
-
+        this.u_gridChunkSize && gl.uniform3f(this.u_gridChunkSize, gu.gridChunkSize.x, gu.gridChunkSize.z, gu.gridChunkSize.y);
         gl.uniform2fv(this.u_resolution, gu.resolution);
-        gl.uniform1f(this.u_eyeinwater, gu.u_eyeinwater);
-        gl.uniform1f(this.u_TestLightOn, gu.testLightOn);
-        gl.uniform4fv(this.u_SunDir, [...gu.sunDir, gu.useSunDir ? 1 : 0]);
+        this.u_eyeinwater && gl.uniform1f(this.u_eyeinwater, gu.u_eyeinwater);
+        this.u_SunDir && gl.uniform4fv(this.u_SunDir, [...gu.sunDir, gu.useSunDir ? 1 : 0]);
         gl.uniform1f(this.u_localLightRadius, gu.localLigthRadius);
         // gl.uniform1f(this.u_opaqueThreshold, 0.0);
-        gl.uniform1i(this.u_fogOn, true);
+        this.u_fogOn && gl.uniform1i(this.u_fogOn, true);
         gl.uniform1f(this.u_crosshairOn, gu.crosshairOn);
         gl.uniform1f(this.u_time, gu.time);
         gl.uniform1f(this.u_rain_strength, gu.rainStrength);
-
-        if (gu.lightOverride >= 0) {
-            gl.uniform3f(this.u_lightOverride, ((gu.lightOverride & 0xff) / 255.0), (((gu.lightOverride >> 8) & 0xff) / 255.0),  1.0 + (gu.lightOverride >> 16));
-        } else {
-            gl.uniform3f(this.u_lightOverride, 0.0, 0.0, 0.0);
-        }
     }
 
     setStaticUniforms() {
@@ -177,7 +171,8 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform1i(this.u_texture, 4);
         gl.uniform1i(this.u_texture_n, 5);
         gl.uniform1i(this.u_chunkDataSampler, 3);
-        gl.uniform1iv(this.u_lightTex, [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+        this.u_gridChunkSampler && gl.uniform1i(this.u_gridChunkSampler, 6);
+        gl.uniform1iv(this.u_lightTex, [7, 8, 9, 10, 11, 12, 13, 14, 15]);
         gl.uniform1i(this.u_maskColorSampler, 1);
         gl.uniform1i(this.u_blockDayLightSampler, 2);
     }
@@ -197,6 +192,15 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         if (this.globalID === -1) {
             this.setStaticUniforms();
         }
+        const lu = this.lightUniforms;
+        if (this._lightOverride !== lu.override) {
+            let val = this._lightOverride = lu.override;
+            if (val >= 0) {
+                gl.uniform3f(this.u_lightOverride, ((val & 0xff) / 255.0), (((val >> 8) & 0xff) / 255.0),  1.0 + (val >> 16));
+            } else {
+                gl.uniform3f(this.u_lightOverride, 0.0, 0.0, 0.0);
+            }
+        }
         if (this.globalID === gu.updateID) {
             return;
         }
@@ -208,9 +212,15 @@ export class WebGLTerrainShader extends BaseTerrainShader {
 
     updatePos(pos, modelMatrix) {
         const { gl } = this.context;
-        const {camPos} = this.globalUniforms;
+        const {camPos, gridTexSize} = this.globalUniforms;
         if (pos) {
             gl.uniform3f(this.u_add_pos, pos.x - camPos.x, pos.z - camPos.z, pos.y - camPos.y);
+            if (this.u_gridChunkOffset) {
+                const x = - pos.x + (-1 + Math.round(pos.x / gridTexSize.x)) * gridTexSize.x;
+                const y = - pos.y + (-1 + Math.round(pos.y / gridTexSize.y)) * gridTexSize.y;
+                const z = - pos.z + (-1 + Math.round(pos.z / gridTexSize.z)) * gridTexSize.z;
+                gl.uniform3f(this.u_gridChunkOffset, x, z, y);
+            }
         } else {
             gl.uniform3f(this.u_add_pos, -camPos.x, -camPos.z, -camPos.y);
         }

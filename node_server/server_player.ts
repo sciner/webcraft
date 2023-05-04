@@ -175,6 +175,7 @@ export class ServerPlayer extends Player {
         this.timer_reload = performance.now()
         this._aabb = new AABB()
 
+        this.#timer_immunity = performance.now()
     }
 
     init(init_info: PlayerInitInfo): void {

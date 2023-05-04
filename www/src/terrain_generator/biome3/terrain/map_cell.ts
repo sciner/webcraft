@@ -43,7 +43,24 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
             }
 
             if(!plant_blocks && biome.plants && density_params.d2 > .85 && r < FLOWERS_THRESHOLD) {
-                plant_blocks = biome.plants.list[((r/FLOWERS_THRESHOLD) * biome.plants.list.length) | 0].blocks
+                const plant_set = biome.plants
+                const freq = r / FLOWERS_THRESHOLD
+                if(freq < .5) {
+                    let s = 0
+                    for(let i = 0; i < plant_set.list.length; i++) {
+                        const p = plant_set.list[i]
+                        s += p.percent
+                        if(freq < s) {
+                            if(this.checkWhen(p.when, xyz, density_params, null, null)) {
+                                if(y + p.blocks.length < size.y) {
+                                    return p.blocks
+                                }
+                            }
+                            break
+                        }
+                    }
+                }
+                // plant_blocks = biome.plants.list[((r/FLOWERS_THRESHOLD) * biome.plants.list.length) | 0].blocks
             }
 
             if(!plant_blocks && biome.grass) {

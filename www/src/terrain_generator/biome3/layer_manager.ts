@@ -9,6 +9,7 @@ import Biome3LayerUnderworld from "./layers/underworld.js";
 import type { Biome3LayerBase } from "./layers/base.js";
 import type Terrain_Generator from "./index.js";
 import Biome3LayerBottomCaves from "./layers/bottom_caves.js";
+import Biome3LayerFlyingIslands from "./layers/flying_islands.js";
 
 declare type ILayerList = {type: string, bottom: int, up: int}[]
 declare type ILayerItem = {obj: Biome3LayerBase, bottom: int, up: int}
@@ -35,6 +36,7 @@ export class Biome3LayerManager {
         this.layer_types.set('lava', Biome3LayerLava)
         this.layer_types.set('end', Biome3LayerEnd)
         this.layer_types.set('bottom_caves', Biome3LayerBottomCaves)
+        this.layer_types.set('flying_island', Biome3LayerFlyingIslands)
 
         // Make layers
         this.makeLayers(list)

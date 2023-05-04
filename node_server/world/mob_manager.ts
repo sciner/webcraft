@@ -160,7 +160,7 @@ export class WorldMobManager {
      */
     create(params: MobSpawnParams): Mob | null {
         const world = this.world;
-        const chunk_addr = world.chunkManager.grid.toChunkAddr(params.pos);
+        const chunk_addr = world.chunkManager.grid.toChunkAddr(params.pos)
         const chunk = world.chunks.get(chunk_addr);
         if(chunk) {
             try {
@@ -193,15 +193,14 @@ export class WorldMobManager {
      * Spawn new mob
      */
     spawn(player: ServerPlayer, params: MobSpawnParams): boolean {
-        // const world = this.world;
         try {
             return this.create(params) != null
         } catch (e) {
 
             // Этот код никогда не выполнятся! this.create() не кидает исключений
 
-            console.log('e', e);
-            player.sendError(e);
+            console.log('e', e)
+            player.sendError(e)
         }
         return false
     }

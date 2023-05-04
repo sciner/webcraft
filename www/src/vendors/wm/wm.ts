@@ -1157,7 +1157,7 @@ export class TextEdit extends Window {
         }
 
     }
-    
+
     typeChar(e, charCode, ch) {
         if(!this.focused) {
             return;
@@ -1300,7 +1300,7 @@ export class SimpleBlockSlot extends Window {
 
         const padding = 0
         const bar_height = 3 * this.zoom
-        
+
         this.bar = new Label(padding, h - bar_height - padding, this.w - padding * 2, bar_height, 'lblBar')
         this.bar.style.background.color = '#00000000'
         this.bar.visible = false
@@ -1546,6 +1546,7 @@ export class WindowManager extends Window {
         this.pixiRender.shader.bind(this.pixiRender.plugins.batch._shader, true);
         this.pixiRender.reset();
         this.pixiRender.texture.bind(null, 3);
+        this.pixiRender.texture.bind(null, 6);
 
         this.pixiRender.render(this.parent);
     }
@@ -1891,7 +1892,7 @@ export class Slider extends Window {
 export class HTMLText extends Window {
 
     #_wmhtmltext : PIXI.HTMLText
-    
+
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
         super(x, y, w, h, id, title, text)
         this.#_wmhtmltext = new PIXI.HTMLText("Hello <b>World</b>", {

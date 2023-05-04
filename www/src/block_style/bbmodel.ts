@@ -101,7 +101,20 @@ export default class style {
         }
 
         const aabb = new AABB()
-        aabb.set(0, 0, 0, 1, 1, 1)
+        const mat_abbb = tblock.material.aabb
+
+        if(mat_abbb) {
+            aabb.set(
+                mat_abbb[0] / 16, 
+                mat_abbb[1] / 16, 
+                mat_abbb[2] / 16, 
+                mat_abbb[3] / 16, 
+                mat_abbb[4] / 16, 
+                mat_abbb[5] / 16
+            )
+        } else {
+            aabb.set(0, 0, 0, 1, 1, 1)
+        }
 
         // if(!for_physic) {
         //     aabb.expand(1/100, 1/100, 1/100)
@@ -305,10 +318,21 @@ export default class style {
         // 1.
         if(bb.set_state /* && !(tblock instanceof FakeTBlock) */) {
             for(let state of bb.set_state) {
-                if(style.checkWhen(model, tblock, state.when, neighbours)) {
-                    model.state = style.processName(state.name, tblock)
+                if(state.names) {
+                    const x = xyz.x % chunk.size.x
+                    const y = xyz.y % chunk.size.y
+                    const z = xyz.z % chunk.size.z
+                    const index = Math.floor(randoms.double(Math.round(z * chunk.size.x + x + y)) * state.names.length)
+                    const name = state.names[index]
+                    model.state = style.processName(name, tblock)
                     model.hideAllExcept([model.state])
                     break
+                } else {
+                    if(style.checkWhen(model, tblock, state.when, neighbours)) {
+                        model.state = style.processName(state.name, tblock)
+                        model.hideAllExcept([model.state])
+                        break
+                    }
                 }
             }
         }

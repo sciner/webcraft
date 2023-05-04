@@ -118,16 +118,6 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
     }
 
-    // Update light texture from chunk
-    updateLightTex(render : Renderer) {
-        const chunk = render.world.chunkManager.getChunk(this.chunk_addr)
-        if (!chunk) {
-            return
-        }
-        this.chunk = chunk
-        this.lightTex = chunk.getLightTexture(render.renderBackend)
-    }
-
     pickup() {
         this.now_draw = true;
         // Qubatch.sounds.play('madcraft:entity.item.pickup', 'hit');
@@ -189,11 +179,6 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         }
 
         // this.update()
-        this.updateLightTex(render)
-
-        if(!this.chunk) {
-            return;
-        }
 
         const mat       = this.block_material
         const matrix    = this.modelMatrix
@@ -205,10 +190,9 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
         // Calc init values
         const addY = (performance.now() - this.pn) / 10
-        this.posFact.copyFrom(this.pos).subSelf(this.chunk.coord)
-        this.posFact.y += .5 + Math.sin(addY / 35) / Math.PI * .2
-        position.set([this.posFact.x, this.posFact.y + 3 / 16, this.posFact.z])
-
+        position.set([0,
+            3 / 16 + .5 + Math.sin(addY / 35) / Math.PI * .2,
+           0])
         const display = mat.bb?.model?.json?.display?.ground
         if(display) {
 
@@ -225,7 +209,10 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
             const s16 = BB_GUI_SCALE / 16
             if(display.translation) {
-                vec3.set(position, -display.translation[0] * s16, display.translation[1] * s16 + 0.5, -display.translation[2] * s16)
+                position[0] += -display.translation[0] * s16
+                position[1] += display.translation[1] * s16
+                position[2] += -display.translation[2] * s16
+                // vec3.set(position, -display.translation[0] * s16, display.translation[1] * s16 + 0.5, -display.translation[2] * s16)
             }
 
         } else {
@@ -249,13 +236,13 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         mat4.multiply(_matrix_rot, _matrix_rot, matrix)
 
         // Draw mesh group
-        this.drawBuffer(render, this.chunk.coord, _matrix_rot)
+        this.drawBuffer(render, this.pos, _matrix_rot)
 
     }
 
     // Draw directly without any pre-computation
     drawBuffer(render : Renderer, pos : Vector, mx : imat4) {
-        this.mesh_group.draw(render, pos, mx, this.lightTex)
+        this.mesh_group.draw(render, pos, mx)
     }
 
     /**
@@ -282,7 +269,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
             mx = matrix
         }
 
-        this.mesh_group.draw(render, this.pos, mx, null)
+        this.mesh_group.draw(render, this.pos, mx)
 
         // TODO: Включить, чтобы рисовалась рука BBMODEL
         // Qubatch.player.arm.draw(render, this.pos, mx, null)

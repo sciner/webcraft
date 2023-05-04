@@ -25,7 +25,7 @@ export class Brain extends FSMBrain {
         world.actions_queue.add(actor, actions);
         return false;
     }
-    
+
     // Если убили моба
     onKill(actor, type_damage) {
         const mob = this.mob;

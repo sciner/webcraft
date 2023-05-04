@@ -52,8 +52,6 @@ export class MobModel extends NetworkPhysicObject {
 	width :             int = 0
 	height :            int = 0
 	//on_ground :         boolean = true
-	tintColor :         Color = new Color(0, 0, 0, 0)
-	textures :          Map<string, any> = new Map()
 	type :              string
 	skin :              any
 	targetLook :        float = 0
@@ -85,14 +83,17 @@ export class MobModel extends NetworkPhysicObject {
     anim?:              false | TAnimState
     ground:             boolean = true
     running:            boolean = false
-    health:             number = 100
     driving?:           ClientDriving | null
     hasUse?:            boolean     // см. TMobConfig.hasUse
     supportsDriving?:   boolean
+    textures :          Map<string, any> = new Map()
 
     is_sheared:         boolean = false
     gui_matrix:         float[]
     renderLast:         boolean
+
+    #health: number = 100
+    #timer_demage: number
 
     constructor(props : TMobProps, world : World) {
 
@@ -150,6 +151,13 @@ export class MobModel extends NetworkPhysicObject {
         super.processNetState()
     }
 
+    set health(val: number) {
+        if (this.#health - val > 0) {
+            this.#timer_demage = performance.now() + 200
+        }
+        this.#health = val
+    }
+
     isRenderable(render: Renderer) : boolean {
         return (
              !this.currentChunk ||
@@ -158,31 +166,7 @@ export class MobModel extends NetworkPhysicObject {
     }
 
     get isAlive() : boolean {
-        return this.extra_data?.is_alive;
-    }
-
-    // ударить кулаком
-    punch(e) {
-        if(!this.isAlive) {
-            return false;
-        }
-        if(e.button_id == MOUSE.BUTTON_LEFT) {
-            // play punch
-            Qubatch.sounds.play('madcraft:block.player', 'strong_atack');
-            // play mob cry
-            //let tag = `madcraft:block.${this.type}`;
-            //if(Qubatch.sounds.tags.hasOwnProperty(tag)) {
-            //    Qubatch.sounds.play(tag, 'hurt');
-            //}
-            // make red
-            this.tintColor.set(1, 0, 0, .3);
-            setTimeout(() => {
-                this.tintColor.set(0, 0, 0, 0);
-            }, 200);
-            // add velocity
-            // let velocity = new Vector(0, 0.5, 0);
-            // mob.addVelocity(velocity);
-        }
+        return this.#health > 0
     }
 
     computeLocalPosAndLight(render : Renderer, delta : float) {
@@ -192,10 +176,15 @@ export class MobModel extends NetworkPhysicObject {
         this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend)
 
         const mesh = this._mesh
-        if(mesh && this.lightTex) {
+        if(mesh) {
             // mesh.gl_material.changeLighTex(this.lightTex)
             // mesh.gl_material.lightTex = this.lightTex
-            mesh.gl_material.tintColor = this.tintColor
+            if (this.#timer_demage > performance.now()) {
+                mesh.gl_material.tintColor = new Color(1, 0, 0, .3)
+            } else {
+                mesh.gl_material.tintColor = new Color(0, 0, 0, 0)
+            }
+
         }
 
         // if (this.material) {
@@ -251,6 +240,9 @@ export class MobModel extends NetworkPhysicObject {
      * Draw mob model
      */
     draw(render : Renderer, camPos : Vector, delta : float, speed? : float, draw_debug_grid : boolean = false) {
+        if(!this.isAlive) {
+            return false
+        }
 
         this.update(render, camPos, delta, speed);
 

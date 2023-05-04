@@ -8,6 +8,8 @@ import { BLOCK_FLAG, BLOCK_GROUP_TAG, DEFAULT_STYLE_NAME, LEAVES_TYPE } from "./
 import type { TBlock } from "./typed_blocks3.js";
 import type { World } from "./world.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
+import { MASK_SRC_AO, MASK_SRC_BLOCK, MASK_SRC_DAYLIGHT, MASK_SRC_NONE } from './worker-light/LightConst.js';
+import { MASK_SRC_FILTER } from './worker-light/LightConst.js';
 
 export const TRANS_TEX                      = [4, 12]
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64
@@ -18,6 +20,7 @@ export const BLOCK_DB_PROPS                 = ['power', 'entity_id', 'extra_data
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data']
 export const NO_DESTRUCTABLE_BLOCKS         = ['BEDROCK', 'STILL_WATER']
 export const DIRT_BLOCK_NAMES               = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET']
+export const LAYERING_MOVE_TO_DOWN_STYLES   = ['grass', 'tall_grass', 'wildflowers']
 
 const AIR_BLOCK_STRINGIFIED = '{"id":0}'
 
@@ -99,8 +102,8 @@ class Block {
 }
 
 export class FakeVertices {
-    material_key: string;
-    vertices: float[];
+    material_key: string
+    vertices: float[]
 
     constructor(material_key : string, vertices : float[]) {
         this.material_key = material_key
@@ -211,27 +214,24 @@ class Block_Material implements IBlockMiningMaterial {
      * @return float
      */
     getMiningTime(instrument : object | any, force : boolean) : float {
-        let mining_time = this.mining.time;
         if(force) {
-            mining_time = 0;
-        } else if(instrument && instrument.material) {
-            const instrument_id = instrument.material.item?.instrument_id;
-            if(instrument_id) {
-                if(this.mining.instruments.indexOf(instrument_id) >= 0) {
-                    const instrument_boost = instrument.material.material.mining.instrument_boost;
-                    if(typeof instrument_boost !== 'undefined' && !isNaN(instrument_boost)) {
-                        mining_time = Math.round((mining_time / instrument_boost) * 100) / 100;
-                    }
-                }
+            return 0
+        }
+        const mining_time = this.mining.time
+        if(instrument?.material?.item?.instrument_id) {
+            const instrument_id = instrument.material.item.instrument_id
+            const boost = instrument.material.material.mining.instruments
+            if (boost[instrument_id]) {
+                return Math.round((mining_time / boost[instrument_id]) * 100) / 100
             }
         }
-        return mining_time;
+        return mining_time
     }
 
 }
 
 // getBlockNeighbours
-export function getBlockNeighbours(world, pos) {
+export function getBlockNeighbours(world : World, pos : IVectorPoint) {
     let v = new Vector(0, 0, 0);
     return {
         UP:     world.getBlock(v.set(pos.x, pos.y + 1, pos.z)),
@@ -290,10 +290,15 @@ export class BLOCK {
             this.addFlag(BLOCK_FLAG.IS_DIRT, b.id)
         }
         //
+        this.addFlag(BLOCK_FLAG.NOT_CREATABLE, this.BEDROCK.id, this.UNCERTAIN_STONE.id)
         for(let block of BLOCK.getAll()) {
-            this.addFlag(BLOCK_FLAG.NOT_CREATABLE, this.BEDROCK.id, this.UNCERTAIN_STONE.id)
             if(block.name.startsWith('BLD_')) {
                 this.addFlag(BLOCK_FLAG.NOT_CREATABLE, block.id)
+            }
+            //
+            const style_name = block.style_name
+            if(LAYERING_MOVE_TO_DOWN_STYLES.includes(style_name) || block.tags.includes('layering_move_to_down')) {
+                this.addFlag(BLOCK_FLAG.LAYERING_MOVE_TO_DOWN, block.id)
             }
         }
     }
@@ -321,19 +326,24 @@ export class BLOCK {
             : mat.title;
     }
 
-    static getLightPower(material) : number {
+    static getLightPower(material : IBlockMaterial) : number {
         if (!material) {
-            return 0;
+            return MASK_SRC_NONE
         }
-        let val = 0;
+        let val = MASK_SRC_NONE
         if (material.is_water) {
-            return 64;
+            return MASK_SRC_FILTER
         } else if(material.light_power) {
-            val = Math.floor(material.light_power.a / 16.0);
+            let power = material.light_power.a;
+            if (material.tags.includes('daylight_block')) {
+                val = MASK_SRC_DAYLIGHT
+            } else {
+                val = Math.floor(power / 16.0);
+            }
         } else if (!material.transparent) {
-            val = 96;
+            val = MASK_SRC_BLOCK
         }
-        return val + (material.visible_for_ao ? 128 : 0);
+        return val + (material.visible_for_ao ? MASK_SRC_AO : MASK_SRC_NONE);
     }
 
     /**
@@ -788,7 +798,7 @@ export class BLOCK {
             !('height' in block);
     }
 
-    static isFlower(block) : boolean {
+    static isFlower(block : IBlockMaterial) : boolean {
         if(block.id == 0) {
             return false
         }
@@ -1213,6 +1223,9 @@ export class BLOCK {
         }
         if(overlay_name && material?.texture_overlays) {
             mat_texture = material.texture_overlays[overlay_name]
+        }
+        if(overlay_name && material?.connected_sides) {
+            mat_texture = material.connected_sides[overlay_name]
         }
 
         const tx_cnt = force_tex?.tx_cnt || material.tx_cnt;
@@ -1683,11 +1696,11 @@ export class BLOCK {
         }
 
         await Promise.all(all).then(([block_styles, _]) => {
-            BLOCK.sortBlocks();
-            BLOCK.setFlags();
-            BLOCK.autoTags();
-            BLOCK.addHardcodedFlags();
+            BLOCK.sortBlocks()
+            BLOCK.autoTags()
+            BLOCK.addHardcodedFlags()
             BLOCK.checkGeneratorOptions()
+            BLOCK.setFlags()
             // Block styles
             for(let style of block_styles.values()) {
                 BLOCK.registerStyle(style);

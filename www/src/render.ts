@@ -19,7 +19,7 @@ import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
-import { BLEND_MODES } from "./renders/BaseRenderer.js";
+import {BLEND_MODES, GlobalUniformGroup, LightUniformGroup} from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
 import { Weather } from "./block_type/weather.js";
@@ -83,13 +83,14 @@ export class Renderer {
     meshes:                 MeshManager
     camera:                 Camera
     debugGeom:              LineGeometry
-    inHandOverlay?:         any
+    inHandOverlay?:         InHandOverlay
     canvas:                 any
     drop_item_meshes:       any[]
     settings:               any
     videoCardInfoCache:     any
     options:                any
-    globalUniforms:         any
+    globalUniforms:         GlobalUniformGroup;
+    lightUniforms:          LightUniformGroup;
     defaultShader:          any
     defaultFluidShader:     any
     viewportWidth:          any
@@ -112,6 +113,7 @@ export class Renderer {
     cullID:                 int = 0
     lastDeltaForMeGui:      int = 0
     mobsDrawnLast:          MobModel[] = [] // список мобов, отложенных при 1-м вызове drawMobs, чтобы быть нарисованными на 2-м
+    nightVision:            boolean = false;
 
     constructor(qubatchRenderSurfaceId : string) {
         this.canvas             = document.getElementById(qubatchRenderSurfaceId);
@@ -212,6 +214,7 @@ export class Renderer {
         await BLOCK.resource_pack_manager.initTextures(renderBackend, settings);
 
         this.globalUniforms = renderBackend.globalUniforms;
+        this.lightUniforms = renderBackend.lightUniforms;
 
         // Make materials for all shaders
         for(let rp of BLOCK.resource_pack_manager.list.values()) {
@@ -849,7 +852,7 @@ export class Renderer {
         let preset = PRESET_NAMES.NORMAL;
 
         if(player.pos.y < 0 && this.world.info.generator.id !== 'flat') {
-            nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
+             nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
         }
 
         const getPlayerBlockColor = () : Color | null => {
@@ -955,11 +958,13 @@ export class Renderer {
         const {renderBackend} = this;
         if (!this.world) {
             renderBackend._emptyTexInt.bind(3);
+            renderBackend._emptyTex3DInt.bind(6);
             return;
         }
         const cm = this.world.chunkManager;
         // TODO: move to batcher
         cm.chunkDataTexture.getTexture(renderBackend).bind(3);
+        cm.renderList.chunkGridTex.getTexture(renderBackend).bind(6);
         const lp = cm.renderList.lightPool;
 
         // webgl bind all texture-3d-s
@@ -997,6 +1002,8 @@ export class Renderer {
 
         globalUniforms.crosshairOn = this.crosshairOn;
         globalUniforms.u_eyeinwater = player.eyes_in_block?.is_water ? 1. : 0.;
+        globalUniforms.gridChunkSize.copyFrom(this.world.chunkManager.grid.chunkSize);
+        globalUniforms.gridTexSize.copyFrom(renderList.chunkGridTex.size).multiplyVecSelf(globalUniforms.gridChunkSize);
         globalUniforms.update();
 
         this.debugGeom.clear();
@@ -1006,7 +1013,7 @@ export class Renderer {
         });
 
         this.env.draw(this);
-
+        this.lightUniforms.pushOverride(this.nightVision ? 0xff: -1);
         this.defaultShader.bind(true);
 
         // upload important buffers here!
@@ -1052,6 +1059,7 @@ export class Renderer {
             }
         }
         renderList.checkFence();
+        this.lightUniforms.popOverride();
 
         const overChunk = player.getOverChunk();
         if (overChunk) {
@@ -1117,7 +1125,7 @@ export class Renderer {
         // @todo и тут тоже не должно быть
         this.defaultShader.bind();
         if(!player.game_mode.isSpectator() && Qubatch.hud.active && !player.controlManager.isFreeCam) {
-            this.drawInhandItem(delta);
+            this.drawInhandItem(delta)
         }
 
         // 4. Draw HUD
@@ -1136,14 +1144,23 @@ export class Renderer {
     }
 
     //
-    drawInhandItem(dt) {
+    drawInhandItem(delta : float) {
 
         if (!this.inHandOverlay) {
             this.inHandOverlay = new InHandOverlay(this.world, this.player.skin, this);
         }
 
         if(this.camera_mode == CAMERA_MODE.SHOOTER) {
-            this.inHandOverlay.draw(this, dt);
+            // reset tintColor
+            const meshes = this.inHandOverlay?.inHandItemMesh?.mesh_group?.meshes
+            if(meshes) {
+                for(const mesh of meshes.values()) {
+                    if(mesh.material.tintColor) {
+                        mesh.material.tintColor.set(0, 0, 0, 0)
+                    }
+                }
+            }
+            this.inHandOverlay.draw(this, delta);
         }
 
         // we should reset camera state because a viewMatrix used for picking
@@ -1451,7 +1468,6 @@ export class Renderer {
         this.renderBackend.resetBefore();
         const defTex = this.env.skyBox?.shader.texture || this.renderBackend._emptyTex;
         defTex.bind(0);
-        this.renderBackend._emptyTex3D.bind(6);
         this.maskColorTex?.bind(1);
         this.blockDayLightTex?.bind(2);
         this.checkLightTextures(bindLights);
@@ -1612,7 +1628,7 @@ export class Renderer {
      * posX , posY in zoom
      */
     drawFromPixi(pixiRender, worldTransform, pixiBlockSize = 64, lambda: (render: Renderer) => void ) {
-        const {globalUniforms:gu} = this;
+        const {globalUniforms:gu, lightUniforms: lu} = this;
         pixiRender.batch.flush();
         this.resetBefore(false);
         const {screen} = pixiRender;
@@ -1646,8 +1662,7 @@ export class Renderer {
         gu.brightness = 0.0; // 0.55 * 1.0; // 1.3
         // gu.sunDir = [-1, -1, 1];
         // gu.useSunDir = true;
-
-        gu.lightOverride = 0xff;
+        lu.pushOverride(0x100ff);
 
         guiCam.use(gu, true);
         gu.update();
@@ -1658,10 +1673,12 @@ export class Renderer {
 
         this.resetAfter();
 
+        lu.popOverride();
         pixiRender.shader.program = null;
         pixiRender.shader.bind(pixiRender.plugins.batch._shader, true);
         pixiRender.reset();
         pixiRender.texture.bind(null, 3);
+        pixiRender.texture.bind(null, 6);
     }
 
     // getVideoCardInfo...
@@ -1717,7 +1734,7 @@ export class Renderer {
     }
 
     updateNightVision(val) {
-        this.globalUniforms.lightOverride = val ? 0xff: -1;
+        this.nightVision = val;
     }
 
     screenshot(callback) {

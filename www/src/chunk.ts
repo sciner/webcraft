@@ -64,7 +64,6 @@ export class Chunk {
         this.id = this.addr.toHash();
 
         this.light = new ChunkLight(this);
-        this.lightMats = new Map();
 
         // Fluid
         this.fluid_buf = null;
@@ -146,7 +145,7 @@ export class Chunk {
         chunkManager.dataWorld.syncOuter(this);
         chunkManager.chunks_state.blocksGenerated(this)
         this.inited = true;
-        this.light.init();
+        this.light.init(args.dayLightDefaultValue)
     }
 
     // onVerticesGenerated ... Webworker callback method
@@ -193,7 +192,7 @@ export class Chunk {
                 data: this.light.lightTexData
             })
             this.light.lightTexData = null;
-            this.light._dataTextureDirty = true;
+            this.light.markDirty();
         }
 
         return this.light.lightTex;

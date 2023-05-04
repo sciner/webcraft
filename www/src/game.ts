@@ -399,8 +399,8 @@ export class GameClass {
                             e.e_orig.preventDefault();
                             e.e_orig.stopPropagation();
                         }
-                        if(e.down && e.shiftKey) {
-                            this.player.controlManager.isFreeCam = !this.player.controlManager.isFreeCam;
+                        if(e.down && e.ctrlKey) {
+                            this.player.controlManager.toggleFreeCam()
                         }
                         return true;
                     }

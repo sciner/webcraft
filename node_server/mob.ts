@@ -6,7 +6,7 @@ import { DBWorldMob, MobRow } from "./db/world/mob.js"
 import { AABB } from "@client/core/AABB.js";
 import type { ServerWorld } from "./server_world.js";
 import type { FSMBrain } from "./fsm/brain.js";
-import { EnumDamage } from "@client/enums/enum_damage.js";
+import type { EnumDamage } from "@client/enums/enum_damage.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
 import type { Indicators, PlayerSkin } from "@client/player.js";
 import type { ServerPlayer } from "./server_player.js";
@@ -49,10 +49,10 @@ export class MobState {
     rotate: Vector;
     extra_data: any;
 
-    constructor(id : int, pos : Vector, rotate : Vector, extra_data) {
+    constructor(id : int, pos : Vector, rotate : Vector, extra_data : any) {
         this.id = id;
-        this.pos = new Vector(pos).round(3);
-        this.rotate = new Vector(rotate).round(3);
+        this.pos = new Vector(pos).roundSelf(3)
+        this.rotate = new Vector(rotate).roundSelf(3)
         this.extra_data = JSON.parse(JSON.stringify(extra_data))
         if(this.extra_data?.time_fire !== undefined) {
             this.extra_data.in_fire = this.extra_data.time_fire > 0
@@ -233,8 +233,8 @@ export class Mob {
         if(!params.extra_data) {
             params.extra_data = {};
         }
-        params.extra_data.is_alive = true;
-        params.extra_data.play_death_animation = true;
+        params.extra_data.health = 100
+        params.extra_data.play_death_animation = true
         // make indicators
         params.indicators = world.db.getDefaultPlayerIndicators();
         params.indicators.live = config.health
@@ -268,11 +268,10 @@ export class Mob {
     }
 
     tick(delta: float): void {
-        if(this.indicators.live == 0) {
-            return;
+        if (this.extra_data.health == 0) {
+            return
         }
-        //
-        this.#brain.tick(delta);
+        this.#brain.tick(delta)
     }
 
     addVelocity(vec: Vector) {
@@ -297,7 +296,7 @@ export class Mob {
      * @return true если есть что сохранять в мировой транзакци для этого моба
      */
     onUnload(): boolean {
-        console.debug(`Mob unloaded ${this.entity_id}, ${this.id}`);
+        //console.debug(`Mob unloaded ${this.entity_id}, ${this.id}`);
         this.#world.mobs.list.delete(this.id)
         this.driving?.onMobUnloadedOrRemoved(this)
         // we assume there is always some change to save, unless it's been already saved as dead
@@ -360,25 +359,15 @@ export class Mob {
         return this.#brain.onUse(actor, item_id);
     }
 
-    punch(server_player: ServerPlayer, params) {
-        if(params.button_id == MOUSE.BUTTON_RIGHT) {
-            this.#brain.onUse(server_player, server_player.state.hands.right.id);
-        } else if(params.button_id == MOUSE.BUTTON_LEFT) {
-            if(this.indicators.live > 0) {
-                this.#brain.onDamage(5, EnumDamage.PUNCH, server_player);
-            }
-        }
-    }
-
     // Kill
     kill(): void {
         if(this.already_killed) {
             return;
         }
-        this.already_killed = true;
-        this.indicators.live = 0;
-        this.extra_data.is_alive = false;
-        this.driving?.removeMobId(this.id);
+        this.already_killed = true
+        this.indicators.live = 0
+        this.extra_data.health = 0
+        this.driving?.removeMobId(this.id)
         this.#brain.sendState();
     }
 
@@ -392,7 +381,7 @@ export class Mob {
     }
 
     get isAlive() : boolean {
-        return this.indicators.live > 0;
+        return this.extra_data.health > 0
     }
 
     // если игрока нет, он умер или сменил игровой режим на безопасный, то его нельзя атаковать

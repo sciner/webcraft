@@ -80,4 +80,5 @@ export class ResourcePackManager {
 
         return Promise.all(tasks);
     }
+
 }

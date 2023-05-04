@@ -26,7 +26,7 @@ export class Brain extends FSMBrain {
             bm.BEETROOT_SEEDS.id
         ];
     }
-    
+
     // если нашли гнездо
     doForward(delta) {
         super.doForward(delta);
@@ -46,7 +46,7 @@ export class Brain extends FSMBrain {
             }
         }
     }
-    
+
     // Процесс сноса яйца
     doLay(delta) {
         if (!this.nest || this.nest.extra_data.eggs >= COUNT_EGGS_IN_NEST) {
@@ -61,13 +61,13 @@ export class Brain extends FSMBrain {
                 const world = mob.getWorld();
                 const actions = new WorldAction();
                 actions.addBlocks([{
-                    pos: this.nest.posworld, 
+                    pos: this.nest.posworld,
                     item: {
                         id: world.block_manager.CHICKEN_NEST.id,
                         extra_data: {
                             eggs: this.nest.extra_data.eggs + 1
                         }
-                    }, 
+                    },
                     action_id: ServerClient.BLOCK_ACTION_MODIFY
                 }]);
                 world.actions_queue.add(null, actions);
@@ -75,7 +75,7 @@ export class Brain extends FSMBrain {
             }
             return;
         }
-        
+
         mob.rotate.z = this.angleTo(nest_pos);
 
         this.updateControl({
@@ -87,7 +87,7 @@ export class Brain extends FSMBrain {
         this.applyControl(delta);
         this.sendState();
     }
-    
+
     onKill(actor, type_damage) {
         const mob = this.mob;
         const world = mob.getWorld();
@@ -103,22 +103,22 @@ export class Brain extends FSMBrain {
         actions.addPlaySound({ tag: 'madcraft:block.chicken', action: 'death', pos: mob.pos.clone() });
         world.actions_queue.add(actor, actions);
     }
-    
+
     // если использовали предмет
     onUse(actor, id) {
         if (!actor || !id){
             return;
         }
-        
+
         const mob = this.mob;
         const world = mob.getWorld()
         const bm = world.block_manager
-        
+
         if (id == bm.WHEAT_SEEDS.id) {
             console.log('use');
             return true;
         }
         return false;
     }
-    
+
 }

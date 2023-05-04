@@ -52,7 +52,7 @@ export class Physics {
     private readonly iceIds             : int[]
 
     // =================== options from old physics object ====================
-    
+
     private readonly scale              = PLAYER_ZOOM
     private readonly gravity            = 0.08 * this.scale // blocks/tick^2 https://minecraft.gamepedia.com/Entity#Motion_of_entities
     private readonly jumpSpeed         = 0.42 // вертикальная скорость прыжка, без учета scale
@@ -992,7 +992,7 @@ export class PrismarinePlayerState implements IPlayerControlState {
     options     : TPrismarineOptions
     driving ?   : TDrivingConfig    // Если задано - то это общий физический объект, контролируемый водителем
     pos         : Vector
-    vel         : Vector
+    vel         : Vector = new Vector(0, 0, 0)
     angularVelocity : float | null = null // Угловая скорость. Используется при езде если поворот стрелками.
     yaw         = 0
     flying      = false
@@ -1018,7 +1018,6 @@ export class PrismarinePlayerState implements IPlayerControlState {
 
         // Input / Outputs
         this.pos                    = pos.clone()
-        this.vel                    = new Vector(0, 0, 0)
 
         // Input only (not modified)
         this.control                = control

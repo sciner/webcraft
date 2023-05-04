@@ -6,7 +6,7 @@ import type { ChunkGrid } from "./core/ChunkGrid.js";
 
 //
 export const PORTAL_TYPES = [
-    {id: 'BOTTOM_CAVES',    block_name: 'OBSIDIAN',     y: -1000,   open_restricts: [{yless: -500}], color: new Color(68, 515, 0), is_default: false},
+    {id: 'BOTTOM_CAVES',    block_name: 'OBSIDIAN',     y: -70,     open_restricts: [{yless: -500}], color: new Color(68, 515, 0), is_default: false},
     {id: 'ROUTINE',         block_name: 'PRISMARINE',   y: 80,      open_restricts: [{yless: 500, ymore: 0}], color: new Color(68, 532, 0), is_default: true},
     {id: 'FLYING_ISLANDS',  block_name: 'GLOWSTONE',    y: 1000,    open_restricts: [{ymore: 500}], color: new Color(68, 540, 0), is_default: false}
 ];

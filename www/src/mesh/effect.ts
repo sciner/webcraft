@@ -220,12 +220,6 @@ export class Mesh_Effect {
         }
 
         if(this.chunk) {
-            if(render.settings.use_light != LIGHT_TYPE.NO) {
-                const light = this.chunk.getLightTexture(render.renderBackend);
-                if(light) {
-                    this.material.changeLighTex(light);
-                }
-            }
             render.renderBackend.drawMesh(
                 this.buffer,
                 this.material,

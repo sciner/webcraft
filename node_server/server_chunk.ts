@@ -566,7 +566,7 @@ export class ServerChunk {
             this.fluid.loadDbBuffer(this._preloadFluidBuf, true);
             this._preloadFluidBuf = null;
         }
-        this.light.init();
+        this.light.init(args.dayLightDefaultValue)
         // noinspection JSIgnoredPromiseFromCall
         this.loadMobs();
         this.onBlocksGeneratedOrRestored();

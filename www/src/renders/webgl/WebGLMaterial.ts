@@ -9,15 +9,6 @@ export class WebGLMaterial extends BaseMaterial {
         this._dirty = true;
     }
 
-    changeLighTex(tex) {
-        if (tex === this.lightTex) {
-            return;
-        }
-        this._dirty = true;
-
-        super.changeLighTex(tex);
-    }
-
     bind() {
         const { gl } = this.context;
         const { shader } = this;
@@ -75,28 +66,6 @@ export class WebGLMaterial extends BaseMaterial {
             gl.uniform1f(shader.u_mipmap, style.mipmap);
         }
 
-        // TODO: move it to batcher
-        if (WebGLMaterial.lightState !== this.lightTex || this.lightTex && this.lightTex.dirty) {
-            const prevTex = WebGLMaterial.lightState || this.context._emptyTex3D;
-            const prevBase = prevTex.baseTexture || prevTex;
-
-            let tex = this.lightTex || this.context._emptyTex3D;
-            let base = tex.baseTexture || tex;
-
-            if (/*prevBase.emptyRegion &&*/ tex.isEmpty) {
-                gl.uniform4i(shader.u_lightOffset,0, 0, 0, 0);
-                base.bind(6);
-                WebGLMaterial.lightState = this.lightTex;
-            } else {
-                //TODO: zero logic
-                if (prevBase !== base || base.dirty) {
-                    gl.uniform3f(shader.u_lightSize, 1. / base.width, 1. / base.height, 1. / base.depth);
-                    base.bind(6);
-                }
-                gl.uniform4i(shader.u_lightOffset, tex.offset.x, tex.offset.y, tex.offset.z, tex.depth);
-                WebGLMaterial.lightState = this.lightTex;
-            }
-        }
         if (this.blendMode !== BLEND_MODES.NORMAL) {
             switch (this.blendMode) {
                 case BLEND_MODES.ADD:
@@ -140,12 +109,6 @@ export class WebGLMaterial extends BaseMaterial {
             cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth, decalOffset: this.decalOffset });
     }
 
-    getLightMat(lightTex = null) {
-        // nothing
-        return this.context.createMaterial({texture: this.texture, lightTex, shader: this.shader,
-            cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth, decalOffset: this.decalOffset });
-    }
-
     /**
      * unused, works only in webgpu
      * @param addPos
@@ -156,5 +119,4 @@ export class WebGLMaterial extends BaseMaterial {
     }
 
     static texState = null;
-    static lightState = null;
 }

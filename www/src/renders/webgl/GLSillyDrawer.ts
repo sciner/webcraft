@@ -23,6 +23,8 @@ void main() {
     v_silly2 = a_silly2;
     v_silly3 = a_silly3;
     v_silly4 = a_silly4;
+    gl_PointSize = 0.0;
+    gl_Position = vec4(-2.0, -2.0, 0.0, 1.0);
 }
 `;
 

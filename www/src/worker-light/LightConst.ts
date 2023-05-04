@@ -4,19 +4,21 @@ export const maxLight = 31;
 export const maxPotential = 400;
 export const defPageSize = 1 << 12;
 
+export const MASK_SRC_NONE = 0;
 export const MASK_SRC_AMOUNT = 31;
-export const MASK_SRC_LIQUID = 64;
+export const MASK_SRC_FILTER_BIT = 6;
+export const MASK_SRC_DAYLIGHT = 32;
+export const MASK_SRC_FILTER = 64;
 export const MASK_SRC_BLOCK = 96;
 export const MASK_SRC_AO = 128;
 export const MASK_SRC_REST = 224;
 
 export const OFFSET_SOURCE = 0;
 export const OFFSET_LIGHT = 1;
-export const OFFSET_WAVE = 2;
-export const OFFSET_DAY = 3;
-export const LIGHT_STRIDE_BYTES = 5;
-export const OFFSET_NORMAL = 5;
-export const LIGHT_STRIDE_BYTES_NORMAL = 9;
+export const OFFSET_DAY = 2;
+export const LIGHT_STRIDE_BYTES = 3;
+export const OFFSET_NORMAL = 3;
+export const LIGHT_STRIDE_BYTES_NORMAL = 7;
 
 export const NORMAL_CX = 32;
 export const NORMAL_SCALE = 8;

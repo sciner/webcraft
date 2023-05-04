@@ -710,8 +710,12 @@ export class Biomes {
             {
                 frequency: PLANTS_FREQUENCY / 1,
                 list: [
-                    {percent: .1, blocks: [{name: 'PEBBLES'}]},
-                    {percent: .9, blocks: [{name: 'DEAD_BUSH'}]}
+                    {percent: .195, blocks: [{name: 'PEBBLES'}]},
+                    {percent: .005, blocks: [{name: 'SKULL_DESERT'}]},
+                    {percent: .1, blocks: [{name: 'SMALL_CACTUS'}]},
+                    {percent: .1, blocks: [{name: 'SANDED_STONES'}]},
+                    {percent: .1, blocks: [{name: 'SMALL_STONES_DESERT'}]},
+                    {percent: .5, blocks: [{name: 'DEAD_BUSH'}]}
                 ]
             },
             null, undefined, undefined, DESERT_BUILDINGS
@@ -770,7 +774,15 @@ export class Biomes {
         this.addBiome('Долина песка душ', 2, 0);
         */
 
-        this.addBiome(500, 'Летающие острова', .911, .911);
+        this.addBiome(500, 'Летающие острова', .911, .911, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+            undefined, undefined, undefined, undefined, undefined,
+            {
+                color: [205 / 255, 200 / 255, 150 / 255, 0.1],
+                addColor: [205 / 255, 200 / 255, 150 / 255, 0.1],
+                density: 0.05,
+                illuminate: 0.15,
+            }
+        )
         this.addBiome(
             501,
             'Эреб',
@@ -824,7 +836,75 @@ export class Biomes {
                 {value: 0, block_name: 'SMOOTH_BASALT'},
                 {value: .5, block_name: 'NETHER_BRICKS'},
                 {value: 1, block_name: 'SOUL_SAND'}
-            ]
+            ],
+            {
+                color: [78 / 255, 27 / 255, 21 / 255, 0.1],
+                addColor: [78 / 255, 27 / 255, 21 / 255, 0.1],
+                density: 0.05,
+                illuminate: 0.15,
+            }
+        );
+        this.addBiome(
+            502,
+            'Пещеры нижнего мира',
+            .912,
+            .912,
+            [
+                new BiomeDirtLayer([BLOCK.NETHERRACK.id])
+            ],
+            {
+                frequency: .4,
+                list: [
+                    {percent: .2, trunk: BLOCK.ANCIENT_DEBRIS.id, leaves: BLOCK.WARPED_FENCE.id, basis: BLOCK.NETHERRACK.id, style: 'peak', height: {min: CACTUS_MIN_HEIGHT * 2, max: CACTUS_MAX_HEIGHT * 3}},
+                    // {percent: 0.01, trunk: BLOCK.OAK_LOG.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
+                    // {...TREES.SPRUCE, percent: 0.05, height: {min: 6, max: 24}},
+                    {percent: .3, trunk: BLOCK.GLOWSTONE.id, leaves: null, style: 'tundra_stone', height: {min: 1, max: 2}},
+                    // {percent: .333, trunk: BLOCK.MAGMA_BLOCK.id, leaves: null, style: 'tundra_stone', height: {min: 1, max: 2}},
+                    {...TREES.RED_MUSHROOM, percent: .2, height: {min: 8, max: 12}, basis: null},
+                    {...TREES.OAK, percent: .1, trunk: BLOCK.CRIMSON_STEM.id, leaves: BLOCK.SHROOMLIGHT.id, basis: null},
+                    {percent: .2, trunk: BLOCK.SHROOMLIGHT.id, leaves: null, style: 'tundra_stone', height: {min: 1, max: 2}},
+                    // {...TREES.SPRUCE, percent: 0.681 + 0.150, height: {min: 6, max: 11}}
+                ]
+            },
+            {
+                frequency: PLANTS_FREQUENCY / 1,
+                list: [
+                    {percent: .1, blocks: [{name: 'PEBBLES'}]},
+                    // {percent: .1, blocks: [{name: 'FIRE', extra_data: {up: true, age: .5}}]}
+                ]
+            },
+            {
+                frequency: .1,
+                list: [
+                    {percent: .1, blocks: [{name: 'GRASS'}]},
+                ]
+            },
+            new IndexedColor(0, 511, 0),
+            new IndexedColor(12, 268, 0),
+            NETHER_BUILDINGS,
+            undefined,
+            [
+                {value: 1, block_name: 'DEEPSLATE'}
+            ],
+            {
+                hanging_foliage:    'ANCIENT_DEBRIS',
+                basement:           'NETHERRACK',
+                dirt_path:          'NETHER_BRICKS',
+                caves_second:       'NETHER_BRICKS',
+            },
+            {x: 0, y : 384, w: 128, h : 128, noise_range: 10} as DirtPalette,
+            [
+                {value: 0, block_name: 'SMOOTH_BASALT'},
+                {value: .5, block_name: 'NETHER_BRICKS'},
+                {value: 1, block_name: 'SOUL_SAND'}
+            ],
+            {
+                color: [78 / 255, 27 / 255, 21 / 255, 0.1],
+                addColor: [78 / 255, 27 / 255, 21 / 255, 0.1],
+                density: 0.05,
+                fixLum: 1,
+                illuminate: 0.15,
+            }
         );
 
     }

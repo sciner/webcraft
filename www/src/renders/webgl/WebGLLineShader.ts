@@ -80,8 +80,8 @@ export class WebGLLineShader extends BaseLineShader {
         gl.uniformMatrix4fv(this.uProjMat, false, gu.projMatrix);
 
         gl.uniform2fv(this.u_resolution, gu.resolution);
-        gl.uniform1f(this.u_time, gu.time);
-        gl.uniform1f(this.u_eyeinwater, 1.);
+        this.u_time && gl.uniform1f(this.u_time, gu.time);
+        this.u_eyeinwater && gl.uniform1f(this.u_eyeinwater, 1.);
 
     }
 

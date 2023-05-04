@@ -52,7 +52,8 @@
                 "baseSpeed": 0.25,
                 "playerHeight": 1.9,
                 "playerHalfWidth": 0.35
-            }
+            },
+            "health": 20
         },
         "mob/cow": {
             "physics": {
@@ -150,6 +151,13 @@
                 "maxYawDelta": 1.6
             },
             "damageAddsVelocity": false,
+            "suffocates": false
+        },
+        "mob/snowball": {
+            "physics": {
+                "playerHeight": 0.16,
+                "playerHalfWidth": 0.08
+            },
             "suffocates": false
         }
     },
