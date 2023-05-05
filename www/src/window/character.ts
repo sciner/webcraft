@@ -48,6 +48,7 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
 
         this.hud_atlas = Resources.atlas.get('hud')
 
+        
         // Ширина / высота слота
         this.cell_size = UI_THEME.window_slot_size * this.zoom
 
@@ -57,6 +58,16 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         const x = this.w / this.zoom - slots_width
         const y = 35
         this.createInventorySlots(this.cell_size, x, y, UI_THEME.window_padding, undefined, true)
+
+        const labels = [
+            new Label(x * this.zoom, UI_THEME.window_padding * this.zoom, 0, 30 * this.zoom, 'lblBackpack', null, Lang.backpack)
+        ]
+
+        for(let lbl of labels) {
+            lbl.style.font.color = UI_THEME.label_text_color
+            lbl.style.font.size = UI_THEME.base_font.size
+            this.add(lbl)
+        }
 
         // кнопка сортировки
         this.createButtonSort()
@@ -77,7 +88,7 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
 
         for(const slot of this.paperdoll) {
             slot.onSetItem = () => {
-               // this.player.getModel().updateArmor()
+                this.player.getModel().updateArmor()
                 this.refresh()
                 //this.autoSortItems()
             }

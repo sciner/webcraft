@@ -737,6 +737,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
                 }
             }
         }
+        this.refresh()
         super.onShow(args)
     }
 
@@ -781,15 +782,15 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         // не менять порядок нижних и верхних!
         // иначе нарушится их порядок в массиве ct.inventory_slots
         // нижний ряд (видимые на хотбаре)
-        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
-            const x = belt_x + (i % INVENTORY_HOTBAR_SLOT_MAX) * (sz + margin)
+        for(let i = 0; i < HOTBAR_LENGTH_MAX; i++) {
+            const x = belt_x + (i % HOTBAR_LENGTH_MAX) * (sz + margin)
             // const y = (sy + 120 * this.zoom) + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom + margin)
             const y = belt_y
             createSlot(x, y)
         }
 
         // верхние 3 ряда
-        for(let i = 0; i < INVENTORY_SLOT_MAX; i++) {
+        for(let i = 0; i < BAG_LENGTH_MAX; i++) {
             const x = sx + (i % xcnt) * (sz + margin)
             const y = sy + Math.floor(i / xcnt) * (sz + margin)
             createSlot(x, y)

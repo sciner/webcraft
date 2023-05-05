@@ -91,6 +91,12 @@ export class InventoryWindow extends BaseCraftWindow {
             this.add(lbl)
         }
 
+        // кнопка сортировки
+        //this.createButtonSort()
+
+        // слот для удаления преметов
+        this.createDeleteSlot(this.cell_size)
+
         // обновить gui
         this.refresh()
     }
