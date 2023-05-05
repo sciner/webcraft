@@ -141,7 +141,7 @@
                 "floatSubmergedHeight": 0.1,
                 "useBoatSpeed": true,
                 "jumpSpeed": 0,
-                "timer_panick": 0
+                "stepHeight": 0.75
             },
             "driving": {
                 "offsets": [
@@ -150,15 +150,16 @@
                 "useAngularSpeed": true,
                 "maxYawDelta": 1.6
             },
+            "timer_panic": 0,
             "damageAddsVelocity": false,
-            "suffocates": false
+            "can_asphyxiate": false
         },
         "mob/snowball": {
             "physics": {
                 "playerHeight": 0.16,
                 "playerHalfWidth": 0.08
             },
-            "suffocates": false
+            "can_asphyxiate": false
         }
     },
     "tickers": [

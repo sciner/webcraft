@@ -716,12 +716,10 @@ export class ServerWorld implements IWorld {
         chunk.addPlayerLoadRequest(player);
     }
 
-    /**
-     * Returns block on world pos (possibly DUMMY), or null.
-     */
-    getBlock(pos : IVector, resultBlock: TBlock | null = null) : TBlock | null {
+    /** Returns block on world pos, or DUMMY if the chunk isn't ready. */
+    getBlock(pos : IVector, resultBlock: TBlock | null = null) : TBlock {
         const chunk = this.chunks.getByPos(pos);
-        return chunk ? chunk.getBlock(pos, null, null, resultBlock) : null;
+        return chunk ? chunk.getBlock(pos, null, null, resultBlock) : this.chunks.DUMMY;
     }
 
     getMaterial(pos : Vector) {
