@@ -6,14 +6,14 @@ import type { ServerWorld } from "../server_world.js";
 // Queue for packets
 export class WorldPacketQueue {
     world: ServerWorld;
-    list: Map<any, any>;
+    list: Map<int, INetworkMessage[]>;
 
     constructor(world) {
         this.world = world;
         this.list = new Map();
     }
 
-    add(user_ids, packets) {
+    add(user_ids: Iterable<int>, packets: INetworkMessage[]): void {
         for (let user_id of user_ids) {
             let arr = this.list.get(user_id);
             if (!arr) {

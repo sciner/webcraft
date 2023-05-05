@@ -34,14 +34,16 @@ export enum QUAD_FLAGS {
     FLAG_RAIN_OPACITY           = 1 << 14,
     FLAG_MASK_COLOR_ADD         = 1 << 15,
     FLAG_TORCH_FLAME            = 1 << 16,
-    //all below are vertex-only flags!
-    DELIMITER_VERTEX            = (1 << 17) - 1,
-    FLAG_WAVES_VERTEX           = 1 << 17,
-    LOOK_AT_CAMERA              = 1 << 18,
-    LOOK_AT_CAMERA_HOR          = 1 << 19,
-    FLAG_TRIANGLE               = 1 << 20,
-    FLAG_MIR2_TEX               = 1 << 21,
-    NEXT_UNUSED_FLAG            = 1 << 22,
+    FLAG_FLUID_ERASE            = 1 << 17,
+    // all below are vertex-only flags!
+    DELIMITER_VERTEX            = (1 << 18) - 1,
+    FLAG_WAVES_VERTEX           = 1 << 18,
+    LOOK_AT_CAMERA              = 1 << 19,
+    LOOK_AT_CAMERA_HOR          = 1 << 20,
+    FLAG_TRIANGLE               = 1 << 21,
+    FLAG_MIR2_TEX               = 1 << 22,
+    // unused
+    NEXT_UNUSED_FLAG            = 1 << 23,
 }
 
 // Direction enumeration

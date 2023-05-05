@@ -1,3 +1,4 @@
+import {ServerClient} from "../server_client.js";
 
 const HISTORY_TTL = 5000
 const MAINTENANCE_PERIOD = 1000
@@ -15,6 +16,19 @@ type LogHistory = {
     mode: LogMode
 }
 
+type TLimitedLoggerOptions = {
+    prefix: string
+    minInterval: int
+    player?: any
+    enabled?: boolean
+    consoleDisabled?: boolean
+    debugValueSendLog?: string
+    debugValueEnabled?: string
+    showSkipped?: boolean
+    debugValueShowSkipped?: string
+    printKeyFn?: ((...args: any[]) => string | null) | null
+}
+
 /**
  * Configurable console logger for one kind of messages. Features:
  * - limit messages frequency (separately for different keys)
@@ -22,18 +36,20 @@ type LogHistory = {
  */
 export class LimitedLogger {
 
-    private prefix: string
-    private minInterval: int
-    private enabled: boolean
-    private printKeyFn: ((...args: any[]) => string | null) | null
+    options: TLimitedLoggerOptions
     private histories = new Map<LogHistoryKey, LogHistory>()
     private nextMaintenanceTime = -Infinity
 
-    constructor(prefix: string, minInterval: int, printKeyFn: ((...args: any[]) => string | null) | null = null, enabled: boolean = true) {
-        this.prefix = prefix.length && !prefix.endsWith(' ') ? prefix + ' ' : prefix
-        this.minInterval= minInterval
-        this.printKeyFn = printKeyFn
-        this.enabled = enabled
+    constructor(options: TLimitedLoggerOptions) {
+        this.options = options
+        if (options.prefix.length && !options.prefix.endsWith(' ')) {
+            options.prefix += ' '
+        }
+    }
+
+    get enabled(): boolean {
+        const options = this.options
+        return options.enabled || this.hasDebugValue(options.debugValueEnabled)
     }
 
     log(...args: any[]): void {
@@ -53,6 +69,7 @@ export class LimitedLogger {
     }
 
     private _log(mode: LogMode, args: any[]): void {
+        const options = this.options
         if (!this.enabled || args.length === 0) {
             return
         }
@@ -74,7 +91,8 @@ export class LimitedLogger {
 
         let history = this.histories.get(key)
         if (history == null) {
-            let printedKey = (this.printKeyFn && this.printKeyFn(...args.slice(0, -1))) ?? ''
+            const printKeyFn = options.printKeyFn
+            let printedKey = (printKeyFn && printKeyFn(...args.slice(0, -1))) ?? ''
             if (printedKey.length && !printedKey.endsWith(' ')) {
                 printedKey += ' '
             }
@@ -87,7 +105,7 @@ export class LimitedLogger {
             }
             this.histories.set(key, history)
         }
-        if (history.lastConsoleTime > performance.now() - this.minInterval) {
+        if (history.lastConsoleTime > performance.now() - this.options.minInterval) {
             history.skippedCount++
             return
         }
@@ -98,15 +116,27 @@ export class LimitedLogger {
             msg = msg()
         }
         this.logString(mode, msg, history)
+        history.lastConsoleTime = performance.now()
     }
 
     private logSkipped(mode: LogMode, history: LogHistory): void {
-        this.logString(mode, `skipped ${history.skippedCount} similar messages`, history)
+        const options = this.options
+        if (options.showSkipped || this.hasDebugValue(options.debugValueShowSkipped)) {
+            this.logString(mode, `skipped ${history.skippedCount} similar messages`, history)
+        }
         history.skippedCount = 0
     }
 
     private logString(mode: LogMode, msg: string, history: LogHistory): void {
-        msg = this.prefix + history.printedKey + msg
+        const options = this.options
+        const timestamp = (Math.round(performance.now()) % 100000).toString().padStart(5, '0')
+        msg = `${options.prefix}${history.printedKey} ${timestamp} ${msg}`
+        if (this.hasDebugValue(options.debugValueSendLog)) {
+            options.player?.sendPackets([{ name: ServerClient.CMD_LOG_CONSOLE, data: msg }])
+        }
+        if (options.consoleDisabled) {
+            return
+        }
         switch (mode) {
             case LogMode.LOG:
                 console.log(msg)
@@ -121,12 +151,11 @@ export class LimitedLogger {
                 console.debug(msg)
                 break
         }
-        history.lastConsoleTime = performance.now()
     }
 
     private periodicMaintenance(): void {
         const now = performance.now()
-        const minLogTime = now - this.minInterval
+        const minLogTime = now - this.options.minInterval
         const minDeleteTime = now - HISTORY_TTL
         for(const history of this.histories.values()) {
             if (history.lastConsoleTime < minLogTime) {
@@ -138,5 +167,9 @@ export class LimitedLogger {
             }
         }
         this.nextMaintenanceTime = now + MAINTENANCE_PERIOD
+    }
+
+    private hasDebugValue(name: string | null): boolean {
+        return name && this.options.player?.debugValues?.has(name)
     }
 }

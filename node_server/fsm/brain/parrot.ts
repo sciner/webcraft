@@ -10,15 +10,6 @@ export class Brain extends FSMBrain {
     constructor(mob) {
         super(mob);
         //
-        this.prevPos        = new Vector(mob.pos);
-        this.lerpPos        = new Vector(mob.pos);
-        this.pc             = this.createPlayerControl(this,{
-            baseSpeed: 0.25,
-            playerHeight: 0.6,
-            stepHeight: 1,
-            playerHalfWidth: 0.3,
-        });
-        
         this.pc.player_state.flying = true; // @todo костыль от сброса полета при касании земли
 
         // consts
@@ -27,8 +18,6 @@ export class Brain extends FSMBrain {
         this.live = 10;
         this.fly = 0;
 
-        this.setMaxHealth(10)    // максимальное здоровье
-        
         this.stack.pushState(this.doForward);
         
     }
@@ -92,7 +81,6 @@ export class Brain extends FSMBrain {
         }
 
         this.updateControl({
-            yaw: mob.rotate.z,
             jump: jump,
             forward: true,
             sneak: block.sneak

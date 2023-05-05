@@ -235,7 +235,7 @@ export class DropItem {
                 pos:        this.pos
             }
         }];
-        world.sendSelected(packets, Array.from(chunk_over.connections.keys()), []);
+        world.sendSelected(packets, chunk_over.connections.keys());
     }
 
     /** @retrun true if there is anything to save in a world transaction */

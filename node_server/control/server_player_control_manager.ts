@@ -7,20 +7,34 @@ import {
     PLAYER_STATUS, DEBUG_LOG_PLAYER_CONTROL, DEBUG_LOG_PLAYER_CONTROL_DETAIL, PHYSICS_MAX_TICKS_PROCESSED
 } from "@client/constant.js";
 import type {ServerPlayer} from "../server_player.js";
-import {DONT_VALIDATE_AFTER_MODE_CHANGE_MS, PLAYER_EXHAUSTION_PER_BLOCK, SERVER_SEND_CMD_MAX_INTERVAL,
-    SERVER_UNCERTAINTY_SECONDS, WAKEUP_MOVEMENT_DISTANCE} from "../server_constant.js";
+import {
+    DONT_VALIDATE_AFTER_MODE_CHANGE_MS, PLAYER_EXHAUSTION_PER_BLOCK, SERVER_SEND_CMD_MAX_INTERVAL,
+    SERVER_UNCERTAINTY_SECONDS, SIMULATE_PLAYER_PHYSICS, WAKEUP_MOVEMENT_DISTANCE
+} from "../server_constant.js";
 import {ServerClient} from "@client/server_client.js";
 import {ArrayHelpers, MonotonicUTCDate, SimpleQueue, Vector} from "@client/helpers.js";
 import {ServerPlayerTickData} from "./server_player_tick_data.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketReader, PlayerControlSessionPacket} from "@client/control/player_control_packets.js";
 import type {PlayerTickData} from "@client/control/player_tick_data.js";
-import type {Player} from "@client/player.js";
 import {LimitedLogger} from "@client/helpers/limited_logger.js";
+import {PLAYER_TICK_MODE} from "@client/control/player_tick_data.js";
 
 const MAX_ACCUMULATED_DISTANCE_INCREMENT = 1.0 // to handle sudden big pos changes (if they ever happen)
 const MAX_CLIENT_QUEUE_LENGTH = MAX_PACKET_LAG_SECONDS * 1000 / PHYSICS_INTERVAL_MS | 0 // a protection against memory leaks if there is garbage input
 
-export class ServerPlayerControlManager extends PlayerControlManager {
+/**
+ * Если true, то при малом отличии данных клиента от сервера (см. {@link ACCEPTABLE_PLAYER_POS_ERROR} и т.п.)
+ * сервер сохраняет у себя данные клиента. Т.е. ошибка на сервере не накапливаются. Меньше коррекций, но
+ * возможность читерства.
+ *
+ * Если false, то сервер в такой ситуации не шлет коррекцию (пока ошибка не станет больше порогового значения),
+ * но и не сохраняет у себя данные клиента. Читерство невозможно, но возможно больше коррекций из-за ошибок
+ * окргления и подобного (в идеале их не должно быть быть, но может быть есть).
+ */
+const ACCEPT_SMALL_CLIENT_ERRORS = true
+
+// @ts-expect-error
+export class ServerPlayerControlManager extends PlayerControlManager<ServerPlayer> {
     private lastData: ServerPlayerTickData
     private newData = new ServerPlayerTickData()
     private controlPacketReader = new PlayerControlPacketReader(ServerPlayerTickData)
@@ -46,11 +60,31 @@ export class ServerPlayerControlManager extends PlayerControlManager {
     private accumulatedExhaustionDistance = 0
     private accumulatedSleepSittingDistance = 0
     private lastCmdSentTime = performance.now()
-
-    private logger = new LimitedLogger('Control: ', 5000, (key, username) => `@${username} `, DEBUG_LOG_PLAYER_CONTROL)
+    private lastStandUpFixTime = -Infinity
+    private logger: LimitedLogger
+    private fineLogger: LimitedLogger
 
     constructor(player: ServerPlayer) {
-        super(player as any as Player)
+        super(player)
+        this.logger = new LimitedLogger({
+            prefix: 'Control: ',
+            minInterval: 3000,
+            player,
+            printKeyFn: (key, username) => `@${username} `,
+            debugValueSendLog: 'SEND_LOG_PLAYER_CONTROL',
+            debugValueEnabled: 'DEBUG_LOG_PLAYER_CONTROL',
+            debugValueShowSkipped: 'SHOW_SKIPPED',
+            enabled: DEBUG_LOG_PLAYER_CONTROL,
+            consoleDisabled: true
+        })
+        this.fineLogger = new LimitedLogger({
+            ...this.logger.options,
+            minInterval: 0,
+            printKeyFn: null,
+            enabled: DEBUG_LOG_PLAYER_CONTROL_DETAIL,
+            debugValueSendLog: 'SEND_LOG_PLAYER_CONTROL_DETAIL',
+            debugValueEnabled: 'DEBUG_LOG_PLAYER_CONTROL_DETAIL'
+        })
         // super constructor doesn't call these methods correctly, so call them here
         this.physicsSessionId = -1 // revert to what it was before the super constructor
         const pos = new Vector(player.sharedProps.pos)
@@ -76,7 +110,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             // An example when it's needed: a player was flying as a spectator, then started falling.
             // The client continues to fly (when it shouldn't), but it will be corrected soon.
             // Don't wait until we receive the wrong coordinates from the client.
-            this.sendCorrection()
+            this.sendCorrection('update_control_type')
         }
         return true
     }
@@ -92,16 +126,21 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         this.expectedExternalChangeTick = -1
     }
 
-    setPos(pos: IVector, worldActionId?: string | int | null): void {
-        super.setPos(pos, worldActionId)
+    setPos(pos: IVector): this {
+        super.setPos(pos)
         this.player.state.pos.copyFrom(pos)
-        if (worldActionId) {
+        return this
+    }
+
+    syncWithActionId(worldActionId: string | int | null): this {
+        if (worldActionId != null) {
             this.worldActionIdsExecuted.push({
                 performanceNow: performance.now(),
                 id: worldActionId
             })
             this.expectedExternalChangeTick = this.knownPhysicsTicks
         }
+        return this
     }
 
     onClientSession(data: PlayerControlSessionPacket): void {
@@ -142,9 +181,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         }
 
         for(const clientData of ticksData) {
-            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                console.log(`Control ${this.username}: received ${clientData}`)
-            }
+            this.fineLog(() => `received ${clientData}`)
             this.clientDataQueue.push(clientData)
         }
 
@@ -162,7 +199,8 @@ export class ServerPlayerControlManager extends PlayerControlManager {
      * @see SERVER_UNCERTAINTY_SECONDS
      */
     tick(): void {
-        if (this.player.status !== PLAYER_STATUS.ALIVE || !this.physicsSessionInitialized) {
+        const player = this.serverPlayer
+        if (player.status !== PLAYER_STATUS.ALIVE || !this.physicsSessionInitialized) {
             this.doGarbageCollection()
             return // there is nothing to do until the next physics session starts
         }
@@ -170,9 +208,17 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         const clientDataQueue = this.clientDataQueue
         const physicsTickNow = this.getPhysicsTickNow()
         const maxAllowedPhysicsTick = physicsTickNow + Math.ceil(MAX_PACKET_AHEAD_OF_TIME_MS / PHYSICS_INTERVAL_MS)
-        let clientDataMatches = false // if multiple ticks are simulated, it shows whether the last of them is accepted
+        let correctionReason: string | null = null // если не null, но нужно выслать коррекцию, и эта строка - ее причина
+        let needResponse = false // если клиенту нужен ответ (любой) - коррекция или подтверждение
 
-        this.applyPlayerStateToControl()
+        const debugValueSimulatePhysics = player.debugValues.get('simulatePhysics')
+        let simulatePhysics = debugValueSimulatePhysics
+            ? debugValueSimulatePhysics === 'true'
+            : SIMULATE_PLAYER_PHYSICS
+        // чтобы не клиент не переписал внешние серверные изменения
+        simulatePhysics ||= this.detectExternalChanges(false) != null
+
+        this.updateControlFromPlayerState()
 
         // do ticks for severely lagging clients without their input
         let hasNewData = this.doServerTicks(physicsTickNow - Math.floor(SERVER_UNCERTAINTY_SECONDS * 1000 / PHYSICS_INTERVAL_MS))
@@ -183,7 +229,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
 
             if (clientData.physicsSessionId !== this.physicsSessionId || // it's from the previous session
                 // or it's from the current session, but this session will end when the player is resurrected and/or teleported
-                this.player.status !== PLAYER_STATUS.ALIVE
+                player.status !== PLAYER_STATUS.ALIVE
             ) {
                 clientDataQueue.shift()
                 continue
@@ -192,11 +238,11 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             // validate time, update this.clientPhysicsTicks
             const newClientPhysicsTicks = clientData.endPhysicsTick
             if (newClientPhysicsTicks > maxAllowedPhysicsTick) {
-                this.serverPlayer.terminate(`newClientPhysicsTicks > maxClientTickAhead ${newClientPhysicsTicks} ${maxAllowedPhysicsTick}`)
+                player.terminate(`newClientPhysicsTicks > maxClientTickAhead ${newClientPhysicsTicks} ${maxAllowedPhysicsTick}`)
                 return
             }
             if (clientData.startingPhysicsTick < this.clientPhysicsTicks) {
-                this.serverPlayer.terminate(`clientData.startingPhysicsTick < this.clientPhysicsTicks ${clientData.startingPhysicsTick} ${this.clientPhysicsTicks}`)
+                player.terminate(`clientData.startingPhysicsTick < this.clientPhysicsTicks ${clientData.startingPhysicsTick} ${this.clientPhysicsTicks}`)
                 return
             }
 
@@ -220,7 +266,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
                 if (!this.doServerTicks(clientData.startingPhysicsTick)) {
                     break // can't simulate, the chunk is missing
                 }
-                clientDataMatches = false // we skipped ticks, so it probably differs from the client
+                correctionReason = 'skipped_ticks' // пропустили тики, значит ожидается что данные могут отличаться от клиента
                 hasNewData = true
             }
 
@@ -248,8 +294,12 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             let simulatedSuccessfully: boolean
             if (clientData.inputWorldActionIds) {
                 newData.initOutputFrom(this.current)
+                this.onSimulation(this.lastData.outPos, newData)
+                this.updateLastData(newData)
                 simulatedSuccessfully = true
+                needResponse = true
             } else if (this.current === this.spectator ||
+                !simulatePhysics ||
                 this.knownPhysicsTicks <= this.maxUnvalidatedPhysicsTick
             ) {
                 simulatedSuccessfully = false
@@ -261,41 +311,61 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             if (simulatedSuccessfully) {
                 // Accept the server state on the server. We may or may not correct the client.
                 const contextEqual = newData.contextEqual(clientData)
-                clientDataMatches = contextEqual && newData.outputSimilar(clientData)
+                const clientDataMatches = contextEqual && newData.outputSimilar(clientData)
                 if (clientDataMatches) {
-                    DEBUG_LOG_PLAYER_CONTROL_DETAIL && console.log(`    simulation matches ${newData}`)
-                } else if (contextEqual) {
-                    this.log('simulation_differs', () => `    simulation doesn't match ${clientData} ${newData}`)
+                    this.fineLog(`    simulation matches ${newData}`)
+                    correctionReason = null
+                    if (ACCEPT_SMALL_CLIENT_ERRORS) {
+                        newData.copyOutputFrom(clientData)
+                    }
+                } else if (clientData.inputWorldActionIds) {
+                    // Клиент ожидал серверного действия. В зависимости от типа действия результат должен был совпасть или нет.
+                    // Мы не различаем такие ситуации (не видно нужды в этом). Это ок, что не совпало.
+                    this.fineLog(`    simulation with inputWorldActionIds doesn't match ${clientData} ${newData}`)
+                    correctionReason = 'simulation_differs inputWorldActionIds'
+                } else if (!contextEqual) {
+                    // На сервере переключили режим игры или что-то подобное. Это только сервер может делать. Несовпадение ожидаемо.
+                    DEBUG_LOG_PLAYER_CONTROL_DETAIL && this.log('simulation_context_differs', () => `    simulation context doesn't match ${newData}`)
+                    correctionReason = 'context_differs'
+                    // Устранение рассинхронизаци, которая не должна обычно возникать, но может возникнуть из-за багов
+                    if (clientData.contextTickMode === PLAYER_TICK_MODE.SITTING_OR_LYING &&
+                        newData.contextTickMode !== PLAYER_TICK_MODE.SITTING_OR_LYING &&
+                        this.lastStandUpFixTime < performance.now() - 2000
+                    ) {
+                        player.standUp()
+                        this.lastStandUpFixTime = performance.now()
+                    }
                 } else {
-                    this.log('simulation_context_differs', () => `    simulation context doesn't match ${newData}`)
+                    // Возможно, отличия вызываны действиями других игроков, мобов или багом.
+                    // Это единственный случай несовпадения, который мы не ожидаем.
+                    this.log('simulation_differs', () => `    simulation doesn't match ${clientData} ${newData}`)
+                    correctionReason = 'simulation_differs'
                 }
             } else {
                 newData.copyOutputFrom(clientData)
-                clientDataMatches = this.onWithoutSimulation()
+                correctionReason = this.onWithoutSimulation() ? null : 'without_simulation'
             }
             hasNewData = true
             processedClientData = true
         }
 
-        if (!hasNewData && this.detectExternalChanges()) {
-            hasNewData = true
-            clientDataMatches = false
+        if (!hasNewData) {
+            correctionReason = this.detectExternalChanges(true)
+            hasNewData = correctionReason != null
         }
         if (hasNewData) {
-            this.lastData.applyOutputToPlayer(this.serverPlayer)
-            if (clientDataMatches) {
-                if (this.lastCmdSentTime < performance.now() - SERVER_SEND_CMD_MAX_INTERVAL) {
-                    this.serverPlayer.sendPackets([{
-                        name: ServerClient.CMD_PLAYER_CONTROL_ACCEPTED,
-                        data: this.knownPhysicsTicks
-                    }])
-                    this.lastCmdSentTime = performance.now()
-                }
-            } else {
-                if (DEBUG_LOG_PLAYER_CONTROL_DETAIL || DEBUG_LOG_PLAYER_CONTROL && processedClientData) {
-                    this.log('corrrection', `Control ${this.username}: sending correction`)
-                }
-                this.sendCorrection()
+            player.driving?.applyToDependentParticipants()
+
+            this.lastData.applyOutputToPlayer(player)
+            if (correctionReason) {
+                this.log('correction', () => `Control ${this.username}: sending correction ${correctionReason}`)
+                this.sendCorrection(correctionReason)
+            } else if (needResponse || this.lastCmdSentTime < performance.now() - SERVER_SEND_CMD_MAX_INTERVAL) {
+                player.sendPackets([{
+                    name: ServerClient.CMD_PLAYER_CONTROL_ACCEPTED,
+                    data: this.knownPhysicsTicks
+                }])
+                this.lastCmdSentTime = performance.now()
             }
         }
 
@@ -342,7 +412,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             if (this.simulate(this.lastData, newData)) {
                 this.knownPhysicsTicks = tickMustBeKnown
             } else {
-                this.log('withou_input_failed', `   simulation without client's input failed`)
+                this.log('without_input_failed', `    simulation without client's input failed`)
             }
         }
 
@@ -350,36 +420,38 @@ export class ServerPlayerControlManager extends PlayerControlManager {
     }
 
     /**
-     * Detects external changes to the player.
-     * If they happen, it adds a new tick data containing them, so it can be sent to the client.
-     * @return true if the changed
+     * Обнаруживает неожиданные (т.е. не в тик {@link expectedExternalChangeTick}) изменения состяония
+     * игрока, произведеные чем-то извне.
+     * @param apply - если false, то только проверяет и возвращает есть ли изменения
+     *   если false - то если есть изменения, создает данные для нового тика, содержащие эти изменения,
+     *   и возвращет появились ли новые данные
+     * @return null если неи изменений, иначе строка, описывающая тип изменений (она же -причина коррекции клиенту, если таковая будет)
      */
-    private detectExternalChanges(): boolean {
+    private detectExternalChanges(apply: boolean): string | null {
         if (this.expectedExternalChangeTick === this.knownPhysicsTicks) {
-            return false
+            return null
         }
         const lastData = this.lastData
         const newData = this.newData
         newData.initContextFrom(this)
         newData.initOutputFrom(this.current)
-        const contextEqual = lastData.contextEqual(newData)
-        if (!(contextEqual && lastData.outputSimilar(newData)) &&
-            // and knownPhysicsTicks isn't too far in the future (so we can add another tick)
-            this.knownPhysicsTicks <= Math.max(this.clientPhysicsTicks, this.getPhysicsTickNow())
-        ) {
-            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                if (contextEqual) {
-                    console.log(`Control ${this.username}: detected external changes ${lastData} -> ${newData}`)
-                } else {
-                    console.log(`Control ${this.username}: detected external context changes ${lastData} -> ${newData}`)
-                }
-            }
-            newData.initInputEmpty(this.lastData, this.knownPhysicsTicks, 1)
-            this.knownPhysicsTicks++
-            this.updateLastData(newData)
-            return true
+        const result = !lastData.outputSimilar(newData)
+            ? 'external_change'
+            : (lastData.contextEqual(newData) ? null : 'external_context_change')
+        if (!result || !apply) {
+            return result
         }
-        return false
+        if (this.knownPhysicsTicks > Math.max(this.clientPhysicsTicks, this.getPhysicsTickNow())) {
+            // если knownPhysicsTicks слишком далеко в будущее, и мы не можем пока создать новый тик - ничего не делать, ждать
+            return null
+        }
+        if (DEBUG_LOG_PLAYER_CONTROL_DETAIL || result === 'external_change') {
+            this.log(result, () => `detected ${result} ${lastData} -> ${newData}`)
+        }
+        newData.initInputEmpty(this.lastData, this.knownPhysicsTicks, 1)
+        this.knownPhysicsTicks++
+        this.updateLastData(newData)
+        return result
     }
 
     private doGarbageCollection() {
@@ -411,19 +483,30 @@ export class ServerPlayerControlManager extends PlayerControlManager {
     }
 
     /** Sends {@link lastData} as the correction to the client. */
-    private sendCorrection(): void {
+    private sendCorrection(clientLog?: string | null): void {
         if (this.current === this.spectator) {
             return
         }
         const cp = this.correctionPacket
         cp.physicsSessionId = this.physicsSessionId
         cp.knownPhysicsTicks = this.knownPhysicsTicks
+        cp.log = clientLog
         cp.data = this.lastData
         this.serverPlayer.sendPackets([{
             name: ServerClient.CMD_PLAYER_CONTROL_CORRECTION,
             data: cp.export()
         }])
         this.lastCmdSentTime = performance.now()
+    }
+
+    updatePlayerStateFromControl() {
+        const pcState = this.current.player_state
+        const playerState = this.player.state
+
+        // TODO maybe more like this.player.changePosition()?
+
+        playerState.pos.copyFrom(pcState.pos)
+        playerState.rotate.z = pcState.yaw
     }
 
     /**
@@ -433,7 +516,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
      *
      * We assume {@link current} is already updated and correct.
      */
-    private applyPlayerStateToControl() {
+    private updateControlFromPlayerState() {
         const pcState = this.current.player_state
         const playerState = this.player.state
 
@@ -466,9 +549,8 @@ export class ServerPlayerControlManager extends PlayerControlManager {
         return accepted
     }
 
-    protected simulate(prevData: ServerPlayerTickData | null | undefined, data: ServerPlayerTickData,
-                       outPosBeforeLastTick?: Vector): boolean {
-        const res = super.simulate(prevData, data, outPosBeforeLastTick)
+    protected simulate(prevData: ServerPlayerTickData | null | undefined, data: ServerPlayerTickData): boolean {
+        const res = super.simulate(prevData, data)
         if (res) {
             this.updateLastData(data)
         }
@@ -495,9 +577,7 @@ export class ServerPlayerControlManager extends PlayerControlManager {
             this.accumulatedSleepSittingDistance += distance
             if (this.accumulatedSleepSittingDistance > WAKEUP_MOVEMENT_DISTANCE) {
                 this.accumulatedSleepSittingDistance = 0
-                ps.sitting = false
-                ps.sleep = false
-                this.serverPlayer.sendPackets([{name: ServerClient.CMD_STANDUP_STRAIGHT, data: null}])
+                this.serverPlayer.standUp()
             }
         }
 
@@ -515,4 +595,9 @@ export class ServerPlayerControlManager extends PlayerControlManager {
     private log(key: string, msg: string | (() => string)) {
         this.logger.log(key, this.username, msg)
     }
+
+    private fineLog(msg: string | (() => string)) {
+        this.fineLogger.log(msg)
+    }
+
 }

@@ -5,7 +5,7 @@ export enum GAME_MODE {
     SPECTATOR = 'spectator',
 }
 
-type GameModeData = {
+export type GameModeData = {
     id              : GAME_MODE
     index ?         : int
     title           : string
@@ -116,7 +116,7 @@ export class GameMode {
 
     // Позволяет ли текущий режим совершать действия с блоками
     canBlockAction(): boolean {
-        return this.current.block_action;
+        return this.current.block_action && !this.player.driving;
     }
 
     // Позволяет ли текущий режим клонировать блоки

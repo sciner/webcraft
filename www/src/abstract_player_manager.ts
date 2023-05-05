@@ -51,7 +51,7 @@ export class AbstractPlayerManager<WorldT extends IWorld, PlayerT extends IPlaye
     /**
      * Return player by following user_id
      */
-    get(user_id: int): PlayerT {
+    get(user_id: int): PlayerT | null {
         return this.list.get(user_id) ?? null
     }
 

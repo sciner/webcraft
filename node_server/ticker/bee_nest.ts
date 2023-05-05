@@ -1,4 +1,4 @@
-import { WorldAction } from "@client/world_action.js";
+import {ActivateMobParams, WorldAction} from "@client/world_action.js";
 import { Vector } from "@client/helpers.js";
 import { ServerClient } from "@client/server_client.js";
 import type { ServerWorld } from "../server_world.js";
@@ -27,16 +27,17 @@ export default class Ticker {
                         .addSelf(new Vector(.5, .5, .5))
                         .addByCardinalDirectionSelf(new Vector(0, 0, .4), tblock.rotate.x);
                     // const spawn_tblock = world.getBlock(spawn_pos.floored());
-                    if(item.entity_id) {
+                    if(item.id) {
                         // активация ранее созданного моба
                         const params = {
-                            entity_id:  item.entity_id,
+                            id:         item.id,
                             spawn_pos:  spawn_pos,
                             rotate:     new Vector(0, 0, (tblock.rotate.x / 4) * -(2 * Math.PI))
                         }
                         Ticker.activateMob(world, params);
                     } else {
                         // первая генерация моба, если его ещё не было в БД
+                        // Или запись старой версии - моб хранится по entity_id. Проигнорируем ее, создадим новую.
                         const params = {
                             skin:       {model_name: MOB_TYPE.BEE, texture_name: DEFAULT_MOB_TEXTURE_NAME},
                             pos:        spawn_pos,
@@ -57,8 +58,8 @@ export default class Ticker {
     }
 
     // Activate mob (активация ранее созданного моба)
-    static activateMob(world : ServerWorld, params) {
-        console.log('Activate mob', params.spawn_pos.toHash());
+    static activateMob(world : ServerWorld, params: ActivateMobParams): void {
+        console.log('Activate mob', Vector.vectorify(params.spawn_pos).toHash());
         const actions = new WorldAction(null, world, false, false);
         actions.activateMob(params);
         world.actions_queue.add(null, actions);

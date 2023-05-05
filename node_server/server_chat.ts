@@ -545,6 +545,16 @@ export class ServerChat {
                 this.sendSystemChatMessageToSelectedPlayers(stat, player, true);
                 break;
             }
+            case '/debugplayer': {
+                if (args.length === 1) {
+                    this.sendSystemChatMessageToSelectedPlayers('!langUsage: /debugplayer (-<name>|<name>[=<value>])*\nIt sets player debug values.', player)
+                }
+                args.shift()
+                player.updateDebugValues(args)
+                const keys = Array.from(player.debugValues).map(e => `${e[0]}=${e[1]}`).join()
+                this.sendSystemChatMessageToSelectedPlayers(`!langPlayer debug values: ${keys}`, player)
+                break
+            }
             case '/spawnpoint': {
                 player.changePosSpawn({pos: player.state.pos.round(3)});
                 break;
@@ -560,12 +570,9 @@ export class ServerChat {
                 }
                 args = this.parseCMD(args, ['string', 'x', 'y', 'z', 'string', '?string'], player);
                 const type_orig = args[4]
-                let model_name : string = type_orig
-                if(!model_name.includes('/')) {
-                    model_name = `mob/${model_name}`
-                }
-                if (!world.brains.list.has(model_name)) {
-                    this.sendSystemChatMessageToSelectedPlayers(`!langUnknown mob type ${type_orig}`, player, false)
+                const model_name = world.mobs.findTypeFullName(type_orig)
+                if (!model_name) {
+                    this.sendSystemChatMessageToSelectedPlayers(`!langUnknown mob type ${type_orig}`, player)
                     break
                 }
                 // @ParamMobAdd
@@ -578,7 +585,9 @@ export class ServerChat {
                     }
                 )
                 // spawn
-                world.mobs.spawn(player, params)
+                if (!world.mobs.spawn(player, params)) {
+                    this.sendSystemChatMessageToSelectedPlayers(`!langCan't spawn mob ${model_name}`, player)
+                }
                 break;
             }
             case '/stairs': {

@@ -5,10 +5,7 @@ import type {Player} from "../player.js";
 import type {PacketBuffer} from "../packet_compressor.js";
 import {PrismarinePlayerControl, TPrismarineOptions} from "../prismarine-physics/using.js";
 import {SPECTATOR_SPEED_CHANGE_MAX, SPECTATOR_SPEED_CHANGE_MIN, SPECTATOR_SPEED_CHANGE_MULTIPLIER, SpectatorPlayerControl} from "./spectator-physics.js";
-import {
-    MAX_CLIENT_STATE_INTERVAL, PHYSICS_INTERVAL_MS, DEBUG_LOG_PLAYER_CONTROL,
-    PHYSICS_MAX_TICKS_PROCESSED, DEBUG_LOG_PLAYER_CONTROL_DETAIL, PHYSICS_VELOCITY_DECIMALS, PHYSICS_POS_DECIMALS
-} from "../constant.js";
+import {DEBUG_LOG_PLAYER_CONTROL, DEBUG_LOG_PLAYER_CONTROL_DETAIL, MAX_CLIENT_STATE_INTERVAL, PHYSICS_INTERVAL_MS, PHYSICS_MAX_TICKS_PROCESSED, PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS} from "../constant.js";
 import {SimpleQueue} from "../helpers/simple_queue.js";
 import type {PlayerControl} from "./player_control.js";
 import {GameMode} from "../game_mode.js";
@@ -16,11 +13,11 @@ import {MonotonicUTCDate} from "../helpers.js";
 import {ClientPlayerTickData, PLAYER_TICK_DATA_STATUS, PLAYER_TICK_MODE, PlayerTickData} from "./player_tick_data.js";
 import {ServerClient} from "../server_client.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketWriter, PlayerControlSessionPacket} from "./player_control_packets.js";
-import {PlayerSpeedLoggerMode, PlayerSpeedLogger} from "./player_speed_logger.js";
-import type { ChunkGrid } from "../core/ChunkGrid.js";
+import {PlayerSpeedLogger, PlayerSpeedLoggerMode} from "./player_speed_logger.js";
 import {LimitedLogger} from "../helpers/limited_logger.js";
+import {DrivingPlace} from "./driving.js";
+import type {PrismarinePlayerState} from "../prismarine-physics/index.js";
 
-const tmpAddr = new Vector()
 const DEBUG_LOG_SPEED = false
 const DEBUG_LOG_SPEED_MODE = PlayerSpeedLoggerMode.COORD_XYZ
 
@@ -29,8 +26,8 @@ const DEBUG_LOG_SPEED_MODE = PlayerSpeedLoggerMode.COORD_XYZ
  * calls the controllers to update the player state based on the input, and synchronizes the state
  * between the server and the client.
  */
-export abstract class PlayerControlManager {
-    player: Player
+export abstract class PlayerControlManager<TPlayer extends Player> {
+    player: TPlayer
 
     // the different controllers
     spectator: SpectatorPlayerControl
@@ -40,7 +37,7 @@ export abstract class PlayerControlManager {
     current: PlayerControl
 
     /**
-     * Each session starts uninitialzied. To become initialized, {@link baseTime} must be set.
+     * Each session starts uninitialized. To become initialized, {@link baseTime} must be set.
      * (a client sets it when in the first physics tick of the session, and the server receives this
      * value from the client).
      * @see startNewPhysicsSession
@@ -52,12 +49,12 @@ export abstract class PlayerControlManager {
 
     /** The time {@link MonotonicUTCDate.now} at which the physics session started. */
     protected baseTime: number
-    /** The number of physics session (see {@link PHYSICS_INTERVAL_MS}) from the start of the current physics session. */
+    /** The number of physics ticks (see {@link PHYSICS_INTERVAL_MS}) from the start of the current physics session. */
     protected knownPhysicsTicks: int
 
     private tmpPos = new Vector()
 
-    constructor(player: Player) {
+    constructor(player: TPlayer) {
         this.player = player
         const pos = new Vector(player.sharedProps.pos)
         const options: TPrismarineOptions = {
@@ -130,12 +127,14 @@ export abstract class PlayerControlManager {
      * - on the server: the controller is notified that the action completed, so if the physics was waiting for it,
      *   it may continue
      */
-    setPos(pos: IVector, worldActionId?: string | int | null): void {
+    setPos(pos: IVector): this {
         this.current.setPos(pos)
+        return this
     }
 
-    setVelocity(x: IVector | number[] | number, y: number, z: number): void {
+    setVelocity(x: IVector | number[] | number, y?: number, z?: number): this {
         this.current.player_state.vel.set(x, y, z)
+        return this
     }
 
     /**
@@ -146,13 +145,13 @@ export abstract class PlayerControlManager {
      * @return true if the simulation was successful, i.e. the {@link PlayerControl.simulatePhysicsTick}.
      *   It may be unsuccessful if the chunk is not ready.
      *   If the simulation fails, all the important properties of {@link PlayerControl} remain unchanged
-     *     (assuming {@link PlayerControl.restorePartialState} is correct).
+     *     (assuming {@link PlayerControl.copyPartialStateFromTo} is correct).
      */
-    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData,
-                       outPosBeforeLastTick?: Vector): boolean {
+    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData): boolean {
         const pc = this.controlByType[data.contextControlType]
         const gameMode = GameMode.byIndex[data.contextGameModeIndex]
         const player_state = pc.player_state
+        const driving = this.player.driving
 
         // this prevents, e.g. huge jumps after switching to/from spectator
         if (prevData && pc.type !== prevData.contextControlType) {
@@ -162,34 +161,36 @@ export abstract class PlayerControlManager {
         // apply input
         data.applyInputTo(this, pc)
 
-        // special state adjustments
-        player_state.flying &&= gameMode.can_fly // a hack-fix to ensure the player isn't flying when it shouldn't
-        // if a player was running before sitting, remove that speed, so it doesn't move after sitting
-        if (data.contextTickMode === PLAYER_TICK_MODE.SITTING_OR_LYING) {
-            player_state.vel.zero()
+        if (!driving) {
+            // special state adjustments
+            player_state.flying &&= gameMode.can_fly // a hack-fix to ensure the player isn't flying when it shouldn't
+            // if a player was running before sitting, remove that speed, so it doesn't move after sitting
+            if (data.contextTickMode === PLAYER_TICK_MODE.SITTING_OR_LYING) {
+                player_state.vel.zero()
+            }
         }
 
-        // remember the state before the simulation
         const prevPos = this.tmpPos.copyFrom(player_state.pos)
-        pc.backupPartialState()
+
+        // подготовить симуляцию вождения (если оно есть)
+        pc.drivingCombinedState = driving?.getSimulatedState(player_state as PrismarinePlayerState)
+
+        // remember the state before the simulation
+        pc.copyPartialStateFromTo(pc.simulatedState, pc.backupState)
 
         // simulate the steps
-        const grid : ChunkGrid = this.player.world.chunkManager.grid
         for(let i = 0; i < data.physicsTicks; i++) {
+            const pos = player_state.pos
             if (pc.requiresChunk) {
-                const pos = player_state.pos
-                grid.getChunkAddr(pos.x, pos.y, pos.z, tmpAddr)
-                const chunk = this.player.world.chunkManager.getChunk(tmpAddr)
+                const chunk = this.player.world.chunkManager.getByPos(pos)
                 if (!chunk?.isReady()) {
-                    pc.restorePartialState(prevPos)
+                    pc.copyPartialStateFromTo(pc.backupState, pc.simulatedState)
                     return false
                 }
             }
-            outPosBeforeLastTick?.copyFrom(player_state.pos)
-            try {
-                pc.simulatePhysicsTick()
-            } catch (e) {
-                pc.restorePartialState(prevPos)
+            this.onBeforeSimulatingTick(pc)
+            if (!pc.simulatePhysicsTick()) {
+                pc.copyPartialStateFromTo(pc.backupState, pc.simulatedState)
                 return false
             }
             // round the results between each step
@@ -197,6 +198,9 @@ export abstract class PlayerControlManager {
             player_state.pos.roundSelf(PHYSICS_POS_DECIMALS)
             player_state.vel.roundSelf(PHYSICS_VELOCITY_DECIMALS)
         }
+        // обновить состояние водиеля, если это было вождение
+        driving?.applyToParticipantControl(pc as PrismarinePlayerControl, DrivingPlace.DRIVER, false)
+
         data.initOutputFrom(pc)
         this.onSimulation(prevPos, data)
         return true
@@ -207,9 +211,13 @@ export abstract class PlayerControlManager {
     }
 
     protected get username(): string { return this.player.session.username }
+
+    protected onBeforeSimulatingTick(pc: PlayerControl): void {
+        // ничего; переопределено в субклассах
+    }
 }
 
-export class ClientPlayerControlManager extends PlayerControlManager {
+export class ClientPlayerControlManager extends PlayerControlManager<Player> {
 
     /**
      * A separate {@link SpectatorPlayerControl} used only for free cam.
@@ -233,7 +241,23 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     private freeCamPos = new Vector()
     private freeCamRotation = new Vector()
     private speedLogger = DEBUG_LOG_SPEED ? new PlayerSpeedLogger(DEBUG_LOG_SPEED_MODE) : null
-    private logger = new LimitedLogger('Control: ', 1000, null, DEBUG_LOG_PLAYER_CONTROL)
+    private logger = new LimitedLogger({
+        prefix: 'Control: ',
+        minInterval: 1000,
+        debugValueEnabled: 'DEBUG_LOG_PLAYER_CONTROL',
+        debugValueShowSkipped: 'SHOW_SKIPPED',
+        enabled: DEBUG_LOG_PLAYER_CONTROL
+    })
+    private fineLogger = new LimitedLogger({
+        ...this.logger.options,
+        minInterval: 0,
+        debugValueEnabled: 'DEBUG_LOG_PLAYER_CONTROL_DETAIL',
+        enabled: DEBUG_LOG_PLAYER_CONTROL_DETAIL
+    })
+    private alwaysLogger = new LimitedLogger({
+        ...this.logger.options,
+        enabled: true
+    })
     /**
      * It contains data for all recent physics ticks (at least, those that are possibly not known to the server).
      * If a server sends a correction to an earlier tick, it's used to repeat the movement in the later ticks.
@@ -247,6 +271,8 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     private controlPacketWriter = new PlayerControlPacketWriter()
     private hasCorrection = false
     private correctionPacket = new PlayerControlCorrectionPacket()
+    private _disbaleControlsUntilServerTick: int | null = null
+    triedDrving = false // true если игрок хоть раз попытался начать вождение
 
     constructor(player: Player) {
         super(player)
@@ -274,6 +300,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         }
         this.hasCorrection = false
         this.posChangedExternally = false
+        this._disbaleControlsUntilServerTick = null
     }
 
     protected resetState(pos: IVector): void {
@@ -281,21 +308,37 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         this.speedLogger?.reset()
     }
 
-    setPos(pos: IVector, worldActionId?: string | int | null): void {
-        super.setPos(pos, worldActionId)
+    setPos(pos: IVector): this {
+        super.setPos(pos)
         this.posChangedExternally = true
+        this.forceSendDelayedData()
+        return this
+    }
+
+    syncWithActionId(worldActionId: string | int | null, disableControls: boolean): this {
         if (worldActionId != null) {
+            this.posChangedExternally = true
             this.appliedWorldActionIds.push(worldActionId)
+            this.forceSendDelayedData()
         }
-        const lastData = this.dataQueue?.getLast()
+        if (disableControls) {
+            this._disbaleControlsUntilServerTick = this.knownPhysicsTicks + 1
+        }
+        return this
+    }
+
+    private forceSendDelayedData(): void {
+        const lastData = this.dataQueue?.getLast()  // it's null in the constructor
         if (lastData?.status === PLAYER_TICK_DATA_STATUS.PROCESSED_SENDING_DELAYED) {
             lastData.status = PLAYER_TICK_DATA_STATUS.PROCESSED_SEND_ASAP
+        }
+        if (lastData?.status === PLAYER_TICK_DATA_STATUS.PROCESSED_SEND_ASAP) {
             this.sendUpdate()
         }
     }
 
     /** Call it after changing the position if you want the change to be instant, e.g. placing the player on the bed. */
-    suppressLerpPos() {
+    suppressLerpPos(): void {
         this.prevPhysicsTickPos.copyFrom(this.current.player_state.pos)
     }
 
@@ -304,10 +347,20 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         if (pc === this.spectator) {
             this.spectator.getCurrentPos(dst)
         } else {
+            const tickFraction = this.getCurrentTickFraction()
             if (pos.distance(prevPos) > 10.0) {
                 dst.copyFrom(pos)
             } else {
-                dst.lerpFrom(prevPos, pos, this.getCurrentTickFraction())
+                dst.lerpFrom(prevPos, pos, tickFraction)
+            }
+
+            const driving = this.player.driving
+            if (driving?.physicsInitialized) {
+                // обновить интерполированное состояние общего объекта вождения по водителю
+                driving.updateDriverInterpolatedYaw(tickFraction, this.player, this.triedDrving)
+                driving.copyPosWithOffset(driving.interpolatedPos, DrivingPlace.DRIVER, driving.interpolatedYaw, dst,-1)
+                // обновить интерполированное состояние других участников вождения
+                driving.applyInterpolatedStateToDependentParticipants()
             }
         }
         dst.roundSelf(8)
@@ -369,10 +422,11 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             return
         }
 
-        if (this.current === this.spectator) {
-            this.spectator.updateFrame(this)
+        if (this._disbaleControlsUntilServerTick === this.knownPhysicsTicks) {
+            return
         }
 
+        this.current.updateFrame(this)
         if (this.#isFreeCam) {
             this.updateFreeCamFrame()
         }
@@ -393,11 +447,11 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             }
             let prevData = dataQueue.get(ind)
 
-            if (DEBUG_LOG_PLAYER_CONTROL && prevData?.endPhysicsTick !== this.knownPhysicsTicks) {
-                console.error(`Control: prevData?.endPhysicsTick !== this.knownPhysicsTicks`, prevData.endPhysicsTick)
+            if (prevData?.endPhysicsTick !== this.knownPhysicsTicks) {
+                this.logger.log('prevData?.endPhysicsTick !==', () => `prevData?.endPhysicsTick !== this.knownPhysicsTicks ${prevData.endPhysicsTick}`)
             }
-            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                console.log(`Control: correction applied at ${this.knownPhysicsTicks}`, this.current.player_state.pos)
+            if (this.fineLogger.enabled) {
+                this.logger.log('correction applied', () => `correction applied at ${this.knownPhysicsTicks} ${this.current.player_state.pos}`)
             }
 
             while (++ind < dataQueue.length) {
@@ -417,19 +471,21 @@ export class ClientPlayerControlManager extends PlayerControlManager {
 
         // the number of new ticks to be simulated
         let physicsTicks = Math.floor((this.knownInputTime - this.knownTime) / PHYSICS_INTERVAL_MS)
+        if (this._disbaleControlsUntilServerTick != null) {
+            physicsTicks = Math.min(physicsTicks, this._disbaleControlsUntilServerTick - this.knownPhysicsTicks)
+        }
         // simulate the new tick(s)
         if (physicsTicks) {
             if (physicsTicks < 0) {
                 throw new Error('physicsTicks < 0') // this should not happen
             }
             if (this.posChangedExternally) {
-                if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                    console.log(`pos changed externally t${this.knownPhysicsTicks} ${this.appliedWorldActionIds.join()}`)
-                }
+                this.fineLogger.log(() => `pos changed externally t${this.knownPhysicsTicks} ${this.appliedWorldActionIds.join()}`)
                 const data = new ClientPlayerTickData()
                 data.initInputFrom(this, this.knownPhysicsTicks++, 1)
                 data.initContextFrom(this)
                 data.initOutputFrom(this.current)
+                data.status = PLAYER_TICK_DATA_STATUS.PROCESSED_SEND_ASAP // it can't be combined
                 if (this.appliedWorldActionIds.length) {
                     data.inputWorldActionIds = this.appliedWorldActionIds
                     this.appliedWorldActionIds = []
@@ -437,6 +493,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
                 dataQueue.push(data)
                 this.posChangedExternally = false
                 if (--physicsTicks === 0) {
+                    this.sendUpdate()
                     return
                 }
             }
@@ -444,7 +501,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             // Don't process more than PHYSICS_MAX_TICKS_PROCESSED. The server will correct us if we're wrong.
             const skipPhysicsTicks = physicsTicks - PHYSICS_MAX_TICKS_PROCESSED
             if (skipPhysicsTicks > 0) {
-                this.logger.log('skipping', `skipping ${skipPhysicsTicks} ticks`)
+                this.fineLogger.log('skipp_ticks', `skipping ${skipPhysicsTicks} ticks`)
                 const skippedTicksData = new ClientPlayerTickData()
                 skippedTicksData.initInputFrom(this, this.knownPhysicsTicks, skipPhysicsTicks)
                 skippedTicksData.initContextFrom(this)
@@ -464,37 +521,29 @@ export class ClientPlayerControlManager extends PlayerControlManager {
             }
 
             const prevData = dataQueue.getLast()
-            this.simulate(prevData, data, this.prevPhysicsTickPos)
+            this.simulate(prevData, data)
 
-            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                console.log(`control: simulated t${this.knownPhysicsTicks} ${data.outPos} ${data.outVelocity}`)
-            }
+            this.fineLogger.log(() => `simulated t${this.knownPhysicsTicks} ${data.outPos} ${data.outVelocity}`)
 
             // Save the tick data to be sent to the server.
             // Possibly postpone its sending, and/or merge it with the previously unsent data.
             if (prevData?.equal(data) && !this.sedASAP) {
-                if (prevData.status === PLAYER_TICK_DATA_STATUS.SENT) {
-                    // it can't be merged with the data already sent, but it contains no new data, so it can be delayed
+                if (prevData.status !== PLAYER_TICK_DATA_STATUS.PROCESSED_SENDING_DELAYED) {
+                    // it can't be merged with the previous data, but it contains no new data, so it can be delayed
                     data.status = PLAYER_TICK_DATA_STATUS.PROCESSED_SENDING_DELAYED
                     dataQueue.push(data)
-                    if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                        console.log(`  control: pushed same`)
-                    }
+                    this.fineLogger.log(() => `  pushed same`)
                 } else {
                     // merge with the previous unsent data
                     prevData.physicsTicks += data.physicsTicks
-                    if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                        console.log(`  control: merged s${prevData.status} #->${prevData.physicsTicks}`)
-                    }
+                    this.fineLogger.log(() => `  merged s${prevData.status} #->${prevData.physicsTicks}`)
                 }
             } else {
                 // it differs (or we had to send it ASAP because we're far behind the server), send it ASAP
                 this.sedASAP = false
                 data.status = PLAYER_TICK_DATA_STATUS.PROCESSED_SEND_ASAP
                 dataQueue.push(data)
-                if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                    console.log(`  control: pushed different or ASAP`)
-                }
+                this.fineLogger.log(() => `  pushed different or ASAP`)
             }
         }
 
@@ -513,6 +562,10 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         const debPrevKnownPhysicsTicks = this.knownPhysicsTicks
         const correctedPhysicsTick = packet.knownPhysicsTicks
         const correctedData = packet.data
+
+        if (this._disbaleControlsUntilServerTick <= correctedPhysicsTick) {
+            this._disbaleControlsUntilServerTick = null
+        }
 
         // TODO what if correctedData context is different?
 
@@ -545,9 +598,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
 
         // If the correction isn't aligned with the data end, e.g. because of ServerPlayerControlManager.doLaggingServerTicks
         if (exData.endPhysicsTick > correctedPhysicsTick) {
-            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                console.log('Control: applying correction, end tick is not aligned')
-            }
+            this.fineLogger.log(() => 'applying correction, end tick is not aligned')
             // Split exData into corrected and uncorrected parts
             exData.physicsTicks = exData.endPhysicsTick - correctedPhysicsTick
             exData.startingPhysicsTick = correctedPhysicsTick
@@ -563,16 +614,14 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         if (correctedPhysicsTick <= this.knownPhysicsTicks &&
             exData.contextEqual(correctedData) && exData.outEqual(correctedData)
         ) {
-            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                console.log(`Control: correction ${debPrevKnownPhysicsTicks}->${correctedPhysicsTick} skipped`)
-            }
+            this.fineLogger.log('skip_correction', `correction ${debPrevKnownPhysicsTicks}->${correctedPhysicsTick} ${packet.log} skipped`)
             // It's possible that we have sent several packets and received several corrections,
             // so the current data might be already corrected. Do nothing then.
             return
         }
-        if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-            console.log(`Control: correction ${debPrevKnownPhysicsTicks} -> ..+${exData.physicsTicks}=${correctedPhysicsTick}`, exData.outPos, correctedData.outPos)
-        }
+        const logger = ['simulation_differs inputWorldActionIds'].includes(packet.log)
+            ? this.logger : this.alwaysLogger
+        logger.log(packet.log, `correction ${debPrevKnownPhysicsTicks} -> ..+${exData.physicsTicks}=${correctedPhysicsTick} ${packet.log} ${exData.outPos} ${correctedData.outPos}`)
 
         // The data differs. Set the result at that tick, and invalidate the results in later ticks
         this.hasCorrection = true
@@ -592,9 +641,23 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     }
 
     onServerAccepted(knownPhysicsTicks: int) {
+        if (this.hasCorrection) {
+            // Может быть такое: проверка физики на сервере отключена.
+            // 1. Было внешне изменение координат на сервере.
+            // 2. Сервер отослал коррекцию.
+            // 3. Сервер принял клиентские данные, не основанные на этой коррекции.
+            // 4. На клиенте есть эта еще не до концы обработанная боле ранняя коррекция, но уже пришло подтверждени более поздних данных.
+            // Хотя последние отосланные тики и приняты сервером, клиент должен их повторить чтобы
+            // отослать более новые с учетом предыдущей коррекции. Иначе серверное измение позици будет отменено клиентом.
+            // Клиент не должен забывать старые тики пока не применит коррекцию.
+            return
+        }
         const dataQueue = this.dataQueue
         while(dataQueue.length && dataQueue.getFirst().endPhysicsTick <= knownPhysicsTicks) {
             dataQueue.shift()
+        }
+        if (this._disbaleControlsUntilServerTick <= knownPhysicsTicks) {
+            this._disbaleControlsUntilServerTick = null
         }
     }
 
@@ -651,11 +714,10 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         this.player.world.server.Send({name: ServerClient.CMD_PLAYER_CONTROL_SESSION, data})
     }
 
-    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData,
-                       outPosBeforeLastTick?: Vector): boolean {
+    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData): boolean {
         const pc = this.controlByType[data.contextControlType]
         prevData?.applyOutputToControl(pc)
-        if (super.simulate(prevData, data, outPosBeforeLastTick)) {
+        if (super.simulate(prevData, data)) {
             return true
         }
         data.initOutputFrom(pc)
@@ -667,4 +729,11 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         pc.updateFrame(this)
     }
 
+    protected onBeforeSimulatingTick(pc: PlayerControl): void {
+        this.prevPhysicsTickPos.copyFrom(pc.player_state.pos)
+        const driving = this.player.driving
+        if (driving?.physicsInitialized) {
+            driving.prevPhysicsTickVehicleYaw = pc.drivingCombinedState?.yaw
+        }
+    }
 }

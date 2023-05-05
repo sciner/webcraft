@@ -11,7 +11,12 @@ export class ServerPlayerTickData extends PlayerTickData {
         return this.outControlFlags === other.outControlFlags &&
             this.outPlayerFlags === other.outPlayerFlags &&
             this.outPos.distanceSqr(other.outPos) < ACCEPTABLE_PLAYER_POS_ERROR * ACCEPTABLE_PLAYER_POS_ERROR &&
-            this.outVelocity.distanceSqr(other.outVelocity) < ACCEPTABLE_PLAYER_VELOCITY_ERROR * ACCEPTABLE_PLAYER_VELOCITY_ERROR
+            this.outVelocity.distanceSqr(other.outVelocity) < ACCEPTABLE_PLAYER_VELOCITY_ERROR * ACCEPTABLE_PLAYER_VELOCITY_ERROR &&
+            (!this.isContextDriving() ||
+                this.outVehiclePos.distanceSqr(other.outVehiclePos) < ACCEPTABLE_PLAYER_POS_ERROR * ACCEPTABLE_PLAYER_POS_ERROR &&
+                this.outVehicleYaw == other.outVehicleYaw &&
+                this.outVehicleAngularVelocity == other.outVehicleAngularVelocity
+            )
     }
 
     applyOutputToPlayer(player: ServerPlayer) {

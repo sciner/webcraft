@@ -112,6 +112,7 @@ export class Renderer {
     material_shadow:        any
     cullID:                 int = 0
     lastDeltaForMeGui:      int = 0
+    mobsDrawnLast:          MobModel[] = [] // список мобов, отложенных при 1-м вызове drawMobs, чтобы быть нарисованными на 2-м
     nightVision:            boolean = false;
     _debug_aabb:            AABB[] = []
 
@@ -1035,15 +1036,19 @@ export class Renderer {
                 // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
                 if (shader.texture) {
                     shader.bind(true);
-                    // 3. Draw players and rain
+                    // 3. Draw mobs
+                    this.drawMobs(delta, false);
+                    // 4. Draw players and rain
+                    // После мобов, это важно. draw также обновляет состояние. Моб-транспорт должен обработаться первым и изменить позицию модели игрока.
                     this.drawPlayers(delta);
-                    // 4. Draw mobs
-                    this.drawMobs(delta);
                     // 5. Draw drop items
                     this.drawDropItems(delta);
                     // 6. Draw meshes
                     // this.meshes.draw(this, delta, player.lerpPos);
-                    // 7. Draw shadows
+
+                    // 7. Draw mobs that must be drawn last (boats)
+                    this.drawMobs(delta, true);
+                    // 8. Draw shadows
                     this.drawShadows();
                 }
             } else {
@@ -1255,7 +1260,7 @@ export class Renderer {
     }
 
     // drawMobs
-    drawMobs(delta : float) : DrawMobsStat {
+    drawMobs(delta : float, renderLast: boolean) : DrawMobsStat | null {
         const mobs_count = this.world.mobs.list.size;
         if(mobs_count < 1) {
             return this.draw_mobs_stat;
@@ -1265,7 +1270,16 @@ export class Renderer {
         let prev_chunk = null;
         let prev_chunk_addr = new Vector();
         const pos_of_interest = this.player.getEyePos();
-        const mobs_list : MobModel[] = Array.from(this.world.mobs.list.values())
+
+        if (renderLast) {
+            for(const mob of this.mobsDrawnLast) {
+                mob.draw(this, pos_of_interest, delta, undefined, this.world.mobs.draw_debug_grid);
+            }
+            this.mobsDrawnLast.length = 0
+            return null
+        }
+
+        const mobs_list = this.world.mobs.list.values()
         this.draw_mobs_stat.count = 0
         this.draw_mobs_stat.time = performance.now()
         for(let mob of mobs_list) {
@@ -1275,6 +1289,12 @@ export class Renderer {
                 prev_chunk = this.world.chunkManager.getChunk(ca);
             }
             if(prev_chunk && prev_chunk.cullID === this.cullID) {
+                if (mob.renderLast) {
+                    // запомнить моба чтобы нарисовать его на втором проходе быстро без проверок чанка
+                    this.mobsDrawnLast.push(mob)
+                    mob.processNetState() // даже если моб не рисуется на первом проходе - обновить его (например, чтобы его вождение обновило других мобов)
+                    continue
+                }
                 mob.draw(this, pos_of_interest, delta, undefined, this.world.mobs.draw_debug_grid);
                 this.draw_mobs_stat.count++
             }
@@ -1520,7 +1540,9 @@ export class Renderer {
 
         if(!force) {
 
-            this.bobView(player, tmp);
+            if (player.hasBobView()) {
+                this.bobView(player, tmp);
+            }
             this.crosshairOn = ((this.camera_mode === CAMERA_MODE.SHOOTER) && Qubatch.hud.active); // && !player.game_mode.isSpectator();
 
             if(this.camera_mode === CAMERA_MODE.SHOOTER) {
