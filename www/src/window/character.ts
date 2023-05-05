@@ -77,8 +77,9 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
 
         for(const slot of this.paperdoll) {
             slot.onSetItem = () => {
-                this.player.getModel().updateArmor()
+               // this.player.getModel().updateArmor()
                 this.refresh()
+                //this.autoSortItems()
             }
         }
 

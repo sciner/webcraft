@@ -615,10 +615,16 @@ export class GameClass {
                         e.shiftKey,
                         player.controls.sprint
                     );
-                    // 0...9 (Select material)
-                    if(!e.down && (e.keyCode >= 48 && e.keyCode <= 57)) {
+                    // 0...9,-,= (Select material)
+                    if(!e.down && ((e.keyCode >= 48 && e.keyCode <= 57) || e.keyCode == 187 || e.keyCode == 189)) {
                         if(e.keyCode == 48) {
                             e.keyCode = 58;
+                        }
+                        if(e.keyCode == 189) {
+                            e.keyCode = 59
+                        }
+                        if(e.keyCode == 187) {
+                            e.keyCode = 60
                         }
                         player.inventory.select(e.keyCode - 49);
                         return true;

@@ -281,7 +281,7 @@ export class Hotbar {
             const lblSlot = new CraftTableInventorySlot(i * (sz * SLOT_MARGIN_PERCENT), 0, sz, sz, `lblSlot${i}`, null, null, this, i)
             lblSlot.slot_empty  = 'slot_empty'
             lblSlot.slot_full   = 'slot_full'
-            lblSlot.slot_locked = 'window_slot_locked'
+            lblSlot.slot_locked = 'none'
             lblSlot.style.background.color = '#00000000'
             lblSlot.style.border.hidden = true
             inventory_slots_window.add(lblSlot)
@@ -464,7 +464,7 @@ export class Hotbar {
         // хотбар и селектор
         const sx = this.sx
         const sy = this.sy
-        const count = this.inventory.getCountHotbar()
+        const count = this.inventory.getHotbarLength()
         for (let i = 0; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
             const x = this.inventory_slots_window.x + i * (sx * SLOT_MARGIN_PERCENT)
             const y = this.inventory_slots_window.y
@@ -475,7 +475,7 @@ export class Hotbar {
             if (i == this.inventory.getRightIndex()) {
                 this.tilemap.drawImage(this.hud_sprites.slot_selection, x, y)
             }
-            this.inventory_slots_window.slots[i].disabled = (i > count) ? true : false
+            this.inventory_slots_window.slots[i].locked = (i > count) ? true : false
             this.inventory_slots_window.slots[i].refresh()
         }
 

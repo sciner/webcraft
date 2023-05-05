@@ -1,7 +1,7 @@
 import {BLOCK} from "../blocks.js";
 import { ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../helpers.js";
 import { INVENTORY_HOTBAR_SLOT_COUNT,
-    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE, UI_THEME, INVENTORY_HOTBAR_SLOT_MAX, INVENTORY_SLOT_MAX } from "../constant.js";
+    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE, UI_THEME, INVENTORY_HOTBAR_SLOT_MAX, INVENTORY_SLOT_MAX, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
 import { Label, SimpleBlockSlot, Window, Button, ToggleButton } from "../ui/wm.js";
 import { Recipe } from "../recipes.js";
@@ -88,14 +88,14 @@ export class CraftTableSlot extends SimpleBlockSlot {
 
     //
     get tooltip() {
-        if (this.disabled) {
+        if (this.locked) {
             return
         }
         let resp = null;
-        let item = this.getItem();
+        const item = this.getItem();
         if(item) {
             if(item.id) {
-                const block = BLOCK.fromId(item.id);
+                const block = BLOCK.fromId(item.id)
                 if(block) {
                     const label = item.extra_data?.label;
                     resp = label
@@ -107,12 +107,16 @@ export class CraftTableSlot extends SimpleBlockSlot {
                     if (item.extra_data?.age) {
                         resp += '\rAnvil uses: ' + item.extra_data?.age;
                     }
+                    if (block.extra_data?.slot) {
+                        resp += '\rAdd slots: ' + block.extra_data.slot
+                    }
+                    if (block.extra_data?.hotbar) {
+                        resp += '\rAdd hotbar: ' + block.extra_data.hotbar
+                    }
                 }
-            } else {
-
             }
         }
-        return resp;
+        return resp
     }
 
     isInventorySlot() {
@@ -360,7 +364,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             // Drop
             this.onDrop = function(e) {
 
-                if (this.options.disableIfLoading && this.ct.loading || this.disabled) {
+                if (this.options.disableIfLoading && this.ct.loading || this.locked) {
                     return
                 }
                 const player      = Qubatch.player
@@ -464,7 +468,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
     // Mouse down
     onMouseDown(e) {
 
-        if (this.options.disableIfLoading && this.ct.loading || this.disabled) {
+        if (this.options.disableIfLoading && this.ct.loading || this.locked) {
             return
         }
 
@@ -799,8 +803,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         const y = UI_THEME.window_padding * this.zoom
         const hud_atlas = Resources.atlas.get('hud')
         // кнопка сортировки
-        const btnSort = new Button(x, y, size, size, 'btnSort')
-        btnSort.style.border.style = 'none'
+        const btnSort = new Label(x, y, size, size, 'btnSort')
         btnSort.setIcon(hud_atlas.getSpriteFromMap('sort'), 'centerstretch', .9)
         btnSort.z = 1
         btnSort.onMouseDown = () => {
@@ -811,14 +814,10 @@ export class BaseCraftWindow extends BaseInventoryWindow {
     }
 
     refresh() {
-        let count = this.inventory.getCountHotbar()
-        for (let i = 0; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
-            this.inventory_slots[i].disabled = (i > count) ? true : false
-            this.inventory_slots[i].refresh()
-        }
-        count = INVENTORY_HOTBAR_SLOT_MAX + this.inventory.getCountSlot()
-        for (let i = INVENTORY_HOTBAR_SLOT_MAX; i < INVENTORY_HOTBAR_SLOT_MAX + INVENTORY_SLOT_MAX; i++) {
-            this.inventory_slots[i].disabled = (i >= count) ? true : false
+        const hotbar_len = this.inventory.getHotbarLength()
+        const bag_len = this.inventory.getBagLength()
+        for (let i = 0; i < (BAG_LENGTH_MAX + HOTBAR_LENGTH_MAX); i++) {
+            this.inventory_slots[i].locked = ((i <= hotbar_len || i >= HOTBAR_LENGTH_MAX) && i < bag_len) ? false : true
             this.inventory_slots[i].refresh()
         }
     }

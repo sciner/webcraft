@@ -1,6 +1,6 @@
 import { ArrayOrMap, Helpers, Vector} from "./helpers.js";
 import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT,
-    INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT, INVENTORY_HOTBAR_SLOT_MIN, INVENTORY_HOTBAR_SLOT_MAX, INVENTORY_SLOT_MIN, INVENTORY_SLOT_MAX, PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET } from "./constant.js";
+    INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT, INVENTORY_HOTBAR_SLOT_MIN, INVENTORY_HOTBAR_SLOT_MAX, INVENTORY_SLOT_MIN, INVENTORY_SLOT_MAX, PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, BAG_LENGTH_MIN, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, HOTBAR_LENGTH_MIN } from "./constant.js";
 import { BLOCK } from "./blocks.js"
 import {InventoryComparator, TUsedRecipe} from "./inventory_comparator.js";
 import type { ArmorState, Player } from "./player.js";
@@ -166,10 +166,12 @@ export abstract class Inventory {
         const added = Inventory.tmpMapAdded
         added.clear()
         const item_max_count = this.block_manager.getItemMaxStack(mat)
+
+        const bag_len = this.getBagLength()
         // 1. update cell if exists
         let need_refresh = false;
         if(item_max_count > 1) {
-            for(let i = 0; i < INVENTORY_DRAG_SLOT_INDEX; i++) {
+            for(let i = 0; i < bag_len; i++) {
                 const item = this.items[i];
                 if(item && item.count < item_max_count && InventoryComparator.itemsEqualExceptCount(item, mat)) {
                     need_refresh = true
@@ -183,8 +185,12 @@ export abstract class Inventory {
             }
         }
         // 2. start new slot
+        const hobar_len = this.getHotbarLength()
         if(mat.count > 0) {
-            for(let i = 0; i < this.max_visible_count; i++) {
+            for(let i = 0; i < bag_len; i++) {
+                if (i > hobar_len && i < HOTBAR_LENGTH_MAX) {
+                    continue
+                }
                 if(!this.items[i]) {
                     const new_clot = {...mat};
                     added.set(i, new_clot);
@@ -674,6 +680,40 @@ export abstract class Inventory {
             }
         }
         return Math.min(resp, INVENTORY_HOTBAR_SLOT_MAX)
+    }
+
+    getHotbarLength() {
+        let resp = HOTBAR_LENGTH_MIN
+        for (const slot_index of [PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT]) {
+            if (this.items[slot_index]) {
+                const item = this.block_manager.fromId(this.items[slot_index].id)
+                resp += item.extra_data?.hotbar ?? 0
+            }
+        }
+        return Math.min(resp, HOTBAR_LENGTH_MAX)
+    }
+
+    getBagLength() {
+        let resp = BAG_LENGTH_MIN
+        for (const slot_index of [PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT]) {
+            if (this.items[slot_index]) {
+                const item = this.block_manager.fromId(this.items[slot_index].id)
+                resp += item.extra_data?.slot ?? 0
+            }
+        }
+        return Math.min(resp, BAG_LENGTH_MAX) + HOTBAR_LENGTH_MAX
+    }
+
+    getSlotNumber() {
+        const arr = []
+        const count_bag = this.getBagLength()
+        const count_hotbar = this.getHotbarLength()
+        for (let i = 0; i < count_bag; i++) {
+            if (i <= count_hotbar || i >= INVENTORY_HOTBAR_SLOT_MAX) {
+                arr.push(i)
+            }
+        }
+        return arr
     }
 
 }

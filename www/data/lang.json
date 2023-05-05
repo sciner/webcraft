@@ -223,7 +223,7 @@
         "advanced_settings": {"en": "Advanced", "ru": "Продвинутые настройки", "fr": "", "es": "", "man": ""},
         "check_delete_item": {"en": "Show item delete dialog", "ru": "Показывать диалог удаления предмета", "fr": "", "es": "", "man": ""},
         "delete_item": {"en": "Delete item", "ru": "Удалить предмет", "fr": "", "es": "", "man": ""},
-        "lost_item": {"en": "This item is permanently lost", "ru": "Этот предмет будет навсегда потерян", "fr": "", "es": "", "man": ""},
+        "lost_item": {"en": "This item will be permanently lost", "ru": "Этот предмет будет навсегда потерян", "fr": "", "es": "", "man": ""},
         "do_not_show": {"en": "Don't show warning again", "ru": "Больше не показывать", "fr": "", "es": "", "man": ""},
         "yes": {"en": "Yes", "ru": "Да", "fr": "", "es": "", "man": ""},
         "no": {"en": "No", "ru": "Нет", "fr": "", "es": "", "man": ""}

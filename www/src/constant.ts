@@ -80,6 +80,11 @@ export const INVENTORY_SLOT_MAX             = 72
 export const INVENTORY_HOTBAR_SLOT_MAX      = 12
 export const INVENTORY_HOTBAR_SLOT_MIN      = 4
 
+export const HOTBAR_LENGTH_MIN      = 4
+export const HOTBAR_LENGTH_MAX      = 12
+export const BAG_LENGTH_MIN         = 27
+export const BAG_LENGTH_MAX         = 72
+
 export const DEFAULT_CHEST_SLOT_COUNT       = 27;
 // It's added to pickatDistance on the client.
 // If a player is farther away, the chest window closes.

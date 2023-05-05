@@ -19,6 +19,8 @@ import type { Indicators, PlayerState } from "@client/player.js";
 import { SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS } from "../server_constant.js";
 import { teleport_title_regexp } from "plugins/chat_teleport.js";
 import { OLD_CHUNK_SIZE } from "@client/chunk_const.js";
+import { PAPERDOLL_BACKPACK } from "@client/constant.js";
+import { PAPERDOLL_TOOLBELT } from "@client/constant.js";
 
 export type BulkDropItemsRow = [
     string,     // entity_id
@@ -258,9 +260,11 @@ export class DBWorld {
 
     // Return default inventory for user
     getDefaultInventory() {
-        const MAX_INVERTORY_SLOT_COUNT = 42;
+        const items = new Array(INVENTORY_SLOT_COUNT).fill(null)
+        items[PAPERDOLL_BACKPACK] = {id: 1094, count: 1}
+        items[PAPERDOLL_TOOLBELT] = {id: 1095, count: 1}
         const resp = {
-            items: new Array(MAX_INVERTORY_SLOT_COUNT).fill(null),
+            items: items,
             current: {
                 index: 0, // right hand
                 index2: -1 // left hand
