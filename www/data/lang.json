@@ -225,6 +225,8 @@
         "delete_item": {"en": "Delete item", "ru": "Удалить предмет", "fr": "", "es": "", "man": ""},
         "lost_item": {"en": "This item will be permanently lost", "ru": "Этот предмет будет навсегда потерян", "fr": "", "es": "", "man": ""},
         "do_not_show": {"en": "Don't show warning again", "ru": "Больше не показывать", "fr": "", "es": "", "man": ""},
+        "slots": {"en": "Slots", "ru": "Ячеек", "fr": "", "es": "", "man": ""},
+        "toolbelt": {"en": "Toolbelt", "ru": "Пояс", "fr": "", "es": "", "man": ""},
         "yes": {"en": "Yes", "ru": "Да", "fr": "", "es": "", "man": ""},
         "no": {"en": "No", "ru": "Нет", "fr": "", "es": "", "man": ""}
     }

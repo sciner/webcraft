@@ -108,10 +108,10 @@ export class CraftTableSlot extends SimpleBlockSlot {
                         resp += '\rAnvil uses: ' + item.extra_data?.age;
                     }
                     if (block.extra_data?.slot) {
-                        resp += '\rAdd slots: ' + block.extra_data.slot
+                        resp += '\r' + Lang['backpack'] + ' (' + Lang['slots'] + ': ' + block.extra_data.slot + ')'
                     }
                     if (block.extra_data?.hotbar) {
-                        resp += '\rAdd hotbar: ' + block.extra_data.hotbar
+                        resp += '\r' + Lang['toolbelt'] + ' (' + Lang['slots'] + ': ' + block.extra_data.hotbar + ')'
                     }
                 }
             }

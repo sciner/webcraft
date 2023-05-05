@@ -10293,7 +10293,7 @@
                 "id": "powder"
             },
             "armor": {
-                "slot": 39,
+                "slot": 89,
                 "durability": 276,
                 "damage": 0
             },
@@ -10492,7 +10492,7 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 39,
+                "slot": 89,
                 "durability": 55,
                 "damage": 1
             },
@@ -10512,7 +10512,7 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 39,
+                "slot": 89,
                 "durability": 165,
                 "damage": 2
             },
@@ -10532,7 +10532,7 @@
                 "id": "iron"
             },
             "armor": {
-                "slot": 39,
+                "slot": 89,
                 "durability": 165,
                 "damage": 2
             },
@@ -10552,7 +10552,7 @@
                 "id": "diamond"
             },
             "armor": {
-                "slot": 39,
+                "slot": 89,
                 "durability": 363,
                 "damage": 3
             },
@@ -10572,7 +10572,7 @@
                 "id": "gold"
             },
             "armor": {
-                "slot": 39,
+                "slot": 89,
                 "durability": 77,
                 "damage": 2
             },
@@ -10592,7 +10592,7 @@
                 "id": "netherite"
             },
             "armor": {
-                "slot": 39,
+                "slot": 89,
                 "durability": 407,
                 "damage": 3
             },
@@ -10612,7 +10612,7 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 38,
+                "slot": 88,
                 "durability": 80,
                 "damage": 3
             },
@@ -10632,7 +10632,7 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 38,
+                "slot": 88,
                 "durability": 240,
                 "damage": 5
             },
@@ -10652,7 +10652,7 @@
                 "id": "iron"
             },
             "armor": {
-                "slot": 38,
+                "slot": 88,
                 "durability": 240,
                 "damage": 6
             },
@@ -10672,7 +10672,7 @@
                 "id": "diamond"
             },
             "armor": {
-                "slot": 38,
+                "slot": 88,
                 "durability": 528,
                 "damage": 8
             },
@@ -10692,7 +10692,7 @@
                 "id": "gold"
             },
             "armor": {
-                "slot": 38,
+                "slot": 88,
                 "durability": 112,
                 "damage": 5
             },
@@ -10712,7 +10712,7 @@
                 "id": "netherite"
             },
             "armor": {
-                "slot": 38,
+                "slot": 88,
                 "durability": 592,
                 "damage": 8
             },
@@ -10732,7 +10732,7 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 37,
+                "slot": 87,
                 "durability": 80,
                 "damage": 2
             },
@@ -10752,7 +10752,7 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 37,
+                "slot": 87,
                 "durability": 240,
                 "damage": 4
             },
@@ -10772,7 +10772,7 @@
                 "id": "iron"
             },
             "armor": {
-                "slot": 37,
+                "slot": 87,
                 "durability": 240,
                 "damage": 5
             },
@@ -10792,7 +10792,7 @@
                 "id": "diamond"
             },
             "armor": {
-                "slot": 37,
+                "slot": 87,
                 "durability": 528,
                 "damage": 6
             },
@@ -10812,7 +10812,7 @@
                 "id": "gold"
             },
             "armor": {
-                "slot": 37,
+                "slot": 87,
                 "durability": 112,
                 "damage": 3
             },
@@ -10832,7 +10832,7 @@
                 "id": "netherite"
             },
             "armor": {
-                "slot": 37,
+                "slot": 87,
                 "durability": 592,
                 "damage": 6
             },
@@ -10852,7 +10852,7 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 36,
+                "slot": 86,
                 "durability": 65,
                 "damage": 1
             },
@@ -10872,7 +10872,7 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 36,
+                "slot": 86,
                 "durability": 195,
                 "damage": 1
             },
@@ -10892,7 +10892,7 @@
                 "id": "iron"
             },
             "armor": {
-                "slot": 36,
+                "slot": 86,
                 "durability": 195,
                 "damage": 2
             },
@@ -10912,7 +10912,7 @@
                 "id": "diamond"
             },
             "armor": {
-                "slot": 36,
+                "slot": 86,
                 "durability": 429,
                 "damage": 3
             },
@@ -10932,7 +10932,7 @@
                 "id": "gold"
             },
             "armor": {
-                "slot": 36,
+                "slot": 86,
                 "durability": 91,
                 "damage": 1
             },
@@ -10952,7 +10952,7 @@
                 "id": "netherite"
             },
             "armor": {
-                "slot": 36,
+                "slot": 86,
                 "durability": 481,
                 "damage": 3
             },
