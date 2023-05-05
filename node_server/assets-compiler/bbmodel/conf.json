@@ -519,6 +519,7 @@
         {
             "id": 39,
             "name": "BROWN_MUSHROOM",
+            "aabb": [5, 0, 5, 11, 6, 11],
             "bb": {
                 "model": "brown_mushroom"
             }
@@ -526,6 +527,7 @@
         {
             "id": 40,
             "name": "RED_MUSHROOM",
+            "aabb": [5, 0, 5, 11, 6, 11],
             "bb": {
                 "model": "red_mushroom",
                 "rotate": [
