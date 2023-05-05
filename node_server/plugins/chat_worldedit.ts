@@ -829,7 +829,7 @@ export default class WorldEdit {
         }
         // Check names and validate blocks
         const fake_orientation = new Vector(0, 1, 0)
-        const fake_pos = {...new Vector(0, 0, 0), n: new Vector(0, 0, 0)};
+        const fake_pos = {...new Vector(0, 0, 0), n: new Vector(0, 0, 0), point: undefined} as IVectorPoint;
         for(let item of blockChances) {
             const b = item.name ? bm.fromName(item.name) : bm.fromId(item.block_id)
             if(!b || b.id < 0) throw 'error_invalid_block'
