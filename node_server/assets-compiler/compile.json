@@ -12501,24 +12501,19 @@
         },
         {
             "id": 490,
-            "name": "STONE2",
+            "name": "REINFORCED_CONCRETE",
             "sound": "madcraft:block.stone",
             "material": {
                 "id": "stone"
             },
             "texture": {
-                "side": "block/decals/frame/all.png"
+                "side": "block/decals/reinforced_concrete/all.png"
             },
             "tags": [
                 "do_not_remove_this_tag"
             ],
             "connected_sides": {
-                "0": "block/decals/frame/0.png",
-                "1": "block/decals/frame/1.png",
-                "corner": "block/decals/frame/corner.png",
-                "3": "block/decals/frame/3.png",
-                "all": "block/decals/frame/all.png",
-                "opposite": "block/decals/frame/opposite.png"
+                "12": "block/decals/reinforced_concrete/12.png"
             }
         }
     ]

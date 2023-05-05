@@ -14,7 +14,7 @@ import type { Default_Terrain_Map_Cell } from "../terrain_generator/default.js"
 import type { WorkerWorld } from "./world.js";
 import type { FluidChunk } from "../fluid/FluidChunk.js";
 import {BLOCK_FLAG, NO_TICK_BLOCKS} from "../constant.js";
-import type { ChunkGrid } from "../core/ChunkGrid.js";
+import { ChunkGrid, dx, dy, dz } from "../core/ChunkGrid.js";
 import type { Biome3LayerBase } from "../terrain_generator/biome3/layers/base.js";
 
 // Constants
@@ -600,6 +600,7 @@ export class ChunkWorkerChunk implements IChunk {
         const block = this.tblocks.get(new Vector(0, 0, 0), null);
 
         const matBuf = new MaterialBuf()
+        const neibIDs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         // Process drop item
         const processDropItem = (block, neightbours) => {
@@ -686,6 +687,7 @@ export class ChunkWorkerChunk implements IChunk {
             const {buf, matId} = matBuf
             const last = buf.vertices.filled
 
+            //neibIDs
             const resp = (material.resource_pack as BaseResourcePack).pushVertices(
                 block, // UNSAFE! If you need unique block, use clone
                 buf.vertices,
@@ -698,7 +700,8 @@ export class ChunkWorkerChunk implements IChunk {
                 matrix,
                 pivot,
                 undefined,
-                undefined
+                undefined,
+                neibIDs
             )
 
             if (useCache) {
@@ -729,7 +732,7 @@ export class ChunkWorkerChunk implements IChunk {
                     const index = block.index = cx * x + cy * y + cz * z + cw;
                     const id = uint16View[index];
 
-                    let material = null;
+                    let material : IBlockMaterial = null;
                     let empty = false;
                     if (!id) {
                         empty = true;
@@ -737,6 +740,7 @@ export class ChunkWorkerChunk implements IChunk {
                         const neib0 = uint16View[index + cy], neib1 = uint16View[index - cy],
                             neib2 = uint16View[index - cz], neib3 = uint16View[index + cz],
                             neib4 = uint16View[index + cx], neib5 = uint16View[index - cx];
+                            
                         // blockIsClosed from typedBlocks
                         if (BLOCK.isSolidID(id)
                             && BLOCK.isSolidID(neib0) && BLOCK.isSolidID(neib1)
@@ -799,6 +803,13 @@ export class ChunkWorkerChunk implements IChunk {
                         vertices[index * 2 + 1] = 0;
                         continue;
                     }
+
+                    if (material.connected_sides) {
+                        for (let i = 0; i < 26; i++) {
+                            neibIDs[i] = uint16View[index + cx * dx[i] + cy * dy[i] + cz * dz[i]];
+                        }
+                    }
+
                     const neighbours = block.getNeighbours(world, cache);
                     const cell = this.map.cells[block.pos.z * CHUNK_SIZE_X + block.pos.x];
                     const resp = processBlock(block, neighbours,

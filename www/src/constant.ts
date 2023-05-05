@@ -242,6 +242,11 @@ export enum MOB_TYPE {
     BOAT        = 'transport/boat'
 }
 
+export enum DAYLIGHT_VALUE {
+    NONE = 0,
+    FULL = 15,
+}
+
 export enum TREASURE_SOURCE {
     TREASURE_ROOM = 'treasure_room',
     CAVE_MINES = 'cave_mines',

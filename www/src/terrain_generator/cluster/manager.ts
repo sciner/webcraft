@@ -10,7 +10,7 @@ import type { IClusterList } from "../biome3/layers/underworld.js";
 // TODO: This is must be moved to world generators on server
 // but in constructor of ClusterManager generator options is empty
 export const CLUSTER_SIZE = new Vector(128, 256, 128)
-export const CLUSTER_SIZE_BIOME3 = new Vector(288, 200, 288)
+export const CLUSTER_SIZE_BIOME3 = new Vector(288, 200, 288) // 288, because it divided without remainder to 16, 24, 32 
 
 // ClusterManager
 export class ClusterManager {

@@ -1,7 +1,7 @@
 // import { impl as alea, noise } from "../../../../vendors/alea.js";
 import {noise, alea} from "../../default.js";
 import type { BLOCK } from "../../../blocks.js";
-import { BLOCK_FLAG } from "../../../constant.js";
+import { BLOCK_FLAG, DAYLIGHT_VALUE } from "../../../constant.js";
 import type { ChunkGrid } from "../../../core/ChunkGrid.js";
 import { CubeSym } from "../../../core/CubeSym.js";
 import { IndexedColor, Vector } from "../../../helpers.js";
@@ -119,7 +119,7 @@ class BottomCavesMapManager extends TerrainMapManagerBase {
 export default class Biome3LayerBottomCaves extends Biome3LayerBase {
 
     filter_biome_list: int[] = [502]
-    dayLightDefaultValue: int = 0
+    dayLightDefaultValue: int = DAYLIGHT_VALUE.NONE
     grid: ChunkGrid
     biome: any
     n3d: Function

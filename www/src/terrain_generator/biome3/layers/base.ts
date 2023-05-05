@@ -1,3 +1,4 @@
+import { DAYLIGHT_VALUE } from "../../../constant.js";
 import type Terrain_Generator from "../index";
 import type { BLOCK } from "../../../blocks";
 import type { Vector } from "../../../helpers";
@@ -20,7 +21,7 @@ export class Biome3LayerBase {
     clusterManager:         ClusterManager
     seed:                   string
     filter_biome_list:      int[] = []
-    dayLightDefaultValue:   int = 15
+    dayLightDefaultValue:   int = DAYLIGHT_VALUE.FULL
 
     init(generator : any) : Biome3LayerBase {
 

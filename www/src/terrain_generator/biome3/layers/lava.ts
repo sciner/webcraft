@@ -1,3 +1,4 @@
+import { DAYLIGHT_VALUE } from "../../../constant.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk";
 import type { Default_Terrain_Map } from "../../default";
 import { Biome3LayerBase } from "./base.js";
@@ -8,7 +9,7 @@ import { Biome3LayerBase } from "./base.js";
 export default class Biome3LayerLava extends Biome3LayerBase {
 
     declare maps: Map<any, any> | any
-    dayLightDefaultValue: int = 0
+    dayLightDefaultValue: int = DAYLIGHT_VALUE.NONE
 
     init(generator : any) : Biome3LayerLava {
         super.init(generator)

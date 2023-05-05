@@ -10,6 +10,7 @@ import {
 import {DataChunk} from "../core/DataChunk.js";
 import {ChunkGroundLevel} from "./GroundLevel.js"
 import {LightCalc} from "./LightCalc.js";
+import { DAYLIGHT_VALUE } from '../constant.js';
 
 function calcDif26(size, out) {
     //TODO: move to BaseChunk
@@ -30,7 +31,7 @@ export class Chunk {
         this.size = new Vector(args.size.x, args.size.y, args.size.z);
         this.chunkWave = [null, null, null, null];
         this.uniqId = args.uniqId;
-        this.dayLightDefaultValue = args.dayLightDefaultValue ?? 15;
+        this.dayLightDefaultValue = args.dayLightDefaultValue ?? DAYLIGHT_VALUE.FULL;
         this.lastID = 0;
         this.lastAO = 0;
         this.sentID = 0;
