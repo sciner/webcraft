@@ -193,7 +193,7 @@ export class PickAt {
         this.updateTargetDescription(target_block.visible ? bPos : null);
 
         // Detect interact with fluid
-        if (bPos?.fluidLeftTop && this.onInteractFluid(bPos.fluidLeftTop)) {
+        if (bPos?.fluidLeftTop && !(bPos.player || bPos.mob) && this.onInteractFluid(bPos.fluidLeftTop)) {
             return
         }
 

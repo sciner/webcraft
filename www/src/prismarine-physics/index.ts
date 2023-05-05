@@ -849,7 +849,7 @@ export class Physics {
         if (control.jump || entity.jumpQueued) {
             if (entity.jumpTicks > 0) entity.jumpTicks--
             if (entity.isInWater || entity.isInLava) {
-                if (!control.sneak) {
+                if (!control.sneak && options.floatSubmergedHeight == null) {
                     // @fixed Без этого фикса игрок не может выбраться из воды на берег
                     vel.y += 0.09 // 0.04
                 }
@@ -918,7 +918,7 @@ export class Physics {
                 }
             } else if (entity.isInWater || entity.isInLava) {
                 const sdd = this.swimDownDrag;
-                if (!control.jump && vel.y > sdd.maxDown) {
+                if (!control.jump && vel.y > sdd.maxDown && options.floatSubmergedHeight == null) {
                     vel.y = Math.max(vel.y - sdd.down, sdd.maxDown);
                 }
             } else {
