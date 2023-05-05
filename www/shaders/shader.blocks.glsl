@@ -534,9 +534,7 @@
             // default light
         } else if (v_lightId < 1.5) {
             ivec3 lightCoordInt = ivec3(lightCoord);
-            //ivec4 bigSample = texelFetch(u_lightTex, lightCoordInt >> 1, 0);
-            //ivec4 bigSample = texelFetch(u_lightTex, ivec3(1, 0, 0), 0);
-            ivec4 bigSample = ivec4(textureSize(u_lightTex, 0) - 1, 0);
+            ivec4 bigSample = texelFetch(u_lightTex, lightCoordInt >> 1, 0);
             int shift = (lightCoordInt.y & 1) | (lightCoordInt.z & 1) << 1;
             int medSample = 0;
             if (shift == 0) {
@@ -555,10 +553,6 @@
             centerSample.x = float(medSample & 0x0f) / 15.0;
             centerSample.y = float((medSample >> 4) & 0x0f) / 15.0;
             centerSample.z = 0.0;
-            if (bigSample.r + bigSample.g + bigSample.b + bigSample.a != 0) {
-            // if (dot(v_lightOffset.xyz, vec3(1.0, 1.0, 1.0)) < 64.0) {
-                centerSample.x = 1.0;
-            }
 
             //if (v_lightMode > 0.5) {
             //    aoVector = vec4(texture(u_lightTex[0], aoCoord0 * texSize).w, texture(u_lightTex[0], aoCoord1 * texSize).w,

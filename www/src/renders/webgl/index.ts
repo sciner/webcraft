@@ -626,6 +626,25 @@ export default class WebGLRenderer extends BaseRenderer {
         }, format);
     }
 
+    reportTexture(target: number) {
+        const props = [
+            'TEXTURE_BASE_LEVEL',
+            'TEXTURE_IMMUTABLE_FORMAT',
+            'TEXTURE_IMMUTABLE_LEVELS',
+            'TEXTURE_MAX_LEVEL',
+            'TEXTURE_MAX_LOD',
+            'TEXTURE_MIN_LOD',
+            'TEXTURE_MAG_FILTER',
+            'TEXTURE_MIN_FILTER'
+        ];
+        const {gl} = this;
+        target = target | gl.TEXTURE_2D;
+        console.log(`isTexture = ${gl.isTexture(this.texture)}`)
+        for (let k = 0; k < props.length;k++) {
+            console.log(`${props[k]} = ${gl.getTexParameter(target, gl[props[k]])}`);
+        }
+    }
+
     destroy() {
         this.gl.getExtension("WEBGL_lose_context").loseContext();
     }

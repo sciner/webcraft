@@ -51,9 +51,9 @@ export class CubeTexturePool {
         defWidth = 18,
         defHeight = 18,
         defDepth = 42,
-        bigWidth = 128,
-        bigHeight = 128,
-        bigDepth = 128,
+        bigWidth = 256,
+        bigHeight = 256,
+        bigDepth = 256,
         type = 'rgba8unorm',
         filter = 'linear',
         maxBoundTextures = 10,
@@ -163,7 +163,7 @@ export class CubeTexturePool {
             this.registerLocation(base);
         }
         this.currentPoolIndex = cur;
-        const tex = pools[cur].freeRegions.shift();
+        const tex = pools[cur].freeRegions.pop();
         pools[cur].allocatedRegions.push(tex);
         return tex;
     }

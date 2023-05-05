@@ -82,7 +82,7 @@ export class ChunkRenderList {
             defDepth: (chunkSize.y + 2) * lightProps.depthMul,
             pixelSize: lightProps.pixelSize,
             type: lightProps.texFormat,
-            filter: 'linear',
+            filter: 'nearest',
         });
     }
 

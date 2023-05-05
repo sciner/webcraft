@@ -116,6 +116,7 @@ export class WebGLTexture3D extends BaseTexture3D {
         gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl[TEXTURE_FILTER_GL[this.magFilter]] || gl.NEAREST);
         gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl[TEXTURE_FILTER_GL[this.wrap]] || gl.CLAMP_TO_EDGE);
         gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl[TEXTURE_FILTER_GL[this.wrap]] || gl.CLAMP_TO_EDGE);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_R, gl[TEXTURE_FILTER_GL[this.wrap]] || gl.CLAMP_TO_EDGE);
     }
 
     uploadSubs() {
