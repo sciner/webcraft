@@ -717,9 +717,9 @@ export class ServerWorld implements IWorld {
     }
 
     /**
-     * Returns block on world pos, or null.
+     * Returns block on world pos (possibly DUMMY), or null.
      */
-    getBlock(pos : IVector, resultBlock = null) : TBlock {
+    getBlock(pos : IVector, resultBlock: TBlock | null = null) : TBlock | null {
         const chunk = this.chunks.getByPos(pos);
         return chunk ? chunk.getBlock(pos, null, null, resultBlock) : null;
     }

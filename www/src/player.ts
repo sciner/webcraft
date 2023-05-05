@@ -786,7 +786,7 @@ export class Player implements IPlayer {
             const action_player_info = this.getActionPlayerInfo()
             const [actions, pos] = await doBlockAction(e, this.world, action_player_info, this.currentInventoryItem);
             if (actions) {
-                e_orig.snapshotId = this.world.history.makeSnapshot(pos);
+                e_orig.snapshotId = pos && this.world.history.makeSnapshot(pos);
                 if(e.createBlock && actions.blocks.list.length > 0) {
                     this.startArmSwingProgress();
                 }

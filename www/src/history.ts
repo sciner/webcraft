@@ -47,8 +47,8 @@ export class WorldHistory {
     makeSnapshot(pos_: IVector): int {
         const pos = new Vector(pos_)
         const block = this.world.getBlock(pos)
-        if (block.id < 0) {
-            throw new Error('block.id < 0') // we don't expect it to happen
+        if (block.id == null || block.id < 0) {
+            throw new Error(`block.id == null || block.id < 0 ${block.id} ${pos}`) // we don't expect it to happen
         }
         const snapshot: BlockSnapshot = {
             id      : this.nextSnapshotId,

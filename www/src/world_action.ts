@@ -964,7 +964,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
 
     let pos                 = e.pos;
     let world_block         = world.getBlock(pos);
-    if (world_block.id < 0) { // if it's a DUMMY, the chunk is not loaded
+    if (!world_block || world_block.id < 0) { // if it's a DUMMY, the chunk is not loaded
         return [null, null];
     }
     let world_material      = world_block && (world_block.id > 0 || world_block.fluid > 0) ? world_block.material : null;
@@ -1058,7 +1058,8 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         // Проверка выполняемых действий с блоками в мире
         for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
-                return [actions, pos];
+                const affectedPos = (func === chSpawnMob) ? null : pos // мобы не меняют блок. И chSpawnMob также портит pos
+                return [actions, affectedPos]
             }
         }
         for(let func of FUNCS.useItem1async ??= [putDiscIntoJukebox]) {
