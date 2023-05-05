@@ -231,6 +231,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
     private knownInputTime: float = 0
     private prevPhysicsTickPos = new Vector() // used to interpolate pos within the tick
     private freeCamPos = new Vector()
+    private freeCamRotation = new Vector()
     private speedLogger = DEBUG_LOG_SPEED ? new PlayerSpeedLogger(DEBUG_LOG_SPEED_MODE) : null
     private logger = new LimitedLogger('Control: ', 1000, null, DEBUG_LOG_PLAYER_CONTROL)
     /**
@@ -251,7 +252,7 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         super(player)
         const pos = new Vector(player.sharedProps.pos)
         const useOldSpectator = Qubatch.settings?.old_spectator_controls ?? false
-        this.freeCamSpectator = new SpectatorPlayerControl(player.world, pos, useOldSpectator)
+        this.freeCamSpectator = new SpectatorPlayerControl(player.world, pos, useOldSpectator, true)
         this.prevPhysicsTickPos.copyFrom(player.sharedProps.pos)
     }
 
@@ -323,17 +324,26 @@ export class ClientPlayerControlManager extends PlayerControlManager {
         this.#isFreeCam = v
         if (v) {
             const pos = this.player.getEyePos()
-            // const rotate = this.player.rotate
             this.freeCamSpectator.resetState()
             this.freeCamSpectator.setPos(pos)
+            this.freeCamRotation.copyFrom(this.player.rotate)
         }
         this.speedLogger?.reset()
     }
 
-    getFreeCampPos(): Vector {
+    /** Возвращает позицию камеры: либо свободной камеры, либо глаз игрока */
+    getCampPos(): Vector {
+        if (!this.#isFreeCam) {
+            return this.player.getEyePos()
+        }
         this.freeCamSpectator.getCurrentPos(this.freeCamPos)
         this.speedLogger?.add(this.freeCamSpectator.player_state.pos, this.freeCamPos)
         return this.freeCamPos
+    }
+
+    /** Возвращает угол камеры: либо свободной камеры, либо угол поворота игрока */
+    getCamRotation(): Vector {
+        return this.#isFreeCam ? this.freeCamRotation : this.player.rotate
     }
 
     changeSpectatorSpeed(value: number): boolean {

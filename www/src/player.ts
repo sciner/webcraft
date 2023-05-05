@@ -534,22 +534,23 @@ export class Player implements IPlayer {
         return this._height;
     }
 
-    //
-    addRotate(vec3) {
-        this.setRotate(
-            this.rotate.addSelf(vec3)
-        );
+    /** Добавляет вращение к свободной камере либо к повороту игроку */
+    addRotate(vec3: IVector): void {
+        const dst = this.controlManager.getCamRotation().addSelf(vec3)
+        this.setRotate(dst, dst)
     }
 
-    // setRotate
-    // @var vec3 (0 ... PI)
-    setRotate(vec3) {
-        this.rotate.set(vec3.x, vec3.y, vec3.z);
-        if(this.rotate.z < 0) {
-            this.rotate.z = (Math.PI * 2) + this.rotate.z;
+    /**
+     * Добавляет {@link src} к {@link dst} (по умолчанию к повороту игрока) и приводит углы к нормальным значениям для камеры
+     * @param src (0 ... PI)
+     */
+    setRotate(src: IVector, dst: Vector = this.rotate): void {
+        dst.copyFrom(src);
+        if(dst.z < 0) {
+            dst.z = (Math.PI * 2) + dst.z;
         }
-        this.rotate.x = Helpers.clamp(this.rotate.x, -Math.PI / 2, Math.PI / 2);
-        this.rotate.z = this.rotate.z % (Math.PI * 2);
+        dst.x = Helpers.clamp(dst.x, -Math.PI / 2, Math.PI / 2);
+        dst.z = dst.z % (Math.PI * 2);
     }
 
     // Rad to degree
