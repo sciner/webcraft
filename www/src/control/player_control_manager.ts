@@ -244,6 +244,7 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
         prefix: 'Control: ',
         minInterval: 1000,
         debugValueEnabled: 'DEBUG_LOG_PLAYER_CONTROL',
+        debugValueShowSkipped: 'SHOW_SKIPPED',
         enabled: DEBUG_LOG_PLAYER_CONTROL
     })
     private fineLogger = new LimitedLogger({
@@ -251,6 +252,10 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
         minInterval: 0,
         debugValueEnabled: 'DEBUG_LOG_PLAYER_CONTROL_DETAIL',
         enabled: DEBUG_LOG_PLAYER_CONTROL_DETAIL
+    })
+    private alwaysLogger = new LimitedLogger({
+        ...this.logger.options,
+        enabled: true
     })
     /**
      * It contains data for all recent physics ticks (at least, those that are possibly not known to the server).
@@ -432,11 +437,11 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
             }
             let prevData = dataQueue.get(ind)
 
-            if (DEBUG_LOG_PLAYER_CONTROL && prevData?.endPhysicsTick !== this.knownPhysicsTicks) {
-                console.error(`Control: prevData?.endPhysicsTick !== this.knownPhysicsTicks`, prevData.endPhysicsTick)
+            if (prevData?.endPhysicsTick !== this.knownPhysicsTicks) {
+                this.logger.log('prevData?.endPhysicsTick !==', () => `prevData?.endPhysicsTick !== this.knownPhysicsTicks ${prevData.endPhysicsTick}`)
             }
-            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                console.log(`Control: correction applied at ${this.knownPhysicsTicks}`, this.current.player_state.pos)
+            if (this.fineLogger.enabled) {
+                this.logger.log('correction applied', () => `correction applied at ${this.knownPhysicsTicks} ${this.current.player_state.pos}`)
             }
 
             while (++ind < dataQueue.length) {
@@ -465,9 +470,7 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
                 throw new Error('physicsTicks < 0') // this should not happen
             }
             if (this.posChangedExternally) {
-                if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                    console.log(`pos changed externally t${this.knownPhysicsTicks} ${this.appliedWorldActionIds.join()}`)
-                }
+                this.fineLogger.log(() => `pos changed externally t${this.knownPhysicsTicks} ${this.appliedWorldActionIds.join()}`)
                 const data = new ClientPlayerTickData()
                 data.initInputFrom(this, this.knownPhysicsTicks++, 1)
                 data.initContextFrom(this)
@@ -510,9 +513,7 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
             const prevData = dataQueue.getLast()
             this.simulate(prevData, data)
 
-            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                console.log(`control: simulated t${this.knownPhysicsTicks} ${data.outPos} ${data.outVelocity}`)
-            }
+            this.fineLogger.log(() => `simulated t${this.knownPhysicsTicks} ${data.outPos} ${data.outVelocity}`)
 
             // Save the tick data to be sent to the server.
             // Possibly postpone its sending, and/or merge it with the previously unsent data.
@@ -521,24 +522,18 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
                     // it can't be merged with the previous data, but it contains no new data, so it can be delayed
                     data.status = PLAYER_TICK_DATA_STATUS.PROCESSED_SENDING_DELAYED
                     dataQueue.push(data)
-                    if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                        console.log(`  control: pushed same`)
-                    }
+                    this.fineLogger.log(() => `  pushed same`)
                 } else {
                     // merge with the previous unsent data
                     prevData.physicsTicks += data.physicsTicks
-                    if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                        console.log(`  control: merged s${prevData.status} #->${prevData.physicsTicks}`)
-                    }
+                    this.fineLogger.log(() => `  merged s${prevData.status} #->${prevData.physicsTicks}`)
                 }
             } else {
                 // it differs (or we had to send it ASAP because we're far behind the server), send it ASAP
                 this.sedASAP = false
                 data.status = PLAYER_TICK_DATA_STATUS.PROCESSED_SEND_ASAP
                 dataQueue.push(data)
-                if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                    console.log(`  control: pushed different or ASAP`)
-                }
+                this.fineLogger.log(() => `  pushed different or ASAP`)
             }
         }
 
@@ -593,9 +588,7 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
 
         // If the correction isn't aligned with the data end, e.g. because of ServerPlayerControlManager.doLaggingServerTicks
         if (exData.endPhysicsTick > correctedPhysicsTick) {
-            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL) {
-                console.log('Control: applying correction, end tick is not aligned')
-            }
+            this.fineLogger.log(() => 'applying correction, end tick is not aligned')
             // Split exData into corrected and uncorrected parts
             exData.physicsTicks = exData.endPhysicsTick - correctedPhysicsTick
             exData.startingPhysicsTick = correctedPhysicsTick
@@ -616,7 +609,9 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
             // so the current data might be already corrected. Do nothing then.
             return
         }
-        this.logger.log(packet.log, `correction ${debPrevKnownPhysicsTicks} -> ..+${exData.physicsTicks}=${correctedPhysicsTick} ${packet.log} ${exData.outPos} ${correctedData.outPos}`)
+        const logger = ['simulation_differs inputWorldActionIds'].includes(packet.log)
+            ? this.logger : this.alwaysLogger
+        logger.log(packet.log, `correction ${debPrevKnownPhysicsTicks} -> ..+${exData.physicsTicks}=${correctedPhysicsTick} ${packet.log} ${exData.outPos} ${correctedData.outPos}`)
 
         // The data differs. Set the result at that tick, and invalidate the results in later ticks
         this.hasCorrection = true

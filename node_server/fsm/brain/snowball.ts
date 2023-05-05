@@ -12,10 +12,6 @@ export class Brain extends FSMBrain {
 
     constructor(mob) {
         super(mob)
-        this.pc             = this.createPlayerControl(this, {
-            playerHeight: .16,
-            playerHalfWidth: .08
-        })
         this.pc.player_state.flying = true
         mob.extra_data.play_death_animation = false
         const power = 1
@@ -40,7 +36,7 @@ export class Brain extends FSMBrain {
         const rotate = this._rotate.setScalar(Math.sin(mob.rotate.z), 0, Math.cos(mob.rotate.z))
         const rotate2 = this._rotate2.copyFrom(rotate).mulScalarSelf(.4)
         const pos = mob.pos.add(rotate2) // @todo вроде поправлено в рейкастере
-        const ray = this.raycaster.get(pos, rotate, 2)
+        const ray = this.world.raycaster.get(pos, rotate, 2)
         // если на пути встретился моб
         if (ray?.mob) {
             ray.mob.setDamage(1, EnumDamage.SNOWBALL, mob)

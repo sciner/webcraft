@@ -24,6 +24,8 @@ type TLimitedLoggerOptions = {
     consoleDisabled?: boolean
     debugValueSendLog?: string
     debugValueEnabled?: string
+    showSkipped?: boolean
+    debugValueShowSkipped?: string
     printKeyFn?: ((...args: any[]) => string | null) | null
 }
 
@@ -45,6 +47,11 @@ export class LimitedLogger {
         }
     }
 
+    get enabled(): boolean {
+        const options = this.options
+        return options.enabled || this.hasDebugValue(options.debugValueEnabled)
+    }
+
     log(...args: any[]): void {
         this._log(LogMode.LOG, args)
     }
@@ -63,8 +70,7 @@ export class LimitedLogger {
 
     private _log(mode: LogMode, args: any[]): void {
         const options = this.options
-        const enabled = options.enabled || this.hasDebugValue(options.debugValueEnabled)
-        if (!enabled || args.length === 0) {
+        if (!this.enabled || args.length === 0) {
             return
         }
         if (performance.now() > this.nextMaintenanceTime) {
@@ -114,7 +120,10 @@ export class LimitedLogger {
     }
 
     private logSkipped(mode: LogMode, history: LogHistory): void {
-        this.logString(mode, `skipped ${history.skippedCount} similar messages`, history)
+        const options = this.options
+        if (options.showSkipped || this.hasDebugValue(options.debugValueShowSkipped)) {
+            this.logString(mode, `skipped ${history.skippedCount} similar messages`, history)
+        }
         history.skippedCount = 0
     }
 

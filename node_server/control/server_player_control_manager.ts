@@ -73,6 +73,7 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
             printKeyFn: (key, username) => `@${username} `,
             debugValueSendLog: 'SEND_LOG_PLAYER_CONTROL',
             debugValueEnabled: 'DEBUG_LOG_PLAYER_CONTROL',
+            debugValueShowSkipped: 'SHOW_SKIPPED',
             enabled: DEBUG_LOG_PLAYER_CONTROL,
             consoleDisabled: true
         })
@@ -312,7 +313,7 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
                 const contextEqual = newData.contextEqual(clientData)
                 const clientDataMatches = contextEqual && newData.outputSimilar(clientData)
                 if (clientDataMatches) {
-                    DEBUG_LOG_PLAYER_CONTROL_DETAIL && console.log(`    simulation matches ${newData}`)
+                    this.fineLog(`    simulation matches ${newData}`)
                     correctionReason = null
                     if (ACCEPT_SMALL_CLIENT_ERRORS) {
                         newData.copyOutputFrom(clientData)
@@ -320,7 +321,7 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
                 } else if (clientData.inputWorldActionIds) {
                     // Клиент ожидал серверного действия. В зависимости от типа действия результат должен был совпасть или нет.
                     // Мы не различаем такие ситуации (не видно нужды в этом). Это ок, что не совпало.
-                    DEBUG_LOG_PLAYER_CONTROL_DETAIL && console.log(`    simulation with inputWorldActionIds doesn't match ${clientData} ${newData}`)
+                    this.fineLog(`    simulation with inputWorldActionIds doesn't match ${clientData} ${newData}`)
                     correctionReason = 'simulation_differs inputWorldActionIds'
                 } else if (!contextEqual) {
                     // На сервере переключили режим игры или что-то подобное. Это только сервер может делать. Несовпадение ожидаемо.

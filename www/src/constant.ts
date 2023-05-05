@@ -294,7 +294,7 @@ export const PHYSICS_ROTATION_DECIMALS      = 4 // It's applied to the input bef
 export const PHYSICS_INTERVAL_MS            = 50
 // The maximum number of physics ticks simulated at once. If we need to simulated more, the simulation its skipped.
 export const PHYSICS_MAX_TICKS_PROCESSED    = 10 * 1000 / PHYSICS_INTERVAL_MS | 0
-export const DEBUG_LOG_PLAYER_CONTROL       = true  // log moderately detailed debug info about the player controls
+export const DEBUG_LOG_PLAYER_CONTROL       = false // log moderately detailed debug info about the player controls
 export const DEBUG_LOG_PLAYER_CONTROL_DETAIL= false // log very detailed debug info about the player controls
 
 // ========================= Sound options =========================
