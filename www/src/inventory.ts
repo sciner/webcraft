@@ -1,6 +1,6 @@
 import { ArrayOrMap, Helpers, Vector} from "./helpers.js";
 import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT,
-    INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_BOOTS, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT, INVENTORY_HOTBAR_SLOT_MIN, INVENTORY_HOTBAR_SLOT_MAX, INVENTORY_SLOT_MIN, INVENTORY_SLOT_MAX } from "./constant.js";
+    INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT, INVENTORY_HOTBAR_SLOT_MIN, INVENTORY_HOTBAR_SLOT_MAX, INVENTORY_SLOT_MIN, INVENTORY_SLOT_MAX, PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET } from "./constant.js";
 import { BLOCK } from "./blocks.js"
 import {InventoryComparator, TUsedRecipe} from "./inventory_comparator.js";
 import type { ArmorState, Player } from "./player.js";
@@ -536,10 +536,10 @@ export abstract class Inventory {
 
     exportArmorState(): ArmorState {
         return {
-            head: this.items[PLAYER_ARMOR_SLOT_HELMET]?.id,
-            body: this.items[PLAYER_ARMOR_SLOT_CHESTPLATE]?.id,
-            leg: this.items[PLAYER_ARMOR_SLOT_LEGGINGS]?.id,
-            boot: this.items[PLAYER_ARMOR_SLOT_BOOTS]?.id,
+            head: this.items[PAPERDOLL_HELMET]?.id,
+            body: this.items[PAPERDOLL_CHESTPLATE]?.id,
+            leg: this.items[PAPERDOLL_LEGGINGS]?.id,
+            boot: this.items[PAPERDOLL_BOOTS]?.id,
             backpack: this.items[PAPERDOLL_BACKPACK]?.id,
         }
     }
@@ -550,7 +550,7 @@ export abstract class Inventory {
      */
     getArmorLevel() {
         let resp = 0;
-        for(const slot_index of [PLAYER_ARMOR_SLOT_BOOTS, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_HELMET]) {
+        for(const slot_index of [PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET]) {
             if(this.items[slot_index]) {
                 const item = this.block_manager.fromId(this.items[slot_index].id);
                 resp += item.armor?.damage ?? 0;

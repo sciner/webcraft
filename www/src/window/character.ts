@@ -1,7 +1,7 @@
 import { Label } from "../ui/wm.js";
 import { BaseCraftWindow, PaperDollSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT, UI_THEME } from "../constant.js";
+import { INVENTORY_HOTBAR_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_BOOTS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, PAPERDOLL_LEGGINGS, PAPERDOLL_TOOLBELT, UI_THEME } from "../constant.js";
 import type { InventoryRecipeWindow } from "./inventory_recipe.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import type { InGameMain } from "./ingamemain.js";
@@ -59,7 +59,7 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         this.createInventorySlots(this.cell_size, x, y, UI_THEME.window_padding, undefined, true)
 
         // кнопка сортировки
-        this.createButtonSort(this.w - 16 * this.zoom - UI_THEME.window_padding * this.zoom, UI_THEME.window_padding * this.zoom)
+        this.createButtonSort()
         
         // слот для удаления преметов
         this.createDeleteSlot(this.cell_size)
@@ -79,7 +79,7 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
             slot.onMouseLeave = () => {
                 this.player.getModel().updateArmor()
                 this.refresh()
-                this.autoSortItems(true)
+                this.autoSortItems()
             }
         }
 
@@ -142,22 +142,22 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
             return resp
         }
 
-        const lblSlotHead = new PaperDollSlot(x, getY(), sz, 39, this)
+        const lblSlotHead = new PaperDollSlot(x, getY(), sz, PAPERDOLL_HELMET, this)
         ct.add(lblSlotHead)
         ct.inventory_slots.push(lblSlotHead)
         this.paperdoll.push(lblSlotHead)
 
-        const lblSlotChest = new PaperDollSlot(x, getY(), sz, 38, this)
+        const lblSlotChest = new PaperDollSlot(x, getY(), sz, PAPERDOLL_CHESTPLATE, this)
         ct.add(lblSlotChest)
         ct.inventory_slots.push(lblSlotChest)
         this.paperdoll.push(lblSlotChest)
 
-        const lblSlotLeggs = new PaperDollSlot(x, getY(), sz, 37, this)
+        const lblSlotLeggs = new PaperDollSlot(x, getY(), sz, PAPERDOLL_LEGGINGS, this)
         ct.add(lblSlotLeggs)
         ct.inventory_slots.push(lblSlotLeggs)
         this.paperdoll.push(lblSlotLeggs)
 
-        const lblSlotBoots = new PaperDollSlot(x, getY(), sz, 36, this)
+        const lblSlotBoots = new PaperDollSlot(x, getY(), sz, PAPERDOLL_BOOTS, this)
         ct.add(lblSlotBoots)
         ct.inventory_slots.push(lblSlotBoots)
         this.paperdoll.push(lblSlotBoots)

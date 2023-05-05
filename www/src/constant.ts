@@ -72,7 +72,7 @@ export const INVENTORY_DRAG_SLOT_INDEX      = 99;
 export const INVENTORY_HOTBAR_SLOT_COUNT    = 9;
 
 export const MAGIC_ROTATE_DIV               = 900;
-export const DRAW_SLOT_INDEX                = false;
+export const DRAW_SLOT_INDEX                = true;
 
 export const INVENTORY_SLOT_MIN             = 27
 export const INVENTORY_SLOT_MAX             = 72
@@ -387,11 +387,11 @@ export const THIRD_PERSON_CAMERA_DISTANCE   = 5 * PLAYER_ZOOM;
 
 export const SPECTATOR_SPEED_MUL            = 1 * PLAYER_ZOOM;
 
-// Player armor slots
-export const PLAYER_ARMOR_SLOT_BOOTS        = 36; // boots
-export const PLAYER_ARMOR_SLOT_LEGGINGS     = 37; // legs
-export const PLAYER_ARMOR_SLOT_CHESTPLATE   = 38; // body
-export const PLAYER_ARMOR_SLOT_HELMET       = 39; // head
+// Player paperdoll slots
+export const PAPERDOLL_BOOTS                = 86; // boots
+export const PAPERDOLL_LEGGINGS             = 87; // legs
+export const PAPERDOLL_CHESTPLATE           = 88; // body
+export const PAPERDOLL_HELMET               = 89; // head
 export const PAPERDOLL_BACKPACK             = 84; // backpack
 export const PAPERDOLL_TOOLBELT             = 85; // toolbet
 

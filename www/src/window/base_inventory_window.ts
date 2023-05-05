@@ -110,12 +110,44 @@ export class BaseInventoryWindow extends BlankWindow {
     autoSortItems(full: boolean = false) {
         const items = this.inventory.items
         const bm = this.world.block_manager
-
         const count_bag = this.inventory.getCountSlot()
-        for (let i = INVENTORY_HOTBAR_SLOT_MAX; i < INVENTORY_SLOT_MAX; i++) {
+        if (full) {
+            // находим похижие элементы и собираем их в стак
+            for (let i = INVENTORY_HOTBAR_SLOT_MAX; i < (count_bag + INVENTORY_HOTBAR_SLOT_MAX); i++) {
+                if (items[i]) {
+                    const max_stack = bm.getItemMaxStack(items[i])
+                    for (let j = i + 1; j < (count_bag + INVENTORY_HOTBAR_SLOT_MAX); j++) {
+                        if (items[j] && items[i].id == items[j].id) {
+                            const count = items[i].count + items[j].count
+                            if (count <= max_stack) {
+                                items[i].count += items[j].count
+                                items[j] = null
+                            } else {
+                                items[i].count = max_stack
+                                items[j].count = count - max_stack
+                            }
+                        }
+                    }
+                }
+            }
+           // перносим ближе к началу сумки
+            for (let i = INVENTORY_HOTBAR_SLOT_MAX; i < (count_bag + INVENTORY_HOTBAR_SLOT_MAX); i++) {
+                if (!items[i]) {
+                    for (let j = i + 1; j < (count_bag + INVENTORY_HOTBAR_SLOT_MAX); j++) {
+                        if (items[j]) {
+                            items[i] = {id: items[j].id, count: items[j].count}
+                            items[j] = null
+                            break
+                        }
+                    }
+                }
+            }
+        }
+        // находим похижие элементы и собираем их в стак
+        for (let i = INVENTORY_HOTBAR_SLOT_MAX; i < (count_bag + INVENTORY_HOTBAR_SLOT_MAX); i++) {
             if (items[i]) {
                 const max_stack = bm.getItemMaxStack(items[i])
-                for (let j = i + 1; j < INVENTORY_SLOT_MAX; j++) {
+                for (let j = (count_bag + INVENTORY_HOTBAR_SLOT_MAX); j < (INVENTORY_SLOT_MAX + INVENTORY_HOTBAR_SLOT_MAX); j++) {
                     if (items[j] && items[i].id == items[j].id) {
                         const count = items[i].count + items[j].count
                         if (count <= max_stack) {
@@ -129,9 +161,10 @@ export class BaseInventoryWindow extends BlankWindow {
                 }
             }
         }
-        for (let i = INVENTORY_HOTBAR_SLOT_MAX; i < INVENTORY_SLOT_MAX; i++) {
+        // перносим ближе к началу сумки
+        for (let i = INVENTORY_HOTBAR_SLOT_MAX; i < (count_bag + INVENTORY_HOTBAR_SLOT_MAX); i++) {
             if (!items[i]) {
-                for (let j = i + 1; j < INVENTORY_SLOT_MAX; j++) {
+                for (let j = (count_bag + INVENTORY_HOTBAR_SLOT_MAX); j < (INVENTORY_SLOT_MAX + INVENTORY_HOTBAR_SLOT_MAX); j++) {
                     if (items[j]) {
                         items[i] = {id: items[j].id, count: items[j].count}
                         items[j] = null
@@ -140,19 +173,12 @@ export class BaseInventoryWindow extends BlankWindow {
                 }
             }
         }
-
-        if (!full) {
-            this.world.server.InventoryNewState({
-                state: this.inventory.exportItems()
-            })
-            return true
-        }
-
+        // пернесим из хотбара в сумку
         const count_hotbar = this.inventory.getCountHotbar() + 1
         for (let i = count_hotbar; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
             if (items[i]) {
                 const max_stack = bm.getItemMaxStack(items[i])
-                for (let j = INVENTORY_HOTBAR_SLOT_MAX; j < INVENTORY_HOTBAR_SLOT_MAX + count_bag; j++) {
+                for (let j = INVENTORY_HOTBAR_SLOT_MAX; j < (INVENTORY_SLOT_MAX + INVENTORY_HOTBAR_SLOT_MAX); j++) {
                     if (items[j] && items[i].id == items[j].id) {
                         const count = items[i].count + items[j].count
                         if (count <= max_stack) {
@@ -169,7 +195,7 @@ export class BaseInventoryWindow extends BlankWindow {
         }
         for (let i = count_hotbar; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
             if (items[i]) {
-                for (let j = INVENTORY_HOTBAR_SLOT_MAX; j < INVENTORY_HOTBAR_SLOT_MAX + count_bag; j++) {
+                for (let j = INVENTORY_HOTBAR_SLOT_MAX; j < (INVENTORY_SLOT_MAX + INVENTORY_HOTBAR_SLOT_MAX); j++) {
                     if (!items[j]) {
                         items[j] = {id: items[i].id, count: items[i].count}
                         items[i] = null
@@ -178,6 +204,7 @@ export class BaseInventoryWindow extends BlankWindow {
                 }
             }
         }
+        // викидывает, что не поместилось
         const thrown_items = []
         for (let i = count_hotbar; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
             if (items[i]) {
@@ -185,19 +212,16 @@ export class BaseInventoryWindow extends BlankWindow {
                 items[i] = null
             }
         }
-
-        for (let i = count_bag; i < INVENTORY_SLOT_MAX; i++) {
+        for (let i = count_bag; i < INVENTORY_SLOT_MAX + INVENTORY_HOTBAR_SLOT_MAX; i++) {
             if (items[i]) {
                 thrown_items.push(items[i])
                 items[i] = null
             }
         }
-
         this.world.server.InventoryNewState({
             state: this.inventory.exportItems(),
             thrown_items: thrown_items,
         })
-
         return true
     }
 

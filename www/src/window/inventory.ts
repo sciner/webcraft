@@ -91,6 +91,8 @@ export class InventoryWindow extends BaseCraftWindow {
             this.add(lbl)
         }
 
+        // обновить gui
+        this.refresh()
     }
 
     // Обработчик открытия формы
