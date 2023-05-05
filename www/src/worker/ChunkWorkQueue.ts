@@ -1,4 +1,5 @@
 import type { ChunkWorkerChunk } from "./chunk.js";
+import type { WorkerWorld } from "./world.js";
 
 const revChunkSort = (a, b) => {
     return b.queueDist - a.queueDist;
@@ -8,18 +9,21 @@ const revChunkSort = (a, b) => {
  * Queue either for generator either for buildVertices
  */
 export class ChunkWorkQueue {
-    [key: string]: any;
+    needSort = false;
+    hitZero = false;
+    added: Array<ChunkWorkerChunk> = [];
+    entries: Array<ChunkWorkerChunk> = [];
+    potentialCenter = null;
+    world: WorkerWorld;
+    lastSortMs: number;
+    maxSortTime = 15; // in ms
+
     constructor(world) {
         this.world = world;
-        this.added = [];
-        this.entries = [];
-        this.potentialCenter = null;
-
         this.lastSortMs = performance.now() - 1000;
-        this.maxSortTime = 15; // in ms
-        this.needSort = false;
-
-        this.hitZero = false;
+        /**
+         * if true
+         */
     }
 
     size() {
@@ -73,6 +77,13 @@ export class ChunkWorkQueue {
     push(chunk : ChunkWorkerChunk) {
         const {entries} = this;
         chunk.inQueue = true;
+
+        if (!this.potentialCenter) {
+            entries.push(chunk);
+            this.hitZero = false;
+            return;
+        }
+
         this.calcDist(chunk);
 
         // look last 10 entries, put it there, in case its the best chunk
@@ -87,6 +98,10 @@ export class ChunkWorkQueue {
     }
 
     relaxEntries() {
+        if (!this.potentialCenter) {
+            return;
+        }
+
         const now = performance.now();
         const {added, entries} = this;
         if (entries.length === 0 || this.lastSortMs + this.maxSortTime >= now && added.length < 15) {
@@ -114,6 +129,19 @@ export class ChunkWorkQueue {
 
     pop() : ChunkWorkerChunk {
         const {added, entries} = this;
+
+        if (!this.potentialCenter) {
+            while (entries.length > 0) {
+                const e = entries.shift();
+                e.inQueue = false;
+                if (e.destroyed) {
+                    continue;
+                }
+                return e;
+            }
+            return null;
+        }
+
         while (entries.length > 0) {
             const e = entries.pop();
             e.inQueue = false;
