@@ -162,7 +162,7 @@ interface IBlockTexture extends IBlockSides {
 }
 
 interface IWorld {
-    getBlock(x : int | IVector, y? : int, z? : int) : any
+    getBlock(pos : IVector, resultBlock?) : any
 }
 
 /**

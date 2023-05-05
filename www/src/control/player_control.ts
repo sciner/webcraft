@@ -18,7 +18,7 @@ export type MobControlParams = {
     forward     : boolean
     jump        : boolean
     sneak ?     : boolean
-    pitch ?     : boolean
+    pitch ?     : boolean // индикатор паники. Это не угол pitch!
 }
 
 /** A common interface for {@link PlayerControl.player_state} for all subclasses of {@link PlayerControl} */

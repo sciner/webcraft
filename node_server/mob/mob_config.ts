@@ -16,8 +16,8 @@ export type TMobConfig = {
     distance_view ? : int       // дистанция на которм виден игрок
     driving ?       : TDrivingConfig     // Параметры того, как на мобе можно ездить
     damagePushes ?  : boolean   // если true, то при нанесении урона актером, моба отбрасывает назад
-    suffocates ?    : boolean   // если true, то может задохнуться под водой
-    timer_panick ?  : number    // занчение FSMBrain.timer_panick при ударе. 0 отключает режим паники
+    can_asphyxiate? : boolean   // если true, то может задохнуться под водой
+    timer_panic ?   : number    // занчение FSMBrain.timer_panic при ударе. 0 отключает режим паники
 
     /**
      * Если это true то левый клик на мобе имеет эфеект независимо от предмета в руке.
@@ -42,7 +42,7 @@ export function preprocessMobConfigs(configs: Dict<TMobConfig>): void {
         conf.health             ??= 1
         conf.distance_view      ??= 0
         conf.damagePushes       ??= true
-        conf.suffocates         ??= true
+        conf.can_asphyxiate     ??= true
 
         const driving = conf.driving
         if (driving) {

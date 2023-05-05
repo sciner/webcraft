@@ -24,7 +24,7 @@ export class FSMBrain {
     enabled = true // true если моб контролирует себя (а не кто-то контролирует его в вождении). Только вождение может менять это поле!
     _eye_pos: Vector;
     timer_health: number;
-    timer_panick: number;
+    timer_panic: number;
     timer_fire_damage: number;
     timer_lava_damage: number;
     timer_water_damage: number;
@@ -58,7 +58,7 @@ export class FSMBrain {
         this.pc = new PrismarinePlayerControl(this.world as any as World, mob.pos, mob.config.physics)
         // таймеры
         this.timer_health = 0;
-        this.timer_panick = 0;
+        this.timer_panic = 0;
         this.timer_fire_damage = 0;
         this.timer_lava_damage = 0;
         this.timer_water_damage = 0;
@@ -143,7 +143,7 @@ export class FSMBrain {
         if (!this.enabled) {
             return
         }
-        this.pc.tick(delta);// * (this.timer_panick > 0 ? 4 : 1));
+        this.pc.tick(delta);// * (this.timer_panic > 0 ? 4 : 1));
         this.mob.updateStateFromControl()
     }
 
@@ -241,7 +241,7 @@ export class FSMBrain {
             this.time_fire = Math.max(8 * MUL_1_SEC, this.time_fire);
         }
         // нехватка воздуха
-        if (this.in_water && config.suffocates) {
+        if (this.in_water && config.can_asphyxiate) {
             this.time_fire = 0;
             if (this.timer_water_damage >= MUL_1_SEC) {
                 this.timer_water_damage = 0;
@@ -273,8 +273,8 @@ export class FSMBrain {
             this.timer_health++;
         }
         // паника
-        if (this.timer_panick > 0) {
-            this.timer_panick--;
+        if (this.timer_panic > 0) {
+            this.timer_panic--;
         }
         this.addStat('onLive');
 
@@ -305,7 +305,7 @@ export class FSMBrain {
 
     // идти за игроком, если в руках нужный предмет
     doCatch(delta) {
-        this.timer_panick = 0;
+        this.timer_panic = 0;
         const mob = this.mob;
         if (!this.target || this.distance_view < 1) {
             this.target = null;
@@ -341,7 +341,7 @@ export class FSMBrain {
             this.stack.replaceState(this.doFindGround);
             return;
         }
-        if (Math.random() < 0.05 || this.timer_panick > 0) {
+        if (Math.random() < 0.05 || this.timer_panic > 0) {
             this.stack.replaceState(this.doForward);
             return;
         }
@@ -395,7 +395,7 @@ export class FSMBrain {
             forward: true,
             jump: false,
             sneak: false,
-            pitch: (this.timer_panick > 0) ? true : false
+            pitch: this.timer_panic > 0
         });
         this.applyControl(delta);
         this.sendState();
@@ -479,8 +479,8 @@ export class FSMBrain {
     // паника моба от урона
     onPanic() {
         const mob = this.mob;
-        this.timer_panick = mob.config.timer_panick ?? 80;
-        if (this.timer_panick && this.enabled) {
+        this.timer_panic = mob.config.timer_panic ?? 80;
+        if (this.timer_panic && this.enabled) {
             this.target = null;
             mob.rotate.z = 2 * Math.random() * Math.PI;
             this.stack.replaceState(this.doStand);

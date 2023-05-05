@@ -243,8 +243,9 @@ export class World implements IWorld {
         };
     }
 
-    getBlock(x : int | IVector, y? : int, z? : int): TBlock {
-        return this.chunkManager.getBlock(x, y, z);
+    // TODO добавить 2-й параметр - resultBlock: TBlock | null
+    getBlock(pos : IVector): TBlock {
+        return this.chunkManager.getBlock(pos);
     }
 
     // Change block extra_data
