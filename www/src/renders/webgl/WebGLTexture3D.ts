@@ -36,7 +36,10 @@ const TEXTURE_TYPE_FORMAT = {
     },
     'rgba8uint': {
         format: 'RGBA_INTEGER', internal: 'RGBA8UI', type: 'UNSIGNED_BYTE'
-    }
+    },
+    'rgba32uint': {
+        format: 'RGBA_INTEGER', internal: 'RGBA32UI', type: 'UNSIGNED_INT'
+    },
 }
 
 export class WebGLTexture3D extends BaseTexture3D {
@@ -75,11 +78,11 @@ export class WebGLTexture3D extends BaseTexture3D {
         if (this.fixedSize) {
             if (this.prevLength === 0) {
                 gl.texStorage3D(target, 1, gl[formats.internal || formats.format],
-                    this.width, this.height, this.depth);
+                    this.innerWidth, this.innerHeight, this.innerDepth);
                 if (data) {
                     this.prevLength = data.length;
                 } else {
-                    this.prevLength = this.width * this.height * this.depth * (formats.elementPerPixel || 4);
+                    this.prevLength = this.innerWidth * this.innerHeight * this.innerDepth * (formats.elementPerPixel || 4);
                 }
                 this.updateStyle();
             } else if (data && this.prevLength !== data.length) {
@@ -94,12 +97,12 @@ export class WebGLTexture3D extends BaseTexture3D {
                 // SHOULD NOT HAPPEN
                 this.prevLength = data.length;
                 gl.texImage3D(target, 0, gl[formats.internal || formats.format],
-                    this.width, this.height, this.depth,
+                    this.innerWidth, this.innerHeight, this.innerDepth,
                     0, gl[formats.format], gl[formats.type], data);
                 this.updateStyle();
             } else {
                 gl.texSubImage3D(target, 0, 0, 0, 0,
-                    this.width, this.height, this.depth,
+                    this.innerWidth, this.innerHeight, this.innerDepth,
                     gl[formats.format], gl[formats.type], data);
             }
         }
@@ -117,15 +120,16 @@ export class WebGLTexture3D extends BaseTexture3D {
 
     uploadSubs() {
         const { gl } = this.context;
+        const { pixelSize } = this;
 
         const formats = TEXTURE_TYPE_FORMAT[this.type];
 
         const target = gl.TEXTURE_3D;
-        const sz = this.width * this.height * this.depth * (formats.elementPerPixel || 4);
+        const sz = this.innerWidth * this.innerHeight * this.innerDepth * (formats.elementPerPixel || 4);
         if (this.prevLength !== sz) {
             this.prevLength = sz;
             gl.texImage3D(target, 0, gl[formats.internal || formats.format],
-                this.width, this.height, this.depth,
+                this.innerWidth, this.innerHeight, this.innerDepth,
                 0, gl[formats.format], gl[formats.type],
                     null);
             this.updateStyle();
@@ -138,8 +142,9 @@ export class WebGLTexture3D extends BaseTexture3D {
             }
             region.dirty = false;
             if (!region.isEmpty) {
-                gl.texSubImage3D(target, 0, region.offset.x, region.offset.y, region.offset.z,
-                    region.width, region.height, region.depth,
+                gl.texSubImage3D(target, 0,
+                    region.offset.x / pixelSize, region.offset.y / pixelSize, region.offset.z / pixelSize,
+                    region.width / pixelSize, region.height / pixelSize, region.depth / pixelSize,
                     gl[formats.format], gl[formats.type], region.data);
                 region.data = null;
             }

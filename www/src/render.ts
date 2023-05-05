@@ -959,6 +959,7 @@ export class Renderer {
         if (!this.world) {
             renderBackend._emptyTexInt.bind(3);
             renderBackend._emptyTex3DInt.bind(6);
+            renderBackend._emptyTex3DInt.bind(7);
             return;
         }
         const cm = this.world.chunkManager;
@@ -970,8 +971,8 @@ export class Renderer {
         // webgl bind all texture-3d-s
         if (lp) {
             // renderBackend._emptyTex3D.bind(6);
-            for (let i = 1; i <= lp.maxBoundTextures; i++) {
-                const tex = (bindLights && lp.boundTextures[i]) || renderBackend._emptyTex3D;
+            for (let i = 1; i <= 1; i++) {
+                const tex = (bindLights && lp.boundTextures[i]) || renderBackend._emptyTex3DInt;
                 if (tex) {
                     tex.bind(6 + i);
                 }
@@ -1659,7 +1660,8 @@ export class Renderer {
         pixiRender.shader.bind(pixiRender.plugins.batch._shader, true);
         pixiRender.reset();
         pixiRender.texture.bind(null, 3);
-        pixiRender.texture.bind(null, 6);
+        pixiRender.texture.bind(null, 6)
+        pixiRender.texture.bind(null, 7);
     }
 
     // getVideoCardInfo...

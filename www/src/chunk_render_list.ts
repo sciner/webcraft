@@ -80,6 +80,7 @@ export class ChunkRenderList {
             defWidth: chunkSize.x + 2,
             defHeight: chunkSize.z + 2,
             defDepth: (chunkSize.y + 2) * lightProps.depthMul,
+            pixelSize: lightProps.pixelSize,
             type: lightProps.texFormat,
             filter: 'linear',
         });
@@ -280,9 +281,10 @@ export class ChunkRenderList {
     lightPool: CubeTexturePool = null;
 
     lightProps = {
-        texFormat: 'rgba8unorm',
+        texFormat: 'rgba32sint',
         hasTexture: true,
         depthMul: 1,
+        pixelSize: 2,
     }
 
     get lightmap_count() {
@@ -298,7 +300,8 @@ export class ChunkRenderList {
         this.lightProps.depthMul = hasNormals ? 2 : 1;
         chunkManager.lightWorker.postMessage([chunkManager.worldId, 'initRender', {
             hasTexture: true,
-            hasNormals
+            hasNormals,
+            pixelSize: this.lightProps.pixelSize,
         }])
     }
 }

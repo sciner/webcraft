@@ -63,7 +63,7 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         const { gl } = this.context;
         gl.uniform1i(this.u_texture, 4);
         gl.uniform1i(this.u_chunkDataSampler, 3);
-        gl.uniform1iv(this.u_lightTex, [7, 8, 9, 10, 11, 12, 13, 14, 15]);
+        gl.uniform1i(this.u_lightTex, 7);
         gl.uniform1i(this.u_maskColorSampler, 1);
         gl.uniform1i(this.u_blockDayLightSampler, 2);
 
