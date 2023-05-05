@@ -1,6 +1,5 @@
 import { ArrayOrMap, Helpers, Vector} from "./helpers.js";
-import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT,
-    INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT, INVENTORY_HOTBAR_SLOT_MIN, INVENTORY_HOTBAR_SLOT_MAX, INVENTORY_SLOT_MIN, INVENTORY_SLOT_MAX, PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, BAG_LENGTH_MIN, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, HOTBAR_LENGTH_MIN } from "./constant.js";
+import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT, PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, BAG_LENGTH_MIN, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, HOTBAR_LENGTH_MIN } from "./constant.js";
 import { BLOCK } from "./blocks.js"
 import {InventoryComparator, TUsedRecipe} from "./inventory_comparator.js";
 import type { ArmorState, Player } from "./player.js";
@@ -86,7 +85,7 @@ export abstract class Inventory {
 
     //
     setIndexes(data, send_state) {
-        const count = this.getCountHotbar()
+        const count = this.getHotbarLength()
         this.current.index = Helpers.clamp(data.index, 0, count - 1);
         this.current.index2 = Helpers.clamp(data.index2, -1, this.max_visible_count - 1);
         this.refresh(send_state);
@@ -124,7 +123,7 @@ export abstract class Inventory {
 
     //
     select(index) {
-        const count = this.getCountHotbar()
+        const count = this.getHotbarLength()
         if(index < 0) {
             index = count - 1;
         }
@@ -359,7 +358,7 @@ export abstract class Inventory {
     }
 
     countItemId(item_id) {
-        var count = 0;
+        let count = 0;
         for(let item of this.items) {
             if (item && item.id === item_id) {
                 count += item.count;
@@ -462,7 +461,7 @@ export abstract class Inventory {
             return true;
         }
 
-        const count = this.getCountHotbar()
+        const count = this.getHotbarLength()
 
         //
         const tblock = player.world.getBlock(pos);
@@ -653,36 +652,10 @@ export abstract class Inventory {
     }*/
 
     /**
-     * Возвращает количество слотов в инвентаре
-     * @returns {int}
+     * Выдает количество слотов рюкзака в зависмиости от инвентаря
+     * @returns колоичество слотов
      */
-    getCountSlot() : int {
-        let resp = INVENTORY_SLOT_MIN
-        for (const slot_index of [PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT]) {
-            if (this.items[slot_index]) {
-                const item = this.block_manager.fromId(this.items[slot_index].id)
-                resp += item.extra_data?.slot ?? 0
-            }
-        }
-        return Math.min(resp, INVENTORY_SLOT_MAX)
-    }
-
-    /** 
-    * Коичество слотов в hotbar
-    * @returns {int}
-    */
-    getCountHotbar(): int {
-        let resp = INVENTORY_HOTBAR_SLOT_MIN
-        for (const slot_index of [PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT]) {
-            if (this.items[slot_index]) {
-                const item = this.block_manager.fromId(this.items[slot_index].id)
-                resp += item.extra_data?.hotbar ?? 0
-            }
-        }
-        return Math.min(resp, INVENTORY_HOTBAR_SLOT_MAX)
-    }
-
-    getHotbarLength() {
+    getHotbarLength() : int {
         let resp = HOTBAR_LENGTH_MIN
         for (const slot_index of [PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT]) {
             if (this.items[slot_index]) {
@@ -693,7 +666,11 @@ export abstract class Inventory {
         return Math.min(resp, HOTBAR_LENGTH_MAX)
     }
 
-    getBagLength() {
+    /**
+     * Получить длину хотбара с учетом инвентаря
+     * @returns Длина хотбара
+     */
+    getBagLength() : int {
         let resp = BAG_LENGTH_MIN
         for (const slot_index of [PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT]) {
             if (this.items[slot_index]) {
@@ -704,16 +681,24 @@ export abstract class Inventory {
         return Math.min(resp, BAG_LENGTH_MAX) + HOTBAR_LENGTH_MAX
     }
 
-    getSlotNumber() {
-        const arr = []
-        const count_bag = this.getBagLength()
-        const count_hotbar = this.getHotbarLength()
-        for (let i = 0; i < count_bag; i++) {
-            if (i <= count_hotbar || i >= INVENTORY_HOTBAR_SLOT_MAX) {
-                arr.push(i)
+    isFull(item) : boolean {
+        const hotbar_len = this.getHotbarLength()
+        const bag_len = this.getBagLength()
+        const bm = this.block_manager
+        for (let i = 0; i < bag_len; i++) {
+            if (i <= hotbar_len || i >= HOTBAR_LENGTH_MAX) {
+                if (!this.items[i]) {
+                    return false
+                } else {
+                    if (item.id == this.items[i]) {
+                        const max_stack = bm.getItemMaxStack(this.items[i])
+                        if (this.items[i] < max_stack) {
+                            return false
+                        }
+                    }
+                }
             }
         }
-        return arr
+        return true
     }
-
 }

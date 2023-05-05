@@ -1,4 +1,4 @@
-import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_MAX, INVENTORY_SLOT_MAX, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX } from "../constant.js";
+import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX } from "../constant.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BlankWindow } from "./blank.js";
 import type {PlayerInventory} from "../player_inventory.js";
@@ -104,8 +104,9 @@ export class BaseInventoryWindow extends BlankWindow {
 
     // TODO move more shared code from BaseChestWindow and BaseCraftWindow here.
 
-    /*
+    /** 
     * Автоматическая сортировка инвентаря
+    * @param full - сортировать и основное поле
     */
     autoSortItems(full: boolean = false) {
         const items = this.inventory.items

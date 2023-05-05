@@ -4,7 +4,7 @@ import { Resources } from "./resources.js";
 
 import { Effect } from "./block_type/effect.js";
 import { CraftTableInventorySlot } from "./window/base_craft_window.js";
-import { INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_MAX, PAPERDOLL_BOOTS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, PAPERDOLL_LEGGINGS } from "./constant.js";
+import { HOTBAR_LENGTH_MAX, INVENTORY_HOTBAR_SLOT_COUNT, PAPERDOLL_BOOTS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, PAPERDOLL_LEGGINGS } from "./constant.js";
 import type { SpriteAtlas } from "./core/sprite_atlas.js";
 import type { HUD } from "./hud.js";
 import type { PlayerInventory } from "./player_inventory.js";
@@ -277,7 +277,7 @@ export class Hotbar {
         inventory_slots_window.catchEvents = false
         inventory_slots_window.slots = []
 
-        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
+        for(let i = 0; i < HOTBAR_LENGTH_MAX; i++) {
             const lblSlot = new CraftTableInventorySlot(i * (sz * SLOT_MARGIN_PERCENT), 0, sz, sz, `lblSlot${i}`, null, null, this, i)
             lblSlot.slot_empty  = 'slot_empty'
             lblSlot.slot_full   = 'slot_full'
@@ -465,7 +465,7 @@ export class Hotbar {
         const sx = this.sx
         const sy = this.sy
         const count = this.inventory.getHotbarLength()
-        for (let i = 0; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
+        for (let i = 0; i < HOTBAR_LENGTH_MAX; i++) {
             const x = this.inventory_slots_window.x + i * (sx * SLOT_MARGIN_PERCENT)
             const y = this.inventory_slots_window.y
             // item

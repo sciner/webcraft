@@ -1,7 +1,7 @@
 import {BLOCK} from "../blocks.js";
 import { ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../helpers.js";
 import { INVENTORY_HOTBAR_SLOT_COUNT,
-    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE, UI_THEME, INVENTORY_HOTBAR_SLOT_MAX, INVENTORY_SLOT_MAX, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX } from "../constant.js";
+    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE, UI_THEME, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
 import { Label, SimpleBlockSlot, Window, Button, ToggleButton } from "../ui/wm.js";
 import { Recipe } from "../recipes.js";

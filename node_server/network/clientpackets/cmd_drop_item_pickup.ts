@@ -19,9 +19,7 @@ export default class packet_reader {
 
         const world = player.world;
         const data = packet.data;
-
-        console.log(data)
-
+        
         for(let i = 0; i < data.length; i++) {
 
             const entity_id = data[i];

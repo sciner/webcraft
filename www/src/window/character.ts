@@ -90,7 +90,6 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
             slot.onSetItem = () => {
                 this.player.getModel().updateArmor()
                 this.refresh()
-                //this.autoSortItems()
             }
         }
 
@@ -109,9 +108,9 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         this.inventory.clearDragItem(true)
         // Update player mob model
         this.inventory.player.updateArmor()
-        // Save inventory
+        // Sort and save inventory
         this.autoSortItems()
-        //this.world.server.InventoryNewState({ state: this.inventory.exportItems() })
+
         if(this.skinViewer) {
             this.skinViewer.renderPaused = true
         }

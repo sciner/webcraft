@@ -74,12 +74,6 @@ export const INVENTORY_HOTBAR_SLOT_COUNT    = 9;
 export const MAGIC_ROTATE_DIV               = 900;
 export const DRAW_SLOT_INDEX                = true;
 
-export const INVENTORY_SLOT_MIN             = 27
-export const INVENTORY_SLOT_MAX             = 72
-
-export const INVENTORY_HOTBAR_SLOT_MAX      = 12
-export const INVENTORY_HOTBAR_SLOT_MIN      = 4
-
 export const HOTBAR_LENGTH_MIN      = 4
 export const HOTBAR_LENGTH_MAX      = 12
 export const BAG_LENGTH_MIN         = 27
