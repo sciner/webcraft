@@ -12400,7 +12400,7 @@
                 "texture": "toolbelt_basic" 
             },
             "extra_data": {
-                "hotbar": 3
+                "hotbar": 5
             }
         }
     ]

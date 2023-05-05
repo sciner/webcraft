@@ -266,7 +266,7 @@ export class Hotbar {
         this.armors[PAPERDOLL_HELMET]     = new Label(8.5 * this.zoom, 0, 47 * sprite_zoom, 38 * sprite_zoom, 'armor_helmet')
         this.armors[PAPERDOLL_CHESTPLATE] = new Label(0, 12 * this.zoom, 104 * sprite_zoom, 71 * sprite_zoom, 'armor_chestplate')
         this.armors[PAPERDOLL_LEGGINGS]   = new Label(7.5 * this.zoom, 33 * this.zoom, 53 * sprite_zoom, 62 * sprite_zoom, 'armor_leggins')
-        this.armors[PAPERDOLL_LEGGINGS]      = new Label(7.5 * this.zoom, 52 * this.zoom, 53 * sprite_zoom, 26 * sprite_zoom, 'armor_boots')
+        this.armors[PAPERDOLL_BOOTS]   = new Label(7.5 * this.zoom, 52 * this.zoom, 53 * sprite_zoom, 26 * sprite_zoom, 'armor_boots')
         for(let k in this.armors) {
             armor_base_window.add(this.armors[k])
         }
@@ -281,7 +281,7 @@ export class Hotbar {
             const lblSlot = new CraftTableInventorySlot(i * (sz * SLOT_MARGIN_PERCENT), 0, sz, sz, `lblSlot${i}`, null, null, this, i)
             lblSlot.slot_empty  = 'slot_empty'
             lblSlot.slot_full   = 'slot_full'
-            lblSlot.slot_locked = 'slot_empty'
+            lblSlot.slot_locked = 'window_slot_locked'
             lblSlot.style.background.color = '#00000000'
             lblSlot.style.border.hidden = true
             inventory_slots_window.add(lblSlot)
@@ -464,6 +464,7 @@ export class Hotbar {
         // хотбар и селектор
         const sx = this.sx
         const sy = this.sy
+        const count = this.inventory.getCountHotbar()
         for (let i = 0; i < INVENTORY_HOTBAR_SLOT_MAX; i++) {
             const x = this.inventory_slots_window.x + i * (sx * SLOT_MARGIN_PERCENT)
             const y = this.inventory_slots_window.y
@@ -474,6 +475,8 @@ export class Hotbar {
             if (i == this.inventory.getRightIndex()) {
                 this.tilemap.drawImage(this.hud_sprites.slot_selection, x, y)
             }
+            this.inventory_slots_window.slots[i].disabled = (i > count) ? true : false
+            this.inventory_slots_window.slots[i].refresh()
         }
 
         if(hotbar_height == 0) {

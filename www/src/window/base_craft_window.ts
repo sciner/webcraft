@@ -885,7 +885,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         confirm.add(btnYes)
         const btnNo = new Button(185 * this.zoom, 90 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
         btnNo.onDrop = btnNo.onMouseDown = function() {
-            ct.inventory.clearDragItem(true)
+            //ct.inventory.clearDragItem(true)
             confirm.hide()
         }
         confirm.add(btnNo)

@@ -57,7 +57,7 @@ export abstract class Inventory {
     // TODO maybe remove these fields; they are redundant
     readonly max_count          = INVENTORY_SLOT_COUNT
     readonly max_visible_count  = INVENTORY_VISIBLE_SLOT_COUNT
-    readonly hotbar_count       = INVENTORY_HOTBAR_SLOT_COUNT
+    //readonly hotbar_count       = INVENTORY_HOTBAR_SLOT_COUNT
 
     constructor(player : Player, state : TInventoryState) {
         this.count              = state.items.length;
@@ -86,7 +86,8 @@ export abstract class Inventory {
 
     //
     setIndexes(data, send_state) {
-        this.current.index = Helpers.clamp(data.index, 0, this.hotbar_count - 1);
+        const count = this.getCountHotbar()
+        this.current.index = Helpers.clamp(data.index, 0, count - 1);
         this.current.index2 = Helpers.clamp(data.index2, -1, this.max_visible_count - 1);
         this.refresh(send_state);
     }
@@ -123,11 +124,12 @@ export abstract class Inventory {
 
     //
     select(index) {
+        const count = this.getCountHotbar()
         if(index < 0) {
-            index = this.hotbar_count - 1;
+            index = count - 1;
         }
-        if(index >= this.hotbar_count) {
-            index = 0;
+        if(index > count) {
+            index = 0
         }
         this.current.index = index;
         this.refresh(true);
@@ -447,12 +449,14 @@ export abstract class Inventory {
 
     // Клонирование материала в инвентарь
     cloneMaterial(pos, allow_create_new) {
-
+        
         const { block_manager, player } = this;
 
         if(!player.game_mode.canBlockClone()) {
             return true;
         }
+
+        const count = this.getCountHotbar()
 
         //
         const tblock = player.world.getBlock(pos);
@@ -481,7 +485,7 @@ export abstract class Inventory {
             if(this.items[slot_index]) {
                 let item = this.items[slot_index];
                 if(item.id == cloned_block.id) {
-                    if(slot_index >= this.hotbar_count) {
+                    if(slot_index >= count) {
                         // swith with another from inventory
                         this.items[slot_index] = this.items[this.current.index];
                         this.items[this.current.index] = item;
@@ -503,7 +507,7 @@ export abstract class Inventory {
             return false;
         }
         // Create in current cell if this empty
-        if(this.current.index < this.hotbar_count) {
+        if(this.current.index < count) {
             let k = this.current.index;
             if(!this.items[k]) {
                 this.items[k] = Object.assign({count: 1}, cloned_block);
@@ -514,7 +518,7 @@ export abstract class Inventory {
         }
         // Start new cell
         for(let k in Object.keys(this.items)) {
-            if(parseInt(k) >= this.hotbar_count) {
+            if(parseInt(k) >= count) {
                 break;
             }
             if(!this.items[k]) {
@@ -525,7 +529,7 @@ export abstract class Inventory {
             }
         }
         // Replace current cell
-        if(this.current.index < this.hotbar_count) {
+        if(this.current.index < count) {
             let k = this.current.index;
             this.items[k] = Object.assign({count: 1}, cloned_block);
             delete(this.items[k].texture);
