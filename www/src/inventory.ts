@@ -681,7 +681,10 @@ export abstract class Inventory {
         return Math.min(resp, BAG_LENGTH_MAX) + HOTBAR_LENGTH_MAX
     }
 
-    isFull(item) : boolean {
+    isFull(id: int) : boolean {
+        if (!id) {
+            return true
+        }
         const hotbar_len = this.getHotbarLength()
         const bag_len = this.getBagLength()
         const bm = this.block_manager
@@ -690,7 +693,7 @@ export abstract class Inventory {
                 if (!this.items[i]) {
                     return false
                 } else {
-                    if (item.id == this.items[i]) {
+                    if (id == this.items[i].id) {
                         const max_stack = bm.getItemMaxStack(this.items[i])
                         if (this.items[i] < max_stack) {
                             return false

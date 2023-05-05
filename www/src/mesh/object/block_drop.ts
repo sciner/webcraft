@@ -130,6 +130,11 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
             return false;
         }
 
+        const block = player.world.drop_items.get(this.entity_id)
+        if (player.inventory.isFull(block?.block?.id)) {
+            return false
+        }
+        
         const MAX_FLY_TIME              = 200; // ms
         const MAX_FLY_SPEED             = 12; // m/s
         const MIN_DIST_FOR_PICKUP_NOW   = .3; // m
@@ -153,7 +158,6 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
                 this.pickup_timeout = setTimeout(() => {
                     this.pickup()
                 }, MAX_FLY_TIME)
-                //
                 player.world.server.PickupDropItem([this.entity_id])
             }
         } if(!this.no_update) {
