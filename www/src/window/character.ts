@@ -76,10 +76,9 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         this.refresh()
 
         for(const slot of this.paperdoll) {
-            slot.onMouseLeave = () => {
+            slot.onSetItem = () => {
                 this.player.getModel().updateArmor()
                 this.refresh()
-                this.autoSortItems()
             }
         }
 
@@ -99,7 +98,8 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         // Update player mob model
         this.inventory.player.updateArmor()
         // Save inventory
-        this.world.server.InventoryNewState({ state: this.inventory.exportItems() })
+        this.autoSortItems()
+        //this.world.server.InventoryNewState({ state: this.inventory.exportItems() })
         if(this.skinViewer) {
             this.skinViewer.renderPaused = true
         }
