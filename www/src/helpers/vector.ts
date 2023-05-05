@@ -410,6 +410,13 @@ export class Vector implements IVector {
         return new Vector(this.x + x, this.y + y, this.z + z);
     }
 
+    offsetSelf(x: number, y: number, z: number) : Vector {
+        this.x += x
+        this.y += y
+        this.z += z
+        return this
+    }
+
     floored() : Vector {
         return new Vector(
             Math.floor(this.x),

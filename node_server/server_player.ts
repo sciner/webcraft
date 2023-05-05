@@ -411,7 +411,7 @@ export class ServerPlayer extends Player {
 
     // changePosSpawn...
     changePosSpawn(params) {
-        params.pos = new Vector(params.pos).round(3);
+        params.pos = new Vector(params.pos).roundSelf(3)
         this.world.db.changePosSpawn(this, params);
         this.state.pos_spawn = new Vector(params.pos);
         const message = 'Установлена точка возрождения ' + params.pos.x + ", " + params.pos.y + ", " + params.pos.z;

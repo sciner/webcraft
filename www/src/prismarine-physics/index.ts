@@ -450,7 +450,7 @@ export class Physics {
             }
         }
         if (this.supportFeature_velocityBlocksOnTop) {
-            const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
+            const blockBelow = world.getBlock(entity.pos.floored().offsetSelf(0, -0.5, 0))
             if (blockBelow && blockBelow.id > 0) {
                 if (blockBelow.id === this.soulsandId) {
                     vel.x *= this.soulsandSpeed
@@ -858,7 +858,7 @@ export class Physics {
                 if (jumpSpeed) {
                     vel.y = Math.fround(jumpSpeed * this.scale)
                     if(this.honeyblockId != BLOCK_NOT_EXISTS) {
-                        const blockBelow = this.world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
+                        const blockBelow = this.world.getBlock(entity.pos.floored().offsetSelf(0, -0.5, 0))
                         vel.y *= ((blockBelow && blockBelow.id === this.honeyblockId) ? this.honeyblockJumpSpeed : 1);
                     }
                     const jumpBoost = getEffectLevel(Effect.JUMP_BOOST, entity.options.effects);

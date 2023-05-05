@@ -196,7 +196,6 @@ export class ChunkManager {
         // Add listeners for server commands
         world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(decompressNearby(cmd.data))});
         world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {
-            // console.log('1. chunk: loaded', new Vector(cmd.data.addr).toHash());
             if (cmd.data.fluid) {
                 cmd.data.fluid = Uint8Array.from(atob(cmd.data.fluid), c => c.charCodeAt(0));
             }

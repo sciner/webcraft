@@ -352,7 +352,7 @@ export class ServerWorld implements IWorld {
                     const x = player.state.pos.x + SPAWN_DISTANCE * (Math.random() - Math.random());
                     const y = player.state.pos.y + 2 * (Math.random());
                     const z = player.state.pos.z + SPAWN_DISTANCE * (Math.random() - Math.random());
-                    const spawn_pos = new Vector(x, y, z).floored();
+                    const spawn_pos = new Vector(x, y, z).flooredSelf();
                     // проверка места для спауна
                     const under = this.getBlock(spawn_pos.offset(0, -1, 0));
                     // под ногами только твердый, целый блок

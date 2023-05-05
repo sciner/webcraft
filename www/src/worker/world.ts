@@ -215,7 +215,7 @@ export class WorkerWorld {
 
     workerSetPotential(pos: IVector) {
         this.ensureBuildQueue();
-        this.checkPotential(new Vector(pos).round());
+        this.checkPotential(new Vector(pos).roundSelf())
     }
 
     checkPotential(npc) {

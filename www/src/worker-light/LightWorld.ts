@@ -324,7 +324,7 @@ export class LightWorld {
             case 'setPotentialCenter': {
                 this.chunk_render_dist = args.chunk_render_dist;
                 if (args.pos) {
-                    this.chunkManager.nextPotentialCenter = new Vector(args.pos).round();
+                    this.chunkManager.nextPotentialCenter = new Vector(args.pos).roundSelf()
                     this.checkPotential();
                 }
                 break;

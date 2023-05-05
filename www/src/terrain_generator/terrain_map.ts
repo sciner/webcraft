@@ -5,7 +5,7 @@ import { IndexedColor, Vector, Helpers, VectorCollector } from '../helpers.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { WorkerWorld } from '../worker/world.js';
 import { BIOMES } from "./biome2/biomes.js";
-import { Biome2CaveGenerator } from './cave_generator.js';
+import { Biome2CaveGenerator } from './biome2/cave_generator.js';
 import { Default_Terrain_Map, Default_Terrain_Map_Cell } from './default.js';
 import { OreGenerator } from './ore_generator.js';
 
