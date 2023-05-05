@@ -98,8 +98,9 @@ export class Biome3TerrainMap extends TerrainMap {
         const map               = this;
         const treeSearchSize    = new Vector(1, CHUNK_SIZE_Y + 1, 1);
         const density_params    = new DensityParams(0, 0, 0, 0, 0, 0);
+        const attempts          = Math.ceil(TREE_PLANT_ATTEMPTS / 256 * (CHUNK_SIZE_X * CHUNK_SIZE_Z))
 
-        for(let i = 0; i < TREE_PLANT_ATTEMPTS; i++) {
+        for(let i = 0; i < attempts; i++) {
 
             // generate coord exclude near chunk borders
             const x = Math.floor((CHUNK_SIZE_X - 2) * aleaRandom.double()) + 1;
@@ -147,6 +148,8 @@ export class Biome3TerrainMap extends TerrainMap {
                 }
             }
         }
+
+        // console.log(this.trees.length)
 
     }
 

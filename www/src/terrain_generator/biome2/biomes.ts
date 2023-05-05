@@ -1,6 +1,6 @@
-import { Color, IndexedColor } from '../helpers.js';
-import { BLOCK } from "../blocks.js";
-import { DEFAULT_DIRT_PALETTE, GRASS_PALETTE_OFFSET } from '../constant.js';
+import { Color, IndexedColor } from '../../helpers.js';
+import { BLOCK } from "../../blocks.js";
+import { DEFAULT_DIRT_PALETTE, GRASS_PALETTE_OFFSET } from '../../constant.js';
 
 const CACTUS_MIN_HEIGHT     = 2;
 const CACTUS_MAX_HEIGHT     = 5;

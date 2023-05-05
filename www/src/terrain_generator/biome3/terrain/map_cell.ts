@@ -3,7 +3,6 @@ import type { Vector } from "../../../helpers.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type { DensityParams } from "./manager_vars.js";
 import type { Biome } from "../biomes.js";
-import { BLOCK_FLAG } from "../../../constant.js";
 import { BLOCK } from "../../../blocks.js";
 
 const CALC_SET_DX_WHERE_LIST = ['d1', 'd2', 'd3', 'd4']
