@@ -1,4 +1,4 @@
-import {SpiralEntry, SpiralGenerator, Vector, VectorCollector} from "@client/helpers.js";
+import {SpiralEntry, SpiralGenerator, SpiralGrid, Vector, VectorCollector} from "@client/helpers.js";
 import { CHUNK_GENERATE_MARGIN_Y, CHUNK_STATE} from "@client/chunk_const.js";
 import {WorldChunkFlags} from "./db/world/WorldChunkFlags.js";
 import { NEARBY_FLAGS } from "@client/packet_compressor.js";
@@ -71,16 +71,15 @@ export class ServerPlayerVision {
     safeTeleportMargin: number;
     safeTeleportMarginY: number;
     safePosInitialOverride?: Vector | null;
-    spiralCenter: Vector;
     waitSafeEntries: any[];
     waitEntries: any[];
-    spiralEntries: any[];
     spiralLoading: number;
     spiralWaiting: number;
     spiralRadius: number;
     extraRadius: number;
     grid: ChunkGrid
     tempVec = new Vector()
+    spiralGrid = new SpiralGrid();
 
     constructor(player : ServerPlayer) {
         this.player = player;
@@ -93,7 +92,7 @@ export class ServerPlayerVision {
         this.safeTeleportMarginY = 2;
         this.safePosInitialOverride = null;
 
-        this.spiralCenter           = new Vector(Infinity, 0, 0);
+        this.spiralGrid.center.x = Infinity;
 
         // new logic here!
         this.waitSafeEntries = [];
@@ -103,7 +102,6 @@ export class ServerPlayerVision {
          */
         this.waitEntries = [];
 
-        this.spiralEntries = [];
         this.spiralLoading = 0;
         this.spiralWaiting = 0;
         this.spiralRadius = 0;
@@ -120,7 +118,7 @@ export class ServerPlayerVision {
         this.flushSpiral();
         this.waitEntries.length = 0;
         this.waitSafeEntries.length = 0;
-        this.spiralEntries.length = 0;
+        this.spiralGrid = null;
         for(let chunk of this.nearbyChunks) {
             chunk?.removePlayer(player);
         }
@@ -149,11 +147,21 @@ export class ServerPlayerVision {
     }
 
     flushSpiral() {
-        const {spiralEntries} = this;
-        for (let i = 0; i < spiralEntries.length; i++) {
-            const {chunk} = spiralEntries[i];
+        const {entries} = this.spiralGrid;
+        for (let i = 0; i < entries.length; i++) {
+            const {chunk} = entries[i];
             if (chunk) {
                 chunk.spiralMarker--;
+            }
+        }
+    }
+
+    markSpiral() {
+        const {entries} = this.spiralGrid;
+        for (let i = 0; i < entries.length; i++) {
+            const {chunk} = entries[i];
+            if (chunk) {
+                chunk.spiralMarker++;
             }
         }
     }
@@ -222,24 +230,18 @@ export class ServerPlayerVision {
     }
 
     genSpiral() {
-        const {player, spiralEntries} = this;
+        const {player} = this;
+        const spiralEntries = this.spiralGrid.entries;
         const chunk_render_dist = player.state.chunk_render_dist;
         const margin            = this.spiralRadius = Math.max(chunk_render_dist + 1, 1);
-        const centerAddr        = this.spiralCenter = player.chunk_addr;
-        const spiral_moves_3d   = SpiralGenerator.generate3D(new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin)).entries;
+
         this.flushSpiral();
-        while (spiralEntries.length < spiral_moves_3d.length) {
-            spiralEntries.push(new SpiralEntry());
-        }
-        let n = spiralEntries.length = spiral_moves_3d.length;
-        for (let i = 0; i < n; i++) {
-            spiralEntries[i].copyTranslate(spiral_moves_3d[i], centerAddr);
-        }
+        this.spiralGrid.makeOrTranslate(player.chunk_addr, new Vector(margin, CHUNK_GENERATE_MARGIN_Y, margin));
+        this.markSpiral();
 
         this.waitEntries.length = 0;
         this.spiralLoading = 0;
         this.spiralWaiting = 0;
-        this.spiralCenter.copyFrom(centerAddr);
         this.spiralRadius = margin;
 
         this.nearbyChunks.chunk_render_dist = chunk_render_dist;
@@ -248,8 +250,9 @@ export class ServerPlayerVision {
     }
 
     checkSpiralChunks(maxScan = PLAYER_CHUNK_QUEUE_SIZE * 2) {
-        const {player, spiralEntries} = this;
+        const {player} = this;
         const {world} = player;
+        const spiralEntries = this.spiralGrid.entries;
         const {chunkManager} = world;
         let n = spiralEntries.length;
         let found = 0;
@@ -274,9 +277,10 @@ export class ServerPlayerVision {
     }
 
     updateNearby() {
-        const {spiralEntries, nearbyChunks, player,
-            spiralCenter, spiralRadius, extraRadius} = this;
+        const {nearbyChunks, player, spiralRadius, extraRadius} = this;
         const {world} = player;
+        const spiralEntries = this.spiralGrid.entries;
+        const spiralCenter = this.spiralGrid.center;
         if (nearbyChunks.dirty === 0) {
             return false;
         }
@@ -325,8 +329,8 @@ export class ServerPlayerVision {
         const {player, tempVec} = this;
         const grid = player.world.chunkManager.grid
         player.chunk_addr = grid.toChunkAddr(player.state.pos);
-        grid.getChunkCenterByAddr(this.spiralCenter, tempVec).subSelf(player.state.pos);
-        if (force || !player.chunk_addr.equal(this.spiralCenter)
+        grid.getChunkCenterByAddr(this.spiralGrid.center, tempVec).subSelf(player.state.pos);
+        if (force || !player.chunk_addr.equal(this.spiralGrid.center)
             && (Math.abs(tempVec.x) >= 16 || Math.abs(tempVec.z) >= 16 || Math.abs(tempVec.y) >= 30)) {
             this.genSpiral();
         }
@@ -339,7 +343,8 @@ export class ServerPlayerVision {
 
     populateWaitingAddrs() {
         this.checkSpiralChunks();
-        const {waitEntries, spiralEntries} = this;
+        const {waitEntries} = this;
+        const spiralEntries = this.spiralGrid.entries;
 
         let n = waitEntries.length;
         if (n > 0) {
