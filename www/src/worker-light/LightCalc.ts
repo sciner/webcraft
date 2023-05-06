@@ -100,8 +100,8 @@ export class LightCalc {
                         const ind1 = ind0 + tempDx[i];
                         const data = lightData[ind1];
                         const src = uint8View[ind1 * strideBytes + OFFSET_SOURCE];
-                        const block = (src & MASK_SRC_BLOCK) === MASK_SRC_BLOCK ? 1 : 0;
-                        const ao = (src & MASK_SRC_AO) > 0 ? 2 : 0;
+                        const block = (src & MASK_SRC_BLOCK) === MASK_SRC_BLOCK ? 2 : 0;
+                        const ao = (src & MASK_SRC_AO) > 0 ? 1 : 0;
                         result[ind++] = data | ((block | ao) << 8);
                     }
                 }
