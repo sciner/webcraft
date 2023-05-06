@@ -729,8 +729,9 @@ int sampleCubeLight(ivec4 source, int shift) {
         cavePart = sumCaveDay - dayPart;
     }
 
-    float aoSample = centerSample.z;
+    float aoSample = 0.0;
     if (v_lightMode > 0.5) {
+        aoSample = centerSample.z;
         if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
         aoSample *= aoFactor;
     }
