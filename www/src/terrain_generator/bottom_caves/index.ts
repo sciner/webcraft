@@ -6,7 +6,7 @@ import { noise, alea } from "../default.js";
 import type { WorkerWorld } from '../../worker/world.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 import { BLOCK_FLAG } from '../../constant.js';
-import { BIOMES } from '../biomes.js';
+import { BIOMES } from '../biome2/biomes.js';
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();

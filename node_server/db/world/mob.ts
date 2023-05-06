@@ -31,7 +31,8 @@ export type MobUpdateRow = [
 /** These updates have more data than regular updates, and they are saved only when needed. */
 export type MobFullUpdateRow = ConcatTuple<MobUpdateRow, [
     is_active: int,     // 1, 0
-    pos_spawn: string   // JSON.stringify(mob.pos_spawn)
+    pos_spawn: string,  // JSON.stringify(mob.pos_spawn)
+    driving_id: int | null
 ]>
 
 export type MobInsertRow = ConcatTuple<MobFullUpdateRow, [
@@ -54,6 +55,17 @@ export type MobRow = {
     is_active   : int
     extra_data  : string    // stringified object
     indicators  : string    // stringified Indicators
+    /**
+     * id вождения, в котором участвует моб.
+     * Возможна ситуация когда такое вождение отстуствует (но у моба осталось). Это нормально - нужно считать driving_id == null.
+     */
+    driving_id  : int | null
+    /**
+     * JSON-строка. Эти данные берутся из таблицы driving, если есть связанная запись.
+     * Это для того чтобы сразу создать вождение, если моб в нем участвует, а не грузить из таблицы driving
+     * отдельным запросом. Так проще и быстрее.
+     */
+    driving_data: string | null
 }
 
 export class DBWorldMob {
@@ -71,8 +83,9 @@ export class DBWorldMob {
 
         this.bulkLoadActiveInVolumeQuery = new BulkSelectQuery(this.conn,
             `WITH cte AS (SELECT key, value FROM json_each(:jsonRows))
-            SELECT cte.key, entity.*
-            FROM cte, entity
+            SELECT cte.key, entity.*, driving.data AS driving_data
+            FROM cte,
+                entity LEFT JOIN driving ON driving_id = driving.id 
             WHERE is_active = 1 AND x >= %0 AND x < %1 AND y >= %2 AND y < %3 AND z >= %4 AND z < %5`,
             'key'
         );
@@ -156,8 +169,8 @@ export class DBWorldMob {
 
     // Load mobs
     // TODO optimize: merge volumes for adjacent chunks, then separate mobs into chunks on host
-    async loadInChunk(chunk: ServerChunk): Promise<Map<int, Mob>> {
-        const resp = new Map();
+    async loadInChunk(chunk: ServerChunk): Promise<[mob: Mob, driving_data: string | null][]> {
+        const resp: [Mob, string | null][] = []
         if(!this._activeMobsInChunkCount.has(chunk.addr)) {
             return resp;
         }
@@ -171,22 +184,25 @@ export class DBWorldMob {
             coord.z,
             coord.z + size.z
         ]);
-        for(let row of rows) {
-            const item = Mob.fromRow(this.world, row);
-            resp.set(item.id, item);
+        for(const row of rows) {
+            const mob = Mob.fromRow(this.world, row)
+            if (mob) {
+                resp.push([mob, row.driving_data])
+            }
         }
         return resp;
     }
 
-    // Load mob
-    async load(entity_id: string): Promise<Mob | null> {
-        const rows = await this.conn.all('SELECT * FROM entity WHERE entity_id = :entity_id', {
-            ':entity_id': entity_id
-        });
-        for(let row of rows) {
-            return Mob.fromRow(this.world, row);
-        }
-        return null;
+    /** Загружает моба и связанные с ним данные вождения */
+    async load(id: int): Promise<[mob: Mob | null, driving_data: string | null]> {
+        return this.conn.get(`SELECT entity.*, driving.data AS driving_data 
+            FROM entity LEFT JOIN driving ON driving_id = driving.id
+            WHERE entity.id = :id`, {
+            ':id': id
+        }).then((row?: MobRow) => {
+            const mob = row && Mob.fromRow(this.world, row)
+            return mob ? [mob, row.driving_data] : [null, null]
+        })
     }
 
     /** Returns a row that can be passed to {@link bulkUpdate} */
@@ -224,7 +240,8 @@ export class DBWorldMob {
     static upgradeRowToFullUpdate(row: MobUpdateRow, mob: Mob): MobFullUpdateRow {
         row.push(
             mob.is_active ? 1 : 0,
-            JSON.stringify(mob.pos_spawn)
+            JSON.stringify(mob.pos_spawn),
+            mob.drivingId ?? null
         );
         return row as unknown as MobFullUpdateRow
     }
@@ -232,7 +249,7 @@ export class DBWorldMob {
     async bulkFullUpdate(rows: MobFullUpdateRow[]) {
         UPDATE.BULK_FULL = UPDATE.BULK_FULL ?? preprocessSQL(`
             UPDATE entity
-            SET ${BULK_UPDATE_FIELDS}, is_active = %7, pos_spawn = %8
+            SET ${BULK_UPDATE_FIELDS}, is_active = %7, pos_spawn = %8, driving_id = %9
             FROM json_each(:jsonRows)
             WHERE entity.id = %0
         `);
@@ -256,15 +273,15 @@ export class DBWorldMob {
             INSERT INTO entity (
                 id,
                 x, y, z,
-                indicators, extra_data, rotate, -- common for all updates
-                is_active, pos_spawn,           -- included in a full update
-                entity_id, type, skin, dt       -- insert only
+                indicators, extra_data, rotate,     -- common for all updates
+                is_active, pos_spawn, driving_id,   -- included in a full update
+                entity_id, type, skin, dt           -- insert only
             ) SELECT
                 %0,
                 %1, %2, %3,
                 %4, %5, %6,
-                %7, %8,
-                %9, %10, %11, :dt
+                %7, %8, %9,
+                %10, %11, %12, :dt
             FROM json_each(:jsonRows)
         `);
         return rows.length ? run(this.conn, INSERT.BULK, {

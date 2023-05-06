@@ -45,10 +45,15 @@ export class WorldHistory {
      * @return snapshot id, that can be used to restore this snapshot
      */
     makeSnapshot(pos_: IVector): int {
-        const pos = new Vector(pos_)
+        const pos = new Vector(pos_).toInt()
+        if (!pos.equal(pos_)) {
+            // Видимо, pos изменилась в doBlockAction и стала не целой.
+            // Надо фиксить то действие в doBlockAction, чтобы возвращало целую позицию.
+            throw new Error(`makeSnapshot: incorrect argument ${new Vector(pos_)}`)
+        }
         const block = this.world.getBlock(pos)
-        if (block.id < 0) {
-            throw new Error('block.id < 0') // we don't expect it to happen
+        if (block.id == null || block.id < 0) {
+            throw new Error(`block.id == null || block.id < 0 ${block.id} ${pos}`) // we don't expect it to happen
         }
         const snapshot: BlockSnapshot = {
             id      : this.nextSnapshotId,

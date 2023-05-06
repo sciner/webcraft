@@ -20,6 +20,8 @@ const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface', 'decal1', 'decal2'];
 
+const tmpAddr = new Vector()
+
 export class ChunkManagerState {
 
     stat = {
@@ -194,7 +196,6 @@ export class ChunkManager {
         // Add listeners for server commands
         world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(decompressNearby(cmd.data))});
         world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {
-            // console.log('1. chunk: loaded', new Vector(cmd.data.addr).toHash());
             if (cmd.data.fluid) {
                 cmd.data.fluid = Uint8Array.from(atob(cmd.data.fluid), c => c.charCodeAt(0));
             }
@@ -429,11 +430,14 @@ export class ChunkManager {
 
     /**
      * Return chunk by address
-     * @param {Vector} addr
-     * @returns Chunk
      */
-    getChunk(addr) {
+    getChunk(addr: IVector): Chunk | null {
         return this.chunks.get(addr);
+    }
+
+    getByPos(pos: IVector): Chunk | null {
+        this.grid.getChunkAddr(pos.x, pos.y, pos.z, tmpAddr)
+        return this.chunks.get(tmpAddr)
     }
 
     getWorld() {

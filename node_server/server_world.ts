@@ -42,13 +42,17 @@ import type { Indicators, PlayerConnectData, PlayerSkin } from "@client/player.j
 import type {TRandomTickerFunction, TTickerFunction} from "./server_chunk.js";
 import type {Physics} from "@client/prismarine-physics/index.js";
 import { ChunkGrid } from "@client/core/ChunkGrid.js";
+import {ServerDrivingManager} from "./control/server_driving_manager.js";
+import {preprocessMobConfigs, TMobConfig} from "./mob/mob_config.js";
+import {Raycaster} from "@client/Raycaster.js";
 import type { ServerGame } from "server_game.js";
+import {ObjectUpdateType} from "./helpers/aware_players.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
 export class ServerWorld implements IWorld {
     temp_vec: Vector;
-    block_manager: BLOCK;
+    block_manager: typeof BLOCK;
     updatedBlocksByListeners: any[];
     shuttingDown: any;
     game: ServerGame;
@@ -57,6 +61,7 @@ export class ServerWorld implements IWorld {
     blockListeners: BlockListeners;
     blockCallees: any;
     brains: Brains;
+    raycaster: Raycaster
     db: DBWorld;
     info: TWorldInfo;
     worldChunkFlags: WorldChunkFlags;
@@ -66,11 +71,13 @@ export class ServerWorld implements IWorld {
     models: ModelManager;
     chat: ServerChat;
     chunks: ServerChunkManager;
+    grid: ChunkGrid  // свойство ServerChunkManager, тут для удобства, т.к. используется повсеместно, а объекты обычно имеют ссылку на world
     quests: QuestManager;
     actions_queue: WorldActionQueue;
     admins: WorldAdminManager;
     chests: WorldChestManager;
     mobs: WorldMobManager;
+    drivingManager: ServerDrivingManager;
     packets_queue: WorldPacketQueue;
     ticks_stat: WorldTickStat;
     network_stat: {
@@ -92,10 +99,11 @@ export class ServerWorld implements IWorld {
     defaultPlayerIndicators: Indicators
     physics?: Physics
 
-    constructor(block_manager : BLOCK) {
+    constructor(block_manager : typeof BLOCK) {
         this.temp_vec = new Vector();
 
         this.block_manager = block_manager;
+        this.raycaster = new Raycaster(this)
         this.updatedBlocksByListeners = [];
 
         // An object with fields { resolve, gentle }. Gentle means to wait unil the action queue is empty
@@ -128,12 +136,10 @@ export class ServerWorld implements IWorld {
         await this.blockListeners.loadAll(config);
         this.blockCallees = this.blockListeners.calleesById;
         // Brains
+        const mobConfigs: Dict<TMobConfig> = config.mobs
+        preprocessMobConfigs(mobConfigs)
         this.brains = new Brains();
-        for(let fn of config.brains) {
-            await import(`./fsm/brain/${fn}.js`).then((module) => {
-                this.brains.add(fn, module.Brain);
-            });
-        }
+        await this.brains.load(mobConfigs);
         t = performance.now() - t | 0;
         if (t > 50) {
             console.log('Importing tickers, listeners & brains: ' + t + ' ms');
@@ -163,11 +169,13 @@ export class ServerWorld implements IWorld {
         this.models         = new ModelManager();
         this.chat           = new ServerChat(this);
         this.chunks         = new ServerChunkManager(this, this.random_tickers);
+        this.grid           = this.chunkManager.grid
         this.quests         = new QuestManager(this);
         this.actions_queue  = new WorldActionQueue(this);
         this.admins         = new WorldAdminManager(this);
         this.chests         = new WorldChestManager(this);
         this.mobs           = new WorldMobManager(this);
+        this.drivingManager = new ServerDrivingManager(this);
         this.packets_queue  = new WorldPacketQueue(this);
         // statistics
         this.ticks_stat     = new WorldTickStat();
@@ -344,7 +352,7 @@ export class ServerWorld implements IWorld {
                     const x = player.state.pos.x + SPAWN_DISTANCE * (Math.random() - Math.random());
                     const y = player.state.pos.y + 2 * (Math.random());
                     const z = player.state.pos.z + SPAWN_DISTANCE * (Math.random() - Math.random());
-                    const spawn_pos = new Vector(x, y, z).floored();
+                    const spawn_pos = new Vector(x, y, z).flooredSelf();
                     // проверка места для спауна
                     const under = this.getBlock(spawn_pos.offset(0, -1, 0));
                     // под ногами только твердый, целый блок
@@ -460,7 +468,7 @@ export class ServerWorld implements IWorld {
             this.chunks.randomTick(this.ticks_stat.number);
             this.ticks_stat.add('chunks_random_tick');
             // 2.
-            await this.mobs.tick(delta);
+            this.mobs.tick(delta);
             this.ticks_stat.add('mobs');
             // 3.
             for(const player of this.players.values()) {
@@ -480,6 +488,9 @@ export class ServerWorld implements IWorld {
             // 4.
             this.chunks.itemWorld.tick(delta);
             this.ticks_stat.add('drop_items');
+            //
+            this.drivingManager.tick();
+            this.ticks_stat.add('other');
             // 6.
             await this.packet_reader.queue.process();
             this.ticks_stat.add('packet_reader_queue');
@@ -558,7 +569,9 @@ export class ServerWorld implements IWorld {
         // 2. Insert to DB if new player
         timer.start('registerPlayer');
         console.log(`awaiting registerPlayer, token=${rndToken}`);
-        player.init(await this.db.registerPlayer(this, player));
+        const playerInfo = await this.db.registerPlayer(this, player)
+        player.init(playerInfo);
+        this.drivingManager.onParticipantLoaded(player, playerInfo.driving_data)
         console.log(`finished registerPlayer, token=${rndToken}`);
         player.skin = skin;
         player.updateHands();
@@ -570,8 +583,8 @@ export class ServerWorld implements IWorld {
         // 3. wait for chunks to load. AFTER THAT other chunks should be loaded
         player.initWaitingDataForSpawn();
         timer.stop();
-        // 4. Insert to array
-        this.players.list.set(user_id, player);
+        // 4. Add to the list of players
+        this.players.add(player);
         // 5. Send about all other players
         const all_players_packets = [];
         for (const p of this.players.values()) {
@@ -606,11 +619,15 @@ export class ServerWorld implements IWorld {
             },
             world_data: player.world_data
         }
-        player.sendPackets([{name: ServerClient.CMD_CONNECTED, data}]);
+        const packets: INetworkMessage[] = [{ name: ServerClient.CMD_CONNECTED, data }]
+        if (player.driving) { // Если игрок в вождении - послать его сразу
+            packets.push(player.driving.exportUpdateMessage(ObjectUpdateType.ADD))
+        }
         // 10. Add night vision for building world
         if(this.isBuildingWorld()) {
-            player.sendPackets([player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true)])
+            packets.push(player.effects.addEffects([{id: Effect.NIGHT_VISION, level: 1, time: 8 * 3600}], true))
         }
+        player.sendPackets(packets)
         if (timer.sum > 50) {
             const values = JSON.stringify(timer.round().filter().export())
             this.chat.sendSystemChatMessageToSelectedPlayers('!langTimes in onPlayer(), ms: ' + values, player)
@@ -655,12 +672,12 @@ export class ServerWorld implements IWorld {
      * @param except_players  ID of players.
      *   It's ignored if {@link selected_players} is ServerPlayer.
      */
-    sendSelected(packets: INetworkMessage[], selected_players: number[] | ServerPlayer, except_players?: number[]) {
+    sendSelected(packets: INetworkMessage[], selected_players: Iterable<int> | ServerPlayer, except_players?: int[]) {
         if ((selected_players as ServerPlayer).sendPackets) { // fast check if it's a ServerPlayer
             (selected_players as ServerPlayer).sendPackets(packets)
             return
         }
-        for (const user_id of selected_players as number[]) {
+        for (const user_id of selected_players as Iterable<int>) {
             if (except_players?.includes(user_id)) {
                 continue;
             }
@@ -699,14 +716,10 @@ export class ServerWorld implements IWorld {
         chunk.addPlayerLoadRequest(player);
     }
 
-    /**
-     * Returns block on world pos, or null.
-     * @param {Vector} pos
-     * @returns {TBlock}
-     */
-    getBlock(pos : Vector, resultBlock = null) : TBlock {
+    /** Returns block on world pos, or DUMMY if the chunk isn't ready. */
+    getBlock(pos : IVector, resultBlock: TBlock | null = null) : TBlock {
         const chunk = this.chunks.getByPos(pos);
-        return chunk ? chunk.getBlock(pos, null, null, resultBlock) : null;
+        return chunk ? chunk.getBlock(pos, null, null, resultBlock) : this.chunks.DUMMY;
     }
 
     getMaterial(pos : Vector) {
@@ -1086,16 +1099,18 @@ export class ServerWorld implements IWorld {
             server_player.state.sleep = false
             server_player.state.sitting = actions.sitting;
             server_player.state.rotate = Vector.vectorify(actions.sitting.rotate)
-            server_player.controlManager.setPos(actions.sitting.pos, actions.id)
-            server_player.controlManager.setVelocity(0, 0, 0)
+            server_player.controlManager.setPos(actions.sitting.pos)
+                .setVelocity(0, 0, 0)
+                .syncWithActionId(actions.id)
         }
         // Sleep
         if(actions.sleep) {
             // It's possible that there is no bock to lie on, the player will lie on the air
             server_player.state.sleep = actions.sleep
             server_player.state.sitting = false
-            server_player.controlManager.setPos(actions.sleep.pos, actions.id)
-            server_player.controlManager.setVelocity(0, 0, 0)
+            server_player.controlManager.setPos(actions.sleep.pos)
+                .setVelocity(0, 0, 0)
+                .syncWithActionId(actions.id)
         }
         // Spawn mobs
         if(actions.mobs.spawn.length > 0) {
@@ -1105,10 +1120,8 @@ export class ServerWorld implements IWorld {
             }
         }
         // Activate mobs
-        // мало кода, но работает медленнее ;)
-        // actions.mobs.activate.map((_, v) => await this.mobs.activate(v.entity_id, v.spawn_pos, v.rotate));
         for(const params of actions.mobs.activate) {
-            await this.mobs.activate(params.entity_id, params.spawn_pos, params.rotate);
+            await this.mobs.activate(params.id, params.spawn_pos, params.rotate);
         }
     }
 

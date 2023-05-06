@@ -12,7 +12,10 @@ import type { Indicators, PlayerSkin } from "@client/player.js";
 import type { ServerPlayer } from "./server_player.js";
 import { upgradeToNewIndicators } from "./db/world.js";
 import type { ServerChunk } from "./server_chunk.js";
-import type { ChunkGrid } from "@client/core/ChunkGrid.js";
+import type {ServerDriving} from "./control/server_driving.js";
+import type {TMobConfig} from "./mob/mob_config.js";
+import type {PrismarinePlayerControl} from "@client/prismarine-physics/using.js";
+import type {TMobProps} from "@client/mob_manager.js";
 
 export class MobSpawnParams {
     // These values are added by WorldMobManager.create
@@ -28,6 +31,7 @@ export class MobSpawnParams {
     extra_data?:    any
     indicators?:    Indicators
     is_active?:     boolean | int // 0 or 1
+    driving_id?:    int
 
     constructor(pos: Vector, rotate: Vector, skin: PlayerSkin) {
         this.pos = new Vector(pos)
@@ -86,13 +90,9 @@ export class Mob {
 
     #world : ServerWorld;
     #brain : FSMBrain;
-    #chunk_addr : Vector;
     #forward : Vector;
-
-    /**
-     * @type { MobState }
-     */
-    #prev_state;
+    #prev_state: MobState
+    readonly config: TMobConfig
     id: int;
     entity_id: string;
     skin: PlayerSkin;
@@ -103,7 +103,6 @@ export class Mob {
     rotate: Vector;
     extra_data: any;
     dirtyFlags: number;
-    chunk_addr_o: Vector;
     width: number;
     height: number;
     lastSavedTime: number;
@@ -111,16 +110,46 @@ export class Mob {
     _aabb: AABB;
     already_killed?: boolean | int;
     death_time?: number;
-    #grid: ChunkGrid
+    driving?: ServerDriving | null = null
 
-    constructor(world : ServerWorld, params: MobSpawnParams, existsInDB: boolean) {
+    /**
+     * drivingId дублируется в отдельном поле, хотя есть в {@link driving}.
+     * Если моб и/или driving выгружены, то {@link driving} == null, но {@link drivingId} остается. Это нужно чтобы:
+     * - сохранить корректное drivingId в БД
+     * - при востановлении моба не искать его во всех вождениях.
+     *
+     * Если есть несовпадения, данные в соответствующем ServerDriving имеют более высокий приоритет (боле новые).
+     * Неактуальный drivingId в мобе возможно удалится, возможно не сразу - это не важно. Главное что по этому id
+     * моб уже не будет включен в вождение.
+     * Ситуация что в мобе нет drivingId, а в вождении моб есть, кажется маловероятной (т.к. заочно моба могут удалить из
+     * вождения, но не добавить). Если такая ситуация есть - не страшно, со временем моб удалится из вождения.
+     *
+     * На клиент посылаем driving.id, а не это поле, т.к. важно именно реально используемое вождение.
+     */
+    private _drivingId: int | null
 
+    /**
+     * Чанк, в списке мобов которого находится этот моб. Может отличаться от {@link chunk_addr}.
+     * Только меод {@link moveToChunk} может менять это поле, всегда одновременно с полем
+     * {@link ServerChunk.mobs} соответствеющего чанка.
+     * При выгрузке и восстановлении чанка, моб остается в чанке, это поле не меняется.
+     */
+    inChunk: ServerChunk | null = null
+
+    /** Самое ранее время когда моб замечен без чанка. Используется чтобы забывать мобов, которые долго без чанка. */
+    noticedWithoutChunkTime: number | null = null
+
+    /**
+     * Конструктор моба не должен иметь побочных эффектов. Возможно, созданный моб не будет добавлен в мир
+     * (например, если он уже есть в памяти без чанка).
+     */
+    constructor(world : ServerWorld, config: TMobConfig, params: MobSpawnParams, existsInDB: boolean) {
         this.#world         = world;
-        this.#grid          = world.chunkManager.grid
+        this.config         = config
 
         // Read params
-        this.id             = params.id,
-        this.entity_id      = params.entity_id,
+        this.id             = params.id
+        this.entity_id      = params.entity_id
         this.skin           = params.skin;
         this.indicators     = params.indicators;
         this.is_active      = params.is_active;
@@ -135,20 +164,29 @@ export class Mob {
         this.extra_data     = params.extra_data || {};
         this.dirtyFlags     = existsInDB ? 0 : Mob.DIRTY_FLAG_NEW;
         // Private properties
-        this.#chunk_addr    = new Vector();
-        this.chunk_addr_o   = world.chunkManager.grid.toChunkAddr(this.pos);
         this.#forward       = new Vector(0, 1, 0);
-        this.#brain         = world.brains.get(this.skin.model_name, this);
+        this.#brain         = world.brains.get(this.config.brain, this);
         this.width          = this.#brain.pc.playerHalfWidth * 2;
         this.height         = this.#brain.pc.playerHeight;
-
-        // Сохраним моба в глобальном хранилище, чтобы не пришлось искать мобов по всем чанкам
-        world.mobs.add(this);
+        this._drivingId     = params.driving_id ?? null
 
         // To determine when to make regular saves. Add a random to spread different mobs over different transactions.
         this.lastSavedTime  = performance.now() + Math.random() * 0.5 * MOB_SAVE_PERIOD;
         this.lastSavedPos   = new Vector(this.pos); // to force saving is the position changed to much
         this._aabb = new AABB
+    }
+
+    get type(): string  { return this.skin.model_name }
+
+    get playerControl(): PrismarinePlayerControl { return this.#brain.pc }
+
+    /** См. {@link _drivingId} */
+    get drivingId(): int { return this._drivingId }
+    set drivingId(v: int | null) {
+        if (this._drivingId != v) {
+            this.dirtyFlags |= Mob.DIRTY_FLAG_FULL_UPDATE
+            this._drivingId = v
+        }
     }
 
     get aabb() : AABB {
@@ -161,10 +199,6 @@ export class Mob {
             this.pos.z + this.width / 2
         )
         return this._aabb
-    }
-
-    get chunk_addr() : Vector {
-        return this.#grid.toChunkAddr(this.pos, this.#chunk_addr);
     }
 
     get forward() : Vector {
@@ -186,7 +220,7 @@ export class Mob {
     /**
      * Create new mob
      */
-    static create(world : ServerWorld, params: MobSpawnParams) : Mob {
+    static create(world : ServerWorld, config: TMobConfig, params: MobSpawnParams) : Mob {
         // TODO: need to check mob type and skin from bbmodels
         // const model = world.models.list.get(params.type);
         // if(!model) {
@@ -203,6 +237,7 @@ export class Mob {
         params.extra_data.play_death_animation = true
         // make indicators
         params.indicators = world.db.getDefaultPlayerIndicators();
+        params.indicators.live = config.health
         params.is_active = 1; // previously is_active was selected from DB, where it's set to 1 by default
         //
         switch(params.skin.model_name) {
@@ -211,7 +246,25 @@ export class Mob {
                 break;
             }
         }
-        return new Mob(world, params, false);
+        return new Mob(world, config, params, false);
+    }
+
+    /** @returns параметры для создания моба на клиенте */
+    exportMobModelConstructorProps(): TMobProps {
+        const config = this.config
+        return {
+            id          : this.id,
+            type        : this.type,
+            indicators  : this.indicators,
+            width       : this.width,
+            height      : this.height,
+            pos         : this.pos,
+            rotate      : this.rotate,
+            skin        : this.skin,
+            extra_data  : this.extra_data,
+            hasUse      : config.hasUse,
+            supportsDriving : config.driving != null
+        }
     }
 
     tick(delta: float): void {
@@ -232,34 +285,70 @@ export class Mob {
     }
 
     /**
-     * It's a responsibilty of the caller to add the mob to the appropriate list where
-     * it'll await the world transaction.
-     * @param chunk - optional, increases performance a bit.
-     * @retrun true if there is anything to save in a world transaction
+     * Вызывает действия, связанные с выгрузкой из памяти моба.
+     *
+     * Выгрузка может быть как вместе с выгружаемым чанком, так и только это моба. Во стором случае
+     * вызывающий должен не забыть удалить моба из чанка.
+     *
+     * Выгрузка может быть в список выгруженых мобов, или моб может быть забыт полностью. Об этом должен
+     * заботиться вызывающий.
+     *
+     * @return true если есть что сохранять в мировой транзакци для этого моба
      */
-    onUnload(chunk : ServerChunk = null) {
+    onUnload(): boolean {
         //console.debug(`Mob unloaded ${this.entity_id}, ${this.id}`);
-        const world = this.#world;
-        world.mobs.delete(this.id);
-        chunk = chunk ?? world.chunkManager.get(this.chunk_addr);
-        if(chunk) {
-            chunk.mobs.delete(this.id);
-            const connections = Array.from(chunk.connections.keys());
-            const packets = [{
-                name: ServerClient.CMD_MOB_DELETE,
-                data: [this.id]
-            }];
-            world.sendSelected(packets, connections, []);
-        } else {
-            // throw 'error_no_mob_chunk';
-        }
+        this.#world.mobs.list.delete(this.id)
+        this.driving?.onMobUnloadedOrRemoved(this)
         // we assume there is always some change to save, unless it's been already saved as dead
-        return (this.dirtyFlags & Mob.DIRTY_FLAG_SAVED_DEAD) == 0;
+        return (this.dirtyFlags & Mob.DIRTY_FLAG_SAVED_DEAD) == 0
     }
 
-    restoreUnloaded(chunk) {
-        this.#world.mobs.add(this);
-        chunk.mobs.set(this.id, this); // or should we call chunk.addMob(this) ?
+    /**
+     * Выполняет все действия, связанные с добавлением, загрузкой или востановлением моба,
+     * кроме помещения в чанк.
+     * Почему кроме помещения в чанк: в разных ситуациях, моб может уже быть или не быть в чанке;
+     * чанк может быть известен или нет. Поэтому вызывающий должен позаботиться о чанке, см. {@link moveToChunk}.
+     */
+    onAddedOrRestored(): void {
+        const world = this.#world
+        world.mobs.list.set(this.id, this)
+        world.drivingManager.onMobAddedOrRestored(this)
+        this.noticedWithoutChunkTime = null // если был долго выгружен без чанка - не должен сразу удаляться
+    }
+
+    /**
+     * Перемещает моба из его текущего чана {@link inChunk} в чанк {@link chunk}.
+     * @param sendUpdate - если true, то посылает команды игрокам:
+     *  {@link ServerClient.CMD_MOB_ADD} - всем игрокам соединенным с новым чанком
+     *  {@link ServerClient.CMD_MOB_DELETE} - игрокам соединенным со старым, но не с новым чанком
+     */
+    moveToChunk(chunk: ServerChunk | null, sendUpdate: boolean = true): void {
+        const oldChunk = this.inChunk
+        if (chunk === oldChunk) {
+            return
+        }
+        if (oldChunk) {
+            oldChunk.mobs.delete(this.id)
+            if (sendUpdate) {
+                const exceptPlayerIds = chunk ? Array.from(chunk.connections.keys()) : null
+                const msg = {
+                    name: ServerClient.CMD_MOB_DELETE,
+                    data: [this.id]
+                }
+                oldChunk.world.sendSelected([msg], oldChunk.connections.keys(), exceptPlayerIds)
+            }
+        }
+        if (chunk) {
+            chunk.mobs.set(this.id, this)
+            if (sendUpdate) {
+                chunk.sendAll([{
+                    name: ServerClient.CMD_MOB_ADD,
+                    data: [this.exportMobModelConstructorProps()]
+                }])
+            }
+            this.noticedWithoutChunkTime = null
+        }
+        this.inChunk = chunk
     }
 
     setDamage(val : number, type_damage? : EnumDamage, actor?) {
@@ -278,6 +367,7 @@ export class Mob {
         this.already_killed = true
         this.indicators.live = 0
         this.extra_data.health = 0
+        this.driving?.removeMobId(this.id)
         this.#brain.sendState();
     }
 
@@ -285,7 +375,8 @@ export class Mob {
     deactivate() {
         this.is_active = false;
         this.dirtyFlags |= Mob.DIRTY_FLAG_FULL_UPDATE;
-        this.#world.mobs.inactiveByEntityId.set(this.entity_id, this);
+        this.#world.mobs.inactiveById.set(this.id, this);
+        this.moveToChunk(null);
         this.onUnload();
     }
 
@@ -298,8 +389,14 @@ export class Mob {
         return !player || player.status !== PLAYER_STATUS.ALIVE || !player.game_mode.getCurrent().can_take_damage;
     }
 
-    static fromRow(world: ServerWorld, row: MobRow): Mob {
-        return new Mob(world, {
+    /** Создает моба на основе данных из БД, если возможно (например, тип моба могли удалить в коде). */
+    static fromRow(world: ServerWorld, row: MobRow): Mob | null {
+        const config = world.mobs.configs[row.type]
+        if (config == null) {
+            console.log(`Unknown mob type ${row.type}`)
+            return null
+        }
+        return new Mob(world, config, {
             id:         row.id,
             rotate:     JSON.parse(row.rotate),
             pos_spawn:  JSON.parse(row.pos_spawn),
@@ -308,11 +405,19 @@ export class Mob {
             skin:       {model_name: row.type, texture_name: row.skin} as PlayerSkin,
             is_active:  row.is_active != 0,
             extra_data: JSON.parse(row.extra_data),
-            indicators: upgradeToNewIndicators(JSON.parse(row.indicators))
+            indicators: upgradeToNewIndicators(JSON.parse(row.indicators)),
+            driving_id: row.driving_id
         }, true);
     }
 
-    exportState(return_diff = false): MobState {
+    /** Обновляет параемтры моба на основе состояния {@link PrismarinePlayerControl} */
+    updateStateFromControl(): void {
+        const pc = this.#brain.pc
+        this.pos.copyFrom(pc.getPos())
+        this.rotate.z = pc.player_state.yaw
+    }
+
+    exportState(return_diff = false): MobState | null {
         const new_state = new MobState(this.id, this.pos, this.rotate, this.extra_data)
         if(return_diff && this.#prev_state) {
             if(new_state.equal(this.#prev_state)) {

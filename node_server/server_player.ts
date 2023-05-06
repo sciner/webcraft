@@ -2,7 +2,7 @@ import {Mth, ObjectHelpers, Vector} from "@client/helpers.js";
 import {Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps} from "@client/player.js";
 import { GameMode } from "@client/game_mode.js";
 import { ServerClient } from "@client/server_client.js";
-import { Raycaster } from "@client/Raycaster.js";
+import {Raycaster, RaycasterResult} from "@client/Raycaster.js";
 import { PlayerEvent } from "./player_event.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
@@ -23,6 +23,7 @@ import type { ServerWorld } from "./server_world.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
 import { SERVER_SEND_CMD_MAX_INTERVAL } from "./server_constant.js";
 import {ServerPlayerControlManager} from "./control/server_player_control_manager.js";
+import type {ServerDriving} from "./control/server_driving.js";
 import { ServerPlayerCombat } from "player/combat.js";
 
 export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
@@ -118,6 +119,10 @@ export class ServerPlayer extends Player {
     savingPromise?: Promise<void>
     lastSentPacketTime = Infinity   // performance.now()
     _world_edit_copy: any
+    // @ts-ignore
+    declare driving: ServerDriving | null = null
+    /** См. комментарий к аналогичному полю {@link Mob.drivingId} */
+    drivingId: int | null = null
     #timer_immunity: number
 
     // These flags show what must be saved to DB
@@ -131,6 +136,14 @@ export class ServerPlayer extends Player {
 
     constructor() {
         super();
+
+        /**
+         * Эти поля определены в {@link Player}, но не на сервере. На сервере к ним нельзя обращаться.
+         * Сотрем их чтобы легче выявлять баги.
+         */
+        this.rotate = null
+        this.pos = null
+
         this.indicators_changed     = true;
         this.chunk_addr             = new Vector(0, 0, 0);
         this._eye_pos               = new Vector(0, 0, 0);
@@ -158,7 +171,7 @@ export class ServerPlayer extends Player {
         this.mining_time_old        = 0; // время последнего разрушения блока
         // null, or an array of POJO postitions of 1 or 2 chests that this player is currently working with
         this.currentChests          = null
-        
+
         this.timer_reload = performance.now()
         this._aabb = new AABB()
 
@@ -175,11 +188,13 @@ export class ServerPlayer extends Player {
         this.oxygen_level = this.state.indicators.oxygen;
         this.inventory = new ServerPlayerInventory(this, init_info.inventory);
         this.status = init_info.status;
+        this.drivingId = init_info.driving_id ?? null
         this.world_data = init_info.world_data;
         this.prev_world_data = ObjectHelpers.deepClone(this.world_data);
         // GameMode
         this.game_mode = new GameMode(this, init_info.state.game_mode);
         this.game_mode.onSelect = async (mode) => {
+            this.cancelDriving()
             if (this.game_mode.isCreative()) {
                 this.damage.restoreAll();
             }
@@ -189,8 +204,19 @@ export class ServerPlayer extends Player {
             await this.world.db.changeGameMode(this, mode.id);
         };
         this.controlManager = new ServerPlayerControlManager(this as any)
+        // Обычно это не нужно, устанавливается перед симуляцией. Но это частное решение нужно если player_state
+        // используется до симуляции (например, при инициализации вождения)
+        this.controlManager.current.player_state.yaw = this.state.rotate.z
+
         this.effects = new ServerPlayerEffects(this);
         this.combat = new ServerPlayerCombat(this)
+    }
+
+    get userId(): int { return this.session.user_id }
+
+    /** Если игрок является участник вождения, прерывает вождение. Иначе - ничего не происходит. */
+    cancelDriving(): void {
+        this.driving?.removePlayerId(this.userId)
     }
 
     /** Closes the player's session after encountering an unrecoverable error. */
@@ -385,7 +411,7 @@ export class ServerPlayer extends Player {
 
     // changePosSpawn...
     changePosSpawn(params) {
-        params.pos = new Vector(params.pos).round(3);
+        params.pos = new Vector(params.pos).roundSelf(3)
         this.world.db.changePosSpawn(this, params);
         this.state.pos_spawn = new Vector(params.pos);
         const message = 'Установлена точка возрождения ' + params.pos.x + ", " + params.pos.y + ", " + params.pos.z;
@@ -458,11 +484,8 @@ export class ServerPlayer extends Player {
         return this._eye_pos.set(this.state.pos.x, this.state.pos.y + this.height * 0.9375 - subY, this.state.pos.z);
     }
 
-    /**
-     * @returns {null | RaycasterResult}
-     */
-    raycastFromHead() {
-        return this.raycaster.get(this.getEyePos(), this.forward, 100);
+    raycastFromHead(): RaycasterResult | null {
+        return this.raycaster.get(this.getEyePos(), this.forward, 100, null, false, false, this)
     }
 
     //
@@ -748,6 +771,7 @@ export class ServerPlayer extends Player {
                     name: ServerClient.CMD_DIE,
                     data: {}
                 });
+                this.driving?.removePlayerId(this.userId)
             }
             this.state.indicators.live = this.live_level;
             this.state.indicators.food = this.food_level;
@@ -816,6 +840,10 @@ export class ServerPlayer extends Player {
      * Teleport
      */
     teleport(params: TeleportParams): void {
+        this.cancelDriving()
+        if (this.state.sitting || this.state.sleep) {
+            this.standUp()
+        }
         const world = this.world;
         let new_pos = null;
         let teleported_player = this;
@@ -994,24 +1022,34 @@ export class ServerPlayer extends Player {
         return false;
     }
 
-    // использование предметов и оружия
-    onUseItem(mob_id, player_id) {
+    /**
+     * использование предметов и оружия или езда верхом
+     * См. также {@link Player.onInteractEntityClient}
+     */
+    onUseItemOnEntity(pickatEvent: IPickatEvent): void {
         const world = this.world
-        const item = world.block_manager.fromId(this.state.hands.right.id)
-        // использование предметов
-        if (mob_id) {
-            const mob = world.mobs.get(mob_id)
-            // если этот инструмент можно использовать на мобе, то уменьшаем прочнось
-            if (mob.setUseItem(this.state.hands.right.id, this)) {
-                if (item?.power) {
-                    this.inventory.decrement_instrument()
-                } else {
-                    this.inventory.decrement()
+        const itemId = this.state.hands.right.id
+        const item = itemId && world.block_manager.fromId(itemId)
+        if (pickatEvent.interactMobID != null) {
+            const mob = world.mobs.get(pickatEvent.interactMobID)
+            if (!mob) {
+                return
+            }
+            if (mob.config.hasUse || item?.tags?.includes('use_on_mob')) {
+                // если этот инструмент можно использовать на мобе, то уменьшаем прочнось
+                if (mob.setUseItem(itemId, this)) {
+                    if (item?.power) {
+                        this.inventory.decrement_instrument()
+                    } else {
+                        this.inventory.decrement()
+                    }
                 }
+            } else { // попробовать присоединиться к вождению
+                world.drivingManager.tryJoinDriving(this, mob, pickatEvent.id)
             }
         }
     }
-    
+
     writeToWorldTransaction(underConstruction: WorldTransactionUnderConstruction) {
         // always save the player state, as it was in the old code
         const row = DBWorld.toPlayerUpdateRow(this);
@@ -1049,6 +1087,21 @@ export class ServerPlayer extends Player {
         this.timer_anim = performance.now() + (time * 1000) / speed
     }
 
+    standUp(): void {
+        this.state.sitting = false
+        this.state.sleep = false
+        this.sendPackets([
+            {
+                name: ServerClient.CMD_PLAY_SOUND,
+                data: {tag: 'madcraft:block.cloth', action: 'hit'}
+            },
+            {
+                name: ServerClient.CMD_STANDUP_STRAIGHT,
+                data: null
+            }
+        ])
+    }
+
     /*
     * Проверка завершения анимации
     */
@@ -1057,5 +1110,5 @@ export class ServerPlayer extends Player {
             this.state.anim = false
         }
     }
-    
+
 }

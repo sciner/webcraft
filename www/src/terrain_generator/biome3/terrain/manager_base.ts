@@ -1,7 +1,6 @@
 import { Vector, VectorCollector } from "../../../helpers.js";
 import { Biomes } from "./../biomes.js";
 import { Biome3TerrainMap } from "./map.js";
-
 import type { BLOCK } from "../../../blocks.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type { Biome3LayerBase } from "../layers/base.js";

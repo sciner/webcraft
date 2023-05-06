@@ -1,7 +1,7 @@
 import { FSMBrain } from "../brain.js";
 import { Vector } from "@client/helpers.js";
 import { WorldAction } from "@client/world_action.js";
-import { BeeNest } from "@client/block_type/bee_nest.js";
+import { BeeNest } from "../../block_type/bee_nest.js";
 import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
 import { Effect } from "@client/block_type/effect.js";
 import type { EnumDamage } from "@client/enums/enum_damage.js";
@@ -25,17 +25,6 @@ export class Brain extends FSMBrain {
     constructor(mob) {
         super(mob);
         //
-        this.prevPos        = new Vector(mob.pos);
-        this.lerpPos        = new Vector(mob.pos);
-        this.pc             = this.createPlayerControl(this,{
-            baseSpeed: 0.25,
-            playerHeight: 0.6,
-            stepHeight: 1,
-            playerHalfWidth: 0.3,
-        });
-
-        this.setMaxHealth(10)
-
         this.pc.player_state.flying = true;// @todo костыль от сброса полета при касании земли
 
         this.ticks_pollination = 0;
@@ -101,7 +90,6 @@ export class Brain extends FSMBrain {
         }
 
         this.updateControl({
-            yaw: mob.rotate.z,
             jump: block.jump,
             forward: true,
             sneak: block.sneak
@@ -126,7 +114,6 @@ export class Brain extends FSMBrain {
     doPollen(delta) {
         const mob = this.mob;
         this.updateControl({
-            yaw: mob.rotate.z,
             jump: false,
             forward: false,
             sneak: true
@@ -159,7 +146,6 @@ export class Brain extends FSMBrain {
         }
 
         this.updateControl({
-            yaw: mob.rotate.z,
             jump: block.jump,
             forward: true,
             sneak: block.sneak
@@ -253,7 +239,6 @@ export class Brain extends FSMBrain {
         const block = this.getFlightBlocks(true);
         const forward = (distance > 1.5) ? true : false;
         this.updateControl({
-            yaw: mob.rotate.z,
             jump: block.jump,
             forward: forward,
             sneak: block.sneak

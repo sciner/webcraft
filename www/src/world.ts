@@ -15,9 +15,13 @@ import type { WorldAction } from "./world_action.js";
 import type { Player } from "./player.js";
 import type {ICmdPickatData} from "./pickat.js";
 import type {Physics} from "./prismarine-physics/index.js";
+import {ClientDrivingManager, DrivingManager} from "./control/driving_manager.js";
+import type {GameClass} from "./game.js";
+import type {GameSettings} from "./game.js";
 
 // World container
 export class World implements IWorld {
+    readonly game:          GameClass
     latency:                number = 0
     info?:                  TWorldInfo | null
     serverTimeShift:        number = 0
@@ -26,22 +30,24 @@ export class World implements IWorld {
     mobs:                   MobManager
     drop_items:             DropItemManager
     players:                PlayerManager
+    drivingManager:         ClientDrivingManager
     blockModifierListeners: Function[]
     block_manager:          any
     server?:                ServerClient
     hello?:                 IChatCommand
     history:                any = new WorldHistory(this)
     physics?:               Physics
-    dt_update_time:         any
-    dt_connected:           any
+    private dt_update_time: number // Серверное время, когда произошло подключение к серверу!
+    private dt_connected:   number
 
     static TIME_SYNC_PERIOD = 5000;
 
     private lastMeasuredQueudLag = 0
     private unansweredQueudLagTimes = new SimpleQueue<number>()
 
-    constructor(settings : TWorldSettings, block_manager : BLOCK) {
+    constructor(game: GameClass, settings : GameSettings, block_manager : typeof BLOCK) {
 
+        this.game = game
         this.settings = settings;
         this.block_manager = block_manager;
 
@@ -49,6 +55,7 @@ export class World implements IWorld {
         this.mobs                   = new MobManager(this);
         this.drop_items             = new DropItemManager(this)
         this.players                = new PlayerManager(this);
+        this.drivingManager         = new ClientDrivingManager(this);
         this.blockModifierListeners = [];
     }
 
@@ -116,7 +123,7 @@ export class World implements IWorld {
     // Create server client and connect to world
     async connectToServer(ws) {
         return new Promise(async (res) => {
-            this.server = new ServerClient(ws);
+            const server = this.server = new ServerClient(ws);
             // Add listeners for server commands
             this.server.AddCmdListener([ServerClient.CMD_HELLO], (cmd : IChatCommand) => {
                 this.hello = cmd;
@@ -155,6 +162,10 @@ export class World implements IWorld {
                     TrackerPlayer.stop(params.pos);
                 }
             });
+
+            server.AddCmdListener([ServerClient.CMD_DRIVING_ADD_OR_UPDATE, ServerClient.CMD_DRIVING_DELETE], (cmd: INetworkMessage) => {
+                this.drivingManager.onCmd(cmd)
+            })
 
             // Add or update building schemas
             this.server.AddCmdListener([ServerClient.CMD_BUILDING_SCHEMA_ADD], (cmd) => {
@@ -232,8 +243,9 @@ export class World implements IWorld {
         };
     }
 
-    getBlock(x : int | IVector, y? : int, z? : int): TBlock {
-        return this.chunkManager.getBlock(x, y, z);
+    // TODO добавить 2-й параметр - resultBlock: TBlock | null
+    getBlock(pos : IVector): TBlock {
+        return this.chunkManager.getBlock(pos);
     }
 
     // Change block extra_data
@@ -323,20 +335,22 @@ export class World implements IWorld {
         // Sitting
         if(actions.sitting) {
             player.state.sitting = actions.sitting;
-            player.setPosition(actions.sitting.pos, actions.id);
+            player.setPosition(actions.sitting.pos);
             player.setRotate(actions.sitting.rotate);
             player.controlManager.setVelocity(0, 0, 0)
-            player.controlManager.suppressLerpPos()
-            Qubatch.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000);
+                .syncWithActionId(actions.id, false)
+                .suppressLerpPos()
+            Qubatch.hotbar.strings.setText(1, Lang.press_lshift_to_dismount, 4000);
         }
         // Sleep
         if(actions.sleep) {
             player.state.sleep = actions.sleep
-            player.setPosition(actions.sleep.pos, actions.id)
+            player.setPosition(actions.sleep.pos)
             player.setRotate(actions.sleep.rotate)
             player.controlManager.setVelocity(0, 0, 0)
-            player.controlManager.suppressLerpPos()
-            Qubatch.hotbar.strings.setText(1, Lang.press_lshift_for_dismount, 4000)
+                .syncWithActionId(actions.id, false)
+                .suppressLerpPos()
+            Qubatch.hotbar.strings.setText(1, Lang.press_lshift_to_dismount, 4000)
         }
     }
 

@@ -2,7 +2,10 @@
 
 import type {Vector} from "../helpers/vector.js";
 import type {PlayerTickData} from "./player_tick_data.js";
-import {PHYSICS_POS_DECIMALS, PHYSICS_VELOCITY_DECIMALS} from "../constant.js";
+import {PHYSICS_POS_DECIMALS} from "../constant.js";
+import type {ClientPlayerControlManager} from "./player_control_manager.js";
+import {GAME_MODE, GameModeData} from "../game_mode.js";
+import type {Driving} from "./driving.js";
 
 export enum PLAYER_CONTROL_TYPE {
     PRISMARINE,
@@ -11,11 +14,11 @@ export enum PLAYER_CONTROL_TYPE {
 
 /** Fields used to update both controls and state by mobs. */
 export type MobControlParams = {
-    yaw         : float
+    yaw ?       : float
     forward     : boolean
     jump        : boolean
     sneak ?     : boolean
-    pitch ?     : boolean
+    pitch ?     : boolean // индикатор паники. Это не угол pitch!
 }
 
 /** A common interface for {@link PlayerControl.player_state} for all subclasses of {@link PlayerControl} */
@@ -27,6 +30,7 @@ export interface IPlayerControlState {
     flying      : boolean
     isInWater   : boolean
     isOnLadder? : boolean
+    sneak?      : boolean
 }
 
 /**
@@ -44,6 +48,10 @@ export interface IPlayerControls {
     sprint ?    : boolean
     sneak ?     : boolean
     pitch ?     : boolean   // only for mob
+}
+
+export function canSwitchFlying(gameMode: GameModeData, driving: Driving<any> | null): boolean {
+    return gameMode.id === GAME_MODE.CREATIVE && driving == null || driving?.config.canFly
 }
 
 /** It stores and processes player's input on the client. */
@@ -91,9 +99,20 @@ export class PlayerControls implements IPlayerControls {
  * A base class for all player controllers.
  * It implements physics, movement and reactions to the player's input.
  */
-export abstract class PlayerControl {
+export abstract class PlayerControl<TState extends IPlayerControlState = IPlayerControlState> {
     controls    : IPlayerControls       // Input
-    player_state: IPlayerControlState   // Input-output
+    player_state: TState   // Input-output
+    /**
+     * Input-output. Определено только в состоянии вождения для водителя.
+     * Если определено - это состояние общего объекта, который симулируется вместо {@link player_state}
+     * Устанавливается непосредственно преде симуляцией и корректно во время симуляции. В другое время может содержать мусор.
+     */
+    drivingCombinedState?: TState | null
+    /**
+     * Копия состояния (или подмножества его полей), которые могут меняются при симуляции
+     * и могут быть испорчены при неудачной симуляции
+     */
+    abstract backupState: Dict
 
     protected constructor() {
         this.controls = {
@@ -109,8 +128,12 @@ export abstract class PlayerControl {
 
     abstract get type(): PLAYER_CONTROL_TYPE
     abstract get requiresChunk(): boolean
-    abstract get sneak(): boolean
     abstract get playerHeight(): float
+
+    /** @return состояние, которое участвует в симуляции (самого объекта, или общего объекта вождения) */
+    get simulatedState(): TState {
+        return this.drivingCombinedState ?? this.player_state
+    }
 
     /**
      * The result is read-only. It's valid only until the next change.
@@ -126,13 +149,22 @@ export abstract class PlayerControl {
         this.player_state.pos.copyFrom(pos).roundSelf(PHYSICS_POS_DECIMALS)
     }
 
-    updateMob(params: MobControlParams): void {
+    /** @param mob - типа Mob (на сервере) */
+    updateControlsFromMob(params: MobControlParams, defaultYaw: float): void {
         const controls = this.controls
-        this.player_state.yaw = params.yaw
-        controls.forward = params.forward
-        controls.jump = params.jump
-        controls.sneak = params.sneak
-        controls.pitch = params.pitch
+        this.player_state.yaw = params.yaw ?? defaultYaw
+        if (params.forward != null) {
+            controls.forward = params.forward
+        }
+        if (params.jump != null) {
+            controls.jump = params.jump
+        }
+        if (params.sneak != null) {
+            controls.sneak = params.sneak
+        }
+        if (params.pitch != null) {
+            controls.pitch = params.pitch
+        }
     }
 
     /**
@@ -143,18 +175,19 @@ export abstract class PlayerControl {
         this.player_state.vel.zero()
     }
 
-    /**
-     * Backs up the part of the state that may become corrupted if the simulation throws an exception.
-     * Which data is backed up, is up to the implementation. It doesn't have to back up the position,
-     * because it's backed up externally.
-     */
-    abstract backupPartialState(): void
+    /** Вызывается в каждом кадре на клиенте */
+    updateFrame(controlManger: ClientPlayerControlManager): void {
+        // ничего; переопределено в подклассах
+    }
 
-    /** Restores the state corrupted by failed simulation to the values previously saved by {@link backupPartialState} */
-    abstract restorePartialState(pos: Vector): void
+    /**
+     * Copies a part of the state that may become corrupted if the simulation throws an exception.
+     * Which data is backed up, is up to the implementation.
+     */
+    abstract copyPartialStateFromTo(src: any, dst: any): void
 
     /** Performs player's movement during one physics tick, see {@link PHYSICS_INTERVAL_MS} */
-    abstract simulatePhysicsTick(): void
+    abstract simulatePhysicsTick(): boolean
 
     /**
      * Server-only.

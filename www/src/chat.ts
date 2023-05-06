@@ -265,6 +265,9 @@ export class Chat extends TextBox {
                     no_send = true;
                     break
                 }
+                case '/debugplayer':
+                    player.updateDebugValues(temp)
+                    break
             }
             if (!no_send) {
                 this.messages.send(text);

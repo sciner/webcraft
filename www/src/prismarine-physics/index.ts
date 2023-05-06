@@ -2,13 +2,15 @@ import {Mth, Vector} from "../helpers.js";
 import { Effect } from "../block_type/effect.js";
 import { AABB } from "./lib/aabb.js";
 import {Resources} from "../resources.js";
-import {DEFAULT_SLIPPERINESS, FakeBlock, TPrismarineOptions} from "./using.js";
-import { PLAYER_HEIGHT, PLAYER_ZOOM } from "../constant.js";
+import type {FakeBlock, TPrismarineOptions} from "./using.js";
+import {FakeWorld, addDefaultPhysicsOptions} from "./using.js";
+import {PHYSICS_ROTATION_DECIMALS, PLAYER_ZOOM} from "../constant.js";
 import { TBlock } from "../typed_blocks3.js";
 import type {IPlayerControls, IPlayerControlState} from "../control/player_control.js";
 import type {Effects} from "../player.js";
-import type {FakeWorld} from "./using.js";
 import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID} from "../fluid/FluidConst.js";
+import type {World} from "../world.js";
+import type {TDrivingConfig} from "../control/driving.js";
 
 const BLOCK_NOT_EXISTS = -2;
 const _ladder_check_tblock = new TBlock()
@@ -31,29 +33,29 @@ type TLiquidInBB = {
 
 export class Physics {
 
-    private readonly world  : FakeWorld
+    private readonly world              : FakeWorld
+    private readonly block_manager      : typeof BLOCK
 
     // ================== options from old Physics function ===================
 
     private readonly supportFeature_velocityBlocksOnTop: boolean
     private readonly supportFeature_climbUsingJump: boolean
-    private readonly blocksByName: Dict<TBlock | TBlock[] | null>
     private readonly blockSlipperiness  : (float | undefined)[] = []
     // Block ids
     private readonly slimeBlockId       : int | null
     private readonly soulsandId         : int
     private readonly honeyblockId       : int // 1.15+
     private readonly cobwebLikePassable : (float | undefined)[] = [] // for cobweb-like it's passable value
-    private readonly lavaId             : int
     private readonly ladderId           : int
     private readonly vineId             : int
-    private readonly waterLike          : boolean[] = []
     private readonly bubbleColumnId     : int
+    private readonly iceIds             : int[]
 
     // =================== options from old physics object ====================
-    
+
     private readonly scale              = PLAYER_ZOOM
     private readonly gravity            = 0.08 * this.scale // blocks/tick^2 https://minecraft.gamepedia.com/Entity#Motion_of_entities
+    private readonly jumpSpeed         = 0.42 // вертикальная скорость прыжка, без учета scale
     // Flying
     private readonly flyinGravity       = 0.06
     private readonly flyingYSpeed       = Math.fround(0.42 / 2) * this.scale
@@ -77,11 +79,6 @@ export class Physics {
     private readonly swimDownDrag = {
         down: 0.05,
         maxDown: -0.5
-    }
-    private readonly floatDrag = {  // плавучесть, например, лодки
-        up: 0.05,
-        maxUp: 0.5,
-        friction: 0.4
     }
     private readonly negligeableVelocity = 0.003 // actually 0.005 for 1.8, but seems fine
     private readonly soulsandSpeed      = 0.4
@@ -118,6 +115,25 @@ export class Physics {
     private readonly waterGravity       : number
     private readonly lavaGravity        : number
 
+    // ========================= поворот при вождении =========================
+    private readonly maxAngularSpeed    = 0.15  // радиан/тик
+    private readonly angularAcceleration= 0.015 // радиан/тик^2
+    private readonly angularInertia     = 0.85  // аналогично другим видам инерции - на нее умножается скорость в каждом тике
+    private readonly minAngularSpeed    = 0.003 // радиан/тик. Если скорость меньшей этого значения, наступает полная остановка.
+
+    // ==================== специальная значения для лодки ====================
+    private readonly floatDrag = {  // плавучесть, например, лодки
+        up: 0.05,
+        maxUp: 0.5,
+        friction: 0.4
+    }
+    // Особые значения для лодки в воде. Не подогнано точно как в майне. См. https://minecraft.fandom.com/wiki/Boat#Speed
+    private readonly boatLiquidAcceleration = 0.08
+    private readonly boatLiquidInertia = 0.9
+    // Особые значения для лодки на льду. Не подогнано точно как в майне.
+    private readonly boatOtherIceAcceleration = 0.07
+    private readonly boatBlueIceAcceleration = 0.12
+
     // ========================== temporary objects ===========================
 
     private tmpPlayerBB     = new AABB()
@@ -130,16 +146,17 @@ export class Physics {
     private tmpFlowVec      = new Vector()
     private tmpAccelerationVec = new Vector()
 
-    constructor(mcData, fake_world: FakeWorld, options) {
-        this.world = fake_world
+    constructor(world: World) {
+        const mcData        = FakeWorld.getMCData()
+        this.world          = new FakeWorld(world)
+        this.block_manager  = world.block_manager
+        const bm            = this.block_manager
 
         // ================== options from old Physics function ===================
 
         const supportFeature = makeSupportFeature(mcData, Resources.physics.features)
         this.supportFeature_velocityBlocksOnTop = supportFeature('velocityBlocksOnTop')
         this.supportFeature_climbUsingJump =  supportFeature('climbUsingJump')
-
-        const blocksByName = this.blocksByName = mcData.blocksByName
 
         // Block Slipperiness
         // https://www.mcpk.wiki/w/index.php?title=Slipperiness
@@ -149,32 +166,25 @@ export class Physics {
         if (this.slimeBlockId) {
             blockSlipperiness[this.slimeBlockId] = 0.8
         }
-        blockSlipperiness[blocksByName.ice.id] = 0.98
-        blockSlipperiness[blocksByName.packed_ice.id] = 0.98
-        if (blocksByName.frosted_ice) { // 1.9+
-            blockSlipperiness[blocksByName.frosted_ice.id] = 0.98
+        blockSlipperiness[bm.ICE.id] = 0.98
+        blockSlipperiness[bm.PACKED_ICE.id] = 0.98
+        if (bm.FROSTED_ICE) { // 1.9+
+            blockSlipperiness[bm.FROSTED_ICE.id] = 0.98
         }
-        if (blocksByName.blue_ice) { // 1.13+
-            blockSlipperiness[blocksByName.blue_ice.id] = 0.989
+        if (bm.BLUE_ICE) { // 1.13+
+            blockSlipperiness[bm.BLUE_ICE.id] = 0.989
         }
 
         // Block ids
-        this.soulsandId     = blocksByName.soul_sand.id
-        this.honeyblockId   = blocksByName.honey_block?.id ?? BLOCK_NOT_EXISTS // 1.15+
-        for (const block of blocksByName.cobweb) {
+        this.soulsandId     = bm.SOUL_SAND.id
+        this.honeyblockId   = bm.HONEY_BLOCK?.id ?? BLOCK_NOT_EXISTS // 1.15+
+        for (const block of [bm.COBWEB, bm.SWEET_BERRY_BUSH]) {
             this.cobwebLikePassable[block.id] = block.passable
         }
-        this.lavaId         = blocksByName.lava
-        this.ladderId       = blocksByName.ladder.id
-        this.vineId         = blocksByName.vine.id
-        this.bubbleColumnId = blocksByName.bubble_column?.id ?? BLOCK_NOT_EXISTS // 1.13+
-
-        const waterLikeNames = ['seagrass', 'tall_seagrass', 'kelp', 'bubble_column']
-        for(const name of waterLikeNames) {
-            if (blocksByName[name]) {
-                this.waterLike[blocksByName[name].id] = true
-            }
-        }
+        this.ladderId       = bm.LADDER.id
+        this.vineId         = bm.VINE.id
+        this.bubbleColumnId = bm.BUBBLE_COLUMN?.id ?? BLOCK_NOT_EXISTS // 1.13+
+        this.iceIds         = [bm.ICE, ...bm.bySuffix['_ICE']].map(mat => mat.id)
 
         // =================== options from old physics object ====================
 
@@ -190,13 +200,13 @@ export class Physics {
         }
     }
 
-    private getPlayerBB(entity: PlayerState, pos: IVector, res: AABB): AABB {
+    private getPlayerBB(entity: PrismarinePlayerState, pos: IVector, res: AABB): AABB {
         const options = entity.options
         const w = options.playerHalfWidth * this.scale
         return res.set(-w, 0, -w, w, options.playerHeight, w).translate(pos.x, pos.y, pos.z)
     }
 
-    private setPositionToBB(entity: PlayerState, bb: AABB): void {
+    private setPositionToBB(entity: PrismarinePlayerState, bb: AABB): void {
         const pos = entity.pos
         const halfWidth = entity.options.playerHalfWidth * this.scale
         pos.x = bb.x_min + halfWidth
@@ -226,7 +236,7 @@ export class Physics {
         return surroundingBBs
     }
 
-    private moveEntity(entity: PlayerState, dx: float, dy: float, dz: float): void {
+    private moveEntity(entity: PrismarinePlayerState, dx: float, dy: float, dz: float): void {
         const world = this.world
         const options = entity.options
         const vel = entity.vel
@@ -440,7 +450,7 @@ export class Physics {
             }
         }
         if (this.supportFeature_velocityBlocksOnTop) {
-            const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
+            const blockBelow = world.getBlock(entity.pos.floored().offsetSelf(0, -0.5, 0))
             if (blockBelow && blockBelow.id > 0) {
                 if (blockBelow.id === this.soulsandId) {
                     vel.x *= this.soulsandSpeed
@@ -453,14 +463,19 @@ export class Physics {
         }
     }
 
-    private applyHeading(entity: PlayerState, strafe: float, forward: float, multiplier: float): void {
-        let speed = Math.sqrt(strafe * strafe + forward * forward)
-        if (speed < 0.01) return
+    /**
+     * @param strafe - см. forward
+     * @param forward Поведение: при длине вектора (strafe, forward) <= 1, ускорение пропорционально и длине
+     *   этого вектора, и {@param multiplier}. При дальнейшкм росте длины этого вектора, ускорение уже не растет.
+     */
+    private applyHeading(entity: PrismarinePlayerState, strafe: float, forward: float, multiplier: float): void {
+        const length = Math.sqrt(strafe * strafe + forward * forward)
+        if (length < 0.01) return
 
-        speed = multiplier / Math.max(speed, 1)
+        const norm = multiplier / Math.max(length, 1)
 
-        strafe *= speed * this.scale
-        forward *= speed * this.scale
+        strafe *= norm * this.scale
+        forward *= norm * this.scale
 
         const yaw = Math.PI - entity.yaw
         const sin = Math.sin(yaw)
@@ -489,12 +504,12 @@ export class Physics {
         return resp
     }
 
-    private doesNotCollide(entity: PlayerState, pos: Vector): boolean {
+    private doesNotCollide(entity: PrismarinePlayerState, pos: Vector): boolean {
         const pBB = this.getPlayerBB(entity, pos, this.tmpPlayerBB)
         return !this.getSurroundingBBs(pBB).some(x => pBB.intersect(x)) && this.getLiquidInBB(pBB) == null
     }
 
-    private moveEntityWithHeading(entity: PlayerState, strafe: number, forward: number): void {
+    private moveEntityWithHeading(entity: PrismarinePlayerState, strafe: number, forward: number): void {
         const options = entity.options
         const vel = entity.vel
         const pos = entity.pos
@@ -516,7 +531,13 @@ export class Physics {
                 const blockUnder = this.world.getBlock(pos.offset(0, -1, 0))
                 if (blockUnder) {
                     inertia = (this.blockSlipperiness[blockUnder.id] || options.defaultSlipperiness) * 0.91
-                    acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
+                    if (options.useBoatSpeed && this.iceIds.includes(blockUnder.id)) {
+                        acceleration = blockUnder.id === this.block_manager.BLUE_ICE?.id
+                            ? this.boatBlueIceAcceleration
+                            : this.boatOtherIceAcceleration
+                    } else {
+                        acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
+                    }
                 }
             }
 
@@ -572,7 +593,10 @@ export class Physics {
             const verticalInertia = entity.isInWater ? this.waterInertia : this.lavaInertia
             let horizontalInertia = verticalInertia
 
-            if (entity.isInWater) {
+            if (options.useBoatSpeed) {
+                horizontalInertia = this.boatLiquidInertia
+                acceleration = this.boatLiquidAcceleration
+            } else if (entity.isInWater) {
                 let strider = Math.min(entity.depthStrider, 3)
                 if (!entity.onGround) {
                     strider *= 0.5
@@ -592,25 +616,20 @@ export class Physics {
 
             const floatSubmergedHeight = options.floatSubmergedHeight
             if (floatSubmergedHeight != null) {
+                // Специальный режим плавучести.
+                // Это не физически правильное моделирование плавучести. Цель - вернуть объект на уровень воды.
                 const floatDrag = this.floatDrag
-                // It's not physically accurate buoyancy simulation, but it returns the object to its floatSubmergedHeight
-                const aboveEquilibrium = floatSubmergedHeight - entity.submergedHeight
+                const aboveEquilibrium = floatSubmergedHeight - entity.submergedHeight // насколько выше нужного уровня
                 if (aboveEquilibrium > 0) {
                     // it's too high, it should fall down
-                    if (vel.y > -aboveEquilibrium) {
-                        // increase the fall speed, but no more than necessary to reach equilibrium
-                        const gravityPercent = entity.submergedHeight / floatSubmergedHeight
-                        vel.y = Math.max(vel.y - liquidGravity * gravityPercent, -aboveEquilibrium)
-                    }
+                    const gravityPercent = entity.submergedHeight / floatSubmergedHeight
+                    vel.y = Math.max(vel.y - liquidGravity * gravityPercent, -aboveEquilibrium)
                 } else {
                     // it's too low, it should float up
-                    if (vel.y < -aboveEquilibrium) {
-                        // increase the ascension speed, but no more than necessary to reach equilibrium
-                        vel.y = Math.min(floatDrag.maxUp, vel.y + floatDrag.up, -aboveEquilibrium)
-                    }
+                    vel.y = Math.min(floatDrag.maxUp, vel.y + floatDrag.up, -aboveEquilibrium)
                 }
-                // fade oscillations if it's close to equilibrium
-                const friction = Mth.lerp(Math.abs(aboveEquilibrium), floatDrag.friction, 0)
+                // уменьшить скорость (усилить затузание колебаний) если возле поверзности воды
+                const friction = Mth.lerp(entity.submergedHeight, floatDrag.friction, 0)
                 vel.y *= (1 - friction)
             } else {
                 vel.y -= liquidGravity
@@ -793,7 +812,8 @@ export class Physics {
         }
     }
 
-    simulatePlayer(entity: PlayerState): void {
+    simulatePlayer(entity: PrismarinePlayerState): void {
+        const options = entity.options
         const vel = entity.vel
         const pos = entity.pos
         const control = entity.control
@@ -829,27 +849,30 @@ export class Physics {
         if (control.jump || entity.jumpQueued) {
             if (entity.jumpTicks > 0) entity.jumpTicks--
             if (entity.isInWater || entity.isInLava) {
-                if (!control.sneak) {
+                if (!control.sneak && options.floatSubmergedHeight == null) {
                     // @fixed Без этого фикса игрок не может выбраться из воды на берег
                     vel.y += 0.09 // 0.04
                 }
             } else if (entity.onGround && entity.jumpTicks === 0) {
-                vel.y = Math.fround(0.42 * this.scale)
-                if(this.honeyblockId != BLOCK_NOT_EXISTS) {
-                    const blockBelow = this.world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
-                    vel.y *= ((blockBelow && blockBelow.id === this.honeyblockId) ? this.honeyblockJumpSpeed : 1);
+                const jumpSpeed = options.jumpSpeed ?? this.jumpSpeed
+                if (jumpSpeed) {
+                    vel.y = Math.fround(jumpSpeed * this.scale)
+                    if(this.honeyblockId != BLOCK_NOT_EXISTS) {
+                        const blockBelow = this.world.getBlock(entity.pos.floored().offsetSelf(0, -0.5, 0))
+                        vel.y *= ((blockBelow && blockBelow.id === this.honeyblockId) ? this.honeyblockJumpSpeed : 1);
+                    }
+                    const jumpBoost = getEffectLevel(Effect.JUMP_BOOST, entity.options.effects);
+                    if (jumpBoost > 0) {
+                        vel.y += 0.1 * jumpBoost
+                    }
+                    if (control.sprint) {
+                        // @fixed Без этого фикса игрок притормаживает при беге с прыжками
+                        const yaw = Math.PI - entity.yaw;
+                        vel.x += Math.sin(yaw) * (0.2 * this.scale)
+                        vel.z -= Math.cos(yaw) * (0.2 * this.scale)
+                    }
+                    entity.jumpTicks = this.autojumpCooldown
                 }
-                const jumpBoost = getEffectLevel(Effect.JUMP_BOOST, entity.options.effects);
-                if (jumpBoost > 0) {
-                    vel.y += 0.1 * jumpBoost
-                }
-                if (control.sprint) {
-                    // @fixed Без этого фикса игрок притормаживает при беге с прыжками
-                    const yaw = Math.PI - entity.yaw;
-                    vel.x += Math.sin(yaw) * (0.2 * this.scale)
-                    vel.z -= Math.cos(yaw) * (0.2 * this.scale)
-                }
-                entity.jumpTicks = this.autojumpCooldown
             } else if(entity.flying) {
                 if(!control.sneak) {
                     vel.y = this.flyingYSpeed;
@@ -864,8 +887,29 @@ export class Physics {
         let strafe = (control.left as any - (control.right as any)) * 0.98
         let forward = (control.back as any - (control.forward as any)) * 0.98
 
-        strafe *= entity.options.baseSpeed;
-        forward *= entity.options.baseSpeed;
+        // Если поворот стрелками, то вместо движения в бок выполнять поворот
+        const driving = entity.driving
+        if (driving?.useAngularSpeed) {
+            const acceleration  = driving.angularAcceleration ?? this.angularAcceleration
+            const inertia       = driving.angularInertia ?? this.angularInertia
+            entity.angularVelocity = Mth.clampModule(
+                (entity.angularVelocity ?? 0) * inertia - strafe * acceleration,
+                driving.maxAngularSpeed ?? this.maxAngularSpeed
+            )
+            entity.angularVelocity = Mth.round(entity.angularVelocity, PHYSICS_ROTATION_DECIMALS)
+            // полная остановка если скорость слишком маленькая
+            if (!strafe && Math.abs(entity.angularVelocity) < this.minAngularSpeed) {
+                entity.angularVelocity = 0
+            }
+            entity.yaw = Mth.radians_to_0_2PI_range(entity.yaw + entity.angularVelocity)
+            entity.yaw = Mth.round(entity.yaw, PHYSICS_ROTATION_DECIMALS)
+            strafe = 0
+        } else {
+            entity.angularVelocity = null
+        }
+
+        strafe *= options.baseSpeed
+        forward *= options.baseSpeed
 
         if (control.sneak) {
             if(entity.flying) {
@@ -874,7 +918,7 @@ export class Physics {
                 }
             } else if (entity.isInWater || entity.isInLava) {
                 const sdd = this.swimDownDrag;
-                if (!control.jump && vel.y > sdd.maxDown) {
+                if (!control.jump && vel.y > sdd.maxDown && options.floatSubmergedHeight == null) {
                     vel.y = Math.max(vel.y - sdd.down, sdd.maxDown);
                 }
             } else {
@@ -884,6 +928,8 @@ export class Physics {
         }
 
         this.moveEntityWithHeading(entity, strafe, forward)
+
+        entity.sneak = control.sneak && entity.onGround
     }
 }
 
@@ -940,14 +986,20 @@ function getEffectLevel(val: int, effects?: TPrismarineEffects): int {
     return 0;
 }
 
-export class PlayerState implements IPlayerControlState {
+export type TPrismarinePlayerStatePOJO = Dict
+
+export class PrismarinePlayerState implements IPlayerControlState {
     options     : TPrismarineOptions
+    driving ?   : TDrivingConfig    // Если задано - то это общий физический объект, контролируемый водителем
     pos         : Vector
     vel         : Vector = new Vector(0, 0, 0)
+    angularVelocity : float | null = null // Угловая скорость. Используется при езде если поворот стрелками.
+    yaw         = 0
     flying      = false
     onGround    = false
     isInWater   = false
     isInLava    = false
+    sneak       = false
     /** If isInWater or isInLava, it shows the height of the part of the bounding box that is below the surface */
     submergedHeight?: float
     isInWeb     = false
@@ -956,14 +1008,13 @@ export class PlayerState implements IPlayerControlState {
     isCollidedVertically    = false
     jumpTicks   = 0
     jumpQueued  = false
-    yaw         = 0
     control     : IPlayerControls
     dolphinsGrace: number;
     slowFalling: number;
     depthStrider: float;
     passable?: float
 
-    constructor(pos: Vector, options: TPrismarineOptions, control: IPlayerControls) {
+    constructor(pos: Vector, options: TPrismarineOptions, control: IPlayerControls, driving?: TDrivingConfig) {
 
         // Input / Outputs
         this.pos                    = pos.clone()
@@ -972,12 +1023,10 @@ export class PlayerState implements IPlayerControlState {
         this.control                = control
 
         this.options = options
-        // Set default options
-        options.baseSpeed           ??= 1 // Базовая скорость (1 для игрока, для мобов меньше или наоборот больше)
-        options.stepHeight          ??= 0.65
-        options.playerHalfWidth     ??= 0.3
-        options.playerHeight        ??= PLAYER_HEIGHT
-        options.defaultSlipperiness ??= DEFAULT_SLIPPERINESS
+        addDefaultPhysicsOptions(options)
+
+        this.driving = driving
+        this.angularVelocity = driving?.useAngularSpeed ? 0 : null
 
         this.dolphinsGrace          = 0
         this.slowFalling            = 0
@@ -994,19 +1043,44 @@ export class PlayerState implements IPlayerControlState {
         this.depthStrider = 0;
     }
 
-    apply(bot) {
-        const bot_entity                    = bot.entity
-        bot_entity.position                 = this.pos
-        bot_entity.velocity                 = this.vel
-        bot_entity.onGround                 = this.onGround
-        bot_entity.isInWater                = this.isInWater
-        bot_entity.isInLava                 = this.isInLava
-        bot_entity.isInWeb                  = this.isInWeb
-        bot_entity.isOnLadder               = this.isOnLadder
-        bot_entity.isCollidedHorizontally   = this.isCollidedHorizontally
-        bot_entity.isCollidedVertically     = this.isCollidedVertically
-        bot.jumpTicks                       = this.jumpTicks
-        bot.jumpQueued                      = this.jumpQueued
+    /**
+     * Копирует некоторые динамически меняющиеся поля из другого состояния.
+     * Не копирует: {@link yaw}, {@link pos} - их нужно обработать отдельно (потому что
+     * в режиме вождения может требовться не просто копирование).
+     */
+    copyAdditionalDynamicFieldsFrom(other: PrismarinePlayerState): void {
+        this.vel.copyFrom(other.vel)
+        this.flying     = other.flying
+        this.onGround   = other.onGround
+        this.isInWater  = other.isInWater
+        this.isInLava   = other.isInLava
     }
 
+    copyControlsFrom(other: PrismarinePlayerState): void {
+        Object.assign(this.control, other.control)
+    }
+
+    // TODO уточнить семантику - что именно экспортируется
+    exportPOJO(): TPrismarinePlayerStatePOJO {
+        const data: TPrismarinePlayerStatePOJO = {
+            pos: this.pos.clone(),
+            vel: this.vel.clone(),
+            yaw: this.yaw,
+            flying: this.flying,
+            sneak: this.sneak
+        }
+        if (this.angularVelocity != null) {
+            data.angularVelocity = this.angularVelocity
+        }
+        return data
+    }
+
+    importPOJO(data: TPrismarinePlayerStatePOJO): void {
+        this.pos.copyFrom(data.pos)
+        this.vel.copyFrom(data.vel)
+        this.yaw = data.yaw
+        this.flying = data.flying ?? false
+        this.sneak = data.sneak ?? false
+        this.angularVelocity = data.angularVelocity ?? null
+    }
 }

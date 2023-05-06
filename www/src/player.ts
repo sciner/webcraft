@@ -3,7 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
-import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN } from "./constant.js";
+import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE} from "./constant.js";
 import {ClientPlayerControlManager} from "./control/player_control_manager.js";
 import {PlayerControl, PlayerControls} from "./control/player_control.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -18,7 +18,8 @@ import { PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js"
 import { PlayerArm } from "./player_arm.js";
 import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
-import type { PLAYER_SKIN_TYPES } from "./constant.js"
+import type {ClientDriving} from "./control/driving.js";
+import type {PlayerModel} from "./player_model.js";
 
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
@@ -93,7 +94,6 @@ export type TAnimState = {
 type PlayerStateDynamicPart = {
     pos         : Vector
     rotate      : Vector
-    lies ?      : boolean
     sitting ?   : false | TSittingState
     sneak ?     : boolean
     sleep ?     : false | TSleepState
@@ -250,7 +250,10 @@ export class Player implements IPlayer {
     underwater_track_id:        any;
     _eating_sound_tick:         number;
     _eating_sound:              any;
+    driving?:                   ClientDriving | null
     timer_anim:                number = 0
+    /** значения, которые можно установить командой /debugplayer (и на клиенте, и на сервере) и использовать для любых целей */
+    debugValues                 = new Map<string, string>()
     #timer_attack:              number = 0
 
     constructor(options : any = {}, render? : Renderer) {
@@ -373,6 +376,7 @@ export class Player implements IPlayer {
             this.controlManager.onServerAccepted(cmd.data)
         })
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Qubatch.App.onError(cmd.data.message);});
+        server.AddCmdListener([ServerClient.CMD_LOG_CONSOLE], (cmd: INetworkMessage<string>) => console.log('SERVER: ', cmd.data))
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {
             Qubatch.sounds.play(cmd.data.tag, cmd.data.action, cmd.data.pos,
@@ -408,7 +412,7 @@ export class Player implements IPlayer {
         }, (e : IPickatEvent) => {
             if (e.button_id == MOUSE.BUTTON_LEFT) {
                 const instrument = this.getCurrentInstrument()
-                const speed = instrument?.speed ? instrument.speed : 1
+                const speed = instrument?.material?.speed ?? 1
                 const time = (e.start_time - this.#timer_attack) * speed
                 if (time > ATTACK_COOLDOWN) {
                     this.setAnimation('attack', speed, ATTACK_COOLDOWN / 1000)
@@ -429,7 +433,7 @@ export class Player implements IPlayer {
                 }
             } else {
                 const instrument = this.getCurrentInstrument()
-                const speed = instrument?.speed ? instrument.speed : 1
+                const speed = instrument?.material?.speed ?? 1
                 const time = e.start_time - this.timer_attack
                 if (time < 500) {
                     return
@@ -439,8 +443,9 @@ export class Player implements IPlayer {
                     this.inAttackProcess = ATTACK_PROCESS_ONGOING
                     this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD / speed
                 }
-                this.timer_attack = e.start_time  
-                if (e.interactMobID || e.interactPlayerID) {
+                this.timer_attack = e.start_time
+                const validAction = this.onInteractEntityClient(e, instrument)
+                if (validAction) {
                     this.world.server.Send({
                         name: ServerClient.CMD_PICKAT_ACTION,
                         data: e
@@ -481,6 +486,31 @@ export class Player implements IPlayer {
         return true;
     }
 
+    /** См. также ServerPlayer.onUseItemOnEntity */
+    private onInteractEntityClient(e: IPickatEvent, instrumentHand: Instrument_Hand): boolean {
+        if (e.interactPlayerID != null) {
+            return true
+        }
+        if (e.interactMobID != null) {
+            const mob = this.world.mobs.get(e.interactMobID)
+            if (!mob) {
+                return false
+            }
+            if (mob.hasUse || instrumentHand.material?.tags.includes('use_on_mob')) {
+                // Попробовать действие или использование предмета на мобе (сервер знает что)
+                return true
+            }
+            // проверяем e.number чтобы не садиться в моба сразу после его спауна при удержании мыши
+            if (e.number == 0 && mob.supportsDriving && !mob.driving?.isFull()) {
+                // Попробовать присоединиться к езде
+                this.controlManager.triedDrving = true
+                this.controlManager.syncWithActionId(e.id, true)
+                return true
+            }
+        }
+        return false
+    }
+
     getOverChunk() {
         var overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
 
@@ -495,13 +525,17 @@ export class Player implements IPlayer {
         return overChunk;
     }
 
+    hasBobView(): boolean {
+        return this.driving?.state.mobType !== MOB_TYPE.BOAT
+    }
+
     get isAlive() : boolean {
         return this.indicators.live > 0;
     }
 
     // Return player is sneak
-    get isSneak() {
-        return this.controlManager.current.sneak
+    get isSneak(): boolean {
+        return this.controlManager.current.player_state.sneak ?? false
     }
 
     // Return player height
@@ -677,6 +711,15 @@ export class Player implements IPlayer {
         }
     }
 
+    leaveDriving(): void {
+        if (this.driving) {
+            this.world.server.Send({
+                name: ServerClient.CMD_STANDUP_STRAIGHT,
+                data: this.driving.standUpGetId()
+            })
+        }
+    }
+
     get forward() {
         return this.#forward.set(
             Math.cos(this.rotate.x) * Math.sin(this.rotate.z),
@@ -741,18 +784,10 @@ export class Player implements IPlayer {
             }
             this.mineTime = 0;
             const e_orig: ICmdPickatData = ObjectHelpers.deepClone(e);
-            const action_player_info: ActionPlayerInfo = {
-                radius: PLAYER_DIAMETER, // .radius is used as a diameter
-                height: this.height,
-                pos: this.lerpPos,
-                rotate: this.rotateDegree.clone(),
-                session: {
-                    user_id: this.session.user_id
-                }
-            };
+            const action_player_info = this.getActionPlayerInfo()
             const [actions, pos] = await doBlockAction(e, this.world, action_player_info, this.currentInventoryItem);
             if (actions) {
-                e_orig.snapshotId = this.world.history.makeSnapshot(pos);
+                e_orig.snapshotId = pos && this.world.history.makeSnapshot(pos);
                 if(e.createBlock && actions.blocks.list.length > 0) {
                     this.startArmSwingProgress();
                 }
@@ -767,6 +802,18 @@ export class Player implements IPlayer {
             }
         }
         return true;
+    }
+
+    private getActionPlayerInfo(): ActionPlayerInfo {
+        return {
+            radius: PLAYER_DIAMETER, // .radius is used as a diameter
+            height: this.height,
+            pos: this.lerpPos,
+            rotate: this.rotateDegree.clone(),
+            session: {
+                user_id: this.session.user_id
+            }
+        }
     }
 
     // Ограничение частоты выполнения данного действия
@@ -784,7 +831,7 @@ export class Player implements IPlayer {
     }
 
     // getCurrentInstrument
-    getCurrentInstrument() {
+    getCurrentInstrument(): Instrument_Hand {
         const currentInventoryItem = this.currentInventoryItem;
         const instrument = new Instrument_Hand(this.inventory, currentInventoryItem);
         /* Old incorrect code that did nothing:
@@ -832,11 +879,11 @@ export class Player implements IPlayer {
     }
 
     //
-    setPosition(vec: IVector, worldActionId?: string | int | null): void {
+    setPosition(vec: IVector): void {
         //
         const pc = this.getPlayerControl();
         pc.player_state.onGround = false;
-        this.controlManager.setPos(vec, worldActionId);
+        this.controlManager.setPos(vec)
         //
         if (!Qubatch.is_server) {
             this.stopAllActivity();
@@ -1087,10 +1134,7 @@ export class Player implements IPlayer {
         }
     }
 
-    /**
-     * @returns { import("./player_model.js").PlayerModel }
-     */
-    getModel() {
+    getModel(): PlayerModel | null {
         return this.world.players.get(this.session.user_id);
     }
 
@@ -1358,10 +1402,10 @@ export class Player implements IPlayer {
     updateTimerAnim() {
         if (this.moving) {
             if (this.state.anim) {
-                this.world.server.Send({name: ServerClient.CMD_PLAY_ANIM, 
+                this.world.server.Send({name: ServerClient.CMD_PLAY_ANIM,
                     data: {
                         cancel: true
-                    }   
+                    }
                 })
             }
             this.timer_anim = 0
@@ -1370,6 +1414,26 @@ export class Player implements IPlayer {
         }
         if (this.timer_anim <= performance.now()) {
             this.state.anim = false
+        }
+    }
+
+    /**
+     * Добавлет, меняет значения или удаляет {@link debugValues} согласно аргументам команды.
+     * См. также обработчик этой команды в server_chat.ts
+     */
+    updateDebugValues(args: any[]): void {
+        for(let arg of args) {
+            if (arg.startsWith('-')) {
+                this.debugValues.delete(arg.substring(1))
+            } else {
+                let value = 'true'
+                const ind = arg.indexOf('=')
+                if (ind >= 0) {
+                    value = arg.substring(ind + 1)
+                    arg = arg.substring(0, ind)
+                }
+                this.debugValues.set(arg, value)
+            }
         }
     }
 

@@ -1,5 +1,5 @@
-import type { ChunkGrid } from "../core/ChunkGrid.js";
-import { Vector } from "../helpers.js";
+import type { ChunkGrid } from "../../core/ChunkGrid.js";
+import { Vector } from "../../helpers.js";
 
 const CAVE_LAYERS = [
     {y: 56, octave1: 28.4, octave2: 28.4, width: 0.12, height: 24, shift: 64000},

@@ -19,6 +19,7 @@ import type { Indicators, PlayerState } from "@client/player.js";
 import { SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS } from "../server_constant.js";
 import { teleport_title_regexp } from "plugins/chat_teleport.js";
 import { OLD_CHUNK_SIZE } from "@client/chunk_const.js";
+import {DBWorldDriving} from "./world/driving.js";
 
 export type BulkDropItemsRow = [
     string,     // entity_id
@@ -31,7 +32,10 @@ export type PlayerInitInfo = {
     state: PlayerState,
     inventory,
     status: PLAYER_STATUS,
-    world_data: Dict
+    world_data: Dict,
+    driving_id: int | null,
+    /** JSON-строка, семантика - см. {@link MobRow.driving_data} */
+    driving_data: string | null
 }
 
 /** Old format of indictors, used in DB for backwards compatibility (for some time). */
@@ -71,7 +75,8 @@ export type PlayerUpdateRow = [
     rotate      : string,   // JSON.stringify(state.rotate),
     indicators  : string,   // JSON.stringify(state.indicators | toDeprecatedIndicators(state.indicators)),
     stats       : string,   // JSON.stringify(state.stats)
-    state       : string    // JSON.stringify(state)
+    state       : string,   // JSON.stringify(state)
+    driving_id  : int | null
 ];
 
 const INSERT = {
@@ -90,6 +95,7 @@ export class DBWorld {
     world: ServerWorld;
     migrations: DBWorldMigration;
     mobs: DBWorldMob;
+    driving: DBWorldDriving
     quests: DBWorldQuest;
     portal: DBWorldPortal;
     fluid: DBWorldFluid;
@@ -106,9 +112,13 @@ export class DBWorld {
         this.migrations = new DBWorldMigration(this.conn, this.world, this.getDefaultPlayerStats, this.getDefaultPlayerIndicators);
         await this.migrations.apply();
         this.mobs = new DBWorldMob(this.conn, this.world);
-        await this.mobs.init();
+        this.driving = new DBWorldDriving(this.conn, this.world)
         this.quests = new DBWorldQuest(this.conn, this.world);
-        await this.quests.init();
+        await Promise.all([
+            this.mobs.init(),
+            this.driving.init(),
+            this.quests.init()
+        ])
         this.portal = new DBWorldPortal(this.conn, this.world);
         this.fluid = new DBWorldFluid(this.conn, this.world);
         this.chunks = new DBWorldChunk(this.conn, this.world);
@@ -277,9 +287,11 @@ export class DBWorld {
     // Register new player or returns existed
     async registerPlayer(world: ServerWorld, player: ServerPlayer): Promise<PlayerInitInfo> {
         // Find existing user record
-        const row = await this.conn.get(`SELECT id, inventory, pos, pos_spawn, rotate, indicators,
-            chunk_render_dist, game_mode, stats, state, world_data
-            FROM user WHERE guid = ?`,[player.session.user_guid]
+        const row = await this.conn.get(`SELECT user.id, inventory, pos, pos_spawn, rotate, indicators,
+                chunk_render_dist, game_mode, stats, user.state, world_data,
+                driving_id, driving.data AS driving_data
+            FROM user LEFT JOIN driving ON driving_id = driving.id  
+            WHERE guid = ?`, [player.session.user_guid]
         )
         if(row) {
 
@@ -333,7 +345,9 @@ export class DBWorld {
                 state: state,
                 inventory: inventory,
                 status: state.indicators.live ? PLAYER_STATUS.ALIVE : PLAYER_STATUS.DEAD,
-                world_data: JSON.parse(row.world_data ?? '{}')
+                world_data: JSON.parse(row.world_data ?? '{}'),
+                driving_id      : row.driving_id,
+                driving_data    : row.driving_data
             };
         }
         const default_pos_spawn = world.info.pos_spawn;
@@ -408,14 +422,15 @@ export class DBWorld {
             JSON.stringify(state.rotate),
             JSON.stringify(indicators),
             JSON.stringify(state.stats),
-            JSON.stringify(state)
+            JSON.stringify(state),
+            player.drivingId ?? null
         ];
     }
 
     async bulkUpdatePlayerState(rows: PlayerUpdateRow[], dt: int) {
         UPDATE.BULK_PLAYER_STATE = UPDATE.BULK_PLAYER_STATE ?? preprocessSQL(`
             UPDATE user
-            SET pos = %1, rotate = %2, indicators = %3, stats = %4, state = %5, dt_moved = :dt
+            SET pos = %1, rotate = %2, indicators = %3, stats = %4, state = %5, driving_id = %6, dt_moved = :dt
             FROM json_each(:jsonRows)
             WHERE user.id = %0
         `);

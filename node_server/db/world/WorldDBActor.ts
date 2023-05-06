@@ -9,6 +9,7 @@ import type { DBWorld, PlayerUpdateRow } from "../world";
 import type { BulkDropItemsRow } from "../world"
 import type { ChunkRecord } from "../../server_chunk"
 import type { MobFullUpdateRow, MobInsertRow, MobUpdateRow } from "./mob.js";
+import type {DrivingUpdateRow} from "./driving.js";
 
 const RECOVERY_BLOB_VERSION = 1001;
 
@@ -52,6 +53,10 @@ export class WorldTransactionUnderConstruction {
     // player quests
     insertQuests        = []
     updateQuests        = []
+    // Вождение
+    insertDriving       : DrivingUpdateRow[] = []
+    updateDriving       : DrivingUpdateRow[] = []
+    deleteDriving       : int[]
     // the data to be saved in world.recovery as a BLOB
     recoveryUpdateUnsavedChunkRowIds: int[] = []    // if we know rowId of a chunk - put it here, it reduces the BLOB size
     recoveryInsertUnsavedChunkXYZs  : int[] = []    // if we don't know rowId of a chunk - put its (x, y, z) here
@@ -63,9 +68,9 @@ export class WorldTransactionUnderConstruction {
         this.speedup = speedup
     }
 
-    pushPromises(...args : (Promise<any> | null)[]): void {
+    pushPromises(...args : (Promise<any> | null | 0)[]): void {
         for(const promise of args) {
-            if (promise != null) {
+            if (promise) {
                 this.promises.push(promise);
             }
         }
@@ -327,6 +332,14 @@ export class WorldDBActor {
                 db.quests.bulkInsertPlayerQuests(uc.insertQuests, dt),
                 db.quests.bulkUpdatePlayerQuests(uc.updateQuests)
             );
+
+            // вождение
+            this.world.drivingManager.writeToWorldTransaction(uc)
+            uc.pushPromises(
+                db.driving.bulkInsert(uc.insertDriving),
+                db.driving.bulkUpdate(uc.updateDriving),
+                db.driving.bulkDelete(uc.deleteDriving)
+            )
 
             this.writeRecoveryBlob(uc);
         } catch(e) {

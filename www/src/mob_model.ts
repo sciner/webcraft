@@ -11,6 +11,7 @@ import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import type { TMobProps } from "./mob_manager.js";
 import type { Mesh_Object_Base } from "./mesh/object/base.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import type {ClientDriving} from "./control/driving.js";
 
 const {mat4} = glMatrix
 
@@ -41,6 +42,7 @@ const {mat4} = glMatrix
 // }
 
 export class MobModel extends NetworkPhysicObject {
+    id:                 int
 	texture :           any = null
 	material :          any = null
 	raycasted :         boolean = false
@@ -69,35 +71,41 @@ export class MobModel extends NetworkPhysicObject {
                             boot: null,
                             skin: null
                         }
-    extra_data:         any
     slots:              any
-    tmpDrawPos:         any
-    yaw:                float
+    tmpDrawPos?:        Vector
+    drawPos?:           Vector
     draw_yaw?:          float
     sleep?:             false | TSleepState
     sitting?:           false | TSittingState
     aabb:               AABBDrawable = null
     _mesh:              Mesh_Object_BBModel
     _fire_mesh:         any
-    anim?:              false | TAnimState 
+    anim?:              false | TAnimState
     ground:             boolean = true
     running:            boolean = false
+    driving?:           ClientDriving | null
+    hasUse?:            boolean     // см. TMobConfig.hasUse
+    supportsDriving?:   boolean
     textures :          Map<string, any> = new Map()
 
     is_sheared:         boolean = false
     gui_matrix:         float[]
+    renderLast:         boolean
 
     #health: number = 100
     #timer_demage: number
 
     constructor(props : TMobProps, world : World) {
 
-        super(world, new Vector(0, 0, 0), new Vector(0, 0, 0))
+        super(world, new Vector(props.pos), new Vector(props.rotate))
 
         Object.assign(this, props)
+        this.updateAABB()   // у моба, который не движется, может долго автоматически не обновляться AABB
 
         this.type = props.skin.model_name
         this.skin = props.skin
+
+        this.renderLast = (this.type === MOB_TYPE.BOAT) // рисовать лодку после всех для спец. реима воды
 
         // load mesh
         const render = Qubatch.render as Renderer
@@ -111,6 +119,36 @@ export class MobModel extends NetworkPhysicObject {
             this._mesh.modifiers.selectTextureFromPalette('', this.skin.texture_name)
         }
 
+    }
+
+    /** Мы не можем использовать в этом файле instanceof PlayerModel, т.к. не можем его испортировать из-за циклической зависимости*/
+    get isPlayer(): boolean { return (this as any).username != null }
+
+    /**
+     * Семантика переопредленного метода:
+     * 1. Если нет вождения, или в нем не хвататет главного участника, то просто вызывается родительский метод.
+     * 2. Иначе:
+     * 2.1 Если эта модель задает позиции другим, то вызвать родительский метод и обновить другие модели на основе этой этой
+     * 2.2 Если есть кто-то другой главный в вождении (другая модель или свой игрок), то ничего не происходит
+     */
+    processNetState(): void {
+        const driving = this.driving
+        if (driving) {
+            const positionProvider = driving.getPositionProvider()
+            if (positionProvider === this) {
+                // обработать новую позицию, и применить ее ко всем участникам движения
+                super.processNetState()
+                driving.updateInterpolatedStateFromVehicle(this)
+                driving.applyInterpolatedStateToDependentParticipants()
+                return
+            } else if (positionProvider) {
+                // есть кто-то другой, кто задает позицию этой модели; обработать только extra_data, если оно есть
+                this.forceLocalUpdate(null, null)
+                return
+            }
+            // нет никого другого, кто задает позицию этой модели; обработать ее как обычно
+        }
+        super.processNetState()
     }
 
     set health(val: number) {
@@ -142,11 +180,11 @@ export class MobModel extends NetworkPhysicObject {
             // mesh.gl_material.changeLighTex(this.lightTex)
             // mesh.gl_material.lightTex = this.lightTex
             if (this.#timer_demage > performance.now()) {
-                mesh.gl_material.tintColor = new Color(1, 0, 0, .3) 
+                mesh.gl_material.tintColor = new Color(1, 0, 0, .3)
             } else {
                 mesh.gl_material.tintColor = new Color(0, 0, 0, 0)
             }
-            
+
         }
 
         // if (this.material) {
@@ -169,7 +207,8 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         const yaw = this.yaw;
-        if(typeof this.draw_yaw == 'undefined') {
+        if(typeof this.draw_yaw == 'undefined' || this.driving?.isModelDependent(this)) {
+            // если эта модель зависит от вождения, то использовать ее yaw без дополнительных изменений, чтобы не отличался от связанных моделей
             this.draw_yaw = yaw
         } else {
             this.draw_yaw %= Math.PI * 2;
@@ -204,7 +243,7 @@ export class MobModel extends NetworkPhysicObject {
         if(!this.isAlive) {
             return false
         }
-        
+
         this.update(render, camPos, delta, speed);
 
         // TODO: need to migrate to bbmodels
@@ -221,7 +260,7 @@ export class MobModel extends NetworkPhysicObject {
 
         // Draw AABB wireframe
         if(this.aabb && draw_debug_grid) {
-            this.aabb.draw(render, this.tPos, delta, true /*this.raycasted*/ );
+            this.aabb.draw(render, this.pos, delta, true /*this.raycasted*/ );
         }
 
         const mesh = this._mesh
@@ -231,7 +270,7 @@ export class MobModel extends NetworkPhysicObject {
             if(!mesh.apos) {
                 debugger
             }
-            mesh.apos.copyFrom(this._pos)
+            mesh.apos.copyFrom(this.pos)
             mesh.drawBuffered(render, delta)
             if(mesh.gl_material.tintColor) {
                 mesh.gl_material.tintColor.set(0, 0, 0, 0)
@@ -254,8 +293,10 @@ export class MobModel extends NetworkPhysicObject {
             mesh.rotation[2] = rot % Math.PI ? rot : rot + Math.PI
             mesh.setAnimation('sleep')
         } else {
-            mesh.rotation[2] = this.draw_yaw ? this.draw_yaw : 0
-            if (this.sitting) {
+            mesh.rotation[2] = this.draw_yaw ?? 0
+            if (this.driving && this !== this.driving.getVehicleModel()) {
+                mesh.setAnimation(this.driving.config.driverAnimation ?? 'sitting')
+            } else if (this.sitting) {
                 mesh.setAnimation('sitting')
             } else if (!this.ground) {
                 mesh.setAnimation('jump')
@@ -276,7 +317,7 @@ export class MobModel extends NetworkPhysicObject {
             }
         }
     }
-    
+
     updateArmor() {
         Qubatch.player.updateArmor()
     }

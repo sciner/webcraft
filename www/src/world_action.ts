@@ -45,6 +45,12 @@ type DropItemParams = {
     force ? : boolean
 }
 
+export type ActivateMobParams = {
+    id          : int
+    spawn_pos   : IVector
+    rotate      : IVector
+}
+
 export type TActionBlock = {
     pos             : Vector
     action_id       : int
@@ -559,7 +565,7 @@ export class WorldAction {
     drop_items: DropItemParams[]
     blocks: ActionBlocks
     mobs: {
-        activate: any[]
+        activate: ActivateMobParams[]
         spawn: any[] // it should be MobSpawnParams, but it's server class
     }
     sitting? : TSittingState
@@ -907,7 +913,7 @@ export class WorldAction {
     }
 
     // Activate mob (активация ранее созданного моба)
-    activateMob(params) {
+    activateMob(params: ActivateMobParams): void {
         this.mobs.activate.push(params);
     }
 
@@ -958,7 +964,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
 
     let pos                 = e.pos;
     let world_block         = world.getBlock(pos);
-    if (world_block.id < 0) { // if it's a DUMMY, the chunk is not loaded
+    if (!world_block || world_block.id < 0) { // if it's a DUMMY, the chunk is not loaded
         return [null, null];
     }
     let world_material      = world_block && (world_block.id > 0 || world_block.fluid > 0) ? world_block.material : null;
@@ -1052,7 +1058,8 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         // Проверка выполняемых действий с блоками в мире
         for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
-                return [actions, pos];
+                const affectedPos = (func === chSpawnMob) ? null : pos // мобы не меняют блок. И chSpawnMob также портит pos
+                return [actions, affectedPos]
             }
         }
         for(let func of FUNCS.useItem1async ??= [putDiscIntoJukebox]) {
@@ -1532,9 +1539,18 @@ function chSpawnMob(e, world, pos, player, world_block, world_material, mat_bloc
         actions.decrement = true;
         return true;
     }
-    pos.x += pos.n.x + .5
-    pos.y += pos.n.y;
-    pos.z += pos.n.z + .5;
+    if (pos.n) {
+        pos.x += pos.n.x + .5
+        pos.y += pos.n.y;
+        pos.z += pos.n.z + .5;
+    } else {
+        // Если спауним на воде - pos.n нет, но надо немного поднять позицию.
+        // Насколько лучше поднять - зависит от mobConfig.config.physics.floatSubmergedHeight,
+        // но этот метод в клиентском коде, хотя и серверный :(
+        pos.x += 0.5
+        pos.y += 0.5
+        pos.z += 0.5
+    }
     actions.chat_message = {text: `/spawnmob ${pos.x} ${pos.y} ${pos.z} ${mat_block.spawn_egg.type} ${mat_block.spawn_egg.skin}`};
     actions.decrement = true;
     return true;
@@ -2323,7 +2339,7 @@ function restrictPlanting(e, world, pos, player, world_block, world_material, ma
 
 //
 function setOnWater(e, world, pos, player, world_block : TBlock, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
-    if(!mat_block || !mat_block.tags.includes('set_on_water')) {
+    if(!mat_block || !mat_block.tags.includes('set_on_water') || mat_block.spawn_egg) {
         return false;
     }
     if(world_block.isWater) {

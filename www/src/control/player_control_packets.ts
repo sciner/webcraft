@@ -87,12 +87,14 @@ export class PlayerControlCorrectionPacket {
 
     physicsSessionId: int
     knownPhysicsTicks: int
+    log: string | null
     data = new PlayerTickData()
 
     export(): PacketBuffer {
         const dc = this.outDc.start()
         dc.putInt(this.physicsSessionId)
         dc.putInt(this.knownPhysicsTicks)
+        dc.buf.putAnyOrNull(this.log)
         this.data.writeContextAndOutput(dc)
         return dc.putHash().export()
     }
@@ -101,6 +103,7 @@ export class PlayerControlCorrectionPacket {
         const dc = this.inDc.start(buf)
         this.physicsSessionId = dc.getInt()
         this.knownPhysicsTicks = dc.getInt()
+        this.log = dc.buf.getAnyOrNull()
         this.data.readContextAndOutput(dc)
         dc.checkHash()
     }
