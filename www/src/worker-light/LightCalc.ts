@@ -98,7 +98,7 @@ export class LightCalc {
                     let ind0 = cx * x + cy * y + cz * z;
                     for (let i = 0; i < 8; i++) {
                         const ind1 = ind0 + tempDx[i];
-                        const data = lightData[ind1];
+                        const data = lightData[ind1] ^ (15 << 4); //daylight xor!
                         const src = uint8View[ind1 * strideBytes + OFFSET_SOURCE];
                         const block = (src & MASK_SRC_BLOCK) === MASK_SRC_BLOCK ? 2 : 0;
                         const ao = (src & MASK_SRC_AO) > 0 ? 1 : 0;
