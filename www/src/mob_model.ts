@@ -81,6 +81,8 @@ export class MobModel extends NetworkPhysicObject {
     _mesh:              Mesh_Object_BBModel
     _fire_mesh:         any
     anim?:              false | TAnimState
+    fire?:              boolean = false
+    attack?:            boolean = false
     ground:             boolean = true
     running:            boolean = false
     driving?:           ClientDriving | null
@@ -254,7 +256,7 @@ export class MobModel extends NetworkPhysicObject {
         // }
 
         // Draw in fire
-        if(this.extra_data?.in_fire) {
+        if (this.fire || this.extra_data?.in_fire) {
             this.drawInFire(render, delta);
         }
 

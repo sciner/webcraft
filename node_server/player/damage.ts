@@ -10,6 +10,7 @@ const INSTANT_DAMAGE_TICKS = 10
 const INSTANT_HEALTH_TICKS = 10
 const LIVE_REGENERATIN_TICKS = 50
 const FIRE_LOST_TICKS = 10
+const FIRE_TIME = 50
 const OXYGEN_LOST_TICKS = 10
 const OXYGEN_GOT_TICKS = 5
 const POISON_TICKS = 25
@@ -38,6 +39,7 @@ export class ServerPlayerDamage {
     actor: any
     #ground = true
     #last_height = null
+    #timer_fire: number = 0
 
     constructor(player : ServerPlayer) {
         this.player = player;
@@ -151,12 +153,22 @@ export class ServerPlayerDamage {
                 this.fire_lost_timer = 0;
                 const fire_res_lvl = effects.getEffectLevel(Effect.FIRE_RESISTANCE);
                 if (fire_res_lvl == 0) {
+                    this.#timer_fire = FIRE_TIME
                     damage = is_lava ? damage + 4 : damage + 1;
                 }
             }
         } else {
             this.fire_lost_timer = FIRE_LOST_TICKS;
         }
+
+        // горение
+        if (this.#timer_fire > 0) {
+            const fire_res_lvl = effects.getEffectLevel(Effect.FIRE_RESISTANCE)
+            if ((this.#timer_fire-- % FIRE_LOST_TICKS) == 0 && fire_res_lvl == 0) {
+                damage += 1
+            }
+        }
+
         // отравление
         const poison_lvl = effects.getEffectLevel(Effect.POISON);
         if (poison_lvl > 0) {
@@ -257,7 +269,11 @@ export class ServerPlayerDamage {
             }
             player.live_level = Math.max(player.live_level - damage, 0);
         }
-        this.damage = 0;
+
+        // анимация горения
+        this.player.state.fire = (this.#timer_fire > 0) ? true : false
+
+        this.damage = 0
     }
 
     /*

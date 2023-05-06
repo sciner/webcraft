@@ -183,6 +183,8 @@ export class ServerPlayer extends Player {
         this.state.anim ||= false;
         this.state.sitting ||= false;
         this.state.sleep ||= false;
+        this.state.attack ||= false
+        this.state.fire ||= false
         this.live_level = this.state.indicators.live;
         this.food_level = this.state.indicators.food;
         this.oxygen_level = this.state.indicators.oxygen;
@@ -503,6 +505,8 @@ export class ServerPlayer extends Player {
             sitting:  state.sitting,
             sleep:    state.sleep,
             anim:     state.anim,
+            attack:   state.attack,
+            fire:     state.fire,
             armor:    this.inventory.exportArmorState(),
             health:   state.indicators.live,
             ground:   control.onGround,

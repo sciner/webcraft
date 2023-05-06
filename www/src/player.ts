@@ -99,6 +99,8 @@ type PlayerStateDynamicPart = {
     sleep ?     : false | TSleepState
     hands       : PlayerHands,
     anim?       : false | TAnimState
+    fire?       : boolean,
+    attack?     : boolean
 }
 
 /** Fields that are saved together into DB in user.state field. */
@@ -1187,6 +1189,8 @@ export class Player implements IPlayer {
                 this.state.sitting,
                 this.state.sleep,
                 this.state.anim,
+                false,
+                false,
                 this.indicators.live,
                 this.onGround
             )

@@ -345,7 +345,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
     setProps(pos: Vector, rotate: Vector, sneak: boolean, running: boolean,
         hands: PlayerHands, sitting: false | TSittingState,
-        sleep: false | TSleepState, anim : false | TAnimState, health?: number, on_ground: boolean = true): void {
+        sleep: false | TSleepState, anim : false | TAnimState, attack: boolean, fire: boolean, health?: number, on_ground: boolean = true): void {
         this.pos = pos
         this.yaw = rotate.z; // around
         this.pitch = rotate.x; // head rotate
@@ -354,6 +354,8 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.running = running;
         this.sitting = sitting;
         this.anim = anim
+        this.attack = attack
+        this.fire = fire
         this.sleep = sleep
         this.ground = on_ground
         this.health = health
