@@ -5,7 +5,7 @@ import {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
 import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX,
-    CHEST_INTERACTION_MARGIN_BLOCKS, MAX_DIRTY_INVENTORY_DURATION, UI_THEME
+    CHEST_INTERACTION_MARGIN_BLOCKS, MAX_DIRTY_INVENTORY_DURATION, UI_THEME, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX
 } from "../constant.js";
 import { INVENTORY_CHANGE_NONE, INVENTORY_CHANGE_SLOTS, 
     INVENTORY_CHANGE_CLOSE_WINDOW } from "../inventory.js";
@@ -139,6 +139,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
         this.world.blockModifierListeners.push(this.blockModifierListener)
         super.onShow(args)
         this.fixAndValidateSlots('onShow')
+        this.refresh()
     }
 
     // Обработчик закрытия формы
@@ -473,19 +474,28 @@ export class BaseChestWindow extends BaseInventoryWindow {
         // не менять порядок нижних и верхних!
         // иначе нарушится их порядок в массиве ct.inventory_slots
         // нижний ряд (видимые на хотбаре)
-        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            const x = belt_x + (i % xcnt) * szm
+        for(let i = 0; i < HOTBAR_LENGTH_MAX; i++) {
+            const x = belt_x + (i % HOTBAR_LENGTH_MAX) * szm
             const y = belt_y
             createSlot(x, y)
         }
 
         // верхние 3 ряда
-        for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+        for(let i = 0; i < BAG_LENGTH_MAX; i++) {
             const x = sx + (i % xcnt) * szm
             const y = sy + Math.floor(i / xcnt) * szm
             createSlot(x, y)
         }
 
+    }
+
+    refresh() {
+        const hotbar_len = this.inventory.getHotbarLength()
+        const bag_len = this.inventory.getBagLength()
+        for (let i = 0; i < (BAG_LENGTH_MAX + HOTBAR_LENGTH_MAX); i++) {
+            this.inventory_slots[i].locked = ((i <= hotbar_len || i >= HOTBAR_LENGTH_MAX) && i < bag_len) ? false : true
+            this.inventory_slots[i].refresh()
+        }
     }
 
     getCraftOrChestSlots(): CraftTableSlot[] {

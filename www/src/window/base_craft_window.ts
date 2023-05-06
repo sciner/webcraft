@@ -501,15 +501,10 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                     case 'frmInventory': {
                         const srcList = this.parent.inventory_slots;
                         if(!this.appendToSpecialList(targetItem, srcList)) {
-                            const ihsc = INVENTORY_HOTBAR_SLOT_COUNT
-                            let srcListFirstIndexOffset = this.slot_index < ihsc ? ihsc : 0;
-                            let targetList = this.slot_index < ihsc ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, ihsc);
-                            if(this.slot_index >= INVENTORY_VISIBLE_SLOT_COUNT) {
-                                targetList = srcList.slice(0, INVENTORY_VISIBLE_SLOT_COUNT)
-                            } else {
-                                targetList = this.slot_index < ihsc ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, ihsc);
-                            }
-                            this.appendToList(targetItem, targetList);
+                            const bag_len    = this.getInventory().getBagLength()
+                            const hotbar_len = this.getInventory().getHotbarLength()
+                            let targetList = this.slot_index <= hotbar_len || this.slot_index > (BAG_LENGTH_MAX)  ? srcList.slice(HOTBAR_LENGTH_MAX, bag_len) : srcList.slice(0, hotbar_len + 1)
+                            this.appendToList(targetItem, targetList)
                         }
                         this.setItem(targetItem, e)
                         this.ct.fixAndValidateSlots('CraftTableInventorySlot shiftKey frmInventory')
@@ -524,7 +519,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         if (this.ct.loading) {
                             break; // prevent spreading to the slots that are not ready
                         }
-                        let targetList = e.target.is_chest_slot ? this.parent.inventory_slots : this.parent.getCraftOrChestSlots()
+                        const targetList = e.target.is_chest_slot ? this.parent.inventory_slots : this.parent.getCraftOrChestSlots()
                         this.appendToList(targetItem, targetList)
                         this.setItem(targetItem, e)
                         this.parent.lastChange.type = INVENTORY_CHANGE_SHIFT_SPREAD
@@ -571,7 +566,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         for(let slot of target_list) {
             if(slot instanceof PaperDollSlot && srcBlock.armor && slot.slot_index == srcBlock.armor.slot) {
                 const item = slot.getItem();
-                if(!slot.readonly && !item) {
+                if(!slot.locked && !slot.readonly && !item) {
                     slot.setItem({...srcItem})
                     srcItem.count = 0
                     return true
@@ -596,7 +591,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         for(let slot of target_list) {
             if(slot instanceof CraftTableInventorySlot) {
                 const item = slot.getItem();
-                if(!slot.readonly && InventoryComparator.itemsEqualExceptCount(item, srcItem)) {
+                if(!slot.locked && !slot.readonly && InventoryComparator.itemsEqualExceptCount(item, srcItem)) {
                     const free_count = max_stack_count - item.count;
                     if(free_count > 0) {
                         const count = Math.min(free_count, srcItem.count);
@@ -616,7 +611,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         // 2. проход в поисках свободных слотов
         for(let slot of target_list) {
             if(slot instanceof CraftTableInventorySlot) {
-                if(!slot.readonly && !slot.getItem()) {
+                if(!slot.locked && !slot.readonly && !slot.getItem()) {
                     slot.setItem({...srcItem});
                     srcItem.count = 0;
                     break;
