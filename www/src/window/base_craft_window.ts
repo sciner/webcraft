@@ -736,63 +736,6 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         super.onShow(args)
     }
 
-    /**
-    * Создание слотов для инвентаря
-    */
-    createInventorySlots(sz, sx = UI_THEME.window_padding, sy = 166, belt_x? : float, belt_y? : float, draw_potential_slots : boolean = false) {
-
-        if(this.inventory_slots) {
-            console.error('createInventorySlots() already created')
-            return
-        }
-
-        this.inventory_slots  = []
-        const xcnt = INVENTORY_HOTBAR_SLOT_COUNT
-        sx *= this.zoom
-        sy *= this.zoom
-        let index = 0
-        const margin = UI_THEME.slot_margin * this.zoom
-        const padding = UI_THEME.window_padding * this.zoom
-
-        if(belt_x === undefined) {
-            belt_x = sx
-        } else {
-            belt_x *= this.zoom
-        }
-
-        if(belt_y === undefined) {
-            belt_y = this.h - sz - padding
-        } else {
-            belt_y *= this.zoom
-        }
-
-        //
-        const createSlot = (x : float, y : float) => {
-            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, `lblSlot${index}`, null, null, this, index)
-            this.add(lblSlot);
-            this.inventory_slots.push(lblSlot)
-            index++
-        }
-
-        // не менять порядок нижних и верхних!
-        // иначе нарушится их порядок в массиве ct.inventory_slots
-        // нижний ряд (видимые на хотбаре)
-        for(let i = 0; i < HOTBAR_LENGTH_MAX; i++) {
-            const x = belt_x + (i % HOTBAR_LENGTH_MAX) * (sz + margin)
-            // const y = (sy + 120 * this.zoom) + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom + margin)
-            const y = belt_y
-            createSlot(x, y)
-        }
-
-        // верхние 3 ряда
-        for(let i = 0; i < BAG_LENGTH_MAX; i++) {
-            const x = sx + (i % xcnt) * (sz + margin)
-            const y = sy + Math.floor(i / xcnt) * (sz + margin)
-            createSlot(x, y)
-        }
-
-    }
-
     createButtonSort() {
         const size = 18 * this.zoom
         const x = this.w - size - UI_THEME.window_padding * this.zoom

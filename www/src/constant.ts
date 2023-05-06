@@ -74,6 +74,7 @@ export const INVENTORY_HOTBAR_SLOT_COUNT    = 9;
 export const MAGIC_ROTATE_DIV               = 900;
 export const DRAW_SLOT_INDEX                = true;
 
+export const CHEST_LINE_LENGTH      = 7
 export const HOTBAR_LENGTH_MIN      = 4
 export const HOTBAR_LENGTH_MAX      = 12
 export const BAG_LENGTH_MIN         = 27
@@ -121,7 +122,7 @@ export const UI_THEME = {
     label_text_color: '#ffffff33',
     window_padding: 10,
     slot_margin: 5,
-    window_slot_size: 40,
+    window_slot_size: 39,
     button: {
         font: {
             size: 14,

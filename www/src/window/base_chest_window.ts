@@ -5,7 +5,7 @@ import {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
 import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
     INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX,
-    CHEST_INTERACTION_MARGIN_BLOCKS, MAX_DIRTY_INVENTORY_DURATION, UI_THEME, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX
+    CHEST_INTERACTION_MARGIN_BLOCKS, MAX_DIRTY_INVENTORY_DURATION, UI_THEME, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, CHEST_LINE_LENGTH
 } from "../constant.js";
 import { INVENTORY_CHANGE_NONE, INVENTORY_CHANGE_SLOTS, 
     INVENTORY_CHANGE_CLOSE_WINDOW } from "../inventory.js";
@@ -47,14 +47,14 @@ export class BaseChestWindow extends BaseInventoryWindow {
         this.timeout    = null;
         this.maxDirtyTime  = null;
 
+        this.setBackground('./media/gui/form-quest.png')
+
         // Создание слотов
         this.createSlots(this.prepareSlots())
-        
-        const szm = this.cell_size + this.slot_margin
-        const inventory_y = this.h - szm * 4 - (UI_THEME.window_padding * this.zoom)
 
         // Создание слотов для инвентаря
-        this.createInventorySlots(this.cell_size, UI_THEME.window_padding, inventory_y / this.zoom)
+        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * INVENTORY_HOTBAR_SLOT_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
+        this.createInventorySlots(this.cell_size, (this.w / this.zoom) - slots_width, 60, UI_THEME.window_padding, undefined, true)
         
         this.lastChange = {
             type: INVENTORY_CHANGE_NONE,
@@ -93,7 +93,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
         }
 
         // Add labels to window
-        this.lbl2 = new Label(UI_THEME.window_padding * this.zoom, inventory_y - (UI_THEME.base_font.size + UI_THEME.window_padding) * this.zoom, this.w / 2, 30 * this.zoom, 'lbl2', null, Lang.inventory)
+        this.lbl2 = new Label((this.w / this.zoom) - slots_width, 60, 0, 0, 'lbl2', null, '')
         this.add(this.lbl2);
         for(let lbl of [this.lbl2]) {
             lbl.style.font.color = UI_THEME.label_text_color
@@ -378,9 +378,9 @@ export class BaseChestWindow extends BaseInventoryWindow {
     prepareSlots(count = DEFAULT_CHEST_SLOT_COUNT) {
 
         const resp  = [];
-        const xcnt  = INVENTORY_HOTBAR_SLOT_COUNT
+        const xcnt  = CHEST_LINE_LENGTH
         const sx    = this.slots_x
-        const sy    = 40 * this.zoom
+        const sy    = 60 * this.zoom
         const sz    = this.cell_size
         const szm   = sz + this.slot_margin
 
@@ -429,64 +429,6 @@ export class BaseChestWindow extends BaseInventoryWindow {
             this.chest.slots.push(lblSlot)
             ct.add(lblSlot)
         }
-    }
-
-    /**
-    * Создание слотов для инвентаря
-    */
-    createInventorySlots(sz, sx = UI_THEME.window_padding, sy : float = 205, belt_x? : float, belt_y? : float) {
-
-        const ct = this;
-        if(ct.inventory_slots) {
-            console.error('createInventorySlots() already created')
-            return
-        }
-
-        const szm = sz + UI_THEME.slot_margin * this.zoom
-
-        ct.inventory_slots  = []
-        const xcnt = INVENTORY_HOTBAR_SLOT_COUNT
-        sx *= this.zoom
-        sy *= this.zoom
-        let index = 0
-        const padding = UI_THEME.window_padding * this.zoom
-
-        if(belt_x === undefined) {
-            belt_x = sx
-        } else {
-            belt_x *= this.zoom
-        }
-
-        if(belt_y === undefined) {
-            belt_y = this.h - sz - padding
-        } else {
-            belt_y *= this.zoom
-        }
-
-        //
-        const createSlot = (x : float, y : float) => {
-            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, `lblSlot${index}`, null, null, this, index)
-            ct.add(lblSlot)
-            ct.inventory_slots.push(lblSlot)
-            index++
-        }
-
-        // не менять порядок нижних и верхних!
-        // иначе нарушится их порядок в массиве ct.inventory_slots
-        // нижний ряд (видимые на хотбаре)
-        for(let i = 0; i < HOTBAR_LENGTH_MAX; i++) {
-            const x = belt_x + (i % HOTBAR_LENGTH_MAX) * szm
-            const y = belt_y
-            createSlot(x, y)
-        }
-
-        // верхние 3 ряда
-        for(let i = 0; i < BAG_LENGTH_MAX; i++) {
-            const x = sx + (i % xcnt) * szm
-            const y = sy + Math.floor(i / xcnt) * szm
-            createSlot(x, y)
-        }
-
     }
 
     refresh() {

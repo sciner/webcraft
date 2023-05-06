@@ -1,12 +1,13 @@
 import { ItemHelpers } from "../block_helpers.js";
 import { Label, TextEdit } from "../ui/wm.js";
-import { ITEM_LABEL_MAX_LENGTH, UI_THEME } from "../constant.js";
+import { INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_COUNT, ITEM_LABEL_MAX_LENGTH, UI_THEME } from "../constant.js";
 import { AnvilRecipeManager } from "../recipes_anvil.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
 import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
 import type { PlayerInventory } from "../player_inventory.js";
+import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH } from "../constant.js";
 
 //
 class AnvilSlot extends CraftTableSlot {
@@ -58,11 +59,8 @@ class AnvilSlot extends CraftTableSlot {
 export class AnvilWindow extends BaseCraftWindow {
 
     constructor(inventory : PlayerInventory) {
-
-        const w = 420
-        const h = 400
-
-        super(0, 0, w, h, 'frmAnvil', null, null, inventory)
+        
+        super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmAnvil', null, null, inventory)
         this.w *= this.zoom
         this.h *= this.zoom
 
@@ -71,37 +69,29 @@ export class AnvilWindow extends BaseCraftWindow {
         this.current_recipe = null
         this.current_recipe_outCount = null
 
-        // Create sprite atlas
-        this.atlas = new SpriteAtlas()
-        this.atlas.fromFile('./media/gui/anvil.png').then(async (atlas : SpriteAtlas) => {
+        // Ширина / высота слота
+        this.cell_size = UI_THEME.window_slot_size * this.zoom
+        this.slot_margin = UI_THEME.slot_margin * this.zoom
+        this.slots_x = UI_THEME.window_padding * this.zoom
+        this.slots_y = 60 * this.zoom
 
-            this.setBackground(await atlas.getSprite(0, 0, w * 2, h * 2), 'stretch', this.zoom / 2.0)
+        this.setBackground('./media/gui/form-quest.png')
 
-            // Ширина / высота слота
-            this.cell_size     = UI_THEME.window_slot_size * this.zoom
-            this.slot_margin   = UI_THEME.slot_margin * this.zoom
-            this.slots_x       = UI_THEME.window_padding * this.zoom
-            this.slots_y       = 62 * this.zoom
+        // Создание слотов для инвентаря
+        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * INVENTORY_HOTBAR_SLOT_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
+        this.createInventorySlots(this.cell_size, (this.w / this.zoom) - slots_width, 60, UI_THEME.window_padding, undefined, true)
 
-            const szm = this.cell_size + this.slot_margin
-            const inventory_y = this.h - szm * 4 - (UI_THEME.window_padding * this.zoom)
+        // Создание слотов для крафта
+        this.createCraft(this.cell_size);
 
-             // Создание слотов для инвентаря
-            this.createInventorySlots(this.cell_size, undefined, inventory_y / this.zoom)
+        // Редактор названия предмета
+        this.createEdit()
 
-            // Создание слотов для крафта
-            this.createCraft(this.cell_size);
+        // Add labels to window
+        this.addWindowTitle(Lang.repair)
 
-            // Редактор названия предмета
-            this.createEdit()
-
-            // Add labels to window
-            this.addWindowTitle(Lang.repair)
-
-            // Add close button
-            this.addCloseButton()
-
-        })
+        // Add close button
+        this.addCloseButton()
 
     }
 
@@ -116,6 +106,7 @@ export class AnvilWindow extends BaseCraftWindow {
             thrown_items
         })
         this.used_recipes = []
+        this.refresh()
     }
 
     // Обработчик открытия формы

@@ -86,7 +86,7 @@ export abstract class Inventory {
     //
     setIndexes(data, send_state) {
         const count = this.getHotbarLength()
-        this.current.index = Helpers.clamp(data.index, 0, count - 1);
+        this.current.index = Helpers.clamp(data.index, 0, count);
         this.current.index2 = Helpers.clamp(data.index2, -1, this.max_visible_count - 1);
         this.refresh(send_state);
     }
@@ -125,7 +125,7 @@ export abstract class Inventory {
     select(index) {
         const count = this.getHotbarLength()
         if(index < 0) {
-            index = count - 1;
+            index = count;
         }
         if(index > count) {
             index = 0

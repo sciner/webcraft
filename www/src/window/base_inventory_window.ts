@@ -1,4 +1,4 @@
-import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX } from "../constant.js";
+import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, UI_THEME } from "../constant.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BlankWindow } from "./blank.js";
 import type {PlayerInventory} from "../player_inventory.js";
@@ -6,7 +6,7 @@ import type {Pointer, TMouseEvent} from "../vendors/wm/wm.js";
 import type {World} from "../world.js";
 import type {ServerClient} from "../server_client.js";
 import type {GameClass} from "../game.js";
-import type {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
+import {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
 
 export class BaseInventoryWindow extends BlankWindow {
     [key: string]: any;
@@ -212,6 +212,63 @@ export class BaseInventoryWindow extends BlankWindow {
             thrown_items: thrown_items
         })
         return true
+    }
+
+    /**
+    * Создание слотов для инвентаря
+    */
+    createInventorySlots(sz, sx = UI_THEME.window_padding, sy = 166, belt_x? : float, belt_y? : float, draw_potential_slots : boolean = false) {
+
+        if(this.inventory_slots) {
+            console.error('createInventorySlots() already created')
+            return
+        }
+
+        this.inventory_slots  = []
+        const xcnt = 9
+        sx *= this.zoom
+        sy *= this.zoom
+        let index = 0
+        const margin = UI_THEME.slot_margin * this.zoom
+        const padding = UI_THEME.window_padding * this.zoom
+
+        if(belt_x === undefined) {
+            belt_x = sx
+        } else {
+            belt_x *= this.zoom
+        }
+
+        if(belt_y === undefined) {
+            belt_y = this.h - sz - padding
+        } else {
+            belt_y *= this.zoom
+        }
+
+        //
+        const createSlot = (x : float, y : float) => {
+            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, `lblSlot${index}`, null, null, this, index)
+            this.add(lblSlot);
+            this.inventory_slots.push(lblSlot)
+            index++
+        }
+
+        // не менять порядок нижних и верхних!
+        // иначе нарушится их порядок в массиве ct.inventory_slots
+        // нижний ряд (видимые на хотбаре)
+        for(let i = 0; i < HOTBAR_LENGTH_MAX; i++) {
+            const x = belt_x + (i % HOTBAR_LENGTH_MAX) * (sz + margin)
+            // const y = (sy + 120 * this.zoom) + Math.floor(i / xcnt) * (INVENTORY_SLOT_SIZE * this.zoom + margin)
+            const y = belt_y
+            createSlot(x, y)
+        }
+
+        // верхние 3 ряда
+        for(let i = 0; i < BAG_LENGTH_MAX; i++) {
+            const x = sx + (i % xcnt) * (sz + margin)
+            const y = sy + Math.floor(i / xcnt) * (sz + margin)
+            createSlot(x, y)
+        }
+
     }
 
 }
