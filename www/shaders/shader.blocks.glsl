@@ -954,6 +954,9 @@ v_axisV *= sign(a_uvSize.y);
     // water lighter
     float water_lighter_limit = .02;
     if(centerSample.z > water_lighter_limit) {
+        // if(centerSample.z > .4) {
+        //     color.rgb += 1.;
+        // }
         float m = centerSample.z < .03 ? 1. - (.03 - centerSample.z) / .01 : 1.;
         // float water_lighter = min(centerSample.z / water_lighter_limit, .1);
         vec3 cam_period = getCamPeriod();
