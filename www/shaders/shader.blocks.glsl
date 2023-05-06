@@ -699,8 +699,7 @@ int sampleCubeLight(ivec4 source, int shift) {
                 }
                 centerSample.x = clamp((float(mainVec.x) + dot(vec4(caveGrad), part)) / 15.0, 0.0, 1.0);
                 centerSample.y = clamp((float(mainVec.y >> 4) + dot(vec4(dayGrad), part)) / 15.0, 0.0, 1.0);
-                centerSample.z = 0.0;
-                centerSample.w = aoPart / 3.0;
+                centerSample.z = aoPart / 3.0;
             }
             //if (v_lightMode > 0.5) {
             //    aoVector = vec4(texture(u_lightTex[0], aoCoord0 * texSize).w, texture(u_lightTex[0], aoCoord1 * texSize).w,
@@ -714,14 +713,6 @@ int sampleCubeLight(ivec4 source, int shift) {
 
     float caveSample = centerSample.x;
     float daySample = 1.0 - centerSample.y;
-    float volumeSample = 1.0 - centerSample.z;
-    if (volumeSample > 0.05) {
-        caveSample /= volumeSample;
-        daySample /= volumeSample;
-    } else {
-        caveSample = 0.0;
-        daySample = 0.0;
-    }
 
     float cavePart = max(caveSample, playerLight);
     float dayPart = daySample * u_brightness;
@@ -738,7 +729,7 @@ int sampleCubeLight(ivec4 source, int shift) {
         cavePart = sumCaveDay - dayPart;
     }
 
-    float aoSample = centerSample.w;
+    float aoSample = centerSample.z;
     if (v_lightMode > 0.5) {
         if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
         aoSample *= aoFactor;
