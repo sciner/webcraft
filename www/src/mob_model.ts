@@ -312,6 +312,8 @@ export class MobModel extends NetworkPhysicObject {
                 }
             } else if (this.sneak) {
                 mesh.setAnimation('sneak_idle')
+            } else if (this?.extra_data?.attack || this.attack) {
+                mesh.setAnimation('attack')
             } else if (this.anim) {
                 mesh.setAnimation(this.anim.title)
             } else {
