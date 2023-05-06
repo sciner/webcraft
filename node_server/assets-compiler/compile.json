@@ -12515,6 +12515,21 @@
             "connected_sides": {
                 "12": "block/decals/reinforced_concrete/12.png"
             }
+        },
+        {
+            "id": 491,
+            "name": "RAFT",
+            "material": {
+                "id": "wood"
+            },
+            "spawn_egg": {
+                "type": "transport/raft",
+                "skin": "base"
+            },
+            "tags": [
+                "set_on_water"
+            ],
+            "texture": "block/stone.png"
         }
     ]
 }

@@ -35,7 +35,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         this.entity_id = entity_id
         const block = items[0]
 
-        this.scale          = new Vector(.2, .2, .2)
+        this.scale          = new Vector(.3, .3, .3)
         this.pn             = performance.now() + Math.random() * 2000 // рандом, чтобы одновременно сгенерированные дропы крутились не одинаково
         this.life           = 1.0
         this.posFact        = this.pos.clone()

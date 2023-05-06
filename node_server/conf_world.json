@@ -150,6 +150,30 @@
                 "useAngularSpeed": true,
                 "maxYawDelta": 1.6
             },
+            "drop_on_kill": "OAK_BOAT",
+            "timer_panic": 0,
+            "damageAddsVelocity": false,
+            "can_asphyxiate": false
+        },
+        "transport/raft": {
+            "brain": "boat",
+            "physics": {
+                "baseSpeed": 0.4,
+                "playerHeight": 0.6,
+                "playerHalfWidth": 0.9,
+                "floatSubmergedHeight": 0.1,
+                "useBoatSpeed": true,
+                "jumpSpeed": 0,
+                "stepHeight": 0.75
+            },
+            "driving": {
+                "offsets": [
+                    { "x": 0, "y": 0.2, "z": 0.5 }
+                ],
+                "useAngularSpeed": true,
+                "maxYawDelta": 1.6
+            },
+            "drop_on_kill": "RAFT",
             "timer_panic": 0,
             "damageAddsVelocity": false,
             "can_asphyxiate": false
