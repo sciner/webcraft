@@ -34,6 +34,11 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
     // addPlayer
     add(cmd: {data: PlayerStateUpdate, time: number}) : PlayerModel {
         const data = cmd.data;
+
+        // Сервер присылает CMD_PLAYER_JOIN для уже существующих игроков.
+        // Ножно или удалить старого игрока перед повторным добавлением, или не создавать нового.
+        this.delete(data.id)
+
         const player = new PlayerModel({
             id:             data.id,
             pos:            data.pos,
@@ -48,7 +53,14 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
         this.list.set(data.id, player);
         this.setState(cmd);
         player.netBuffer.length = 0;
+        this.world.drivingManager.onPlayerModelAdded(player)
         return player
+    }
+
+    delete(user_id: int): boolean {
+        const playerModel = this.list.get(user_id)
+        playerModel?.driving?.onModelDeleted(playerModel)
+        return super.delete(user_id)
     }
 
     /**
@@ -67,9 +79,9 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
             return;
         }
 
-        player.distance = data.dist;
-        player.armor = data.armor;
-        player.health = data.health;
+        player.distance = data.dist
+        player.armor = data.armor
+        player.health = data.health
         player.sleep = data.sleep
         player.anim = data.anim
         player.sitting = data.sitting
@@ -87,7 +99,7 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
 
     }
 
-    getMyself() {
+    getMyself(): PlayerModel | null {
         return this.get(Qubatch.App.session.user_id);
     }
 }

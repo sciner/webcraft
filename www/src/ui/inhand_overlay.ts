@@ -64,9 +64,16 @@ export function swapMatrixYZ(matrix) {
 export class InHandOverlay {
     [key: string]: any;
 
-    world : World
+    world               : World
+    inHandItemMesh ?    : Mesh_Object_Block_Drop = null
+    camera              : Camera
+    wasEating           : boolean = false
+    inHandItemBroken    : boolean = false
+    inHandItemId        : int = -1
+    changeAnimation     : boolean = true
+    changAnimationTime  : float = 0
 
-    constructor (world : World, skinId, render) {
+    constructor(world : World, skinId, render) {
 
         // overlay camera
         this.camera = new Camera({
@@ -79,18 +86,8 @@ export class InHandOverlay {
             height: render.camera.height,
         });
 
-        /**
-         * @type {Mesh_Object_Block_Drop}
-         */
-        this.inHandItemMesh = null;
-        this.inHandItemBroken = false;
-        this.inHandItemId = -1;
+        this.world = world
 
-        this.changeAnimation = true;
-        this.changAnimationTime = 0;
-
-        this.wasEating = false;
-        this.world = world;
     }
 
     reconstructInHandItem(block) {
@@ -193,7 +190,7 @@ export class InHandOverlay {
     draw(render, delta) {
 
         const {
-            player, globalUniforms, renderBackend
+            player, globalUniforms, lightUniforms, renderBackend
         } = render;
 
         this.player = player;
@@ -221,15 +218,15 @@ export class InHandOverlay {
         //TODO: remove it
         camera.use(globalUniforms, false);
         globalUniforms.brightness = Math.max(0.4, render.env.fullBrightness);
-        let globOverride = globalUniforms.lightOverride;
-        globalUniforms.lightOverride = player.getInterpolatedHeadLight() | 0x10000;
 
+        let lightOverride = player.getInterpolatedHeadLight() | 0x10000;
         let inHandLight = inHandItemMesh?.block_material?.light_power?.a || 0;
         if (inHandLight > 0) {
-            globalUniforms.lightOverride = (globalUniforms.lightOverride & 0xff00)
-                | (Math.max(globalUniforms.lightOverride & 0x00ff, inHandLight & 0xff))
+            lightOverride = (lightOverride & 0xff00)
+                | (Math.max(lightOverride & 0x00ff, inHandLight & 0xff))
                 | 0x10000;
         }
+        lightUniforms.pushOverride(lightOverride);
 
         globalUniforms.update();
 
@@ -297,8 +294,7 @@ export class InHandOverlay {
         }
         renderBackend.endPass();
 
-        globalUniforms.lightOverride = globOverride;
-        globalUniforms.update();
+        lightUniforms.popOverride();
     }
 
     /**

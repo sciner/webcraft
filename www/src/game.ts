@@ -27,6 +27,8 @@ import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
 
 import type { Player, PlayerStateUpdate } from "./player.js";
 import type { HUD } from "./hud.js";
+import {ServerClient} from "./server_client.js";
+import {canSwitchFlying} from "./control/player_control.js";
 
 // TrackerPlayer
 (globalThis as any).TrackerPlayer = new Tracker_Player();
@@ -126,6 +128,8 @@ export class GameSettings implements TWorldSettings {
 // Main game class
 export class GameClass {
 
+    static instance ?           : GameClass
+
     player                      : Player
     world                       : World
     render                      : Renderer
@@ -162,6 +166,7 @@ export class GameClass {
     // Start
     async Start(server_url : string, world_guid : string, resource_loading_progress? : (state : any) => {}) {
         Qubatch.game = this;
+        GameClass.instance = this;
 
         const settings = this.settings
 
@@ -179,7 +184,7 @@ export class GameClass {
         await Promise.all([blockTask]);
 
         // init world
-        this.world = new World(settings, BLOCK);
+        this.world = new World(this, settings, BLOCK);
 
         // Create world
         await this.render.init(this.world, settings)
@@ -395,8 +400,8 @@ export class GameClass {
                             e.e_orig.preventDefault();
                             e.e_orig.stopPropagation();
                         }
-                        if(e.down && e.shiftKey) {
-                            this.player.controlManager.isFreeCam = !this.player.controlManager.isFreeCam;
+                        if(e.down && e.ctrlKey) {
+                            this.player.controlManager.toggleFreeCam()
                         }
                         return true;
                     }
@@ -464,6 +469,11 @@ export class GameClass {
                         }
                         break;
                     }
+                    case KEY.Z:
+                        if (e.down) {
+                            player.leaveDriving()
+                        }
+                        break
                     // [F4] set spawnpoint
                     case KEY.F4: {
                         if(e.down) {
@@ -648,7 +658,9 @@ export class GameClass {
                     if(e.keyCode == KEY.W) {
                         player.controls.sprint = true;
                     } else if (e.keyCode == KEY.SPACE) {
-                        if(player.game_mode.canFly() && !player.in_water && !player.onGround) {
+                        if(!player.in_water && !player.onGround &&
+                            canSwitchFlying(player.game_mode.current, player.driving)
+                        ) {
                             player.controlManager.instantControls.switchFlying = true
                         }
                     }
@@ -711,8 +723,9 @@ export class GameClass {
         this.world.chunkManager.update(player.pos, delta);
 
         // change camera location
-        const camPos = isFreeCam ? player.controlManager.getFreeCampPos() : player.getEyePos()
-        this.render.setCamera(player, camPos, player.rotate, isFreeCam)
+        const camPos = player.controlManager.getCampPos()
+        const camRotation = player.controlManager.getCamRotation()
+        this.render.setCamera(player, camPos, camRotation, isFreeCam)
 
         // Update world
         // this is necessary

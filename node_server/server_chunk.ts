@@ -203,6 +203,7 @@ export class ServerChunk {
     modify_list:                        ServerModifyList            = {};
     connections:                        Map<int, ServerPlayer>      = new Map(); // players by user_id
     preq:                               Map<any, any>               = new Map();
+    /** Мобы в чанке. Только {@link Mob.moveToChunk} может менять это поле, совместно с {@link Mob.inChunk}. */
     mobs:                               Map<int, Mob>               = new Map();
     drop_items:                         Map<string, DropItem>       = new Map();
     randomTickingBlockCount:            int                         = 0;
@@ -221,8 +222,8 @@ export class ServerChunk {
      * When unloading process has started
      */
     unloadingStartedTime:               number                      = null; // to determine when to dispose it
-    unloadedStuff:                      any[]                       = []; // everything unloaded that can be restored (drop items, mobs) in one lis
-    unloadedStuffDirty:                 boolean                     = false;
+    /** true если в выгруженным чанке есть мобы или предметы, которые нужно сохранить в БД */
+    unloadedObjectsDirty:               boolean                     = false;
     //
     pendingWorldActions:                WorldAction[] | null        = null; // World actions targeting this chunk while it was loading. Execute them as soon as it's ready.
     chunkRecord:                        ChunkRecord | null          = null;
@@ -339,7 +340,7 @@ export class ServerChunk {
             // Разошлем чанк игрокам, которые его запрашивали
             this._preloadFluidBuf = fluid;
             if(this.preq.size > 0) {
-                this.sendToPlayers(Array.from(this.preq.keys()));
+                this.sendToPlayers(this.preq.keys());
                 this.preq.clear();
             }
         };
@@ -364,10 +365,10 @@ export class ServerChunk {
         if(this.load_state < CHUNK_STATE.LOADING_BLOCKS) {
             return this.preq.set(player.session.user_id, player);
         }
-        this.sendToPlayers([player.session.user_id]);
+        this.sendToPlayers(player);
         if(this.load_state > CHUNK_STATE.LOADING_MOBS) {
-            this.sendMobs([player.session.user_id]);
-            this.sendDropItems([player.session.user_id]);
+            this.sendMobs(player)
+            this.sendDropItems(player);
         }
     }
 
@@ -379,13 +380,7 @@ export class ServerChunk {
             this.connections.delete(player.session.user_id);
             // Unload mobs for player
             // @todo перенести выгрузку мобов на сторону игрока, пусть сам их выгружает, в момент выгрузки чанков
-            if(this.mobs.size > 0) {
-                const packets = [{
-                    name: ServerClient.CMD_MOB_DELETE,
-                    data: Array.from(this.mobs.keys())
-                }];
-                this.world.sendSelected(packets, player);
-            }
+            this.sendMobsDelete(player)
             if(this.drop_items.size > 0) {
                 const packets = [{
                     name: ServerClient.CMD_DROP_ITEM_DELETED,
@@ -399,16 +394,6 @@ export class ServerChunk {
             // в следующем тике мира, он будет выгружен
             this.world.chunks.invalidate(this);
         }
-    }
-
-    // Add mob
-    addMob(mob : Mob) {
-        this.mobs.set(mob.id, mob);
-        const packets = [{
-            name: ServerClient.CMD_MOB_ADD,
-            data: [mob]
-        }];
-        this.sendAll(packets);
     }
 
     // Add drop item
@@ -430,7 +415,7 @@ export class ServerChunk {
     }
 
     // Send chunk for players
-    sendToPlayers(player_ids : int[]) {
+    sendToPlayers(player_ids : Iterable<int> | ServerPlayer): void {
         // @CmdChunkState
         const name = ServerClient.CMD_CHUNK_LOADED;
 
@@ -465,19 +450,34 @@ export class ServerChunk {
         }
     }
 
-    sendMobs(player_user_ids : int[]) {
-        // Send all mobs in this chunk
+    /** Посылает {@link ServerClient.CMD_MOB_ADD} указанным игрокам, или всем игрокам, соединенным с чанком */
+    sendMobs(players?: Iterable<int> | ServerPlayer): void {
         if (this.mobs.size < 1) {
-            return;
+            return
         }
-        let packets_mobs = [{
-            name: ServerClient.CMD_MOB_ADD,
-            data: []
-        }];
+        players ??= this.connections.keys()
+        const data = []
         for(const mob of this.mobs.values()) {
-            packets_mobs[0].data.push(mob);
+            data.push(mob.exportMobModelConstructorProps());
         }
-        this.world.sendSelected(packets_mobs, player_user_ids);
+        const packet = [{
+            name: ServerClient.CMD_MOB_ADD,
+            data
+        }]
+        this.world.sendSelected(packet, players)
+    }
+
+    /** Посылает {@link ServerClient.CMD_MOB_DELETE} указанным игрокам, или всем игрокам, соединенным с чанком */
+    sendMobsDelete(players?: Iterable<int> | ServerPlayer): void {
+        if (this.mobs.size === 0) {
+            return
+        }
+        players ??= this.connections.keys()
+        const packet = [{
+            name: ServerClient.CMD_MOB_DELETE,
+            data: Array.from(this.mobs.keys())
+        }]
+        this.world.sendSelected(packet, players)
     }
 
     sendFluid(buf) {
@@ -492,7 +492,7 @@ export class ServerChunk {
     }
 
     /** Creates a packet describing fluid at world position {@link worldPos} */
-    createFluidDeltaPacketAt(worldPos: Vector): INetworkMessage {
+    createFluidDeltaPacketAt(worldPos: IVector): INetworkMessage {
         const buf = FluidChunkQueue.packAsDelta(worldPos, this.fluid)
         return {
             name: ServerClient.CMD_FLUID_DELTA,
@@ -514,11 +514,13 @@ export class ServerChunk {
         this.sendAll(packets, []);
     }
 
-    sendDropItems(player_user_ids : int[]) {
+    /** Посылает {@link ServerClient.CMD_DROP_ITEM_ADDED} указанным игрокам, или всем игрокам, соединенным с чанком */
+    sendDropItems(player_user_ids?: Iterable<int> | ServerPlayer): void {
         // Send all drop items in this chunk
         if (this.drop_items.size < 1) {
             return;
         }
+        player_user_ids ??= this.connections.keys()
         let packets = [{
             name: ServerClient.CMD_DROP_ITEM_ADDED,
             data: []
@@ -564,7 +566,7 @@ export class ServerChunk {
             this.fluid.loadDbBuffer(this._preloadFluidBuf, true);
             this._preloadFluidBuf = null;
         }
-        this.light.init();
+        this.light.init(args.dayLightDefaultValue)
         // noinspection JSIgnoredPromiseFromCall
         this.loadMobs();
         this.onBlocksGeneratedOrRestored();
@@ -572,11 +574,13 @@ export class ServerChunk {
 
     restoreUnloaded() {
         // restore unloaded mobs and items
-        for(const stuff of this.unloadedStuff) {
-            stuff.restoreUnloaded(this);
+        for(const item of this.drop_items.values()) {
+            item.restoreUnloaded()
         }
-        this.unloadedStuff.length = 0;
-        this.unloadedStuffDirty = false;
+        for(const mob of this.mobs.values()) {
+            mob.onAddedOrRestored()
+        }
+        this.unloadedObjectsDirty = false;
 
         this.chunkManager.dataWorld.addChunk(this, true);
         this.onBlocksGeneratedOrRestored();
@@ -603,6 +607,7 @@ export class ServerChunk {
 
         // load various data in parallel
         const chunkRecordMobsPromise = this.world.db.chunks.getChunkOfChunk(this).then( async chunkRecord => {
+            const mobs = this.world.mobs
             this.chunkRecord = chunkRecord;
             this.chunkRecord.chunk = this; // some fields are taken directly from the chunk when inserting/updateing chunkRecord
             // now we can load things that required chunkRecord
@@ -610,7 +615,18 @@ export class ServerChunk {
                 this.delayedCalls.deserialize(this.chunkRecord.delayed_calls);
                 delete this.chunkRecord.delayed_calls;
             }
-            this.mobs = await this.world.db.mobs.loadInChunk(this);
+            const loadedMobs = await this.world.db.mobs.loadInChunk(this);
+            for(const [mob, driving_data] of loadedMobs) {
+                if (mobs.get(mob.id) || mobs.inactiveById.has(mob.id) || mobs.inactiveByIdBeingWritten?.has(mob.id)) {
+                    // Возможно, этот моб уже существует в мире. Например, он вышел из своего чанка в этот чанк
+                    // (еще не загруженый). Если так - он сам присоединится к нужному чанку, не создавать копию.
+                    // Не уверен возможно ли что он деактивирован, но на всякий случай проверим и это.
+                    continue
+                }
+                mob.moveToChunk(this, false) // не высылать апдейт - потом чанк вышлет его для всех мобов вместе
+                mob.onAddedOrRestored()
+                this.world.drivingManager.onParticipantLoaded(mob, driving_data)
+            }
         });
         this.drop_items = await this.world.db.loadDropItems(this.coord, this.size);
         await chunkRecordMobsPromise;
@@ -622,12 +638,8 @@ export class ServerChunk {
         const chunkManager = this.getChunkManager();
         // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
         if(this.connections.size > 0) {
-            if(this.mobs.size > 0) {
-                this.sendMobs(Array.from(this.connections.keys()));
-            }
-            if(this.drop_items.size > 0) {
-                this.sendDropItems(Array.from(this.connections.keys()));
-            }
+            this.sendMobs()
+            this.sendDropItems()
         }
         // If some delayed calls have been loaded
         if (this.delayedCalls.length) {
@@ -673,8 +685,7 @@ export class ServerChunk {
 
     //
     sendAll(packets : INetworkMessage[], except_players? : number[]) {
-        const connections = Array.from(this.connections.keys());
-        this.world.sendSelected(packets, connections, except_players);
+        this.world.sendSelected(packets, this.connections.keys(), except_players);
     }
 
     getChunkManager() : ServerChunkManager {
@@ -714,16 +725,17 @@ export class ServerChunk {
     // directly is easier and faster.
     // If the argument after the coordiantes (y or fromOtherChunks) is true,
     // it can return blocks from chunks outside its boundary.
-    getBlock(pos : number | Vector, y? : number, z? : number, resultBlock: TBlock | null = null, fromOtherChunks: boolean = false) {
+    getBlock(pos_ : number | IVector, y? : number, z? : number, resultBlock: TBlock | null = null, fromOtherChunks: boolean = false) {
         if(this.load_state !== CHUNK_STATE.READY) {
             return this.getChunkManager().DUMMY;
         }
 
-        if (typeof pos == 'number') {
-            pos = tmp_posVector.set(pos, y, z);
+        let pos: Vector
+        if (typeof pos_ == 'number') {
+            pos = tmp_posVector.set(pos_, y, z);
         } else {
             // We expect (typeof pos == 'object') here.
-            pos = tmp_posVector.initFrom(pos);
+            pos = tmp_posVector.copyFrom(pos_);
         }
         pos.flooredSelf().subSelf(this.coord);
 
@@ -1364,8 +1376,8 @@ export class ServerChunk {
     // Before unload chunk
     onUnload() {
         const chunkManager = this.getChunkManager();
-        if (!chunkManager || this.load_state !== CHUNK_STATE.READY) {
-            throw new Error(`!chunkManager || this.load_state !== CHUNK_STATE.READY ${chunkManager} ${this.load_state}`);
+        if (!chunkManager || this.load_state !== CHUNK_STATE.READY || this.connections.size) {
+            throw new Error(`!chunkManager || this.load_state !== CHUNK_STATE.READY || this.connections.size ${chunkManager} ${this.load_state}`);
         }
 
         this.unloadingStartedTime = performance.now();
@@ -1393,16 +1405,14 @@ export class ServerChunk {
         }
         // Unload mobs
         for(const mob of this.mobs.values()) {
-            this.unloadedStuff.push(mob);
-            if (mob.onUnload(this)) {
-                this.unloadedStuffDirty = true;
+            if (mob.onUnload()) {
+                this.unloadedObjectsDirty = true
             }
         }
         // Unload drop items
         for(const drop_item of this.drop_items.values()) {
-            this.unloadedStuff.push(drop_item);
             if (drop_item.onUnload()) {
-                this.unloadedStuffDirty = true;
+                this.unloadedObjectsDirty = true;
             }
         }
         if (this.dbActor.mustSaveWhenUnloading()) {

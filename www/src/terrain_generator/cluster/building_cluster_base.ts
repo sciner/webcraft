@@ -1,6 +1,5 @@
 import { DIRECTION, PerformanceTimer, Vector, VectorCollector} from "../../helpers.js";
 import { ClusterBase, ClusterPoint } from "./base.js";
-import { BUILDING_AABB_MARGIN } from "./building.js";
 import { impl as alea } from '../../../vendors/alea.js';
 import type { BuildingPalettes } from "./building/palette.js";
 import type { ClusterManager } from "./manager.js";
@@ -101,18 +100,42 @@ export class ClusterBuildingBase extends ClusterBase {
         this.timers.start('fill_blocks')
 
         // each all buildings
-        for(let b of this.buildings.values()) {
+        for(const b of this.buildings.values()) {
 
             // for old biome2 generator only
             if(calc_building_y && b.entrance.y == Infinity) {
-                b.aabb.y_min = chunk.coord.y - BUILDING_AABB_MARGIN;
-                b.aabb.y_max = b.aabb.y_min + b.size.y + BUILDING_AABB_MARGIN * 2;
-                if(b.aabb.intersect(chunk.aabb)) {
-                    b.findYOld(chunk, maps);
+                // b.aabb.y_min = chunk.coord.y - BUILDING_AABB_MARGIN;
+                // b.aabb.y_max = b.aabb.y_min + b.size.y + BUILDING_AABB_MARGIN * 2;
+                // if(chunk.addr.equal(new Vector(94756, 1, -22351))) {
+                //     if(b.id == '1516108,0,-357611') {
+                //         console.log(b.aabb.intersecXZ(chunk.aabb), b.aabb, chunk.aabb)
+                //         if(!b._debug_aabb_sent) {
+                //             b._debug_aabb_sent = true
+                //             const aabb = b.aabb.clone()
+                //             aabb.translate(0, 72, 0)
+                //             QubatchChunkWorker.postMessage(['_debug_aabb', aabb])
+                //         }
+                //     }
+                // }
+                // if(!b._debug_aabb_sent) {
+                //     b._debug_aabb_sent = true
+                //     const aabb = b.aabb.clone()
+                //     // aabb.translate(0, 72, 0)
+                //     QubatchChunkWorker.postMessage(['_debug_aabb', aabb])
+                // }
+                if(b.aabb.intersecXZ(chunk.aabb)) {
+                    b.findYOld(chunk, maps)
+                    // if(b.id == '1516108,0,-357611') {
+                    //     console.log(b.entrance.y, b.aabb.y_min, b.aabb.y_max)
+                    // }
                 }
             }
 
             if(b.entrance.y != Infinity) {
+                // if(!b._debug_aabb_sent) {
+                //     b._debug_aabb_sent = true
+                //     QubatchChunkWorker.postMessage(['_debug_aabb', b.aabb])
+                // }
                 this.drawBulding(chunk, maps, b, map)
             }
 

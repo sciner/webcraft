@@ -140,7 +140,7 @@ export class LineGeometry {
         }
     }
 
-    addLineInner(x1, y1, z1, x2, y2, z2, isLocal, lineWidth, colorBGRA) {
+    addLineInner(x1, y1, z1, x2, y2, z2, isLocal, lineWidth, colorABGR) {
         const {data, uint32View, strideFloats, pos} = this;
         let ind = (this.instances++) * strideFloats;
         if (isLocal) {
@@ -159,22 +159,22 @@ export class LineGeometry {
             data[ind++] = y2 - pos.y;
         }
         data[ind++] = lineWidth;
-        uint32View[ind++] = colorBGRA;
+        uint32View[ind++] = colorABGR;
         this.updateID++;
     }
 
     addLine(vec1, vec2, {
         isLocal = false,
         lineWidth = this.defLineWidth,
-        colorBGRA = this.defLineColor
+        colorABGR = this.defLineColor
     }) {
-        this.addLineInner(vec1.x, vec1.y, vec1.z, vec2.x, vec2.y, vec2.z, isLocal, lineWidth, colorBGRA)
+        this.addLineInner(vec1.x, vec1.y, vec1.z, vec2.x, vec2.y, vec2.z, isLocal, lineWidth, colorABGR)
     }
 
     addAABB(aabb, {
         isLocal = false,
          lineWidth = this.defAABBWidth,
-         colorBGRA = this.defAABBColor}) {
+         colorABGR = this.defAABBColor}) {
         this.ensureCapacity(12);
         for (let d1 = 0; d1 <= 1; d1++) {
             for (let d2 = 0; d2 <= 1; d2++) {
@@ -183,26 +183,26 @@ export class LineGeometry {
                 this.addLineInner(
                     x1, y2, aabb.z_min,
                     x1, y2, aabb.z_max,
-                    isLocal, lineWidth, colorBGRA
+                    isLocal, lineWidth, colorABGR
                 );
                 let z2 = d2 ? aabb.z_max : aabb.z_min;
                 this.addLineInner(
                     x1, aabb.y_min, z2,
                     x1, aabb.y_max, z2,
-                    isLocal, lineWidth, colorBGRA
+                    isLocal, lineWidth, colorABGR
                 );
                 let y1 = d1 ? aabb.y_max : aabb.y_min;
                 this.addLineInner(
                     aabb.x_min, y1, z2,
                     aabb.x_max, y1, z2,
-                    isLocal, lineWidth, colorBGRA
+                    isLocal, lineWidth, colorABGR
                 );
             }
         }
     }
 
     addBlockGrid({pos, size, isLocal = false,
-                     lineWidth = this.defGridWidth, colorBGRA = this.defGridColor}) {
+                     lineWidth = this.defGridWidth, colorABGR = this.defGridColor}) {
         this.ensureCapacity((size.x * size.y + size.x * size.z + size.y * size.z) * 2);
         let x_min = pos.x, y_min = pos.y, z_min = pos.z;
         let x_max = pos.x + size.x, y_max = pos.y + size.y, z_max = pos.z + size.z;
@@ -213,14 +213,14 @@ export class LineGeometry {
                 this.addLineInner(
                     x1, y2, z_min,
                     x1, y2, z_max,
-                    isLocal, lineWidth, colorBGRA
+                    isLocal, lineWidth, colorABGR
                 )
 
                 let z1 = pos.z + d1 * size.z;
                 this.addLineInner(
                     x_min, y2, z1,
                     x_max, y2, z1,
-                    isLocal, lineWidth, colorBGRA
+                    isLocal, lineWidth, colorABGR
                 )
             }
 
@@ -230,14 +230,14 @@ export class LineGeometry {
                 this.addLineInner(
                     x2, y1, z_min,
                     x2, y1, z_max,
-                    isLocal, lineWidth, colorBGRA
+                    isLocal, lineWidth, colorABGR
                 )
 
                 let z1 = pos.z + d1 * size.z;
                 this.addLineInner(
                     x2, y_min, z1,
                     x2, y_max, z1,
-                    isLocal, lineWidth, colorBGRA
+                    isLocal, lineWidth, colorABGR
                 )
             }
 
@@ -247,14 +247,14 @@ export class LineGeometry {
                 this.addLineInner(
                     x_min, y1, z2,
                     x_max, y1, z2,
-                    isLocal, lineWidth, colorBGRA
+                    isLocal, lineWidth, colorABGR
                 )
 
                 let x2 = pos.x + d1 * size.x;
                 this.addLineInner(
                     x2, y_min, z2,
                     x2, y_max, z2,
-                    isLocal, lineWidth, colorBGRA
+                    isLocal, lineWidth, colorABGR
                 )
             }
         }

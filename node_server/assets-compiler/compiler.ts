@@ -269,7 +269,7 @@ export class Compiler {
                                 tex[suffix.key] = img[suffix.key]
                             }
                             spritesheet.textures.set(value, tex);
-                            if(block.name == BLOCK_NAMES.GRASS_BLOCK && tid == 'side' && (property_name != 'texture_overlays')) {
+                            if(block.name == BLOCK_NAMES.GRASS_BLOCK && tid == 'side' && (property_name != 'texture_overlays') && (property_name != 'connected_sides')) {
                                 spritesheet.drawTexture(dirt_image, tex.pos.x, tex.pos.y);
                                 spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y);
                                 spritesheet.drawTexture(tex.img, tex.pos.x, tex.pos.y, false, 'difference');
@@ -387,7 +387,7 @@ export class Compiler {
 
                 await opTextures(block, 'texture', 'texture');
 
-                for(let tv of ['texture_variants', 'texture_overlays']) {
+                for(let tv of ['texture_variants', 'texture_overlays', 'connected_sides']) {
                     if(tv in block) {
                         try {
                             for(let k in block[tv]) {

@@ -375,7 +375,7 @@ export default class style {
     }
 
     // Pushes the vertices necessary for rendering a specific block into the array.
-    static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
+    static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture, neibIDs : int[] = []) {
 
         const material = block.material
 
@@ -581,7 +581,12 @@ export default class style {
         // Push vertices
         if(canDrawUP) {
             const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'up', DIRECTION_UP, null, null);
-            sides.up = _sides.up.set(t, f, anim_frames, lm, axes_up, autoUV)
+            // connected_sides
+            if(material.connected_sides) {
+                style.pushConnectedSides(bm, vertices, x, y, z, material, neighbours, t, lm, f, neibIDs)
+            } else {
+                sides.up = _sides.up.set(t, f, anim_frames, lm, axes_up, autoUV)
+            }
             // overlay textures
             if(chunk?.chunkManager?.world?.settings?.overlay_textures) {
                 emmited_blocks = []
@@ -818,6 +823,227 @@ export default class style {
 
         }
     
+    }
+    
+    static pushConnectedSides(bm : BLOCK, vertices : float[], x : float, y : float, z : float, material : IBlockMaterial, neighbours, t : float[], lm : IndexedColor, flags : int, neibIDs : int[]) {
+
+        _overlay.neightbours[0] = neighbours.WEST
+        _overlay.neightbours[1] = neighbours.SOUTH
+        _overlay.neightbours[2] = neighbours.EAST
+        _overlay.neightbours[3] = neighbours.NORTH
+
+        const sides = [false, false, false, false]
+        let cnt = 0
+
+        cnt += (sides[DIRECTION.WEST] = material.id == neighbours.WEST.id) ? 1 : 0
+        cnt += (sides[DIRECTION.SOUTH] = material.id == neighbours.SOUTH.id) ? 1 : 0
+        cnt += (sides[DIRECTION.EAST] = material.id == neighbours.EAST.id) ? 1 : 0
+        cnt += (sides[DIRECTION.NORTH] = material.id == neighbours.NORTH.id) ? 1 : 0
+
+        const pp = lm.pack()
+        const axes_up = UP_AXES[2]
+        const axes_up_quad = [
+            [
+                axes_up[0][0]/2,
+                axes_up[0][1]/2,
+                axes_up[0][2]/2,
+            ],
+            [
+                axes_up[1][0]/2,
+                axes_up[1][1]/2,
+                axes_up[1][2]/2,
+            ]
+        ]
+        const t12 = bm.calcMaterialTexture(material, DIRECTION.UP, 1, 1, undefined, undefined, undefined, '12')
+        t12[0] -= 1 / 64
+        t12[1] -= 1 / 64
+        t12[2] /= 3
+        t12[3] /= 3
+
+        const pushQ = (xx : float, zz : float, sx : float, sz : float) => {
+            xx = xx * .5 + .25
+            zz = zz * .5 + .25
+            sx /= 64
+            sz /= 64
+            vertices.push(x + xx, z + zz, y + 1, ...axes_up_quad[0], ...axes_up_quad[1], t12[0]+sz, t12[1]+sx, t12[2]/2, t12[3]/2, pp, flags)
+        }
+
+        const getNeibID = (dx : int, dz : int) => {
+            const index = 10 + (1 - dx) / 2 + (1 - dz)
+            const id = neibIDs[index]
+            // console.log(index, id)
+            return id
+        }
+
+        if(cnt == 0) {
+            pushQ(0, 1, -.25, -.25)
+            pushQ(1, 1, 2.25, -.25)
+            pushQ(0, 0, -.25, 2.25)
+            pushQ(1, 0, 2.25, 2.25)
+
+        } else if(cnt == 4) {
+            // 0
+            if(getNeibID(-1, 1) != material.id) {
+                pushQ(0, 1, 1.75, 1.75)
+            } else {
+                pushQ(0, 1, .75, .75)
+            }
+            if(getNeibID(1, 1) != material.id) {
+                pushQ(1, 1, 0.25, 1.75)
+            } else {
+                pushQ(1, 1, 1.25, .75)
+            }
+            if(getNeibID(-1, -1) != material.id) {
+                pushQ(0, 0, 1.75, .25)
+            } else {
+                pushQ(0, 0, .75, 1.25)
+            }
+            if(getNeibID(1, -1) != material.id) {
+                pushQ(1, 0, .25, .25)
+            } else {
+                pushQ(1, 0, 1.25, 1.25)
+            }
+
+        } else if(cnt == 2) {
+            // 2
+            const is_opposite = sides[DIRECTION.WEST] == sides[DIRECTION.EAST]
+            if(is_opposite)  {
+                if(!sides[DIRECTION.EAST]) {
+                    pushQ(0, 1, -.25, .75)
+                    pushQ(1, 1, 2.25, .75)
+                    pushQ(0, 0, -.25, 1.25)
+                    pushQ(1, 0, 2.25, 1.25)
+                } else {
+                    pushQ(0, 1, .75, -.25)
+                    pushQ(1, 1, 1.25, -.25)
+                    pushQ(0, 0, .75, 2.25)
+                    pushQ(1, 0, 1.25, 2.25)
+                }
+            } else {
+                if(sides[DIRECTION.EAST] && sides[DIRECTION.NORTH]) {
+                    pushQ(0, 1, -.25, 1.75)
+                    if(getNeibID(1, 1) != material.id) {
+                        pushQ(1, 1, .25, 1.75)
+                    } else {
+                        pushQ(1, 1, .25, .75)
+                    }
+                    pushQ(0, 0, -.25, 2.25)
+                    pushQ(1, 0, .25, 2.25)
+                } else if(sides[DIRECTION.WEST] && sides[DIRECTION.NORTH]) {
+                    if(getNeibID(-1, 1) != material.id) {
+                        pushQ(0, 1, 1.75, 1.75)
+                    } else {
+                        pushQ(0, 1, .75, .75)
+                    }
+                    pushQ(1, 1, 2.25, 1.75)
+                    pushQ(0, 0, 1.75, 2.25)
+                    pushQ(1, 0, 2.25, 2.25)
+                } else if(sides[DIRECTION.WEST] && sides[DIRECTION.SOUTH]) {
+                    pushQ(0, 1, .75, -.25)
+                    pushQ(1, 1, 2.25, -.25)
+                    if(getNeibID(-1, -1) != material.id) {
+                        pushQ(0, 0, 1.75, 0.25)
+                    } else {
+                        pushQ(0, 0, 0.75, 1.25)
+                    }
+                    pushQ(1, 0, 2.25, .25)
+                } else if(sides[DIRECTION.EAST] && sides[DIRECTION.SOUTH]) {
+                    pushQ(0, 1, -.25, -.25)
+                    pushQ(1, 1, .25, -.25)
+                    pushQ(0, 0, -.25, .25)
+                    if(getNeibID(1, -1) != material.id) {
+                        pushQ(1, 0, .25, .25)
+                    } else {
+                        pushQ(1, 0, 1.25, 1.25)
+                    }
+                }
+            }
+        } else if(cnt == 1) {
+            // 3
+            if(sides[DIRECTION.NORTH]) {
+                pushQ(0, 1, -.25, 1.75)
+                pushQ(1, 1, 2.25, 1.75)
+                pushQ(0, 0, -.25, 2.25)
+                pushQ(1, 0, 2.25, 2.25)
+            } else if(sides[DIRECTION.SOUTH]) {
+                pushQ(0, 1, -.25, -.25)
+                pushQ(1, 1, 2.25, -.25)
+                pushQ(0, 0, -.25, .25)
+                pushQ(1, 0, 2.25, 0.25)
+            } else if(sides[DIRECTION.EAST]) {
+                pushQ(0, 1, -.25, -.25)
+                pushQ(1, 1, .25, -.25)
+                pushQ(0, 0, -.25, 2.25)
+                pushQ(1, 0, .25, 2.25)
+            } else {
+                pushQ(0, 1, 1.75, -.25)
+                pushQ(1, 1, 2.25, -.25)
+                pushQ(0, 0, 1.75, 2.25)
+                pushQ(1, 0, 2.25, 2.25)
+            }
+        } else if(cnt == 3) {
+            // 1
+            if(!sides[DIRECTION.NORTH]) {
+                pushQ(0, 1, .75, -.25)
+                pushQ(1, 1, 1.25, -.25)
+                //
+                if(getNeibID(-1, -1) != material.id) {
+                    pushQ(0, 0, 1.75, 0.25)
+                } else {
+                    pushQ(0, 0, .75, .25)
+                }
+                if(getNeibID(1, -1) != material.id) {
+                    pushQ(1, 0, .25, 0.25)
+                } else {
+                    pushQ(1, 0, 1.25, .25)
+                }
+            } else if(!sides[DIRECTION.SOUTH]) {
+                if(getNeibID(-1, 1) != material.id) {
+                    pushQ(0, 1, 1.75, 1.75)
+                } else {
+                    pushQ(0, 1, .75, 1.75)
+                }
+                if(getNeibID(1, 1) != material.id) {
+                    pushQ(1, 1, .25, 1.75)
+                } else {
+                    pushQ(1, 1, 1.25, 1.75)
+                }
+                pushQ(0, 0, .75, 2.25)
+                pushQ(1, 0, 1.25, 2.25)
+            } else if(!sides[DIRECTION.EAST]) {
+                //
+                if(getNeibID(-1, 1) != material.id) {
+                    pushQ(0, 1, 1.75, 1.75)
+                } else {
+                    pushQ(0, 1, 1.75, 0.75)
+                }
+                if(getNeibID(-1, -1) != material.id) {
+                    pushQ(0, 0, 1.75, 0.25)
+                } else {
+                    pushQ(0, 0, 1.75, 1.25)
+                }
+                // 
+                pushQ(1, 1, 2.25, 0.75)
+                // 
+                pushQ(1, 0, 2.25, 1.25)
+            } else if(!sides[DIRECTION.WEST]) {
+                pushQ(0, 1, -.25, .75)
+                if(getNeibID(1, 1) != material.id) {
+                    pushQ(1, 1, .25, 1.75)
+                } else {
+                    pushQ(1, 1, 1.25, .75)
+                }
+                pushQ(0, 0, -.25, 1.25)
+                // 
+                if(getNeibID(1, -1) != material.id) {
+                    pushQ(1, 0, .25, .25)
+                } else {
+                    pushQ(1, 0, 1.25, 1.25)
+                }
+            }
+
+        }
+
     }
 
 }

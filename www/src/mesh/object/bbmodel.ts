@@ -5,7 +5,7 @@ import { Mesh_Object_Base } from './base.js';
 import { Resources } from '../../resources.js';
 import type { BBModel_Model } from '../../bbmodel/model.js';
 import type { BaseResourcePack } from '../../base_resource_pack.js';
-import type { BBModel_Group } from '../../bbmodel/group.js';
+import { BBModel_Group } from '../../bbmodel/group.js';
 import type Mesh_Object_Block_Drop from './block_drop.js';
 import type { Renderer } from '../../render.js';
 
@@ -172,18 +172,14 @@ class MeshObjectModifiers {
     private _destroyParentGroupGeom(group_name : string) {
         const mesh = this.mesh
         let group : any = mesh.model.groups.get(group_name)
-        if(!group.isBone()) {
+        if(group && !group.isBone()) {
             mesh.vertices_pushed.delete(group.name)
             while(true) {
                 group = group.parent
                 if(group) {
                     mesh.vertices_pushed.delete(group.name)
                     if(group.isBone()) {
-                        const geom = mesh.geometries.get(group.name)
-                        if(geom) {
-                            geom.destroy()
-                            mesh.geometries.delete(group.name)
-                        }
+                        mesh.deleteGeometry(group.name)
                         break
                     }
                 }
@@ -242,8 +238,6 @@ class MeshObjectModifiers {
 
 // Mesh_Object_BBModel
 export class Mesh_Object_BBModel extends Mesh_Object_Base {
-    // [key: string]: any
-
     model:              BBModel_Model
     geometries:         Map<string, GeometryTerrain> = new Map()
     vertices_pushed:    Map<string, boolean> = new Map()
@@ -394,6 +388,29 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         }
         this.geometries.clear()
         this.modifiers.destroy()
+    }
+
+    deleteGeometry(group_name: string) {
+        const geom = this.geometries.get(group_name)
+        if(geom) {
+            geom.destroy()
+            this.geometries.delete(group_name)
+        }
+        const group = this.model.groups.get(group_name)
+        if(group) {
+            const recvDeleteVertices = (group : BBModel_Group) => {
+                for(const g of group.children) {
+                    if(g instanceof BBModel_Group) {
+                        if(g.isBone()) {
+                            return
+                        }
+                        recvDeleteVertices(g)
+                    }
+                    this.vertices_pushed.delete(g.name)
+                }
+            }
+            recvDeleteVertices(group)
+        }
     }
 
     get isAlive() : boolean {

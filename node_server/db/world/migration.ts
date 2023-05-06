@@ -1007,6 +1007,15 @@ export class DBWorldMigration {
             `UPDATE entity SET skin = 'npc_10.png' WHERE skin = '10';`,
         ]});
 
+        migrations.push({version: 100, queries: [
+            `CREATE TABLE "driving" (
+              "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+              "data" TEXT NOT NULL
+            );`,
+            `ALTER TABLE entity ADD COLUMN driving_id INTEGER DEFAULT NULL;`,
+            `ALTER TABLE user   ADD COLUMN driving_id INTEGER DEFAULT NULL;`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

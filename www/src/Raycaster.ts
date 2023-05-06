@@ -1,6 +1,10 @@
 import { Vector } from "./helpers.js";
 import { ALLOW_NEGATIVE_Y } from "./chunk_const.js";
 import type { AABB } from "./core/AABB.js";
+import type {World} from "./world.js";
+import type {BLOCK} from "./blocks.js";
+import type {MobModel} from "./mob_model.js";
+import type {PlayerModel} from "./player_model.js";
 
 const INF = 100000.0;
 const eps = 1e-3;
@@ -64,19 +68,24 @@ export class RaycasterResult {
 }
 
 export class Raycaster {
-    [key: string]: any;
+    private world   : World
+    private BLOCK   : BLOCK
+    private _dir    = new Vector(0, 0, 0)
+    private _pos    = new Vector(0, 0, 0)
+    private _blk    = new Vector(0, 0, 0)
+    private _block_vec: Vector
+    origin
+    direction
 
     constructor(world) {
         this.world = world;
         this.BLOCK = world.block_manager;
-        this._dir = new Vector(0, 0, 0);
-        this._pos = new Vector(0, 0, 0);
-        this._blk = new Vector(0, 0, 0);
     }
 
     getFromView(pos: IVector, invViewMatrix: number[], distance: float,
                 callback: ((res: RaycasterResult | null) => void) | null = null,
-                ignore_transparent: boolean = false, return_fluid: boolean = false
+                ignore_transparent: boolean = false, return_fluid: boolean = false,
+                exceptPlayerOrMob?: any
     ): RaycasterResult | null {
         this._dir.x = -invViewMatrix[8];
         this._dir.y = -invViewMatrix[10];
@@ -86,7 +95,7 @@ export class Raycaster {
             return null;
         }
         this._dir.normSelf();
-        return this.get(pos, this._dir, distance, callback, ignore_transparent, return_fluid);
+        return this.get(pos, this._dir, distance, callback, ignore_transparent, return_fluid, exceptPlayerOrMob);
     }
 
     // intersectSphere...
@@ -129,31 +138,28 @@ export class Raycaster {
         return tmin >= 0 ? tmin : tmax;
     }
 
-    // Mob raycaster
-    intersectMob(pos, dir, max_distance) {
+    /**
+     * Mob raycaster
+     * @param exceptPlayerOrMob - ссылка на объект (ServerPlayer, Mob или MobModel, который нужно игнорировать)
+     */
+    intersectMob(pos: IVector, dir: IVector, max_distance: number, exceptPlayerOrMob?: any): { mob_distance: number, mob: MobModel | null } {
         const resp = {
-            mob_distance: null,
+            mob_distance: Infinity,
             mob: null
         };
         if(this.world?.mobs) {
             for(const mob of this.world.mobs.list.values()) {
                 mob.raycasted = false;
-                if(!mob.aabb || !mob.isAlive) {
+                if(!mob.aabb || !mob.isAlive || mob === exceptPlayerOrMob) {
                     continue
                 }
-                // @todo костыль, на сервере нет tPos
-                const tPos = mob?.tPos ? mob.tPos : mob.pos
+                const tPos = mob.pos
                 if(tPos.distance(pos) > max_distance) {
                     continue
                 }
                 if(this.intersectBox(mob.aabb, pos, dir)) {
                     const dist = tPos.distance(pos);
-                    if(resp.mob) {
-                        if(dist < resp.mob_distance) {
-                            resp.mob = mob;
-                            resp.mob_distance = dist;
-                        }
-                    } else {
+                    if(dist < resp.mob_distance) {
                         resp.mob = mob;
                         resp.mob_distance = dist;
                     }
@@ -163,31 +169,28 @@ export class Raycaster {
         return resp;
     }
 
-    // Player raycaster
-    intersectPlayer(pos : IVector, dir : IVector, max_distance : number) {
+    /**
+     * Player raycaster
+     * @param exceptPlayerOrMob - ссылка на объект (ServerPlayer, Mob или MobModel, который нужно игнорировать)
+     */
+    intersectPlayer(pos : IVector, dir : IVector, max_distance : number, exceptPlayerOrMob?: any): { player_distance: number, player: PlayerModel | null } {
         const resp = {
-            player_distance: null,
+            player_distance: Infinity,
             player: null
         };
         if(this.world?.players) {
             for (const player of this.world.players.list.values()) {
                 player.raycasted = false;
-                if(!player.aabb || !player.isAlive) {
+                if(!player.aabb || !player.isAlive || player === exceptPlayerOrMob) {
                     continue;
                 }
-                // @todo костыль, на сервере нет tPos
-                const tPos = player?.tPos ? player.tPos : player.state.pos
+                const tPos = player.pos ?? (player as any).state.pos // player может быть ServerPlayer
                 if(tPos.distance(pos) > max_distance) {
                     continue;
                 }
                 if(this.intersectBox(player.aabb, pos, dir)) {
                     const dist = tPos.distance(pos);
-                    if(resp.player) {
-                        if(dist < resp.player_distance) {
-                            resp.player = player;
-                            resp.player_distance = dist;
-                        }
-                    } else {
+                    if(dist < resp.player_distance) {
                         resp.player = player;
                         resp.player_distance = dist;
                     }
@@ -197,9 +200,13 @@ export class Raycaster {
         return resp;
     }
 
+    /**
+     * @param exceptPlayerOrMob - ссылка на объект (ServerPlayer, Mob или MobModel, который нужно игнорировать)
+     */
     get(origin : IVector, dir : IVector, pickat_distance : number,
         callback : ((res: RaycasterResult | null) => void) | null = null,
-        ignore_transparent : boolean = false, return_fluid : boolean = false
+        ignore_transparent : boolean = false, return_fluid : boolean = false,
+        exceptPlayerOrMob?: any
     ) : RaycasterResult | null {
 
         // const origin_block_pos = new Vector(origin).flooredSelf();
@@ -324,7 +331,7 @@ export class Raycaster {
             }
         }
 
-        const {mob_distance, mob} = this.intersectMob(origin, dir, pickat_distance);
+        const {mob_distance, mob} = this.intersectMob(origin, dir, pickat_distance, exceptPlayerOrMob);
         if (mob) {
             if (res) {
                 const res_vec = new Vector(res.x + .5, res.y + .5, res.z + .5);
@@ -340,7 +347,7 @@ export class Raycaster {
             }
         }
 
-        const {player_distance, player} = this.intersectPlayer(origin, dir, pickat_distance);
+        const {player_distance, player} = this.intersectPlayer(origin, dir, pickat_distance, exceptPlayerOrMob);
         if (player) {
             if(res) {
                 const res_vec = new Vector(res.x + .5, res.y + .5, res.z + .5);

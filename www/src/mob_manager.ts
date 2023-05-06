@@ -1,28 +1,29 @@
 import { Vector } from "./helpers.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
-import { MobModel } from "./mob_model.js";
+import {MobModel} from "./mob_model.js";
 import { Resources } from "./resources.js";
 import { ServerClient } from "./server_client.js";
-import type { PlayerSkin } from "./player.js";
+import type {Indicators, PlayerSkin} from "./player.js";
 import type { World } from "./world.js";
 
 export declare type TMobProps = {
-    health?:        float
-    username?:      any
+    health?:        float       // не определено для моба
+    username?:      string      // не определено для моба
     id:             int
-    type:           string
+    type?:          string
     name?:          string
-    indicators:     any
-    width:          float
-    height:         float
-    pos:            Vector
-    rotate:         Vector
-    pitch:          float
-    yaw:            float
+    indicators?:    Indicators  // не определено для игрока
+    width?:         float       // не определено для игрока
+    height?:        float       // не определено для игрока
+    pos:            IVector
+    rotate?:        IVector     // не определено для игрока
+    pitch?:         float
+    yaw?:           float
     skin?:          PlayerSkin // | string
-    skin_id?:       string
-    extra_data?:    any
+    extra_data?:    Dict | null
     hands?:         any
+    hasUse?:        boolean     // не определено для игрока, см. TMobConfig.hasUse
+    supportsDriving?: boolean   // не определено для игрока
 }
 
 export class MobManager {
@@ -62,7 +63,7 @@ export class MobManager {
             this.#world.server.AddCmdListener([ServerClient.CMD_MOB_ADD, ServerClient.CMD_MOB_DELETE, ServerClient.CMD_MOB_UPDATE], (cmd) => {
                 switch(cmd.name) {
                     case ServerClient.CMD_MOB_ADD: {
-                        for(let mob of cmd.data) {
+                        for(const mob of cmd.data) {
                             // console.log('Mob added: ' + mob.id, mob.pos);
                             this.add(mob);
                         }
@@ -84,9 +85,12 @@ export class MobManager {
                                         extra_data: cmd.data[i + 5],
                                         time: cmd.time
                                     };
-                                    mob.applyNetState(new_state);
+                                    mob.applyNetState(new_state)
+                                    if (new_state?.extra_data) {
+                                        mob.health = new_state.extra_data.health
+                                    }
                                     // частицы смерти
-                                    if (new_state.extra_data && !new_state.extra_data.is_alive) {
+                                    if (new_state.extra_data && new_state.extra_data.health == 0 && new_state.extra_data.play_death_animation) {
                                         Qubatch.render.addParticles({type: 'cloud', pos: new_state.pos});
                                     }
                                 } else {
@@ -94,7 +98,7 @@ export class MobManager {
                                 }
                             }
                         } else {
-                            let mob = this.list.get(cmd.data.id);
+                            const mob = this.list.get(cmd.data.id);
                             if(mob) {
                                 mob.applyNetState({
                                     pos: cmd.data.pos,
@@ -108,7 +112,7 @@ export class MobManager {
                         break;
                     }
                     case ServerClient.CMD_MOB_DELETE: {
-                        for(let mob_id of cmd.data) {
+                        for(const mob_id of cmd.data) {
                             this.delete(mob_id);
                         }
                         break;
@@ -121,40 +125,35 @@ export class MobManager {
 
     // add
     add(data : TMobProps) {
-        const mob = new MobModel({
-            id:             data.id,
-            type:           data.type,
-            name:           data.name,
-            indicators:     data.indicators,
-            width:          data.width,
-            height:         data.height,
-            pos:            data.pos,
-            rotate:         data.rotate,
-            pitch:          data.rotate.x,
-            yaw:            data.rotate.z,
-            skin:           data.skin,
-            extra_data:     data.extra_data || null
-        } as TMobProps, this.#world)
+        // Сервер присылает CMD_MOB_ADD для уже существующих мобов. Не создавать повторно.
+        let mob = this.list.get(data.id)
+        if (mob) {
+            return
+        }
+
+        data.pitch  = data.rotate.x
+        data.yaw    = data.rotate.z
+        data.extra_data ??= null
+        mob = new MobModel(data, this.#world)
 
         mob.pos.y += 1/200
 
         this.list.set(data.id, mob)
+        this.#world.drivingManager.onMobModelAdded(mob)
     }
 
     // get
-    get(id) {
-        if(!this.list.has(id)) {
-            return null;
-        }
-        return this.list.get(id);
+    get(id: int): MobModel | null {
+        return this.list.get(id) ?? null;
     }
 
     // delete
-    delete(id) {
+    delete(id: int): void {
         const mob = this.list.get(id);
         if(mob) {
             mob.onUnload();
             this.list.delete(id);
+            mob.driving?.onModelDeleted(mob)
         }
     }
 
@@ -163,7 +162,7 @@ export class MobManager {
         for(const mob of this.list.values()) {
             if(Math.random() < .01) {
                 const effect = Math.random() > .75 ? 'idle' : 'step';
-                if(Qubatch.sounds.play('madcraft:block.' + mob.type, effect, mob._pos)) {
+                if(Qubatch.sounds.play('madcraft:block.' + mob.type, effect, mob.pos)) {
                     break;
                 }
             }

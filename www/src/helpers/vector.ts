@@ -13,6 +13,7 @@ export class Vector implements IVector {
     static ZN = new Vector(0.0, 0.0, -1.0);
     static ZP = new Vector(0.0, 0.0, 1.0);
     static ZERO = new Vector(0.0, 0.0, 0.0);
+    static INFINITY = new Vector(Infinity, Infinity, Infinity);
 
     static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
     static DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP]
@@ -409,6 +410,13 @@ export class Vector implements IVector {
         return new Vector(this.x + x, this.y + y, this.z + z);
     }
 
+    offsetSelf(x: number, y: number, z: number) : Vector {
+        this.x += x
+        this.y += y
+        this.z += z
+        return this
+    }
+
     floored() : Vector {
         return new Vector(
             Math.floor(this.x),
@@ -450,7 +458,7 @@ export class Vector implements IVector {
         return this;
     }
 
-    set(x: Vector | IVector | number[] | number, y: number, z: number) : this {
+    set(x: Vector | IVector | number[] | number, y?: number, z?: number) : this {
         if (x && typeof x == 'object') {
             return this.copy(x);
         }

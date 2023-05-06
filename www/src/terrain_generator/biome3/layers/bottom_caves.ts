@@ -1,24 +1,20 @@
-// import { impl as alea, noise } from "../../../../vendors/alea.js";
 import {noise, alea} from "../../default.js";
-import type { BLOCK } from "../../../blocks.js";
-import { BLOCK_FLAG } from "../../../constant.js";
-import type { ChunkGrid } from "../../../core/ChunkGrid.js";
+import { BLOCK_FLAG, DAYLIGHT_VALUE } from "../../../constant.js";
 import { CubeSym } from "../../../core/CubeSym.js";
-import { IndexedColor, Vector } from "../../../helpers.js";
-import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
-import type { WorkerWorld } from "../../../worker/world.js";
 import { ClusterEndCity } from "../../cluster/end_city.js";
 import { ClusterManager } from "../../cluster/manager.js";
 import { TerrainMapCell } from "../../terrain_map.js";
-import type { Biome } from "../biomes.js";
-import type Terrain_Generator from "../index.js";
 import { TerrainMapManagerBase } from "../terrain/manager_base.js";
 import { Biome3TerrainMap } from "../terrain/map.js";
 import { Biome3LayerBase } from "./base.js";
-import { createNoise2D, createNoise3D } from '../../../../vendors/simplex-noise.js';
-
-const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
-const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();
+import {  createNoise3D } from '../../../../vendors/simplex-noise.js';
+import { Vector } from "../../../helpers.js";
+import type { BLOCK } from "../../../blocks.js";
+import type { ChunkGrid } from "../../../core/ChunkGrid.js";
+import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
+import type { WorkerWorld } from "../../../worker/world.js";
+import type { Biome } from "../biomes.js";
+import type Terrain_Generator from "../index.js";
 
 const rotates = [
     new Vector(CubeSym.ROT_Z, 0, 0),
@@ -39,7 +35,6 @@ const sides = [
 ];
 
 //
-const ABS_STONE                 = 16;
 const MOSS_HUMIDITY             = .75;
 const AMETHYST_ROOM_RADIUS      = 6;
 const AMETHYST_CLUSTER_CHANCE   = 0.1;
@@ -52,7 +47,7 @@ class BottomCavesMapManager extends TerrainMapManagerBase {
 
     constructor(world: WorkerWorld, seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer : Biome3LayerBottomCaves) {
         super(world, seed, world_id, noise2d, noise3d, block_manager, generator_options, layer)
-        this._biome = this.biomes.byName.get('Эреб')
+        this._biome = this.biomes.byName.get('Пещеры нижнего мира')
     }
 
     // generate map
@@ -121,7 +116,8 @@ class BottomCavesMapManager extends TerrainMapManagerBase {
 
 export default class Biome3LayerBottomCaves extends Biome3LayerBase {
 
-    filter_biome_list: int[] = [501]
+    filter_biome_list: int[] = [502]
+    dayLightDefaultValue: int = DAYLIGHT_VALUE.NONE
     grid: ChunkGrid
     biome: any
     n3d: Function

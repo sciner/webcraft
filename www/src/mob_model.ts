@@ -2,7 +2,7 @@ import { Resources } from "./resources.js";
 import { Color, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { AABBDrawable, NetworkPhysicObject } from './network_physic_object.js';
-import { MOB_TYPE, MOUSE } from "./constant.js";
+import { MOB_TYPE } from "./constant.js";
 import { Mesh_Object_MobFire } from "./mesh/object/mob_fire.js";
 import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
@@ -10,9 +10,11 @@ import type { ArmorState, TAnimState, TSittingState, TSleepState } from "./playe
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import type { TMobProps } from "./mob_manager.js";
 import type { Mesh_Object_Base } from "./mesh/object/base.js";
-import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import type {ClientDriving} from "./control/driving.js";
 
-const {mat4} = glMatrix
+const MAX_CHESTPLATE_COUNT = 6
+const MAX_LEG_COUNT = 10
+const MAX_BOOTS_COUNT = 10
 
 // Анимация повороа говоры отдельно от тела, нужно перенести в bbmodel
 // head({part, index, delta, animable, camPos}) {
@@ -41,6 +43,7 @@ const {mat4} = glMatrix
 // }
 
 export class MobModel extends NetworkPhysicObject {
+    id:                 int
 	texture :           any = null
 	material :          any = null
 	raycasted :         boolean = false
@@ -50,8 +53,6 @@ export class MobModel extends NetworkPhysicObject {
 	width :             int = 0
 	height :            int = 0
 	//on_ground :         boolean = true
-	tintColor :         Color = new Color(0, 0, 0, 0)
-	textures :          Map<string, any> = new Map()
 	type :              string
 	skin :              any
 	targetLook :        float = 0
@@ -72,32 +73,41 @@ export class MobModel extends NetworkPhysicObject {
                             skin: null,
                             backpack: null
                         }
-    extra_data:         any
     slots:              any
-    tmpDrawPos:         any
-    yaw:                float
+    tmpDrawPos?:        Vector
+    drawPos?:           Vector
     draw_yaw?:          float
     sleep?:             false | TSleepState
     sitting?:           false | TSittingState
     aabb:               AABBDrawable = null
     _mesh:              Mesh_Object_BBModel
     _fire_mesh:         any
-    anim?:              false | TAnimState 
+    anim?:              false | TAnimState
     ground:             boolean = true
     running:            boolean = false
-    health:             number = 100
+    driving?:           ClientDriving | null
+    hasUse?:            boolean     // см. TMobConfig.hasUse
+    supportsDriving?:   boolean
+    textures :          Map<string, any> = new Map()
 
     is_sheared:         boolean = false
     gui_matrix:         float[]
+    renderLast:         boolean
+
+    #health: number = 100
+    #timer_demage: number
 
     constructor(props : TMobProps, world : World) {
 
-        super(world, new Vector(0, 0, 0), new Vector(0, 0, 0))
+        super(world, new Vector(props.pos), new Vector(props.rotate))
 
         Object.assign(this, props)
+        this.updateAABB()   // у моба, который не движется, может долго автоматически не обновляться AABB
 
         this.type = props.skin.model_name
         this.skin = props.skin
+
+        this.renderLast = (this.type === MOB_TYPE.BOAT) // рисовать лодку после всех для спец. реима воды
 
         // load mesh
         const render = Qubatch.render as Renderer
@@ -113,6 +123,43 @@ export class MobModel extends NetworkPhysicObject {
 
     }
 
+    /** Мы не можем использовать в этом файле instanceof PlayerModel, т.к. не можем его испортировать из-за циклической зависимости*/
+    get isPlayer(): boolean { return (this as any).username != null }
+
+    /**
+     * Семантика переопредленного метода:
+     * 1. Если нет вождения, или в нем не хвататет главного участника, то просто вызывается родительский метод.
+     * 2. Иначе:
+     * 2.1 Если эта модель задает позиции другим, то вызвать родительский метод и обновить другие модели на основе этой этой
+     * 2.2 Если есть кто-то другой главный в вождении (другая модель или свой игрок), то ничего не происходит
+     */
+    processNetState(): void {
+        const driving = this.driving
+        if (driving) {
+            const positionProvider = driving.getPositionProvider()
+            if (positionProvider === this) {
+                // обработать новую позицию, и применить ее ко всем участникам движения
+                super.processNetState()
+                driving.updateInterpolatedStateFromVehicle(this)
+                driving.applyInterpolatedStateToDependentParticipants()
+                return
+            } else if (positionProvider) {
+                // есть кто-то другой, кто задает позицию этой модели; обработать только extra_data, если оно есть
+                this.forceLocalUpdate(null, null)
+                return
+            }
+            // нет никого другого, кто задает позицию этой модели; обработать ее как обычно
+        }
+        super.processNetState()
+    }
+
+    set health(val: number) {
+        if (this.#health - val > 0) {
+            this.#timer_demage = performance.now() + 200
+        }
+        this.#health = val
+    }
+
     isRenderable(render: Renderer) : boolean {
         return (
              !this.currentChunk ||
@@ -121,31 +168,7 @@ export class MobModel extends NetworkPhysicObject {
     }
 
     get isAlive() : boolean {
-        return this.extra_data?.is_alive;
-    }
-
-    // ударить кулаком
-    punch(e) {
-        if(!this.isAlive) {
-            return false;
-        }
-        if(e.button_id == MOUSE.BUTTON_LEFT) {
-            // play punch
-            Qubatch.sounds.play('madcraft:block.player', 'strong_atack');
-            // play mob cry
-            //let tag = `madcraft:block.${this.type}`;
-            //if(Qubatch.sounds.tags.hasOwnProperty(tag)) {
-            //    Qubatch.sounds.play(tag, 'hurt');
-            //}
-            // make red
-            this.tintColor.set(1, 0, 0, .3);
-            setTimeout(() => {
-                this.tintColor.set(0, 0, 0, 0);
-            }, 200);
-            // add velocity
-            // let velocity = new Vector(0, 0.5, 0);
-            // mob.addVelocity(velocity);
-        }
+        return this.#health > 0
     }
 
     computeLocalPosAndLight(render : Renderer, delta : float) {
@@ -155,10 +178,15 @@ export class MobModel extends NetworkPhysicObject {
         this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend)
 
         const mesh = this._mesh
-        if(mesh && this.lightTex) {
+        if(mesh) {
             // mesh.gl_material.changeLighTex(this.lightTex)
             // mesh.gl_material.lightTex = this.lightTex
-            mesh.gl_material.tintColor = this.tintColor
+            if (this.#timer_demage > performance.now()) {
+                mesh.gl_material.tintColor = new Color(1, 0, 0, .3)
+            } else {
+                mesh.gl_material.tintColor = new Color(0, 0, 0, 0)
+            }
+
         }
 
         // if (this.material) {
@@ -181,7 +209,8 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         const yaw = this.yaw;
-        if(typeof this.draw_yaw == 'undefined') {
+        if(typeof this.draw_yaw == 'undefined' || this.driving?.isModelDependent(this)) {
+            // если эта модель зависит от вождения, то использовать ее yaw без дополнительных изменений, чтобы не отличался от связанных моделей
             this.draw_yaw = yaw
         } else {
             this.draw_yaw %= Math.PI * 2;
@@ -213,6 +242,9 @@ export class MobModel extends NetworkPhysicObject {
      * Draw mob model
      */
     draw(render : Renderer, camPos : Vector, delta : float, speed? : float, draw_debug_grid : boolean = false) {
+        if(!this.isAlive) {
+            return false
+        }
 
         this.update(render, camPos, delta, speed);
 
@@ -230,7 +262,7 @@ export class MobModel extends NetworkPhysicObject {
 
         // Draw AABB wireframe
         if(this.aabb && draw_debug_grid) {
-            this.aabb.draw(render, this.tPos, delta, true /*this.raycasted*/ );
+            this.aabb.draw(render, this.pos, delta, true /*this.raycasted*/ );
         }
 
         const mesh = this._mesh
@@ -240,8 +272,11 @@ export class MobModel extends NetworkPhysicObject {
             if(!mesh.apos) {
                 debugger
             }
-            mesh.apos.copyFrom(this._pos)
+            mesh.apos.copyFrom(this.pos)
             mesh.drawBuffered(render, delta)
+            if(mesh.gl_material.tintColor) {
+                mesh.gl_material.tintColor.set(0, 0, 0, 0)
+            }
         }
     }
 
@@ -260,8 +295,10 @@ export class MobModel extends NetworkPhysicObject {
             mesh.rotation[2] = rot % Math.PI ? rot : rot + Math.PI
             mesh.setAnimation('sleep')
         } else {
-            mesh.rotation[2] = this.draw_yaw ? this.draw_yaw : 0
-            if (this.sitting) {
+            mesh.rotation[2] = this.draw_yaw ?? 0
+            if (this.driving && this !== this.driving.getVehicleModel()) {
+                mesh.setAnimation(this.driving.config.driverAnimation ?? 'sitting')
+            } else if (this.sitting) {
                 mesh.setAnimation('sitting')
             } else if (!this.ground) {
                 mesh.setAnimation('jump')
@@ -282,7 +319,7 @@ export class MobModel extends NetworkPhysicObject {
             }
         }
     }
-    
+
     updateArmor() {
         Qubatch.player.updateArmor()
     }
@@ -329,6 +366,7 @@ export class MobModel extends NetworkPhysicObject {
 
         const block = Qubatch.world.block_manager
 
+        // helmet
         if (armor.head != this.prev.head) {
             if (armor.head) {
                 const item = block.fromId(armor.head)
@@ -340,51 +378,55 @@ export class MobModel extends NetworkPhysicObject {
             this.prev.head = armor.head
         }
 
+        // chestplates
         if (armor.body != this.prev.body) {
             if (armor.body) {
                 const item = block.fromId(armor.body)
-                for (let i = 0; i < 6; i++) {
-                    this._mesh.modifiers.replaceGroup('chestplate' + i, item.model.name, item.model.texture)
-                    this._mesh.modifiers.showGroup('chestplate' + i)
+                for (let i = 0; i < MAX_CHESTPLATE_COUNT; i++) {
+                    this._mesh.modifiers.replaceGroup(`chestplate${i}`, item.model.name, item.model.texture)
+                    this._mesh.modifiers.showGroup(`chestplate${i}`)
                 }
             } else {
-                for (let i = 0; i < 6; i++) {
-                    this._mesh.modifiers.hideGroup('chestplate' + i)
+                for (let i = 0; i < MAX_CHESTPLATE_COUNT; i++) {
+                    this._mesh.modifiers.hideGroup(`chestplate${i}`)
                 }
             }
             this.prev.body = armor.body
         }
 
+        // pants
         if (armor.leg != this.prev.leg) {
             if (armor.leg) {
                 const item = block.fromId(armor.leg)
-                for (let i = 0; i < 10; i++) {
-                    this._mesh.modifiers.replaceGroup('pants' + i, item.model.name, item.model.texture)
-                    this._mesh.modifiers.showGroup('pants' + i)
+                for (let i = 0; i < MAX_LEG_COUNT; i++) {
+                    this._mesh.modifiers.replaceGroup(`pants${i}`, item.model.name, item.model.texture)
+                    this._mesh.modifiers.showGroup(`pants${i}`)
                 }
             } else {
-                for (let i = 0; i < 10; i++) {
-                    this._mesh.modifiers.hideGroup('pants' + i)
+                for (let i = 0; i < MAX_LEG_COUNT; i++) {
+                    this._mesh.modifiers.hideGroup(`pants${i}`)
                 }
             }
             this.prev.leg = armor.leg
         }
 
+        // boots
         if (armor.boot != this.prev.boot) {
             if (armor.boot) {
                 const item = block.fromId(armor.boot)
-                for (let i = 0; i < 10; i++) {
-                    this._mesh.modifiers.replaceGroup('boots' + i, item.model.name, item.model.texture)
-                    this._mesh.modifiers.showGroup('boots' + i)
+                for (let i = 0; i < MAX_BOOTS_COUNT; i++) {
+                    this._mesh.modifiers.replaceGroup(`boots${i}`, item.model.name, item.model.texture)
+                    this._mesh.modifiers.showGroup(`boots${i}`)
                 }
             } else {
-                for (let i = 0; i < 10; i++) {
-                    this._mesh.modifiers.hideGroup('boots' + i)
+                for (let i = 0; i < MAX_BOOTS_COUNT; i++) {
+                    this._mesh.modifiers.hideGroup(`boots${i}`)
                 }
             }
             this.prev.boot = armor.boot
         }
 
+        // backpack
         if (armor.backpack != this.prev.backpack) {
             if (armor.backpack) {
                 const item = block.fromId(armor.backpack)

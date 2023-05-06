@@ -335,11 +335,14 @@ export class ChunkDBActor {
         }
 
         if (chunk && chunk.load_state >= CHUNK_STATE.READY) {
-            if (chunk.unloadedStuffDirty) {
-                for(const stuff of chunk.unloadedStuff) {
-                    stuff.writeToWorldTransaction(uc, true);
+            if (chunk.unloadedObjectsDirty) {
+                for(const mob of chunk.mobs.values()) {
+                    mob.writeToWorldTransaction(uc, true)
                 }
-                chunk.unloadedStuffDirty = false;
+                for(const item of chunk.drop_items.values()) {
+                    item.writeToWorldTransaction(uc)
+                }
+                chunk.unloadedObjectsDirty = false
             }
 
             const chunkRecord = chunk.chunkRecord;
@@ -421,7 +424,7 @@ export class ChunkDBActor {
     mustSaveWhenUnloading() {
         const chunk = this.chunk;
         return this.unsavedBlocks.size || // it also accounts for this.dirtyBlocks
-            chunk && (chunk.chunkRecord.dirty || chunk.delayedCalls.dirty || chunk.unloadedStuffDirty);
+            chunk && (chunk.chunkRecord.dirty || chunk.delayedCalls.dirty || chunk.unloadedObjectsDirty);
     }
 }
 

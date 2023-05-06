@@ -1,4 +1,4 @@
-import { Vector, unixTime } from "./helpers.js";
+import { Vector } from "./helpers.js";
 import {BLEND_MODES} from "./renders/BaseRenderer.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
@@ -31,7 +31,7 @@ type PickAtOnInteractEntity = (IPickatEvent) => void
 type PickAtOnInteractFluid  = (IPickatEventPos) => boolean
 
 export class PickAt {
-    
+
     raycaster:          Raycaster
     chunk_addr:         Vector
     _temp_pos :         Vector = new Vector(0, 0, 0)
@@ -51,15 +51,15 @@ export class PickAt {
     material_damage:    any
 
     target_block: {
-        pos:        any
+        pos:        IPickatEventPos | Vector
         visible:    boolean
         geom:       LineGeometry
     }
 
     damage_block: {
-        pos:        any
+        pos:        IPickatEventPos | Vector
         mesh:       any
-        event:      any
+        event?:     IPickatEvent
         frame:      number
         number:     number
         times:      number // количество миллисекунд, в течение которого на блок было воздействие
@@ -109,11 +109,12 @@ export class PickAt {
         const render = this.render;
         pos = this._temp_pos.copyFrom(pos);
         // view_vector = null;
+        const myPlayerModel = this.world.players.getMyself()
         if(view_vector) {
-            return this.raycaster.get(pos, view_vector, pickat_distance, callback, ignore_transparent, return_fluid);
+            return this.raycaster.get(pos, view_vector, pickat_distance, callback, ignore_transparent, return_fluid, myPlayerModel);
         }
         const m = mat4.invert(this.empty_matrix, render.viewMatrix);
-        return this.raycaster.getFromView(pos, m, pickat_distance, callback, ignore_transparent, return_fluid);
+        return this.raycaster.getFromView(pos, m, pickat_distance, callback, ignore_transparent, return_fluid, myPlayerModel);
     }
 
     // Used by other classes
@@ -126,10 +127,12 @@ export class PickAt {
         return pos ? this.world.getBlock(new Vector(pos as any)) : null;
     }
 
+    getNextId(): int    { return ++this.nextId }
+
     // setEvent...
-    setEvent(player, e) {
-        this.nextId         = (this.nextId + 1) & 0x7FFFFFFF
-        e.id                = this.nextId
+    setEvent(player: Player, e_: {button_id: int, shiftKey: boolean}): void {
+        const e = e_ as IPickatEvent
+        e.id                = this.getNextId()
         e.start_time        = performance.now();
         e.destroyBlock      = e.button_id == MOUSE.BUTTON_LEFT;
         e.cloneBlock        = e.button_id == MOUSE.BUTTON_WHEEL;
@@ -190,7 +193,7 @@ export class PickAt {
         this.updateTargetDescription(target_block.visible ? bPos : null);
 
         // Detect interact with fluid
-        if (bPos?.fluidLeftTop && this.onInteractFluid(bPos.fluidLeftTop)) {
+        if (bPos?.fluidLeftTop && !(bPos.player || bPos.mob) && this.onInteractFluid(bPos.fluidLeftTop)) {
             return
         }
 
@@ -249,9 +252,9 @@ export class PickAt {
         if(this.onTarget instanceof Function) {
             // полное копирование, во избежания модификации
             let event = {...damage_block.event};
-            event.pos = {...damage_block.pos};
-            event.pos.n = event.pos.n.clone();
-            event.pos.point = event.pos.point.clone();
+            event.pos = {...damage_block.pos} as IPickatEventPos;
+            event.pos.n = (event.pos.n as Vector).clone();
+            event.pos.point = (event.pos.point as Vector).clone();
             if(await this.onTarget(event, damage_block.times / 1000, damage_block.number)) {
                 this.updateDamageBlock();
                 if(damage_block.mesh) {
@@ -305,7 +308,7 @@ export class PickAt {
     createTargetLines(pos, geom) {
         const lineWidth = 100 / Qubatch.render.HUD.height * 1.5 // .25
 
-        const aabbConfig = {isLocal: true, lineWidth, colorBGRA: 0xFF000000};
+        const aabbConfig = {isLocal: true, lineWidth, colorABGR: 0xFF000000};
         let vertices    = [];
         geom.clear();
         geom.pos.copyFrom(pos);
@@ -395,13 +398,23 @@ export class PickAt {
             this.targetDescription = null;
             return;
         }
+
+
+        const lightValue = block.lightValue;
         this.targetDescription = {
             worldPos:   pos,
             posInChunk: pos.clone().subSelf(block.tb.dataChunk.pos),
             chunkAddr:  this.grid.toChunkAddr(pos),
             block:      block.clonePOJO(),
             material:   block.material,
-            fluid:      block.fluid
+            fluid:      block.fluid,
+        }
+        let normal = ((pos_ as any).n);
+        if (normal) {
+            const neibBlock = this.world.chunkManager.getBlock(pos.add(normal));
+            const lightValue = neibBlock.lightValue || 0;
+            this.targetDescription.caveLight = ((lightValue & 255) / 17);
+            this.targetDescription.dayLight = (15 - ((lightValue >> 8) & 255) / 17);
         }
     }
 

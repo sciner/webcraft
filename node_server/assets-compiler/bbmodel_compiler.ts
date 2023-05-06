@@ -60,8 +60,19 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
                 model_json._properties.texture_id = spritesheet.id
                 model_json._properties.places = places
             }
+            // fix displays
             if(model_json.display) {
-                // do nothing
+                for(const display_name in model_json.display) {
+                    const display = model_json.display[display_name]
+                    if(!display.scale) {
+                        display.scale = [1, 1, 1]
+                    }
+                }
+                if(!model_json.display.ground) {
+                    model_json.display.ground = {
+                        scale: [1, 1, 1]
+                    }
+                }
             }
             console.log(`BBModel ... ${id} ${model_json.elements.length} elements (${model_json.polygons} polygons)`)
             delete(model_json.textures);

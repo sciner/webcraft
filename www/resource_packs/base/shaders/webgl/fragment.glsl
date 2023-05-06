@@ -242,7 +242,9 @@ void main() {
             );
         }
 
-        if(checkFlag(FLAG_TORCH_FLAME)) {
+        if(checkFlag(FLAG_FLUID_ERASE)) {
+            color.a = .0;
+        } else if(checkFlag(FLAG_TORCH_FLAME)) {
             #include<torch_flame>
             if(color.a < 0.7) discard;
         } else {

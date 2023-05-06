@@ -611,7 +611,7 @@
             "drop_item": [
                 {
                     "name": "COBBLESTONE",
-                    "instrument": ["_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -1101,7 +1101,6 @@
             "drop_item": [
                 {
                     "name": "BIRCH_SAPLING",
-                    "count": 1,
                     "chance": 0.05
                 },
                 {
@@ -1114,7 +1113,6 @@
                 },
                 {
                     "name": "APPLE",
-                    "count": 1,
                     "chance": 0.005
                 }
             ],
@@ -1478,7 +1476,7 @@
             "drop_item": [
                 {
                     "name": "STONE",
-                    "instrument": ["_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -1750,7 +1748,7 @@
             "drop_item": [
                 {
                     "name": "RAW_GOLD",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -1832,6 +1830,9 @@
             "material": {
                 "id": "iron"
             },
+            "tags": [
+                "use_on_mob"
+            ],
             "texture": {
                 "side": "item/shears.png"
             }
@@ -1861,7 +1862,7 @@
             "drop_item": [
                 {
                     "name": "RAW_IRON",
-                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
+                    "instrument": ["_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -1886,7 +1887,7 @@
             "drop_item": [
                 {
                     "name": "COAL",
-                    "instrument": ["_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -2022,7 +2023,15 @@
             "style": "planting",
             "sound": "madcraft:block.grass",
             "inventory_style": "extruder",
-            "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.025},
+            "drop_item": [
+                {
+                    "name": "WHEAT_SEEDS", 
+                    "chance": 0.025
+                },{
+                    "name": "TURF_OF_GRASS", 
+                    "count": 1
+                }
+            ],
             "texture": "block/grass.png",
             "texture_variants": [
                 "block/grass/grass1.png",
@@ -2383,7 +2392,7 @@
             "drop_item": [
                 {
                     "name": "COBBLESTONE_SLAB",
-                    "instrument": ["_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -2520,7 +2529,7 @@
             "drop_item": [
                 {
                     "name": "COBBLESTONE_STAIRS",
-                    "instrument": ["_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -3170,7 +3179,7 @@
             "drop_item": [
                 {
                     "name": "STONE_STAIRS",
-                    "instrument": ["_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -3442,7 +3451,7 @@
             "drop_item": [
                 {
                     "name": "SANDSTONE_STAIRS",
-                    "instrument": ["_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -4365,6 +4374,9 @@
             "material": {
                 "id": "iron"
             },
+            "tags": [
+                "use_on_mob"
+            ],
             "texture": {
                 "side": "item/bucket.png"
             }
@@ -4579,7 +4591,14 @@
             "transparent": true,
             "style": "planting",
             "sound": "madcraft:block.grass",
-            "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.025},
+            "drop_item": [
+                {
+                    "name": "WHEAT_SEEDS", 
+                    "chance": 0.025
+                },{
+                    "name": "TURF_OF_GRASS"
+                }
+            ],
             "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
             "inventory": {
                 "style": "extruder",
@@ -5332,7 +5351,7 @@
             "drop_item": [
                 {
                     "name": "COBBLESTONE_WALL",
-                    "instrument": ["_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -5482,7 +5501,7 @@
             "drop_item": [
                 {
                     "name": "SANDSTONE_WALL",
-                    "instrument": ["_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -5678,7 +5697,8 @@
             },
             "tags": [
                 "agriculture",
-                "swinging_in_the_wind"
+                "swinging_in_the_wind",
+                "use_on_mob"
             ],
             "texture": "item/wheat_seeds.png",
             "stage_textures": [
@@ -7675,7 +7695,7 @@
             "drop_item": [
                 {
                     "name": "STONE_SLAB",
-                    "instrument": ["_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -7791,7 +7811,7 @@
             "drop_item": [
                 {
                     "name": "RED_SANDSTONE_STAIRS",
-                    "instrument": ["_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -7815,7 +7835,7 @@
             "drop_item": [
                 {
                     "name": "RED_SANDSTONE_WALL",
-                    "instrument": ["_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -8168,7 +8188,7 @@
             "drop_item": [
                 {
                     "name": "SANDSTONE_SLAB",
-                    "instrument": ["_PICKAXE"]
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -8197,7 +8217,20 @@
                 "height": 0.5,
                 "slab": true,
                 "full_block_name": "RED_SANDSTONE"
-            }
+            },
+            "drop_item": [
+                {
+                    "name": "RED_SANDSTONE_SLAB",
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
+                }
+            ]
         },
         {
             "id": 64,
@@ -9184,7 +9217,7 @@
             "drop_item": [
                 {
                     "name": "IRON_ORE",
-                    "instrument": ["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -10299,7 +10332,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper" 
+                "texture": "scrap_armor_copper"
             }
         },
         {
@@ -10363,7 +10396,23 @@
             "name": "POOR_GOLD_ORE",
             "inherit": "GOLD_ORE",
             "coocked_item": null,
-            "drop_item": {"name": "GOLD_NUGGET", "min_max_count": [1, 9]}
+            "drop_item": [
+                {
+                    "name": "GOLD_NUGGET",
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"],
+                    "count": {
+                        "min": 1,
+                        "max": 9
+                    }
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 1028,
@@ -10377,7 +10426,23 @@
             "name": "POOR_IRON_ORE",
             "inherit": "IRON_ORE",
             "coocked_item": null,
-            "drop_item": {"name": "IRON_NUGGET", "min_max_count": [1, 9]}
+            "drop_item": [
+                {
+                    "name": "IRON_NUGGET",
+                    "instrument": ["_PICKAXE"],
+                    "count": {
+                        "min": 1,
+                        "max": 9
+                    }
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 1030,
@@ -10390,7 +10455,23 @@
             "id": 1031,
             "name": "POOR_COAL_ORE",
             "inherit": "COAL_ORE",
-            "drop_item": {"name": "COAL_PIECE", "min_max_count": [1, 9]}
+            "drop_item": [
+                {
+                    "name": "COAL_PIECE",
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"],
+                    "count": {
+                        "min": 1,
+                        "max": 9
+                    }
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 1032,
@@ -10498,7 +10579,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper" 
+                "texture": "scrap_armor_copper"
             }
         },
         {
@@ -10518,7 +10599,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper" 
+                "texture": "scrap_armor_copper"
             }
         },
         {
@@ -10538,7 +10619,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_iron" 
+                "texture": "scrap_armor_iron"
             }
         },
         {
@@ -10558,7 +10639,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond" 
+                "texture": "scrap_armor_diamond"
             }
         },
         {
@@ -10578,7 +10659,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_gold" 
+                "texture": "scrap_armor_gold"
             }
         },
         {
@@ -10598,7 +10679,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper" 
+                "texture": "scrap_armor_copper"
             }
         },
         {
@@ -10618,7 +10699,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper" 
+                "texture": "scrap_armor_copper"
             }
         },
         {
@@ -10638,7 +10719,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper" 
+                "texture": "scrap_armor_copper"
             }
         },
         {
@@ -10658,7 +10739,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_iron" 
+                "texture": "scrap_armor_iron"
             }
         },
         {
@@ -10678,7 +10759,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond" 
+                "texture": "scrap_armor_diamond"
             }
         },
         {
@@ -10698,7 +10779,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_gold" 
+                "texture": "scrap_armor_gold"
             }
         },
         {
@@ -10718,7 +10799,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper" 
+                "texture": "scrap_armor_copper"
             }
         },
         {
@@ -10738,7 +10819,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper" 
+                "texture": "scrap_armor_copper"
             }
         },
         {
@@ -10758,7 +10839,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper" 
+                "texture": "scrap_armor_copper"
             }
         },
         {
@@ -10778,7 +10859,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_iron" 
+                "texture": "scrap_armor_iron"
             }
         },
         {
@@ -10798,7 +10879,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond" 
+                "texture": "scrap_armor_diamond"
             }
         },
         {
@@ -10818,7 +10899,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_gold" 
+                "texture": "scrap_armor_gold"
             }
         },
         {
@@ -10838,7 +10919,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper" 
+                "texture": "scrap_armor_copper"
             }
         },
         {
@@ -10858,7 +10939,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper" 
+                "texture": "scrap_armor_copper"
             }
         },
         {
@@ -10878,7 +10959,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper" 
+                "texture": "scrap_armor_copper"
             }
         },
         {
@@ -10898,7 +10979,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_iron" 
+                "texture": "scrap_armor_iron"
             }
         },
         {
@@ -10918,7 +10999,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond" 
+                "texture": "scrap_armor_diamond"
             }
         },
         {
@@ -10938,7 +11019,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_gold" 
+                "texture": "scrap_armor_gold"
             }
         },
         {
@@ -10958,7 +11039,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper" 
+                "texture": "scrap_armor_copper"
             }
         },
         {
@@ -11491,8 +11572,7 @@
             ],
             "drop_item": [
                 {
-                    "name": "TURF_OF_GRASS", 
-                    "count": 1
+                    "name": "TURF_OF_GRASS"
                 }
             ],
             "composter_chance": 0.65
@@ -11567,8 +11647,7 @@
             ],
             "drop_item": [
                 {
-                    "name": "TURF_OF_GRASS", 
-                    "count": 1
+                    "name": "TURF_OF_GRASS"
                 }
             ]
         },
@@ -11679,9 +11758,16 @@
             "item": {
                 "name": "boat"
             },
+            "spawn_egg": {
+                "type": "transport/boat",
+                "skin": "base"
+            },
             "material": {
-                "id": "stone"
-            }
+                "id": "wood"
+            },
+            "tags": [
+                "set_on_water"
+            ]
         },
         {
             "id": 1057,
@@ -12268,7 +12354,8 @@
             "texture": {
                 "side": "item/stone_axe.png"
             }
-        },{
+        },
+        {
             "id": 1087,
             "name": "SMALL_ROCK",
             "style": "extruder",
@@ -12279,9 +12366,11 @@
             "material": {
                 "id": "pebbles"
             }
-        },{
+        },
+        {
             "id": 1088,
             "name": "RAW_GOLD",
+            "coocked_item": {"name": "GOLD_INGOT", "count": 1},
             "style": "extruder",
             "texture": "block/stone.png",
             "item": {
@@ -12290,9 +12379,11 @@
             "material": {
                 "id": "gold"
             }
-        },{
+        },
+        {
             "id": 1089,
             "name": "RAW_IRON",
+            "coocked_item": {"name": "IRON_INGOT", "count": 1},
             "style": "extruder",
             "texture": "block/stone.png",
             "item": {
@@ -12301,10 +12392,12 @@
             "material": {
                 "id": "iron"
             }
-        },{
+        },
+        {
             "id": 1090,
             "name": "RAW_COPPER",
             "style": "extruder",
+            "coocked_item": {"name": "COPPER_INGOT", "count": 1},
             "texture": "block/stone.png",
             "item": {
                 "name": "powder"
@@ -12312,7 +12405,20 @@
             "material": {
                 "id": "powder"
             }
-        },{
+        },
+        {
+            "id": 1111,
+            "name": "SNOWBALL",
+            "style": "extruder",
+            "texture": "item/snowball.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
+        },
+        {
             "id": 1091,
             "name": "COPPER_ORE",
             "sound": "madcraft:block.stone",
@@ -12343,7 +12449,23 @@
             "name": "POOR_COPPER_ORE",
             "inherit": "COPPER_ORE",
             "coocked_item": null,
-            "drop_item": {"name": "COPPER_NUGGET", "min_max_count": [1, 9]}
+            "drop_item": [
+                {
+                    "name": "COPPER_NUGGET",
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"],
+                    "count": {
+                        "min": 1,
+                        "max": 9
+                    }
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         },
         {
             "id": 1093,
@@ -12358,7 +12480,8 @@
             },
             "texture": "block/seagrass.png",
             "composter_chance": 0.3
-        },{
+        },
+        {
             "id": 1094,
             "name": "BACKPACK_BASIC",
             "style": "extruder",
@@ -12380,7 +12503,8 @@
             "extra_data": {
                 "slot": 5
             }
-        },{
+        },
+        {
             "id": 1095,
             "name": "TOOLBELT_BASIC",
             "max_in_stack": 1,
@@ -12401,6 +12525,41 @@
             },
             "extra_data": {
                 "hotbar": 5
+            }
+        },
+        {
+            "id": 489,
+            "name": "SKYLIGHT",
+            "light_power": {
+                "r": 255,
+                "g": 235,
+                "b": 35,
+                "a": 251
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "daylight_block"
+            ],
+            "sound": "madcraft:block.stone",
+            "texture": "block/skylight.png"
+        },
+        {
+            "id": 490,
+            "name": "REINFORCED_CONCRETE",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": {
+                "side": "block/decals/reinforced_concrete/all.png"
+            },
+            "tags": [
+                "do_not_remove_this_tag"
+            ],
+            "connected_sides": {
+                "12": "block/decals/reinforced_concrete/12.png"
             }
         }
     ]

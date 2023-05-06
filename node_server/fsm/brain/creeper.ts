@@ -20,20 +20,10 @@ export class Brain extends FSMBrain {
     constructor(mob) {
         super(mob);
         //
-        this.prevPos        = new Vector(mob.pos);
-        this.lerpPos        = new Vector(mob.pos);
-        this.pc             = this.createPlayerControl(this, {
-            baseSpeed: 1/2,
-            playerHeight: 1.6,
-            stepHeight: 1,
-            playerHalfWidth: .45
-        });
-        this.health = 20; // максимальное здоровье
-        this.distance_view = 40; // дистанция на которм виден игрок
         mob.extra_data.play_death_animation = false;
         this.detonationTime = 0;
         this.explosion_damage = 12;
-        this.players_damage_distance = DISTANCE_DETONATION;        
+        this.players_damage_distance = DISTANCE_DETONATION;
         this.stack.pushState(this.doStand);
     }
 
@@ -44,7 +34,7 @@ export class Brain extends FSMBrain {
         }
         const mob = this.mob;
         const world = mob.getWorld();
-        const difficulty = world.rules.getValue('difficulty'); 
+        const difficulty = world.rules.getValue('difficulty');
         const players = world.getPlayersNear(mob.pos, this.distance_view, true);
         if (players.length > 0 && difficulty != EnumDifficulty.PEACEFUL) {
             const rnd = (Math.random() * players.length) | 0;
@@ -56,7 +46,7 @@ export class Brain extends FSMBrain {
     onPanic() {
 
     }
-    
+
     // Chasing a player
     doCatch(delta : float) {
         const mob = this.mob;
@@ -82,7 +72,6 @@ export class Brain extends FSMBrain {
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
         this.updateControl({
-            yaw: mob.rotate.z,
             forward: !(this.is_abyss || this.is_well),
             jump: this.is_water
         });
@@ -124,7 +113,6 @@ export class Brain extends FSMBrain {
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
         this.updateControl({
-            yaw: mob.rotate.z,
             forward: false,
             jump: false
         });
@@ -175,7 +163,7 @@ export class Brain extends FSMBrain {
         //
         world.actions_queue.add(null, actions);
     }
-    
+
     onKill(actor, type_damage) {
         const mob = this.mob;
         const world = mob.getWorld();

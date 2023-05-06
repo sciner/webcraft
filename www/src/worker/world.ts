@@ -5,6 +5,7 @@ import type { Biome3TerrainMap } from "../terrain_generator/biome3/terrain/map.j
 import type { BLOCK } from "../blocks.js";
 import type { DataChunk } from "../core/DataChunk";
 import type { ChunkGrid } from "../core/ChunkGrid.js";
+import { DAYLIGHT_VALUE } from "../constant.js";
 
 /** If it's true, it causes the chunk total chunk timers to be printed once after the wueue is empty. */
 const DEBUG_CHUNK_GEN_TIMERS = false
@@ -214,7 +215,7 @@ export class WorkerWorld {
 
     workerSetPotential(pos: IVector) {
         this.ensureBuildQueue();
-        this.checkPotential(new Vector(pos).round());
+        this.checkPotential(new Vector(pos).roundSelf())
     }
 
     checkPotential(npc) {
@@ -258,13 +259,14 @@ export class WorkerWorld {
                 // Return chunk object
                 const non_zero = chunk.refreshNonZero();
                 const ci2: TChunkWorkerMessageBlocksGenerated = {
-                    addr: chunk.addr,
-                    uniqId: chunk.uniqId,
-                    // key: ci.key,
-                    tblocks: non_zero > 0 ? chunk.tblocks.saveState() : null,
-                    packedCells: chunk.packCells(),
-                    tickers: non_zero ? chunk.scanTickingBlocks() : null,
-                    genQueueSize: genQueue.size()
+                    addr:                   chunk.addr,
+                    dayLightDefaultValue:   chunk.layer?.dayLightDefaultValue ?? DAYLIGHT_VALUE.FULL,
+                    uniqId:                 chunk.uniqId,
+                    // key:                 ci.key,
+                    tblocks:                non_zero > 0 ? chunk.tblocks.saveState() : null,
+                    packedCells:            chunk.packCells(),
+                    tickers:                non_zero ? chunk.scanTickingBlocks() : null,
+                    genQueueSize:           genQueue.size()
                 }
 
                 // Update and log timers - after the chunk finished exporting

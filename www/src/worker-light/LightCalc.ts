@@ -51,6 +51,7 @@ export class LightCalc {
             for (let z = 0; z < outerSize.z; z++) {
                 let coord0 = sy * y + sz * z;
                 for (let x = 0; x < outerSize.x; x++) {
+                    // adjustLight inlined
                     const cave = Math.max((uint8View[coord0 + OFFSET_LIGHT] - 1) >> 1, 0);
                     const day = Math.max((uint8View[coord0 + OFFSET_DAY] - 1) >> 1, 0);
                     const newValue = cave + (day << 4);

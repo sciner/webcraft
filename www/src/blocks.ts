@@ -8,6 +8,8 @@ import { BLOCK_FLAG, BLOCK_GROUP_TAG, DEFAULT_STYLE_NAME, LEAVES_TYPE } from "./
 import type { TBlock } from "./typed_blocks3.js";
 import type { World } from "./world.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
+import { MASK_SRC_AO, MASK_SRC_BLOCK, MASK_SRC_DAYLIGHT, MASK_SRC_NONE } from './worker-light/LightConst.js';
+import { MASK_SRC_FILTER } from './worker-light/LightConst.js';
 
 export const TRANS_TEX                      = [4, 12]
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64
@@ -214,7 +216,7 @@ class Block_Material implements IBlockMiningMaterial {
     getMiningTime(instrument : object | any, force : boolean) : float {
         if(force) {
             return 0
-        } 
+        }
         const mining_time = this.mining.time
         if(instrument?.material?.item?.instrument_id) {
             const instrument_id = instrument.material.item.instrument_id
@@ -256,7 +258,7 @@ export class BLOCK {
     static resource_pack_manager            : ResourcePackManager = null;
     static max_id                           = 0;
     static BLOCK_BY_ID: IBlockMaterial[]    = [];
-    static bySuffix                         = {}; // map of arrays
+    static bySuffix                         : Dict<IBlockMaterial[]> = {}
     static REPLACE_TO_SLAB                  = {};
     /**
      * For each block id, it contains flags describing to which classes of blocks it belongs.
@@ -324,19 +326,24 @@ export class BLOCK {
             : mat.title;
     }
 
-    static getLightPower(material) : number {
+    static getLightPower(material : IBlockMaterial) : number {
         if (!material) {
-            return 0;
+            return MASK_SRC_NONE
         }
-        let val = 0;
+        let val = MASK_SRC_NONE
         if (material.is_water) {
-            return 64;
+            return MASK_SRC_FILTER
         } else if(material.light_power) {
-            val = Math.floor(material.light_power.a / 16.0);
+            let power = material.light_power.a;
+            if (material.tags.includes('daylight_block')) {
+                val = MASK_SRC_DAYLIGHT
+            } else {
+                val = Math.floor(power / 16.0);
+            }
         } else if (!material.transparent) {
-            val = 96;
+            val = MASK_SRC_BLOCK
         }
-        return val + (material.visible_for_ao ? 128 : 0);
+        return val + (material.visible_for_ao ? MASK_SRC_AO : MASK_SRC_NONE);
     }
 
     /**
@@ -807,10 +814,10 @@ export class BLOCK {
         return this.flags[block_id] & BLOCK_FLAG.SOLID
     }
 
-    static isSimpleQube(block) : boolean {
+    static isSimpleQube(block : IBlockMaterial) : boolean {
         return block.is_solid &&
             !block.transparent &&
-            block.tags.length == 0 &&
+            (block.tags.filter(tag => !tag.startsWith('#')).length == 0) &&
             block.texture &&
             Object.keys(block.texture).length == 1;
     }
@@ -1216,6 +1223,9 @@ export class BLOCK {
         }
         if(overlay_name && material?.texture_overlays) {
             mat_texture = material.texture_overlays[overlay_name]
+        }
+        if(overlay_name && material?.connected_sides) {
+            mat_texture = material.connected_sides[overlay_name]
         }
 
         const tx_cnt = force_tex?.tx_cnt || material.tx_cnt;

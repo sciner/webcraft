@@ -9,7 +9,7 @@ export class AABBDrawable extends AABB {
     draw(render, pos, delta, do_draw) {
         if (do_draw) {
             render.debugGeom.addAABB(this,
-                {colorBGRA: 0xFFFFFFFF, lineWidth: .25});
+                {colorABGR: 0xFFFFFFFF, lineWidth: .25});
         }
     }
 
@@ -24,14 +24,33 @@ export type NetworkPhysicObjectState = {
     extra_data? : object
 }
 
+/**
+ * Временные объекты, используемые при интерполяции координат.
+ * Актуальные значения у объекта - {@link NetworkPhysicObject.pos}, {@link NetworkPhysicObject.yaw} и {@link NetworkPhysicObject.pitch}.
+ */
+const tPos = new Vector()
+const tRot = new Vector()
+
 // NetworkPhysicObject
 export class NetworkPhysicObject {
-    [key: string]: any;
 
     #world : World
-    netBuffer: NetworkPhysicObjectState[]
+    netBuffer           : NetworkPhysicObjectState[]
+    yaw                 : float
+    pitch               : float
+    protected sneak     : number | boolean
+    private _pos        : Vector
+    private _prevPos    : Vector    // не используется, можно убрать
+    protected moving    : boolean
+    private _chunk_addr : Vector
+    private latency     : number
+    aabb                : AABBDrawable | null
+    private tracked     : boolean
+    extra_data?         : Dict | null
+    width               : number
+    height              : number
 
-    constructor(world : World, pos, rotate) {
+    constructor(world : World, pos: Vector, rotate: IVector) {
 
         this.#world         = world
         this._pos           = pos;
@@ -39,24 +58,19 @@ export class NetworkPhysicObject {
 
         this.moving         = false;
         this._chunk_addr    = new Vector(0, 0, 0);
-        this.yaw            = 0;
-        this.pitch          = 0;
+        this.yaw            = rotate.z;
+        this.pitch          = rotate.x;
         this.sneak          = 0;
 
         // Networking
         this.netBuffer = [];
         this.latency = 50;
-        this.tPos = new Vector();
-        this.tRot = new Vector();
-        /**
-         * @type {AABBDrawable}
-         */
         this.aabb = null;
 
         this.tracked = false;
     }
 
-    get pos() {
+    get pos(): Vector {
         return this._pos;
     }
 
@@ -68,7 +82,7 @@ export class NetworkPhysicObject {
         return this.#world
     }
 
-    set pos(v) {
+    set pos(v: IVector) {
         const {
             x, y, z
         } = this._pos;
@@ -94,7 +108,7 @@ export class NetworkPhysicObject {
         this.netBuffer.push(data);
     }
 
-    applyState(nextPos, nextRot, sneak, extra_data) {
+    applyState(nextPos: IVector, nextRot?: IVector | null, sneak?: number | boolean, extra_data?: Dict): void {
         this.pos = nextPos;
         if(extra_data) {
             this.extra_data = extra_data;
@@ -102,11 +116,13 @@ export class NetworkPhysicObject {
         if(nextRot) {
             this.yaw = nextRot.z;
             this.pitch = nextRot.x;
+        }
+        if (sneak != null) {
             this.sneak = sneak;
         }
     }
 
-    processNetState() {
+    processNetState(): void {
         if (this.netBuffer.length === 0) {
             return;
         }
@@ -125,9 +141,6 @@ export class NetworkPhysicObject {
                 this.netBuffer[0].extra_data || null
             );
         }
-
-        const tPos = this.tPos;
-        const tRot = this.tRot;
 
         const {
             pos: prevPos,
@@ -157,11 +170,11 @@ export class NetworkPhysicObject {
         const sneak = Mth.lerp(iterp, prevSneak, nextSneak);
         const extra_data = nextExtraData;
 
-        if(nextRot) {
-            tRot.lerpFromAngle(prevRot, nextRot, iterp, true);
-        }
+        const rot = nextRot && prevRot
+            ? tRot.lerpFromAngle(prevRot, nextRot, iterp, true)
+            : null
 
-        return this.applyState(tPos, tRot, sneak, extra_data);
+        return this.applyState(tPos, rot, sneak, extra_data);
     }
 
     update() {
@@ -169,18 +182,32 @@ export class NetworkPhysicObject {
         this.updateAABB();
     }
 
-    updateAABB() {
-        const w = this.width;
-        const h = this.height;
-        this.aabb = this.aabb || new AABBDrawable();
-        this.aabb.set(
-            this.tPos.x - w/2,
-            this.tPos.y,
-            this.tPos.z - w/2,
-            this.tPos.x + w/2,
-            this.tPos.y + h,
-            this.tPos.z + w/2
-        );
+    /**
+     * Делает те же изменения, что обычно выполняет {@link update}, но не наснове сетевого состояния этого объекта,
+     * а на основе заданных (локально вычисленных) значений.
+     * Конкретно: устанавливает позицию и поворот, а также вызывает необходимые связанные изменения (например, обновление AABB).
+     * Из {@link netBuffer} обновляет extra_data, если оно задано.
+     */
+    forceLocalUpdate(pos: IVector | null, yaw: float | null): void {
+        if (pos) {
+            this.pos = pos
+        }
+        if (yaw != null) {
+            this.yaw = yaw
+        }
+        if (pos || yaw != null) {
+            this.updateAABB()
+        }
+        const netState = this.netBuffer.shift()
+        if (netState?.extra_data) {
+            this.extra_data = netState.extra_data
+        }
+    }
+
+    updateAABB(): void {
+        this.aabb ??= new AABBDrawable();
+        // используем именно pos, а не tPos. tPos не всегда обновлен (например, когда обработали только 1 пакет из буфере)
+        this.aabb.setBottomHeightRadius(this.pos, this.height, this.width / 2)
     }
 
 }

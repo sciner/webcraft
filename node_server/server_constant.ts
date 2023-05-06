@@ -1,9 +1,11 @@
 import { MAX_PACKET_LAG_SECONDS } from "@client/constant.js"
 
-// ========================= network =============================
+// =================================== сеть ===================================
 
 /** The server sends a command to each player at least once per this interval of time. */
 export const SERVER_SEND_CMD_MAX_INTERVAL = 1000
+
+// ================================ управление ================================
 
 // by how many blocks the client's pos may differ without needing correction
 export const ACCEPTABLE_PLAYER_POS_ERROR = 0.01
@@ -26,7 +28,24 @@ export const DONT_VALIDATE_AFTER_MODE_CHANGE_MS = 2000
  */
 export const SERVER_UNCERTAINTY_SECONDS = MAX_PACKET_LAG_SECONDS
 
-// database
+// ================================= вождние ==================================
+
+/**
+ * Если моб-учстник движения отсутсвует на сервере (может не загружен из-за тормозов, или нарушилась целостность
+ * данных из-за бага), но числится в вождении - через сколько секунд его выкидывать из вождения.
+ */
+export const DRIVING_ABSENT_MOB_TTL_SECONDS = 30
+
+/**
+ * Если игрок-учстник движения отсутсвует на сервере (вышел из игры), но числится в вождении, он будет из него удален,
+ * если транспортное средство сместится более чем на это расстояние от того места, где он участник был последний раз.
+ */
+export const DRIVING_ABSENT_PLAYER_DISTANCE = 20
+
+/** Через сколько секунд после временного исчезновения из игры игрока-водителя начинает работать ИИ моба. */
+export const DRIVING_ABSENT_PLAYER_MOB_BRAIN_DELAY_SECONDS = 10
+
+// ==================================== БД ====================================
 
 /**
  * If it's true, indicators are saved in DB in the old format, preserving backwards compatibility,
@@ -80,12 +99,14 @@ export const IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB = true;
 export const DEAD_MOB_TTL       = 1000;     // time between the mob is detected dead and unloaded
 export const MOB_SAVE_PERIOD    = 10000;
 export const MOB_SAVE_DISTANCE  = 4;     // force saving if travelled more than this number of blocks
+export const MOB_WITHOUT_CHUNK_TTL_SECONDS = 60 // если моб без чанка дольше этого времени, он забывается
 
 // ============================= game mechanics ============================
 
 export const PLAYER_EXHAUSTION_PER_BLOCK = 0.01
 // if a player moves more than this distance from his original position, he wakes up or stands up from a chair
 export const WAKEUP_MOVEMENT_DISTANCE = 1.0
+export const SIMULATE_PLAYER_PHYSICS = true
 
 // velocity for deliberate item throws, blocks/phys.tick
 export const THROW_ITEM_VELOCITY                = 0.35

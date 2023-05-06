@@ -2,7 +2,7 @@
 
 import {PHYSICS_INTERVAL_MS, PLAYER_HEIGHT, PLAYER_ZOOM, SPECTATOR_SPEED_MUL} from "../constant.js";
 import {Mth, Vector} from "../helpers.js";
-import {PlayerControl} from "./player_control.js";
+import {IPlayerControlState, PlayerControl} from "./player_control.js";
 import type {World} from "../world.js";
 import {PLAYER_CONTROL_TYPE} from "./player_control.js";
 import type {PlayerTickData} from "./player_tick_data.js";
@@ -108,19 +108,23 @@ export class SpectatorPlayerControl extends PlayerControl {
 
     world: World
     speedMultiplier = 1
+    backupState = {
+        pos: new Vector(),
+        vel: new Vector()
+    }
     /** Accumulated difference between player_state.pos and the position in the current tick */
     private accumulatedDeltaPos = new Vector()
     private currentVelocity = new Vector()
     private prevTickVelocity = new Vector()
 
     private tmpDesiredVel = new Vector()
-    private backupVel = new Vector()
     private prevTime: number
     private tmpTickData = new ClientPlayerTickData()
 
     private oldSpectator: OldSpectatorPlayerControl | null = null
+    private isFreeCam: boolean
 
-    constructor(world: World, start_position: Vector, useOldSpectator: Boolean = false) {
+    constructor(world: World, start_position: Vector, useOldSpectator = false, isFreeCam = false) {
         super()
         this.world = world
         this.player_state = {
@@ -131,6 +135,7 @@ export class SpectatorPlayerControl extends PlayerControl {
             flying: true,
             isInWater: false
         }
+        this.isFreeCam = isFreeCam
 
         if (useOldSpectator) {
             const os = this.oldSpectator = new OldSpectatorPlayerControl(world, start_position)
@@ -145,7 +150,6 @@ export class SpectatorPlayerControl extends PlayerControl {
 
     get type()                  { return PLAYER_CONTROL_TYPE.SPECTATOR }
     get requiresChunk(): boolean { return false }
-    get sneak(): boolean        { return false }
     get playerHeight(): float   { return PLAYER_HEIGHT }
 
     resetState(): void {
@@ -157,13 +161,13 @@ export class SpectatorPlayerControl extends PlayerControl {
         this.prevTime = performance.now()
     }
 
-    updateFrame(controlManager: ClientPlayerControlManager) {
+    updateFrame(controlManager: ClientPlayerControlManager): void {
         const now = performance.now()
         const deltaSeconds = 0.001 * Math.min(now - this.prevTime, MAX_DELTA_TIME)
         this.prevTime = now
 
         // copy player's input to this control
-        this.tmpTickData.initInputFrom(controlManager, 1, 1)
+        this.tmpTickData.initInputFrom(controlManager, 1, 1, this.isFreeCam)
         this.tmpTickData.initContextFrom(controlManager)
         this.tmpTickData.applyInputTo(controlManager, this)
 
@@ -241,7 +245,7 @@ export class SpectatorPlayerControl extends PlayerControl {
         this.accumulatedDeltaPos.addScalarSelf(vel.x * deltaTicks, vel.y * deltaTicks, vel.z * deltaTicks)
     }
 
-    simulatePhysicsTick(): void {
+    simulatePhysicsTick(): boolean {
         const ps = this.player_state
         ps.pos.addSelf(this.accumulatedDeltaPos)
         this.accumulatedDeltaPos.zero()
@@ -250,15 +254,12 @@ export class SpectatorPlayerControl extends PlayerControl {
         ps.vel.addSelf(deltaVel)
         this.prevTickVelocity.copyFrom(ps.vel)
         this.currentVelocity.copyFrom(ps.vel)
+        return true
     }
 
-    backupPartialState(): void {
-        this.backupVel.copyFrom(this.player_state.vel)
-    }
-
-    restorePartialState(pos: Vector): void {
-        this.player_state.pos.copyFrom(pos)
-        this.player_state.vel.copyFrom(this.backupVel)
+    copyPartialStateFromTo(src: any, dst: any): void {
+        dst.pos.copyFrom(src.pos)
+        dst.vel.copyFrom(src.vel)
     }
 
     validateWithoutSimulation(prevData: PlayerTickData | null, data: PlayerTickData): boolean {

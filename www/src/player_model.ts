@@ -38,7 +38,7 @@ class PlayerModelSharedProps implements IPlayerSharedProps {
 
     // We don't know if it's alive on the client, so we assume if the model exists, than it is
     get isAlive()   : boolean   { return true; }
-    get pos()       : Vector    { return this.p.pos; }
+    get pos()       : IVector   { return this.p.pos; }
     get user_id()   : int       { return this.p.id; }
     get sitting()   : boolean   { return !!this.p.sitting; }
     get sleep()     : boolean   { return !!this.p.sleep; }
@@ -53,6 +53,16 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     swingProgress:      float = 0
     swingProgressInt:   float = 0
     isSwingInProgress:  boolean = false
+    scale:              float
+    declare username:   string  // из props
+    activeSlotsData
+    head
+    hide_nametag
+    body_rotate
+    swingProgressPrev
+    prev_current_id
+    prev_pos
+    eat
 
     constructor(props : TMobProps, world : World) {
         super({type: 'player', skin: null, ...props}, world)
@@ -60,8 +70,6 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.height             = PLAYER_HEIGHT
         this.width              = PLAYER_WIDTH
         this.scale              = 0.9 * PLAYER_ZOOM
-        this.username           = props.username
-        this.health             = props.health
         this.activeSlotsData    = props.hands
         this.head               = null
         this.sharedProps        = new PlayerModelSharedProps(this)
@@ -316,9 +324,9 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     }
 
     // value: -1 ... 0 ... 1
-    setBodyRotate(value) {
-        this.body_rotate = value;
-    }
+    // setBodyRotate(value) {
+    //     this.body_rotate = value;
+    // }
 
     updateArmSwingProgress(delta) {
         const asa = this.getArmSwingAnimationEnd();
@@ -372,7 +380,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     }
 
     get isAlive() : boolean {
-        return this.health > 0;
+        return super.isAlive
     }
 
 }

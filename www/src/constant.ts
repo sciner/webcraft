@@ -239,6 +239,7 @@ export enum LEAVES_TYPE {
     BEAUTIFUL = 2,
 }
 
+/** Подмножество названий типов мобов. Это не все типы. */
 export enum MOB_TYPE {
     AXOLOTL     = 'mob/axolotl',
     BEE         = 'mob/bee',
@@ -255,8 +256,15 @@ export enum MOB_TYPE {
     PIG         = 'mob/pig',
     SHEEP       = 'mob/sheep',
     SKELETON    = 'mob/skeleton',
+    SNOWBALL    = 'mob/snowball',
     SNOW_GOLEM  = 'mob/snow_golem',
     ZOMBIE      = 'mob/zombie',
+    BOAT        = 'transport/boat'
+}
+
+export enum DAYLIGHT_VALUE {
+    NONE = 0,
+    FULL = 15,
 }
 
 export enum TREASURE_SOURCE {
@@ -311,7 +319,7 @@ export const PHYSICS_ROTATION_DECIMALS      = 4 // It's applied to the input bef
 export const PHYSICS_INTERVAL_MS            = 50
 // The maximum number of physics ticks simulated at once. If we need to simulated more, the simulation its skipped.
 export const PHYSICS_MAX_TICKS_PROCESSED    = 10 * 1000 / PHYSICS_INTERVAL_MS | 0
-export const DEBUG_LOG_PLAYER_CONTROL       = true  // log moderately detailed debug info about the player controls
+export const DEBUG_LOG_PLAYER_CONTROL       = false // log moderately detailed debug info about the player controls
 export const DEBUG_LOG_PLAYER_CONTROL_DETAIL= false // log very detailed debug info about the player controls
 
 // ========================= Sound options =========================
@@ -378,6 +386,7 @@ export const VOLUMETRIC_SOUND_ELLIPSOID_Y_RADIUS = 0.5
 export const PLAYER_ZOOM                    = 1;
 export const PLAYER_HEIGHT                  = 1.7 * PLAYER_ZOOM;
 export const PLAYER_WIDTH                   = 0.7 * PLAYER_ZOOM;
+export const PLAYER_PHYSICS_HALF_WIDTH      = 0.3 * PLAYER_ZOOM; // default playerHalfWidth was 0.3 in prismarine
 export const SNEAK_MINUS_Y_MUL              = 0.2 * PLAYER_ZOOM; // decrease player height to this percent value
 export const PLAYER_DIAMETER                = 0.7;
 export const PLAYER_RADIUS                  = PLAYER_DIAMETER / 2;
@@ -403,6 +412,9 @@ export const MAX_CHUNK_Y_DIFF_FOR_PORTAL    = 3;
 // World types
 export const WORLD_TYPE_NORMAL              = 1;
 export const WORLD_TYPE_BUILDING_SCHEMAS    = 2;
+
+// attack
+export const ATTACK_COOLDOWN                = 500
 
 export const MOUSE = {
     DOWN: 1,
@@ -443,6 +455,7 @@ export const KEY = {
     T: 84,
     V: 86,
     W: 87,
+    Z: 90,
     WIN: 91,
     F1: 112,
     F2: 113,
@@ -482,6 +495,7 @@ export enum PLAYER_STATUS {
      * A player with status has (ServerPlayer.wait_portal != null) and can't move.
      * When the data is loaded, a new physics session is started for its controls.
      */
-    WAITING_PORTAL = 2,
-    ALIVE        = 3,
+    WAITING_PORTAL  = 2,
+    ALIVE           = 3,
+    DELETED         = 4
 }

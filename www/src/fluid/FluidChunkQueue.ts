@@ -347,7 +347,7 @@ export class FluidChunkQueue {
     }
 
     /** Packs fluid at the specified position in the same format as {@link packDelta}. */
-    static packAsDelta(worldPos: Vector, fluidChunk: FluidChunk): Uint8Array {
+    static packAsDelta(worldPos: IVector, fluidChunk: FluidChunk): Uint8Array {
         const buf = new Uint8Array(1 * 3);
         const ind = fluidChunk.dataChunk.indexByWorld(worldPos.x, worldPos.y, worldPos.z)
         const i = 0

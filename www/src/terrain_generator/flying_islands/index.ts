@@ -4,7 +4,7 @@ import { BLOCK } from '../../blocks.js';
 import { noise, alea } from "../default.js";
 import {DungeonGenerator} from "../dungeon.js";
 import Demo_Map from '../biome2/demo_map.js';
-import { BIOMES, BiomeTree } from '../biomes.js';
+import { BIOMES, BiomeTree } from '../biome2/biomes.js';
 
 const DEFAULT_DIRT_COLOR = IndexedColor.GRASS.clone();
 const DEFAULT_WATER_COLOR = IndexedColor.WATER.clone();

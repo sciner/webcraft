@@ -136,7 +136,7 @@ export class PlayerSpeedLogger {
                 .round(LOG_SPEED_DECIMALS).toArray() as TXyzTuple
             this.accumulatedDistanceXYZ.subSelf(usedDistanceXYZ)
         } else if (this.mode === PlayerSpeedLoggerMode.COORD_XYZ) {
-            res = this.prevPos.clone().round(LOG_COORD_DECIMALS).toArray() as TXyzTuple
+            res = this.prevPos.clone().roundSelf(LOG_COORD_DECIMALS).toArray() as TXyzTuple
         } else {
             const usedDistance = this.accumulatedDistance * usedDuration / this.accumulatedTime
             res = Mth.round(usedDistance / (usedDuration * 0.001), 2)

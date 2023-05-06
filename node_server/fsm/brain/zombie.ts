@@ -1,5 +1,4 @@
 import { FSMBrain } from "../brain.js";
-import { Vector } from "@client/helpers.js";
 import { WorldAction } from "@client/world_action.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
 import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
@@ -13,17 +12,7 @@ export class Brain extends FSMBrain {
     constructor(mob) {
         super(mob);
         //
-        this.prevPos = new Vector(mob.pos);
-        this.lerpPos = new Vector(mob.pos);
-        this.pc = this.createPlayerControl(this, {
-            baseSpeed: 0.8,
-            playerHeight: 1.6,
-            playerHalfWidth: 0.45,
-            stepHeight: 1
-        });
         this.stack.pushState(this.doStand);
-        this.health = 20;       // максимальное здоровье
-        this.distance_view = 40; // дистанция на которм виден игрок
         this.distance_attack = 1.5; // дистанция для атаки
         this.timer_attack = 0;
         this.interval_attack = 16;
@@ -73,7 +62,6 @@ export class Brain extends FSMBrain {
         }
         const mob = this.mob;
         this.updateControl({
-            yaw: mob.rotate.z,
             forward: false,
             jump: false,
             sneak: false
@@ -102,7 +90,6 @@ export class Brain extends FSMBrain {
             return;
         }
         this.updateControl({
-            yaw: mob.rotate.z,
             forward: true,
             jump: false,
             sneak: false
@@ -133,7 +120,6 @@ export class Brain extends FSMBrain {
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
         this.updateControl({
-            yaw: mob.rotate.z,
             forward: true, //!(this.is_abyss | this.is_well),
             jump: this.is_water
         });

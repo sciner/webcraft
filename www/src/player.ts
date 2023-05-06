@@ -3,7 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
-import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS } from "./constant.js";
+import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE} from "./constant.js";
 import {ClientPlayerControlManager} from "./control/player_control_manager.js";
 import {PlayerControl, PlayerControls} from "./control/player_control.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -18,7 +18,8 @@ import { PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js"
 import { PlayerArm } from "./player_arm.js";
 import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
-import type { PLAYER_SKIN_TYPES } from "./constant.js"
+import type {ClientDriving} from "./control/driving.js";
+import type {PlayerModel} from "./player_model.js";
 
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
@@ -94,7 +95,6 @@ export type TAnimState = {
 type PlayerStateDynamicPart = {
     pos         : Vector
     rotate      : Vector
-    lies ?      : boolean
     sitting ?   : false | TSittingState
     sneak ?     : boolean
     sleep ?     : false | TSleepState
@@ -251,7 +251,11 @@ export class Player implements IPlayer {
     underwater_track_id:        any;
     _eating_sound_tick:         number;
     _eating_sound:              any;
+    driving?:                   ClientDriving | null
     timer_anim:                number = 0
+    /** значения, которые можно установить командой /debugplayer (и на клиенте, и на сервере) и использовать для любых целей */
+    debugValues                 = new Map<string, string>()
+    #timer_attack:              number = 0
 
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
@@ -342,9 +346,9 @@ export class Player implements IPlayer {
         this.oBob                   = 0;
         this.step_count             = 0;
         this._prevActionTime        = performance.now();
-        this.body_rotate            = 0;
-        this.body_rotate_o          = 0;
-        this.body_rotate_speed      = BODY_ROTATE_SPEED;
+        // this.body_rotate            = 0;
+        // this.body_rotate_o          = 0;
+        // this.body_rotate_speed      = BODY_ROTATE_SPEED;
         this.mineTime               = 0;
         this.timer_attack           = 0
         //
@@ -373,6 +377,7 @@ export class Player implements IPlayer {
             this.controlManager.onServerAccepted(cmd.data)
         })
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Qubatch.App.onError(cmd.data.message);});
+        server.AddCmdListener([ServerClient.CMD_LOG_CONSOLE], (cmd: INetworkMessage<string>) => console.log('SERVER: ', cmd.data))
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {
             Qubatch.sounds.play(cmd.data.tag, cmd.data.action, cmd.data.pos,
@@ -407,48 +412,45 @@ export class Player implements IPlayer {
             return this.onPickAtTarget(e, times, number)
         }, (e : IPickatEvent) => {
             if (e.button_id == MOUSE.BUTTON_LEFT) {
-                this.setAnimation('attack', 1, .5)
-                setTimeout(() => {
-                    this.world.server.Send({
-                        name: ServerClient.CMD_USE_WEAPON,
-                        data: {
-                            target: {
-                                pid: e.interactPlayerID,
-                                mid: e.interactMobID
+                const instrument = this.getCurrentInstrument()
+                const speed = instrument?.material?.speed ?? 1
+                const time = (e.start_time - this.#timer_attack) * speed
+                if (time > ATTACK_COOLDOWN) {
+                    this.setAnimation('attack', speed, ATTACK_COOLDOWN / 1000)
+                    // отстрочка от анимации
+                    setTimeout(() => {
+                        console.log('attack: ' + time)
+                        this.world.server.Send({
+                            name: ServerClient.CMD_USE_WEAPON,
+                            data: {
+                                target: {
+                                    pid: e.interactPlayerID,
+                                    mid: e.interactMobID
+                                }
                             }
-                        }
-                    })
-                }, 500)
+                        })
+                    }, 50)
+                    this.#timer_attack = e.start_time
+                }
             } else {
                 const instrument = this.getCurrentInstrument()
-                const speed = instrument?.speed ? instrument.speed : 1
+                const speed = instrument?.material?.speed ?? 1
                 const time = e.start_time - this.timer_attack
                 if (time < 500) {
                     return
                 }
                 this.mineTime = 0
                 if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
-                    this.inAttackProcess = ATTACK_PROCESS_ONGOING;
+                    this.inAttackProcess = ATTACK_PROCESS_ONGOING
                     this.inhand_animation_duration = RENDER_DEFAULT_ARM_HIT_PERIOD / speed
                 }
                 this.timer_attack = e.start_time
-                if (e.interactPlayerID) {
-                    const player = Qubatch.world.players.get(e.interactPlayerID);
-                    if (player) {
-                        player.punch(e);
-                    }
-                }
-                if (e.interactMobID) {
-                    const mob = Qubatch.world.mobs.get(e.interactMobID);
-                    if (mob) {
-                        mob.punch(e);
-                    }
-                }
-                if (e.interactMobID || e.interactPlayerID) {
+                const validAction = this.onInteractEntityClient(e, instrument)
+                if (validAction) {
                     this.world.server.Send({
                         name: ServerClient.CMD_PICKAT_ACTION,
                         data: e
-                    });
+                    })
                 }
             }
         }, (bPos: IPickatEventPos) => {
@@ -485,6 +487,31 @@ export class Player implements IPlayer {
         return true;
     }
 
+    /** См. также ServerPlayer.onUseItemOnEntity */
+    private onInteractEntityClient(e: IPickatEvent, instrumentHand: Instrument_Hand): boolean {
+        if (e.interactPlayerID != null) {
+            return true
+        }
+        if (e.interactMobID != null) {
+            const mob = this.world.mobs.get(e.interactMobID)
+            if (!mob) {
+                return false
+            }
+            if (mob.hasUse || instrumentHand.material?.tags.includes('use_on_mob')) {
+                // Попробовать действие или использование предмета на мобе (сервер знает что)
+                return true
+            }
+            // проверяем e.number чтобы не садиться в моба сразу после его спауна при удержании мыши
+            if (e.number == 0 && mob.supportsDriving && !mob.driving?.isFull()) {
+                // Попробовать присоединиться к езде
+                this.controlManager.triedDrving = true
+                this.controlManager.syncWithActionId(e.id, true)
+                return true
+            }
+        }
+        return false
+    }
+
     getOverChunk() {
         var overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
 
@@ -499,13 +526,17 @@ export class Player implements IPlayer {
         return overChunk;
     }
 
+    hasBobView(): boolean {
+        return this.driving?.state.mobType !== MOB_TYPE.BOAT
+    }
+
     get isAlive() : boolean {
         return this.indicators.live > 0;
     }
 
     // Return player is sneak
-    get isSneak() {
-        return this.controlManager.current.sneak
+    get isSneak(): boolean {
+        return this.controlManager.current.player_state.sneak ?? false
     }
 
     // Return player height
@@ -538,22 +569,23 @@ export class Player implements IPlayer {
         return this._height;
     }
 
-    //
-    addRotate(vec3) {
-        this.setRotate(
-            this.rotate.addSelf(vec3)
-        );
+    /** Добавляет вращение к свободной камере либо к повороту игроку */
+    addRotate(vec3: IVector): void {
+        const dst = this.controlManager.getCamRotation().addSelf(vec3)
+        this.setRotate(dst, dst)
     }
 
-    // setRotate
-    // @var vec3 (0 ... PI)
-    setRotate(vec3) {
-        this.rotate.set(vec3.x, vec3.y, vec3.z);
-        if(this.rotate.z < 0) {
-            this.rotate.z = (Math.PI * 2) + this.rotate.z;
+    /**
+     * Добавляет {@link src} к {@link dst} (по умолчанию к повороту игрока) и приводит углы к нормальным значениям для камеры
+     * @param src (0 ... PI)
+     */
+    setRotate(src: IVector, dst: Vector = this.rotate): void {
+        dst.copyFrom(src);
+        if(dst.z < 0) {
+            dst.z = (Math.PI * 2) + dst.z;
         }
-        this.rotate.x = Helpers.clamp(this.rotate.x, -Math.PI / 2, Math.PI / 2);
-        this.rotate.z = this.rotate.z % (Math.PI * 2);
+        dst.x = Helpers.clamp(dst.x, -Math.PI / 2, Math.PI / 2);
+        dst.z = dst.z % (Math.PI * 2);
     }
 
     // Rad to degree
@@ -649,6 +681,13 @@ export class Player implements IPlayer {
                     if(!is_composter &&!is_cauldron && !is_plant_berry && !is_plant && !canInteractWithBlock && this.startItemUse(cur_mat)) {
                         return false;
                     }
+                    // Кидаем снежок
+                    if (cur_mat_id == BLOCK.SNOWBALL.id) {
+                        this.inMiningProcess = true
+                        this.inhand_animation_duration = 2.5 * RENDER_DEFAULT_ARM_HIT_PERIOD
+                        this.world.server.Send({name: ServerClient.CMD_USE_ITEM})
+                        return false
+                    }
                 }
             } else {
                 this.stopItemUse();
@@ -669,6 +708,15 @@ export class Player implements IPlayer {
             this.world.server.Send({
                 name: ServerClient.CMD_STANDUP_STRAIGHT,
                 data: null
+            })
+        }
+    }
+
+    leaveDriving(): void {
+        if (this.driving) {
+            this.world.server.Send({
+                name: ServerClient.CMD_STANDUP_STRAIGHT,
+                data: this.driving.standUpGetId()
             })
         }
     }
@@ -737,18 +785,10 @@ export class Player implements IPlayer {
             }
             this.mineTime = 0;
             const e_orig: ICmdPickatData = ObjectHelpers.deepClone(e);
-            const action_player_info: ActionPlayerInfo = {
-                radius: PLAYER_DIAMETER, // .radius is used as a diameter
-                height: this.height,
-                pos: this.lerpPos,
-                rotate: this.rotateDegree.clone(),
-                session: {
-                    user_id: this.session.user_id
-                }
-            };
+            const action_player_info = this.getActionPlayerInfo()
             const [actions, pos] = await doBlockAction(e, this.world, action_player_info, this.currentInventoryItem);
             if (actions) {
-                e_orig.snapshotId = this.world.history.makeSnapshot(pos);
+                e_orig.snapshotId = pos && this.world.history.makeSnapshot(pos);
                 if(e.createBlock && actions.blocks.list.length > 0) {
                     this.startArmSwingProgress();
                 }
@@ -763,6 +803,18 @@ export class Player implements IPlayer {
             }
         }
         return true;
+    }
+
+    private getActionPlayerInfo(): ActionPlayerInfo {
+        return {
+            radius: PLAYER_DIAMETER, // .radius is used as a diameter
+            height: this.height,
+            pos: this.lerpPos,
+            rotate: this.rotateDegree.clone(),
+            session: {
+                user_id: this.session.user_id
+            }
+        }
     }
 
     // Ограничение частоты выполнения данного действия
@@ -780,7 +832,7 @@ export class Player implements IPlayer {
     }
 
     // getCurrentInstrument
-    getCurrentInstrument() {
+    getCurrentInstrument(): Instrument_Hand {
         const currentInventoryItem = this.currentInventoryItem;
         const instrument = new Instrument_Hand(this.inventory, currentInventoryItem);
         /* Old incorrect code that did nothing:
@@ -828,11 +880,11 @@ export class Player implements IPlayer {
     }
 
     //
-    setPosition(vec: IVector, worldActionId?: string | int | null): void {
+    setPosition(vec: IVector): void {
         //
         const pc = this.getPlayerControl();
         pc.player_state.onGround = false;
-        this.controlManager.setPos(vec, worldActionId);
+        this.controlManager.setPos(vec)
         //
         if (!Qubatch.is_server) {
             this.stopAllActivity();
@@ -898,7 +950,7 @@ export class Player implements IPlayer {
             //
             const pc = this.controlManager.current;
             this.posO.copyFrom(this.lerpPos);
-            this.checkBodyRot(delta);
+            // this.checkBodyRot(delta);
             // Physics tick
             this.updateControl()
             const minMovingDist = delta * MOVING_MIN_BLOCKS_PER_SECOND;
@@ -1010,33 +1062,33 @@ export class Player implements IPlayer {
     }
 
     getInterpolatedHeadLight() {
-        if(this.render.globalUniforms.lightOverride === 0xff) {
+        if(this.render.lightUniforms.override === 0xff) {
             return 0xff
         }
         if (!this.headBlock || !this.headBlock.tb) {
             return 0;
         }
         const {tb} = this.headBlock;
-        return tb.getInterpolatedLightValue(this.lerpPos.sub(tb.dataChunk.pos));
+        return tb.getInterpolatedLightValue(this.getEyePos(true).sub(tb.dataChunk.pos));
     }
 
-    checkBodyRot(delta: float): void {
-        const pc = this.getPlayerControl();
-        const value = delta * this.body_rotate_speed;
-        if(pc.controls.right && !pc.controls.left) {
-            this.body_rotate = Math.min(this.body_rotate + value, 1);
-        } else if(pc.controls.left && !pc.controls.right) {
-            this.body_rotate = Math.max(this.body_rotate - value, -1);
-        } else if(pc.controls.forward || pc.controls.back) {
-            if(this.body_rotate < 0) this.body_rotate = Math.min(this.body_rotate + value, 0);
-            if(this.body_rotate > 0) this.body_rotate = Math.max(this.body_rotate - value, 0);
-        }
-        if(this.body_rotate_o != this.body_rotate) {
-            // body rot changes
-            this.body_rotate_o = this.body_rotate;
-            this.triggerEvent('body_rot_changed', {value: this.body_rotate});
-        }
-    }
+    // checkBodyRot(delta: float): void {
+    //     const pc = this.getPlayerControl();
+    //     const value = delta * this.body_rotate_speed;
+    //     if(pc.controls.right && !pc.controls.left) {
+    //         this.body_rotate = Math.min(this.body_rotate + value, 1);
+    //     } else if(pc.controls.left && !pc.controls.right) {
+    //         this.body_rotate = Math.max(this.body_rotate - value, -1);
+    //     } else if(pc.controls.forward || pc.controls.back) {
+    //         if(this.body_rotate < 0) this.body_rotate = Math.min(this.body_rotate + value, 0);
+    //         if(this.body_rotate > 0) this.body_rotate = Math.max(this.body_rotate - value, 0);
+    //     }
+    //     if(this.body_rotate_o != this.body_rotate) {
+    //         // body rot changes
+    //         this.body_rotate_o = this.body_rotate;
+    //         this.triggerEvent('body_rot_changed', {value: this.body_rotate});
+    //     }
+    // }
 
     triggerEvent(name : string, args : object = null) {
         switch(name) {
@@ -1073,25 +1125,22 @@ export class Player implements IPlayer {
                 Qubatch.sounds.play('madcraft:environment', 'exiting_water');
                 break;
             }
-            case 'body_rot_changed': {
-                const itsme = this.getModel()
-                if(itsme) {
-                    itsme.setBodyRotate((args as any).value);
-                }
-                break;
-            }
+            // case 'body_rot_changed': {
+            //     const itsme = this.getModel()
+            //     if(itsme) {
+            //         itsme.setBodyRotate((args as any).value);
+            //     }
+            //     break;
+            // }
         }
     }
 
-    /**
-     * @returns { import("./player_model.js").PlayerModel }
-     */
-    getModel() {
+    getModel(): PlayerModel | null {
         return this.world.players.get(this.session.user_id);
     }
 
     // Emulate user keyboard control
-    walk(direction, duration) {
+    walk(direction : string, duration : float) {
         this.controls.forward = direction == 'forward';
         this.controls.back = direction == 'back';
         this.controls.left = direction == 'left';
@@ -1354,10 +1403,10 @@ export class Player implements IPlayer {
     updateTimerAnim() {
         if (this.moving) {
             if (this.state.anim) {
-                this.world.server.Send({name: ServerClient.CMD_PLAY_ANIM, 
+                this.world.server.Send({name: ServerClient.CMD_PLAY_ANIM,
                     data: {
                         cancel: true
-                    }   
+                    }
                 })
             }
             this.timer_anim = 0
@@ -1366,6 +1415,26 @@ export class Player implements IPlayer {
         }
         if (this.timer_anim <= performance.now()) {
             this.state.anim = false
+        }
+    }
+
+    /**
+     * Добавлет, меняет значения или удаляет {@link debugValues} согласно аргументам команды.
+     * См. также обработчик этой команды в server_chat.ts
+     */
+    updateDebugValues(args: any[]): void {
+        for(let arg of args) {
+            if (arg.startsWith('-')) {
+                this.debugValues.delete(arg.substring(1))
+            } else {
+                let value = 'true'
+                const ind = arg.indexOf('=')
+                if (ind >= 0) {
+                    value = arg.substring(ind + 1)
+                    arg = arg.substring(0, ind)
+                }
+                this.debugValues.set(arg, value)
+            }
         }
     }
 

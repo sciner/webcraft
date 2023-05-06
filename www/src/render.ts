@@ -19,7 +19,7 @@ import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
-import { BLEND_MODES } from "./renders/BaseRenderer.js";
+import {BLEND_MODES, GlobalUniformGroup, LightUniformGroup} from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
 import { Weather } from "./block_type/weather.js";
@@ -83,13 +83,14 @@ export class Renderer {
     meshes:                 MeshManager
     camera:                 Camera
     debugGeom:              LineGeometry
-    inHandOverlay?:         any
+    inHandOverlay?:         InHandOverlay
     canvas:                 any
     drop_item_meshes:       any[]
     settings:               any
     videoCardInfoCache:     any
     options:                any
-    globalUniforms:         any
+    globalUniforms:         GlobalUniformGroup;
+    lightUniforms:          LightUniformGroup;
     defaultShader:          any
     defaultFluidShader:     any
     viewportWidth:          any
@@ -111,6 +112,9 @@ export class Renderer {
     material_shadow:        any
     cullID:                 int = 0
     lastDeltaForMeGui:      int = 0
+    mobsDrawnLast:          MobModel[] = [] // список мобов, отложенных при 1-м вызове drawMobs, чтобы быть нарисованными на 2-м
+    nightVision:            boolean = false;
+    _debug_aabb:            AABB[] = []
 
     constructor(qubatchRenderSurfaceId : string) {
         this.canvas             = document.getElementById(qubatchRenderSurfaceId);
@@ -211,6 +215,7 @@ export class Renderer {
         await BLOCK.resource_pack_manager.initTextures(renderBackend, settings);
 
         this.globalUniforms = renderBackend.globalUniforms;
+        this.lightUniforms = renderBackend.lightUniforms;
 
         // Make materials for all shaders
         for(let rp of BLOCK.resource_pack_manager.list.values()) {
@@ -848,7 +853,7 @@ export class Renderer {
         let preset = PRESET_NAMES.NORMAL;
 
         if(player.pos.y < 0 && this.world.info.generator.id !== 'flat') {
-            nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
+             nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
         }
 
         const getPlayerBlockColor = () : Color | null => {
@@ -1009,7 +1014,7 @@ export class Renderer {
         });
 
         this.env.draw(this);
-
+        this.lightUniforms.pushOverride(this.nightVision ? 0xff: -1);
         this.defaultShader.bind(true);
 
         // upload important buffers here!
@@ -1031,15 +1036,19 @@ export class Renderer {
                 // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
                 if (shader.texture) {
                     shader.bind(true);
-                    // 3. Draw players and rain
+                    // 3. Draw mobs
+                    this.drawMobs(delta, false);
+                    // 4. Draw players and rain
+                    // После мобов, это важно. draw также обновляет состояние. Моб-транспорт должен обработаться первым и изменить позицию модели игрока.
                     this.drawPlayers(delta);
-                    // 4. Draw mobs
-                    this.drawMobs(delta);
                     // 5. Draw drop items
                     this.drawDropItems(delta);
                     // 6. Draw meshes
                     // this.meshes.draw(this, delta, player.lerpPos);
-                    // 7. Draw shadows
+
+                    // 7. Draw mobs that must be drawn last (boats)
+                    this.drawMobs(delta, true);
+                    // 8. Draw shadows
                     this.drawShadows();
                 }
             } else {
@@ -1051,6 +1060,18 @@ export class Renderer {
             }
         }
         renderList.checkFence();
+        this.lightUniforms.popOverride();
+
+        if(this._debug_aabb) {
+            for(let aabb of this._debug_aabb) {
+                this.debugGeom.addBlockGrid({
+                    pos:        new Vector(aabb.x_min, aabb.y_min, aabb.z_min),
+                    size:       aabb.size,
+                    lineWidth:  .15,
+                    colorABGR:  0xFFFF0000, // ABGR
+                })
+            }
+        }
 
         const overChunk = player.getOverChunk();
         if (overChunk) {
@@ -1061,7 +1082,7 @@ export class Renderer {
                     pos:        overChunk.coord,
                     size:       overChunk.size,
                     lineWidth:  .15,
-                    colorBGRA:  0xFF00FF00,
+                    colorABGR:  0xFF00FF00, // ABGR
                 })
             }
             // cluster
@@ -1071,7 +1092,7 @@ export class Renderer {
                 this.debugGeom.addAABB(new AABB(
                     cluster_coord.x, cluster_coord.y, cluster_coord.z,
                     cluster_coord.x + CSZ.x, cluster_coord.y + CSZ.y, cluster_coord.z + CSZ.z
-                ), {lineWidth: .25, colorBGRA: 0xFFFFFFFF})
+                ), {lineWidth: .25, colorABGR: 0xFFFFFFFF}) // ABGR
             }
         }
 
@@ -1088,19 +1109,19 @@ export class Renderer {
                     this.debugGeom.addAABB(new AABB(
                         _schema_coord.x, _schema_coord.y, _schema_coord.z,
                         _schema_coord.x + _schema_size.x, _schema_coord.y + _schema_size.y, _schema_coord.z + _schema_size.z
-                    ), {lineWidth: .15, colorBGRA: 0xFFFFFFFF})
+                    ), {lineWidth: .15, colorABGR: 0xFFFFFFFF}) // ABGR
                     // door
                     const dbtm = schema.world.entrance
                     this.debugGeom.addAABB(new AABB(
                         dbtm.x, dbtm.y, dbtm.z,
                         dbtm.x + 1, dbtm.y + 2, dbtm.z + 1
-                    ), {lineWidth: .15, colorBGRA: 0xFFFF00FF})
+                    ), {lineWidth: .15, colorABGR: 0xFFFF00FF})
                     /*
                     this.debugGeom.addBlockGrid({
                         pos:        _schema_coord,
                         size:       _schema_size,
                         lineWidth:  .15,
-                        colorBGRA:  0xFFFFFFFF,
+                        colorABGR:  0xFFFFFFFF, // ABGR
                     })
                     */
                 }
@@ -1116,7 +1137,7 @@ export class Renderer {
         // @todo и тут тоже не должно быть
         this.defaultShader.bind();
         if(!player.game_mode.isSpectator() && Qubatch.hud.active && !player.controlManager.isFreeCam) {
-            this.drawInhandItem(delta);
+            this.drawInhandItem(delta)
         }
 
         // 4. Draw HUD
@@ -1135,14 +1156,14 @@ export class Renderer {
     }
 
     //
-    drawInhandItem(dt) {
+    drawInhandItem(delta : float) {
 
         if (!this.inHandOverlay) {
             this.inHandOverlay = new InHandOverlay(this.world, this.player.skin, this);
         }
 
         if(this.camera_mode == CAMERA_MODE.SHOOTER) {
-            this.inHandOverlay.draw(this, dt);
+            this.inHandOverlay.draw(this, delta);
         }
 
         // we should reset camera state because a viewMatrix used for picking
@@ -1239,7 +1260,7 @@ export class Renderer {
     }
 
     // drawMobs
-    drawMobs(delta : float) : DrawMobsStat {
+    drawMobs(delta : float, renderLast: boolean) : DrawMobsStat | null {
         const mobs_count = this.world.mobs.list.size;
         if(mobs_count < 1) {
             return this.draw_mobs_stat;
@@ -1249,7 +1270,16 @@ export class Renderer {
         let prev_chunk = null;
         let prev_chunk_addr = new Vector();
         const pos_of_interest = this.player.getEyePos();
-        const mobs_list : MobModel[] = Array.from(this.world.mobs.list.values())
+
+        if (renderLast) {
+            for(const mob of this.mobsDrawnLast) {
+                mob.draw(this, pos_of_interest, delta, undefined, this.world.mobs.draw_debug_grid);
+            }
+            this.mobsDrawnLast.length = 0
+            return null
+        }
+
+        const mobs_list = this.world.mobs.list.values()
         this.draw_mobs_stat.count = 0
         this.draw_mobs_stat.time = performance.now()
         for(let mob of mobs_list) {
@@ -1259,6 +1289,12 @@ export class Renderer {
                 prev_chunk = this.world.chunkManager.getChunk(ca);
             }
             if(prev_chunk && prev_chunk.cullID === this.cullID) {
+                if (mob.renderLast) {
+                    // запомнить моба чтобы нарисовать его на втором проходе быстро без проверок чанка
+                    this.mobsDrawnLast.push(mob)
+                    mob.processNetState() // даже если моб не рисуется на первом проходе - обновить его (например, чтобы его вождение обновило других мобов)
+                    continue
+                }
                 mob.draw(this, pos_of_interest, delta, undefined, this.world.mobs.draw_debug_grid);
                 this.draw_mobs_stat.count++
             }
@@ -1504,7 +1540,9 @@ export class Renderer {
 
         if(!force) {
 
-            this.bobView(player, tmp);
+            if (player.hasBobView()) {
+                this.bobView(player, tmp);
+            }
             this.crosshairOn = ((this.camera_mode === CAMERA_MODE.SHOOTER) && Qubatch.hud.active); // && !player.game_mode.isSpectator();
 
             if(this.camera_mode === CAMERA_MODE.SHOOTER) {
@@ -1593,7 +1631,7 @@ export class Renderer {
      * posX , posY in zoom
      */
     drawFromPixi(pixiRender, worldTransform, pixiBlockSize = 64, lambda: (render: Renderer) => void ) {
-        const {globalUniforms:gu} = this;
+        const {globalUniforms:gu, lightUniforms: lu} = this;
         pixiRender.batch.flush();
         this.resetBefore(false);
         const {screen} = pixiRender;
@@ -1627,8 +1665,7 @@ export class Renderer {
         gu.brightness = 0.0; // 0.55 * 1.0; // 1.3
         // gu.sunDir = [-1, -1, 1];
         // gu.useSunDir = true;
-
-        gu.lightOverride = 0x100ff;
+        lu.pushOverride(0x100ff);
 
         guiCam.use(gu, true);
         gu.update();
@@ -1639,6 +1676,7 @@ export class Renderer {
 
         this.resetAfter();
 
+        lu.popOverride();
         pixiRender.shader.program = null;
         pixiRender.shader.bind(pixiRender.plugins.batch._shader, true);
         pixiRender.reset();
@@ -1699,7 +1737,7 @@ export class Renderer {
     }
 
     updateNightVision(val) {
-        this.globalUniforms.lightOverride = val ? 0xff: -1;
+        this.nightVision = val;
     }
 
     screenshot(callback) {

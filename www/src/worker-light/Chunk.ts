@@ -10,6 +10,7 @@ import {
 import {DataChunk} from "../core/DataChunk.js";
 import {ChunkGroundLevel} from "./GroundLevel.js"
 import {LightCalc} from "./LightCalc.js";
+import { DAYLIGHT_VALUE } from '../constant.js';
 
 function calcDif26(size, out) {
     //TODO: move to BaseChunk
@@ -28,14 +29,17 @@ export class Chunk {
         this.addr = new Vector(args.addr.x, args.addr.y, args.addr.z);
         //TODO: this is from grid!
         this.size = new Vector(args.size.x, args.size.y, args.size.z);
+        this.chunkWave = [null, null, null, null];
         this.uniqId = args.uniqId;
+        this.dayLightDefaultValue = args.dayLightDefaultValue ?? DAYLIGHT_VALUE.FULL;
         this.lastID = 0;
         this.lastAO = 0;
         this.sentID = 0;
         this.waveCounter = 0;
         this.crc = 0;
 
-        this.disperse = this.addr.y >= 0 ? DISPERSE_MIN + 1 : 0;
+        this.disperse = DISPERSE_MIN + 1;
+        //TODO: copy default layer light here
 
         const grid = this.world.chunkManager.lightBase.grid;
         this.lightChunk = new DataChunk({
@@ -60,6 +64,25 @@ export class Chunk {
         this.outerLen = this.lightChunk.outerLen;
 
         this.groundLevel = new ChunkGroundLevel(this);
+    }
+
+    freeWave(qOffset: number) {
+        const arr = this.chunkWave[qOffset];
+        if (arr && arr.refCounter === 0) {
+            this.world.gridPool.freeUint8(arr);
+            this.chunkWave[qOffset] = null;
+        }
+    }
+
+    checkWave(qOffset: number, coord: number, waveNum: number) {
+        const arr = this.chunkWave[qOffset];
+        if (arr) {
+            if (arr.arr[coord] >= waveNum) {
+                return null;
+            }
+            return arr;
+        }
+        return this.chunkWave[qOffset] = this.world.gridPool.allocUint8();
     }
 
     get chunkManager() {
@@ -101,9 +124,7 @@ export class Chunk {
         const {shiftCoord, cx, cy, cz} = lightChunk;
         let found = false;
 
-        if (lightChunk.pos.y >= 0) {
-            world.dayLightSrc.fillOuter(this);
-        }
+        world.dayLightSrc.fillOuter(this);
 
         const ambientLight = world.light.ambientLight;
         for (let i = 0; i < portals.length; i++) {

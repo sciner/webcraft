@@ -20,6 +20,7 @@
         {"name": "mob/fox",             "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "mob/npc",             "shift": {"x": 0, "y": 0, "z": 0}},
         {"name": "mob/deer",            "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "mob/snowball",            "shift": {"x": 0, "y": 0, "z": 0}},
 
         {"name": "transport/boat",      "shift": {"x": 0, "y": 0, "z": 0}},
 
@@ -520,6 +521,7 @@
         {
             "id": 39,
             "name": "BROWN_MUSHROOM",
+            "aabb": [5, 0, 5, 11, 6, 11],
             "bb": {
                 "model": "brown_mushroom"
             }
@@ -527,6 +529,7 @@
         {
             "id": 40,
             "name": "RED_MUSHROOM",
+            "aabb": [5, 0, 5, 11, 6, 11],
             "bb": {
                 "model": "red_mushroom",
                 "rotate": [
@@ -2488,6 +2491,13 @@
             "name": "TOOLBELT_BASIC",
             "bb": {
                 "model": "tool/toolbelt_basic"
+            }
+        },
+        {
+            "id": 14,
+            "name": "GOLD_ORE",
+            "bb": {
+                "model": "gold_ore"
             }
         }
     ]

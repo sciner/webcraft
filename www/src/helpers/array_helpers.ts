@@ -181,7 +181,7 @@ export class ArrayHelpers {
             for(let i = 0; i < arr.length; i++) {
                 arr[i] = (fill as Function)(i);
             }
-        } else if (fill !== null) {
+        } else if (fill !== undefined) {
             arr.fill(fill);
         }
         return arr;
