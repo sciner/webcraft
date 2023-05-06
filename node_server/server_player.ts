@@ -542,6 +542,7 @@ export class ServerPlayer extends Player {
         this.sendNearPlayersToMe();
         this.controlManager.tick();
         this.checkIndicators(tick_number);
+        this.combat.setDamage(tick_number)
         //this.damage.tick(delta, tick_number);
         this.checkCastTime();
         this.effects.checkEffects();

@@ -100,7 +100,7 @@ type PlayerStateDynamicPart = {
     hands       : PlayerHands,
     anim?       : false | TAnimState
     fire?       : boolean,
-    attack?     : boolean
+    attack?     : false | TAnimState
 }
 
 /** Fields that are saved together into DB in user.state field. */
@@ -256,7 +256,6 @@ export class Player implements IPlayer {
     timer_anim:                number = 0
     /** значения, которые можно установить командой /debugplayer (и на клиенте, и на сервере) и использовать для любых целей */
     debugValues                 = new Map<string, string>()
-    #timer_attack:              number = 0
 
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
@@ -415,23 +414,20 @@ export class Player implements IPlayer {
             if (e.button_id == MOUSE.BUTTON_LEFT) {
                 const instrument = this.getCurrentInstrument()
                 const speed = instrument?.material?.speed ?? 1
-                const time = (e.start_time - this.#timer_attack) * speed
-                if (time > ATTACK_COOLDOWN) {
-                    this.setAnimation('attack', speed, ATTACK_COOLDOWN / 1000)
-                    // отстрочка от анимации
-                    setTimeout(() => {
-                        console.log('attack: ' + time)
-                        this.world.server.Send({
-                            name: ServerClient.CMD_USE_WEAPON,
-                            data: {
-                                target: {
-                                    pid: e.interactPlayerID,
-                                    mid: e.interactMobID
-                                }
+                if (!this.state.attack) {
+                    this.world.server.Send({
+                        name: ServerClient.CMD_USE_WEAPON,
+                        data: {
+                            target: {
+                                pid: e.interactPlayerID,
+                                mid: e.interactMobID
                             }
-                        })
-                    }, 50)
-                    this.#timer_attack = e.start_time
+                        }
+                    })
+                    this.state.attack = {title: 'attack', speed: speed}
+                    setTimeout(() => {
+                        this.state.attack = false
+                    }, ATTACK_COOLDOWN / speed)
                 }
             } else {
                 const instrument = this.getCurrentInstrument()
@@ -1189,7 +1185,7 @@ export class Player implements IPlayer {
                 this.state.sitting,
                 this.state.sleep,
                 this.state.anim,
-                false,
+                this.state.attack,
                 false,
                 this.indicators.live,
                 this.onGround
