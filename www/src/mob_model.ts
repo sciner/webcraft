@@ -75,14 +75,14 @@ export class MobModel extends NetworkPhysicObject {
     tmpDrawPos?:        Vector
     drawPos?:           Vector
     draw_yaw?:          float
-    sleep?:             false | TSleepState
-    sitting?:           false | TSittingState
+    sleep?:             false | TSleepState = false
+    sitting?:           false | TSittingState = false
     aabb:               AABBDrawable = null
     _mesh:              Mesh_Object_BBModel
     _fire_mesh:         any
-    anim?:              false | TAnimState
+    anim?:              false | TAnimState = false
     fire?:              boolean = false
-    attack?:            false | TAnimState
+    attack?:            false | TAnimState = false
     ground:             boolean = true
     running:            boolean = false
     driving?:           ClientDriving | null
@@ -247,14 +247,7 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         this.update(render, camPos, delta, speed);
-
-        // TODO: need to migrate to bbmodels
-        // // ignore_roots
-        // const ignore_roots = [];
-        // if(this.type == MOB_TYPE.SHEEP && this.extra_data?.is_sheared) {
-        //     ignore_roots.push('geometry.sheep.v1.8:geometry.sheep.sheared.v1.8');
-        // }
-
+        
         // Draw in fire
         if (this.fire || this.extra_data?.in_fire) {
             this.drawInFire(render, delta);

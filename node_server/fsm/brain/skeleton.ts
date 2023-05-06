@@ -17,6 +17,7 @@ export class Brain extends FSMBrain {
         this.timer_attack = 0;
         this.interval_attack = 16;
         this.resistance_light = false; // загорается при свете
+        mob.extra_data.attack = false
     }
 
     onLive() {
@@ -51,7 +52,7 @@ export class Brain extends FSMBrain {
             return;
         }
         const mob = this.mob;
-        mob.extra_data.attack = true
+        mob.extra_data.attack = false
         this.updateControl({
             forward: false,
             jump: false,
@@ -70,7 +71,7 @@ export class Brain extends FSMBrain {
         }
         // обход препятсвия
         const mob = this.mob;
-        mob.extra_data.attack = true
+        mob.extra_data.attack = false
         if (this.is_wall || this.is_fire || this.is_lava) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
