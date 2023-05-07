@@ -1,7 +1,7 @@
 import { Label, Window } from "../ui/wm.js";
 import { BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_HOTBAR_SLOT_COUNT, UI_THEME } from "../constant.js";
+import { BAG_LINE_COUNT, UI_THEME } from "../constant.js";
 import type { InventoryRecipeWindow } from "./inventory_recipe.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import type { InGameMain } from "./ingamemain.js";
@@ -64,7 +64,7 @@ export class InventoryWindow extends BaseCraftWindow {
         this.createCraft(sx, sy, sz, szm)
 
         // Calc backpack slots width
-        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * INVENTORY_HOTBAR_SLOT_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
+        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * BAG_LINE_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
 
         // Создание слотов для инвентаря
         const x = this.w / this.zoom - slots_width

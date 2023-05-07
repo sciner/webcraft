@@ -1,6 +1,6 @@
 import {RecipeManager} from "./recipes.js";
 import {Inventory, TInventoryState} from "./inventory.js";
-import {INVENTORY_DRAG_SLOT_INDEX, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT} from "./constant.js";
+import {HOTBAR_LENGTH_MAX, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_SLOT_COUNT} from "./constant.js";
 import type {WindowManager, Pointer} from "./vendors/wm/wm.js";
 import type {Player} from "./player.js";
 import type {HUD} from "./hud.js";
@@ -21,7 +21,7 @@ export class PlayerInventory extends Inventory {
     constructor(player: Player, state: TInventoryState, hud: HUD) {
         super(player, {current: {index: 0, index2: -1}, items: []});
         this.hud = hud
-        for(let i = 0; i < this.max_count; i++) {
+        for(let i = 0; i < INVENTORY_SLOT_COUNT; i++) {
             this.items.push(null);
         }
         //
@@ -122,13 +122,17 @@ export class PlayerInventory extends Inventory {
      * @return the index of a slot that has been freed, or -1 if no slots have been freed
      */
     private reorganizeFreeSlot(): int {
-        const bm = this.block_manager
-        const items = this.items
-        const simpleKeys = new Array<string>(INVENTORY_VISIBLE_SLOT_COUNT)
+        const bm     = this.block_manager
+        const items  = this.items
+        const bag    = this.getBagLength()
+        const hotbar = this.getHotbarLength()
+        const simpleKeys = new Array<string>(bag)
         const freeSpaceByKey: Dict<int> = {} // total free space in all stacks of this type of item
 
-        // for each slot that can be added to
-        for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
+        for(let i = 0; i < bag; i++) {
+            if (i > hotbar && i < HOTBAR_LENGTH_MAX) {
+                continue
+            }
             const item = items[i]
             if (item) {
                 const key = InventoryComparator.makeItemCompareKey(item)
@@ -139,7 +143,7 @@ export class PlayerInventory extends Inventory {
         }
 
         // for each slot that can be freed. It excludes HUD slots
-        for(let i = INVENTORY_HOTBAR_SLOT_COUNT; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
+        for(let i = HOTBAR_LENGTH_MAX; i < bag; i++) {
             const item = items[i]
             if (!item) {
                 continue

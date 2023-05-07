@@ -1,9 +1,8 @@
 import { ItemHelpers } from "../block_helpers.js";
 import { Label, TextEdit } from "../ui/wm.js";
-import { INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_COUNT, ITEM_LABEL_MAX_LENGTH, UI_THEME } from "../constant.js";
+import { BAG_LINE_COUNT, ITEM_LABEL_MAX_LENGTH, UI_THEME } from "../constant.js";
 import { AnvilRecipeManager } from "../recipes_anvil.js";
 import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
-import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
 import type { PlayerInventory } from "../player_inventory.js";
@@ -78,7 +77,7 @@ export class AnvilWindow extends BaseCraftWindow {
         this.setBackground('./media/gui/form-quest.png')
 
         // Создание слотов для инвентаря
-        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * INVENTORY_HOTBAR_SLOT_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
+        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * BAG_LINE_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
         this.createInventorySlots(this.cell_size, (this.w / this.zoom) - slots_width, 60, UI_THEME.window_padding, undefined, true)
 
         // Создание слотов для крафта

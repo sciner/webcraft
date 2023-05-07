@@ -1,4 +1,4 @@
-import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, UI_THEME } from "../constant.js";
+import { INVENTORY_DRAG_SLOT_INDEX, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, UI_THEME } from "../constant.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BlankWindow } from "./blank.js";
 import type {PlayerInventory} from "../player_inventory.js";
@@ -58,7 +58,7 @@ export class BaseInventoryWindow extends BlankWindow {
      */
     fixAndValidateSlots(context) {
         // compare inventory slots and items
-        for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
+        for(let i = 0; i < (BAG_LENGTH_MAX + HOTBAR_LENGTH_MAX); i++) {
             const item = this.inventory.items[i]
             const slotItem = this.inventory_slots[i].getItem()
             if (!InventoryComparator.itemsEqual(item, slotItem)) {

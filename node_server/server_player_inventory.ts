@@ -1,4 +1,4 @@
-import { INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX } from "@client/constant.js";
+import { INVENTORY_DRAG_SLOT_INDEX, HOTBAR_LENGTH_MAX } from "@client/constant.js";
 import {InventoryComparator, IRecipeManager, TUsedRecipe} from "@client/inventory_comparator.js";
 import {Inventory, TInventoryState, TInventoryStateChangeMessage} from "@client/inventory.js";
 import { ServerClient } from "@client/server_client.js";
@@ -171,7 +171,12 @@ export class ServerPlayerInventory extends Inventory {
         if (!drag_item) {
             return false;
         }
-        for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
+        const bag = this.getBagLength()
+        const hotbar = this.getHotbarLength()
+        for(let i = 0; i < bag; i++) {
+            if (i > hotbar && i < HOTBAR_LENGTH_MAX) {
+                continue
+            }
             if (!this.items[i]) {
                 this.items[i] = drag_item;
                 this.items[INVENTORY_DRAG_SLOT_INDEX] = null;

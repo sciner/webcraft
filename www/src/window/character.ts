@@ -1,7 +1,7 @@
 import { Label } from "../ui/wm.js";
 import { BaseCraftWindow, PaperDollSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_HOTBAR_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_BOOTS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, PAPERDOLL_LEGGINGS, PAPERDOLL_TOOLBELT, UI_THEME } from "../constant.js";
+import { BAG_LINE_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_BOOTS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, PAPERDOLL_LEGGINGS, PAPERDOLL_TOOLBELT, UI_THEME } from "../constant.js";
 import type { InventoryRecipeWindow } from "./inventory_recipe.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import type { InGameMain } from "./ingamemain.js";
@@ -52,7 +52,7 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         // Ширина / высота слота
         this.cell_size = UI_THEME.window_slot_size * this.zoom
 
-        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * INVENTORY_HOTBAR_SLOT_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
+        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * BAG_LINE_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
 
         // Создание слотов для инвентаря
         const x = this.w / this.zoom - slots_width

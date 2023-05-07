@@ -1,7 +1,6 @@
 import {BLOCK} from "../blocks.js";
 import { ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../helpers.js";
-import { INVENTORY_HOTBAR_SLOT_COUNT,
-    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MOUSE, UI_THEME, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX } from "../constant.js";
+import { INVENTORY_DRAG_SLOT_INDEX, MOUSE, UI_THEME, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX } from "../constant.js";
 import { INVENTORY_CHANGE_MERGE_SMALL_STACKS, INVENTORY_CHANGE_SHIFT_SPREAD } from "../inventory.js";
 import { Label, SimpleBlockSlot, Window, Button, ToggleButton } from "../ui/wm.js";
 import { Recipe } from "../recipes.js";
@@ -401,8 +400,13 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         }
                         // проверить слоты инвентаря
                         const inventory_items = player.inventory.items
-                        for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; ++i) {
-                            const item = inventory_items[i];
+                        const bag    = this.getInventory().getBagLength()
+                        const hotbar = this.getInventory().getHotbarLength()
+                        for(let i = 0; i < bag; i++) {
+                            if (i > hotbar && i < HOTBAR_LENGTH_MAX) {
+                                continue
+                            }
+                            const item = inventory_items[i]
                             if (InventoryComparator.itemsEqualExceptCount(item, dropItem)) {
                                 list.push({chest: 0, index: i, item: item})
                             }
@@ -501,9 +505,9 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                     case 'frmInventory': {
                         const srcList = this.parent.inventory_slots;
                         if(!this.appendToSpecialList(targetItem, srcList)) {
-                            const bag_len    = this.getInventory().getBagLength()
-                            const hotbar_len = this.getInventory().getHotbarLength()
-                            let targetList = this.slot_index <= hotbar_len || this.slot_index > (BAG_LENGTH_MAX)  ? srcList.slice(HOTBAR_LENGTH_MAX, bag_len) : srcList.slice(0, hotbar_len + 1)
+                            const bag    = this.getInventory().getBagLength()
+                            const hotbar = this.getInventory().getHotbarLength()
+                            let targetList = this.slot_index <= hotbar || this.slot_index > (BAG_LENGTH_MAX)  ? srcList.slice(HOTBAR_LENGTH_MAX, bag) : srcList.slice(0, hotbar + 1)
                             this.appendToList(targetItem, targetList)
                         }
                         this.setItem(targetItem, e)

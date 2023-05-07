@@ -3,9 +3,8 @@ import { BLOCK } from "../blocks.js";
 import { Label } from "../ui/wm.js";
 import {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
-import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
-    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX,
-    CHEST_INTERACTION_MARGIN_BLOCKS, MAX_DIRTY_INVENTORY_DURATION, UI_THEME, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, CHEST_LINE_LENGTH
+import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX,
+    CHEST_INTERACTION_MARGIN_BLOCKS, MAX_DIRTY_INVENTORY_DURATION, UI_THEME, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, BAG_LINE_COUNT, CHEST_LINE_COUNT
 } from "../constant.js";
 import { INVENTORY_CHANGE_NONE, INVENTORY_CHANGE_SLOTS, 
     INVENTORY_CHANGE_CLOSE_WINDOW } from "../inventory.js";
@@ -53,7 +52,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
         this.createSlots(this.prepareSlots())
 
         // Создание слотов для инвентаря
-        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * INVENTORY_HOTBAR_SLOT_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
+        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * BAG_LINE_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
         this.createInventorySlots(this.cell_size, (this.w / this.zoom) - slots_width, 60, UI_THEME.window_padding, undefined, true)
         
         this.lastChange = {
@@ -378,7 +377,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
     prepareSlots(count = DEFAULT_CHEST_SLOT_COUNT) {
 
         const resp  = [];
-        const xcnt  = CHEST_LINE_LENGTH
+        const xcnt  = CHEST_LINE_COUNT
         const sx    = this.slots_x
         const sy    = 60 * this.zoom
         const sz    = this.cell_size

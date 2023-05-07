@@ -1,5 +1,5 @@
 import { ArrayOrMap, Helpers, Vector} from "./helpers.js";
-import { INVENTORY_SLOT_COUNT, INVENTORY_VISIBLE_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT, PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, BAG_LENGTH_MIN, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, HOTBAR_LENGTH_MIN } from "./constant.js";
+import { PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT, PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, BAG_LENGTH_MIN, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, HOTBAR_LENGTH_MIN } from "./constant.js";
 import { BLOCK } from "./blocks.js"
 import {InventoryComparator, TUsedRecipe} from "./inventory_comparator.js";
 import type { ArmorState, Player } from "./player.js";
@@ -53,11 +53,6 @@ export abstract class Inventory {
     onSelect                    = (item: IInventoryItem) => {}
     private inventory_ui_slots : SimpleBlockSlot[] = []
 
-    // TODO maybe remove these fields; they are redundant
-    readonly max_count          = INVENTORY_SLOT_COUNT
-    readonly max_visible_count  = INVENTORY_VISIBLE_SLOT_COUNT
-    //readonly hotbar_count       = INVENTORY_HOTBAR_SLOT_COUNT
-
     constructor(player : Player, state : TInventoryState) {
         this.count              = state.items.length;
         this.player             = player;
@@ -78,6 +73,14 @@ export abstract class Inventory {
         }
     }
 
+    getItems() {
+        const bag_len = this.getBagLength()
+        const hotbar_len = this.getHotbarLength()
+        const items = this.items.slice(0, hotbar_len + 1)
+        items.push(...this.items.slice(HOTBAR_LENGTH_MAX, bag_len))
+        return items
+    }
+
     addInventorySlot(slot: CraftTableSlot): void {
         if(slot.slot_index === undefined || slot.slot_index === null) return
         this.inventory_ui_slots.push(slot)
@@ -85,9 +88,10 @@ export abstract class Inventory {
 
     //
     setIndexes(data, send_state) {
-        const count = this.getHotbarLength()
-        this.current.index = Helpers.clamp(data.index, 0, count);
-        this.current.index2 = Helpers.clamp(data.index2, -1, this.max_visible_count - 1);
+        const hotbar = this.getHotbarLength()
+        const bag = this.getBagLength()
+        this.current.index = Helpers.clamp(data.index, 0, hotbar);
+        this.current.index2 = Helpers.clamp(data.index2, -1, bag);
         this.refresh(send_state);
     }
 
@@ -166,11 +170,11 @@ export abstract class Inventory {
         added.clear()
         const item_max_count = this.block_manager.getItemMaxStack(mat)
 
-        const bag_len = this.getBagLength()
+        const bag = this.getBagLength()
         // 1. update cell if exists
         let need_refresh = false;
         if(item_max_count > 1) {
-            for(let i = 0; i < bag_len; i++) {
+            for(let i = 0; i < bag; i++) {
                 const item = this.items[i];
                 if(item && item.count < item_max_count && InventoryComparator.itemsEqualExceptCount(item, mat)) {
                     need_refresh = true
@@ -184,10 +188,10 @@ export abstract class Inventory {
             }
         }
         // 2. start new slot
-        const hobar_len = this.getHotbarLength()
+        const hobar = this.getHotbarLength()
         if(mat.count > 0) {
-            for(let i = 0; i < bag_len; i++) {
-                if (i > hobar_len && i < HOTBAR_LENGTH_MAX) {
+            for(let i = 0; i < bag; i++) {
+                if (i > hobar && i < HOTBAR_LENGTH_MAX) {
                     continue
                 }
                 if(!this.items[i]) {
@@ -312,7 +316,7 @@ export abstract class Inventory {
     /**
      * Decrements one or multiple items is visible slots by the given total amount,
      * or, if the given amount is not present, decrements by as much as posible.
-     */
+     
     decrementByItemID(item_id, count, dont_refresh) {
         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
             let item = this.items[i];
@@ -330,7 +334,7 @@ export abstract class Inventory {
             this.refresh(true);
         }
     }
-
+    */
     /**
      * Decrements the item count by {@link count} or by as much as posible, and removes the
      * item from list if the count becomes 0.
@@ -382,14 +386,18 @@ export abstract class Inventory {
             has: []
         };
         // combined array of items
-        const items = this.items.slice(0, INVENTORY_VISIBLE_SLOT_COUNT);
-        additionalItems && items.push(...additionalItems);
+        const items =  this.items.slice(0, this.getBagLength())//this.getItems()
+        additionalItems && items.push(...additionalItems)
         // array of mutable counts - no need to clone the the items themselves
         const counts = items.map(item => item?.count);
         // iterate the resources in order of decreasing needs specificity
+        const hotbar = this.getHotbarLength()
         for(const resource of resources) {
             let count = resource.count;
             for(let i = 0; i < items.length; i++) {
+                if (i > hotbar && i < HOTBAR_LENGTH_MAX) {
+                    continue
+                }
                 if (counts[i] && InventoryComparator.itemMatchesNeeds(items[i], resource.needs)) {
                     const take_count = Math.min(counts[i], count);
                     resp.has.push({

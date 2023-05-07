@@ -69,12 +69,12 @@ export const HAND_ANIMATION_SPEED           = 20;
 export const INVENTORY_SLOT_COUNT           = 100;
 export const INVENTORY_VISIBLE_SLOT_COUNT   = 36;
 export const INVENTORY_DRAG_SLOT_INDEX      = 99;
-export const INVENTORY_HOTBAR_SLOT_COUNT    = 9;
 
 export const MAGIC_ROTATE_DIV               = 900;
 export const DRAW_SLOT_INDEX                = true;
 
-export const CHEST_LINE_LENGTH      = 7
+export const BAG_LINE_COUNT          = 9
+export const CHEST_LINE_COUNT       = 7
 export const HOTBAR_LENGTH_MIN      = 4
 export const HOTBAR_LENGTH_MAX      = 12
 export const BAG_LENGTH_MIN         = 27

@@ -4,7 +4,7 @@ import { Resources } from "./resources.js";
 
 import { Effect } from "./block_type/effect.js";
 import { CraftTableInventorySlot } from "./window/base_craft_window.js";
-import { HOTBAR_LENGTH_MAX, INVENTORY_HOTBAR_SLOT_COUNT, PAPERDOLL_BOOTS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, PAPERDOLL_LEGGINGS } from "./constant.js";
+import { BAG_LINE_COUNT, HOTBAR_LENGTH_MAX, PAPERDOLL_BOOTS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, PAPERDOLL_LEGGINGS } from "./constant.js";
 import type { SpriteAtlas } from "./core/sprite_atlas.js";
 import type { HUD } from "./hud.js";
 import type { PlayerInventory } from "./player_inventory.js";
@@ -272,7 +272,7 @@ export class Hotbar {
         }
         this.hud.wm.addChild(armor_base_window)
 
-        const inventory_slots_window = this.inventory_slots_window = new Window(bars_base_window.x + bars_base_window.w + MARGIN * this.zoom, 0, INVENTORY_HOTBAR_SLOT_COUNT * (sz * SLOT_MARGIN_PERCENT) - (sz * SLOT_MARGIN_PERCENT - sz), sz, 'hotbar_inventory_slots')
+        const inventory_slots_window = this.inventory_slots_window = new Window(bars_base_window.x + bars_base_window.w + MARGIN * this.zoom, 0, BAG_LINE_COUNT * (sz * SLOT_MARGIN_PERCENT) - (sz * SLOT_MARGIN_PERCENT - sz), sz, 'hotbar_inventory_slots')
         inventory_slots_window.auto_center = false
         inventory_slots_window.catchEvents = false
         inventory_slots_window.slots = []
