@@ -3,14 +3,14 @@ import { BLOCK } from "@client/blocks.js";
 import { Vector } from "@client/helpers.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import type { ServerPlayer } from "../server_player.js";
-import { PLAYER_STATUS } from "@client/constant.js";
+import { PLAYER_BURNING_TIME, PLAYER_STATUS } from "@client/constant.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
 
 const INSTANT_DAMAGE_TICKS = 10
 const INSTANT_HEALTH_TICKS = 10
 const LIVE_REGENERATIN_TICKS = 50
 const FIRE_LOST_TICKS = 10
-const FIRE_TIME = 50
+const FIRE_TIME = PLAYER_BURNING_TIME * 10
 const OXYGEN_LOST_TICKS = 10
 const OXYGEN_GOT_TICKS = 5
 const POISON_TICKS = 25
@@ -162,11 +162,15 @@ export class ServerPlayerDamage {
         }
 
         // горение
+        const fire_res_lvl = effects.getEffectLevel(Effect.FIRE_RESISTANCE)
+        if (legs.isWater || head.isWater || fire_res_lvl > 0) {
+            this.#timer_fire = 0
+        }
         if (this.#timer_fire > 0) {
-            const fire_res_lvl = effects.getEffectLevel(Effect.FIRE_RESISTANCE)
-            if ((this.#timer_fire-- % FIRE_LOST_TICKS) == 0 && fire_res_lvl == 0) {
+            if ((this.#timer_fire % FIRE_LOST_TICKS) == 0) {
                 damage += 1
             }
+            this.#timer_fire--
         }
 
         // отравление

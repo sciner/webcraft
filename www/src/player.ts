@@ -3,7 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
-import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE} from "./constant.js";
+import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE, PLAYER_BURNING_TIME} from "./constant.js";
 import {ClientPlayerControlManager} from "./control/player_control_manager.js";
 import {PlayerControl, PlayerControls} from "./control/player_control.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -14,7 +14,7 @@ import {ActionPlayerInfo, doBlockAction, WorldAction} from "./world_action.js";
 import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
 import { Effect } from "./block_type/effect.js";
-import { PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js";
+import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js";
 import { PlayerArm } from "./player_arm.js";
 import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
@@ -256,6 +256,8 @@ export class Player implements IPlayer {
     timer_anim:                number = 0
     /** значения, которые можно установить командой /debugplayer (и на клиенте, и на сервере) и использовать для любых целей */
     debugValues                 = new Map<string, string>()
+    #leg_block:                 any = null
+    #timer_burn:                number = 0
 
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
@@ -264,6 +266,10 @@ export class Player implements IPlayer {
         this.effects = {effects:[]}
         this.status = PLAYER_STATUS.WAITING_DATA;
         this.sharedProps = this._createSharedProps();
+    }
+
+    get bm() {
+        return this.world.block_manager
     }
 
     /** A protected factory method that creates {@link IPlayerSharedProps} of the appropriate type */
@@ -612,7 +618,7 @@ export class Player implements IPlayer {
             const world_block = world.chunkManager.getBlock(Math.floor(pos.x), Math.ceil(pos.y) - 1, Math.floor(pos.z));
             const can_play_sound = world_block && world_block.id > 0 && world_block.material && (!world_block.material.passable || world_block.material.passable == 1);
             if(can_play_sound) {
-                const block_over = world.chunkManager.getBlock(world_block.posworld.x, world_block.posworld.y + 1, world_block.posworld.z);
+                const block_over = this.#leg_block//world.chunkManager.getBlock(world_block.posworld.x, world_block.posworld.y + 1, world_block.posworld.z);
                 if(!block_over || !(block_over.fluid > 0)) {
                     const default_sound   = 'madcraft:block.stone';
                     const action          = 'step';
@@ -943,7 +949,7 @@ export class Player implements IPlayer {
             if(!overChunk?.inited) {
                 return;
             }
-            let delta = Math.min(1.0, (performance.now() - this.lastUpdate) / 1000);
+            const delta = Math.min(1.0, (performance.now() - this.lastUpdate) / 1000);
             //
             const pc = this.controlManager.current;
             this.posO.copyFrom(this.lerpPos);
@@ -1005,14 +1011,22 @@ export class Player implements IPlayer {
                 this.blockPosO          = this.blockPos;
             }
             // Внутри какого блока находится глаза
-            const cam_pos = this.getEyePos(true)
+            const cam_pos           = this.getEyePos(true)
             const eye_y             = cam_pos.y;
             this.headBlock          = this.world.chunkManager.getBlock(Math.floor(cam_pos.x), eye_y | 0, Math.floor(cam_pos.z))
+            this.#leg_block         = this.world.chunkManager.getBlock(this.pos.floored());
             this.eyes_in_block_o    = this.eyes_in_block;
             this.eyes_in_block      = this.headBlock.material.is_portal ? this.headBlock.material : null;
+            // если в огне, то поджигаем
+            if (this.#leg_block && (this.#leg_block.id == this.bm.FIRE.id || this.#leg_block.id == this.bm.CAMPFIRE.id || (this.#leg_block.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID)) {
+                this.#timer_burn = performance.now() + PLAYER_BURNING_TIME * 1000
+            }
+            if (this.in_water || (this.headBlock && (this.headBlock.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) || this.getEffectLevel(Effect.FIRE_RESISTANCE)) {
+                this.#timer_burn = 0
+            } 
             // если в воде, то проверим еще высоту воды
             if (this.headBlock.fluid > 0) {
-                let fluidLevel = this.headBlock.getFluidLevel(this.lerpPos.x, this.lerpPos.z);
+                const fluidLevel = this.headBlock.getFluidLevel(this.lerpPos.x, this.lerpPos.z);
                 if (eye_y < fluidLevel) {
                     this.eyes_in_block = this.headBlock.getFluidBlockMaterial();
                 }
@@ -1045,6 +1059,9 @@ export class Player implements IPlayer {
             // Update picking target
             this.updatePickingTarget()
             this.updateTimerAnim()
+
+            // включение/выключение анимации горения
+            this.state.fire = (this.#timer_burn > performance.now()) ? true : false
         }
         this.lastUpdate = performance.now();
     }
@@ -1186,7 +1203,7 @@ export class Player implements IPlayer {
                 this.state.sleep,
                 this.state.anim,
                 this.state.attack,
-                false,
+                this.state.fire,
                 this.indicators.live,
                 this.onGround
             )
