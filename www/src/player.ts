@@ -255,6 +255,9 @@ export class Player implements IPlayer {
     /** значения, которые можно установить командой /debugplayer (и на клиенте, и на сервере) и использовать для любых целей */
     debugValues                 = new Map<string, string>()
     #timer_attack:              number = 0
+    #distance: number = 0
+    #old_distance: number = 0 
+    #old_y: number = 0
 
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
@@ -961,9 +964,21 @@ export class Player implements IPlayer {
             this.onGroundO  = this.onGround;
             this.onGround   = pc.player_state.onGround || this.isOnLadder;
             this.in_water   = pc.player_state.isInWater;
+            if (this.#distance > (this.#old_distance + 2)) {
+                //this.triggerEvent('step', {force: true})
+                this.#old_distance = this.#distance
+            } 
+
+            if(this.onGround) {
+                console.log(Math.abs(this.#old_y - this.pos.y))
+                if (Math.abs(this.#old_y - this.pos.y) > 0.8) {
+                    this.triggerEvent('step', {force: true})
+                }
+                this.#old_y = this.pos.y
+            }
             // Trigger events
             if(this.onGround && !this.onGroundO) {
-                this.triggerEvent('step', {force: true});
+                //this.triggerEvent('step', {force: true});
             }
             if(this.in_water && !this.in_water_o) {
                 this.triggerEvent('legs_enter_to_water');
@@ -1000,6 +1015,7 @@ export class Player implements IPlayer {
                     this.bob += (f - this.bob) * 0.04
                 }
             }
+            this.#distance += this.lerpPos.horizontalDistance(this.posO)
             //
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
