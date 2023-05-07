@@ -590,7 +590,7 @@ int sampleCubeLight(ivec4 source, int shift) {
                 if (aoMask == 3) {
                     aoPart = part.x * float((little1 >> LIGHT_AO_SHIFT) & LIGHT_AO_MASK)
                         + part.y * float((little2 >> LIGHT_AO_SHIFT) & LIGHT_AO_MASK)
-                        - part.x * part.y * float(((little1 & little2) >> LIGHT_AO_SHIFT) & LIGHT_AO_MASK);
+                        - 2.0 * part.x * part.y * float(((little1 & little2) >> LIGHT_AO_SHIFT) & LIGHT_AO_MASK);
                 } else if (aoMask == 5) {
                     aoPart = part.x * float((little1 >> LIGHT_AO_SHIFT) & LIGHT_AO_MASK)
                         + part.z * float((little4 >> LIGHT_AO_SHIFT) & LIGHT_AO_MASK)
@@ -691,15 +691,15 @@ int sampleCubeLight(ivec4 source, int shift) {
                         }
                         caveGrad.w -= caveGrad.y + caveGrad.x;
                         dayGrad.w -= dayGrad.y + dayGrad.x;
-                        part.w = part.x * part.y;
+                        part.w = 0.5 - sqrt((0.5 - part.x) * (0.5 - part.x) + (0.5 - part.y) * (0.5 - part.y));
                         if (aoMask == 3) {
-                            aoPart += 2.0 * part.w * float((little3 >> LIGHT_AO_SHIFT) & LIGHT_AO_MASK);
+                            aoPart += part.w * float((little3 >> LIGHT_AO_SHIFT) & LIGHT_AO_MASK);
                         }
                     }
                 }
                 centerSample.x = clamp((float(mainVec.x) + dot(vec4(caveGrad), part)) / 15.0, 0.0, 1.0);
                 centerSample.y = clamp((float(mainVec.y >> 4) + dot(vec4(dayGrad), part)) / 15.0, 0.0, 1.0);
-                centerSample.z = aoPart / 3.0;
+                centerSample.z = aoPart / 1.5;
             }
             //if (v_lightMode > 0.5) {
             //    aoVector = vec4(texture(u_lightTex[0], aoCoord0 * texSize).w, texture(u_lightTex[0], aoCoord1 * texSize).w,
@@ -731,8 +731,8 @@ int sampleCubeLight(ivec4 source, int shift) {
 
     float aoSample = 0.0;
     if (v_lightMode > 0.5) {
-        aoSample = centerSample.z;
-        if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
+        aoSample = centerSample.z * 0.5;
+        //if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
         aoSample *= aoFactor;
     }
 
@@ -958,6 +958,12 @@ v_axisV *= sign(a_uvSize.y);
         //     color.rgb += 1.;
         // }
         float m = centerSample.z < .03 ? 1. - (.03 - centerSample.z) / .01 : 1.;
+        if (abs(centerSample.z - 0.8) < 0.04
+        || abs(centerSample.z - 0.7) < 0.04
+         || abs(centerSample.z - 0.6) < 0.04
+          || abs(centerSample.z - 0.5) < 0.04) {
+            color.rgb += 0.5;
+        }
         // float water_lighter = min(centerSample.z / water_lighter_limit, .1);
         vec3 cam_period = getCamPeriod();
         float x = v_world_pos.x + cam_period.x;
