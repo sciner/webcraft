@@ -844,6 +844,7 @@ export class BLOCK {
 
         if(existing_block) {
             if(replace_block) {
+                const existingBehavior = existing_block.bb?.behavior ?? existing_block.style
                 this.flags[existing_block.id] = 0 // clear the old block flags; the new block might not have them
                 for(let prop_name in existing_block) {
 
@@ -857,6 +858,9 @@ export class BLOCK {
                         const prop_value = existing_block[prop_name]
                         block[prop_name] = prop_value
                     }
+                }
+                if (block.bb) {
+                    block.bb.behavior = existingBehavior
                 }
             } else {
                 console.error('Duplicate block id ', block.id, block)
