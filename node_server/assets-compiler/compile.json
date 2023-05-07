@@ -11755,6 +11755,7 @@
             "name": "OAK_BOAT",
             "style": "extruder",
             "texture": "item/oak_boat.png",
+            "max_in_stack": 1,
             "item": {
                 "name": "boat"
             },
@@ -12522,6 +12523,7 @@
             "material": {
                 "id": "wood"
             },
+            "max_in_stack": 1,
             "spawn_egg": {
                 "type": "transport/raft",
                 "skin": "base"

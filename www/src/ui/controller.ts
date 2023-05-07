@@ -884,13 +884,17 @@ class GameController {
         selector = selector ?? '.slim-select'
         this.$timeout(() => {
             const selects = document.querySelectorAll(selector)
-            selects.forEach((selectElement) => {
-                new SlimSelect({
-                    select: selectElement,
-                    showSearch: false
-                });
-                // setSlimData(selectElement)
-            })
+            try {
+                selects.forEach((selectElement) => {
+                    new SlimSelect({
+                        select: selectElement,
+                        showSearch: false
+                    });
+                    // setSlimData(selectElement)
+                })
+            } catch(e) {
+                console.debug('error', e)
+            }
         }, 0)
     }
 
