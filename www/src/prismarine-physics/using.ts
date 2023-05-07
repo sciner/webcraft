@@ -47,6 +47,9 @@ export function addDefaultPhysicsOptions(options: TPrismarineOptions) {
     options.baseSpeed           ??= 1 // Базовая скорость (1 для игрока, для мобов меньше или наоборот больше)
     options.stepHeight          ??= 0.65
     options.defaultSlipperiness ??= DEFAULT_SLIPPERINESS
+    if (options.floatSubmergedHeight != null) {
+        options.floatSubmergedHeight = Math.min(options.floatSubmergedHeight, options.playerHeight * 0.999)
+    }
 }
 
 // FakeWorld

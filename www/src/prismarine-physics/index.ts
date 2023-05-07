@@ -609,11 +609,8 @@ export class Physics {
                 if (entity.dolphinsGrace > 0) horizontalInertia = 0.96
             }
 
-            this.applyHeading(entity, strafe, forward, acceleration)
-            this.moveEntity(entity, vel.x, vel.y, vel.z)
-            vel.y *= verticalInertia
+            // изменить скорость в воде - до движения, иначе из-за negligeableVelocity она потом может обнулиться
             const liquidGravity = (entity.isInWater ? this.waterGravity : this.lavaGravity) * gravityMultiplier
-
             const floatSubmergedHeight = options.floatSubmergedHeight
             if (floatSubmergedHeight != null) {
                 // Специальный режим плавучести.
@@ -622,22 +619,29 @@ export class Physics {
                 const aboveEquilibrium = floatSubmergedHeight - entity.submergedHeight // насколько выше нужного уровня
                 if (aboveEquilibrium > 0) {
                     // it's too high, it should fall down
-                    const gravityPercent = entity.submergedHeight / floatSubmergedHeight
-                    vel.y = Math.max(vel.y - liquidGravity * gravityPercent, -aboveEquilibrium)
+                    const gravityPercent = 1 - entity.submergedHeight / floatSubmergedHeight
+                    vel.y = Math.max(vel.y - this.gravity * gravityPercent, -aboveEquilibrium)
                 } else {
                     // it's too low, it should float up
-                    vel.y = Math.min(floatDrag.maxUp, vel.y + floatDrag.up, -aboveEquilibrium)
+                    if (vel.y !== this.outOfLiquidImpulse) { // сохранить импульс выпрыгивания из воды, чтобы могли выбраться
+                        vel.y = Math.min(floatDrag.maxUp, vel.y + floatDrag.up, -aboveEquilibrium)
+                    }
                 }
-                // уменьшить скорость (усилить затузание колебаний) если возле поверзности воды
+                // уменьшить скорость (усилить затузание колебаний) если возле поверхности воды
                 const friction = Mth.lerp(entity.submergedHeight, floatDrag.friction, 0)
                 vel.y *= (1 - friction)
             } else {
                 vel.y -= liquidGravity
             }
+
+            this.applyHeading(entity, strafe, forward, acceleration)
+            this.moveEntity(entity, vel.x, vel.y, vel.z)
+            vel.y *= verticalInertia
             vel.x *= horizontalInertia
             vel.z *= horizontalInertia
 
-            if (entity.isCollidedHorizontally && this.doesNotCollide(entity, pos.offset(vel.x, vel.y + 0.6 - pos.y + lastY, vel.z))) {
+            const liquidImpulseTestY = vel.y + 0.6 - pos.y + lastY + (options.floatSubmergedHeight ?? 0)
+            if (entity.isCollidedHorizontally && this.doesNotCollide(entity, pos.offset(vel.x, liquidImpulseTestY, vel.z))) {
                 vel.y = this.outOfLiquidImpulse // jump out of liquid
             }
         }
@@ -821,10 +825,12 @@ export class Physics {
         entity.isOnLadder = this.isOnLadder(pos);
 
         const playerBB = this.getPlayerBB(entity, pos, this.tmpPlayerBB)
-        // the union of water and lava BBs
-        const liquidBB = this.tmpLiquidBB.copyFrom(playerBB).contract(0.001, 0.4, 0.001)
-        const waterBB = this.tmpWaterBB.copyFrom(playerBB).contract(0.001, 0.401, 0.001)
-        const lavaBB = this.tmpLavaBB.copyFrom(playerBB).contract(0.1, 0.4, 0.1)
+        // Старый режим призмарина: сжимать по Y на 0.4 для жидкости и лавы, на 0.401 для воды (наверное как в майне для игроков)
+        // Новый режим: для плавучих не сжимаем, для остальных сжимаем менее чем на половину размера (см.код в contract).
+        const contractLiquidY = options.floatSubmergedHeight != null ? 0 : 0.4
+        const liquidBB = this.tmpLiquidBB.copyFrom(playerBB).contract(0.001, contractLiquidY, 0.001) // the union of water and lava BBs
+        const waterBB = this.tmpWaterBB.copyFrom(playerBB).contract(0.001, contractLiquidY + 0.01, 0.001)
+        const lavaBB = this.tmpLavaBB.copyFrom(playerBB).contract(0.1, contractLiquidY, 0.1)
 
         const liquidInBB = this.getLiquidInBB(liquidBB, waterBB, lavaBB)
         if (liquidInBB) {
