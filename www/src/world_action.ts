@@ -1548,7 +1548,7 @@ function chSpawnMob(e, world, pos, player, world_block, world_material, mat_bloc
         // Насколько лучше поднять - зависит от mobConfig.config.physics.floatSubmergedHeight,
         // но этот метод в клиентском коде, хотя и серверный :(
         pos.x += 0.5
-        pos.y += 0.5
+        pos.y += 0.7
         pos.z += 0.5
     }
     actions.chat_message = {text: `/spawnmob ${pos.x} ${pos.y} ${pos.z} ${mat_block.spawn_egg.type} ${mat_block.spawn_egg.skin}`};

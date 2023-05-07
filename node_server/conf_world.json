@@ -138,7 +138,7 @@
                 "baseSpeed": 0.4,
                 "playerHeight": 0.6,
                 "playerHalfWidth": 0.9,
-                "floatSubmergedHeight": 0.1,
+                "floatSubmergedHeight": 0.4,
                 "useBoatSpeed": true,
                 "jumpSpeed": 0,
                 "stepHeight": 0.75
@@ -159,9 +159,9 @@
             "brain": "boat",
             "physics": {
                 "baseSpeed": 0.4,
-                "playerHeight": 0.6,
-                "playerHalfWidth": 0.9,
-                "floatSubmergedHeight": 0.1,
+                "playerHeight": 0.25,
+                "playerHalfWidth": 0.6,
+                "floatSubmergedHeight": 0.24,
                 "useBoatSpeed": true,
                 "jumpSpeed": 0,
                 "stepHeight": 0.75
