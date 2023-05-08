@@ -721,7 +721,13 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
 
     float aoSample = 0.0;
     if (v_lightMode > 0.5) {
-        aoSample = centerSample.z * 0.5;
+
+        aoSample = centerSample.z;
+        if(aoSample > .8) {
+            aoSample = aoSample + ((aoSample - .8) / .2) / 2.;
+        }
+        aoSample *= 0.5;
+
         if (aoSample > 0.25) { aoSample = aoSample * 0.5 + 0.125; }
         aoSample *= aoFactor;
     }
