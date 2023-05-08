@@ -78,7 +78,7 @@
     // global uniforms fragment part
     uniform sampler2D u_texture;
     uniform sampler2D u_texture_n;
-    uniform highp isampler3D u_lightTex;
+    uniform highp isampler3D u_lightTex[2];
     uniform vec3 u_lightOverride;
     uniform int u_lightMode;
 
@@ -569,10 +569,15 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
     } else {
         if (v_lightId < 0.5) {
             // default light
-        } else if (v_lightId < 1.5) {
+        } else if (v_lightId < 2.5) {
             ivec3 lightCoordInt = ivec3(floor(lightCoord));
             ivec3 lightCoordHalf = lightCoordInt >> 1;
-            ivec4 big0 = texelFetch(u_lightTex, lightCoordHalf, 0);
+            ivec4 big0;
+            if (v_lightId < 1.5) {
+                big0 = texelFetch(u_lightTex[0], lightCoordHalf, 0);
+            } else {
+                big0 = texelFetch(u_lightTex[1], lightCoordHalf, 0);
+            }
             int shift = (lightCoordInt.x & 1) | (lightCoordInt.y & 1) << 1 | (lightCoordInt.z & 1) << 2;
             int little0 = sampleCubeLight(big0, shift);
             if (u_lightMode > 0) {
@@ -588,19 +593,31 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
                 int neibShift = shift ^ dirShift;
                 ivec4 big1, big2, big4, bigDiag;
                 if ((neibShift & 1) != 0) {
-                    big1 = texelFetch(u_lightTex, lightCoordHalf + ivec3(dirSign.x, 0, 0), 0);
+                    if (v_lightId < 1.5) {
+                        big1 = texelFetch(u_lightTex[0], lightCoordHalf + ivec3(dirSign.x, 0, 0), 0);
+                    } else {
+                        big1 = texelFetch(u_lightTex[1], lightCoordHalf + ivec3(dirSign.x, 0, 0), 0);
+                    }
                 } else {
                     big1 = big0;
                 }
                 int little1 = sampleCubeLight(big1, shift ^ 1);
                 if ((neibShift & 2) != 0) {
-                    big2 = texelFetch(u_lightTex, lightCoordHalf + ivec3(0, dirSign.y, 0), 0);
+                    if (v_lightId < 1.5) {
+                        big2 = texelFetch(u_lightTex[0], lightCoordHalf + ivec3(0, dirSign.y, 0), 0);
+                    } else {
+                        big2 = texelFetch(u_lightTex[1], lightCoordHalf + ivec3(0, dirSign.y, 0), 0);
+                    }
                 } else {
                     big2 = big0;
                 }
                 int little2 = sampleCubeLight(big2, shift ^ 2);
                 if ((neibShift & 4) != 0) {
-                    big4 = texelFetch(u_lightTex, lightCoordHalf + ivec3(0, 0, dirSign.z), 0);
+                    if (v_lightId < 1.5) {
+                        big4 = texelFetch(u_lightTex[0], lightCoordHalf + ivec3(0, 0, dirSign.z), 0);
+                    } else {
+                        big4 = texelFetch(u_lightTex[1], lightCoordHalf + ivec3(0, 0, dirSign.z), 0);
+                    }
                 } else {
                     big4 = big0;
                 }
@@ -608,60 +625,52 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
 
                 vec4 part;
                 ivec4 oriented;
-
+                ivec3 diagCoord;
                 if (aoMask == 3) {
                     oriented.x = little1;
                     oriented.y = little2;
                     oriented.z = little4;
-                    if ((neibShift & 3) == 3) {
-                        bigDiag = texelFetch(u_lightTex, lightCoordHalf + ivec3(dirSign.x, dirSign.y, 0), 0);
-                    } else {
-                        if ((neibShift & 1) != 0) {
-                            bigDiag = big1;
-                        } else {
-                            bigDiag = big2;
-                        }
-                    }
-                    oriented.w = sampleCubeLight(bigDiag, shift ^ 3);
+                    diagCoord = lightCoordHalf + ivec3(dirSign.x, dirSign.y, 0);
                     part.xyz = abs(lightPart.xyz * 2.0);
                 } else if (aoMask == 5) {
                     oriented.x = little1;
                     oriented.y = little4;
                     oriented.z = little2;
-                    if ((neibShift & 5) == 5) {
-                        bigDiag = texelFetch(u_lightTex, lightCoordHalf + ivec3(dirSign.x, 0, dirSign.z), 0);
-                    } else {
-                        if ((neibShift & 1) != 0) {
-                            bigDiag = big1;
-                        } else {
-                            bigDiag = big4;
-                        }
-                    }
-                    oriented.w = sampleCubeLight(bigDiag, shift ^ 5);
+                    diagCoord = lightCoordHalf + ivec3(dirSign.x, 0, dirSign.z);
                     part.xyz = abs(lightPart.xzy * 2.0);
                 } else {
                     oriented.x = little2;
                     oriented.y = little4;
                     oriented.z = little1;
-                    if ((neibShift & 6) == 6) {
-                        bigDiag = texelFetch(u_lightTex, lightCoordHalf + ivec3(0, dirSign.y, dirSign.z), 0);
-                    } else {
-                        if ((neibShift & 2) != 0) {
-                            bigDiag = big2;
-                        } else {
-                            bigDiag = big4;
-                        }
-                    }
-                    oriented.w = sampleCubeLight(bigDiag, shift ^ 6);
+                    diagCoord = lightCoordHalf + ivec3(0, dirSign.y, dirSign.z);
                     part.xyz = abs(lightPart.yzx * 2.0);
                 }
+                if ((neibShift & aoMask) == aoMask) {
+                    if (v_lightId < 1.5) {
+                        bigDiag = texelFetch(u_lightTex[0], diagCoord, 0);
+                    } else {
+                        bigDiag = texelFetch(u_lightTex[1], diagCoord, 0);
+                    }
+                } else {
+                    if ((neibShift & aoMask & 1) != 0) {
+                        bigDiag = big1;
+                    } else if ((neibShift & aoMask & 2) != 0) {
+                        bigDiag = big2;
+                    } else if ((neibShift & aoMask & 4) != 0) {
+                        bigDiag = big4;
+                    } else {
+                        bigDiag = big0;
+                    }
+                }
+                oriented.w = sampleCubeLight(bigDiag, shift ^ aoMask);
+
                 ivec4 aoNeib = (ivec4(oriented.xyw, little0) >> LIGHT_AO_SHIFT) & LIGHT_AO_MASK;
                 float aoPart = 0.0;
                 if (aoNeib.x == 1 || aoNeib.y == 1 || aoNeib.z == 1 || aoNeib.w == 1) {
-                    aoPart = calcAo(aoNeib, oriented, part.xy, 3);
-                } else {
                     aoPart = 1.0 / 3.0 * calcAo(aoNeib, oriented, part.xy, 1)
                         + 2.0 / 3.0 * calcAo(aoNeib, oriented, part.xy, 2);
+                } else {
+                    aoPart = calcAo(aoNeib, oriented, part.xy, 3);
                 }
                 if (((oriented.x >> LIGHT_SOLID_SHIFT) & LIGHT_SOLID_MASK) > 0) {
                     part.x = 0.0;

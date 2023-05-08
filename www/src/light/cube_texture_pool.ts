@@ -51,12 +51,12 @@ export class CubeTexturePool {
         defWidth = 18,
         defHeight = 18,
         defDepth = 42,
-        bigWidth = 256,
+        bigWidth = 128,
         bigHeight = 256,
         bigDepth = 256,
         type = 'rgba8unorm',
         filter = 'linear',
-        maxBoundTextures = 10,
+        maxBoundTextures = 3,
         pixelSize,
     }) {
         if (pixelSize) {
