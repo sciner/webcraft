@@ -352,8 +352,32 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
             density = Math.min(density, density * river_density + (d3 * vertical_shore_coeff) * percent);
         }
 
-        // Если это твердый камень, то попробуем превратить его в пещеру
         if(!FAST) {
+
+            const CHUNK_SIZE_X = map.CHUNK_SIZE_X
+            const CHUNK_SIZE_Z = map.CHUNK_SIZE_X
+            const x = ((xyz.x % CHUNK_SIZE_X) + CHUNK_SIZE_X) % CHUNK_SIZE_X
+            const z = ((xyz.z % CHUNK_SIZE_Z) + CHUNK_SIZE_Z) % CHUNK_SIZE_Z
+            const cleft = map.getCleft(x, z)
+            const cleft_range = 0.05
+
+            let cleft_dist = Math.abs(cleft / cleft_range)
+            cleft_dist = 0.5 * (1 - Math.cos(Math.PI * cleft_dist))
+
+            if(cleft > -cleft_range * 2 && cleft < cleft_range * 2) {
+                // if(xyz.y > (45 + d3 * cleft_dist) + (cleft_dist + (d3 * cleft_dist)) * 60) {
+                if(xyz.y > 45 + cleft_dist * 60) {
+                    if(cleft > -cleft_range && cleft < cleft_range) {
+                        density = DENSITY_AIR_THRESHOLD
+                        res.dcaves = density
+                    } else {
+                        density = Math.max(DENSITY_AIR_THRESHOLD + 0.1, density)
+                        res.dcaves = density
+                    }
+                }
+            }
+
+            // Если это твердый камень, то попробуем превратить его в пещеру
             if(density > DENSITY_AIR_THRESHOLD) {
                 const cave_density_threshold = DENSITY_AIR_THRESHOLD * (d1 > .05 && (xyz.y > (WATER_LEVEL + Math.abs(d3) * 4)) ? 1 : 1.5)
                 if(density > cave_density_threshold) {

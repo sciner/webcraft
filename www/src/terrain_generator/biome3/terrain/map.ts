@@ -18,6 +18,8 @@ export class Biome3TerrainMap extends TerrainMap {
     CHUNK_SIZE_X:       number
     _tree_neighbours:   any
 
+    cleft: float[]
+
     constructor(chunk : ChunkWorkerChunk, options, noise2d) {
         super(chunk, options);
         this._tree_neighbours = new Array(chunk.size.x * chunk.size.z);
@@ -27,6 +29,16 @@ export class Biome3TerrainMap extends TerrainMap {
             this.caves = new CaveGeneratorRegular(chunk.chunkManager.grid, chunk.coord, noise2d, BIOME3_CAVE_LAYERS);
         }
         this.CHUNK_SIZE_X = chunk.size.x;
+
+        // cleft
+        this.cleft = new Array(chunk.size.x * chunk.size.z)
+        for(let x = 0; x < chunk.size.x; x++) {
+            for(let z = 0; z < chunk.size.z; z++) {
+                const index = z * this.CHUNK_SIZE_X + x
+                this.cleft[index] = noise2d((chunk.coord.x + x) / 1000, (chunk.coord.z + z) / 1000)
+            }
+        }
+
     }
 
     addTree(chunk : IChunk, cluster : ClusterBase, aleaRandom : alea, rnd : float, x : int, y : int, z : int, biome : Biome, underwater : boolean = false) : boolean{
@@ -158,6 +170,10 @@ export class Biome3TerrainMap extends TerrainMap {
      */
     getCell(x : int, z : int) : TerrainMapCell {
         return this.cells[z * this.CHUNK_SIZE_X + x]
+    }
+
+    getCleft(x : int, z : int) : float {
+        return this.cleft[z * this.CHUNK_SIZE_X + x]
     }
 
 }
