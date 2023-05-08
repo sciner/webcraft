@@ -4,6 +4,8 @@ import {
     OFFSET_SOURCE
 } from "./LightConst.js";
 
+const tempDx = [0, 0, 0, 0, 0, 0, 0, 0];
+
 export class LightCalc {
     [key: string]: any;
     constructor(chunk) {
@@ -72,50 +74,56 @@ export class LightCalc {
 
     calcTex(hasNormals) {
         const {lightChunk} = this.chunk;
-        const {outerSize, uint8View, strideBytes} = lightChunk;
+        const {outerSize, uint8View, strideBytes, cx, cy, cz} = lightChunk;
         // Light + AO
-        const elemPerBlock = 4;
+        const elemPerBlock = 1;
         const depthMul = hasNormals ? 2 : 1;
         const len = this.resultLen * elemPerBlock;
         if (!this.lightTexData || this.lightTexData.length !== len * depthMul) {
-            this.lightTexData = new Uint8Array(len * depthMul);
+            this.lightTexData = new Uint16Array(len * depthMul);
         }
         const result = this.lightTexData;
         const lightData = this.lightData;
 
+        for (let i = 0; i < 8; i++) {
+            tempDx[i] = (i & 1) * cx + ((i >> 1) & 1) * cz + ((i >> 2) & 1) * cy;
+        }
+
         this.texID++;
         let ind = 0;
         const toChannel = ~~(255 / 15); //17 , number
-        for (let y = 0; y < outerSize.y; y++)
-            for (let z = 0; z < outerSize.z; z++) {
-                for (let x = 0; x < outerSize.x; x++) {
-                    const data = lightData[ind];
-                    const src = uint8View[ind * strideBytes + OFFSET_SOURCE];
-                    const block = (src & MASK_SRC_BLOCK) === MASK_SRC_BLOCK ? 1 : 0;
-                    const ao = (src & MASK_SRC_AO) > 0 ? 1 : 0;
-                    result[ind * 4] = (data & 0x0f) * toChannel;
-                    result[ind * 4 + 1] = 255 - ((data & 0xf0) >> 4) * toChannel;
-                    result[ind * 4 + 2] = block * 255;
-                    result[ind * 4 + 3] = ao * (128 + 127 * block);
-                    ind++;
+        for (let y = 0; y < outerSize.y; y += 2)
+            for (let z = 0; z < outerSize.z; z += 2) {
+                for (let x = 0; x < outerSize.x; x += 2) {
+                    let ind0 = cx * x + cy * y + cz * z;
+                    for (let i = 0; i < 8; i++) {
+                        const ind1 = ind0 + tempDx[i];
+                        const data = lightData[ind1] ^ (15 << 4); //daylight xor!
+                        const src = uint8View[ind1 * strideBytes + OFFSET_SOURCE];
+                        const block = (src & MASK_SRC_BLOCK) === MASK_SRC_BLOCK ? 2 : 0;
+                        const ao = (src & MASK_SRC_AO) > 0 ? 1 : 0;
+                        result[ind++] = data | ((block | ao) << 8);
+                    }
                 }
             }
         if (!hasNormals) {
             return;
         }
         ind = 0;
-        for (let y = 0; y < outerSize.y; y++)
-            for (let z = 0; z < outerSize.z; z++) {
-                for (let x = 0; x < outerSize.x; x++) {
-                    let dx = uint8View[ind * strideBytes + OFFSET_NORMAL];
-                    let dz = uint8View[ind * strideBytes + OFFSET_NORMAL + 1];
-                    let dy = uint8View[ind * strideBytes + OFFSET_NORMAL + 2];
-                    let light = uint8View[ind * strideBytes + OFFSET_LIGHT] > 0 ? 1 : 0;
-                    result[len + ind * 4] = light * dx;
-                    result[len + ind * 4 + 1] = light * dz;
-                    result[len + ind * 4 + 2] = light * dy;
-                    result[len + ind * 4 + 3] = light * 255;
-                    ind++;
+        for (let y = 0; y < outerSize.y; y += 2)
+            for (let z = 0; z < outerSize.z; z += 2) {
+                for (let x = 0; x < outerSize.x; x += 2) {
+                    let ind0 = cx * x + cy * y + cz * z;
+                    for (let i = 0; i < 8; i++) {
+                        const ind1 = ind0 + tempDx[i];
+                        let dx = uint8View[ind1 * strideBytes + OFFSET_NORMAL];
+                        let dz = uint8View[ind1 * strideBytes + OFFSET_NORMAL + 1];
+                        let dy = uint8View[ind1 * strideBytes + OFFSET_NORMAL + 2];
+                        result[len + ind] = (dx >> 3)
+                            | (dz >> 3) << 5
+                            | (dy >> 3) << 10;
+                        ind++;
+                    }
                 }
             }
     }

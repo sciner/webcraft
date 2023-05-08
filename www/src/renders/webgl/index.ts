@@ -336,9 +336,6 @@ export default class WebGLRenderer extends BaseRenderer {
 
         const gl = this.gl = this.view.getContext('webgl2', {...this.options, stencil: true});
         this.resetBefore();
-        for (let i = 7; i < 16; i++) {
-            this._emptyTex3D.bind(i);
-        }
         this.multidrawExt = gl.getExtension('WEBGL_multi_draw');
         this.multidrawBaseExt = gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
 
@@ -627,6 +624,25 @@ export default class WebGLRenderer extends BaseRenderer {
         ctx.canvas.toBlob(function(blob) {
             callback(blob);
         }, format);
+    }
+
+    reportTexture(target: number) {
+        const props = [
+            'TEXTURE_BASE_LEVEL',
+            'TEXTURE_IMMUTABLE_FORMAT',
+            'TEXTURE_IMMUTABLE_LEVELS',
+            'TEXTURE_MAX_LEVEL',
+            'TEXTURE_MAX_LOD',
+            'TEXTURE_MIN_LOD',
+            'TEXTURE_MAG_FILTER',
+            'TEXTURE_MIN_FILTER'
+        ];
+        const {gl} = this;
+        target = target | gl.TEXTURE_2D;
+        console.log(`isTexture = ${gl.isTexture(this.texture)}`)
+        for (let k = 0; k < props.length;k++) {
+            console.log(`${props[k]} = ${gl.getTexParameter(target, gl[props[k]])}`);
+        }
     }
 
     destroy() {

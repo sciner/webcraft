@@ -78,8 +78,9 @@
     // global uniforms fragment part
     uniform sampler2D u_texture;
     uniform sampler2D u_texture_n;
-    uniform lowp sampler3D[9] u_lightTex;
+    uniform highp isampler3D u_lightTex[2];
     uniform vec3 u_lightOverride;
+    uniform int u_lightMode;
 
     uniform float u_mipmap;
     uniform float u_blockSize;
@@ -496,36 +497,68 @@
     v_lightId = float(chunkData1.w);
 #endif
 
+#ifdef ao_light_define_func
+#define LIGHT_SOLID_SHIFT 9
+#define LIGHT_SOLID_MASK 3
+#define LIGHT_AO_SHIFT 8
+#define LIGHT_AO_MASK 3
+int sampleCubeLight(ivec4 source, int shift) {
+    int val = 0;
+    if (shift >= 4) {
+        if (shift >= 6) {
+            val = source.w;
+        } else {
+            val = source.z;
+        }
+    } else {
+        if (shift >= 2) {
+            val = source.y;
+        } else {
+            val = source.x;
+        }
+    }
+    if ((shift & 1) == 1) {
+        return (val >> 16) & 0xffff;
+    }
+    return val & 0xffff;
+}
+
+float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
+    if ((aoNeib.w & mask) != 0) {
+        return 1.0;
+    }
+    if ((aoNeib.x & aoNeib.y & mask) != 0) {
+        return min(1.0, length(part.xy));
+    }
+    if ((aoNeib.x & mask) != 0) {
+        return part.x;
+    }
+    if ((aoNeib.y & mask) != 0) {
+        return part.y;
+    }
+    if ((aoNeib.z & mask) != 0) {
+        return max(0.0, 1.0 - length(1.0 - part.xy));
+    }
+    return 0.0;
+}
+#endif
+
 #ifdef ao_light_pass
     // global illumination
     vec3 absNormal = abs(v_normal);
     vec3 signNormal = sign(v_normal);
-    vec3 lightCoord = v_chunk_pos + 1.0 + v_lightOffset.xyz + v_normal * 0.5;
-
-    vec3 aoCoord0 = lightCoord;
-    vec3 aoCoord1 = lightCoord;
-    vec3 aoCoord2 = lightCoord;
-    vec3 aoCoord3 = lightCoord;
+    vec3 lightCoord = v_chunk_pos + 1.0 + v_lightOffset.xyz + v_normal * 0.01;
+    int aoMask = 0;
     if (absNormal.x >= absNormal.y && absNormal.x >= absNormal.z) {
-        aoCoord0 += vec3(0.0, 0.5, 0.5);
-        aoCoord1 += vec3(0.0, 0.5, -0.5);
-        aoCoord2 += vec3(0.0, -0.5, 0.5);
-        aoCoord3 += vec3(0.0, -0.5, -0.5);
+        aoMask = 6;
     } else if (absNormal.y >= absNormal.z) {
-        aoCoord0 += vec3(0.5, 0.0, 0.5);
-        aoCoord1 += vec3(0.5, 0.0, -0.5);
-        aoCoord2 += vec3(-0.5, 0.0, 0.5);
-        aoCoord3 += vec3(-0.5, 0.0, -0.5);
+        aoMask = 5;
     } else {
-        aoCoord0 += vec3(0.5, 0.5, 0.0);
-        aoCoord1 += vec3(0.5, -0.5, 0.0);
-        aoCoord2 += vec3(-0.5, 0.5, 0.0);
-        aoCoord3 += vec3(-0.5, -0.5, 0.0);
+        aoMask = 3;
     }
     //TODO: clamp?
     // lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);
     // vec4 centerSample;
-    vec4 aoVector = vec4(0.0);
 
     vec3 texSize;
     if (u_lightOverride.z > 1.5) {
@@ -533,54 +566,134 @@
     } else {
         if (v_lightId < 0.5) {
             // default light
-        } else if (v_lightId < 1.5) {
-            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[0], 0));
-            centerSample = texture(u_lightTex[0], lightCoord * texSize);
-            if (v_lightMode > 0.5) {
-                aoVector = vec4(texture(u_lightTex[0], aoCoord0 * texSize).w, texture(u_lightTex[0], aoCoord1 * texSize).w,
-                    texture(u_lightTex[0], aoCoord2 * texSize).w, texture(u_lightTex[0], aoCoord3 * texSize).w);
-            }
         } else if (v_lightId < 2.5) {
-            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[1], 0));
-            centerSample = texture(u_lightTex[1], lightCoord * texSize);
-            if (v_lightMode > 0.5) {
-                aoVector = vec4(texture(u_lightTex[1], aoCoord0 * texSize).w, texture(u_lightTex[1], aoCoord1 * texSize).w,
-                    texture(u_lightTex[1], aoCoord2 * texSize).w, texture(u_lightTex[1], aoCoord3 * texSize).w);
+            ivec3 lightCoordInt = ivec3(floor(lightCoord));
+            ivec3 lightCoordHalf = lightCoordInt >> 1;
+            ivec4 big0;
+            if (v_lightId < 1.5) {
+                big0 = texelFetch(u_lightTex[0], lightCoordHalf, 0);
+            } else {
+                big0 = texelFetch(u_lightTex[1], lightCoordHalf, 0);
             }
-        } else if (v_lightId < 3.5) {
-            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[2], 0));
-            centerSample = texture(u_lightTex[2], lightCoord * texSize);
-            if (v_lightMode > 0.5) {
-                aoVector = vec4(texture(u_lightTex[2], aoCoord0 * texSize).w, texture(u_lightTex[2], aoCoord1 * texSize).w,
-                    texture(u_lightTex[2], aoCoord2 * texSize).w, texture(u_lightTex[2], aoCoord3 * texSize).w);
-            }
-        } else if (v_lightId < 4.5) {
-            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[3], 0));
-            centerSample = texture(u_lightTex[3], lightCoord * texSize);
-            if (v_lightMode > 0.5) {
-                aoVector = vec4(texture(u_lightTex[3], aoCoord0 * texSize).w, texture(u_lightTex[3], aoCoord1 * texSize).w,
-                    texture(u_lightTex[3], aoCoord2 * texSize).w, texture(u_lightTex[3], aoCoord3 * texSize).w);
-            }
-        } else if (v_lightId < 5.5) {
-            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[4], 0));
-            centerSample = texture(u_lightTex[4], lightCoord * texSize);
-            if (v_lightMode > 0.5) {
-                aoVector = vec4(texture(u_lightTex[4], aoCoord0 * texSize).w, texture(u_lightTex[4], aoCoord1 * texSize).w,
-                    texture(u_lightTex[4], aoCoord2 * texSize).w, texture(u_lightTex[4], aoCoord3 * texSize).w);
-            }
-        } else if (v_lightId < 6.5) {
-            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[5], 0));
-            centerSample = texture(u_lightTex[5], lightCoord * texSize);
-            if (v_lightMode > 0.5) {
-                aoVector = vec4(texture(u_lightTex[5], aoCoord0 * texSize).w, texture(u_lightTex[5], aoCoord1 * texSize).w,
-                    texture(u_lightTex[5], aoCoord2 * texSize).w, texture(u_lightTex[5], aoCoord3 * texSize).w);
-            }
-        } else if (v_lightId < 7.5) {
-            texSize = vec3(1.0) / vec3(textureSize(u_lightTex[6], 0));
-            centerSample = texture(u_lightTex[6], lightCoord * texSize);
-            if (v_lightMode > 0.5) {
-                aoVector = vec4(texture(u_lightTex[6], aoCoord0 * texSize).w, texture(u_lightTex[6], aoCoord1 * texSize).w,
-                    texture(u_lightTex[6], aoCoord2 * texSize).w, texture(u_lightTex[6], aoCoord3 * texSize).w);
+            int shift = (lightCoordInt.x & 1) | (lightCoordInt.y & 1) << 1 | (lightCoordInt.z & 1) << 2;
+            int little0 = sampleCubeLight(big0, shift);
+            if (u_lightMode > 0) {
+                centerSample.x = float(little0 & 0x0f) / 15.0;
+                centerSample.y = float((little0 >> 4) & 0x0f) / 15.0;
+                centerSample.z = 0.0;
+            } else {
+                //TODO: this should be lowp
+                vec3 lightPart = lightCoord - floor(lightCoord) - 0.5;
+                ivec3 dirSign = ivec3(sign(lightPart));
+                ivec3 dirStep = ivec3(step(vec3(0.0), lightPart));
+                int dirShift = 7 ^ (dirStep.x + dirStep.y * 2 + dirStep.z * 4);
+                int neibShift = shift ^ dirShift;
+                ivec4 big1, big2, big4, bigDiag;
+                if ((neibShift & 1) != 0) {
+                    if (v_lightId < 1.5) {
+                        big1 = texelFetch(u_lightTex[0], lightCoordHalf + ivec3(dirSign.x, 0, 0), 0);
+                    } else {
+                        big1 = texelFetch(u_lightTex[1], lightCoordHalf + ivec3(dirSign.x, 0, 0), 0);
+                    }
+                } else {
+                    big1 = big0;
+                }
+                int little1 = sampleCubeLight(big1, shift ^ 1);
+                if ((neibShift & 2) != 0) {
+                    if (v_lightId < 1.5) {
+                        big2 = texelFetch(u_lightTex[0], lightCoordHalf + ivec3(0, dirSign.y, 0), 0);
+                    } else {
+                        big2 = texelFetch(u_lightTex[1], lightCoordHalf + ivec3(0, dirSign.y, 0), 0);
+                    }
+                } else {
+                    big2 = big0;
+                }
+                int little2 = sampleCubeLight(big2, shift ^ 2);
+                if ((neibShift & 4) != 0) {
+                    if (v_lightId < 1.5) {
+                        big4 = texelFetch(u_lightTex[0], lightCoordHalf + ivec3(0, 0, dirSign.z), 0);
+                    } else {
+                        big4 = texelFetch(u_lightTex[1], lightCoordHalf + ivec3(0, 0, dirSign.z), 0);
+                    }
+                } else {
+                    big4 = big0;
+                }
+                int little4 = sampleCubeLight(big4, shift ^ 4);
+
+                vec4 part;
+                ivec4 oriented;
+                ivec3 diagCoord;
+                if (aoMask == 3) {
+                    oriented.x = little1;
+                    oriented.y = little2;
+                    oriented.z = little4;
+                    diagCoord = lightCoordHalf + ivec3(dirSign.x, dirSign.y, 0);
+                    part.xyz = abs(lightPart.xyz * 2.0);
+                } else if (aoMask == 5) {
+                    oriented.x = little1;
+                    oriented.y = little4;
+                    oriented.z = little2;
+                    diagCoord = lightCoordHalf + ivec3(dirSign.x, 0, dirSign.z);
+                    part.xyz = abs(lightPart.xzy * 2.0);
+                } else {
+                    oriented.x = little2;
+                    oriented.y = little4;
+                    oriented.z = little1;
+                    diagCoord = lightCoordHalf + ivec3(0, dirSign.y, dirSign.z);
+                    part.xyz = abs(lightPart.yzx * 2.0);
+                }
+                if ((neibShift & aoMask) == aoMask) {
+                    if (v_lightId < 1.5) {
+                        bigDiag = texelFetch(u_lightTex[0], diagCoord, 0);
+                    } else {
+                        bigDiag = texelFetch(u_lightTex[1], diagCoord, 0);
+                    }
+                } else {
+                    if ((neibShift & aoMask & 1) != 0) {
+                        bigDiag = big1;
+                    } else if ((neibShift & aoMask & 2) != 0) {
+                        bigDiag = big2;
+                    } else if ((neibShift & aoMask & 4) != 0) {
+                        bigDiag = big4;
+                    } else {
+                        bigDiag = big0;
+                    }
+                }
+                oriented.w = sampleCubeLight(bigDiag, shift ^ aoMask);
+
+                ivec4 aoNeib = (ivec4(oriented.xyw, little0) >> LIGHT_AO_SHIFT) & LIGHT_AO_MASK;
+                float aoPart = 0.0;
+                if (aoNeib.x == 1 || aoNeib.y == 1 || aoNeib.z == 1 || aoNeib.w == 1) {
+                    aoPart = 1.0 / 3.0 * calcAo(aoNeib, oriented, part.xy, 1)
+                        + 2.0 / 3.0 * calcAo(aoNeib, oriented, part.xy, 2);
+                } else {
+                    aoPart = calcAo(aoNeib, oriented, part.xy, 3);
+                }
+                if (((oriented.x >> LIGHT_SOLID_SHIFT) & LIGHT_SOLID_MASK) > 0) {
+                    part.x = 0.0;
+                }
+                if (((oriented.y >> LIGHT_SOLID_SHIFT) & LIGHT_SOLID_MASK) > 0) {
+                    part.y = 0.0;
+                }
+                if (((oriented.z >> LIGHT_SOLID_SHIFT) & LIGHT_SOLID_MASK) > 0) {
+                    part.z = 0.0;
+                }
+                part.w = part.x * part.y * 0.5;
+                ivec2 mainVec = ivec2(little0 & 0x0f, (little0 >> 4) & 0x0f);
+                ivec4 caveGrad = (oriented & 0x0f) - mainVec.x;
+                ivec4 dayGrad = ((oriented >> 4) & 0x0f) - mainVec.y;
+                if (part.w > 0.0) {
+                    if (((oriented.w >> LIGHT_SOLID_SHIFT) & LIGHT_SOLID_MASK) > 0) {
+                        caveGrad.w = 0;
+                        dayGrad.w = 0;
+                        part.w /= 2.0;
+                    }
+                    caveGrad.w -= caveGrad.x + caveGrad.y;
+                    dayGrad.w -= dayGrad.x + dayGrad.y;
+                }
+                centerSample.x = clamp((float(mainVec.x) + dot(vec4(caveGrad), part * 0.5)) / 15.0, 0.0, 1.0);
+                centerSample.y = clamp((float(mainVec.y) + dot(vec4(dayGrad), part * 0.5)) / 15.0, 0.0, 1.0);
+                centerSample.z = aoPart;
             }
         }
         if (u_lightOverride.z > 0.5) {
@@ -590,14 +703,6 @@
 
     float caveSample = centerSample.x;
     float daySample = 1.0 - centerSample.y;
-    float volumeSample = 1.0 - centerSample.z;
-    if (volumeSample > 0.05) {
-        caveSample /= volumeSample;
-        daySample /= volumeSample;
-    } else {
-        caveSample = 0.0;
-        daySample = 0.0;
-    }
 
     float cavePart = max(caveSample, playerLight);
     float dayPart = daySample * u_brightness;
@@ -616,9 +721,8 @@
 
     float aoSample = 0.0;
     if (v_lightMode > 0.5) {
-        float d1 = aoVector.x + aoVector.w, d2 = aoVector.y + aoVector.z;
-        aoSample = (d1 + d2 + max(abs(d2 - d1) - 1.0, 0.0)) / 4.0;
-        if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
+        aoSample = centerSample.z * 0.5;
+        if (aoSample > 0.25) { aoSample = aoSample * 0.5 + 0.125; }
         aoSample *= aoFactor;
     }
 
@@ -682,28 +786,7 @@ v_axisV *= sign(a_uvSize.y);
         for (int i = 0; i < 8; i++) {
             normalSample[i] = texelFetch(u_lightTex[1], iCoord[i], 0);
         }
-    } else if (v_lightId < 3.5) {
-        for (int i = 0; i < 8; i++) {
-            normalSample[i] = texelFetch(u_lightTex[2], iCoord[i], 0);
-        }
-    } else if (v_lightId < 4.5) {
-        for (int i = 0; i < 8; i++) {
-            normalSample[i] = texelFetch(u_lightTex[3], iCoord[i], 0);
-        }
-    } else if (v_lightId < 5.5) {
-        for (int i = 0; i < 8; i++) {
-            normalSample[i] = texelFetch(u_lightTex[4], iCoord[i], 0);
-        }
-    } else if (v_lightId < 6.5) {
-        for (int i = 0; i < 8; i++) {
-            normalSample[i] = texelFetch(u_lightTex[5], iCoord[i], 0);
-        }
-    } else if (v_lightId < 7.5) {
-        for (int i = 0; i < 8; i++) {
-            normalSample[i] = texelFetch(u_lightTex[6], iCoord[i], 0);
-        }
     }
-
     float total = 0.0;
     for (int i = 0; i < 8; i++) {
         if (normalSample[i].w > 0.5) {
@@ -840,8 +923,20 @@ v_axisV *= sign(a_uvSize.y);
     // water lighter
     float water_lighter_limit = .02;
     if(centerSample.z > water_lighter_limit) {
+        /*if (abs(centerSample.z - 0.8) < 0.04
+          || abs(centerSample.z - 0.7) < 0.04
+          || abs(centerSample.z - 0.6) < 0.04
+          || abs(centerSample.z - 0.5) < 0.04) {
+            color.rgb += 0.5;
+        }
+        if (abs(centerSample.z - 0.4) < 0.04
+          || abs(centerSample.z - 0.3) < 0.04
+          || abs(centerSample.z - 0.2) < 0.04
+          || abs(centerSample.z - 0.1) < 0.04) {
+            color.rgb += 0.25;
+        }*/
         float m = centerSample.z < .03 ? 1. - (.03 - centerSample.z) / .01 : 1.;
-        // float water_lighter = min(centerSample.z / water_lighter_limit, .1);
+        float water_lighter = min(centerSample.z / water_lighter_limit, .1);
         vec3 cam_period = getCamPeriod();
         float x = v_world_pos.x + cam_period.x;
         float y = v_world_pos.y + cam_period.y;
