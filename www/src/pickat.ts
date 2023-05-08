@@ -24,6 +24,13 @@ export interface ICmdPickatData extends IPickatEvent {
     snapshotId ?        : int // id of the blocks history snapshot on the client that should be restored if this action afails on server
     changeExtraData ?   : boolean
     extra_data ?        : any
+    /**
+     * Если это поле задано, то это id события, по которому синхронизируестя управление, см. {@link ClientPlayerControlManager.controlEventId}.
+     * Если это поле задано, то и клиент, и сервер _обязаны_ вызвать один из методов синхронизации с этим id.
+     * Но: вызывать нужно не сразу, а тогда, когда применяются изменения, связанные с этим событием (например, после
+     * обраотки созданного {@link WorldAction} который меняет положение игрока).
+     */
+    controlEventId?:    int
 }
 
 type PickAtOnTarget         = (e: IPickatEvent, times: float, number: int) => Promise<boolean>
@@ -127,6 +134,12 @@ export class PickAt {
         return pos ? this.world.getBlock(new Vector(pos as any)) : null;
     }
 
+    /**
+     * Возвращает следующий по порядку id, который может быть использован:
+     * - для {@link IPickatEvent}
+     * - для других действий и команд, не связанных с pickat, но требующих синхронизации
+     *   управления игрока с сервером, см. {@link ClientPlayerControlManager.syncWithEventId}
+     */
     getNextId(): int    { return ++this.nextId }
 
     // setEvent...

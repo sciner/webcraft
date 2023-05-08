@@ -16,10 +16,11 @@ export default class packet_reader {
 
     //
     static async read(player: ServerPlayer, packet: INetworkMessage<int | null>) {
+        player.controlManager.syncWithEventId(packet.data)
         let pos = getValidPosition(new Vector(player.state.pos).floored(), player.world)
         if (player.driving) {
             player.state.pos = pos ?? player.state.pos // разрешить прервать езду даже если не нашлась безопасная позиции
-            player.driving.onStandUp(player, packet.data)
+            player.driving.onStandUp(player)
             return true
         }
         if (pos) {

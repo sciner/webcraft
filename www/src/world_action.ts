@@ -570,6 +570,11 @@ export class WorldAction {
     }
     sitting? : TSittingState
     sleep? : TSleepState
+    /**
+     * Если действие создается на основе {@link ICmdPickatData}, то это поле хранит {@link ICmdPickatData.controlEventId},
+     * чтобы синхронизироваться с упарвлением по окончанию действия.
+     */
+    controlEventId? : int
 
     constructor(id ? : string | int | null, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
         this.#world = world;
@@ -1766,14 +1771,16 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
         }
         return true
     }
+    const bedHeight = world_material.bb?.behavior?.height ?? world_material.height ?? 1
+    const headY = bedHeight + 0.063 // эта константа подобнана чтобы игрок не проваливался сквозь кровать
     // где находится подушка у кровати (голова игрока, когда лежит)
-    let position_head : Vector = world_block.posworld.offset(.5, 0.6, !extra_data?.is_head ? -.42 : .58)
+    let position_head : Vector = world_block.posworld.offset(.5, headY, !extra_data?.is_head ? -.42 : .58)
     if (rotate.x == DIRECTION.SOUTH) {
-        position_head = world_block.posworld.offset(.5, 0.6, !extra_data?.is_head ? 1.42 : .42)
+        position_head = world_block.posworld.offset(.5, headY, !extra_data?.is_head ? 1.42 : .42)
     } else if (rotate.x == DIRECTION.WEST) {
-        position_head = world_block.posworld.offset(!extra_data?.is_head ? 1.42 : .42, 0.6, .5)
+        position_head = world_block.posworld.offset(!extra_data?.is_head ? 1.42 : .42, headY, .5)
     } else if (rotate.x == DIRECTION.EAST) {
-        position_head = world_block.posworld.offset(!extra_data?.is_head ? -.42 : 0.58, 0.6, .5)
+        position_head = world_block.posworld.offset(!extra_data?.is_head ? -.42 : 0.58, headY, .5)
     }
     // Проверяем, что кровать не заблочена
     const block = world.getBlock(position_head.offset(0, 1, 0).flooredSelf())

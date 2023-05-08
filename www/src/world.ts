@@ -15,7 +15,7 @@ import type { WorldAction } from "./world_action.js";
 import type { Player } from "./player.js";
 import type {ICmdPickatData} from "./pickat.js";
 import type {Physics} from "./prismarine-physics/index.js";
-import {ClientDrivingManager, DrivingManager} from "./control/driving_manager.js";
+import {ClientDrivingManager} from "./control/driving_manager.js";
 import type {GameClass} from "./game.js";
 import type {GameSettings} from "./game.js";
 
@@ -338,7 +338,7 @@ export class World implements IWorld {
             player.setPosition(actions.sitting.pos);
             player.setRotate(actions.sitting.rotate);
             player.controlManager.setVelocity(0, 0, 0)
-                .syncWithActionId(actions.id, false)
+                .syncWithEventId(actions.controlEventId, false)
                 .suppressLerpPos()
             Qubatch.hotbar.strings.setText(1, Lang.press_lshift_to_dismount, 4000);
         }
@@ -348,7 +348,7 @@ export class World implements IWorld {
             player.setPosition(actions.sleep.pos)
             player.setRotate(actions.sleep.rotate)
             player.controlManager.setVelocity(0, 0, 0)
-                .syncWithActionId(actions.id, false)
+                .syncWithEventId(actions.controlEventId, false)
                 .suppressLerpPos()
             Qubatch.hotbar.strings.setText(1, Lang.press_lshift_to_dismount, 4000)
         }
