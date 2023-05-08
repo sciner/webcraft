@@ -528,10 +528,7 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
         return 1.0;
     }
     if ((aoNeib.x & aoNeib.y & mask) != 0) {
-        if (min(part.x, part.y) > 0.5) {
-            return 0.5 + min(0.5, length(part.xy - 0.5));
-        }
-        return max(part.x, part.y);
+        return min(1.0, length(part.xy));
     }
     if ((aoNeib.x & mask) != 0) {
         return part.x;
@@ -687,11 +684,12 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
                 ivec4 dayGrad = ((oriented >> 4) & 0x0f) - mainVec.y;
                 if (part.w > 0.0) {
                     if (((oriented.w >> LIGHT_SOLID_SHIFT) & LIGHT_SOLID_MASK) > 0) {
-                        part.w = 0.0;
-                    } else {
-                        caveGrad.w -= caveGrad.x + caveGrad.y;
-                        dayGrad.w -= dayGrad.x + dayGrad.y;
+                        caveGrad.w = 0;
+                        dayGrad.w = 0;
+                        part.w /= 2.0;
                     }
+                    caveGrad.w -= caveGrad.x + caveGrad.y;
+                    dayGrad.w -= dayGrad.x + dayGrad.y;
                 }
                 centerSample.x = clamp((float(mainVec.x) + dot(vec4(caveGrad), part * 0.5)) / 15.0, 0.0, 1.0);
                 centerSample.y = clamp((float(mainVec.y) + dot(vec4(dayGrad), part * 0.5)) / 15.0, 0.0, 1.0);
@@ -724,7 +722,7 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
     float aoSample = 0.0;
     if (v_lightMode > 0.5) {
         aoSample = centerSample.z * 0.5;
-        //if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
+        if (aoSample > 0.25) { aoSample = aoSample * 0.5 + 0.125; }
         aoSample *= aoFactor;
     }
 
@@ -925,12 +923,18 @@ v_axisV *= sign(a_uvSize.y);
     // water lighter
     float water_lighter_limit = .02;
     if(centerSample.z > water_lighter_limit) {
-        //if (abs(centerSample.z - 0.8) < 0.04
-        //  || abs(centerSample.z - 0.7) < 0.04
-        //  || abs(centerSample.z - 0.6) < 0.04
-        //  || abs(centerSample.z - 0.5) < 0.04) {
-        //    color.rgb += 0.5;
-        //}
+        /*if (abs(centerSample.z - 0.8) < 0.04
+          || abs(centerSample.z - 0.7) < 0.04
+          || abs(centerSample.z - 0.6) < 0.04
+          || abs(centerSample.z - 0.5) < 0.04) {
+            color.rgb += 0.5;
+        }
+        if (abs(centerSample.z - 0.4) < 0.04
+          || abs(centerSample.z - 0.3) < 0.04
+          || abs(centerSample.z - 0.2) < 0.04
+          || abs(centerSample.z - 0.1) < 0.04) {
+            color.rgb += 0.25;
+        }*/
         float m = centerSample.z < .03 ? 1. - (.03 - centerSample.z) / .01 : 1.;
         float water_lighter = min(centerSample.z / water_lighter_limit, .1);
         vec3 cam_period = getCamPeriod();
