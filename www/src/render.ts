@@ -187,14 +187,13 @@ export class Renderer {
 
         const renderList = world.chunkManager.renderList;
         if (renderBackend.gl) {
-            // world.chunkManager.renderList.setLightTexFormat('rgba4unorm', false);
-            if (settings.use_light === LIGHT_TYPE.RTX) {
+            /*if (settings.use_light === LIGHT_TYPE.RTX) {
                 renderList.setLightTexFormat(true);
                 renderBackend.preprocessor.useNormalMap = true;
                 renderBackend.globalUniforms.useNormalMap = true;
-            } else {
+            } else {*/
                 renderList.setLightTexFormat(false);
-            }
+            //}
         } else {
             renderList.setLightTexFormat(false);
         }

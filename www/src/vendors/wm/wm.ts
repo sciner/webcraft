@@ -1548,6 +1548,7 @@ export class WindowManager extends Window {
         this.pixiRender.texture.bind(null, 3);
         this.pixiRender.texture.bind(null, 6);
         this.pixiRender.texture.bind(null, 7);
+        this.pixiRender.texture.bind(null, 8);
 
         this.pixiRender.render(this.parent);
     }

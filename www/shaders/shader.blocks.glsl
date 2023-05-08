@@ -788,28 +788,7 @@ v_axisV *= sign(a_uvSize.y);
         for (int i = 0; i < 8; i++) {
             normalSample[i] = texelFetch(u_lightTex[1], iCoord[i], 0);
         }
-    } else if (v_lightId < 3.5) {
-        for (int i = 0; i < 8; i++) {
-            normalSample[i] = texelFetch(u_lightTex[2], iCoord[i], 0);
-        }
-    } else if (v_lightId < 4.5) {
-        for (int i = 0; i < 8; i++) {
-            normalSample[i] = texelFetch(u_lightTex[3], iCoord[i], 0);
-        }
-    } else if (v_lightId < 5.5) {
-        for (int i = 0; i < 8; i++) {
-            normalSample[i] = texelFetch(u_lightTex[4], iCoord[i], 0);
-        }
-    } else if (v_lightId < 6.5) {
-        for (int i = 0; i < 8; i++) {
-            normalSample[i] = texelFetch(u_lightTex[5], iCoord[i], 0);
-        }
-    } else if (v_lightId < 7.5) {
-        for (int i = 0; i < 8; i++) {
-            normalSample[i] = texelFetch(u_lightTex[6], iCoord[i], 0);
-        }
     }
-
     float total = 0.0;
     for (int i = 0; i < 8; i++) {
         if (normalSample[i].w > 0.5) {
