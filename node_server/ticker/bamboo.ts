@@ -59,7 +59,7 @@ export default class Ticker {
                                 addNextBamboo(v.pos, tblock, 2);
                             }
                         } else if(over1.id == tblock.id && under1.id == tblock.id) {
-                            if(over1.extra_data.stage == 2 && under1.extra_data && under1.extra_data.stage == 1) {
+                            if(over1.extra_data && over1.extra_data.stage == 2 && under1.extra_data && under1.extra_data.stage == 1) {
                                 if(addNextBamboo(over1.posworld, tblock, 2)) {
                                     if(under1.extra_data.stage == 1) {
                                         const new_item = {...tblock.convertToDBItem()};

@@ -354,28 +354,26 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
         if(!FAST) {
 
-            // const CHUNK_SIZE_X = map.CHUNK_SIZE_X
-            // const CHUNK_SIZE_Z = map.CHUNK_SIZE_X
-            // const x = ((xyz.x % CHUNK_SIZE_X) + CHUNK_SIZE_X) % CHUNK_SIZE_X
-            // const z = ((xyz.z % CHUNK_SIZE_Z) + CHUNK_SIZE_Z) % CHUNK_SIZE_Z
-            // const cleft = map.getCleft(x, z)
-            // const cleft_range = 0.05
+            const cleft = map.getCleft(xyz)
+            const cleft_range = 0.075 + d2 / 32
+            const cleft_margin = 0.15
 
-            // let cleft_dist = Math.abs(cleft / cleft_range)
-            // cleft_dist = 0.5 * (1 - Math.cos(Math.PI * cleft_dist))
+            if(cleft > -cleft_margin && cleft < cleft_margin) {
+                if(xyz.y <= 80) {
+                    density = (density + (1 - cleft / cleft_margin))
+                }
+            }
 
-            // if(cleft > -cleft_range * 2 && cleft < cleft_range * 2) {
-            //     // if(xyz.y > (45 + d3 * cleft_dist) + (cleft_dist + (d3 * cleft_dist)) * 60) {
-            //     if(xyz.y > 45 + cleft_dist * 60) {
-            //         if(cleft > -cleft_range && cleft < cleft_range) {
-            //             density = DENSITY_AIR_THRESHOLD
-            //             res.dcaves = density
-            //         } else {
-            //             density = Math.max(DENSITY_AIR_THRESHOLD + 0.1, density)
-            //             res.dcaves = density
-            //         }
-            //     }
-            // }
+            let cleft_dist = Math.abs(cleft / cleft_range)
+            cleft_dist = 0.5 * (1 - Math.cos(Math.PI * cleft_dist))
+
+            if(cleft > -cleft_range && cleft < cleft_range) {
+                const cleft_d3 = d3 / 2
+                if(xyz.y > (45 + d3 * cleft_dist) + (cleft_dist + (cleft_d3 * cleft_dist)) * 60 + d2 * 4) {
+                    density = DENSITY_AIR_THRESHOLD
+                    res.dcaves = density
+                }
+            }
 
             // Если это твердый камень, то попробуем превратить его в пещеру
             if(density > DENSITY_AIR_THRESHOLD) {

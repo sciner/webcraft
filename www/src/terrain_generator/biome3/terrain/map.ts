@@ -172,7 +172,11 @@ export class Biome3TerrainMap extends TerrainMap {
         return this.cells[z * this.CHUNK_SIZE_X + x]
     }
 
-    getCleft(x : int, z : int) : float {
+    getCleft(xyz : Vector) : float {
+        const CHUNK_SIZE_X = this.CHUNK_SIZE_X
+        const CHUNK_SIZE_Z = this.CHUNK_SIZE_X
+        const x = ((xyz.x % CHUNK_SIZE_X) + CHUNK_SIZE_X) % CHUNK_SIZE_X
+        const z = ((xyz.z % CHUNK_SIZE_Z) + CHUNK_SIZE_Z) % CHUNK_SIZE_Z
         return this.cleft[z * this.CHUNK_SIZE_X + x]
     }
 
