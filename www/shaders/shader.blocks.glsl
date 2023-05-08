@@ -540,7 +540,7 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
         return part.y;
     }
     if ((aoNeib.z & mask) != 0) {
-        return 1.0 - length(1.0 - part.xy);
+        return max(0.0, 1.0 - length(1.0 - part.xy));
     }
     return 0.0;
 }
