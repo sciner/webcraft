@@ -2,18 +2,25 @@ import { PLAYER_STATUS } from "@client/constant.js";
 import { SimpleQueue } from "@client/helpers.js";
 import { ServerClient } from "@client/server_client.js";
 import type {ServerPlayer} from "../server_player.js";
+import type {WorldActionQueue} from "../world/action_queue.js";
 
+export type TQueuedNetworkMessage = {
+    reader: ICommandReader
+    player: ServerPlayer
+    packet: INetworkMessage
+}
+
+// TODO если нет проблем с общей очередью пактов и команд, удалить этот класс
 class PacketRequerQueue {
     packet_reader: PacketReader;
-    private list: SimpleQueue<{reader: ICommandReader, player: ServerPlayer, packet: INetworkMessage}>
+    private list = new SimpleQueue<TQueuedNetworkMessage>()
 
     constructor(packet_reader: PacketReader) {
-        this.packet_reader = packet_reader;
-        this.list = new SimpleQueue();
+        this.packet_reader = packet_reader
     }
 
-    add(reader: ICommandReader, player: ServerPlayer, packet: INetworkMessage) {
-        this.list.push({reader, player, packet});
+    add(item: TQueuedNetworkMessage) {
+        this.list.push(item);
     }
 
     async process() {
@@ -27,10 +34,7 @@ class PacketRequerQueue {
                     this.list.push(item);
                 }
             } catch(e) {
-                this.packet_reader.sendErrorToPlayer(player, e);
-                if (reader.terminateOnException) {
-                    player.terminate(e)
-                }
+                this.packet_reader.onError(player, reader, e);
             }
         }
     }
@@ -56,7 +60,8 @@ export class PacketReader {
         ServerClient.CMD_QUEUED_PING    // чтобы лаг правильно измерялся даже когда игрок мертв
     ]
 
-    queue: PacketRequerQueue;
+    actions_queue: WorldActionQueue | null  // если не null, то команды кладутся сюда
+    queue: PacketRequerQueue;               // если actions_queue == null, то команды кладутся сюда
     registered_readers: Map<int, ICommandReader>;
 
     constructor() {
@@ -86,15 +91,17 @@ export class PacketReader {
         const reader = this.registered_readers.get(packet?.name);
         if(reader) {
             if(reader.queue) {
-                this.queue.add(reader, player, packet);
+                const queuedMessage: TQueuedNetworkMessage = {reader, player, packet}
+                if (this.actions_queue) {
+                    this.actions_queue.addNetworkMessage(queuedMessage)
+                } else {
+                    this.queue.add(queuedMessage)
+                }
             } else {
                 try {
                     await reader.read(player, packet);
                 } catch(e) {
-                    this.sendErrorToPlayer(player, e);
-                    if (reader.terminateOnException) {
-                        player.terminate(e)
-                    }
+                    this.onError(player, reader, e);
                 }
             }
         } else {
@@ -104,9 +111,12 @@ export class PacketReader {
     }
 
     //
-    sendErrorToPlayer(player: ServerPlayer, e) {
-        console.log(e);
-        player.sendError(e);
+    onError(player: ServerPlayer, commandReader: ICommandReader, err): void {
+        console.log(err)
+        player.sendError(err)
+        if (commandReader.terminateOnException) {
+            player.terminate(err)
+        }
     }
 
 }
