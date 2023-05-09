@@ -19,9 +19,14 @@ export const CANYON = {
     FLOOR_DENSITY:     0.075 + 0.05,
 }
 
-declare type ISetTreeBlock = (tree : any, x : int, y : int, z : int, block_type : any, force_replace : boolean, rotate? : IVector, extra_data? : any) => any
+declare type ISetTreeBlock = (tree : any, x : int, y : int, z : int, block_type : any, force_replace? : boolean, rotate? : IVector, extra_data? : any) => any
 
 export {alea, noise};
+
+const _side_extra_data = new Array(100)
+for(let i = 1; i < _side_extra_data.length; i++) {
+    _side_extra_data[i] = {t: i}
+}
 
 // Map cell
 export class Default_Terrain_Map_Cell {
@@ -184,9 +189,18 @@ export class Default_Terrain_Generator {
         y -= y
         z -= z
 
+        // if(!globalThis.asdcasd) {
+        //     globalThis.asdcasd = new Map()
+        // }
+        // let s = globalThis.asdcasd.get(type.style) 
+        // if(!s) {
+        //     s = {draw: 0, call: 0, draw_blocks: 0, gentime: 0, gencount: 0, genmed: 0}
+        //     globalThis.asdcasd.set(type.style, s)
+        // }
+
         if(!check_chunk_size) {
             // indirect write without seperate by chunks
-            return style_func(world, tree, xyz, (tree, x, y, z, block_type, force_replace, rotate, extra_data) => {
+            return style_func(world, tree, xyz, (tree : any, x : int, y : int, z : int, block_type, force_replace : boolean = false, rotate? : Vector, extra_data? : any) => {
                 x += orig_xyz.x
                 y += orig_xyz.y
                 z += orig_xyz.z
@@ -197,8 +211,9 @@ export class Default_Terrain_Generator {
                 this.setBlock(chunk, x, y, z, block_type, force_replace, rotate, extra_data)
             });
         } else if(first_time_generation) {
+            let pn = performance.now()
             // if first time calling plant for this tree
-            style_func(world, tree, xyz, (tree, x, y, z, block_type, force_replace, rotate, extra_data) => {
+            style_func(world, tree, xyz, (tree : any, x : int, y : int, z : int, block_type, force_replace : boolean = false, rotate? : Vector, extra_data? : any) => {
                 if(tree.type.underwater) {
                     // TODO: need to check local_water_level
                     if(xyz.y + y >= world.generator.options.WATER_LEVEL) {
@@ -210,21 +225,32 @@ export class Default_Terrain_Generator {
                 z += orig_xyz.z
                 this.setTreeBlock(world, tree, chunk, x, y, z, block_type, force_replace, rotate, extra_data)
             });
+            pn = performance.now() - pn
+            // s.gentime += pn
+            // s.gencount++
+            // s.genmed = Math.round(s.gentime / s.gencount * 1000) / 1000
         }
 
-        const c = tree.chunks.get(chunk.addr)
-        if(!c) {
+        // s.call++
+
+        const chunk_blocks = tree.chunks.get(chunk.addr)
+        if(!chunk_blocks) {
+            // console.log(globalThis.asdcasd)
             return
         }
 
         // set blocks
         const _temp_block = {id: 0}
-        for(let i = 0; i < c.blocks.length; i++) {
-            const b = c.blocks.get(i)
+        for(let i = 0; i < chunk_blocks.length; i++) {
+            const b = chunk_blocks.get(i)
+            // s.draw_blocks++
             // TODO: check blocks if occupied
             _temp_block.id = b.block_id
             this.setBlock(chunk, b.cx, b.cy, b.cz, _temp_block, b.force_replace, b.rotate, b.extra_data);
         }
+        
+        // s.draw++
+        // console.log(globalThis.asdcasd)
 
     }
 
@@ -238,10 +264,10 @@ export class Default_Terrain_Generator {
         const chunk_size = chunk.size
 
         this._chunk_addr = grid.getChunkAddr(ax, ay, az, this._chunk_addr)
-        let c = tree.chunks.get(this._chunk_addr)
-        if(!c) {
-            c = {blocks: new SimpleQueue()}
-            tree.chunks.set(this._chunk_addr, c)
+        let chunk_blocks : SimpleQueue = tree.chunks.get(this._chunk_addr)
+        if(!chunk_blocks) {
+            chunk_blocks = new SimpleQueue()
+            tree.chunks.set(this._chunk_addr, chunk_blocks)
         }
 
         const cx = ax - Math.floor(ax / chunk_size.x) * chunk_size.x
@@ -251,7 +277,7 @@ export class Default_Terrain_Generator {
 
         const block = {cx, cy, cz, block_id, force_replace, rotate, extra_data}
         tree.blocks.set(this._block_pos.set(ax, ay, az), block);
-        c.blocks.push(block)
+        chunk_blocks.push(block)
 
     }
 
@@ -670,6 +696,8 @@ export class Default_Terrain_Generator {
         const y = 0
         const z = 0
 
+        let index = 0
+
         // const orig_y = y
         // y -= y
         // const setTreeBlock2 = (tree : any, chunk : any, x : int, y : int, z : int, block_type : any, force_replace : boolean, rotate? : IVector, extra_data? : any) => {
@@ -703,7 +731,6 @@ export class Default_Terrain_Generator {
         let skirt_center_z = z_new_pos;
         let skirt_radius = Math.ceil(rad / 2);
         const skirt_bottom = Math.ceil(ystart_with_coef / 4);
-
 
         for (let p = y; p < ystart_with_coef - 1; p++) {
             const c = ((Math.cos(s)) / 2) * skew_sign;
@@ -759,7 +786,7 @@ export class Default_Terrain_Generator {
             return mask
         }
 
-        const determineSideToCover = (x, y, z, prev_skipped) => {
+        const determineSideToCover = (x, y, z, prev_skipped) : int => {
 
             let t = 0;
             let x2 = 1;
@@ -803,17 +830,18 @@ export class Default_Terrain_Generator {
             x2 = (x_pos - (x + .5)) * (x_pos - (x + .5));
             t |= addDirectionBit(x2, y2, z2, DIRECTION_BIT.SOUTH,y,prev_skipped)
 
-            return t ? {t: t} : null;
+            return t // ? {t: t} : null;
 
         }
 
-        let prev_skipped = false;
+        let prev_skipped = false
+        this.temp_block.id = tree.type.leaves
         for (let i = -rad; i <= rad; i++) {
             for (let j = -rad; j <= rad; j++) {
                 for (let qube_pos_y = bottom_pos + 1; qube_pos_y <= ystart_with_coef; qube_pos_y++) {
 
                     if(qube_pos_y <= bottom_pos + 1) {
-                        if(random.double() < .15) {
+                        if(this.fastRandoms.double(index++) < .15) {
                             prev_skipped = true;
                             continue;
                         }
@@ -826,22 +854,24 @@ export class Default_Terrain_Generator {
                     qube_pos.setScalar(qube_pos_x + x_shift, Math.floor(qube_pos_y / height_coef) + .5, qube_pos_z + z_shift)
                     const dist = qube_center.distanceSqr(qube_pos)
                     if (dist > radius_sqr || dist < radius_sqr * 0.7) {
-                        continue;
+                        continue
                     }
                     // const b = tree.blocks.get(this.xyz_temp_find.set(xyz.x + qube_pos_x, xyz.y + qube_pos_y, xyz.z + qube_pos_z))
                     // const b_id = b?.id ?? 0
                     // if (b_id == 0 || b_id != tree.type.trunk) {
-                        this.temp_block.id = tree.type.leaves;
-                        let extra_data = determineSideToCover(qube_pos_x, Math.ceil(qube_pos_y / height_coef), qube_pos_z, prev_skipped);
+                        const t = determineSideToCover(qube_pos_x, Math.ceil(qube_pos_y / height_coef), qube_pos_z, prev_skipped);
+                        const extra_data = t > 0 ? _side_extra_data[t] : null
                         prev_skipped = false;
                         setTreeBlock(tree, qube_pos_x, qube_pos_y, qube_pos_z, this.temp_block, false, null, extra_data);
                     // }
                 }
             }
         }
+
         if (tree.height > 7) {
             const skirt_center = new Vector(skirt_center_x, skirt_bottom + 1, skirt_center_z);
             const skirt_radius_sqr = skirt_radius * skirt_radius;
+            this.temp_block.id = tree.type.leaves
             for (let i = -skirt_radius; i <= skirt_radius; i++) {
                 for (let j = -skirt_radius; j <= skirt_radius; j++) {
                     for (let coef = 0; coef < Math.PI; coef += .1) {
@@ -856,13 +886,12 @@ export class Default_Terrain_Generator {
                         if (dist > skirt_radius_sqr || dist < skirt_radius_sqr * .7) {
                             continue;
                         }
-                        this.temp_block.id = tree.type.leaves;
-                        let extra_data = null;
-                        setTreeBlock(tree, qube_pos_x, qube_pos_y, qube_pos_z, this.temp_block, false, null, extra_data);
+                        setTreeBlock(tree, qube_pos_x, qube_pos_y, qube_pos_z, this.temp_block)
                     }
                 }
             }
         }
+
         if (tree.params?.effects) {
             this.addMushroomEffects(world, xyz, BLOCK.RED_MUSHROOM, tree.height * height_incr_coefficient);
         }

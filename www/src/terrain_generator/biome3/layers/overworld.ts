@@ -386,7 +386,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                         if(bridge_pos > 10 && bridge < 6) {
                             const edge_of_bridge = bridge == 0 || bridge == 5
                             const inside_edge_of_bridge = bridge == 1 || bridge == 4
-                            if(xyz.y == 79) {
+                            if(xyz.y == 80) {
                                 if(bridge == 0 || bridge == 5) {
                                     chunk.setBlockIndirect(x, y, z, 536)
                                 } else {
@@ -397,11 +397,11 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                     }
                                     
                                 }
-                            } else if(xyz.y == 80) {
+                            } else if(xyz.y == 81) {
                                 if(edge_of_bridge || bridge == 1 || bridge == 4) {
                                     chunk.setBlockIndirect(x, y, z, 536)
                                 }
-                            } else if(xyz.y == 81) {
+                            } else if(xyz.y == 82) {
                                 if(bridge == 0 || bridge == 5) {
                                     if(xyz.x % 5 == 0 && xyz.z % 5 == 0) {
                                         if(cell.inCanyon(0.05)) {
