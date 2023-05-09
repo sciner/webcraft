@@ -335,7 +335,9 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                         }
                         rotate = new Vector(Math.floor(rnd.double() * 4), 1, 0)
                     }
-                    chunk.setBlockIndirect(x, y + i, z, p.id, rotate, extra_data);
+                    if(!p.is_leaves || !cell.inCanyon(CANYON.FLOOR_DENSITY)) {
+                        chunk.setBlockIndirect(x, y + i, z, p.id, rotate, extra_data)
+                    }
                 }
                 return !!plant_blocks[0].not_transparent
             }

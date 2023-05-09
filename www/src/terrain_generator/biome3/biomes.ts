@@ -455,6 +455,7 @@ export class Biomes {
                         delete(b.name)
                         b.id = block.id
                         b.is_petals = block.tags.includes('is_petals')
+                        b.is_leaves = block.is_leaves
                         b.is_grass = block.is_grass
                         b.is_flower = block.is_flower
                     }
