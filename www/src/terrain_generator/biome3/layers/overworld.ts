@@ -358,6 +358,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                 const cluster_cell          = has_cluster ? cluster.getCell(xyz.x, xyz.z) : null;
                 const big_stone_density     = this.calcBigStoneDensity(xyz, has_cluster)
                 const in_canyon             = cell.inCanyon(CANYON.FLOOR_DENSITY)
+                const bridge_in_canyon      = cell.inCanyon(CANYON.BRIDGE_DIST)
 
                 // const {dist_percent, op /*, relief, mid_level, radius, dist, density_coeff*/ } = cell.preset;
                 // const hanging_foliage_block_id = cell.biome.blocks.hanging_foliage.id
@@ -378,19 +379,26 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
                     xyz.y = chunk.coord.y + y;
 
-                    // Make bridge
-                    if(in_canyon) {
+                    // Make canyon bridge
+                    if(bridge_in_canyon) {
                         const bridge_pos = Math.abs(xyz.x + xyz.z)
                         const bridge = bridge_pos % 100
                         if(bridge_pos > 10 && bridge < 6) {
+                            const edge_of_bridge = bridge == 0 || bridge == 5
+                            const inside_edge_of_bridge = bridge == 1 || bridge == 4
                             if(xyz.y == 79) {
                                 if(bridge == 0 || bridge == 5) {
                                     chunk.setBlockIndirect(x, y, z, 536)
                                 } else {
-                                    chunk.setBlockIndirect(x, y, z, 460)
+                                    if(inside_edge_of_bridge) {
+                                        chunk.setBlockIndirect(x, y, z, 460)
+                                    } else {
+                                        chunk.setBlockIndirect(x, y, z, 461, null, {point: new Vector(0, .5, 0)})
+                                    }
+                                    
                                 }
                             } else if(xyz.y == 80) {
-                                if(bridge == 0 || bridge == 1 || bridge == 4 || bridge == 5) {
+                                if(edge_of_bridge || bridge == 1 || bridge == 4) {
                                     chunk.setBlockIndirect(x, y, z, 536)
                                 }
                             } else if(xyz.y == 81) {
