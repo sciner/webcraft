@@ -378,6 +378,34 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
                     xyz.y = chunk.coord.y + y;
 
+                    // Make bridge
+                    if(in_canyon) {
+                        const bridge = (xyz.x + xyz.z) % 100
+                        if(bridge < 6) {
+                            if(xyz.y == 79) {
+                                if(bridge == 0 || bridge == 5) {
+                                    chunk.setBlockIndirect(x, y, z, 536)
+                                } else {
+                                    chunk.setBlockIndirect(x, y, z, 460)
+                                }
+                            } else if(xyz.y == 80) {
+                                if(bridge == 0 || bridge == 1 || bridge == 4 || bridge == 5) {
+                                    chunk.setBlockIndirect(x, y, z, 536)
+                                }
+                            } else if(xyz.y == 81) {
+                                if(bridge == 0 || bridge == 5) {
+                                    if(xyz.x % 5 == 0 && xyz.z % 5 == 0) {
+                                        if(cell.inCanyon(0.05)) {
+                                            if(rnd.double() < .35) {
+                                                chunk.setBlockIndirect(x, y, z, 50)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     // получает плотность в данном блоке (допом приходят коэффициенты, из которых посчитана данная плотность)
                     map_manager.calcDensity(xyz, cell, density_params, map);
                     let {d1, d2, d3, d4, density, in_aquifera, local_water_line} = density_params;
