@@ -18,8 +18,6 @@ export class Biome3TerrainMap extends TerrainMap {
     CHUNK_SIZE_X:       number
     _tree_neighbours:   any
 
-    cleft: float[]
-
     constructor(chunk : ChunkWorkerChunk, options, noise2d) {
         super(chunk, options);
         this._tree_neighbours = new Array(chunk.size.x * chunk.size.z);
@@ -29,16 +27,6 @@ export class Biome3TerrainMap extends TerrainMap {
             this.caves = new CaveGeneratorRegular(chunk.chunkManager.grid, chunk.coord, noise2d, BIOME3_CAVE_LAYERS);
         }
         this.CHUNK_SIZE_X = chunk.size.x;
-
-        // cleft
-        this.cleft = new Array(chunk.size.x * chunk.size.z)
-        for(let x = 0; x < chunk.size.x; x++) {
-            for(let z = 0; z < chunk.size.z; z++) {
-                const index = z * this.CHUNK_SIZE_X + x
-                this.cleft[index] = noise2d((chunk.coord.x + x) / 1000, (chunk.coord.z + z) / 1000)
-            }
-        }
-
     }
 
     addTree(chunk : IChunk, cluster : ClusterBase, aleaRandom : alea, rnd : float, x : int, y : int, z : int, biome : Biome, underwater : boolean = false) : boolean{
@@ -95,7 +83,7 @@ export class Biome3TerrainMap extends TerrainMap {
 
     }
 
-    generateTrees(real_chunk : ChunkWorkerChunk, seed, manager : TerrainMapManager3) {
+    generateTrees(real_chunk : ChunkWorkerChunk, seed : string, map_manager : TerrainMapManager3) {
 
         this.trees = [];
         this.vegetable_generated = true;
@@ -120,7 +108,6 @@ export class Biome3TerrainMap extends TerrainMap {
 
             xyz.set(x + chunk.coord.x, 0, z + chunk.coord.z);
 
-            const river_point = manager.makeRiverPoint(xyz.x, xyz.z);
             const cell = this.cells[z * CHUNK_SIZE_X + x];
             const biome = cell.biome as Biome
             const rnd = aleaRandom.double();
@@ -131,12 +118,14 @@ export class Biome3TerrainMap extends TerrainMap {
                 let free_height = 0;
                 const tree_y_base = map.cluster.y_base - 20 // вычитание для подводных деревьев
                 xyz.y = tree_y_base
-                manager.noise3d.generate4(xyz, treeSearchSize);
+                map_manager.noise3d.generate4(xyz, treeSearchSize);
+                const simplified_cell = map_manager.makeSimplifiedCell(xyz)
                 for(let y = CHUNK_SIZE_Y; y >= 0; y--) {
                     xyz.y = tree_y_base + y
                     const underwater = xyz.y < map.cluster.y_base
-                    const preset = manager.getPreset(xyz);
-                    const {density} = manager.calcDensity(xyz, {river_point, preset}, density_params, map)
+                    const preset = map_manager.getPreset(xyz);
+                    simplified_cell.preset = preset
+                    const {density} = map_manager.calcDensity(xyz, simplified_cell, density_params, map)
                     if(prev_underwater !== underwater) {
                         free_height = 0
                     } 
@@ -145,7 +134,7 @@ export class Biome3TerrainMap extends TerrainMap {
                     if(density > DENSITY_AIR_THRESHOLD) {
                         if(free_height >= TREE_MIN_Y_SPACE) {
                             xyz.y++
-                            manager.calcDensity(xyz, {river_point, preset}, density_params, map)
+                            map_manager.calcDensity(xyz, simplified_cell, density_params, map)
                             if(underwater || xyz.y > density_params.local_water_line) {
                                 if(this.addTree(chunk, cluster, aleaRandom, rnd, x, xyz.y, z, biome, underwater)) {
                                     if(this.trees.length == MAX_TREES_PER_CHUNK) {
@@ -170,14 +159,6 @@ export class Biome3TerrainMap extends TerrainMap {
      */
     getCell(x : int, z : int) : TerrainMapCell {
         return this.cells[z * this.CHUNK_SIZE_X + x]
-    }
-
-    getCleft(xyz : Vector) : float {
-        const CHUNK_SIZE_X = this.CHUNK_SIZE_X
-        const CHUNK_SIZE_Z = this.CHUNK_SIZE_X
-        const x = ((xyz.x % CHUNK_SIZE_X) + CHUNK_SIZE_X) % CHUNK_SIZE_X
-        const z = ((xyz.z % CHUNK_SIZE_Z) + CHUNK_SIZE_Z) % CHUNK_SIZE_Z
-        return this.cleft[z * this.CHUNK_SIZE_X + x]
     }
 
 }

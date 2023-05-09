@@ -9,6 +9,15 @@ import type { TerrainMapCell } from "./terrain_map.js";
 import { CD_ROT } from "../core/CubeSym.js";
 import type { WorkerWorld } from "../worker/world.js";
 
+export const CANYON = {
+    AQUIFERA_DIST:     .4,
+    BUILDING_DIST:     .2 + 0.05,
+    STRUCTURE_DIST:    .2 + 0.05,
+    TREE_DIST:         .2 + 0.05,
+    DENSITY_MARGIN:    0.175 + 0.05,
+    FLOOR_DENSITY:     0.075 + 0.05,
+}
+
 declare type ISetTreeBlock = (tree : any, x : int, y : int, z : int, block_type : any, force_replace : boolean, rotate? : IVector, extra_data? : any) => any
 
 export {alea, noise};

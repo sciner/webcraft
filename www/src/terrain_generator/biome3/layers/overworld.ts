@@ -4,7 +4,7 @@ import { DENSITY_AIR_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "../terrain/manag
 import { AQUIFERA_UP_PADDING } from "../aquifera.js";
 import { WorldClientOreGenerator } from "../client_ore_generator.js";
 import { DungeonGenerator } from "../../dungeon.js";
-import { alea } from "../../default.js";
+import { alea, CANYON } from "../../default.js";
 import { DensityParams, WATER_LEVEL } from "../terrain/manager_vars.js";
 import { FLUID_STRIDE } from "../../../fluid/FluidConst.js";
 import { Biome3LayerBase } from "./base.js";
@@ -354,7 +354,8 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                 const cell                  = map.getCell(x, z)
                 const has_cluster           = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.z, 2);
                 const cluster_cell          = has_cluster ? cluster.getCell(xyz.x, xyz.z) : null;
-                const big_stone_density     = this.calcBigStoneDensity(xyz, has_cluster);
+                const big_stone_density     = this.calcBigStoneDensity(xyz, has_cluster)
+                const in_canyon             = cell.inCanyon(CANYON.FLOOR_DENSITY)
 
                 // const {dist_percent, op /*, relief, mid_level, radius, dist, density_coeff*/ } = cell.preset;
                 // const hanging_foliage_block_id = cell.biome.blocks.hanging_foliage.id
@@ -402,7 +403,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                         let {dirt_layer, block_id} = map_manager.getBlock(xyz, not_air_count, cell, density_params, block_result)
 
                         if(block_id == grass_block_id && !cell.biome.is_snowy) {
-                            if(xyz.y - WATER_LEVEL < 2) {
+                            if(xyz.y - WATER_LEVEL < 2 && !in_canyon) {
                                 if(d4 * .3 + d3 * .7 < 0) {
                                     block_id = cell.biome.is_swamp ? podzol_block_id : sand_block_id
                                 }
@@ -519,6 +520,19 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                             } else {
 
                                 // первый слой поверхности под водой (дно)
+
+                                // Plants and grass (растения и трава в каньонах)
+                                if(in_canyon) {
+                                    // шапка слоя земли (если есть)
+                                    if(xyz.y > 41 && dirt_layer.cap_block_id) {
+                                        // chunk.setGroundInColumIndirect(columnIndex, x, y + 1, z, dirt_layer.cap_block_id);
+                                        chunk.setBlockIndirect(x, y + 1, z, dirt_layer.cap_block_id)
+                                    }
+                                    if(plantGrass(x, y + 1, z, xyz, block_id, cell, density_params)) {
+                                        // замена блока травы на землю, чтобы потом это не делал тикер (например арбуз)
+                                        block_id = dirt_block_id
+                                    }
+                                }
 
                                 // если это не пещера
                                 if(dcaves_over === 0) {
