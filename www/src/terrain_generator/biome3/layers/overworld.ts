@@ -380,8 +380,9 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
                     // Make bridge
                     if(in_canyon) {
-                        const bridge = (xyz.x + xyz.z) % 100
-                        if(bridge < 6) {
+                        const bridge_pos = Math.abs(xyz.x + xyz.z)
+                        const bridge = bridge_pos % 100
+                        if(bridge_pos > 10 && bridge < 6) {
                             if(xyz.y == 79) {
                                 if(bridge == 0 || bridge == 5) {
                                     chunk.setBlockIndirect(x, y, z, 536)
