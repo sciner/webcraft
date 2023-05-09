@@ -1,4 +1,4 @@
-import {PIXI} from '../../../tools/gui/pixi.js';
+import * as PIXI from '../../blaze/pixi.js';
 
 globalThis.PIXI = PIXI;
 //PIXI.BatchRenderer.defaultMaxTextures = Math.min(PIXI.BatchRenderer.defaultMaxTextures, 16);

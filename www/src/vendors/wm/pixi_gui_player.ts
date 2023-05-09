@@ -1,4 +1,4 @@
-import { PIXI } from '../../../tools/gui/pixi.js';
+import * as PIXI from '../../blaze/pixi.js';
 
 export class PixiGuiPlayer extends PIXI.Container {
     _render(pixiRender) {

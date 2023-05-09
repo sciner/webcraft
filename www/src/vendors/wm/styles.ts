@@ -1,4 +1,4 @@
-import { PIXI } from "../../../tools/gui/pixi.js"
+import * as PIXI from "../../blaze/pixi.js";
 import { MySprite } from "./MySpriteRenderer.js";
 import { Vector } from "../../helpers.js";
 
@@ -101,7 +101,7 @@ export class BackgroundStyle {
         // this.#_wmbgimage.position.y = 0
         window.addChildAt(this.#_wmbgimage, 0)
         // Create a Graphics object, set a fill color, draw a rectangle
-        this.#_bgcolor = new PIXI.Graphics()
+        this.#_bgcolor = new PIXI.Sprite()
         window.addChildAt(this.#_bgcolor, 1)
         //
         this.scale = undefined // window.zoom / 2.0

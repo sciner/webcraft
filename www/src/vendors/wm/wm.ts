@@ -3,7 +3,7 @@
 */
 import { RuneStrings, deepAssign, isScalar, Mth, Vector } from "../../helpers.js";
 import { getBlockImage } from "../../window/tools/blocks.js";
-import { PIXI } from '../../../tools/gui/pixi.js';
+import * as PIXI from '../../blaze/pixi.js';
 import {Style} from "./styles.js";
 
 import { msdf } from "../../../data/font.js";
@@ -337,7 +337,7 @@ export class Window extends PIXI.Container {
                 return
             }
             if (this.style._font.useBitmapFont) {
-                this.text_container = new PIXI.BitmapText(value, this.style.font._bitmap_font_style)
+                this.text_container = new PIXI.Text(value, this.style.font._bitmap_font_style)
             } else {
                 this.text_container = new MyText(value, this.style.font._font_style)
             }
