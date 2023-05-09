@@ -381,36 +381,42 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
                     // Make canyon bridge
                     if(bridge_in_canyon) {
-                        const bridge_pos = Math.abs(xyz.x + xyz.z)
-                        const bridge = bridge_pos % 100
-                        if(bridge_pos > 10 && bridge < 6) {
-                            const edge_of_bridge = bridge == 0 || bridge == 5
-                            const inside_edge_of_bridge = bridge == 1 || bridge == 4
-                            if(xyz.y == 80) {
-                                if(bridge == 0 || bridge == 5) {
-                                    chunk.setBlockIndirect(x, y, z, 536)
-                                } else {
-                                    if(inside_edge_of_bridge) {
-                                        chunk.setBlockIndirect(x, y, z, 460)
+                        if(xyz.y == 80 || xyz.y == 81 || xyz.y == 82) {
+                            const bridge_pos = Math.abs(xyz.x + xyz.z)
+                            const bridge = bridge_pos % 150
+                            if(bridge_pos > 10 && bridge < 6) {
+                                // const cyp_1 = Math.abs(map_manager.makeCanyonPoint(xyz.add(new Vector(-1, 0, 1))) - cell.canyon_point)
+                                // const cyp_2 = Math.abs(map_manager.makeCanyonPoint(xyz.add(new Vector(1, 0, 1))) - cell.canyon_point)
+                                // if(cyp_1 > cyp_2) {
+                                const edge_of_bridge = bridge == 0 || bridge == 5
+                                const inside_edge_of_bridge = bridge == 1 || bridge == 4
+                                if(xyz.y == 80) {
+                                    if(bridge == 0 || bridge == 5) {
+                                        chunk.setBlockIndirect(x, y, z, 536)
                                     } else {
-                                        chunk.setBlockIndirect(x, y, z, 461, null, {point: new Vector(0, .5, 0)})
+                                        if(inside_edge_of_bridge) {
+                                            chunk.setBlockIndirect(x, y, z, 460)
+                                        } else {
+                                            chunk.setBlockIndirect(x, y, z, 461, null, {point: new Vector(0, .5, 0)})
+                                        }
+                                        
                                     }
-                                    
-                                }
-                            } else if(xyz.y == 81) {
-                                if(edge_of_bridge || bridge == 1 || bridge == 4) {
-                                    chunk.setBlockIndirect(x, y, z, 536)
-                                }
-                            } else if(xyz.y == 82) {
-                                if(bridge == 0 || bridge == 5) {
-                                    if(xyz.x % 5 == 0 && xyz.z % 5 == 0) {
-                                        if(cell.inCanyon(0.05)) {
-                                            if(rnd.double() < .35) {
-                                                chunk.setBlockIndirect(x, y, z, 50)
+                                } else if(xyz.y == 81) {
+                                    if(edge_of_bridge || bridge == 1 || bridge == 4) {
+                                        chunk.setBlockIndirect(x, y, z, 536)
+                                    }
+                                } else if(xyz.y == 82) {
+                                    if(bridge == 0 || bridge == 5) {
+                                        if(xyz.x % 5 == 0 && xyz.z % 5 == 0) {
+                                            if(cell.inCanyon(0.05)) {
+                                                if(rnd.double() < .35) {
+                                                    chunk.setBlockIndirect(x, y, z, 50)
+                                                }
                                             }
                                         }
                                     }
                                 }
+                                // }
                             }
                         }
                     }
