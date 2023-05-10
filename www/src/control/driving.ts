@@ -270,7 +270,7 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
     /** Пытается встать, возвращает id действия. */
     standUpGetId(): int {
         const actionId = this.myPlayer.pickAt.getNextId()
-        this.myPlayer.controlManager.syncWithActionId(actionId, true)
+        this.myPlayer.controlManager.syncWithEventId(actionId, true)
         return actionId
     }
 

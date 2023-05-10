@@ -1102,7 +1102,6 @@ export class ServerWorld implements IWorld {
             server_player.state.rotate = Vector.vectorify(actions.sitting.rotate)
             server_player.controlManager.setPos(actions.sitting.pos)
                 .setVelocity(0, 0, 0)
-                .syncWithActionId(actions.id)
         }
         // Sleep
         if(actions.sleep) {
@@ -1111,7 +1110,6 @@ export class ServerWorld implements IWorld {
             server_player.state.sitting = false
             server_player.controlManager.setPos(actions.sleep.pos)
                 .setVelocity(0, 0, 0)
-                .syncWithActionId(actions.id)
         }
         // Spawn mobs
         if(actions.mobs.spawn.length > 0) {
@@ -1124,6 +1122,9 @@ export class ServerWorld implements IWorld {
         for(const params of actions.mobs.activate) {
             await this.mobs.activate(params.id, params.spawn_pos, params.rotate);
         }
+
+        // синхронизировать управление с действие, если нужно (независимо от успешности действия)
+        server_player?.controlManager.syncWithEvent(actions)
     }
 
     // Return generator options

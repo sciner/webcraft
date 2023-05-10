@@ -23,13 +23,20 @@ export default class packet_reader {
 
     // Pickat action
     static async read(player: ServerPlayer, packet: INetworkMessage<ICmdPickatData>) {
+
+        // ВАЖНО: нужно гарантировать что во всех возможных случаях или вызовется player.controlManager.syncWithEvent(data),
+        // или data.controlEventId будет перенесен куда-то еще (например, в WorldAction), и с ним позже вызовется синхронизация управления.
+
+        const data = packet.data
         if(!player.game_mode.canBlockAction()) {
+            player.controlManager.syncWithEvent(data)
             return true;
         }
         //
         const world = player.world;
         const currentInventoryItem = player.inventory.current_item;
         if(player.state.sitting || player.state.sleep) {
+            player.controlManager.syncWithEvent(data)
             return true;
         }
         if (packet.data.interactMobID || packet.data.interactPlayerID) {
@@ -77,6 +84,7 @@ export default class packet_reader {
                         data: packet.data.snapshotId
                     }], player)
                 }
+                player.controlManager.syncWithEvent(data)
                 return true
             }
             // проверям скорость, если ошибка, то ворачиваем как было
@@ -130,9 +138,14 @@ export default class packet_reader {
                 }
             }
             if (correct_destroy) {
+                // если ServerPlayerControlManager должен был синхронизироваться с
+                actions.controlEventId = data.controlEventId
+                data.controlEventId = null
+                // добавить действие в мир
                 world.actions_queue.add(player, actions);
             }
         }
+        player.controlManager.syncWithEvent(data)
         return true;
     }
 

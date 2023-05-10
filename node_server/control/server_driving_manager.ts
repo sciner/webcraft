@@ -62,22 +62,14 @@ export class ServerDrivingManager extends DrivingManager<ServerWorld> {
         participant.drivingId = null
     }
 
-    /**
-     * Выполняет просьбу игрока начать езду на указанном мобе, если это возможно.
-     * @param pickatEventId - id события pickat, являщегося попыткой посадки. Оно нужно потому что
-     *   {@link ClientPlayerControlManager} заблокировал инпут до окончания посадки на сервере.
-     *   Это id передается в {@link ServerPlayerControlManager}, который разешит клиенту опять двигаться.
-     */
-    tryJoinDriving(player: ServerPlayer, mob: Mob, pickatEventId: int): void {
+    /** Выполняет просьбу игрока начать езду на указанном мобе, если это возможно. */
+    tryJoinDriving(player: ServerPlayer, mob: Mob): void {
         const controlManager = player.controlManager
         const playerControl = controlManager.current
-        if (player.driving || !(playerControl instanceof PrismarinePlayerControl)) {
-            controlManager.syncWithActionId(pickatEventId)
-            return
+        if (!player.driving && playerControl instanceof PrismarinePlayerControl) {
+            const driving = this.getOrCreate(mob)
+            driving?._tryAddPlayer(player)
         }
-        const driving = this.getOrCreate(mob)
-        driving?._tryAddPlayer(player)
-        controlManager.syncWithActionId(pickatEventId)
     }
 
     /** Вызывается после того, как игрок добавлен в мир - для всех игроков */

@@ -66,7 +66,16 @@ export class SimpleQueue<T = any> {
         return this.arr[(this.left + index) % this.arr.length] = value;
     }
 
-    _grow(): void {
+    clear(): void {
+        let index = this.left
+        for(let i = 0; i < this.length; i++) {
+            this.arr[index] = null
+            index = (index + 1) % this.arr.length
+        }
+        this.length = 0
+    }
+
+    private _grow(): void {
         // grow: copy the beginning into the end; the beginning becomes empty.
         for(let i = 0; i < this.left; i++) {
             this.arr.push(this.arr[i]);
