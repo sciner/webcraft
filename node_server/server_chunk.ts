@@ -949,21 +949,27 @@ export class ServerChunk {
         // Different behavior, depending on whether the neighbor was destroyed or created
         if(neighbour_destroyed) {
 
-            if (tblock.id == bm.SNOW.id && neighbourPos.y < pos.y) {
+            if ([bm.SNOW.id].includes(tblock.id)  && neighbourPos.y < pos.y) {
                 return createDrop(tblock, true);
             }
 
             switch(require_support) {
-                case 'bottom': // not a block style, but a name for a common type of support
+                case 'planting': // not a block style, but a name for a common type of support
+                case 'bottom':
                 case 'rails':
                 case 'candle':
                 case 'redstone':
+                case 'pebbles':
+                case 'skull_desert':
+                case 'small_cactus':
+                case 'small_stones_desert':
+                case 'sanded_stones':
                 case 'cactus': {
                     // only bottom
                     if(neighbourPos.y < pos.y) {
-                        return createDrop(tblock);
+                        return createDrop(tblock)
                     }
-                    break;
+                    break
                 }
                 case 'chorus': {
                     // only bottom
@@ -1106,12 +1112,6 @@ export class ServerChunk {
                     //
                     if(drop) {
                         return createDrop(tblock);
-                    }
-                    break;
-                }
-                case 'planting': {
-                    if(neighbourPos.y < pos.y) {
-                        return createDrop(tblock, true);
                     }
                     break;
                 }
