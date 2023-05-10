@@ -28,6 +28,9 @@ class PacketRequerQueue {
         for(let i = 0; i < len; i++) {
             const item = this.list.shift();
             const {reader, player, packet} = item;
+            if (!PacketReader.canProcess(player, packet)) {
+                continue // может, игрок умер или был удален пока команда лежала в очереди, и ее выполнение стало невозможным
+            }
             try {
                 const resp = await reader.read(player, packet);
                 if(!resp) {
@@ -84,7 +87,7 @@ export class PacketReader {
     // Read packet
     async read(player: ServerPlayer, packet: INetworkMessage) {
 
-        if (player.status === PLAYER_STATUS.DEAD && !PacketReader.CMDS_POSSIBLE_IF_DEAD.includes(packet.name)) {
+        if (!PacketReader.canProcess(player, packet)) {
             return;
         }
 
@@ -108,6 +111,16 @@ export class PacketReader {
             console.log(`ERROR: Not found packet reader for command: ${packet.name}`);
         }
 
+    }
+
+    static canProcess(player: ServerPlayer, packet: INetworkMessage): boolean {
+        switch (player.status) {
+            case PLAYER_STATUS.DELETED:
+                return false
+            case PLAYER_STATUS.DEAD:
+                return this.CMDS_POSSIBLE_IF_DEAD.includes(packet.name)
+        }
+        return true
     }
 
     //

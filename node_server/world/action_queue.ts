@@ -3,6 +3,7 @@ import type {WorldAction} from "@client/world_action.js";
 import type {ServerWorld} from "../server_world.js";
 import type {ServerPlayer} from "../server_player.js";
 import type {TQueuedNetworkMessage} from "../network/packet_reader.js";
+import {PacketReader} from "../network/packet_reader.js";
 
 const MAX_ACTIONS_QUEUE_PROCESSING_TIME_MS = 200
 
@@ -62,6 +63,9 @@ export class WorldActionQueue {
             // если это сетевое сообщение
             if ((actionOrMessage as TQueuedNetworkMessage).reader) {
                 const msg = actionOrMessage as TQueuedNetworkMessage
+                if (!PacketReader.canProcess(msg.player, msg.packet)) {
+                    continue // может, игрок умер или был удален пока команда лежала в очереди, и ее выполнение стало невозможным
+                }
                 if (msg === firstReQueuedMsg) {
                     // мы уже помещали его в очередь в этом вызове; вернем его в очередь и прервем выполнение
                     list.unshift(msg)
