@@ -4,11 +4,21 @@ import { WorldAction } from "./world_action.js";
 import { DEFAULT_STYLE_NAME, PORTAL_SIZE } from "./constant.js";
 import type { ChunkGrid } from "./core/ChunkGrid.js";
 
+export interface IPortalType {
+    id:                       string
+    block_name:               string
+    y:                        int
+    open_restricts:           {yless?: int, ymore? : int}[]
+    color:                    Color
+    is_default:               boolean
+    activator_block_material: string
+}
+
 //
-export const PORTAL_TYPES = [
-    {id: 'BOTTOM_CAVES',    block_name: 'OBSIDIAN',     y: -70,     open_restricts: [{yless: -500}], color: new Color(68, 515, 0), is_default: false},
-    {id: 'ROUTINE',         block_name: 'PRISMARINE',   y: 80,      open_restricts: [{yless: 500, ymore: 0}], color: new Color(68, 532, 0), is_default: true},
-    {id: 'FLYING_ISLANDS',  block_name: 'GLOWSTONE',    y: 1000,    open_restricts: [{ymore: 500}], color: new Color(68, 540, 0), is_default: false}
+export const PORTAL_TYPES : IPortalType[] = [
+    {id: 'BOTTOM_CAVES',    block_name: 'OBSIDIAN',     y: -70,     open_restricts: [{yless: -500}], color: new Color(68, 515, 0), is_default: false, activator_block_material: 'FLINT_AND_STEEL'},
+    {id: 'ROUTINE',         block_name: 'PRISMARINE',   y: 80,      open_restricts: [{yless: 500, ymore: 0}], color: new Color(68, 532, 0), is_default: true, activator_block_material: 'FLINT_AND_STEEL'},
+    {id: 'FLYING_ISLANDS',  block_name: 'GLOWSTONE',    y: 1000,    open_restricts: [{ymore: 500}], color: new Color(68, 540, 0), is_default: false, activator_block_material: 'FLOWING_WATER'}
 ];
 
 //
@@ -39,37 +49,37 @@ export class WorldPortal {
     }
 
     //
-    static getPortalTypeForFrame(world_material) {
+    static getPortalTypeForFrame(world_material : IBlockMaterial) : IPortalType | null {
         for(let type of PORTAL_TYPES) {
             if(type.block_name == world_material.name) {
-                return type;
+                return type
             }
         }
-        return null;
+        return null
     }
 
     //
-    static getPortalTypeByID(type_id) {
+    static getPortalTypeByID(type_id : string) : IPortalType | null {
         for(let type of PORTAL_TYPES) {
             if(type.id == type_id) {
-                return type;
+                return type
             }
         }
-        return null;
+        return null
     }
 
     //
-    static getDefaultPortalType() {
+    static getDefaultPortalType() : IPortalType | null {
         for(let type of PORTAL_TYPES) {
             if(type.is_default) {
-                return type;
+                return type
             }
         }
-        return null;
+        return null
     }
 
     //
-    static suitablePortalFloorMaterial(mat) {
+    static suitablePortalFloorMaterial(mat : IBlockMaterial) : boolean {
         return (mat.passable == 0) &&
             (!mat.transparent) &&
             [DEFAULT_STYLE_NAME].includes(mat.style_name) &&
