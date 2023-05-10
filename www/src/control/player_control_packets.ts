@@ -1,5 +1,5 @@
 import {InDeltaCompressor, OutDeltaCompressor, PacketBuffer} from "../packet_compressor.js";
-import {ClientPlayerTickData, PlayerTickData} from "./player_tick_data.js";
+import {PlayerTickData} from "./player_tick_data.js";
 
 const DEBUG_USE_HASH = true
 
@@ -23,14 +23,22 @@ export type PlayerControlPacketHeader = {
  */
 export class PlayerControlPacketWriter {
     private dc = new OutDeltaCompressor(null, DEBUG_USE_HASH)
+    private debTick: int
 
     startPutHeader(header: PlayerControlPacketHeader): void {
         this.dc.start()
             .putInt(header.physicsSessionId)
             .putInt(header.physicsTick)
+        this.debTick = header.physicsTick
     }
 
     putTickData(data: PlayerTickData): void {
+        // проверка корректности последовательности нумерации тиков
+        if (this.debTick !== data.startingPhysicsTick) {
+            throw new Error('this.debTick !== data.startingPhysicsTick')
+        }
+        this.debTick += data.physicsTicks
+        // запись данных
         data.writeInput(this.dc)
         data.writeContextAndOutput(this.dc)
     }
