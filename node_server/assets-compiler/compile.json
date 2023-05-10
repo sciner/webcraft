@@ -3627,12 +3627,12 @@
                 "id": "wood"
             },
             "texture": {
-                "up": "./textures/test_top.png",
-                "down": "./textures/test_bottom.png",
-                "south": "./textures/test_south.png",
-                "west": "./textures/test_west.png",
-                "north": "./textures/test_north.png",
-                "east": "./textures/test_east.png"
+                "up": "block/test_top.png",
+                "down": "block/test_bottom.png",
+                "south": "block/test_south.png",
+                "west": "block/test_west.png",
+                "north": "block/test_north.png",
+                "east": "block/test_east.png"
             },
             "can_rotate": true
         },
@@ -6462,10 +6462,10 @@
                 "type": "charging_station"
             },
             "texture": {
-                "up": "./textures/charging_station_top.png",
-                "down": "./textures/charging_station_bottom.png",
-                "north": "./textures/charging_station_front.png",
-                "side": "./textures/charging_station_side.png"
+                "up": "block/charging_station_top.png",
+                "down": "block/charging_station_bottom.png",
+                "north": "block/charging_station_front.png",
+                "side": "block/charging_station_side.png"
             }
         },
         {
