@@ -2065,7 +2065,7 @@ async function openPortal(e, world, pos, player, world_block, world_material : I
                 {
                     pos: (dir == DIRECTION.NORTH) ? bottom_left.offset(0, i, j) : bottom_left.offset(-j, i, 0),
                     item: portal_block,
-                    action_id: ServerClient.BLOCK_ACTION_REPLACE
+                    action_id: ServerClient.BLOCK_ACTION_CREATE
                 })
             }
         }
@@ -2073,9 +2073,9 @@ async function openPortal(e, world, pos, player, world_block, world_material : I
         return true
     }
 
-    // находим высоту
+    // спускаемся к основанию
     const nullpos = position.clone()
-    for (let i = 0; i <= MAX_SIZE_PORTAL; i++) {
+    for (let i = 0; i < MAX_SIZE_PORTAL; i++) {
         nullpos.addSelf(Vector.YN)
         const block = world.getBlock(nullpos)
         if (block?.id == frame_block_id) {
@@ -2084,7 +2084,7 @@ async function openPortal(e, world, pos, player, world_block, world_material : I
     }
     nullpos.addSelf(Vector.YP)
     if (!await createPortal(nullpos, DIRECTION.NORTH)) {
-        if (await createPortal(nullpos, DIRECTION.WEST)) {
+        if (!await createPortal(nullpos, DIRECTION.WEST)) {
             return false
         }
     }
