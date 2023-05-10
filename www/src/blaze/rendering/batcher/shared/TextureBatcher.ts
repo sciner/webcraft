@@ -3,6 +3,7 @@ import { optimizeBindings } from './optimizeBindings';
 
 import type { BindableTexture } from '../../renderers/shared/texture/Texture';
 import type { TextureBatch } from './Batcher';
+import type {BindGroup} from "../../renderers/gpu/shader/BindGroup.js";
 
 const batchPool: TextureBatchOutput[] = [];
 let batchPoolIndex = 0;
@@ -12,6 +13,7 @@ class TextureBatchOutput
     textures: BindableTexture[] = [];
     size = 0;
     batchLocations: Record<number, number> = {};
+    bindGroup?: BindGroup;
 }
 
 export class TextureBatcher
@@ -51,7 +53,7 @@ export class TextureBatcher
         // TODO this should never have length 0.. need to investigate..
         if (previousBatch && previousBatch.textures.length && output.textures.length)
         {
-            output = optimizeBindings(previousBatch, output, this.tick, this.bindingOffset++);
+            output = optimizeBindings(previousBatch, output as any, this.tick, this.bindingOffset++) as any;
         }
 
         this.reset();

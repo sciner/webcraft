@@ -42,7 +42,7 @@ export class InstructionPipe implements InstructionRunner<GroupInstruction>, Ins
 
     addRenderGroup(data: {instructionSet: InstructionSet, visible: boolean})
     {
-        this.instructionSet.instructions[this.instructionSet.instructionSize++] = data;
+        this.instructionSet.instructions[this.instructionSet.instructionSize++] = data as any;
     }
 
     execute(instruction: GroupInstruction)

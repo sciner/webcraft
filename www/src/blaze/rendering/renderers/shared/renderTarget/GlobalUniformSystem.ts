@@ -78,11 +78,11 @@ export class GlobalUniformSystem implements ISystem
 
         if ((this.renderer as WebGPURenderer).renderPipes.uniformBatch)
         {
-            this.bindGroup = (this.renderer as WebGPURenderer).renderPipes.uniformBatch.getUniformBindGroup(uniformGroup);
+            this.bindGroup = (this.renderer as any).renderPipes.uniformBatch.getUniformBindGroup(uniformGroup);
         }
         else
         {
-            this.renderer.uniformBuffer.updateUniformGroup(uniformGroup);
+            this.renderer.uniformBuffer.updateUniformGroup(uniformGroup as any);
 
             this.bindGroup = this.bindGroupPool.pop() || new BindGroup();
             this.activeBindGroups.push(this.bindGroup);

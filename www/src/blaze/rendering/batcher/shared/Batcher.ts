@@ -12,7 +12,7 @@ import type { Texture } from '../../renderers/shared/texture/Texture';
 export interface TextureBatch
 {
     textures: TextureSource[]
-    bindGroup: BindGroup;
+    bindGroup?: BindGroup;
     batchLocations: Record<number, number>
 }
 
@@ -235,11 +235,11 @@ export class Batcher
 
         if (!hardBreak && previousBatch)
         {
-            currentBatch.textures = this.textureBatcher.finish(previousBatch.textures);
+            currentBatch.textures = this.textureBatcher.finish(previousBatch.textures) as any;
         }
         else
         {
-            currentBatch.textures = this.textureBatcher.finish();
+            currentBatch.textures = this.textureBatcher.finish() as any;
         }
 
         const size = this.elementSize - currentBatch.elementStart;
@@ -299,12 +299,12 @@ export class Batcher
         {
             const previousBatch = this.batches[this.batchIndex - 1];
 
-            currentBatch.textures = this.textureBatcher.finish(previousBatch);
+            currentBatch.textures = this.textureBatcher.finish(previousBatch as any) as any;
 
             return;
         }
 
-        currentBatch.textures = this.textureBatcher.finish();
+        currentBatch.textures = this.textureBatcher.finish() as any;
     }
 
     update()

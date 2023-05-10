@@ -88,7 +88,7 @@ export class TextureSource<T = any> implements BindableTexture, BindResource
         }
         else
         {
-            this.pixelWidth = options.resource?.width ?? 1;
+            this.pixelWidth = (options.resource as any)?.width ?? 1;
         }
 
         if (options.height)
@@ -97,7 +97,7 @@ export class TextureSource<T = any> implements BindableTexture, BindResource
         }
         else
         {
-            this.pixelHeight = options.resource?.height ?? 1;
+            this.pixelHeight = (options.resource as any)?.height ?? 1;
         }
 
         //        console.log('this.pixelWidth', options, this.pixelWidth);

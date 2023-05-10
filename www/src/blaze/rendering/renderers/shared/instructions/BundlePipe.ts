@@ -31,13 +31,13 @@ export class BundlePipe implements InstructionRunner<BundleInstruction>, Instruc
         this.instructionSet.instructions[this.instructionSet.instructionSize++] = {
             type: 'bundles',
             bundle,
-        };
+        } as any;
     }
 
     execute(instruction: BundleInstruction)
     {
         const renderer = this.renderer;
 
-        renderer.renderPipes.renderPassEncoder.activePassEncoder.gpuPassEncoder.executeBundles([instruction.bundle]);
+        (renderer.renderPipes as any).renderPassEncoder.activePassEncoder.gpuPassEncoder.executeBundles([instruction.bundle]);
     }
 }

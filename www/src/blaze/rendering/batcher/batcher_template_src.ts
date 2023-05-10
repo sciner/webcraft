@@ -1,4 +1,49 @@
-struct GlobalUniforms {
+import {TrivialShaderSource} from "..//renderers/shared/shader/TrivialShaderSource";
+
+export let batcher_template_src = new TrivialShaderSource();
+
+batcher_template_src.vertex = `precision highp float;
+in vec2 aPosition;
+in vec2 aUV;
+in vec4 aColor;
+in float aTextureId;
+
+uniform globalUniforms {
+  mat3 projectionMatrix;
+  mat3 worldTransformMatrix;
+  float worldAlpha;
+};
+
+out vec2 vTextureCoord;
+out vec4 vColor;
+out float vTextureId;
+
+void main(void){
+    gl_Position = vec4((projectionMatrix * worldTransformMatrix * vec3(aPosition, 1.0)).xy, 0.0, 1.0);
+
+    vTextureCoord = aUV;
+    vTextureId = aTextureId;
+    
+    vColor = vec4(aColor.bgr * aColor.a, aColor.a)  * worldAlpha;
+}
+`;
+
+batcher_template_src.fragment = `
+in vec2 vTextureCoord;
+in vec4 vColor;
+in float vTextureId;
+uniform sampler2D uSamplers[%count%];
+
+out vec4 finalColor;
+
+void main(void){
+    vec4 outColor;
+    %forloop%
+    finalColor = outColor * vColor;
+}
+`;
+
+batcher_template.source = `struct GlobalUniforms {
   projectionMatrix:mat3x3<f32>,
   worldTransformMatrix:mat3x3<f32>,
   worldAlpha: f32
@@ -68,3 +113,5 @@ fn mainFragment(
 
     return (outColor) * color.bgra; //* 0.1;
 };
+
+`;

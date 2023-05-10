@@ -63,7 +63,7 @@ export class UniformGroup<UNIFORMS={ [key: string]: UniformData }> implements Bi
 
             uniformData.size = uniformData.size ?? 1;
 
-            uniforms[i] = uniformData.value ?? uniformData;
+            uniforms[i] = (uniformData.value ?? uniformData) as any;
         }
 
         this.uniforms = uniforms;

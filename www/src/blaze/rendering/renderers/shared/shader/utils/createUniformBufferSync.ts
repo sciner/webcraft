@@ -108,7 +108,7 @@ export function generateUniformBufferSync(
             {
                 funcFragments.push(
                     `offset = ${uboElement.offset / 4};`,
-                    uniformBufferParsers[j].code(name, uniform));
+                    (uniformBufferParsers[j].code as any)(name, uniform));
                 parsed = true;
 
                 break;
