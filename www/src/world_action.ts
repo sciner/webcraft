@@ -1939,7 +1939,8 @@ async function openPortal(e, world, pos, player, world_block, world_material : I
         actions.addPlaySound({tag: 'madcraft:fire', action: 'flint_and_steel_click', pos: position, except_players: [player.session.user_id]})
     }
 
-    const frame_block_id = world_material.id;
+    const frame_block_id = world_material.id
+
     // находим растояние до стенки
     const getDistanceEdge = (pos, dir) => {
         for (let i = 0; i < MAX_SIZE_PORTAL; i++) {
@@ -2008,7 +2009,7 @@ async function openPortal(e, world, pos, player, world_block, world_material : I
         const portal_block : IBlockItem = {
             id: BLOCK.NETHER_PORTAL.id,
             rotate: new Vector(
-                dir != DIRECTION.NORTH ? DIRECTION.NORTH : DIRECTION.WEST,
+                dir != DIRECTION.NORTH ? DIRECTION.SOUTH : DIRECTION.EAST,
                 1,
                 0
             )
@@ -2057,16 +2058,15 @@ async function openPortal(e, world, pos, player, world_block, world_material : I
             };
         }
         // Заполняем окно
-        const arr = [];
+        const arr = []
         for(let i = 0; i < frame.height; i++) {
             for(let j = 0; j < frame.width; j++) {
-                //console.log()
                 arr.push(
                 {
                     pos: (dir == DIRECTION.NORTH) ? bottom_left.offset(0, i, j) : bottom_left.offset(-j, i, 0),
                     item: portal_block,
-                    action_id: ServerClient.BLOCK_ACTION_CREATE
-                });
+                    action_id: ServerClient.BLOCK_ACTION_REPLACE
+                })
             }
         }
         actions.addBlocks(arr)
@@ -2084,195 +2084,12 @@ async function openPortal(e, world, pos, player, world_block, world_material : I
     }
     nullpos.addSelf(Vector.YP)
     if (!await createPortal(nullpos, DIRECTION.NORTH)) {
-        await createPortal(nullpos, DIRECTION.WEST)
-    }
-
-/*
-    // находим высоту
-    const frame_block_id = world_material.id;
-    const nullpos = position.clone()
-    for (let i = 0; i <= MAX_SIZE_PORTAL; i++) {
-        nullpos.addSelf(Vector.YN)
-        const block = world.getBlock(nullpos)
-        if (block?.id == frame_block_id) {
-            break
-        }
-    }
-    let width = 0
-    for (let i = 0; i <= MAX_SIZE_PORTAL; i++) {
-        width++
-        const block = world.getBlock(nullpos.offset(0, width, 0))
-        if (block?.id == frame_block_id) {
-            break
-        }
-    }
-    console.log(nullpos)
-    return
-    /*
-    const checkFrame = (dir: DIRECTION) => {
-        for (let i = 0; i < MAX_SIZE_PORTAL; i++) {
-            
+        if (await createPortal(nullpos, DIRECTION.WEST)) {
+            return false
         }
     }
 
-    const frame_block_id = world_material.id;
-    // находим растояние до стенки
-    const getDistanceEdge = (pos, dir) => {
-        for (let i = 0; i < MAX_SIZE_PORTAL; i++) {
-            let blockpos = new Vector(pos.x + i, pos.y, pos.z);
-            switch(dir) {
-                case DIRECTION.WEST:
-                    blockpos = new Vector(pos.x - i, pos.y, pos.z);
-                    break;
-                case DIRECTION.NORTH:
-                    blockpos = new Vector(pos.x, pos.y, pos.z + i);
-                    break;
-                case DIRECTION.SOUTH:
-                    blockpos = new Vector(pos.x, pos.y, pos.z - i);
-                    break;
-            }
-            if (world.getBlock(blockpos).id != BLOCK.AIR.id || world.getBlock(blockpos.add(Vector.YN)).id != frame_block_id) {
-                return world.getBlock(blockpos).id == frame_block_id ? i : 0;
-            }
-        }
-        return 0
-    }
-
-    // размер окна
-    let width = 0
-    let height = 0
-    let bottom_left
-    let left_dir = DIRECTION.WEST
-    let right_dir = DIRECTION.EAST
-    const nullpos = position.clone()
-
-    do {
-        nullpos.addSelf(Vector.YN);
-    } while(world.getBlock(nullpos).id == BLOCK.AIR.id);
-    nullpos.addSelf(Vector.YP);
-    
-    if (getDistanceEdge(nullpos, DIRECTION.EAST) == 0) {
-        left_dir = DIRECTION.SOUTH;
-        right_dir = DIRECTION.NORTH;
-    }
-
-    console.log('left_dir: ' + left_dir + ' right_dir: ' + right_dir)
-
-    if (nullpos) {
-        // находим ширину
-        const dist = getDistanceEdge(nullpos, left_dir) - 1;
-        if (dist >= 0) {
-            bottom_left = (left_dir == DIRECTION.WEST) ? nullpos.offset(-dist, 0, 0) : nullpos.offset(0, 0, -dist);
-            width = getDistanceEdge(bottom_left, right_dir);
-            if (width < 2 || width > MAX_SIZE_PORTAL) {
-                width = 0;
-            }
-        }
-
-        // находим высоту
-        if (width != 0) {
-            rep:
-            for (height = 0; height < MAX_SIZE_PORTAL; ++height) {
-                for (let i = -1; i <= width; ++i) {
-                    const blockpos = (right_dir == DIRECTION.EAST) ? bottom_left.offset(i, height, 0) : bottom_left.offset(0, height, i);
-                    const block = world.getBlock(blockpos);
-                    if (i == -1) {
-                        if (block.id != frame_block_id) {
-                            break rep;
-                        }
-                    } else if (i == width) {
-                        if (block.id != frame_block_id) {
-                            break rep;
-                        }
-                    } else {
-                        if (block.id != BLOCK.AIR.id) {
-                            break rep;
-                        }
-                    }
-                }
-            }
-
-            // проверям перекладину
-            for (let j = 0; j < width; ++j) {
-                let blockpos = (right_dir == DIRECTION.EAST) ? bottom_left.offset(j, height, 0) : bottom_left.offset(0, height, j);
-                let block = world.getBlock(blockpos);
-                if (block.id != frame_block_id) {
-                    height = 0;
-                    break;
-                }
-            }
-
-            if(height > 2) {
-                // Блок портала
-                const portal_block : IBlockItem = {
-                    id: BLOCK.NETHER_PORTAL.id,
-                    rotate: new Vector(
-                        (right_dir == DIRECTION.EAST) ? DIRECTION.SOUTH : DIRECTION.EAST,
-                        1,
-                        0
-                    )
-                };
-                // Сохраняем портал в БД
-                const portal = {
-                    pos:                bottom_left.clone(),
-                    rotate:             new Vector(portal_block.rotate),
-                    size:               {width: width + 2, height: height + 2},
-                    player_pos:         bottom_left.clone(),
-                    pair_pos:           null,
-                    portal_block_id:    portal_block.id,
-                    type:               portal_type.id
-                };
-                //
-                if(right_dir == DIRECTION.EAST) {
-                    portal.player_pos.addScalarSelf(width / 2, 1, .5);
-                } else {
-                    portal.player_pos.addScalarSelf(.5, 1, width / 2);
-                }
-                // check restricts
-                let restricted = false;
-                for(let restrict of portal_type.open_restricts) {
-                    restricted = true;
-                    for(let k in restrict) {
-                        if(k == 'ymore' && !(portal.player_pos.y >= restrict[k])) restricted = false;
-                        if(k == 'yless' && !(portal.player_pos.y <= restrict[k])) restricted = false;
-                    }
-                    if(restricted) break;
-                }
-                if(restricted) {
-                    throw 'error_portal_restricted_place';
-                }
-                //
-                if(Qubatch.is_server) {
-                    portal_block.extra_data = {
-                        id: await world.db.portal.add(player.session.user_id, portal),
-                        type: portal_type.id
-                    };
-                } else {
-                    portal_block.extra_data = {
-                        id: null,
-                        type: portal_type.id
-                    };
-                }
-                // Заполняем окно
-                const arr = [];
-                for(let i = 0; i < height; i++) {
-                    for(let j = 0; j < width; j++) {
-                        arr.push(
-                        {
-                            pos: (right_dir == DIRECTION.EAST) ? bottom_left.offset(j, i, 0) : bottom_left.offset(0, i, j),
-                            item: portal_block,
-                            action_id: ServerClient.BLOCK_ACTION_CREATE
-                        });
-                    }
-                }
-                actions.addBlocks(arr);
-                return true;
-            }
-        }
-    }*/
-
-    return false
-
+    return true
 }
 
 async function useFlintAndSteel(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
