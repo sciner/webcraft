@@ -1622,7 +1622,7 @@ export class Renderer {
         }
         if(Math.sign(viewMatrix[1]) != Math.sign(this.step_side)) {
             this.step_side = viewMatrix[1];
-            player.triggerEvent('step', {step_side: this.step_side});
+            //player.triggerEvent('step', {step_side: this.step_side});
         }
     }
 
