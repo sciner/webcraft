@@ -4,7 +4,7 @@ import type { BLOCK } from "../../../blocks";
 import type { Vector } from "../../../helpers";
 import type { ChunkWorkerChunk } from "../../../worker/chunk";
 import type { ClusterManager } from "../../cluster/manager";
-import type { Default_Terrain_Map } from "../../default";
+import { CANYON, Default_Terrain_Map } from "../../default.js";
 import type { Biome } from "../biomes";
 import type { TerrainMapManagerBase } from "../terrain/manager_base";
 import type { Biome3TerrainMap } from "../terrain/map";
@@ -54,6 +54,7 @@ export class Biome3LayerBase {
                 const x = m.chunk.coord.x + tree.pos.x - chunk.coord.x;
                 const y = m.chunk.coord.y + tree.pos.y - chunk.coord.y;
                 const z = m.chunk.coord.z + tree.pos.z - chunk.coord.z;
+                const cell = m.getCell(tree.pos.x, tree.pos.z)
 
                 // Replace grass_block with dirt under trees
                 const basis_block = tree.type.basis === undefined ? bm.DIRT.id : tree.type.basis
@@ -61,7 +62,6 @@ export class Biome3LayerBase {
                     if(chunk.addr.x == m.chunk.addr.x && chunk.addr.z == m.chunk.addr.z) {
                         const yu = y - 1
                         if(yu >= 0 && yu < chunk.size.y) {
-                            const cell = m.getCell(tree.pos.x, tree.pos.z)
                             if(!cell.is_sand && !tree.type.transparent_trunk) {
                                 chunk.setGroundIndirect(x, yu, z, basis_block)
                             }
@@ -70,7 +70,9 @@ export class Biome3LayerBase {
                 }
 
                 // Draw tree blocks into chunk
-                this.generator.plantTree(this.generator.world, tree, chunk, x, y, z, true);
+                if(!tree.type.underwater || cell.canyon_point > CANYON.TREE_DIST) {
+                    this.generator.plantTree(this.generator.world, tree, chunk, x, y, z, true)
+                }
 
             }
         }

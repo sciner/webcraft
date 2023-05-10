@@ -27,6 +27,7 @@ out vec4 outColor;
 
 #include<manual_mip_define_func>
 #include<raindrops_define_func>
+#include<ao_light_define_func>
 #include<shoreline_func>
 
 ////// LAVA

@@ -1,17 +1,16 @@
 import {Vector} from "../helpers/vector.js";
 import type {PlayerControl} from "./player_control.js";
 import {DataValidator, InDeltaCompressor, OutDeltaCompressor, packBooleans, unpackBooleans} from "../packet_compressor.js";
-import {GAME_MODE, GameMode} from "../game_mode.js";
+import {GameMode} from "../game_mode.js";
 import {PHYSICS_ROTATION_DECIMALS} from "../constant.js";
 import type {ClientPlayerControlManager, PlayerControlManager} from "./player_control_manager.js";
 import type {PLAYER_CONTROL_TYPE} from "./player_control.js";
-import {ObjectHelpers} from "../helpers/object_helpers.js";
 import type {Player} from "../player.js";
 import type {PrismarinePlayerState} from "../prismarine-physics/index.js";
 import {canSwitchFlying} from "./player_control.js";
 
 export enum PLAYER_TICK_DATA_STATUS {
-    NEW = 1,
+    UNKNOWN = 1,
     PROCESSED_SEND_ASAP,
     PROCESSED_SENDING_DELAYED,
     SENT
@@ -39,13 +38,19 @@ export class PlayerTickData {
     // input data
     inputFlags: int
     inputRotation = new Vector()
-    // If it's not null, it's WorldAction ids that are used to change the player's position in this player tick
-    inputWorldActionIds: (string | int)[] | null
+    /**
+     * Если это поле не null, то данные в этом тике уже получены (или должны быть получены на сервере)
+     * не в результате симуляции, а в результате воздействий извне (одного или нескольких), и это их номера.
+     * См. общее описание синхронизации в doc/player_control.md
+     */
+    inputEventIds: int[] | null
 
     // it's not a direct user input, but it's initialized/transferred along with input, because it fulfills a similar role
     physicsTicks: int // how many simulated physics ticks are contained in this data
-
-    // it's serialized one per packet, not for each PlayerTickData
+    /**
+     * Первый физический тик (включтельно), входящий в эти данные. См. {@link PlayerControlManager.knownPhysicsTicks}
+     * Он сериализуется единожды для всего пакета, а не для каждого экземпляра этого класса.
+     */
     startingPhysicsTick: int
     // declared here, but server-only
     physicsSessionId: int
@@ -87,7 +92,7 @@ export class PlayerTickData {
         } else {
             this.inputRotation.set(0, 0, 0)
         }
-        this.inputWorldActionIds = null
+        this.inputEventIds = null
     }
 
     copyInputFrom(src: PlayerTickData): void {
@@ -95,7 +100,7 @@ export class PlayerTickData {
         this.physicsTicks = src.physicsTicks
         this.inputFlags = src.inputFlags
         this.inputRotation.copyFrom(src.inputRotation)
-        this.inputWorldActionIds = ObjectHelpers.deepClone(src.inputWorldActionIds)
+        this.inputEventIds = src.inputEventIds
     }
 
     applyInputTo(controlManager: PlayerControlManager<any>, pc: PlayerControl): void {
@@ -252,7 +257,7 @@ export class PlayerTickData {
             .putInt(this.physicsTicks)
             .putInt(this.inputFlags)
             .putFloatVector(this.inputRotation)
-        dc.buf.putAnyOrNull(this.inputWorldActionIds)
+        dc.buf.putAnyOrNull(this.inputEventIds)
     }
 
     writeContextAndOutput(dc: OutDeltaCompressor): void {
@@ -282,11 +287,10 @@ export class PlayerTickData {
         DataValidator.checkMinMax(this.physicsTicks, 1)
         this.inputFlags = dc.getInt()
         dc.getFloatVector(this.inputRotation)
-        this.inputWorldActionIds = dc.buf.getAnyOrNull()
-        if (this.inputWorldActionIds != null &&
-            (!Array.isArray(this.inputWorldActionIds) || !this.inputWorldActionIds.length || this.physicsTicks !== 1)
-        ) {
-            throw 'incorrect inputWorldActionIds or physicsTicks'
+        this.inputEventIds = dc.buf.getAnyOrNull()
+        if (this.inputEventIds != null &&
+            (!Array.isArray(this.inputEventIds) || !this.inputEventIds.length || this.physicsTicks !== 1)) {
+            throw 'incorrect inputEventIds or physicsTicks'
         }
     }
 
@@ -315,7 +319,7 @@ export class PlayerTickData {
     }
 
     toString(): string {
-        const ids = this.inputWorldActionIds ? `ids=[${this.inputWorldActionIds.join()}] ` : ''
+        const ids = this.inputEventIds ? `ids=[${this.inputEventIds.join()}] ` : ''
         let res = `t${this.startingPhysicsTick}+${this.physicsTicks}=t${this.endPhysicsTick} ${ids}${this.outPos} if${this.inputFlags}`
         if (this.contextGameModeIndex)  res += ` GM${this.contextGameModeIndex}`
         if (this.contextTickMode)       res += ` tm${this.contextTickMode}`
@@ -339,7 +343,7 @@ export class PlayerTickData {
 }
 
 export class ClientPlayerTickData extends PlayerTickData {
-    status = PLAYER_TICK_DATA_STATUS.NEW
+    status: PLAYER_TICK_DATA_STATUS
     /**
      * It means the following:
      * - results of the previous physics ticks have been corrected, so this result is likely incorrect
@@ -347,6 +351,11 @@ export class ClientPlayerTickData extends PlayerTickData {
      * - it shouldn't be sent again, because it was already sent
      */
     invalidated?: boolean
+
+    constructor(status: PLAYER_TICK_DATA_STATUS) {
+        super()
+        this.status = status
+    }
 
     initInputFrom(controlManager: ClientPlayerControlManager, startingPhysicsTick: int, physicsTicks: int, fromCamera = false) {
         const player = controlManager.player
@@ -369,5 +378,6 @@ export class ClientPlayerTickData extends PlayerTickData {
         this.inputRotation.copyFrom(rotation).roundSelf(PHYSICS_ROTATION_DECIMALS)
         this.physicsTicks = physicsTicks
         this.startingPhysicsTick = startingPhysicsTick
+        this.inputEventIds = null
     }
 }

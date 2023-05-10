@@ -127,12 +127,13 @@ export class ClusterEndCity extends ClusterBuildingBase {
         this.timers.count++;
     }
 
-    appendBuilding(building : BuildingBlocks) {
+    appendBuilding(building : BuildingBlocks) : object | null {
         const tp = new Vector(this.start_coord.x, 0, this.start_coord.z)
         building.translate(tp)
         building.setY(this.start_coord.y)
         building.addBlocks(this)
         this.buildings.set(building.coord, building)
+        return building
     }
 
     addCity(position : Vector, rotation : int, rand : alea) {

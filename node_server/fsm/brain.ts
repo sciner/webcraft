@@ -87,7 +87,7 @@ export class FSMBrain {
         }
         const stateFunctionUsed = this.stack.tick(delta, this);
         if (stateFunctionUsed) {
-            this.addStat(stateFunctionUsed.name, true);
+            this.addStat(stateFunctionUsed.func.name, true);
         }
         const driving = this.mob.driving
         if (driving) {

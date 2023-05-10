@@ -12,6 +12,7 @@
 #include<vignetting_define_func>
 
 #include<manual_mip_define_func>
+#include<ao_light_define_func>
 
 #include<torch_flame_func>
 

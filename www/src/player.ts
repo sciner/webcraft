@@ -508,8 +508,8 @@ export class Player implements IPlayer {
             // проверяем e.number чтобы не садиться в моба сразу после его спауна при удержании мыши
             if (e.number == 0 && mob.supportsDriving && !mob.driving?.isFull()) {
                 // Попробовать присоединиться к езде
-                this.controlManager.triedDrving = true
-                this.controlManager.syncWithActionId(e.id, true)
+                this.controlManager.triedDriving = true
+                this.controlManager.syncWithPickatEvent(e, true)
                 return true
             }
         }
@@ -796,6 +796,7 @@ export class Player implements IPlayer {
                 await this.world.applyActions(actions, this);
                 e_orig.actions = {blocks: actions.blocks};
                 e_orig.eye_pos = this.getEyePos();
+                this.controlManager.syncWithWorldActionIfNeeded(e_orig, actions)
                 // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
                 this.world.server.Send({
                     name: ServerClient.CMD_PICKAT_ACTION,

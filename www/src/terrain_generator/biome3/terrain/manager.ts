@@ -1,4 +1,4 @@
-import { alea } from "../../default.js";
+import { alea, CANYON } from "../../default.js";
 import { ArrayHelpers, Helpers, Vector } from "../../../helpers.js";
 import type { Biome, BiomeDirtLayer } from "./../biomes.js";
 import { Biome3TerrainMap } from "./map.js";
@@ -17,6 +17,12 @@ import { TerrainMapManagerBase } from "./manager_base.js";
 import type { Biome3LayerBase } from "../layers/base.js";
 import { FAST } from "../../../constant.js";
 import type { WorkerWorld } from "../../../worker/world.js";
+
+export declare interface ISImplifiedCell {
+    river_point: RiverPoint | null,
+    canyon_point : float,
+    preset: MapCellPresetResult
+}
 
 // Water
 const WATER_START                       = 0;
@@ -352,11 +358,19 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
             density = Math.min(density, density * river_density + (d3 * vertical_shore_coeff) * percent);
         }
 
-        // Если это твердый камень, то попробуем превратить его в пещеру
         if(!FAST) {
+
+            // Canyon
+            density = this.applyCanyonDensity(xyz, cell, density, res)
+
+            // Если это твердый камень, то попробуем превратить его в пещеру
             if(density > DENSITY_AIR_THRESHOLD) {
+                // убираем пещеры вблизи каньонов, чтобы каньоны не были изпещрены пещерами,
+                // т.к. каньоны постоянно с ними песекаются
+                const canyon_density = (cell.canyon_point > -CANYON.FLOOR_DENSITY && cell.canyon_point < CANYON.FLOOR_DENSITY && xyz.y > 40 + d4 * 4) ? (1 - cell.canyon_point / CANYON.FLOOR_DENSITY) * 3 : 0
+                //
                 const cave_density_threshold = DENSITY_AIR_THRESHOLD * (d1 > .05 && (xyz.y > (WATER_LEVEL + Math.abs(d3) * 4)) ? 1 : 1.5)
-                if(density > cave_density_threshold) {
+                if(density > cave_density_threshold + canyon_density) {
                     const caveDensity = map.caves.getPoint(xyz, cell, false, res);
                     if(caveDensity !== null) {
                         density = caveDensity
@@ -370,6 +384,39 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
         res.density = density;
         return res;
 
+    }
+
+    private applyCanyonDensity(xyz: Vector, cell : any, density : float, res : DensityParams) : float {
+
+        const {d1, d2, d3, d4} = res
+
+        const canyon = cell.canyon_point
+        const canyon_range = CANYON.FLOOR_DENSITY + d2 / 32
+        const canyon_margin = CANYON.DENSITY_MARGIN
+
+        // Чтобы вода рек и океанов не выливалась в каньон (сглаживание окрестностей с каньоном)
+        if(canyon > -canyon_margin && canyon < canyon_margin) {
+            if(xyz.y <= 86) {
+                const h = xyz.y - 80
+                const hk = Math.max(1 - h / 5, 0) * Math.abs(d4) * 3
+                if(xyz.y <= 80 + hk) {
+                    density = (density + (1 - canyon / canyon_margin))
+                }
+            }
+        }
+
+        // Создание плавных спусков на дно каньона, вместо строго вертикальных стен
+        const canyon_dist = 0.5 * (1 - Math.cos(Math.PI * Math.abs(canyon / canyon_range)))
+
+        if(canyon > -canyon_range && canyon < canyon_range) {
+            const canyon_d3 = d3 / 2
+            if(xyz.y > (45 + d3 * canyon_dist) + (canyon_dist + (canyon_d3 * canyon_dist)) * 60 + d2 * 4) {
+                density = DENSITY_AIR_THRESHOLD
+                res.dcaves = density
+            }
+        }
+
+        return density
     }
 
     getBlock(xyz: Vector, not_air_count: number, cell: TerrainMapCell, density_params: DensityParams, block_result?: MapsBlockResult): MapsBlockResult {
@@ -402,8 +449,24 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
             // 2. select block in dirt layer
             const dirt_layer_blocks = dirt_layer.blocks;
             const dirt_layer_blocks_count = dirt_layer_blocks.length
-            const local_water_line = WATER_LEVEL // density_params.local_water_line
+            let local_water_line = WATER_LEVEL // density_params.local_water_line
 
+            // Оформление каньонов
+            // устанавливаем блоки земли на "полу" каньонов (иначе дно будет каменное)
+            // Важно: Если этого не делать, то на блоках поверхности не будут ставиться блоки пола,
+            // потому что уровень каньонов ниже ватерлинии, а под водой другая логика
+            const canyon_range = 0.075 + d3 / 20
+            if(cell.canyon_point > -canyon_range && cell.canyon_point < canyon_range) {
+                const d32 = d3 * 2
+                if(xyz.y > 42 + d32 && xyz.y < 48 - d32) {
+                    local_water_line *= 0
+                } else if(xyz.y >= 45 && d2 > 0.5) {
+                    // изредка покрываем стены каньонов материалом пола
+                    local_water_line *= 0
+                }
+            }
+
+            //
             if(not_air_count > 0 && dirt_layer_blocks_count > 1) {
                 if(xyz.y <= local_water_line) {
                     block_id = dirt_layer_blocks[dirt_layer_blocks_count - 1]
@@ -457,7 +520,8 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
     }
 
-    makeRiverPoint(x : int, z : int) : RiverPoint | null {
+    makeRiverPoint(xz : Vector) : RiverPoint | null {
+        let {x, z} = xz
         x += 91234;
         z -= 95678;
         const value1 = this.noise2d((x + 10) / RIVER_OCTAVE_1, (z + 10) / RIVER_OCTAVE_1) * 0.7;
@@ -468,6 +532,10 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
             return new RiverPoint(value)
         }
         return null
+    }
+
+    makeCanyonPoint(xz : Vector) : float {
+        return this.noise2d(xz.x / 1000, xz.z / 1000)
     }
 
     /**
@@ -525,9 +593,10 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
                 }
                 const dirt_block_id = biome.dirt_layers[0];
                 const cell = new TerrainMapCell(value, biome.humidity, biome.temperature, biome, dirt_block_id);
-                cell.river_point = this.makeRiverPoint(xyz.x, xyz.z);
+                cell.river_point = this.makeRiverPoint(xyz)
                 cell.preset = preset
                 cell.dirt_level = Math.floor((this.noise2d(xyz.x / 16, xyz.z / 16) + 2)); // динамическая толщина дерна
+                cell.canyon_point = this.makeCanyonPoint(xyz)
                 map.cells[z * CHUNK_SIZE_X + x] = cell;
 
             }
@@ -537,7 +606,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
         map.cluster = this.layer.clusterManager.getForCoord(chunk.coord, this)
 
         // Aquifera
-        map.aquifera = new Aquifera(chunk.coord)
+        map.aquifera = new Aquifera(this, chunk.coord)
 
         // 3. Find door Y position for cluster buildings
         if(!map.cluster.is_empty && map.cluster.buildings) {
@@ -550,10 +619,10 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
                 xyz.copyFrom(building.ahead_entrance)
 
-                const river_point = this.makeRiverPoint(xyz.x, xyz.z);
+                const simplified_cell = this.makeSimplifiedCell(xyz)
+                const preset = simplified_cell.preset
+
                 let free_height = 0;
-                const preset = this.getPreset(xyz);
-                const cell = {river_point, preset};
 
                 // TODO: if it underwater building we need decrease y_base value
                 xyz.y = map.cluster.y_base
@@ -562,7 +631,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
                 for(let y = doorSearchSize.y - 1; y >= 0; y--) {
 
                     xyz.y = map.cluster.y_base + y
-                    const {density} = this.calcDensity(xyz, cell, _density_params, map)
+                    const {density} = this.calcDensity(xyz, simplified_cell, _density_params, map)
 
                     // если это камень
                     if(density > DENSITY_AIR_THRESHOLD) {
@@ -590,6 +659,14 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
         return map;
 
+    }
+    
+    makeSimplifiedCell(xz : Vector) : ISImplifiedCell {
+        return {
+            river_point:  this.makeRiverPoint(xz),
+            canyon_point: this.makeCanyonPoint(xz),
+            preset:       this.getPreset(xz)
+        }
     }
 
 }

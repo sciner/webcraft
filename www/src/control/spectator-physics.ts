@@ -2,11 +2,10 @@
 
 import {PHYSICS_INTERVAL_MS, PLAYER_HEIGHT, PLAYER_ZOOM, SPECTATOR_SPEED_MUL} from "../constant.js";
 import {Mth, Vector} from "../helpers.js";
-import {IPlayerControlState, PlayerControl} from "./player_control.js";
+import {PLAYER_CONTROL_TYPE, PlayerControl} from "./player_control.js";
 import type {World} from "../world.js";
-import {PLAYER_CONTROL_TYPE} from "./player_control.js";
 import type {PlayerTickData} from "./player_tick_data.js";
-import {ClientPlayerTickData} from "./player_tick_data.js";
+import {ClientPlayerTickData, PLAYER_TICK_DATA_STATUS} from "./player_tick_data.js";
 import type {ClientPlayerControlManager} from "./player_control_manager.js";
 import {OldSpectatorPlayerControl} from "./spectator-physics-old.js"
 
@@ -119,7 +118,7 @@ export class SpectatorPlayerControl extends PlayerControl {
 
     private tmpDesiredVel = new Vector()
     private prevTime: number
-    private tmpTickData = new ClientPlayerTickData()
+    private tmpTickData = new ClientPlayerTickData(PLAYER_TICK_DATA_STATUS.UNKNOWN)
 
     private oldSpectator: OldSpectatorPlayerControl | null = null
     private isFreeCam: boolean

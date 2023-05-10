@@ -53,6 +53,8 @@ const temp_chunk = {
     }
 }
 
+const _tempRiverPointXZ = new Vector(0, 0, 0)
+
 
 // Map manager
 export class TerrainMapManager implements ITerrainMapManager {
@@ -168,7 +170,7 @@ export class TerrainMapManager implements ITerrainMapManager {
             cluster_max_height = null;
         }
 
-        const river_point = this.makeRiverPoint(px, pz);
+        const river_point = this.makeRiverPoint(_tempRiverPointXZ.set(px, 0, pz));
         if(river_point) {
             if(cluster_is_empty) {
                 // smooth with clusters
@@ -211,7 +213,9 @@ export class TerrainMapManager implements ITerrainMapManager {
     }
 
     // rivers
-    makeRiverPoint(x : int, z : int) : float {
+    makeRiverPoint(xz : Vector) : float {
+
+        const {x, z} = xz
 
         let m = this.noisefn(x / 64, z / 64) * 2;
         if(m < 0) m*= -1;

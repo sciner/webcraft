@@ -27,8 +27,8 @@ import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
 
 import type { Player, PlayerStateUpdate } from "./player.js";
 import type { HUD } from "./hud.js";
-import {ServerClient} from "./server_client.js";
 import {canSwitchFlying} from "./control/player_control.js";
+import { ClipboardHelper } from "./ui/clipboard.js";
 
 // TrackerPlayer
 (globalThis as any).TrackerPlayer = new Tracker_Player();
@@ -543,6 +543,9 @@ export class GameClass {
                                         player.teleport(null, pos, false);
                                     }
                                 }, 1000);
+                            } else if(e.ctrlKey) {
+                                ClipboardHelper.copy(player.pos.toHash().replaceAll(',', ' ') + ' ' + this.world.info.seed)
+                                vt.success(Lang.copied)
                             } else {
                                 player.teleport('random', null, false);
                             }

@@ -5,6 +5,8 @@ import type { BuildingPalettes } from "./building/palette.js";
 import type { ClusterManager } from "./manager.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { TerrainMap, TerrainMapManager } from "../terrain_map.js";
+import { CANYON } from "../default.js";
+import type { TerrainMapManager3 } from "../biome3/terrain/manager.js";
 
 //
 const entranceAhead = new Vector(0, 0, 0);
@@ -34,11 +36,18 @@ export class ClusterBuildingBase extends ClusterBase {
     /**
      * Add building
      */
-    appendBuilding(seed : any, door_x : int, door_z : int, size : Vector, entrance : Vector, door_direction : int, is_crossroad : boolean = false) {
+    appendBuilding(seed : any, door_x : int, door_z : int, size : Vector, entrance : Vector, door_direction : int, is_crossroad : boolean = false) : object | null {
 
         const coord = new Vector(door_x + this.coord.x, 0, door_z + this.coord.z)
         if(this.buildings.has(coord)) {
-            return false
+            return null
+        }
+
+        // Не ставим здания внутри или вблизи каньонов
+        const mm = this.clusterManager.layer.maps as TerrainMapManager3
+        const simplified_cell = mm.makeSimplifiedCell(coord)
+        if(simplified_cell.canyon_point > -CANYON.BUILDING_DIST && simplified_cell.canyon_point < CANYON.BUILDING_DIST) {
+            return null
         }
 
         const building = this.building_palettes.next(this, seed, door_direction, size, coord, entrance, is_crossroad)

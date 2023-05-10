@@ -450,6 +450,13 @@ interface IPickatEvent {
     createBlock:        boolean
     destroyBlock:       boolean
     id:                 int
+
+
+
+
+
+
+
     interactMobID?:     int
     interactPlayerID?:  int
     number:             int
