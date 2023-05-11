@@ -17,6 +17,7 @@ export class Brain extends FSMBrain {
         this.timer_attack = 0;
         this.interval_attack = 16;
         this.resistance_light = false; // загорается при свете
+        mob.extra_data.attack = false
     }
     
     onLive() {
@@ -159,6 +160,7 @@ export class Brain extends FSMBrain {
                     case EnumDifficulty.NORMAL: this.target.setDamage(3); break;
                     case EnumDifficulty.HARD: this.target.setDamage(Math.random() < 0.5 ? 4 : 5); break;
                 }
+                this.sendState()
             }
         }
     }
