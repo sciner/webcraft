@@ -1118,7 +1118,7 @@
             ],
             "texture": {
                 "side": "block/birch_leaves.png",
-                "round": "./textures/birch_leaves.png"
+                "round": "block/round_leaves/birch_leaves.png"
             },
             "material": {
                 "id": "leaves"
@@ -1157,7 +1157,7 @@
             ],
             "texture": {
                 "side": "block/oak_leaves.png",
-                "round": "./textures/oak_leaves.png"
+                "round": "block/round_leaves/oak_leaves.png"
             },
             "material": {
                 "id": "leaves"
@@ -1199,7 +1199,7 @@
             ],
             "texture": {
                 "side": "block/acacia_leaves.png",
-                "round": "./textures/acacia_leaves.png"
+                "round": "block/round_leaves/acacia_leaves.png"
             },
             "material": {
                 "id": "leaves"
@@ -1238,7 +1238,7 @@
             ],
             "texture": {
                 "side": "block/spruce_leaves.png",
-                "round": "./textures/spruce_leaves.png"
+                "round": "block/round_leaves/spruce_leaves.png"
             },
             "material": {
                 "id": "leaves"
@@ -1277,7 +1277,7 @@
             ],
             "texture": {
                 "side": "block/dark_oak_leaves.png",
-                "round": "./textures/dark_oak_leaves.png"
+                "round": "block/round_leaves/dark_oak_leaves.png"
             },
             "material": {
                 "id": "leaves"
@@ -1315,7 +1315,7 @@
             ],
             "texture": {
                 "side": "block/jungle_leaves.png",
-                "round": "./textures/jungle_leaves.png"
+                "round": "block/round_leaves/jungle_leaves.png"
             },
             "material": {
                 "id": "leaves"
@@ -1331,7 +1331,7 @@
             "name": "JUNGLE_LEAVES_FLOWER",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "texture": "./textures/jungle_leaves.png",
+            "texture": "block/round_leaves/jungle_leaves.png",
             "material": {
                 "id": "leaves"
             },
@@ -3133,7 +3133,7 @@
             "tags": [
                 "alpha"
             ],
-            "texture": "./textures/cloud.png",
+            "texture": "block/cloud.png",
             "spawnable": false
         },
         {
@@ -3650,7 +3650,7 @@
             "tags": [
                 "no_drop_ao"
             ],
-            "texture": "./textures/air.png",
+            "texture": "block/air.png",
             "texture_animations": {
                 "side": null
             }
@@ -4602,13 +4602,13 @@
             "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
             "inventory": {
                 "style": "extruder",
-                "texture": "./textures/tall_grass.png"
+                "texture": "block/tall_grass/tall_grass.png"
             },
             "material": {
                 "id": "plant"
             },
             "texture": {
-                "side": "./textures/tall_grass.png"
+                "side": "block/tall_grass/tall_grass.png"
             },
             "texture_variants": [
                 {"side": "block/tall_grass/tall_grass1.png"},
@@ -6442,7 +6442,7 @@
                 "id": "iron"
             },
             "texture": {
-                "side": "./textures/car_battery.png"
+                "side": "block/car_battery.png"
             }
         },
         {
@@ -11565,7 +11565,7 @@
             "material": {
                 "id": "plant"
             },
-            "texture": "./textures/cattail.png",
+            "texture": "block/cattail.png",
             "tags": [
                 "is_tall_grass",
                 "is_tall_grass_3"
@@ -11635,10 +11635,10 @@
                 "id": "plant"
             },
             "texture": {
-                "side": "./textures/reed.png",
-                "side2": "./textures/reed2.png",
-                "side_short": "./textures/reed_short.png",
-                "side_short2": "./textures/reed2_short.png"
+                "side": "block/reed/reed.png",
+                "side2": "block/reed/reed2.png",
+                "side_short": "block/reed/reed_short.png",
+                "side_short2": "block/reed/reed2_short.png"
             },
             "tags": [
                 "has_short",
@@ -12305,34 +12305,34 @@
                 "a": 200
             },
             "texture": {
-                "side": "./textures/glowing_hanging_liana/glowingplant_base.png"
+                "side": "block/glowing_hanging_liana/glowingplant_base.png"
             },
             "hanging_textures": [
                 {
                     "ripe": [
-                        "./textures/glowing_hanging_liana/glowingplant_base_b.png"
+                        "block/glowing_hanging_liana/glowingplant_base_b.png"
                     ],
                     "noripe": [
-                        "./textures/glowing_hanging_liana/glowingplant_base.png",
-                        "./textures/glowing_hanging_liana/glowingplant_base_s.png"
+                        "block/glowing_hanging_liana/glowingplant_base.png",
+                        "block/glowing_hanging_liana/glowingplant_base_s.png"
                     ]
                 },
                 {
                     "ripe": [
-                        "./textures/glowing_hanging_liana/glowingplant_body_b.png"
+                        "block/glowing_hanging_liana/glowingplant_body_b.png"
                     ],
                     "noripe": [
-                        "./textures/glowing_hanging_liana/glowingplant_body.png",
-                        "./textures/glowing_hanging_liana/glowingplant_body_s.png"
+                        "block/glowing_hanging_liana/glowingplant_body.png",
+                        "block/glowing_hanging_liana/glowingplant_body_s.png"
                     ]
                 },
                 {
                     "ripe": [
-                        "./textures/glowing_hanging_liana/glowingplant_head_b.png"
+                        "block/glowing_hanging_liana/glowingplant_head_b.png"
                     ],
                     "noripe": [
-                        "./textures/glowing_hanging_liana/glowingplant_head.png",
-                        "./textures/glowing_hanging_liana/glowingplant_head_s.png"
+                        "block/glowing_hanging_liana/glowingplant_head.png",
+                        "block/glowing_hanging_liana/glowingplant_head_s.png"
                     ]
                 }
             ]
