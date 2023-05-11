@@ -1,4 +1,4 @@
-import type { TextStyle } from '../../TextStyle';
+import type { TextStyle } from '../../TextStyle.js';
 
 const genericFontFamilies = [
     'serif',

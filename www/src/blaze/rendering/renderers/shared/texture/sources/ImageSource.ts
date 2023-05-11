@@ -1,10 +1,10 @@
-import { settings } from '../../../../../settings/settings';
-import { Texture } from '../Texture';
-import { TextureSource } from './TextureSource';
+import { settings } from '../../../../../settings/settings.js';
+import { Texture } from '../Texture.js';
+import { TextureSource } from './TextureSource.js';
 
-import type { ICanvas } from '../../../../../settings/adapter/ICanvas';
-import type { ALPHA_MODES } from '../const';
-import type { TextureSourceOptions } from './TextureSource';
+import type { ICanvas } from '../../../../../settings/adapter/ICanvas.js';
+import type { ALPHA_MODES } from '../const.js';
+import type { TextureSourceOptions } from './TextureSource.js';
 
 type ImageResource = ImageBitmap | HTMLCanvasElement | OffscreenCanvas | ICanvas;
 

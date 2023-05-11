@@ -1,4 +1,4 @@
-import { settings } from '../../settings/settings';
+import { settings } from '../../settings/settings.js';
 
 /**
  * Helper for checking for WebGPU support.

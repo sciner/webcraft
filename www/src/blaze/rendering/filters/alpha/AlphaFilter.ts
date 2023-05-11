@@ -1,7 +1,7 @@
-import { GpuProgram } from '../../renderers/gpu/shader/GpuProgram';
-import { UniformGroup } from '../../renderers/shared/shader/UniformGroup';
-import { Filter } from '../Filter';
-import source from './alpha.wgsl';
+import { GpuProgram } from '../../renderers/gpu/shader/GpuProgram.js';
+import { UniformGroup } from '../../renderers/shared/shader/UniformGroup.js';
+import { Filter } from '../Filter.js';
+import {alpha_filter_src} from './alpha_filter_src.js';
 
 export interface AlphaFilterOptions
 {
@@ -37,11 +37,11 @@ export class AlphaFilter extends Filter
 
         const gpuProgram = new GpuProgram({
             vertex: {
-                source,
+                source: alpha_filter_src.source,
                 entryPoint: 'mainVertex',
             },
             fragment: {
-                source,
+                source: alpha_filter_src.source,
                 entryPoint: 'mainFragment',
             },
         });

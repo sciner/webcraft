@@ -1,11 +1,11 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { ICanvas } from '../../../../settings/adapter/ICanvas';
-import type { ISystem } from '../../shared/system/ISystem';
-import type { WebGLRenderer } from '../WebGLRenderer';
-import type { GlRenderingContext } from './GlRenderingContext';
-import type { WebGLExtensions } from './WebGLExtensions';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { ICanvas } from '../../../../settings/adapter/ICanvas.js';
+import type { ISystem } from '../../shared/system/ISystem.js';
+import type { WebGLRenderer } from '../WebGLRenderer.js';
+import type { GlRenderingContext } from './GlRenderingContext.js';
+import type { WebGLExtensions } from './WebGLExtensions.js';
 
 export interface ISupportDict
 {

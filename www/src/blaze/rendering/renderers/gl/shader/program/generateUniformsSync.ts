@@ -4,11 +4,11 @@
 // ud = uniformData
 // uv = uniformValue
 
-import { BufferResource } from '../../../shared/buffer/BufferResource';
-import { UniformGroup } from '../../../shared/shader/UniformGroup';
-import { uniformParsers } from './uniformParsers';
+import { BufferResource } from '../../../shared/buffer/BufferResource.js';
+import { UniformGroup } from '../../../shared/shader/UniformGroup.js';
+import { uniformParsers } from './uniformParsers.js';
 
-import type { UniformsSyncCallback } from '../../../shared/shader/utils/createUniformBufferSync';
+import type { UniformsSyncCallback } from '../../../shared/shader/utils/createUniformBufferSync.js';
 
 // l = location
 const GLSL_TO_SINGLE_SETTERS_CACHED: Record<string, string> = {

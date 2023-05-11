@@ -1,7 +1,7 @@
-import { defaultValue } from './defaultValue';
-import { mapType } from './mapType';
+import { defaultValue } from './defaultValue.js';
+import { mapType } from './mapType.js';
 
-import type { IUniformData } from '../GlProgram';
+import type { IUniformData } from '../GlProgram.js';
 
 /**
  * returns the uniform data from the program

@@ -1,11 +1,11 @@
-import { ExtensionType } from '../../../extensions/Extensions';
+import { ExtensionType } from '../../../extensions/Extensions.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet';
-import type { RenderablePipe } from '../../renderers/shared/instructions/RenderPipe';
-import type { Renderer } from '../../renderers/types';
-import type { SpriteRenderable } from './SpriteRenderable';
-import type { SpriteSystem } from './SpriteSystem';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet.js';
+import type { RenderablePipe } from '../../renderers/shared/instructions/RenderPipe.js';
+import type { Renderer } from '../../renderers/types.js';
+import type { SpriteRenderable } from './SpriteRenderable.js';
+import type { SpriteSystem } from './SpriteSystem.js';
 
 let spriteSystem: SpriteSystem = null;
 

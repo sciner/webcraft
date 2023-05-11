@@ -1,4 +1,4 @@
-import type { BitmapFontData, RawCharData } from '../BitmapFont';
+import type { BitmapFontData, RawCharData } from '../BitmapFont.js';
 
 /**
  * Internal data format used to convert to BitmapFontData.

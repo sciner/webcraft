@@ -3,7 +3,7 @@
 // This file implements the dihedral group of order 16, also called
 // of degree 8. That's why its called groupD8.
 
-import { Matrix } from './Matrix';
+import { Matrix } from './Matrix.js';
 
 /*
  * Transform matrix for operation n is:

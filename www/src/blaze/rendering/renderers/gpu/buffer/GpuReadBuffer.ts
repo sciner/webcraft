@@ -1,7 +1,7 @@
-import { Buffer } from '../../shared/buffer/Buffer';
-import { BufferUsage } from '../../shared/buffer/const';
+import { Buffer } from '../../shared/buffer/Buffer.js';
+import { BufferUsage } from '../../shared/buffer/const.js';
 
-import type { WebGPURenderer } from '../WebGPURenderer';
+import type { WebGPURenderer } from '../WebGPURenderer.js';
 
 export function GpuReadBuffer(buffer: Buffer, renderer: WebGPURenderer)
 {

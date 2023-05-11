@@ -1,8 +1,8 @@
-import { Runner } from '../runner/Runner';
-import { generateUID } from '../texture/utils/generateUID';
+import { Runner } from '../runner/Runner.js';
+import { generateUID } from '../texture/utils/generateUID.js';
 
-import type { BindResource } from '../../gpu/shader/BindResource';
-import type { BufferUsage } from './const';
+import type { BindResource } from '../../gpu/shader/BindResource.js';
+import type { BufferUsage } from './const.js';
 
 // eslint-disable-next-line max-len
 export type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array;

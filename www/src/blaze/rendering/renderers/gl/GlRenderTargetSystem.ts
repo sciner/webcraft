@@ -1,14 +1,14 @@
-import { ExtensionType } from '../../../extensions/Extensions';
-import { Matrix } from '../../../maths/Matrix';
-import { RenderTarget } from '../shared/renderTarget/RenderTarget';
-import { Texture } from '../shared/texture/Texture';
-import { GlRenderTarget } from './GlRenderTarget';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+import { Matrix } from '../../../maths/Matrix.js';
+import { RenderTarget } from '../shared/renderTarget/RenderTarget.js';
+import { Texture } from '../shared/texture/Texture.js';
+import { GlRenderTarget } from './GlRenderTarget.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { RenderSurface, RGBAArray } from '../gpu/renderTarget/GpuRenderTargetSystem';
-import type { ISystem } from '../shared/system/ISystem';
-import type { GlRenderingContext } from './context/GlRenderingContext';
-import type { WebGLRenderer } from './WebGLRenderer';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { RenderSurface, RGBAArray } from '../gpu/renderTarget/GpuRenderTargetSystem.js';
+import type { ISystem } from '../shared/system/ISystem.js';
+import type { GlRenderingContext } from './context/GlRenderingContext.js';
+import type { WebGLRenderer } from './WebGLRenderer.js';
 
 export class GlRenderTargetSystem implements ISystem
 {

@@ -1,11 +1,11 @@
-import { ViewableBuffer } from '../../../utils/ViewableBuffer';
-import { fastCopy } from '../../renderers/shared/buffer/utils/fastCopy';
-import { TextureBatcher } from './TextureBatcher';
+import { ViewableBuffer } from '../../../utils/ViewableBuffer.js';
+import { fastCopy } from '../../renderers/shared/buffer/utils/fastCopy.js';
+import { TextureBatcher } from './TextureBatcher.js';
 
-import type { BindGroup } from '../../renderers/gpu/shader/BindGroup';
-import type { BLEND_MODES } from '../../renderers/shared/state/const';
-import type { TextureSource } from '../../renderers/shared/texture/sources/TextureSource';
-import type { Texture } from '../../renderers/shared/texture/Texture';
+import type { BindGroup } from '../../renderers/gpu/shader/BindGroup.js';
+import type { BLEND_MODES } from '../../renderers/shared/state/const.js';
+import type { TextureSource } from '../../renderers/shared/texture/sources/TextureSource.js';
+import type { Texture } from '../../renderers/shared/texture/Texture.js';
 
 // TODO OPTIMISE THIS CODE
 

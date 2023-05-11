@@ -1,9 +1,9 @@
-import { isWebGLSupported } from '../../utils/browser/isWebGLSupported';
-import { isWebGPUSupported } from '../../utils/browser/isWebGPUSupported';
+import { isWebGLSupported } from '../../utils/browser/isWebGLSupported.js';
+import { isWebGPUSupported } from '../../utils/browser/isWebGPUSupported.js';
 
-import type { WebGLRendererOptions } from './gl/WebGLRenderer';
-import type { WebGPURendererOptions } from './gpu/WebGPURenderer';
-import type { Renderer } from './types';
+import type { WebGLRendererOptions } from './gl/WebGLRenderer.js';
+import type { WebGPURendererOptions } from './gpu/WebGPURenderer.js';
+import type { Renderer } from './types.js';
 
 export interface AutoDetectOptions extends SharedOptions
 {

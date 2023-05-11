@@ -1,17 +1,17 @@
-import { extensions, ExtensionType } from '../../../extensions/Extensions';
-import { SharedDefaultRendererOptions, SharedRendererExtensions } from '../shared/system/SharedSystems';
-import { SystemManager } from '../shared/system/SystemManager';
-import { getCanvasTexture } from '../shared/texture/utils/getCanvasTexture';
-import { WebGPUSystemsExtensions } from './WebGPUSystems';
+import { extensions, ExtensionType } from '../../../extensions/Extensions.js';
+import { SharedDefaultRendererOptions, SharedRendererExtensions } from '../shared/system/SharedSystems.js';
+import { SystemManager } from '../shared/system/SystemManager.js';
+import { getCanvasTexture } from '../shared/texture/utils/getCanvasTexture.js';
+import { WebGPUSystemsExtensions } from './WebGPUSystems.js';
 
-import type { ExtensionFormat } from '../../../extensions/Extensions';
-import type { ICanvas } from '../../../settings/adapter/ICanvas';
-import type { Container } from '../../scene/Container';
-import type { ISystemConstructor } from '../shared/system/ISystem';
-import type { SharedRendererOptions } from '../shared/system/SharedSystems';
-import type { GPU } from './GpuDeviceSystem';
-import type { RenderSurface } from './renderTarget/GpuRenderTargetSystem';
-import type { GPURenderPipes, GPURenderSystems } from './WebGPUSystems';
+import type { ExtensionFormat } from '../../../extensions/Extensions.js';
+import type { ICanvas } from '../../../settings/adapter/ICanvas.js';
+import type { Container } from '../../scene/Container.js';
+import type { ISystemConstructor } from '../shared/system/ISystem.js';
+import type { SharedRendererOptions } from '../shared/system/SharedSystems.js';
+import type { GPU } from './GpuDeviceSystem.js';
+import type { RenderSurface } from './renderTarget/GpuRenderTargetSystem.js';
+import type { GPURenderPipes, GPURenderSystems } from './WebGPUSystems.js';
 
 /**
  * Renderer options supplied to constructor.

@@ -1,4 +1,4 @@
-import type { IUniformBlockData } from '../GlProgram';
+import type { IUniformBlockData } from '../GlProgram.js';
 
 /**
  * returns the uniform block data from the program

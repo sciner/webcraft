@@ -1,10 +1,10 @@
-import { ExtensionType } from '../../../extensions/Extensions';
+import { ExtensionType } from '../../../extensions/Extensions.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { WebGPURenderer } from '../../renderers/gpu/WebGPURenderer';
-import type { RenderTarget } from '../../renderers/shared/renderTarget/RenderTarget';
-import type { Texture } from '../../renderers/shared/texture/Texture';
-import type { FilterAdaptor } from '../shared/FilterPipe';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { WebGPURenderer } from '../../renderers/gpu/WebGPURenderer.js';
+import type { RenderTarget } from '../../renderers/shared/renderTarget/RenderTarget.js';
+import type { Texture } from '../../renderers/shared/texture/Texture.js';
+import type { FilterAdaptor } from '../shared/FilterPipe.js';
 
 export class GpuFilterAdapter implements FilterAdaptor
 {

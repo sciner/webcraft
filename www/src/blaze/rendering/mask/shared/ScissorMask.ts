@@ -1,9 +1,9 @@
-import { addMaskBounds, addMaskLocalBounds } from './addMaskBounds';
+import { addMaskBounds, addMaskLocalBounds } from './addMaskBounds.js';
 
-import type { PointData } from '../../../maths/PointData';
-import type { Bounds } from '../../scene/bounds/Bounds';
-import type { Container } from '../../scene/Container';
-import type { Effect } from '../../scene/Effect';
+import type { PointData } from '../../../maths/PointData.js';
+import type { Bounds } from '../../scene/bounds/Bounds.js';
+import type { Container } from '../../scene/Container.js';
+import type { Effect } from '../../scene/Effect.js';
 
 export class ScissorMask implements Effect
 {

@@ -1,6 +1,6 @@
-import type { Renderer } from '../../types';
-import type { Renderable } from '../Renderable';
-import type { Instruction } from './Instruction';
+import type { Renderer } from '../../types.js';
+import type { Renderable } from '../Renderable.js';
+import type { Instruction } from './Instruction.js';
 
 let uid = 0;
 

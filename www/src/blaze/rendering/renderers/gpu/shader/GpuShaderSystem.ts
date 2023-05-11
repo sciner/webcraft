@@ -1,12 +1,12 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { UniformGroup } from '../../shared/shader/UniformGroup';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { UniformGroup } from '../../shared/shader/UniformGroup.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { Shader } from '../../shared/shader/Shader';
-import type { ISystem } from '../../shared/system/ISystem';
-import type { GPU } from '../GpuDeviceSystem';
-import type { WebGPURenderer } from '../WebGPURenderer';
-import type { GpuProgram } from './GpuProgram';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { Shader } from '../../shared/shader/Shader.js';
+import type { ISystem } from '../../shared/system/ISystem.js';
+import type { GPU } from '../GpuDeviceSystem.js';
+import type { WebGPURenderer } from '../WebGPURenderer.js';
+import type { GpuProgram } from './GpuProgram.js';
 
 export class GpuShaderSystem implements ISystem
 {

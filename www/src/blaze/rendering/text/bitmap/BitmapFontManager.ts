@@ -1,10 +1,10 @@
-import { Cache } from '../../../assets/cache/Cache';
-import { DynamicBitmapFont } from './DynamicBitmapFont';
-import { getBitmapTextLayout } from './utils/getBitmapTextLayout';
+import { Cache } from '../../../assets/cache/Cache.js';
+import { DynamicBitmapFont } from './DynamicBitmapFont.js';
+import { getBitmapTextLayout } from './utils/getBitmapTextLayout.js';
 
-import type { TextStyle } from '../TextStyle';
-import type { BitmapFont } from './BitmapFont';
-import type { BitmapTextLayoutData } from './utils/getBitmapTextLayout';
+import type { TextStyle } from '../TextStyle.js';
+import type { BitmapFont } from './BitmapFont.js';
+import type { BitmapTextLayoutData } from './utils/getBitmapTextLayout.js';
 
 class BitmapFontManagerClass
 {

@@ -1,11 +1,11 @@
-import { Container } from '../../scene/Container';
-import { addMaskBounds, addMaskLocalBounds } from './addMaskBounds';
-import { MaskEffectManager } from './MaskEffectManager';
+import { Container } from '../../scene/Container.js';
+import { addMaskBounds, addMaskLocalBounds } from './addMaskBounds.js';
+import { MaskEffectManager } from './MaskEffectManager.js';
 
-import type { PointData } from '../../../maths/PointData';
-import type { PoolItem } from '../../../utils/pool/Pool';
-import type { Bounds } from '../../scene/bounds/Bounds';
-import type { Effect } from '../../scene/Effect';
+import type { PointData } from '../../../maths/PointData.js';
+import type { PoolItem } from '../../../utils/pool/Pool.js';
+import type { Bounds } from '../../scene/bounds/Bounds.js';
+import type { Effect } from '../../scene/Effect.js';
 
 export class StencilMask implements Effect, PoolItem
 {

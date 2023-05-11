@@ -1,4 +1,4 @@
-import type { Dict } from '../../../../../utils/types';
+import type { Dict } from '../../../../../utils/types.js';
 
 let GL_TABLE: Dict<string> = null;
 

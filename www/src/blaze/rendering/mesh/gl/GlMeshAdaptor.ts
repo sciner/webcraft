@@ -1,9 +1,9 @@
-import { ExtensionType } from '../../../extensions/Extensions';
-import { colorToUniform } from '../../graphics/gpu/colorToUniform';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+import { colorToUniform } from '../../graphics/gpu/colorToUniform.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { MeshAdaptor, MeshPipe } from '../shared/MeshPipe';
-import type { MeshRenderable } from '../shared/MeshRenderable';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { MeshAdaptor, MeshPipe } from '../shared/MeshPipe.js';
+import type { MeshRenderable } from '../shared/MeshRenderable.js';
 
 export class GlMeshAdaptor implements MeshAdaptor
 {

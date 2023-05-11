@@ -1,7 +1,7 @@
-import { Rectangle } from './Rectangle';
+import { Rectangle } from './Rectangle.js';
 
-import type { SHAPE_PRIMITIVE } from '../const';
-import type { ShapePrimitive } from './ShapePrimitive';
+import type { SHAPE_PRIMITIVE } from '../const.js';
+import type { ShapePrimitive } from './ShapePrimitive.js';
 
 /**
  * The Circle object is used to help draw graphics and can also be used to specify a hit area for displayObjects.

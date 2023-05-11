@@ -1,7 +1,7 @@
-import { MaskEffectManager } from './MaskEffectManager';
+import { MaskEffectManager } from './MaskEffectManager.js';
 
-import type { PoolItem } from '../../../utils/pool/Pool';
-import type { Effect } from '../../scene/Effect';
+import type { PoolItem } from '../../../utils/pool/Pool.js';
+import type { Effect } from '../../scene/Effect.js';
 
 export class ColorMask implements Effect, PoolItem
 {

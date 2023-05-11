@@ -1,7 +1,7 @@
-import type { TextureSource } from '../../../shared/texture/sources/TextureSource';
-import type { GlRenderingContext } from '../../context/GlRenderingContext';
-import type { GlTexture } from '../GlTexture';
-import type { GLTextureUploader } from './GLTextureUploader';
+import type { TextureSource } from '../../../shared/texture/sources/TextureSource.js';
+import type { GlRenderingContext } from '../../context/GlRenderingContext.js';
+import type { GlTexture } from '../GlTexture.js';
+import type { GLTextureUploader } from './GLTextureUploader.js';
 
 export const glUploadImageResource = {
 

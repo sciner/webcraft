@@ -1,4 +1,4 @@
-import type { Runner } from '../../shared/runner/Runner';
+import type { Runner } from '../../shared/runner/Runner.js';
 
 /** an interface that allows a resource to be bound to the gpu in a bind group */
 export interface BindResource

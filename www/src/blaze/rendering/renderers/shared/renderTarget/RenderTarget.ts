@@ -1,10 +1,10 @@
 // what we are building is a platform and a framework.
 // import { Matrix } from '../../shared/maths/Matrix';
-import { Matrix } from '../../../../maths/Matrix';
-import { Rectangle } from '../../../../maths/shapes/Rectangle';
-import { calculateProjection } from '../../gpu/renderTarget/calculateProjection';
-import { TextureSource } from '../texture/sources/TextureSource';
-import { Texture } from '../texture/Texture';
+import { Matrix } from '../../../../maths/Matrix.js';
+import { Rectangle } from '../../../../maths/shapes/Rectangle.js';
+import { calculateProjection } from '../../gpu/renderTarget/calculateProjection.js';
+import { TextureSource } from '../texture/sources/TextureSource.js';
+import { Texture } from '../texture/Texture.js';
 
 export interface RenderTargetDescriptor
 {

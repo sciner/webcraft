@@ -1,11 +1,11 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { Runner } from '../runner/Runner';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { Runner } from '../runner/Runner.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { Renderer } from '../../types';
-import type { Renderable } from '../Renderable';
-import type { ISystem } from '../system/ISystem';
-import type { InstructionSet } from './InstructionSet';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { Renderer } from '../../types.js';
+import type { Renderable } from '../Renderable.js';
+import type { ISystem } from '../system/ISystem.js';
+import type { InstructionSet } from './InstructionSet.js';
 
 /**
  * The view system manages the main canvas that is attached to the DOM.

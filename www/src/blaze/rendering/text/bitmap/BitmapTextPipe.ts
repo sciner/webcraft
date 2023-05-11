@@ -1,18 +1,18 @@
-import { Cache } from '../../../assets/cache/Cache';
-import { ExtensionType } from '../../../extensions/Extensions';
-import { GraphicsContext } from '../../graphics/shared/GraphicsContext';
-import { GraphicsRenderable } from '../../graphics/shared/GraphicsRenderable';
-import { SdfShader } from '../sdfShader/SdfShader';
-import { BitmapFontManager } from './BitmapFontManager';
-import { getBitmapTextLayout } from './utils/getBitmapTextLayout';
+import { Cache } from '../../../assets/cache/Cache.js';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+import { GraphicsContext } from '../../graphics/shared/GraphicsContext.js';
+import { GraphicsRenderable } from '../../graphics/shared/GraphicsRenderable.js';
+import { SdfShader } from '../sdfShader/SdfShader.js';
+import { BitmapFontManager } from './BitmapFontManager.js';
+import { getBitmapTextLayout } from './utils/getBitmapTextLayout.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { GpuProgram } from '../../renderers/gpu/shader/GpuProgram';
-import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet';
-import type { RenderablePipe } from '../../renderers/shared/instructions/RenderPipe';
-import type { UniformGroup } from '../../renderers/shared/shader/UniformGroup';
-import type { Renderer } from '../../renderers/types';
-import type { TextRenderable } from '../TextRenderable';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { GpuProgram } from '../../renderers/gpu/shader/GpuProgram.js';
+import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet.js';
+import type { RenderablePipe } from '../../renderers/shared/instructions/RenderPipe.js';
+import type { UniformGroup } from '../../renderers/shared/shader/UniformGroup.js';
+import type { Renderer } from '../../renderers/types.js';
+import type { TextRenderable } from '../TextRenderable.js';
 
 export class BitmapTextPipe implements RenderablePipe<TextRenderable>
 {

@@ -1,8 +1,8 @@
 /* eslint-disable quote-props */
-import { WGSL_TO_STD40_SIZE } from './createUBOElements';
-import { uniformBufferParsers } from './uniformBufferParsers';
+import { WGSL_TO_STD40_SIZE } from './createUBOElements.js';
+import { uniformBufferParsers } from './uniformBufferParsers.js';
 
-import type { UBOElement } from './createUBOElements';
+import type { UBOElement } from './createUBOElements.js';
 
 export type UniformsSyncCallback = (...args: any[]) => void;
 

@@ -14,9 +14,9 @@
 //     codeUbo: (name, uniform) => {} <--- returns the string of the piece of code that uploads the
 //                                         uniform to a uniform buffer
 // }
-import type { Matrix } from '../../../../../maths/Matrix';
-import type { Rectangle } from '../../../../../maths/shapes/Rectangle';
-import type { UNIFORM_TYPES, UniformData } from './createUBOElements';
+import type { Matrix } from '../../../../../maths/Matrix.js';
+import type { Rectangle } from '../../../../../maths/shapes/Rectangle.js';
+import type { UNIFORM_TYPES, UniformData } from './createUBOElements.js';
 
 export interface UniformParser
 {

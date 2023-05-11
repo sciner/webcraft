@@ -1,16 +1,16 @@
-import { ExtensionType } from '../../../extensions/Extensions';
+import { ExtensionType } from '../../../extensions/Extensions.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { MaskFilter } from '../../filters/mask/MaskFilter';
-import type { Instruction } from '../../renderers/shared/instructions/Instruction';
-import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet';
-import type { InstructionGenerator, InstructionRunner } from '../../renderers/shared/instructions/RenderPipe';
-import type { RenderTarget } from '../../renderers/shared/renderTarget/RenderTarget';
-import type { Texture } from '../../renderers/shared/texture/Texture';
-import type { Renderer } from '../../renderers/types';
-import type { Container } from '../../scene/Container';
-import type { ColorMask } from './ColorMask';
-import type { StencilMask } from './StencilMask';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { MaskFilter } from '../../filters/mask/MaskFilter.js';
+import type { Instruction } from '../../renderers/shared/instructions/Instruction.js';
+import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet.js';
+import type { InstructionGenerator, InstructionRunner } from '../../renderers/shared/instructions/RenderPipe.js';
+import type { RenderTarget } from '../../renderers/shared/renderTarget/RenderTarget.js';
+import type { Texture } from '../../renderers/shared/texture/Texture.js';
+import type { Renderer } from '../../renderers/types.js';
+import type { Container } from '../../scene/Container.js';
+import type { ColorMask } from './ColorMask.js';
+import type { StencilMask } from './StencilMask.js';
 
 export interface ColorMaskInstruction extends Instruction
 {

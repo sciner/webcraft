@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import type { PointData } from './PointData';
-import type { PointLike } from './PointLike';
+import type { PointData } from './PointData.js';
+import type { PointLike } from './PointLike.js';
 
 /**
  * The Point object represents a location in a two-dimensional coordinate system, where `x` represents

@@ -1,12 +1,12 @@
-import { ExtensionType } from '../../extensions/Extensions';
+import { ExtensionType } from '../../extensions/Extensions.js';
 
-import type { ExtensionMetadata } from '../../extensions/Extensions';
-import type { InstructionSystem } from '../renderers/shared/instructions/InstructionSystem';
-import type { ISystem } from '../renderers/shared/system/ISystem';
-import type { BuilderSystem } from './BuilderSystem';
-import type { Container } from './Container';
-import type { RenderGroup } from './RenderGroup';
-import type { TransformSystem } from './TransformSystem';
+import type { ExtensionMetadata } from '../../extensions/Extensions.js';
+import type { InstructionSystem } from '../renderers/shared/instructions/InstructionSystem.js';
+import type { ISystem } from '../renderers/shared/system/ISystem.js';
+import type { BuilderSystem } from './BuilderSystem.js';
+import type { Container } from './Container.js';
+import type { RenderGroup } from './RenderGroup.js';
+import type { TransformSystem } from './TransformSystem.js';
 
 interface ContainerRenderer
 {

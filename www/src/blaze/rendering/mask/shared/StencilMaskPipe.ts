@@ -1,12 +1,12 @@
-import { ExtensionType } from '../../../extensions/Extensions';
-import { STENCIL_MODES } from '../../renderers/shared/state/const';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+import { STENCIL_MODES } from '../../renderers/shared/state/const.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { Instruction } from '../../renderers/shared/instructions/Instruction';
-import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet';
-import type { InstructionGenerator, InstructionRunner } from '../../renderers/shared/instructions/RenderPipe';
-import type { Renderer } from '../../renderers/types';
-import type { StencilMask } from './StencilMask';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { Instruction } from '../../renderers/shared/instructions/Instruction.js';
+import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet.js';
+import type { InstructionGenerator, InstructionRunner } from '../../renderers/shared/instructions/RenderPipe.js';
+import type { Renderer } from '../../renderers/types.js';
+import type { StencilMask } from './StencilMask.js';
 
 type MaskMode = 'pushMaskBegin' | 'pushMaskEnd' | 'popMaskBegin' | 'popMaskEnd';
 

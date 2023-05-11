@@ -1,5 +1,5 @@
-import type { ICanvas } from './ICanvas';
-import type { ICanvasRenderingContext2D } from './ICanvasRenderingContext2D';
+import type { ICanvas } from './ICanvas.js';
+import type { ICanvasRenderingContext2D } from './ICanvasRenderingContext2D.js';
 
 /**
  * This interface describes all the DOM dependent calls that Pixi makes throughout its codebase.

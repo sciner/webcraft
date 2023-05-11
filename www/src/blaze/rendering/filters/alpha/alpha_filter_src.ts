@@ -1,4 +1,8 @@
-struct GlobalUniforms {
+import {TrivialShaderSource} from "../renderers/shared/shader/TrivialShaderSource.js";
+
+export let alpha_filter_src = new TrivialShaderSource();
+
+alpha_filter_src.source = `struct GlobalUniforms {
   projectionMatrix:mat3x3<f32>,
   worldTransformMatrix:mat3x3<f32>,
   worldAlpha: f32
@@ -73,3 +77,4 @@ fn mainFragment(
 ) -> @location(0) vec4<f32> {
   return textureSample(iTexture, iSampler, uv) * alphaUniforms.uAlpha;
 }
+`;

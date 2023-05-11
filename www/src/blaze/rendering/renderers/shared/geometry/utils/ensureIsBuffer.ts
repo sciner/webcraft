@@ -1,7 +1,7 @@
-import { Buffer } from '../../buffer/Buffer';
-import { BufferUsage } from '../../buffer/const';
+import { Buffer } from '../../buffer/Buffer.js';
+import { BufferUsage } from '../../buffer/const.js';
 
-import type { TypedArray } from '../../buffer/Buffer';
+import type { TypedArray } from '../../buffer/Buffer.js';
 
 export function ensureIsBuffer(buffer: Buffer | TypedArray | number[], index: boolean): Buffer
 {

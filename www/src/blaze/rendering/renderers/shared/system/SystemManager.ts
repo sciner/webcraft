@@ -1,6 +1,6 @@
-import { Runner } from '../runner/Runner';
+import { Runner } from '../runner/Runner.js';
 
-import type { ISystem, ISystemConstructor } from './ISystem';
+import type { ISystem, ISystemConstructor } from './ISystem.js';
 
 interface ISystemConfig<R>
 {

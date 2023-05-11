@@ -1,8 +1,8 @@
-import { Container } from '../scene/Container';
-import { TextRenderable } from './TextRenderable';
+import { Container } from '../scene/Container.js';
+import { TextRenderable } from './TextRenderable.js';
 
-import type { TextOptions } from './TextRenderable';
-import type { TextStyle } from './TextStyle';
+import type { TextOptions } from './TextRenderable.js';
+import type { TextStyle } from './TextStyle.js';
 
 export class Text extends Container<TextRenderable>
 {

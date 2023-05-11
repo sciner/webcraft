@@ -1,5 +1,5 @@
-import type { SHAPE_PRIMITIVE } from '../const';
-import type { Rectangle } from './Rectangle';
+import type { SHAPE_PRIMITIVE } from '../const.js';
+import type { Rectangle } from './Rectangle.js';
 
 export interface ShapePrimitive
 {

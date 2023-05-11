@@ -1,7 +1,7 @@
-import { Matrix } from '../../../maths/Matrix';
+import { Matrix } from '../../../maths/Matrix.js';
 
-import type { Container } from '../Container';
-import type { Bounds } from './Bounds';
+import type { Container } from '../Container.js';
+import type { Bounds } from './Bounds.js';
 
 export function getLocalBounds(target: Container, matrix: Matrix, bounds: Bounds): Bounds
 {

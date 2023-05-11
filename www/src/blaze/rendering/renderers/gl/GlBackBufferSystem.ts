@@ -1,14 +1,14 @@
-import { ExtensionType } from '../../../extensions/Extensions';
-import { Shader } from '../shared/shader/Shader';
-import { State } from '../shared/state/State';
-import { TextureSource } from '../shared/texture/sources/TextureSource';
-import { Texture } from '../shared/texture/Texture';
-import { GlProgram } from './shader/GlProgram';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+import { Shader } from '../shared/shader/Shader.js';
+import { State } from '../shared/state/State.js';
+import { TextureSource } from '../shared/texture/sources/TextureSource.js';
+import { Texture } from '../shared/texture/Texture.js';
+import { GlProgram } from './shader/GlProgram.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { RenderSurface } from '../gpu/renderTarget/GpuRenderTargetSystem';
-import type { ISystem } from '../shared/system/ISystem';
-import type { WebGLRenderer } from './WebGLRenderer';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { RenderSurface } from '../gpu/renderTarget/GpuRenderTargetSystem.js';
+import type { ISystem } from '../shared/system/ISystem.js';
+import type { WebGLRenderer } from './WebGLRenderer.js';
 
 const bigTriangleProgram = new GlProgram({
     vertex: `

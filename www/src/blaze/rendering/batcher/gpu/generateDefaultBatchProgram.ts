@@ -1,7 +1,7 @@
-import { generateBatchProgram } from './generateBatchProgram';
+import { generateBatchProgram } from './generateBatchProgram.js';
 
-import type { GpuProgram } from '../../renderers/gpu/shader/GpuProgram';
-import {batcher_template_src} from "../batcher_template_src";
+import type { GpuProgram } from '../../renderers/gpu/shader/GpuProgram.js';
+import {batcher_template_src} from "../batcher_template_src.js";
 
 export function generateDefaultBatchProgram(maxTextures: number): GpuProgram
 {

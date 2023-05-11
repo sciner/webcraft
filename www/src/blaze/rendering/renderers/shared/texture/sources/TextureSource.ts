@@ -1,10 +1,10 @@
-import { Runner } from '../../runner/Runner';
-import { TextureStyle } from '../TextureStyle';
+import { Runner } from '../../runner/Runner.js';
+import { TextureStyle } from '../TextureStyle.js';
 
-import type { BindResource } from '../../../gpu/shader/BindResource';
-import type { TEXTURE_DIMENSIONS, TEXTURE_FORMATS, TEXTURE_VIEW_DIMENSIONS } from '../const';
-import type { BindableTexture } from '../Texture';
-import type { TextureStyleOptions } from '../TextureStyle';
+import type { BindResource } from '../../../gpu/shader/BindResource.js';
+import type { TEXTURE_DIMENSIONS, TEXTURE_FORMATS, TEXTURE_VIEW_DIMENSIONS } from '../const.js';
+import type { BindableTexture } from '../Texture.js';
+import type { TextureStyleOptions } from '../TextureStyle.js';
 
 let UID = 0;
 let RESOURCE_ID = 0;

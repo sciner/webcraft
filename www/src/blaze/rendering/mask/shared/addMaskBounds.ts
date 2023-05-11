@@ -1,7 +1,7 @@
-import { Matrix } from '../../../maths/Matrix';
-import { Bounds } from '../../scene/bounds/Bounds';
-import { getGlobalBounds } from '../../scene/bounds/getGlobalBounds';
-import { getLocalBounds, getMatrixRelativeToParent } from '../../scene/bounds/getLocalBounds';
+import { Matrix } from '../../../maths/Matrix.js';
+import { Bounds } from '../../scene/bounds/Bounds.js';
+import { getGlobalBounds } from '../../scene/bounds/getGlobalBounds.js';
+import { getLocalBounds, getMatrixRelativeToParent } from '../../scene/bounds/getLocalBounds.js';
 
 import type { Container } from '../../scene/Container';
 

@@ -1,13 +1,13 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { settings } from '../../../../settings/settings';
-import { getCanvasTexture } from '../texture/utils/getCanvasTexture';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { settings } from '../../../../settings/settings.js';
+import { getCanvasTexture } from '../texture/utils/getCanvasTexture.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { ICanvas } from '../../../../settings/adapter/ICanvas';
-import type { Renderer } from '../../types';
-import type { ISystem } from '../system/ISystem';
-import type { CanvasSourceOptions } from '../texture/sources/CanvasSource';
-import type { Texture } from '../texture/Texture';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { ICanvas } from '../../../../settings/adapter/ICanvas.js';
+import type { Renderer } from '../../types.js';
+import type { ISystem } from '../system/ISystem.js';
+import type { CanvasSourceOptions } from '../texture/sources/CanvasSource.js';
+import type { Texture } from '../texture/Texture.js';
 
 /**
  * Options passed to the ViewSystem

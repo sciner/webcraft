@@ -1,13 +1,13 @@
 import { ExtensionType } from '../../../../extensions/Extensions';
 import { getGlInfoFromFormat } from './utils/getGlInfoFromFormat';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { Topology } from '../../shared/geometry/const';
-import type { Geometry } from '../../shared/geometry/Geometry';
-import type { ISystem } from '../../shared/system/ISystem';
-import type { GlRenderingContext } from '../context/GlRenderingContext';
-import type { GlProgram } from '../shader/GlProgram';
-import type { WebGLRenderer } from '../WebGLRenderer';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { Topology } from '../../shared/geometry/const.js';
+import type { Geometry } from '../../shared/geometry/Geometry.js';
+import type { ISystem } from '../../shared/system/ISystem.js';
+import type { GlRenderingContext } from '../context/GlRenderingContext.js';
+import type { GlProgram } from '../shader/GlProgram.js';
+import type { WebGLRenderer } from '../WebGLRenderer.js';
 
 const byteSizeMap: {[key: number]: number} = { 5126: 4, 5123: 2, 5121: 1 };
 

@@ -1,7 +1,7 @@
-import type { BatchableObject } from '../../../batcher/shared/Batcher';
-import type { Renderable } from '../Renderable';
-import type { Instruction } from './Instruction';
-import type { InstructionSet } from './InstructionSet';
+import type { BatchableObject } from '../../../batcher/shared/Batcher.js';
+import type { Renderable } from '../Renderable.js';
+import type { Instruction } from './Instruction.js';
+import type { InstructionSet } from './InstructionSet.js';
 
 export interface InstructionRunner<INSTRUCTION extends Instruction>
 {

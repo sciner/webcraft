@@ -1,6 +1,6 @@
-import { BLEND_MODES } from '../../shared/state/const';
+import { BLEND_MODES } from '../../shared/state/const.js';
 
-import type { GlRenderingContext } from '../context/GlRenderingContext';
+import type { GlRenderingContext } from '../context/GlRenderingContext.js';
 
 /**
  * Maps gl blend combinations to WebGL.

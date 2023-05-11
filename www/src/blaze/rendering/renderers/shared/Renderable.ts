@@ -1,8 +1,8 @@
-import type { Matrix } from '../../../maths/Matrix';
-import type { Point } from '../../../maths/Point';
-import type { Bounds } from '../../scene/bounds/Bounds';
-import type { InstructionSet } from './instructions/InstructionSet';
-import type { BLEND_MODES } from './state/const';
+import type { Matrix } from '../../../maths/Matrix.js';
+import type { Point } from '../../../maths/Point.js';
+import type { Bounds } from '../../scene/bounds/Bounds.js';
+import type { InstructionSet } from './instructions/InstructionSet.js';
+import type { BLEND_MODES } from './state/const.js';
 
 export interface RenderableData
 {

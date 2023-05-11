@@ -1,4 +1,4 @@
-import type { Matrix } from '../../../../maths/Matrix';
+import type { Matrix } from '../../../../maths/Matrix.js';
 
 export function calculateProjection(
     pm: Matrix,

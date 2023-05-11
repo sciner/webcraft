@@ -1,8 +1,8 @@
-import { nextPow2 } from '../../../../maths/pow2';
-import { settings } from '../../../../settings/settings';
+import { nextPow2 } from '../../../../maths/pow2.js';
+import { settings } from '../../../../settings/settings.js';
 
-import type { ICanvas, ICanvasRenderingContext2DSettings } from '../../../../settings/adapter/ICanvas';
-import type { ICanvasRenderingContext2D } from '../../../../settings/adapter/ICanvasRenderingContext2D';
+import type { ICanvas, ICanvasRenderingContext2DSettings } from '../../../../settings/adapter/ICanvas.js';
+import type { ICanvasRenderingContext2D } from '../../../../settings/adapter/ICanvasRenderingContext2D.js';
 
 export interface CanvasAndContext
 {

@@ -1,21 +1,21 @@
-import { ExtensionType } from '../../../extensions/Extensions';
-import { convertColorToNumber } from '../../../utils/color/convertColorToNumber';
-import { hex2rgb } from '../../../utils/color/hex';
-import { CanvasPool } from '../../renderers/shared/texture/CanvasPool';
-import { Bounds } from '../../scene/bounds/Bounds';
-import { CanvasTextMetrics } from './CanvasTextMetrics';
-import { fontStringFromTextStyle } from './utils/fontStringFromTextStyle';
-import { getCanvasFillStyle } from './utils/getCanvasFillStyle';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+import { convertColorToNumber } from '../../../utils/color/convertColorToNumber.js';
+import { hex2rgb } from '../../../utils/color/hex.js';
+import { CanvasPool } from '../../renderers/shared/texture/CanvasPool.js';
+import { Bounds } from '../../scene/bounds/Bounds.js';
+import { CanvasTextMetrics } from './CanvasTextMetrics.js';
+import { fontStringFromTextStyle } from './utils/fontStringFromTextStyle.js';
+import { getCanvasFillStyle } from './utils/getCanvasFillStyle.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { ICanvas } from '../../../settings/adapter/ICanvas';
-import type { ICanvasRenderingContext2D } from '../../../settings/adapter/ICanvasRenderingContext2D';
-import type { StrokeStyle } from '../../graphics/shared/GraphicsContext';
-import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet';
-import type { ISystem } from '../../renderers/shared/system/ISystem';
-import type { Texture } from '../../renderers/shared/texture/Texture';
-import type { Renderer } from '../../renderers/types';
-import type { TextStyle } from '../TextStyle';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { ICanvas } from '../../../settings/adapter/ICanvas.js';
+import type { ICanvasRenderingContext2D } from '../../../settings/adapter/ICanvasRenderingContext2D.js';
+import type { StrokeStyle } from '../../graphics/shared/GraphicsContext.js';
+import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet.js';
+import type { ISystem } from '../../renderers/shared/system/ISystem.js';
+import type { Texture } from '../../renderers/shared/texture/Texture.js';
+import type { Renderer } from '../../renderers/types.js';
+import type { TextStyle } from '../TextStyle.js';
 
 interface CanvasAndContext
 {

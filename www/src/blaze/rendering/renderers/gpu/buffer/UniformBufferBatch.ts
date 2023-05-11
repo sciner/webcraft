@@ -1,4 +1,4 @@
-import type { Buffer } from '../../shared/buffer/Buffer';
+import type { Buffer } from '../../shared/buffer/Buffer.js';
 
 export class UniformBufferBatch
 {

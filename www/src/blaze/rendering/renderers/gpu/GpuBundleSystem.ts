@@ -1,9 +1,9 @@
-import { ExtensionType } from '../../../extensions/Extensions';
+import { ExtensionType } from '../../../extensions/Extensions.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { InstructionSet } from '../shared/instructions/InstructionSet';
-import type { ISystem } from '../shared/system/ISystem';
-import type { WebGPURenderer } from './WebGPURenderer';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { InstructionSet } from '../shared/instructions/InstructionSet.js';
+import type { ISystem } from '../shared/system/ISystem.js';
+import type { WebGPURenderer } from './WebGPURenderer.js';
 
 const BUNDLE = true;
 /**

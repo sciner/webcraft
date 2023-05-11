@@ -1,6 +1,6 @@
-import type { TextureSource } from '../../../shared/texture/sources/TextureSource';
-import type { GlRenderingContext } from '../../context/GlRenderingContext';
-import type { GlTexture } from '../GlTexture';
+import type { TextureSource } from '../../../shared/texture/sources/TextureSource.js';
+import type { GlRenderingContext } from '../../context/GlRenderingContext.js';
+import type { GlTexture } from '../GlTexture.js';
 
 export interface GLTextureUploader
 {

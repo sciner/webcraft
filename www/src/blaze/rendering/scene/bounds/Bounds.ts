@@ -1,5 +1,5 @@
-import { Matrix } from '../../../maths/Matrix';
-import { Rectangle } from '../../../maths/shapes/Rectangle';
+import { Matrix } from '../../../maths/Matrix.js';
+import { Rectangle } from '../../../maths/shapes/Rectangle.js';
 
 // TODO optimisations
 // 1 - setMatrix could set a reference directly, this would save a copy op per object

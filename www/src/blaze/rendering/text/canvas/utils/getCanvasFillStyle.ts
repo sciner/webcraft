@@ -1,11 +1,11 @@
-import { Matrix } from '../../../../maths/Matrix';
-import { convertNumberToHex } from '../../../../utils/color/convertNumberToHex';
-import { FillGradient } from '../../../graphics/shared/fill/FillGradient';
-import { FillPattern } from '../../../graphics/shared/fill/FillPattern';
-import { Texture } from '../../../renderers/shared/texture/Texture';
+import { Matrix } from '../../../../maths/Matrix.js';
+import { convertNumberToHex } from '../../../../utils/color/convertNumberToHex.js';
+import { FillGradient } from '../../../graphics/shared/fill/FillGradient.js';
+import { FillPattern } from '../../../graphics/shared/fill/FillPattern.js';
+import { Texture } from '../../../renderers/shared/texture/Texture.js';
 
-import type { ICanvasRenderingContext2D } from '../../../../settings/adapter/ICanvasRenderingContext2D';
-import type { FillStyle } from '../../../graphics/shared/GraphicsContext';
+import type { ICanvasRenderingContext2D } from '../../../../settings/adapter/ICanvasRenderingContext2D.js';
+import type { FillStyle } from '../../../graphics/shared/GraphicsContext.js';
 
 export function getCanvasFillStyle(
     fillStyle: FillStyle,

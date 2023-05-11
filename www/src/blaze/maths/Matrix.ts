@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { PI_2 } from './const';
-import { Point } from './Point';
+import { PI_2 } from './const.js';
+import { Point } from './Point.js';
 
-import type { Transform } from '../utils/Transform';
-import type { PointData } from './PointData';
+import type { Transform } from '../utils/Transform.js';
+import type { PointData } from './PointData.js';
 
 /**
  * The PixiJS Matrix as a class makes it a lot faster.

@@ -1,7 +1,7 @@
-import { ShaderStage } from '../../shared/shader/const';
+import { ShaderStage } from '../../shared/shader/const.js';
 
-import type { StructsAndGroups } from './extractStructAndGroups';
-import type { ProgramPipelineLayoutDescription } from './GpuProgram';
+import type { StructsAndGroups } from './extractStructAndGroups.js';
+import type { ProgramPipelineLayoutDescription } from './GpuProgram.js';
 
 export function generateGpuLayoutGroups({ groups }: StructsAndGroups): ProgramPipelineLayoutDescription
 {

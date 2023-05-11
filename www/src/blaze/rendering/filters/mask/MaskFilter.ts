@@ -1,14 +1,14 @@
-import { Matrix } from '../../../maths/Matrix';
-import { GlProgram } from '../../renderers/gl/shader/GlProgram';
-import { GpuProgram } from '../../renderers/gpu/shader/GpuProgram';
-import { UniformGroup } from '../../renderers/shared/shader/UniformGroup';
-import { TextureMatrix } from '../../renderers/shared/texture/TextureMatrix';
+import { Matrix } from '../../../maths/Matrix.js';
+import { GlProgram } from '../../renderers/gl/shader/GlProgram.js';
+import { GpuProgram } from '../../renderers/gpu/shader/GpuProgram.js';
+import { UniformGroup } from '../../renderers/shared/shader/UniformGroup.js';
+import { TextureMatrix } from '../../renderers/shared/texture/TextureMatrix.js';
 import { Filter } from '../Filter';
 
 import { mask_filter_src } from './mask_filter_src.js';
-import type { Texture } from '../../renderers/shared/texture/Texture';
-import type { Sprite } from '../../sprite/shared/Sprite';
-import type { FilterPipe } from '../shared/FilterPipe';
+import type { Texture } from '../../renderers/shared/texture/Texture.js';
+import type { Sprite } from '../../sprite/shared/Sprite.js';
+import type { FilterPipe } from '../shared/FilterPipe.js';
 
 export interface MaskFilterOptions
 {

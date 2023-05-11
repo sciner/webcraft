@@ -1,7 +1,7 @@
-import { generateUID } from '../texture/utils/generateUID';
+import { generateUID } from '../texture/utils/generateUID.js';
 
-import type { BindResource } from '../../gpu/shader/BindResource';
-import type { Buffer } from './Buffer';
+import type { BindResource } from '../../gpu/shader/BindResource.js';
+import type { Buffer } from './Buffer.js';
 
 export class BufferResource implements BindResource
 {

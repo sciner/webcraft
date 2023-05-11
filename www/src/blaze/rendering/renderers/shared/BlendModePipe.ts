@@ -1,36 +1,36 @@
-import { ExtensionType } from '../../../extensions/Extensions';
-import { ColorBlend } from '../../filters/blend-modes/ColorBlend';
-import { ColorBurnBlend } from '../../filters/blend-modes/ColorBurnBlend';
-import { ColorDodgeBlend } from '../../filters/blend-modes/ColorDodgeBlend';
-import { DarkenBlend } from '../../filters/blend-modes/DarkenBlend';
-import { DifferenceBlend } from '../../filters/blend-modes/DifferenceBlend';
-import { DivideBlend } from '../../filters/blend-modes/DivideBlend';
-import { ExclusionBlend } from '../../filters/blend-modes/ExclusionBlend';
-import { HardLightBlend } from '../../filters/blend-modes/HardLightBlend';
-import { HardMixBlend } from '../../filters/blend-modes/HardMixBlend';
-import { LightenBlend } from '../../filters/blend-modes/LightenBlend';
-import { LinearBurnBlend } from '../../filters/blend-modes/LinearBurnBlend';
-import { LinearDodgeBlend } from '../../filters/blend-modes/LinearDodgeBlend';
-import { LinearLightBlend } from '../../filters/blend-modes/LinearLightBlend';
-import { LuminosityBlend } from '../../filters/blend-modes/LuminosityBlend';
-import { NegationBlend } from '../../filters/blend-modes/NegationBlend';
-import { OverlayBlend } from '../../filters/blend-modes/OverlayBlend';
-import { PinLightBlend } from '../../filters/blend-modes/PinLightBlend';
-import { SaturationBlend } from '../../filters/blend-modes/SaturationBlend';
-import { SoftLightBlend } from '../../filters/blend-modes/SoftLightBlend';
-import { SubtractBlend } from '../../filters/blend-modes/SubtractBlend';
-import { VividLightBlend } from '../../filters/blend-modes/VividLightBlend';
-import { FilterEffect } from '../../filters/FilterEffect';
-import { BLEND_MODES } from './state/const';
-import { State } from './state/State';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+// import { ColorBlend } from '../../filters/blend-modes/ColorBlend';
+// import { ColorBurnBlend } from '../../filters/blend-modes/ColorBurnBlend';
+// import { ColorDodgeBlend } from '../../filters/blend-modes/ColorDodgeBlend';
+// import { DarkenBlend } from '../../filters/blend-modes/DarkenBlend';
+// import { DifferenceBlend } from '../../filters/blend-modes/DifferenceBlend';
+// import { DivideBlend } from '../../filters/blend-modes/DivideBlend';
+// import { ExclusionBlend } from '../../filters/blend-modes/ExclusionBlend';
+// import { HardLightBlend } from '../../filters/blend-modes/HardLightBlend';
+// import { HardMixBlend } from '../../filters/blend-modes/HardMixBlend';
+// import { LightenBlend } from '../../filters/blend-modes/LightenBlend';
+// import { LinearBurnBlend } from '../../filters/blend-modes/LinearBurnBlend';
+// import { LinearDodgeBlend } from '../../filters/blend-modes/LinearDodgeBlend';
+// import { LinearLightBlend } from '../../filters/blend-modes/LinearLightBlend';
+// import { LuminosityBlend } from '../../filters/blend-modes/LuminosityBlend';
+// import { NegationBlend } from '../../filters/blend-modes/NegationBlend';
+// import { OverlayBlend } from '../../filters/blend-modes/OverlayBlend';
+// import { PinLightBlend } from '../../filters/blend-modes/PinLightBlend';
+// import { SaturationBlend } from '../../filters/blend-modes/SaturationBlend';
+// import { SoftLightBlend } from '../../filters/blend-modes/SoftLightBlend';
+// import { SubtractBlend } from '../../filters/blend-modes/SubtractBlend';
+// import { VividLightBlend } from '../../filters/blend-modes/VividLightBlend';
+import { FilterEffect } from '../../filters/FilterEffect.js';
+import { BLEND_MODES } from './state/const.js';
+import { State } from './state/State.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { FilterInstruction } from '../../filters/shared/FilterPipe';
-import type { Renderer } from '../types';
-import type { Instruction } from './instructions/Instruction';
-import type { InstructionSet } from './instructions/InstructionSet';
-import type { InstructionGenerator, InstructionRunner } from './instructions/RenderPipe';
-import type { Renderable } from './Renderable';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { FilterInstruction } from '../../filters/shared/FilterPipe.js';
+import type { Renderer } from '../types.js';
+import type { Instruction } from './instructions/Instruction.js';
+import type { InstructionSet } from './instructions/InstructionSet.js';
+import type { InstructionGenerator, InstructionRunner } from './instructions/RenderPipe.js';
+import type { Renderable } from './Renderable.js';
 
 export interface AdvancedBlendInstruction extends Instruction
 {
@@ -39,30 +39,6 @@ export interface AdvancedBlendInstruction extends Instruction
     activeBlend: Renderable[],
 }
 
-// class map
-const BLEND_MODE_FILTERS = {
-    [BLEND_MODES.COLOR]: ColorBlend,
-    [BLEND_MODES.COLOR_BURN]: ColorBurnBlend,
-    [BLEND_MODES.COLOR_DODGE]: ColorDodgeBlend,
-    [BLEND_MODES.DARKEN]: DarkenBlend,
-    [BLEND_MODES.DIFFERENCE]: DifferenceBlend,
-    [BLEND_MODES.DIVIDE]: DivideBlend,
-    [BLEND_MODES.EXCLUSION]: ExclusionBlend,
-    [BLEND_MODES.HARD_LIGHT]: HardLightBlend,
-    [BLEND_MODES.HARD_MIX]: HardMixBlend,
-    [BLEND_MODES.LIGHTEN]: LightenBlend,
-    [BLEND_MODES.LINEAR_BURN]: LinearBurnBlend,
-    [BLEND_MODES.LINEAR_DODGE]: LinearDodgeBlend,
-    [BLEND_MODES.LINEAR_LIGHT]: LinearLightBlend,
-    [BLEND_MODES.LUMINOSITY]: LuminosityBlend,
-    [BLEND_MODES.NEGATION]: NegationBlend,
-    [BLEND_MODES.OVERLAY]: OverlayBlend,
-    [BLEND_MODES.PIN_LIGHT]: PinLightBlend,
-    [BLEND_MODES.SATURATION]: SaturationBlend,
-    [BLEND_MODES.SOFT_LIGHT]: SoftLightBlend,
-    [BLEND_MODES.SUBTRACT]: SubtractBlend,
-    [BLEND_MODES.VIVID_LIGHT]: VividLightBlend,
-} as const;
 
 export class BlendModePipe implements InstructionRunner<AdvancedBlendInstruction>, InstructionGenerator
 {

@@ -1,13 +1,13 @@
-import { ObservablePoint } from '../../../maths/ObservablePoint';
-import { Point } from '../../../maths/Point';
-import { NOOP } from '../../../utils/NOOP';
+import { ObservablePoint } from '../../../maths/ObservablePoint.js';
+import { Point } from '../../../maths/Point.js';
+import { NOOP } from '../../../utils/NOOP.js';
 
-import type { Matrix } from '../../../maths/Matrix';
-import type { PointData } from '../../../maths/PointData';
-import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet';
-import type { Renderable, RenderableData } from '../../renderers/shared/Renderable';
-import type { Texture } from '../../renderers/shared/texture/Texture';
-import type { Bounds } from '../../scene/bounds/Bounds';
+import type { Matrix } from '../../../maths/Matrix.js';
+import type { PointData } from '../../../maths/PointData.js';
+import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet.js';
+import type { Renderable, RenderableData } from '../../renderers/shared/Renderable.js';
+import type { Texture } from '../../renderers/shared/texture/Texture.js';
+import type { Bounds } from '../../scene/bounds/Bounds.js';
 
 let uid = 0;
 

@@ -1,4 +1,4 @@
-import type { WebGPURenderer } from '../../gpu/WebGPURenderer';
+import type { WebGPURenderer } from '../../gpu/WebGPURenderer.js';
 
 export interface ISystem<INIT_OPTIONS = null, DESTROY_OPTIONS = null>
 {

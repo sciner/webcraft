@@ -1,15 +1,15 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { UniformBufferBatch } from '../../gpu/buffer/UniformBufferBatch';
-import { BindGroup } from '../../gpu/shader/BindGroup';
-import { Buffer } from '../buffer/Buffer';
-import { BufferResource } from '../buffer/BufferResource';
-import { BufferUsage } from '../buffer/const';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { UniformBufferBatch } from '../../gpu/buffer/UniformBufferBatch.js';
+import { BindGroup } from '../../gpu/shader/BindGroup.js';
+import { Buffer } from '../buffer/Buffer.js';
+import { BufferResource } from '../buffer/BufferResource.js';
+import { BufferUsage } from '../buffer/const.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { WebGPURenderer } from '../../gpu/WebGPURenderer';
-import type { UniformGroup } from '../shader/UniformGroup';
-import type { Instruction } from './Instruction';
-import type { InstructionGenerator } from './RenderPipe';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { WebGPURenderer } from '../../gpu/WebGPURenderer.js';
+import type { UniformGroup } from '../shader/UniformGroup.js';
+import type { Instruction } from './Instruction.js';
+import type { InstructionGenerator } from './RenderPipe.js';
 
 export interface UniformInstruction extends Instruction
 {

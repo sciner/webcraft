@@ -1,10 +1,10 @@
-import { Rectangle } from '../maths/shapes/Rectangle';
-import { Texture } from '../rendering/renderers/shared/texture/Texture';
+import { Rectangle } from '../maths/shapes/Rectangle.js';
+import { Texture } from '../rendering/renderers/shared/texture/Texture.js';
 
-import type { PointData } from '../maths/PointData';
-import type { TextureSource } from '../rendering/renderers/shared/texture/sources/TextureSource';
-import type { BindableTexture } from '../rendering/renderers/shared/texture/Texture';
-import type { Dict } from '../utils/types';
+import type { PointData } from '../maths/PointData.js';
+import type { TextureSource } from '../rendering/renderers/shared/texture/sources/TextureSource.js';
+import type { BindableTexture } from '../rendering/renderers/shared/texture/Texture.js';
+import type { Dict } from '../utils/types.js';
 
 /**
  * Represents the JSON data for a spritesheet atlas.

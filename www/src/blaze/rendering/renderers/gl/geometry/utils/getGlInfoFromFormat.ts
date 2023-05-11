@@ -1,6 +1,6 @@
-import { GL_TYPES } from '../../texture/const';
+import { GL_TYPES } from '../../texture/const.js';
 
-import type { VertexFormat } from '../../../shared/geometry/Geometry';
+import type { VertexFormat } from '../../../shared/geometry/Geometry.js';
 
 const infoMap = {
     uint8x2: { type: GL_TYPES.UNSIGNED_BYTE, size: 2, normalised: false },

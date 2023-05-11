@@ -1,16 +1,16 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { createIdFromString } from '../../shared/createIdFromString';
-import { STENCIL_MODES } from '../../shared/state/const';
-import { GpuStencilModesToPixi } from '../state/GpuStencilModesToPixi';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { createIdFromString } from '../../shared/createIdFromString.js';
+import { STENCIL_MODES } from '../../shared/state/const.js';
+import { GpuStencilModesToPixi } from '../state/GpuStencilModesToPixi.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { Topology } from '../../shared/geometry/const';
-import type { Geometry } from '../../shared/geometry/Geometry';
-import type { State } from '../../shared/state/State';
-import type { ISystem } from '../../shared/system/ISystem';
-import type { GPU } from '../GpuDeviceSystem';
-import type { GpuProgram } from '../shader/GpuProgram';
-import type { WebGPURenderer } from '../WebGPURenderer';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { Topology } from '../../shared/geometry/const.js';
+import type { Geometry } from '../../shared/geometry/Geometry.js';
+import type { State } from '../../shared/state/State.js';
+import type { ISystem } from '../../shared/system/ISystem.js';
+import type { GPU } from '../GpuDeviceSystem.js';
+import type { GpuProgram } from '../shader/GpuProgram.js';
+import type { WebGPURenderer } from '../WebGPURenderer.js';
 
 const topologyStringToId = {
     'point-list': 0,

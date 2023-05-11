@@ -1,14 +1,14 @@
-import { ExtensionType } from '../../../extensions/Extensions';
-import { Bounds } from '../../scene/bounds/Bounds';
-import { getGlobalBounds } from '../../scene/bounds/getGlobalBounds';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+import { Bounds } from '../../scene/bounds/Bounds.js';
+import { getGlobalBounds } from '../../scene/bounds/getGlobalBounds.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { WebGPURenderer } from '../../renderers/gpu/WebGPURenderer';
-import type { Instruction } from '../../renderers/shared/instructions/Instruction';
-import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet';
-import type { InstructionGenerator, InstructionRunner } from '../../renderers/shared/instructions/RenderPipe';
-import type { AlphaMask } from '../shared/AlphaMask';
-import type { ScissorMask } from '../shared/ScissorMask';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { WebGPURenderer } from '../../renderers/gpu/WebGPURenderer.js';
+import type { Instruction } from '../../renderers/shared/instructions/Instruction.js';
+import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet.js';
+import type { InstructionGenerator, InstructionRunner } from '../../renderers/shared/instructions/RenderPipe.js';
+import type { AlphaMask } from '../shared/AlphaMask.js';
+import type { ScissorMask } from '../shared/ScissorMask.js';
 
 type MaskMode = 'pushMaskBegin' | 'pushMaskEnd' | 'popMaskBegin' | 'popMaskEnd';
 

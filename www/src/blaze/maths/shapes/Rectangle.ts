@@ -1,9 +1,9 @@
 // import { SHAPES } from '../const';
-import { Point } from '../Point';
+import { Point } from '../Point.js';
 
-import type { SHAPE_PRIMITIVE } from '../const';
-import type { Matrix } from '../Matrix';
-import type { ShapePrimitive } from './ShapePrimitive';
+import type { SHAPE_PRIMITIVE } from '../const.js';
+import type { Matrix } from '../Matrix.js';
+import type { ShapePrimitive } from './ShapePrimitive.js';
 
 const tempPoints = [new Point(), new Point(), new Point(), new Point()];
 

@@ -1,20 +1,20 @@
-import { Rectangle } from '../../../maths/shapes/Rectangle';
-import { convertColorToNumber } from '../../../utils/color/convertColorToNumber';
-import { hex2rgb } from '../../../utils/color/hex';
-import { Runner } from '../../renderers/shared/runner/Runner';
-import { CanvasPool } from '../../renderers/shared/texture/CanvasPool';
-import { ImageSource } from '../../renderers/shared/texture/sources/ImageSource';
-import { Texture } from '../../renderers/shared/texture/Texture';
-import { CanvasTextMetrics } from '../canvas/CanvasTextMetrics';
-import { fontStringFromTextStyle } from '../canvas/utils/fontStringFromTextStyle';
-import { getCanvasFillStyle } from '../canvas/utils/getCanvasFillStyle';
-import { TextStyle } from '../TextStyle';
-import { resolveCharacters } from './utils/resolveCharacters';
+import { Rectangle } from '../../../maths/shapes/Rectangle.js';
+import { convertColorToNumber } from '../../../utils/color/convertColorToNumber.js';
+import { hex2rgb } from '../../../utils/color/hex.js';
+import { Runner } from '../../renderers/shared/runner/Runner.js';
+import { CanvasPool } from '../../renderers/shared/texture/CanvasPool.js';
+import { ImageSource } from '../../renderers/shared/texture/sources/ImageSource.js';
+import { Texture } from '../../renderers/shared/texture/Texture.js';
+import { CanvasTextMetrics } from '../canvas/CanvasTextMetrics.js';
+import { fontStringFromTextStyle } from '../canvas/utils/fontStringFromTextStyle.js';
+import { getCanvasFillStyle } from '../canvas/utils/getCanvasFillStyle.js';
+import { TextStyle } from '../TextStyle.js';
+import { resolveCharacters } from './utils/resolveCharacters.js';
 
-import type { ICanvasRenderingContext2D } from '../../../settings/adapter/ICanvasRenderingContext2D';
-import type { CanvasAndContext } from '../../renderers/shared/texture/CanvasPool';
-import type { FontMetrics } from '../canvas/CanvasTextMetrics';
-import type { CharData } from './BitmapFont';
+import type { ICanvasRenderingContext2D } from '../../../settings/adapter/ICanvasRenderingContext2D.js';
+import type { CanvasAndContext } from '../../renderers/shared/texture/CanvasPool.js';
+import type { FontMetrics } from '../canvas/CanvasTextMetrics.js';
+import type { CharData } from './BitmapFont.js';
 
 export interface DynamicBitmapFontOptions
 {

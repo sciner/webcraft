@@ -1,11 +1,11 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { State } from '../../shared/state/State';
-import { GpuBlendModesToPixi } from './GpuBlendModesToPixi';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { State } from '../../shared/state/State.js';
+import { GpuBlendModesToPixi } from './GpuBlendModesToPixi.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { BLEND_MODES } from '../../shared/state/const';
-import type { ISystem } from '../../shared/system/ISystem';
-import type { GPU } from '../GpuDeviceSystem';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { BLEND_MODES } from '../../shared/state/const.js';
+import type { ISystem } from '../../shared/system/ISystem.js';
+import type { GPU } from '../GpuDeviceSystem.js';
 
 /** System plugin to the renderer to manage WebGL state machines. */
 export class GpuStateSystem implements ISystem

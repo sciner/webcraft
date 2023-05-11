@@ -1,15 +1,15 @@
-import { ExtensionType } from '../../../extensions/Extensions';
-import { Matrix } from '../../../maths/Matrix';
-import { batchSamplersUniformGroup } from '../../renderers/gl/shader/batchSamplersUniformGroup';
-import { Shader } from '../../renderers/shared/shader/Shader';
-import { UniformGroup } from '../../renderers/shared/shader/UniformGroup';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+import { Matrix } from '../../../maths/Matrix.js';
+import { batchSamplersUniformGroup } from '../../renderers/gl/shader/batchSamplersUniformGroup.js';
+import { Shader } from '../../renderers/shared/shader/Shader.js';
+import { UniformGroup } from '../../renderers/shared/shader/UniformGroup.js';
 import { MAX_TEXTURES } from '../shared/const';
-import { generateDefaultBatchGlProgram } from './generateDefaultBatchGlProgram';
+import { generateDefaultBatchGlProgram } from './generateDefaultBatchGlProgram.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { WebGLRenderer } from '../../renderers/gl/WebGLRenderer';
-import type { Batch } from '../shared/Batcher';
-import type { BatcherAdaptor, BatcherPipe } from '../shared/BatcherPipe';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { WebGLRenderer } from '../../renderers/gl/WebGLRenderer.js';
+import type { Batch } from '../shared/Batcher.js';
+import type { BatcherAdaptor, BatcherPipe } from '../shared/BatcherPipe.js';
 
 export class GlBatchAdaptor implements BatcherAdaptor
 {

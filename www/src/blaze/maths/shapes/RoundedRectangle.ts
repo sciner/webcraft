@@ -1,5 +1,5 @@
-import type { Rectangle } from './Rectangle';
-import type { ShapePrimitive } from './ShapePrimitive';
+import type { Rectangle } from './Rectangle.js';
+import type { ShapePrimitive } from './ShapePrimitive.js';
 
 /**
  * The Rounded Rectangle object is an area that has nice rounded corners, as indicated by its

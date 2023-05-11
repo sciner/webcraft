@@ -1,8 +1,8 @@
-import { BindGroup } from '../../renderers/gpu/shader/BindGroup';
-import { Texture } from '../../renderers/shared/texture/Texture';
-import { MAX_TEXTURES } from '../shared/const';
+import { BindGroup } from '../../renderers/gpu/shader/BindGroup.js';
+import { Texture } from '../../renderers/shared/texture/Texture.js';
+import { MAX_TEXTURES } from '../shared/const.js';
 
-import type { BindableTexture } from '../../renderers/shared/texture/Texture';
+import type { BindableTexture } from '../../renderers/shared/texture/Texture.js';
 
 const cachedGroups: Record<string, BindGroup> = {};
 

@@ -1,11 +1,11 @@
-import { Shader } from '../renderers/shared/shader/Shader';
-import { BLEND_MODES } from '../renderers/shared/state/const';
-import { State } from '../renderers/shared/state/State';
+import { Shader } from '../renderers/shared/shader/Shader.js';
+import { BLEND_MODES } from '../renderers/shared/state/const.js';
+import { State } from '../renderers/shared/state/State.js';
 
-import type { RenderSurface } from '../renderers/gpu/renderTarget/GpuRenderTargetSystem';
-import type { ShaderWithResourcesDescriptor } from '../renderers/shared/shader/Shader';
-import type { Texture } from '../renderers/shared/texture/Texture';
-import type { FilterPipe } from './shared/FilterPipe';
+import type { RenderSurface } from '../renderers/gpu/renderTarget/GpuRenderTargetSystem.js';
+import type { ShaderWithResourcesDescriptor } from '../renderers/shared/shader/Shader.js';
+import type { Texture } from '../renderers/shared/texture/Texture.js';
+import type { FilterPipe } from './shared/FilterPipe.js';
 
 export interface FilterOptions extends ShaderWithResourcesDescriptor
 {

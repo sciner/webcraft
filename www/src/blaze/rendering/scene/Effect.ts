@@ -1,6 +1,6 @@
-import type { PointData } from '../../maths/PointData';
-import type { Bounds } from './bounds/Bounds';
-import type { Container } from './Container';
+import type { PointData } from '../../maths/PointData.js';
+import type { Bounds } from './bounds/Bounds.js';
+import type { Container } from './Container.js';
 
 export interface Effect
 {

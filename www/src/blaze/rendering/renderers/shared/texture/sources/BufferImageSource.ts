@@ -1,7 +1,7 @@
-import { TextureSource } from './TextureSource';
+import { TextureSource } from './TextureSource.js';
 
-import type { TypedArray } from '../../buffer/Buffer';
-import type { TextureSourceOptions } from './TextureSource';
+import type { TypedArray } from '../../buffer/Buffer.js';
+import type { TextureSourceOptions } from './TextureSource.js';
 
 export interface BufferSourceOptions extends TextureSourceOptions<Buffer>
 {

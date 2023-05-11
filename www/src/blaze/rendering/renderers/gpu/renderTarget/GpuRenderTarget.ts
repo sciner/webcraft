@@ -1,4 +1,4 @@
-import type { TextureSource } from '../../shared/texture/sources/TextureSource';
+import type { TextureSource } from '../../shared/texture/sources/TextureSource.js';
 
 export class GpuRenderTarget
 {

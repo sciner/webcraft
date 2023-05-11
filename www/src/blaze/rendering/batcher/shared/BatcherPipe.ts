@@ -1,14 +1,14 @@
-import { ExtensionType } from '../../../extensions/Extensions';
-import { State } from '../../renderers/shared/state/State';
-import { getBatchedGeometry } from '../gpu/getBatchedGeometry';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+import { State } from '../../renderers/shared/state/State.js';
+import { getBatchedGeometry } from '../gpu/getBatchedGeometry.js';
 import { Batcher } from './Batcher';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { Geometry } from '../../renderers/shared/geometry/Geometry';
-import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet';
-import type { BatchPipe, InstructionGenerator, InstructionRunner } from '../../renderers/shared/instructions/RenderPipe';
-import type { Renderer } from '../../renderers/types';
-import type { Batch, BatchableObject } from './Batcher';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { Geometry } from '../../renderers/shared/geometry/Geometry.js';
+import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet.js';
+import type { BatchPipe, InstructionGenerator, InstructionRunner } from '../../renderers/shared/instructions/RenderPipe.js';
+import type { Renderer } from '../../renderers/types.js';
+import type { Batch, BatchableObject } from './Batcher.js';
 
 export interface BatcherAdaptor
 {

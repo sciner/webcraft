@@ -1,9 +1,9 @@
-import { extractStructAndGroups } from './extractStructAndGroups';
-import { generateGpuLayoutGroups } from './generateGpuLayoutGroups';
-import { generateLayoutHash } from './generateLayoutHash';
+import { extractStructAndGroups } from './extractStructAndGroups.js';
+import { generateGpuLayoutGroups } from './generateGpuLayoutGroups.js';
+import { generateLayoutHash } from './generateLayoutHash.js';
 
-import type { ProgramLayout, ProgramPipelineLayoutDescription } from '../../gl/shader/GlProgram';
-import type { StructsAndGroups } from './extractStructAndGroups';
+import type { ProgramLayout, ProgramPipelineLayoutDescription } from '../../gl/shader/GlProgram.js';
+import type { StructsAndGroups } from './extractStructAndGroups.js';
 
 export interface ProgramSource
 {

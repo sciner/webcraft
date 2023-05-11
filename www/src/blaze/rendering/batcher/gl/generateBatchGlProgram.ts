@@ -1,4 +1,4 @@
-import { GlProgram } from '../../renderers/gl/shader/GlProgram';
+import { GlProgram } from '../../renderers/gl/shader/GlProgram.js';
 
 export function generateBatchGlProgram({ vertexSrc, fragmentSrc, maxTextures, name }: {
     vertexSrc: string;

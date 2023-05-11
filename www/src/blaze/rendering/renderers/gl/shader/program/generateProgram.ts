@@ -1,14 +1,14 @@
-import { GlProgramData } from '../GlProgramData';
-import { compileShader } from './compileShader';
-import { defaultValue } from './defaultValue';
-import { getAttributeData } from './getAttributeData';
-import { getUniformBufferData } from './getUniformBufferData';
-import { getUniformData } from './getUniformData';
-import { logProgramError } from './logProgramError';
+import { GlProgramData } from '../GlProgramData.js';
+import { compileShader } from './compileShader.js';
+import { defaultValue } from './defaultValue.js';
+import { getAttributeData } from './getAttributeData.js';
+import { getUniformBufferData } from './getUniformBufferData.js';
+import { getUniformData } from './getUniformData.js';
+import { logProgramError } from './logProgramError.js';
 
-import type { GlRenderingContext } from '../../context/GlRenderingContext';
-import type { GlProgram } from '../GlProgram';
-import type { IGLUniformData } from '../GlProgramData';
+import type { GlRenderingContext } from '../../context/GlRenderingContext.js';
+import type { GlProgram } from '../GlProgram.js';
+import type { IGLUniformData } from '../GlProgramData.js';
 
 /**
  * generates a WebGL Program object from a high level Pixi Program.

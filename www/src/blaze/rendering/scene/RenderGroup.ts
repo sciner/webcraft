@@ -1,7 +1,7 @@
-import { InstructionSet } from '../renderers/shared/instructions/InstructionSet';
-import { Container } from './Container';
+import { InstructionSet } from '../renderers/shared/instructions/InstructionSet.js';
+import { Container } from './Container.js';
 
-import type { Instruction } from '../renderers/shared/instructions/Instruction';
+import type { Instruction } from '../renderers/shared/instructions/Instruction.js';
 
 // don't laugh - this is a silly optimisation that saves a few 'this' calls...
 

@@ -1,8 +1,8 @@
-import { CanvasSource } from '../sources/CanvasSource';
-import { Texture } from '../Texture';
+import { CanvasSource } from '../sources/CanvasSource.js';
+import { Texture } from '../Texture.js';
 
-import type { ICanvas } from '../../../../../settings/adapter/ICanvas';
-import type { CanvasSourceOptions } from '../sources/CanvasSource';
+import type { ICanvas } from '../../../../../settings/adapter/ICanvas.js';
+import type { CanvasSourceOptions } from '../sources/CanvasSource.js';
 
 const canvasCache: Map<ICanvas, Texture> = new Map();
 

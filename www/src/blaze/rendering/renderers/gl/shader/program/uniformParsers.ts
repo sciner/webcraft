@@ -15,7 +15,7 @@
 //                                         uniform to a uniform buffer
 // }
 
-import { Texture } from '../../../shared/texture/Texture';
+import { Texture } from '../../../shared/texture/Texture.js';
 
 export interface IUniformParser
 {

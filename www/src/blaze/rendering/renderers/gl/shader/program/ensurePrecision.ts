@@ -1,4 +1,4 @@
-import type { PRECISION } from '../const';
+import type { PRECISION } from '../const.js';
 
 /**
  * Sets the float precision on the shader, ensuring the device supports the request precision.

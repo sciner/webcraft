@@ -1,4 +1,4 @@
-import type { BindResource } from './BindResource';
+import type { BindResource } from './BindResource.js';
 
 export class BindGroup
 {

@@ -1,6 +1,6 @@
-import { Rectangle } from './Rectangle';
+import { Rectangle } from './Rectangle.js';
 
-import type { ShapePrimitive } from './ShapePrimitive';
+import type { ShapePrimitive } from './ShapePrimitive.js';
 
 /**
  * The Ellipse object is used to help draw graphics and can also be used to specify a hit area for displayObjects.

@@ -1,10 +1,10 @@
-import { Rectangle } from '../../../maths/shapes/Rectangle';
-import { Runner } from '../../renderers/shared/runner/Runner';
-import { Texture } from '../../renderers/shared/texture/Texture';
+import { Rectangle } from '../../../maths/shapes/Rectangle.js';
+import { Runner } from '../../renderers/shared/runner/Runner.js';
+import { Texture } from '../../renderers/shared/texture/Texture.js';
 
-import type { FontMetrics } from '../canvas/CanvasTextMetrics';
-import type { TextStyle } from '../TextStyle';
-import type { IBitmapFont } from './DynamicBitmapFont';
+import type { FontMetrics } from '../canvas/CanvasTextMetrics.js';
+import type { TextStyle } from '../TextStyle.js';
+import type { IBitmapFont } from './DynamicBitmapFont.js';
 
 export interface CharData
 {

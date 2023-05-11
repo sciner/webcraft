@@ -1,4 +1,4 @@
-import type { ICanvasRenderingContext2D } from './ICanvasRenderingContext2D';
+import type { ICanvasRenderingContext2D } from './ICanvasRenderingContext2D.js';
 
 export type ContextIds = '2d'
 | 'bitmaprenderer'

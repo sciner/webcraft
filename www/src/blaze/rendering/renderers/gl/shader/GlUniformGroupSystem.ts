@@ -1,14 +1,14 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { unsafeEvalSupported } from '../../../../utils/unsafeEvalSupported';
-import { generateUniformsSync } from './program/generateUniformsSync';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { unsafeEvalSupported } from '../../../../utils/unsafeEvalSupported.js';
+import { generateUniformsSync } from './program/generateUniformsSync.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { UniformGroup } from '../../shared/shader/UniformGroup';
-import type { UniformsSyncCallback } from '../../shared/shader/utils/createUniformBufferSync';
-import type { ISystem } from '../../shared/system/ISystem';
-import type { GlRenderingContext } from '../context/GlRenderingContext';
-import type { WebGLRenderer } from '../WebGLRenderer';
-import type { GlProgram } from './GlProgram';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { UniformGroup } from '../../shared/shader/UniformGroup.js';
+import type { UniformsSyncCallback } from '../../shared/shader/utils/createUniformBufferSync.js';
+import type { ISystem } from '../../shared/system/ISystem.js';
+import type { GlRenderingContext } from '../context/GlRenderingContext.js';
+import type { WebGLRenderer } from '../WebGLRenderer.js';
+import type { GlProgram } from './GlProgram.js';
 
 /**
  * System plugin to the renderer to manage shaders.

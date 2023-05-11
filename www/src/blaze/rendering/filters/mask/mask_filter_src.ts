@@ -1,4 +1,4 @@
-import {TrivialShaderSource} from "../../renderers/shared/shader/TrivialShaderSource";
+import {TrivialShaderSource} from "../../renderers/shared/shader/TrivialShaderSource.js";
 
 export let mask_filter_src = new TrivialShaderSource();
 

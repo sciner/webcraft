@@ -1,8 +1,8 @@
-import { createIdFromString } from '../createIdFromString';
-import { Runner } from '../runner/Runner';
+import { createIdFromString } from '../createIdFromString.js';
+import { Runner } from '../runner/Runner.js';
 
-import type { BindResource } from '../../gpu/shader/BindResource';
-import type { COMPARE_FUNCTION, SCALE_MODE, WRAP_MODE } from './const';
+import type { BindResource } from '../../gpu/shader/BindResource.js';
+import type { COMPARE_FUNCTION, SCALE_MODE, WRAP_MODE } from './const.js';
 
 let UID = 0;
 

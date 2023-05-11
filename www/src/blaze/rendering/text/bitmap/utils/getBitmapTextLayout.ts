@@ -1,5 +1,5 @@
-import type { TextStyle } from '../../TextStyle';
-import type { IBitmapFont } from '../DynamicBitmapFont';
+import type { TextStyle } from '../../TextStyle.js';
+import type { IBitmapFont } from '../DynamicBitmapFont.js';
 
 export interface BitmapTextLayoutData
 {

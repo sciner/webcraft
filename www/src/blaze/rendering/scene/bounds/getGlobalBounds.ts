@@ -1,5 +1,5 @@
-import type { Container } from '../Container';
-import type { Bounds } from './Bounds';
+import type { Container } from '../Container.js';
+import type { Bounds } from './Bounds.js';
 
 export function getGlobalBounds(target: Container, skipUpdateTransform: boolean, bounds: Bounds): Bounds
 {

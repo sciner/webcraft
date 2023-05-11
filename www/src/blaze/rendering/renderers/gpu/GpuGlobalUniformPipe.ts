@@ -1,12 +1,12 @@
-import { ExtensionType } from '../../../extensions/Extensions';
+import { ExtensionType } from '../../../extensions/Extensions.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { Matrix } from '../../../maths/Matrix';
-import type { Instruction } from '../shared/instructions/Instruction';
-import type { InstructionSet } from '../shared/instructions/InstructionSet';
-import type { InstructionGenerator, InstructionRunner } from '../shared/instructions/RenderPipe';
-import type { GlobalUniformGroup } from '../shared/renderTarget/GlobalUniformSystem';
-import type { Renderer } from '../types';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { Matrix } from '../../../maths/Matrix.js';
+import type { Instruction } from '../shared/instructions/Instruction.js';
+import type { InstructionSet } from '../shared/instructions/InstructionSet.js';
+import type { InstructionGenerator, InstructionRunner } from '../shared/instructions/RenderPipe.js';
+import type { GlobalUniformGroup } from '../shared/renderTarget/GlobalUniformSystem.js';
+import type { Renderer } from '../types.js';
 
 export interface GlobalUniformInstruction extends Instruction
 {

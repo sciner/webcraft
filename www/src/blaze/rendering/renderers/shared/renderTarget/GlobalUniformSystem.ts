@@ -1,12 +1,12 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { Matrix } from '../../../../maths/Matrix';
-import { BindGroup } from '../../gpu/shader/BindGroup';
-import { UniformGroup } from '../shader/UniformGroup';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { Matrix } from '../../../../maths/Matrix.js';
+import { BindGroup } from '../../gpu/shader/BindGroup.js';
+import { UniformGroup } from '../shader/UniformGroup.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { WebGPURenderer } from '../../gpu/WebGPURenderer';
-import type { Renderer } from '../../types';
-import type { ISystem } from '../system/ISystem';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { WebGPURenderer } from '../../gpu/WebGPURenderer.js';
+import type { Renderer } from '../../types.js';
+import type { ISystem } from '../system/ISystem.js';
 
 export type GlobalUniformGroup = UniformGroup<{
     projectionMatrix: { value: Matrix; type: string }

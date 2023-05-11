@@ -1,4 +1,4 @@
-import { GL_FORMATS, GL_TARGETS, GL_TYPES } from './const';
+import { GL_FORMATS, GL_TARGETS, GL_TYPES } from './const.js';
 
 /**
  * Internal texture for WebGL context.

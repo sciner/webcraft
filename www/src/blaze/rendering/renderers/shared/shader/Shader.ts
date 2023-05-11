@@ -1,7 +1,7 @@
-import { BindGroup } from '../../gpu/shader/BindGroup';
+import { BindGroup } from '../../gpu/shader/BindGroup.js';
 
-import type { GlProgram } from '../../gl/shader/GlProgram';
-import type { GpuProgram } from '../../gpu/shader/GpuProgram';
+import type { GlProgram } from '../../gl/shader/GlProgram.js';
+import type { GpuProgram } from '../../gpu/shader/GpuProgram.js';
 
 export type ShaderGroups = Record<number, BindGroup>;
 

@@ -1,7 +1,7 @@
-import { BigPool } from '../../../utils/pool/PoolGroup';
+import { BigPool } from '../../../utils/pool/PoolGroup.js';
 
-import type { PoolItem } from '../../../utils/pool/Pool';
-import type { Effect } from '../../scene/Effect';
+import type { PoolItem } from '../../../utils/pool/Pool.js';
+import type { Effect } from '../../scene/Effect.js';
 
 interface MaskConversionTest
 {

@@ -1,6 +1,6 @@
-import type { BatchableObject, Batcher } from '../../batcher/shared/Batcher';
-import type { Texture } from '../../renderers/shared/texture/Texture';
-import type { SpriteRenderable } from './SpriteRenderable';
+import type { BatchableObject, Batcher } from '../../batcher/shared/Batcher.js';
+import type { Texture } from '../../renderers/shared/texture/Texture.js';
+import type { SpriteRenderable } from './SpriteRenderable.js';
 
 export class BatchableSprite implements BatchableObject
 {

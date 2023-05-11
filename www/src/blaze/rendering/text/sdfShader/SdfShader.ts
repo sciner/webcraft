@@ -1,10 +1,10 @@
-import { Matrix } from '../../../maths/Matrix';
-import { MAX_TEXTURES } from '../../batcher/shared/const';
-import { Filter } from '../../filters/Filter';
-import { batchSamplersUniformGroup } from '../../renderers/gl/shader/batchSamplersUniformGroup';
-import { UniformGroup } from '../../renderers/shared/shader/UniformGroup';
-import { generateDefaultSdfBatchGlProgram } from './generateDefaultSdfBatchGlProgram';
-import { generateDefaultSdfBatchProgram } from './generateDefaultSdfBatchProgram';
+import { Matrix } from '../../../maths/Matrix.js';
+import { MAX_TEXTURES } from '../../batcher/shared/const.js';
+import { Filter } from '../../filters/Filter.js';
+import { batchSamplersUniformGroup } from '../../renderers/gl/shader/batchSamplersUniformGroup.js';
+import { UniformGroup } from '../../renderers/shared/shader/UniformGroup.js';
+import { generateDefaultSdfBatchGlProgram } from './generateDefaultSdfBatchGlProgram.js';
+import { generateDefaultSdfBatchProgram } from './generateDefaultSdfBatchProgram.js';
 
 export class SdfShader extends Filter
 {

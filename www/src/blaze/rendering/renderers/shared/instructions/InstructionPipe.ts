@@ -1,10 +1,10 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { Renderer } from '../../types';
-import type { Instruction } from './Instruction';
-import type { InstructionSet } from './InstructionSet';
-import type { InstructionGenerator, InstructionRunner } from './RenderPipe';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { Renderer } from '../../types.js';
+import type { Instruction } from './Instruction.js';
+import type { InstructionSet } from './InstructionSet.js';
+import type { InstructionGenerator, InstructionRunner } from './RenderPipe.js';
 
 export interface GroupInstruction extends Instruction
 {

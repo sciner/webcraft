@@ -1,21 +1,21 @@
-import { ExtensionType } from '../../../extensions/Extensions';
-import { BigPool } from '../../../utils/pool/PoolGroup';
-import { FilterEffect } from '../../filters/FilterEffect';
-import { MaskFilter } from '../../filters/mask/MaskFilter';
-import { Texture } from '../../renderers/shared/texture/Texture';
-import { Bounds } from '../../scene/bounds/Bounds';
-import { getGlobalBounds } from '../../scene/bounds/getGlobalBounds';
-import { Sprite } from '../../sprite/shared/Sprite';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+import { BigPool } from '../../../utils/pool/PoolGroup.js';
+import { FilterEffect } from '../../filters/FilterEffect.js';
+import { MaskFilter } from '../../filters/mask/MaskFilter.js';
+import { Texture } from '../../renderers/shared/texture/Texture.js';
+import { Bounds } from '../../scene/bounds/Bounds.js';
+import { getGlobalBounds } from '../../scene/bounds/getGlobalBounds.js';
+import { Sprite } from '../../sprite/shared/Sprite.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { PoolItem } from '../../../utils/pool/Pool';
-import type { Instruction } from '../../renderers/shared/instructions/Instruction';
-import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet';
-import type { InstructionGenerator, InstructionRunner } from '../../renderers/shared/instructions/RenderPipe';
-import type { RenderTarget } from '../../renderers/shared/renderTarget/RenderTarget';
-import type { Renderer } from '../../renderers/types';
-import type { Container } from '../../scene/Container';
-import type { AlphaMask } from './AlphaMask';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { PoolItem } from '../../../utils/pool/Pool.js';
+import type { Instruction } from '../../renderers/shared/instructions/Instruction.js';
+import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet.js';
+import type { InstructionGenerator, InstructionRunner } from '../../renderers/shared/instructions/RenderPipe.js';
+import type { RenderTarget } from '../../renderers/shared/renderTarget/RenderTarget.js';
+import type { Renderer } from '../../renderers/types.js';
+import type { Container } from '../../scene/Container.js';
+import type { AlphaMask } from './AlphaMask.js';
 
 type MaskMode = 'pushMaskBegin' | 'pushMaskEnd' | 'popMaskBegin' | 'popMaskEnd';
 

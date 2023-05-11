@@ -1,25 +1,25 @@
 // RenderSystems
-import { GpuBatchAdaptor } from '../../batcher/gpu/GpuBatchAdaptor';
-import { GpuFilterAdapter } from '../../filters/gpu/GpuFilterAdapter';
-import { GpuGraphicsAdaptor } from '../../graphics/gpu/GpuGraphicsAdaptor';
-import { GpuScissorMaskPipe } from '../../mask/gpu/GpuScissorMaskPipe';
-import { GpuMeshAdapter } from '../../mesh/gpu/GpuMeshAdapter';
-import { UniformBatchPipe } from '../shared/instructions/UniformBatchPipe';
-import { BindGroupSystem } from './BindGroupSystem';
-import { BufferSystem } from './buffer/GpuBufferSystem';
-import { GpuBundleSystem } from './GpuBundleSystem';
-import { GpuColorMaskSystem } from './GpuColorMaskSystem';
-import { GpuDeviceSystem } from './GpuDeviceSystem';
-import { GpuEncoderSystem } from './GpuEncoderSystem';
-import { GpuGlobalUniformPipe } from './GpuGlobalUniformPipe';
-import { GpuStencilSystem } from './GpuStencilSystem';
-import { PipelineSystem } from './pipeline/PipelineSystem';
-import { GpuRenderTargetSystem } from './renderTarget/GpuRenderTargetSystem';
-import { GpuShaderSystem } from './shader/GpuShaderSystem';
-import { GpuStateSystem } from './state/GpuStateSystem';
-import { GpuTextureSystem } from './texture/GpuTextureSystem';
+import { GpuBatchAdaptor } from '../../batcher/gpu/GpuBatchAdaptor.js';
+import { GpuFilterAdapter } from '../../filters/gpu/GpuFilterAdapter.js';
+import { GpuGraphicsAdaptor } from '../../graphics/gpu/GpuGraphicsAdaptor.js';
+import { GpuScissorMaskPipe } from '../../mask/gpu/GpuScissorMaskPipe.js';
+import { GpuMeshAdapter } from '../../mesh/gpu/GpuMeshAdapter.js';
+import { UniformBatchPipe } from '../shared/instructions/UniformBatchPipe.js';
+import { BindGroupSystem } from './BindGroupSystem.js';
+import { BufferSystem } from './buffer/GpuBufferSystem.js';
+import { GpuBundleSystem } from './GpuBundleSystem.js';
+import { GpuColorMaskSystem } from './GpuColorMaskSystem.js';
+import { GpuDeviceSystem } from './GpuDeviceSystem.js';
+import { GpuEncoderSystem } from './GpuEncoderSystem.js';
+import { GpuGlobalUniformPipe } from './GpuGlobalUniformPipe.js';
+import { GpuStencilSystem } from './GpuStencilSystem.js';
+import { PipelineSystem } from './pipeline/PipelineSystem.js';
+import { GpuRenderTargetSystem } from './renderTarget/GpuRenderTargetSystem.js';
+import { GpuShaderSystem } from './shader/GpuShaderSystem.js';
+import { GpuStateSystem } from './state/GpuStateSystem.js';
+import { GpuTextureSystem } from './texture/GpuTextureSystem.js';
 
-import type { SharedRenderPipes, SharedRenderSystems } from '../shared/system/SharedSystems';
+import type { SharedRenderPipes, SharedRenderSystems } from '../shared/system/SharedSystems.js';
 
 export interface GPURenderSystems extends SharedRenderSystems, PixiMixins.GPURenderSystems
 {

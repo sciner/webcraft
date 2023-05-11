@@ -1,12 +1,12 @@
-import { Sprite } from '../../sprite/shared/Sprite';
-import { addMaskBounds, addMaskLocalBounds } from './addMaskBounds';
-import { MaskEffectManager } from './MaskEffectManager';
+import { Sprite } from '../../sprite/shared/Sprite.js';
+import { addMaskBounds, addMaskLocalBounds } from './addMaskBounds.js';
+import { MaskEffectManager } from './MaskEffectManager.js';
 
-import type { PointData } from '../../../maths/PointData';
-import type { PoolItem } from '../../../utils/pool/Pool';
-import type { Bounds } from '../../scene/bounds/Bounds';
-import type { Container } from '../../scene/Container';
-import type { Effect } from '../../scene/Effect';
+import type { PointData } from '../../../maths/PointData.js';
+import type { PoolItem } from '../../../utils/pool/Pool.js';
+import type { Bounds } from '../../scene/bounds/Bounds.js';
+import type { Container } from '../../scene/Container.js';
+import type { Effect } from '../../scene/Effect.js';
 
 export class AlphaMask implements Effect, PoolItem
 {

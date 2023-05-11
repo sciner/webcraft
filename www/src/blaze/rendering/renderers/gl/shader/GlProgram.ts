@@ -1,8 +1,8 @@
-import { ensurePrecision } from './program/ensurePrecision';
-import { setProgramName } from './program/setProgramName';
-import { setProgramVersion } from './program/setProgramVersion';
+import { ensurePrecision } from './program/ensurePrecision.js';
+import { setProgramName } from './program/setProgramName.js';
+import { setProgramVersion } from './program/setProgramVersion.js';
 
-import type { TypedArray } from '../../shared/buffer/Buffer';
+import type { TypedArray } from '../../shared/buffer/Buffer.js';
 
 export type ProgramPipelineLayoutDescription = GPUBindGroupLayoutEntry[][];
 export type ProgramLayout = Record<string, number>[];

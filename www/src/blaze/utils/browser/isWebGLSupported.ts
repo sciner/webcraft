@@ -1,4 +1,4 @@
-import { settings } from '../../settings/settings';
+import { settings } from '../../settings/settings.js';
 
 let supported: boolean | undefined;
 

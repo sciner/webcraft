@@ -1,17 +1,17 @@
-import { Cache } from '../../assets/cache/Cache';
-import { ObservablePoint } from '../../maths/ObservablePoint';
-import { Point } from '../../maths/Point';
-import { NOOP } from '../../utils/NOOP';
-import { BitmapFontManager } from './bitmap/BitmapFontManager';
-import { CanvasTextMetrics } from './canvas/CanvasTextMetrics';
-import { TextStyle } from './TextStyle';
+import { Cache } from '../../assets/cache/Cache.js';
+import { ObservablePoint } from '../../maths/ObservablePoint.js';
+import { Point } from '../../maths/Point.js';
+import { NOOP } from '../../utils/NOOP.js';
+import { BitmapFontManager } from './bitmap/BitmapFontManager.js';
+import { CanvasTextMetrics } from './canvas/CanvasTextMetrics.js';
+import { TextStyle } from './TextStyle.js';
 
-import type { Matrix } from '../../maths/Matrix';
-import type { PointData } from '../../maths/PointData';
-import type { InstructionSet } from '../renderers/shared/instructions/InstructionSet';
-import type { Renderable, RenderableData } from '../renderers/shared/Renderable';
-import type { Bounds } from '../scene/bounds/Bounds';
-import type { TextStyleOptions } from './TextStyle';
+import type { Matrix } from '../../maths/Matrix.js';
+import type { PointData } from '../../maths/PointData.js';
+import type { InstructionSet } from '../renderers/shared/instructions/InstructionSet.js';
+import type { Renderable, RenderableData } from '../renderers/shared/Renderable.js';
+import type { Bounds } from '../scene/bounds/Bounds.js';
+import type { TextStyleOptions } from './TextStyle.js';
 
 let uid = 0;
 

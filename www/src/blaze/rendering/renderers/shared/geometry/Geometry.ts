@@ -1,8 +1,8 @@
-import { Runner } from '../runner/Runner';
-import { ensureIsBuffer } from './utils/ensureIsBuffer';
+import { Runner } from '../runner/Runner.js';
+import { ensureIsBuffer } from './utils/ensureIsBuffer.js';
 
-import type { Buffer, TypedArray } from '../buffer/Buffer';
-import type { Topology, VertexFormat } from './const';
+import type { Buffer, TypedArray } from '../buffer/Buffer.js';
+import type { Topology, VertexFormat } from './const.js';
 
 export interface Attribute
 {

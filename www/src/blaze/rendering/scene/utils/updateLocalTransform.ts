@@ -1,5 +1,5 @@
-import type { Matrix } from '../../../maths/Matrix';
-import type { Container } from '../Container';
+import type { Matrix } from '../../../maths/Matrix.js';
+import type { Container } from '../Container.js';
 
 export function updateLocalTransform(lt: Matrix, container: Container): void
 {

@@ -1,13 +1,13 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { BufferUsage } from '../../shared/buffer/const';
-import { BUFFER_TYPE } from './const';
-import { GlBuffer } from './GlBuffer';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { BufferUsage } from '../../shared/buffer/const.js';
+import { BUFFER_TYPE } from './const.js';
+import { GlBuffer } from './GlBuffer.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { Buffer } from '../../shared/buffer/Buffer';
-import type { ISystem } from '../../shared/system/ISystem';
-import type { GlRenderingContext } from '../context/GlRenderingContext';
-import type { WebGLRenderer } from '../WebGLRenderer';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { Buffer } from '../../shared/buffer/Buffer.js';
+import type { ISystem } from '../../shared/system/ISystem.js';
+import type { GlRenderingContext } from '../context/GlRenderingContext.js';
+import type { WebGLRenderer } from '../WebGLRenderer.js';
 
 /**
  * System plugin to the renderer to manage buffers.

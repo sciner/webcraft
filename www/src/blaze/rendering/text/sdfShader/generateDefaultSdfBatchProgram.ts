@@ -1,17 +1,17 @@
-import { generateBatchProgram } from '../../batcher/gpu/generateBatchProgram';
-import programSrc from './sdf-batcher-template.wgsl';
+import { generateBatchProgram } from '../../batcher/gpu/generateBatchProgram.js';
 
-import type { GpuProgram } from '../../renderers/gpu/shader/GpuProgram';
+import type { GpuProgram } from '../../renderers/gpu/shader/GpuProgram.js';
+import { sdf_batcher_src } from "./sdf_batcher_src.js";
 
 export function generateDefaultSdfBatchProgram(maxTextures: number): GpuProgram
 {
     return generateBatchProgram({
         vertex: {
-            source: programSrc,
+            source: sdf_batcher_src.source,
             entryPoint: 'mainVertex',
         },
         fragment: {
-            source: programSrc,
+            source: sdf_batcher_src.source,
             entryPoint: 'mainFragment',
         },
         maxTextures,

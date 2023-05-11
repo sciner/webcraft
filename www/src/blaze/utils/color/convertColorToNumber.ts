@@ -1,4 +1,4 @@
-import { ColorNames } from './ColorNames';
+import { ColorNames } from './ColorNames.js';
 
 export function convertColorToNumber(color: string | number): number
 {

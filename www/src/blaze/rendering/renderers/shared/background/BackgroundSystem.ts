@@ -1,8 +1,8 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { hex2rgb, hex2string } from '../../../../utils/color/hex';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { hex2rgb, hex2string } from '../../../../utils/color/hex.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { ISystem } from '../system/ISystem';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { ISystem } from '../system/ISystem.js';
 
 /**
  * Options for the background system.

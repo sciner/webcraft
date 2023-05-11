@@ -1,7 +1,7 @@
-import { Cache } from '../../../assets/cache/Cache';
-import { Texture } from '../../renderers/shared/texture/Texture';
-import { Container } from '../../scene/Container';
-import { SpriteRenderable } from './SpriteRenderable';
+import { Cache } from '../../../assets/cache/Cache.js';
+import { Texture } from '../../renderers/shared/texture/Texture.js';
+import { Container } from '../../scene/Container.js';
+import { SpriteRenderable } from './SpriteRenderable.js';
 
 export class Sprite extends Container<SpriteRenderable>
 {

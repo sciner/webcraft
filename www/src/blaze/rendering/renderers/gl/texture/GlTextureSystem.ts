@@ -1,26 +1,26 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { Texture } from '../../shared/texture/Texture';
-import { GlTexture } from './GlTexture';
-import { glUploadBufferImageResource } from './uploaders/glUploadBufferImageResource';
-import { glUploadImageResource } from './uploaders/glUploadImageResource';
-import { mapFormatToGlFormat } from './utils/mapFormatToGlFormat';
-import { mapFormatToGlInternalFormat } from './utils/mapFormatToGlInternalFormat';
-import { mapFormatToGlType } from './utils/mapFormatToGlType';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { Texture } from '../../shared/texture/Texture.js';
+import { GlTexture } from './GlTexture.js';
+import { glUploadBufferImageResource } from './uploaders/glUploadBufferImageResource.js';
+import { glUploadImageResource } from './uploaders/glUploadImageResource.js';
+import { mapFormatToGlFormat } from './utils/mapFormatToGlFormat.js';
+import { mapFormatToGlInternalFormat } from './utils/mapFormatToGlInternalFormat.js';
+import { mapFormatToGlType } from './utils/mapFormatToGlType.js';
 import {
     compareModeToGlCompare,
     mipmapScaleModeToGlFilter,
     scaleModeToGlFilter,
     wrapModeToGlAddress
-} from './utils/pixiToGlMaps';
+} from './utils/pixiToGlMaps.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { ISystem } from '../../shared/system/ISystem';
-import type { TextureSource } from '../../shared/texture/sources/TextureSource';
-import type { BindableTexture } from '../../shared/texture/Texture';
-import type { TextureStyle } from '../../shared/texture/TextureStyle';
-import type { GlRenderingContext } from '../context/GlRenderingContext';
-import type { WebGLRenderer } from '../WebGLRenderer';
-import type { GLTextureUploader } from './uploaders/GLTextureUploader';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { ISystem } from '../../shared/system/ISystem.js';
+import type { TextureSource } from '../../shared/texture/sources/TextureSource.js';
+import type { BindableTexture } from '../../shared/texture/Texture.js';
+import type { TextureStyle } from '../../shared/texture/TextureStyle.js';
+import type { GlRenderingContext } from '../context/GlRenderingContext.js';
+import type { WebGLRenderer } from '../WebGLRenderer.js';
+import type { GLTextureUploader } from './uploaders/GLTextureUploader.js';
 
 export class GlTextureSystem implements ISystem
 {

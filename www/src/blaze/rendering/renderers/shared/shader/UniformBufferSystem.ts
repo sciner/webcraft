@@ -1,15 +1,15 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { Buffer } from '../buffer/Buffer';
-import { BufferUsage } from '../buffer/const';
-import { createUBOElements } from './utils/createUBOElements';
-import { generateUniformBufferSync } from './utils/createUniformBufferSync';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { Buffer } from '../buffer/Buffer.js';
+import { BufferUsage } from '../buffer/const.js';
+import { createUBOElements } from './utils/createUBOElements.js';
+import { generateUniformBufferSync } from './utils/createUniformBufferSync.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { Renderer } from '../../types';
-import type { ISystem } from '../system/ISystem';
-import type { UniformGroup } from './UniformGroup';
-import type { UniformBufferLayout } from './utils/createUBOElements';
-import type { UniformsSyncCallback } from './utils/createUniformBufferSync';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { Renderer } from '../../types.js';
+import type { ISystem } from '../system/ISystem.js';
+import type { UniformGroup } from './UniformGroup.js';
+import type { UniformBufferLayout } from './utils/createUBOElements.js';
+import type { UniformsSyncCallback } from './utils/createUniformBufferSync.js';
 
 export class UniformBufferSystem implements ISystem
 {

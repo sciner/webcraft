@@ -1,8 +1,8 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { Renderer } from '../../types';
-import type { ISystem } from '../system/ISystem';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { Renderer } from '../../types.js';
+import type { ISystem } from '../system/ISystem.js';
 
 /**
  * Options for the startup system.

@@ -1,7 +1,7 @@
-import type { WebGPURenderer } from '../../gpu/WebGPURenderer';
-import type { Instruction } from './Instruction';
-import type { InstructionSet } from './InstructionSet';
-import type { InstructionGenerator, InstructionRunner } from './RenderPipe';
+import type { WebGPURenderer } from '../../gpu/WebGPURenderer.js';
+import type { Instruction } from './Instruction.js';
+import type { InstructionSet } from './InstructionSet.js';
+import type { InstructionGenerator, InstructionRunner } from './RenderPipe.js';
 
 export interface BundleInstruction extends Instruction
 {

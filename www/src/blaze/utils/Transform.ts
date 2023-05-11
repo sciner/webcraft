@@ -1,5 +1,5 @@
-import { Matrix } from '../maths/Matrix';
-import { ObservablePoint } from '../maths/ObservablePoint';
+import { Matrix } from '../maths/Matrix.js';
+import { ObservablePoint } from '../maths/ObservablePoint.js';
 
 export interface TransformOptions
 {

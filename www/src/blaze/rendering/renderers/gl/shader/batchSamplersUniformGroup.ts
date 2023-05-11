@@ -1,5 +1,5 @@
-import { MAX_TEXTURES } from '../../../batcher/shared/const';
-import { UniformGroup } from '../../shared/shader/UniformGroup';
+import { MAX_TEXTURES } from '../../../batcher/shared/const.js';
+import { UniformGroup } from '../../shared/shader/UniformGroup.js';
 
 const sampleValues = new Int32Array(MAX_TEXTURES);
 

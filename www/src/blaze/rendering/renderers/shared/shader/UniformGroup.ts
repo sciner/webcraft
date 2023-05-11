@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
-import { generateUID } from '../texture/utils/generateUID';
+import { generateUID } from '../texture/utils/generateUID.js';
 
-import type { BindResource } from '../../gpu/shader/BindResource';
-import type { Buffer } from '../buffer/Buffer';
-import type { UniformData } from './utils/createUBOElements';
+import type { BindResource } from '../../gpu/shader/BindResource.js';
+import type { Buffer } from '../buffer/Buffer.js';
+import type { UniformData } from './utils/createUBOElements.js';
 
 type FLOPS<T = UniformData> = T['value'];
 

@@ -1,11 +1,11 @@
-import { ExtensionType } from '../../../extensions/Extensions';
-import { BatchableSprite } from './BatchSprite';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+import { BatchableSprite } from './BatchSprite.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet';
-import type { ISystem } from '../../renderers/shared/system/ISystem';
-import type { Renderer } from '../../renderers/types';
-import type { SpriteRenderable } from './SpriteRenderable';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet.js';
+import type { ISystem } from '../../renderers/shared/system/ISystem.js';
+import type { Renderer } from '../../renderers/types.js';
+import type { SpriteRenderable } from './SpriteRenderable.js';
 
 const gpuSpriteHash: Record<number, BatchableSprite> = {};
 

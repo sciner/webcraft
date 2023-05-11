@@ -1,7 +1,7 @@
-import { mapSize } from './mapSize';
-import { mapType } from './mapType';
+import { mapSize } from './mapSize.js';
+import { mapType } from './mapType.js';
 
-import type { IAttributeData } from '../GlProgram';
+import type { IAttributeData } from '../GlProgram.js';
 
 /**
  * returns the attribute data from the program

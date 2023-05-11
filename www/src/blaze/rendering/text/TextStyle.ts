@@ -1,9 +1,9 @@
-import { GraphicsContext } from '../graphics/shared/GraphicsContext';
-import { convertFillInputToFillStyle } from '../graphics/shared/utils/convertFillInputToFillStyle';
-import { Runner } from '../renderers/shared/runner/Runner';
+import { GraphicsContext } from '../graphics/shared/GraphicsContext.js';
+import { convertFillInputToFillStyle } from '../graphics/shared/utils/convertFillInputToFillStyle.js';
+import { Runner } from '../renderers/shared/runner/Runner.js';
 
-import type { FillGradient } from '../graphics/shared/fill/FillGradient';
-import type { FillStyle, FillStyleInputs, StrokeStyle } from '../graphics/shared/GraphicsContext';
+import type { FillGradient } from '../graphics/shared/fill/FillGradient.js';
+import type { FillStyle, FillStyleInputs, StrokeStyle } from '../graphics/shared/GraphicsContext.js';
 
 export type TextStyleAlign = 'left' | 'center' | 'right' | 'justify';
 export type TextStyleFill = string | string[] | number | number[] | CanvasGradient | CanvasPattern;

@@ -1,4 +1,4 @@
-import type { BitmapFontData, RawCharData } from '../BitmapFont';
+import type { BitmapFontData, RawCharData } from '../BitmapFont.js';
 
 export const XMLFormat = {
     test(data: unknown): boolean

@@ -1,12 +1,12 @@
-import { ExtensionType } from '../../../extensions/Extensions';
-import { Shader } from '../../renderers/shared/shader/Shader';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+import { Shader } from '../../renderers/shared/shader/Shader.js';
 import { MAX_TEXTURES } from '../shared/const';
-import { generateDefaultBatchProgram } from './generateDefaultBatchProgram';
-import { getTextureBatchBindGroup } from './getTextureBatchBindGroup';
+import { generateDefaultBatchProgram } from './generateDefaultBatchProgram.js';
+import { getTextureBatchBindGroup } from './getTextureBatchBindGroup.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { Batch } from '../shared/Batcher';
-import type { BatcherAdaptor, BatcherPipe } from '../shared/BatcherPipe';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { Batch } from '../shared/Batcher.js';
+import type { BatcherAdaptor, BatcherPipe } from '../shared/BatcherPipe.js';
 
 export class GpuBatchAdaptor implements BatcherAdaptor
 {

@@ -1,18 +1,18 @@
-import { ExtensionType } from '../../../extensions/Extensions';
+import { ExtensionType } from '../../../extensions/Extensions.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { Rectangle } from '../../../maths/shapes/Rectangle';
-import type { Bounds } from '../../scene/bounds/Bounds';
-import type { GpuRenderTarget } from '../gpu/renderTarget/GpuRenderTarget';
-import type { BindGroup } from '../gpu/shader/BindGroup';
-import type { Topology } from '../shared/geometry/const';
-import type { Geometry } from '../shared/geometry/Geometry';
-import type { RenderTarget } from '../shared/renderTarget/RenderTarget';
-import type { Shader } from '../shared/shader/Shader';
-import type { State } from '../shared/state/State';
-import type { ISystem } from '../shared/system/ISystem';
-import type { GlRenderingContext } from './context/GlRenderingContext';
-import type { WebGLRenderer } from './WebGLRenderer';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { Rectangle } from '../../../maths/shapes/Rectangle.js';
+import type { Bounds } from '../../scene/bounds/Bounds.js';
+import type { GpuRenderTarget } from '../gpu/renderTarget/GpuRenderTarget.js';
+import type { BindGroup } from '../gpu/shader/BindGroup.js';
+import type { Topology } from '../shared/geometry/const.js';
+import type { Geometry } from '../shared/geometry/Geometry.js';
+import type { RenderTarget } from '../shared/renderTarget/RenderTarget.js';
+import type { Shader } from '../shared/shader/Shader.js';
+import type { State } from '../shared/state/State.js';
+import type { ISystem } from '../shared/system/ISystem.js';
+import type { GlRenderingContext } from './context/GlRenderingContext.js';
+import type { WebGLRenderer } from './WebGLRenderer.js';
 
 export class GlEncoderSystem implements ISystem
 {

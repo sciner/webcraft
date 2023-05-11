@@ -1,21 +1,21 @@
-import { GlBatchAdaptor } from '../../batcher/gl/GlBatchAdaptor';
-import { GlFilterAdaptor } from '../../filters/gl/GlFilterAdaptor';
-import { GlGraphicsAdaptor } from '../../graphics/gl/GlGraphicsAdaptor';
-import { GlMeshAdaptor } from '../../mesh/gl/GlMeshAdaptor';
-import { GlBufferSystem } from './buffer/GlBufferSystem';
-import { GlContextSystem } from './context/GlContextSystem';
-import { GlGeometrySystem } from './geometry/GlGeometrySystem';
-import { GlBackBufferSystem } from './GlBackBufferSystem';
-import { GlColorMaskSystem } from './GlColorMaskSystem';
-import { GlEncoderSystem } from './GlEncoderSystem';
-import { GlRenderTargetSystem } from './GlRenderTargetSystem';
-import { GlStencilSystem } from './GlStencilSystem';
-import { GlShaderSystem } from './shader/GlShaderSystem';
-import { GlUniformGroupSystem } from './shader/GlUniformGroupSystem';
-import { GlStateSystem } from './state/GlStateSystem';
-import { GlTextureSystem } from './texture/GlTextureSystem';
+import { GlBatchAdaptor } from '../../batcher/gl/GlBatchAdaptor.js';
+import { GlFilterAdaptor } from '../../filters/gl/GlFilterAdaptor.js';
+import { GlGraphicsAdaptor } from '../../graphics/gl/GlGraphicsAdaptor.js';
+import { GlMeshAdaptor } from '../../mesh/gl/GlMeshAdaptor.js';
+import { GlBufferSystem } from './buffer/GlBufferSystem.js';
+import { GlContextSystem } from './context/GlContextSystem.js';
+import { GlGeometrySystem } from './geometry/GlGeometrySystem.js';
+import { GlBackBufferSystem } from './GlBackBufferSystem.js';
+import { GlColorMaskSystem } from './GlColorMaskSystem.js';
+import { GlEncoderSystem } from './GlEncoderSystem.js';
+import { GlRenderTargetSystem } from './GlRenderTargetSystem.js';
+import { GlStencilSystem } from './GlStencilSystem.js';
+import { GlShaderSystem } from './shader/GlShaderSystem.js';
+import { GlUniformGroupSystem } from './shader/GlUniformGroupSystem.js';
+import { GlStateSystem } from './state/GlStateSystem.js';
+import { GlTextureSystem } from './texture/GlTextureSystem.js';
 
-import type { SharedRenderPipes, SharedRenderSystems } from '../shared/system/SharedSystems';
+import type { SharedRenderPipes, SharedRenderSystems } from '../shared/system/SharedSystems.js';
 
 export interface GLRenderSystems extends SharedRenderSystems, PixiMixins.GLRenderSystems
 {

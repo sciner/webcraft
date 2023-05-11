@@ -1,10 +1,10 @@
-import { settings } from '../../../settings/settings';
-import { fontStringFromTextStyle } from './utils/fontStringFromTextStyle';
+import { settings } from '../../../settings/settings.js';
+import { fontStringFromTextStyle } from './utils/fontStringFromTextStyle.js';
 
-import type { ICanvas, ICanvasRenderingContext2DSettings } from '../../../settings/adapter/ICanvas';
-import type { ICanvasRenderingContext2D } from '../../../settings/adapter/ICanvasRenderingContext2D';
-import type { StrokeStyle } from '../../graphics/shared/GraphicsContext';
-import type { TextStyle, TextStyleWhiteSpace } from '../TextStyle';
+import type { ICanvas, ICanvasRenderingContext2DSettings } from '../../../settings/adapter/ICanvas.js';
+import type { ICanvasRenderingContext2D } from '../../../settings/adapter/ICanvasRenderingContext2D.js';
+import type { StrokeStyle } from '../../graphics/shared/GraphicsContext.js';
+import type { TextStyle, TextStyleWhiteSpace } from '../TextStyle.js';
 
 // The type for Intl.Segmenter is only available since TypeScript 4.7.2, so let's make a polyfill for it.
 interface ISegmentData

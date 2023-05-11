@@ -1,6 +1,6 @@
-import { generateBatchGlProgram } from './generateBatchGlProgram';
+import { generateBatchGlProgram } from './generateBatchGlProgram.js';
 
-import type { GlProgram } from '../../renderers/gl/shader/GlProgram';
+import type { GlProgram } from '../../renderers/gl/shader/GlProgram.js';
 import { batcher_template_src } from '../batcher_template_src.js';
 
 export function generateDefaultBatchGlProgram(maxTextures: number): GlProgram

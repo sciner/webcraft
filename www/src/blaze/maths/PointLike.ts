@@ -1,4 +1,4 @@
-import type { PointData } from './PointData';
+import type { PointData } from './PointData.js';
 
 /**
  * Common interface for points. Both Point and ObservablePoint implement it

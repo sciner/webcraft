@@ -1,4 +1,4 @@
-import type { GlRenderingContext } from '../../context/GlRenderingContext';
+import type { GlRenderingContext } from '../../context/GlRenderingContext.js';
 
 /**
  * Returns a lookup table that maps each type-format pair to a compatible internal format.

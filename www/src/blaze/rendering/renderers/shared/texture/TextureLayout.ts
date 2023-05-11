@@ -1,6 +1,6 @@
-import { groupD8 } from '../../../../maths/groupD8';
-import { Rectangle } from '../../../../maths/shapes/Rectangle';
-import { Runner } from '../runner/Runner';
+import { groupD8 } from '../../../../maths/groupD8.js';
+import { Rectangle } from '../../../../maths/shapes/Rectangle.js';
+import { Runner } from '../runner/Runner.js';
 
 export interface TextureLayoutOptions
 {

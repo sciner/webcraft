@@ -1,16 +1,16 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { Matrix } from '../../../../maths/Matrix';
-import { RenderTarget } from '../../shared/renderTarget/RenderTarget';
-import { TextureSource } from '../../shared/texture/sources/TextureSource';
-import { Texture } from '../../shared/texture/Texture';
-import { GpuRenderTarget } from './GpuRenderTarget';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { Matrix } from '../../../../maths/Matrix.js';
+import { RenderTarget } from '../../shared/renderTarget/RenderTarget.js';
+import { TextureSource } from '../../shared/texture/sources/TextureSource.js';
+import { Texture } from '../../shared/texture/Texture.js';
+import { GpuRenderTarget } from './GpuRenderTarget.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { ICanvas } from '../../../../settings/adapter/ICanvas';
-import type { ISystem } from '../../shared/system/ISystem';
-import type { BindableTexture } from '../../shared/texture/Texture';
-import type { GPU } from '../GpuDeviceSystem';
-import type { WebGPURenderer } from '../WebGPURenderer';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { ICanvas } from '../../../../settings/adapter/ICanvas.js';
+import type { ISystem } from '../../shared/system/ISystem.js';
+import type { BindableTexture } from '../../shared/texture/Texture.js';
+import type { GPU } from '../GpuDeviceSystem.js';
+import type { WebGPURenderer } from '../WebGPURenderer.js';
 
 const DEFAULT_CLEAR_COLOR = [0, 0, 0, 0];
 

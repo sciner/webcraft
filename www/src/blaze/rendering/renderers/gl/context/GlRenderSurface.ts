@@ -1,6 +1,6 @@
-import type { ICanvas } from '../../../../settings/adapter/ICanvas';
-import type { GlRenderingContext } from './GlRenderingContext';
-import type { WebGLExtensions } from './WebGLExtensions';
+import type { ICanvas } from '../../../../settings/adapter/ICanvas.js';
+import type { GlRenderingContext } from './GlRenderingContext.js';
+import type { WebGLExtensions } from './WebGLExtensions.js';
 
 let UID = 0;
 

@@ -1,11 +1,11 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { BLEND_MODES } from '../../shared/state/const';
-import { State } from '../../shared/state/State';
-import { mapWebGLBlendModesToPixi } from './mapWebGLBlendModesToPixi';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { BLEND_MODES } from '../../shared/state/const.js';
+import { State } from '../../shared/state/State.js';
+import { mapWebGLBlendModesToPixi } from './mapWebGLBlendModesToPixi.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { ISystem } from '../../shared/system/ISystem';
-import type { GlRenderingContext } from '../context/GlRenderingContext';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { ISystem } from '../../shared/system/ISystem.js';
+import type { GlRenderingContext } from '../context/GlRenderingContext.js';
 
 const BLEND = 0;
 const OFFSET = 1;

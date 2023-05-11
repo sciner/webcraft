@@ -1,5 +1,5 @@
-import type { PointData } from './PointData';
-import type { PointLike } from './PointLike';
+import type { PointData } from './PointData.js';
+import type { PointLike } from './PointLike.js';
 
 interface Observer
 {

@@ -1,12 +1,12 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { Matrix } from '../../../../maths/Matrix';
-import { TexturePool } from './TexturePool';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { Matrix } from '../../../../maths/Matrix.js';
+import { TexturePool } from './TexturePool.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { Bounds } from '../../../scene/bounds/Bounds';
-import type { Renderer } from '../../types';
-import type { ISystem } from '../system/ISystem';
-import type { Texture } from './Texture';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { Bounds } from '../../../scene/bounds/Bounds.js';
+import type { Renderer } from '../../types.js';
+import type { ISystem } from '../system/ISystem.js';
+import type { Texture } from './Texture.js';
 
 const tempMatrix = new Matrix();
 

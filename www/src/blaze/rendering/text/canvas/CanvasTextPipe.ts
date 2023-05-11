@@ -1,12 +1,12 @@
-import { ExtensionType } from '../../../extensions/Extensions';
-import { SpriteRenderable } from '../../sprite/shared/SpriteRenderable';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+import { SpriteRenderable } from '../../sprite/shared/SpriteRenderable.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet';
-import type { RenderablePipe } from '../../renderers/shared/instructions/RenderPipe';
-import type { Texture } from '../../renderers/shared/texture/Texture';
-import type { Renderer } from '../../renderers/types';
-import type { TextRenderable } from '../TextRenderable';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { InstructionSet } from '../../renderers/shared/instructions/InstructionSet.js';
+import type { RenderablePipe } from '../../renderers/shared/instructions/RenderPipe.js';
+import type { Texture } from '../../renderers/shared/texture/Texture.js';
+import type { Renderer } from '../../renderers/types.js';
+import type { TextRenderable } from '../TextRenderable.js';
 
 export class CanvasTextPipe implements RenderablePipe<TextRenderable>
 {

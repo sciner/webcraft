@@ -1,6 +1,6 @@
-import { Pool } from './Pool';
+import { Pool } from './Pool.js';
 
-import type { PoolItem, PoolItemConstructor } from './Pool';
+import type { PoolItem, PoolItemConstructor } from './Pool.js';
 
 export type PoolConstructor<T extends PoolItem> = new () => Pool<T>;
 

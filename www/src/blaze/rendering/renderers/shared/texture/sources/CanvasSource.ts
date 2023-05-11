@@ -1,8 +1,8 @@
-import { settings } from '../../../../../settings/settings';
-import { TextureSource } from './TextureSource';
+import { settings } from '../../../../../settings/settings.js';
+import { TextureSource } from './TextureSource.js';
 
-import type { ICanvas } from '../../../../../settings/adapter/ICanvas';
-import type { TextureSourceOptions } from './TextureSource';
+import type { ICanvas } from '../../../../../settings/adapter/ICanvas.js';
+import type { TextureSourceOptions } from './TextureSource.js';
 
 export interface CanvasSourceOptions extends TextureSourceOptions<ICanvas>
 {

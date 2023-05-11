@@ -1,8 +1,8 @@
-import { Rectangle } from './Rectangle';
+import { Rectangle } from './Rectangle.js';
 
-import type { SHAPE_PRIMITIVE } from '../const';
-import type { PointData } from '../PointData';
-import type { ShapePrimitive } from './ShapePrimitive';
+import type { SHAPE_PRIMITIVE } from '../const.js';
+import type { PointData } from '../PointData.js';
+import type { ShapePrimitive } from './ShapePrimitive.js';
 
 /**
  * A class to define a shape via user defined coordinates.

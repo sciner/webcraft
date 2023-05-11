@@ -1,4 +1,4 @@
-import type { Dict } from '../../../../../utils/types';
+import type { Dict } from '../../../../../utils/types.js';
 
 const GLSL_TO_SIZE: Dict<number> = {
     float:    1,

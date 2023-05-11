@@ -1,6 +1,6 @@
-import { GpuProgram } from '../../renderers/gpu/shader/GpuProgram';
+import { GpuProgram } from '../../renderers/gpu/shader/GpuProgram.js';
 
-import type { ProgramSource } from '../../renderers/gpu/shader/GpuProgram';
+import type { ProgramSource } from '../../renderers/gpu/shader/GpuProgram.js';
 
 export function generateBatchProgram({ vertex, fragment, maxTextures }: {
     vertex: ProgramSource;

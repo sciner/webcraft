@@ -1,5 +1,5 @@
-import type { TextureSource } from '../../renderers/shared/texture/sources/TextureSource';
-import type { TextureBatch } from './Batcher';
+import type { TextureSource } from '../../renderers/shared/texture/sources/TextureSource.js';
+import type { TextureBatch } from './Batcher.js';
 
 export const missing: TextureSource[] = [];
 export let missingCount = 0;

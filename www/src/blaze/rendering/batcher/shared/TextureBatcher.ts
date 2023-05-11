@@ -1,8 +1,8 @@
-import { MAX_TEXTURES } from './const';
-import { optimizeBindings } from './optimizeBindings';
+import { MAX_TEXTURES } from './const.js';
+import { optimizeBindings } from './optimizeBindings.js';
 
-import type { BindableTexture } from '../../renderers/shared/texture/Texture';
-import type { TextureBatch } from './Batcher';
+import type { BindableTexture } from '../../renderers/shared/texture/Texture.js';
+import type { TextureBatch } from './Batcher.js';
 import type {BindGroup} from "../../renderers/gpu/shader/BindGroup.js";
 
 const batchPool: TextureBatchOutput[] = [];

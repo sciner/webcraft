@@ -1,10 +1,10 @@
-import { ExtensionType } from '../../../extensions/Extensions';
-import { GpuStencilModesToPixi } from '../gpu/state/GpuStencilModesToPixi';
-import { STENCIL_MODES } from '../shared/state/const';
+import { ExtensionType } from '../../../extensions/Extensions.js';
+import { GpuStencilModesToPixi } from '../gpu/state/GpuStencilModesToPixi.js';
+import { STENCIL_MODES } from '../shared/state/const.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { ISystem } from '../shared/system/ISystem';
-import type { WebGLRenderer } from './WebGLRenderer';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { ISystem } from '../shared/system/ISystem.js';
+import type { WebGLRenderer } from './WebGLRenderer.js';
 
 export class GlStencilSystem implements ISystem
 {

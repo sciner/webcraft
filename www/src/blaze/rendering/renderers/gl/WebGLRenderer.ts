@@ -1,19 +1,19 @@
-import { extensions, ExtensionType } from '../../../extensions/Extensions';
-import { SharedDefaultRendererOptions, SharedRendererExtensions } from '../shared/system/SharedSystems';
-import { SystemManager } from '../shared/system/SystemManager';
-import { getCanvasTexture } from '../shared/texture/utils/getCanvasTexture';
-import { GlContextSystem } from './context/GlContextSystem';
-import { WebGLSystemExtensions } from './WebGLSystems';
+import { extensions, ExtensionType } from '../../../extensions/Extensions.js';
+import { SharedDefaultRendererOptions, SharedRendererExtensions } from '../shared/system/SharedSystems.js';
+import { SystemManager } from '../shared/system/SystemManager.js';
+import { getCanvasTexture } from '../shared/texture/utils/getCanvasTexture.js';
+import { GlContextSystem } from './context/GlContextSystem.js';
+import { WebGLSystemExtensions } from './WebGLSystems.js';
 
-import type { ExtensionFormat } from '../../../extensions/Extensions';
-import type { ICanvas } from '../../../settings/adapter/ICanvas';
-import type { Container } from '../../scene/Container';
-import type { RenderSurface } from '../gpu/renderTarget/GpuRenderTargetSystem';
-import type { ISystemConstructor } from '../shared/system/ISystem';
-import type { SharedRendererOptions } from '../shared/system/SharedSystems';
-import type { ContextSystemOptions } from './context/GlContextSystem';
-import type { GlRenderingContext } from './context/GlRenderingContext';
-import type { GLRenderPipes, GLRenderSystems } from './WebGLSystems';
+import type { ExtensionFormat } from '../../../extensions/Extensions.js';
+import type { ICanvas } from '../../../settings/adapter/ICanvas.js';
+import type { Container } from '../../scene/Container.js';
+import type { RenderSurface } from '../gpu/renderTarget/GpuRenderTargetSystem.js';
+import type { ISystemConstructor } from '../shared/system/ISystem.js';
+import type { SharedRendererOptions } from '../shared/system/SharedSystems.js';
+import type { ContextSystemOptions } from './context/GlContextSystem.js';
+import type { GlRenderingContext } from './context/GlRenderingContext.js';
+import type { GLRenderPipes, GLRenderSystems } from './WebGLSystems.js';
 
 /**
  * Renderer options supplied to constructor.

@@ -1,7 +1,7 @@
 // import { SHAPES } from '../const';
-import type { SHAPE_PRIMITIVE } from './const';
-import type { Rectangle } from './shapes/Rectangle';
-import type { ShapePrimitive } from './shapes/ShapePrimitive';
+import type { SHAPE_PRIMITIVE } from './const.js';
+import type { Rectangle } from './shapes/Rectangle.js';
+import type { ShapePrimitive } from './shapes/ShapePrimitive.js';
 
 /**
  * Size object, contains width and height

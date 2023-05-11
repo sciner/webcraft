@@ -1,15 +1,15 @@
-import { ExtensionType } from '../../extensions/Extensions';
-import { BLEND_MODES } from '../renderers/shared/state/const';
-import { Container, UPDATE_BLEND, UPDATE_COLOR, UPDATE_VISIBLE } from './Container';
-import { mixHexColors } from './mixHexColors';
-import { updateLocalTransform } from './utils/updateLocalTransform';
-import { updateWorldTransform } from './utils/updateWorldTransform';
+import { ExtensionType } from '../../extensions/Extensions.js';
+import { BLEND_MODES } from '../renderers/shared/state/const.js';
+import { Container, UPDATE_BLEND, UPDATE_COLOR, UPDATE_VISIBLE } from './Container.js';
+import { mixHexColors } from './mixHexColors.js';
+import { updateLocalTransform } from './utils/updateLocalTransform.js';
+import { updateWorldTransform } from './utils/updateWorldTransform.js';
 
-import type { ExtensionMetadata } from '../../extensions/Extensions';
-import type { InstructionSystem } from '../renderers/shared/instructions/InstructionSystem';
-import type { Renderable } from '../renderers/shared/Renderable';
-import type { ISystem } from '../renderers/shared/system/ISystem';
-import type { RenderGroup } from './RenderGroup';
+import type { ExtensionMetadata } from '../../extensions/Extensions.js';
+import type { InstructionSystem } from '../renderers/shared/instructions/InstructionSystem.js';
+import type { Renderable } from '../renderers/shared/Renderable.js';
+import type { ISystem } from '../renderers/shared/system/ISystem.js';
+import type { RenderGroup } from './RenderGroup.js';
 
 const tempContainer = new Container();
 

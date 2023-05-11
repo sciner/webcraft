@@ -1,4 +1,4 @@
-import { BLEND_MODES } from '../../shared/state/const';
+import { BLEND_MODES } from '../../shared/state/const.js';
 
 export const GpuBlendModesToPixi: GPUBlendState[] = [];
 

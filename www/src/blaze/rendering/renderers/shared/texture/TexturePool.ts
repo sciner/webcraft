@@ -1,8 +1,8 @@
-import { nextPow2 } from '../../../../maths/pow2';
-import { TextureSource } from './sources/TextureSource';
-import { Texture } from './Texture';
+import { nextPow2 } from '../../../../maths/pow2.js';
+import { TextureSource } from './sources/TextureSource.js';
+import { Texture } from './Texture.js';
 
-import type { TextureSourceOptions } from './sources/TextureSource';
+import type { TextureSourceOptions } from './sources/TextureSource.js';
 
 let count = 0;
 

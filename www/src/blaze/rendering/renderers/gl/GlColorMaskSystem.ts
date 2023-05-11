@@ -1,8 +1,8 @@
-import { ExtensionType } from '../../../extensions/Extensions';
+import { ExtensionType } from '../../../extensions/Extensions.js';
 
-import type { ExtensionMetadata } from '../../../extensions/Extensions';
-import type { ISystem } from '../shared/system/ISystem';
-import type { WebGLRenderer } from './WebGLRenderer';
+import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
+import type { ISystem } from '../shared/system/ISystem.js';
+import type { WebGLRenderer } from './WebGLRenderer.js';
 
 export class GlColorMaskSystem implements ISystem
 {

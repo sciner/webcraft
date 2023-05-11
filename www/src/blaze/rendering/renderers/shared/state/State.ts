@@ -1,8 +1,8 @@
 /* eslint-disable max-len */
 
-import { BLEND_MODES } from './const';
+import { BLEND_MODES } from './const.js';
 
-import type { CULL_MODES } from './const';
+import type { CULL_MODES } from './const.js';
 
 const BLEND = 0;
 const OFFSET = 1;

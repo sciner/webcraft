@@ -1,4 +1,4 @@
-import type { BUFFER_TYPE } from './const';
+import type { BUFFER_TYPE } from './const.js';
 
 export class GlBuffer
 {

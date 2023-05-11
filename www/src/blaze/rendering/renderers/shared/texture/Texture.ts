@@ -1,11 +1,11 @@
-import { Runner } from '../runner/Runner';
-import { TextureSource } from './sources/TextureSource';
-import { TextureLayout } from './TextureLayout';
-import { TextureMatrix } from './TextureMatrix';
-import { TextureStyle } from './TextureStyle';
+import { Runner } from '../runner/Runner.js';
+import { TextureSource } from './sources/TextureSource.js';
+import { TextureLayout } from './TextureLayout.js';
+import { TextureMatrix } from './TextureMatrix.js';
+import { TextureStyle } from './TextureStyle.js';
 
-import type { TextureLayoutOptions } from './TextureLayout';
-import type { TextureStyleOptions } from './TextureStyle';
+import type { TextureLayoutOptions } from './TextureLayout.js';
+import type { TextureStyleOptions } from './TextureStyle.js';
 
 let UID = 0;
 

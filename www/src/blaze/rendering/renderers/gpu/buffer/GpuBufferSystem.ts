@@ -1,12 +1,12 @@
-import { ExtensionType } from '../../../../extensions/Extensions';
-import { fastCopy } from '../../shared/buffer/utils/fastCopy';
-import { generateUID } from '../../shared/texture/utils/generateUID';
+import { ExtensionType } from '../../../../extensions/Extensions.js';
+import { fastCopy } from '../../shared/buffer/utils/fastCopy.js';
+import { generateUID } from '../../shared/texture/utils/generateUID.js';
 
-import type { ExtensionMetadata } from '../../../../extensions/Extensions';
-import type { Buffer } from '../../shared/buffer/Buffer';
-import type { ISystem } from '../../shared/system/ISystem';
-import type { GPU } from '../GpuDeviceSystem';
-import type { WebGPURenderer } from '../WebGPURenderer';
+import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
+import type { Buffer } from '../../shared/buffer/Buffer.js';
+import type { ISystem } from '../../shared/system/ISystem.js';
+import type { GPU } from '../GpuDeviceSystem.js';
+import type { WebGPURenderer } from '../WebGPURenderer.js';
 
 export class BufferSystem implements ISystem
 {

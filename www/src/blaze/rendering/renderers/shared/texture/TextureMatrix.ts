@@ -1,6 +1,6 @@
-import { Matrix } from '../../../../maths/Matrix';
+import { Matrix } from '../../../../maths/Matrix.js';
 
-import type { Texture } from './Texture';
+import type { Texture } from './Texture.js';
 
 const tempMat = new Matrix();
 
