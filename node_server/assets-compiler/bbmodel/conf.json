@@ -2015,16 +2015,6 @@
             }
         },
         {
-            "id": 610,
-            "name": "DIAMOND_SWORD",
-            "bb": {
-                "model": "tool/sword",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
             "id": 611,
             "name": "NETHERITE_SWORD",
             "bb": {
@@ -2034,9 +2024,6 @@
                 ]
             }
         },
-
-
-
         {
             "id": 131,
             "name": "COPPER_PICKAXE",
@@ -2079,9 +2066,9 @@
         },
         {
             "id": 555,
-            "name": "DIAMOND_PICKAXE",
+            "name": "TITANIUM_PICKAXE",
             "bb": {
-                "model": "tool/pickaxe",
+                "model": "tool/industrial_pickaxe",
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
@@ -2133,16 +2120,6 @@
         {
             "id": 563,
             "name": "GOLD_SHOVEL",
-            "bb": {
-                "model": "tool/shovel",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
-            "id": 564,
-            "name": "DIAMOND_SHOVEL",
             "bb": {
                 "model": "tool/shovel",
                 "select_texture": [
@@ -2204,16 +2181,6 @@
             }
         },
         {
-            "id": 570,
-            "name": "DIAMOND_HOE",
-            "bb": {
-                "model": "tool/hoe",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
             "id": 571,
             "name": "NETHERITE_HOE",
             "bb": {
@@ -2259,16 +2226,6 @@
         {
             "id": 558,
             "name": "GOLD_AXE",
-            "bb": {
-                "model": "tool/axe",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
-            "id": 559,
-            "name": "DIAMOND_AXE",
             "bb": {
                 "model": "tool/axe",
                 "select_texture": [
@@ -2566,6 +2523,60 @@
             "name": "TITANIUM_INGOT",
             "bb": {
                 "model": "titanium_ingot"
+            }
+        },
+        {
+            "id": 564,
+            "name": "TITANIUM_SHOVEL",
+            "bb": {
+                "model": "tool/industrial_shovel",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 570,
+            "name": "TITANIUM_HOE",
+            "bb": {
+                "model": "tool/industrial_hoe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 559,
+            "name": "TITANIUM_AXE",
+            "bb": {
+                "model": "tool/industrial_axe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 610,
+            "name": "TITANIUM_SWORD",
+            "bb": {
+                "model": "tool/industrial_sword",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1097,
+            "name": "TITANIUM_ORE",
+            "bb": {
+                "model": "titanium_ore"
+            }
+        },
+        {
+            "id": 1098,
+            "name": "POOR_TITANIUM_ORE",
+            "bb": {
+                "model": "poor_titanium_ore"
             }
         }
     ]
