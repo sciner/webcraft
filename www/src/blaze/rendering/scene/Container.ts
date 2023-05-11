@@ -160,6 +160,8 @@ export class Container<T extends Renderable = Renderable> extends EventEmitter<C
     // masking..
     _mask?: {mask: unknown, effect: Effect} = null;
 
+    isMask = false;
+
     // filters..
     _filters: {filters: Filter[], effect: FilterEffect} = null;
 

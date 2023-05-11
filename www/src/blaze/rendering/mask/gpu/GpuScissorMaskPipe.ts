@@ -54,7 +54,7 @@ export class GpuScissorMaskPipe implements InstructionRunner<ScissorMaskInstruct
             action: 'pushMaskBegin',
             mask,
             canBundle: false,
-        } as ScissorMaskInstruction);
+        } as any);
     }
 
     pop(): void

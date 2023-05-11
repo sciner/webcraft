@@ -1,21 +1,9 @@
 {
+    "extends": "../tsconfig.json",
     "compilerOptions": {
         "allowSyntheticDefaultImports": true,
-        "noImplicitAny": false,
-        "noEmitOnError": false,
-        "noUnusedLocals": false,
-        "noUnusedParameters": false,
-        "importsNotUsedAsValues": "error",
         "ignoreDeprecations": "5.0",
-        "removeComments": false,
-        "sourceMap": false,
-        "strict": false,
-        "target": "es2022",
-        "module": "es2022",
-        "inlineSourceMap": true,
-        "moduleResolution": "node",
-        "resolveJsonModule": true,
-        "outDir": "js"
+        "outDir": "js",
     },
     "files": [
         "src/package.json"

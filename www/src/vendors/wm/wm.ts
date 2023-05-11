@@ -75,7 +75,7 @@ export class GradientGraphics {
         ctx.fillStyle = grd
         ctx.fillRect(0, 0, 1, size)
         return {
-            texture: new PIXI.Texture(new PIXI.BaseTexture(c))
+            texture: new PIXI.Texture(new PIXI.CanvasSource({resource: c}))
         }
     }
 
@@ -1517,7 +1517,7 @@ export class WindowManager extends Window {
             return;
         }
         this.bfTextures = [
-            new PIXI.Texture(new PIXI.BaseTexture())
+            new PIXI.Texture()
         ];
         const bfData = new PIXI.BitmapFontData();
         bfData.char = msdf.chars
@@ -1530,8 +1530,8 @@ export class WindowManager extends Window {
 
     loadFont() {
         const baseRp = Qubatch.world.block_manager.resource_pack_manager.list.get('base');
-        const res = new PIXI.ImageBitmapResource(baseRp.textures.get('alphabet').texture.source);
-        this.bfTextures[0].baseTexture.setResource(res);
+        const res = new PIXI.BufferImageSource({resource: baseRp.textures.get('alphabet').texture.source});
+        this.bfTextures[0].setSource(res);
     }
 
     draw() {

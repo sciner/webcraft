@@ -1,4 +1,4 @@
-import {TrivialShaderSource} from "../renderers/shared/shader/TrivialShaderSource.js";
+import {TrivialShaderSource} from "../../renderers/shared/shader/TrivialShaderSource.js";
 
 export let alpha_filter_src = new TrivialShaderSource();
 

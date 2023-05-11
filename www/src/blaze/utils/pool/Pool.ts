@@ -74,4 +74,4 @@ export type PoolItem = {
     reset?: () => void;
 };
 
-export type PoolItemConstructor<K extends PoolItem> = new () => K;
+export type PoolItemConstructor<K extends PoolItemConstructor> = new () => K;

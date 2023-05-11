@@ -1,4 +1,4 @@
-import { PIXI } from "../../../tools/gui/pixi.js";
+import { PIXI } from "../../blaze/pixi.js";
 import { BLOCK } from "../../blocks.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../../chunk_const.js";
 import { Resources } from "../../resources.js";

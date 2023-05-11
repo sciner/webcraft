@@ -43,7 +43,7 @@ void main(void){
 }
 `;
 
-batcher_template.source = `struct GlobalUniforms {
+batcher_template_src.source = `struct GlobalUniforms {
   projectionMatrix:mat3x3<f32>,
   worldTransformMatrix:mat3x3<f32>,
   worldAlpha: f32

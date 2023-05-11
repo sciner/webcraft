@@ -39,7 +39,7 @@ export class Triangle implements ShapePrimitive
 
     contains(x: number, y: number): boolean
     {
-        throw new Error('Method not implemented.', x, y);
+        throw new Error('Method not implemented.', {x, y} as any);
     }
 
     clone(): ShapePrimitive
@@ -48,6 +48,6 @@ export class Triangle implements ShapePrimitive
     }
     getBounds(out?: Rectangle): Rectangle
     {
-        throw new Error('Method not implemented.', out);
+        throw new Error('Method not implemented.', out as any);
     }
 }

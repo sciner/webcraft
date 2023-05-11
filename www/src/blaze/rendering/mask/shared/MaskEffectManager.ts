@@ -1,12 +1,12 @@
 import { BigPool } from '../../../utils/pool/PoolGroup.js';
 
-import type { PoolItem } from '../../../utils/pool/Pool.js';
+import type { PoolItem, PoolItemConstructor } from '../../../utils/pool/Pool.js';
 import type { Effect } from '../../scene/Effect.js';
 
 interface MaskConversionTest
 {
     test: (item: any) => boolean;
-    maskClass: new (item: any) => Effect & PoolItem;
+    maskClass: new (item: PoolItemConstructor) => Effect & PoolItem;
 }
 
 export class MaskEffectManagerClass

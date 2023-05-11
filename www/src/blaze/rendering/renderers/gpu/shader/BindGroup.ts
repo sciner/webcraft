@@ -91,6 +91,6 @@ export class BindGroup
             resource.onResourceChange?.remove(this);
         }
 
-        this.resources = null;
+        (this as any).resources = null;
     }
 }

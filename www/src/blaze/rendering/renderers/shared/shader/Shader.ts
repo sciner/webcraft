@@ -9,7 +9,7 @@ export interface ShaderWithGroupsDescriptor
 {
     glProgram?: GlProgram;
     gpuProgram?: GpuProgram;
-    groups: ShaderGroups;
+    groups?: ShaderGroups;
     groupMap?: Record<string, Record<string, any>>;
 }
 
@@ -17,7 +17,7 @@ export interface ShaderWithResourcesDescriptor
 {
     glProgram?: GlProgram;
     gpuProgram?: GpuProgram;
-    resources: Record<string, any>;
+    resources?: Record<string, any>;
 }
 
 interface GroupsData

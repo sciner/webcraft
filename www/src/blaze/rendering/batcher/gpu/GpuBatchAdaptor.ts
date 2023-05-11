@@ -7,6 +7,7 @@ import { getTextureBatchBindGroup } from './getTextureBatchBindGroup.js';
 import type { ExtensionMetadata } from '../../../extensions/Extensions.js';
 import type { Batch } from '../shared/Batcher.js';
 import type { BatcherAdaptor, BatcherPipe } from '../shared/BatcherPipe.js';
+import type { GpuEncoderSystem } from "../../renderers/gpu/GpuEncoderSystem.js";
 
 export class GpuBatchAdaptor implements BatcherAdaptor
 {
@@ -41,7 +42,7 @@ export class GpuBatchAdaptor implements BatcherAdaptor
 
         const program = this.shader.gpuProgram;
 
-        const encoder = batchPipe.renderer.encoder;
+        const encoder = batchPipe.renderer.encoder as GpuEncoderSystem;
         const globalUniformsBindGroup = batchPipe.renderer.globalUniforms.bindGroup;
 
         // create a state objects we need...
