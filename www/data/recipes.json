@@ -1507,7 +1507,7 @@
         "result": {
             "item": {
                 "suffix": "_INGOT",
-                "additional": ["EMERALD", "TITANIUM", "COAL"]
+                "additional": ["EMERALD", "COAL"]
             },
             "count": 9
         }
@@ -1710,6 +1710,51 @@
         },
         "result": {
             "item": "madcraft:cobblestone",
+            "count": 1
+        }
+    },
+    {
+        "id": "59520417-59cb-428f-8a38-4358dde3cde5",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "c c",
+            "c c",
+            "lsl"
+        ],
+        "key": {
+            "l": {
+                "item": "madcraft:limestone"
+            },
+            "s": {
+                "item": "madcraft:sand"
+            },
+            "c": {
+                "item": "madcraft:clay_ball"
+            }
+        },
+        "result": {
+            "item": "madcraft:light_gray_cоncrete",
+            "count": 1
+        }
+    },
+    {
+        "id": "9605801d-bfe3-493c-92c6-938b0209563b",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "   ",
+            "li "
+        ],
+        "key": {
+            "l": {
+                "item": "madcraft:light_gray_cоncrete"
+            },
+            "i": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:reinforced_cоncrete",
             "count": 1
         }
     }
