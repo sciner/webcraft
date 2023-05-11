@@ -8019,7 +8019,14 @@
                 "3": "block/decals/snow_block/3.png",
                 "all": "block/decals/snow_block/all.png",
                 "opposite": "block/decals/snow_block/opposite.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name": "SNOWBALL",
+                    "instrument": ["_SHOVEL"],
+                    "count": 4
+                }
+            ]
         },
         {
             "id": 182,
