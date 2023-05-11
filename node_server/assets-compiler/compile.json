@@ -12539,6 +12539,40 @@
                 "set_on_water"
             ],
             "texture": "block/stone.png"
+        },
+        {
+            "id": 1094,
+            "name": "RAW_TITANIUM",
+            "coocked_item": {"name": "TITANIUM_INGOT", "count": 1},
+            "style": "extruder",
+            "texture": "block/stone.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "titanium"
+            }
+        },
+        {
+            "id": 1095,
+            "name": "TITANIUM_NUGGET",
+            "piece_of": "TITANIUM_INGOT",
+            "item": {"name": "nugget"},
+            "style": "extruder",
+            "material": {
+                "id": "titanium"
+            },
+            "texture": "item/gold_nugget.png"
+        },
+        {
+            "id": 1096,
+            "name": "TITANIUM_INGOT",
+            "item": {"name": "ingot"},
+            "style": "extruder",
+            "material": {
+                "id": "titanium"
+            },
+            "texture": "item/netherite_ingot.png"
         }
     ]
 }

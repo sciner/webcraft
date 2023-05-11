@@ -102,6 +102,11 @@
         {"name": "sanded_stones"},
         {"name": "small_stones_desert"},
         {"name": "pinecones"},
+        {"name": "raw_titanium"},
+        {"name": "titanium_ingot"},
+        {"name": "titanium_nugget"},
+        {"name": "titanium_ore"},
+        {"name": "poor_titanium_ore"},
 
         {"name": "tool/primitive_axe"},
         {"name": "tool/sunglasses"},
@@ -110,6 +115,11 @@
         {"name": "tool/pickaxe"},
         {"name": "tool/shovel"},
         {"name": "tool/sword"},
+        {"name": "tool/industrial_axe"},
+        {"name": "tool/industrial_hoe"},
+        {"name": "tool/industrial_pickaxe"},
+        {"name": "tool/industrial_shovel"},
+        {"name": "tool/industrial_sword"},
 
         {"name": "armor/scrap_armor"}
 
@@ -2535,6 +2545,27 @@
             "bb": {
                 "model": "transport/boat",
                 "import_anyway": true
+            }
+        },
+        {
+            "id": 1094,
+            "name": "RAW_TITANIUM",
+            "bb": {
+                "model": "raw_titanium"
+            }
+        },
+        {
+            "id": 1095,
+            "name": "TITANIUM_NUGGET",
+            "bb": {
+                "model": "titanium_nugget"
+            }
+        },
+        {
+            "id": 1096,
+            "name": "TITANIUM_INGOT",
+            "bb": {
+                "model": "titanium_ingot"
             }
         }
     ]
