@@ -61,6 +61,7 @@ export class Brain extends FSMBrain {
             return;
         }
         const mob = this.mob;
+        mob.extra_data.attack = false
         this.updateControl({
             forward: false,
             jump: false,
@@ -79,6 +80,7 @@ export class Brain extends FSMBrain {
         }
         // обход препятсвия
         const mob = this.mob;
+        mob.extra_data.attack = false
         if (this.is_wall || this.is_fire || this.is_lava) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
@@ -101,6 +103,7 @@ export class Brain extends FSMBrain {
     // преследование игрока
     doCatch(delta) {
         const mob = this.mob;
+        mob.extra_data.attack = false
         const world = mob.getWorld();
         const difficulty = world.rules.getValue('difficulty');
         if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
@@ -150,6 +153,7 @@ export class Brain extends FSMBrain {
         } else {
             if (this.timer_attack++ >= this.interval_attack) {
                 this.timer_attack = 0;
+                mob.extra_data.attack = true
                 switch(difficulty) {
                     case EnumDifficulty.EASY: this.target.setDamage(Math.random() < 0.5 ? 2 : 3); break;
                     case EnumDifficulty.NORMAL: this.target.setDamage(3); break;
