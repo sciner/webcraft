@@ -375,7 +375,7 @@ export const THIRD_PERSON_CAMERA_DISTANCE   = 5 * PLAYER_ZOOM;
 
 export const SPECTATOR_SPEED_MUL            = 1 * PLAYER_ZOOM;
 
-export const PLAYER_BURNING_TIME            = 5 // в секундах
+export const PLAYER_BURNING_TIME            = 3 // в секундах
 
 // Player armor slots
 export const PLAYER_ARMOR_SLOT_BOOTS        = 36; // boots

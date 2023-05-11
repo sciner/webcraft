@@ -1021,7 +1021,7 @@ export class Player implements IPlayer {
             if (this.#leg_block && (this.#leg_block.id == this.bm.FIRE.id || this.#leg_block.id == this.bm.CAMPFIRE.id || (this.#leg_block.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID)) {
                 this.#timer_burn = performance.now() + PLAYER_BURNING_TIME * 1000
             }
-            if (this.in_water || (this.headBlock && (this.headBlock.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) || this.getEffectLevel(Effect.FIRE_RESISTANCE)) {
+            if ( this.in_water || (this.headBlock && (this.headBlock.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) || this.getEffectLevel(Effect.FIRE_RESISTANCE)) {
                 this.#timer_burn = 0
             } 
             // если в воде, то проверим еще высоту воды
@@ -1062,6 +1062,8 @@ export class Player implements IPlayer {
 
             // включение/выключение анимации горения
             this.state.fire = (this.#timer_burn > performance.now()) ? true : false
+        } else {
+            this.#timer_burn = 0
         }
         this.lastUpdate = performance.now();
     }

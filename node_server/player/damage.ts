@@ -6,11 +6,12 @@ import type { ServerPlayer } from "../server_player.js";
 import { PLAYER_BURNING_TIME, PLAYER_STATUS } from "@client/constant.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
 
+const MUL_1_SEC = 20
 const INSTANT_DAMAGE_TICKS = 10
 const INSTANT_HEALTH_TICKS = 10
 const LIVE_REGENERATIN_TICKS = 50
 const FIRE_LOST_TICKS = 10
-const FIRE_TIME = PLAYER_BURNING_TIME * 10
+const FIRE_TIME = PLAYER_BURNING_TIME * MUL_1_SEC - 5
 const OXYGEN_LOST_TICKS = 10
 const OXYGEN_GOT_TICKS = 5
 const POISON_TICKS = 25
@@ -158,20 +159,21 @@ export class ServerPlayerDamage {
                 }
             }
         } else {
-            this.fire_lost_timer = FIRE_LOST_TICKS;
+            this.fire_lost_timer = FIRE_LOST_TICKS
+            // горение
+            const fire_res_lvl = effects.getEffectLevel(Effect.FIRE_RESISTANCE)
+            if (legs.isWater || head.isWater || fire_res_lvl > 0) {
+                this.#timer_fire = 0
+            }
+            if (this.#timer_fire > 0) {
+                if ((this.#timer_fire % FIRE_LOST_TICKS) == 0) {
+                    damage += 1
+                }
+                this.#timer_fire--
+            }
         }
 
-        // горение
-        const fire_res_lvl = effects.getEffectLevel(Effect.FIRE_RESISTANCE)
-        if (legs.isWater || head.isWater || fire_res_lvl > 0) {
-            this.#timer_fire = 0
-        }
-        if (this.#timer_fire > 0) {
-            if ((this.#timer_fire % FIRE_LOST_TICKS) == 0) {
-                damage += 1
-            }
-            this.#timer_fire--
-        }
+        
 
         // отравление
         const poison_lvl = effects.getEffectLevel(Effect.POISON);
@@ -260,24 +262,28 @@ export class ServerPlayerDamage {
             this.live_regen_timer = 0;
         }
         // сопротивление магическому и физическому урону
-        const res_lvl = effects.getEffectLevel(Effect.RESISTANCE);
-        damage -= damage * res_lvl * 0.2;
+        const res_lvl = effects.getEffectLevel(Effect.RESISTANCE)
+        damage -= damage * res_lvl * 0.2
         // армор
-        damage = Math.round((damage * (32 - this.player.inventory.getArmorLevel())) / 32);
+        damage = Math.round((damage * (32 - this.player.inventory.getArmorLevel())) / 32)
         if (damage > 0) {
             if (this.actor && [EnumDamage.CRIT, EnumDamage.SNOWBALL].includes(this.type_damage)) {
                 const pos = this.actor?.state?.pos ? this.actor.state.pos : this.actor.pos
                 const velocity = player.state.pos.sub(pos).normSelf()
-                velocity.y = 0.2
+                velocity.y = .2
                 player.controlManager.prismarine.player_state.vel.addSelf(velocity)
             }
-            player.live_level = Math.max(player.live_level - damage, 0);
+            player.live_level = Math.max(player.live_level - damage, 0)
+        }
+        this.damage = 0
+
+        // если player умер, то обнуляем состояния
+        if (player.live_level <= 0) {
+            this.#timer_fire = 0
         }
 
         // анимация горения
-        this.player.state.fire = (this.#timer_fire > 0) ? true : false
-
-        this.damage = 0
+        this.player.state.fire = (this.#timer_fire > 0) ? true : false 
     }
 
     /*
