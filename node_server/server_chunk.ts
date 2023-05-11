@@ -949,7 +949,7 @@ export class ServerChunk {
         // Different behavior, depending on whether the neighbor was destroyed or created
         if(neighbour_destroyed) {
 
-            if ([bm.SNOW.id].includes(tblock.id)  && neighbourPos.y < pos.y) {
+            if (bm.SNOW.id == tblock.id  && neighbourPos.y < pos.y) {
                 return createDrop(tblock, true);
             }
 
