@@ -1,4 +1,4 @@
-import EventEmitter from 'eventemitter3';
+import { EventEmitter } from '../utils/EventEmitter.js';
 import { DEG_TO_RAD, RAD_TO_DEG } from '../../maths/const.js';
 import { Matrix } from '../../maths/Matrix.js';
 import { ObservablePoint } from '../../maths/ObservablePoint.js';

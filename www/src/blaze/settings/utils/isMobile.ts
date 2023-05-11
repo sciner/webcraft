@@ -1,4 +1,4 @@
-import {isMobile} from './isMobileJs.js';
+import {isMobileLib} from './isMobile.js';
 import type {isMobileResult} from "./isMobileLib.js";
 
-export const isMobileJs: isMobileResult = isMobile(globalThis.navigator);
+export const isMobile: isMobileResult = isMobileLib(globalThis.navigator);
