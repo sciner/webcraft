@@ -1733,7 +1733,7 @@
             }
         },
         "result": {
-            "item": "madcraft:light_gray_cоncrete",
+            "item": "madcraft:light_gray_concrete",
             "count": 1
         }
     },
@@ -1747,14 +1747,14 @@
         ],
         "key": {
             "l": {
-                "item": "madcraft:light_gray_cоncrete"
+                "item": "madcraft:light_gray_concrete"
             },
             "i": {
                 "item": "madcraft:iron_ingot"
             }
         },
         "result": {
-            "item": "madcraft:reinforced_cоncrete",
+            "item": "madcraft:reinforced_concrete",
             "count": 1
         }
     }

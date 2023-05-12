@@ -2468,7 +2468,7 @@
             "drop_item": [
                 {
                     "name": "DIAMOND",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -3474,7 +3474,7 @@
             "drop_item": [
                 {
                     "name": "EMERALD",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -4954,7 +4954,7 @@
             "drop_item": [
                 {
                     "name": "REDSTONE_WIRE",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -7557,7 +7557,7 @@
             "drop_item": [
                 {
                     "name": "WAXED_CUT_COPPER_STAIRS",
-                    "instrument": ["IRON_PICKAXE", "STONE_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -8081,7 +8081,7 @@
             "drop_item": [
                 {
                     "name": "EMERALD_BLOCK",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ]
         },
@@ -9198,7 +9198,7 @@
             "drop_item": [
                 {
                     "name": "GOLD_BLOCK",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -10646,7 +10646,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond"
+                "texture": "scrap_armor_titanium"
             }
         },
         {
@@ -10766,7 +10766,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond"
+                "texture": "scrap_armor_titanium"
             }
         },
         {
@@ -10886,7 +10886,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond"
+                "texture": "scrap_armor_titanium"
             }
         },
         {
@@ -11006,7 +11006,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond"
+                "texture": "scrap_armor_titanium"
             }
         },
         {

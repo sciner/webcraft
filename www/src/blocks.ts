@@ -687,6 +687,7 @@ export class BLOCK {
         if(this.hasOwnProperty(name)) {
             return this[name]
         }
+        console.log(name)
         console.error('Warning: name missing in BLOCK ' + name);
         return this.DUMMY;
     }
