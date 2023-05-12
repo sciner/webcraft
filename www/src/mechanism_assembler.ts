@@ -1,14 +1,18 @@
 import { DBItemBlock } from "./blocks.js";
 import { Vector, VectorCollector } from "./helpers.js";
+import { Lang } from "./lang.js";
 import type { Player } from "./player.js";
 import { ServerClient } from "./server_client.js";
 import type { TBlock } from "./typed_blocks3.js";
 import type { TActionBlock, WorldAction } from "./world_action.js";
 
+export const MAX_MECHANISM_VOLUME =  262144
+
 export class MechanismAssembler {
     player : Player
     pos1? : Vector = null
     pos2? : Vector = null
+    max_volume: int = MAX_MECHANISM_VOLUME
 
     constructor(player : Player) {
         this.player = player
@@ -23,8 +27,11 @@ export class MechanismAssembler {
             this.discard()
             return null
         }
+        const qi = MechanismAssembler.getCuboidInfo(this.pos1, pos)
+        if(qi.volume > this.max_volume) {
+            throw `error_max_volume|${this.max_volume}`
+        }
         this.pos2 = new Vector().copyFrom(pos)
-        const qi = MechanismAssembler.getCuboidInfo(this.pos1, this.pos2)
         const player = this.player
         const {pos1, pos2} = this
         player.world.server.Send({name: ServerClient.CMD_MECHANISM, data: {action: 'assembly', args: {pos1, pos2}}})
@@ -83,17 +90,19 @@ export class MechanismAssembler {
                     return true
                 }
                 ma.setPos1(pos)
-                msg = 'Click again to confirm'
+                msg = 'click_again_to_confirm'
             } else {
                 if(!ma.pos1) {
                     debugger
                 }
-                ma.setPos2(pos)
-                const volume = ma.pos1.volume(ma.pos2)
-                msg = `Added ${volume} blocks`
+                const qi = ma.setPos2(pos)
+                if(qi) {
+                    const volume = qi.volume
+                    msg = `added_blocks|${volume}`
+                }
             }
             if(msg) {
-                Qubatch.hotbar.strings.setText(1, msg, 4000)
+                Qubatch.hotbar.strings.setText(1, Lang[msg], 4000)
             }
             return true
         } else {
@@ -139,6 +148,8 @@ export class MechanismAssembler {
                             const item_air = new DBItemBlock(0)
                             const mob_blocks = new VectorCollector()
                             const ndbs = {}
+                            let count = 0
+                            const max_volume = MAX_MECHANISM_VOLUME
                             const findNeighbours = (mob_id : int, pos: Vector) => {
                                 const n = world.getBlock(pos) as TBlock
                                 if(n.extra_data?.mob_id == mob_id) {
@@ -150,6 +161,9 @@ export class MechanismAssembler {
                                             ndb.extra_data.in_mesh = true
                                         } else {
                                             actions.addBlocks([{pos: pos.clone(), item: item_air, action_id: ServerClient.BLOCK_ACTION_REPLACE}])
+                                        }
+                                        if(count++ > max_volume) {
+                                            throw `error_max_volume|${max_volume}`
                                         }
                                         mob_blocks.set(pos, ndb)
                                         const pos_key = pos.sub(world_block.posworld).toHash()
