@@ -164,7 +164,7 @@ export class MechanismAssembler {
                                 }
                             }
                             // const pn = performance.now()
-                            findNeighbours(mob_id, world_block.posworld.add(Vector.YP))
+                            findNeighbours(mob_id, world_block.posworld.clone()/*.add(Vector.YP)*/)
                             if(mob_blocks.size > 0) {
                                 actions.blocks.options.on_block_set = false
                                 mob.extra_data.blocks = ndbs
