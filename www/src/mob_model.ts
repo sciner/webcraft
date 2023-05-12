@@ -2,7 +2,7 @@ import { Resources } from "./resources.js";
 import { Color, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { AABBDrawable, NetworkPhysicObject } from './network_physic_object.js';
-import { MOB_TYPE, MOUSE } from "./constant.js";
+import { MOB_TYPE } from "./constant.js";
 import { Mesh_Object_MobFire } from "./mesh/object/mob_fire.js";
 import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
@@ -12,8 +12,10 @@ import type { TMobProps } from "./mob_manager.js";
 import type { Mesh_Object_Base } from "./mesh/object/base.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type {ClientDriving} from "./control/driving.js";
+import type { BLOCK } from "./blocks.js";
+import { CD_ROT } from "./core/CubeSym.js";
 
-const {mat4} = glMatrix
+const {mat4, vec3} = glMatrix
 
 // Анимация повороа говоры отдельно от тела, нужно перенести в bbmodel
 // head({part, index, delta, animable, camPos}) {
@@ -253,6 +255,9 @@ export class MobModel extends NetworkPhysicObject {
         //     ignore_roots.push('geometry.sheep.v1.8:geometry.sheep.sheared.v1.8');
         // }
 
+        let mx = null
+        const bm : BLOCK = this.world.block_manager
+
         // hide invisible mobs
         if(this.extra_data && 'invisible' in this.extra_data) {
             const mesh = this._mesh
@@ -262,6 +267,34 @@ export class MobModel extends NetworkPhysicObject {
             } else {
                 if(this.extra_data.blocks) {
                     mesh.setupBlockDrawer(this.extra_data.blocks)
+                    let rotate = this.extra_data.rotate
+                    if(rotate) {
+                        rotate = new Vector().copyFrom(rotate)
+                        mx = mat4.create()
+                        switch(rotate.x) {
+                            case CD_ROT.EAST:
+                            case CD_ROT.WEST: {
+                                mat4.rotateX(mx, mx, mesh.rotation[2])
+                                break
+                            }
+                            case CD_ROT.SOUTH:
+                            case CD_ROT.NORTH: {
+                                mat4.rotateZ(mx, mx, mesh.rotation[2])
+                                break
+                            }
+                            default: {
+                                mat4.rotateY(mx, mx, mesh.rotation[2])
+                                break
+                            }
+                        }
+                        // хак со сдвигом матрицы в центр блока
+                        const v = vec3.create()
+                        v[1] = 0.5
+                        vec3.transformMat4(v, v, mx)
+                        mx[12] += - v[0]
+                        mx[13] += 0.5 - v[1]
+                        mx[14] += - v[2]
+                    }
                 }
             }
         }
@@ -284,7 +317,7 @@ export class MobModel extends NetworkPhysicObject {
                 debugger
             }
             mesh.apos.copyFrom(this.pos)
-            mesh.drawBuffered(render, delta)
+            mesh.drawBuffered(render, delta, mx)
             if(mesh.gl_material.tintColor) {
                 mesh.gl_material.tintColor.set(0, 0, 0, 0)
             }

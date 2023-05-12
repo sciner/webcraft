@@ -168,6 +168,7 @@ export class MechanismAssembler {
                             if(mob_blocks.size > 0) {
                                 actions.blocks.options.on_block_set = false
                                 mob.extra_data.blocks = ndbs
+                                mob.extra_data.rotate = new Vector().copyFrom(world_block.rotate)
                                 // console.log(mob_blocks.size, performance.now() - pn)
                                 // console.log(JSON.stringify(ndbs))
                             }

@@ -32,20 +32,7 @@ export class Brain extends FSMBrain {
             if(tblock_rotate) {
                 const period = 4000
                 const angle = (((performance.now() / period) * 360) % 360) / 360 * (Math.PI * 2)
-                if(tblock_rotate.y == 1) {
-                    mob.rotate.z = angle
-                } else {
-                    // switch(tblock_rotate.x) {
-                    //     case CD_ROT.WEST: {
-                    //         mob.rotate.x = angle
-                    //         break
-                    //     }
-                    //     default: {
-                    //         mob.rotate.z = angle
-                    //         break
-                    //     }
-                    // }
-                }
+                mob.rotate.z = angle
                 this.updateControl({
                     forward: false,
                     jump: false,
