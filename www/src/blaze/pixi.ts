@@ -1,3 +1,6 @@
+//@ts-check
+/// <reference path="./../../types/index.d.ts" />
+
 export { Container } from './rendering/scene/Container.js';
 export { Texture } from './rendering/renderers/shared/texture/Texture.js';
 export { TextureSource } from './rendering/renderers/shared/texture/sources/TextureSource.js';
