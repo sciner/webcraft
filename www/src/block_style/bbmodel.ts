@@ -250,7 +250,7 @@ export default class style {
                         case 'cog':
                         case 'rotate_by_pos_n_6':
                         case 'six': {
-                            if(tblock.rotate && tblock instanceof TBlock) {
+                            if(tblock.rotate && (tblock instanceof TBlock || tblock instanceof FakeTBlock)) {
                                 const rotate = tblock.rotate || DEFAULT_SIX_ROTATE
                                 const cardinal_direction = tblock.getCardinalDirection()
                                 const mx = calcRotateMatrix(tblock.material, rotate, cardinal_direction, matrix)
@@ -270,7 +270,7 @@ export default class style {
                         }
                         case 'three': {
                             // rotation only in three axes X, Y or Z
-                            if(tblock.rotate && tblock instanceof TBlock) {
+                            if(tblock.rotate && (tblock instanceof TBlock || tblock instanceof FakeTBlock)) {
                                 const cd = tblock.getCardinalDirection()
                                 const mx = calcRotateMatrix(tblock.material, tblock.rotate, cd, matrix)
                                 // хак со сдвигом матрицы в центр блока
