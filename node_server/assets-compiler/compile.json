@@ -12539,6 +12539,48 @@
                 "set_on_water"
             ],
             "texture": "block/stone.png"
+        },
+        {
+            "id": 492,
+            "name": "COGWHEEL",
+            "sound": "madcraft:block.wood",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "no_drop_ao",
+                "rotate_by_pos_n_6"
+            ],
+            "texture": "block/stone.png"
+        },
+        {
+            "id": 493,
+            "name": "MECHANISM_ASSEMBLER",
+            "sound": "madcraft:block.wood",
+            "style": "extruder",
+            "item": {"name": "instrument", "instrument_id": "mechanism_assembler"},
+            "material": {
+                "id": "wood"
+            },
+            "texture": "item/mechanism_assembler.png"
+        },
+        {
+            "id": 494,
+            "name": "WINDMILL_BEARING",
+            "sound": "madcraft:block.wood",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "no_drop_ao",
+                "rotate_by_pos_n_6"
+            ],
+            "texture": "block/stone.png"
         }
+        
     ]
 }
