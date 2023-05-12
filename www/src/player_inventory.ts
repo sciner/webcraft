@@ -1,5 +1,5 @@
 import {RecipeManager} from "./recipes.js";
-import {Inventory, TInventoryState} from "./inventory.js";
+import {Inventory, TInventoryState, TInventoryStateChangeParams} from "./inventory.js";
 import {HOTBAR_LENGTH_MAX, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_SLOT_COUNT} from "./constant.js";
 import type {WindowManager, Pointer} from "./vendors/wm/wm.js";
 import type {Player} from "./player.js";
@@ -7,6 +7,7 @@ import type {HUD} from "./hud.js";
 import type {InventoryWindow} from "./window/index.js";
 import type {CraftTableSlot} from "./window/base_craft_window.js";
 import {InventoryComparator} from "./inventory_comparator.js";
+import type {SimpleBlockSlot} from "./vendors/wm/wm.js";
 
 /**
  * A client version of {@link Inventory}.
@@ -17,6 +18,8 @@ export class PlayerInventory extends Inventory {
     wm: WindowManager
     hud: HUD
     recipes: RecipeManager
+    private _update_number      = 0
+    private inventory_ui_slots : SimpleBlockSlot[] = []
 
     constructor(player: Player, state: TInventoryState, hud: HUD) {
         super(player, {current: {index: 0, index2: -1}, items: []});
@@ -51,6 +54,27 @@ export class PlayerInventory extends Inventory {
         Qubatch.hotbar.setInventory(this)
     }
 
+    get update_number() {
+        return this._update_number
+    }
+
+    set update_number(value) {
+        this._update_number = value
+        for(let slot of this.inventory_ui_slots) {
+            slot.refresh()
+        }
+    }
+
+    addInventorySlot(slot: CraftTableSlot): void {
+        if(slot.slot_index === undefined || slot.slot_index === null) return
+        this.inventory_ui_slots.push(slot)
+    }
+
+    select(index: int): void {
+        super.select(index)
+        this.update_number++
+    }
+
     setState(inventory_state: TInventoryState) {
         this.current = inventory_state.current;
         this.items = inventory_state.items;
@@ -80,6 +104,19 @@ export class PlayerInventory extends Inventory {
             frmRecipe?.paginator.update();
         }
         return true;
+    }
+
+    /**
+     * Обновляет UI слоты - чтобы изменения {@link items} стали видны.
+     *
+     * Почему это отдельный метод от {@link refresh}: семантика {@link refresh} не определена,
+     * но т.к. раньше он не обновлял слоты, то возможно и не должен. Добавили новый метод,
+     * чтобы не добавить возможно нежелательне эффекты к старому.
+     */
+    refreshUISlots(): void {
+        for(const slot of this.inventory_ui_slots) {
+            slot.refresh()
+        }
     }
 
     /**
@@ -124,15 +161,11 @@ export class PlayerInventory extends Inventory {
     private reorganizeFreeSlot(): int {
         const bm     = this.block_manager
         const items  = this.items
-        const bag    = this.getBagLength()
-        const hotbar = this.getHotbarLength()
-        const simpleKeys = new Array<string>(bag)
+        const size = this.getSize()
+        const simpleKeys = new Array<string>(size.bagEnd)
         const freeSpaceByKey: Dict<int> = {} // total free space in all stacks of this type of item
 
-        for(let i = 0; i < bag; i++) {
-            if (i > hotbar && i < HOTBAR_LENGTH_MAX) {
-                continue
-            }
+        for(const i of size.bagIndices()) {
             const item = items[i]
             if (item) {
                 const key = InventoryComparator.makeItemCompareKey(item)
@@ -143,7 +176,7 @@ export class PlayerInventory extends Inventory {
         }
 
         // for each slot that can be freed. It excludes HUD slots
-        for(let i = HOTBAR_LENGTH_MAX; i < bag; i++) {
+        for(let i = HOTBAR_LENGTH_MAX; i < size.bagEnd; i++) {
             const item = items[i]
             if (!item) {
                 continue
@@ -172,17 +205,116 @@ export class PlayerInventory extends Inventory {
      * and move the item into it. Updates count in {@link mat}.
      * @return true if anything changed
      */
-    incrementAndReorganize(mat: IInventoryItem, no_update_if_remains?: boolean): boolean {
-        let result = this.increment(mat, no_update_if_remains, true)
-        if (mat.count) {
+    incrementAndReorganize(item: IInventoryItem, no_update_if_remains?: boolean): boolean {
+        let result = this.increment(item, no_update_if_remains, true)
+        if (item.count) {
             const slotIndex = this.reorganizeFreeSlot()
             if (slotIndex >= 0) {
-                this.items[slotIndex] = {...mat}
-                mat.count = 0
+                this.items[slotIndex] = {...item}
+                item.count = 0
                 this.refresh()
                 result = true
             }
         }
         return result
+    }
+
+    moveFromInvalidSlotsIfPossible(): void {
+        let changed = false
+        const items = this.items
+        for(const i of this.getSize().invalidIndices()) {
+            if (items[i] && this.incrementAndReorganize(items[i], true)) {
+                items[i] = null
+                changed = true
+            }
+        }
+        if (changed) {
+            this.refreshUISlots()
+        }
+    }
+
+    /**
+     * Если дарг слот пуст, и текущее число слотов сумки больше чем {@link prevBagSize}
+     * (полученного из {@link InventorySize.bagSize}), то отиправляет состояние на сервер.
+     *
+     * Зачем это:
+     * если мы положили предмет, увеличивший число слотов, то возможно клиент начнет слать серверу
+     * CMD_DROP_ITEM_PICKUP на предметы, которые он теперь может поднять. Но у сервера все еще старый
+     * размер инвентаря и он не может поднять предмет, это приводит к странностям.
+     * Чтобы сразу начать поднимать, нужно отправить состояние.
+     * Сделаем это только если дроп пуст (чтобы не очищать его неожиданно для игрока)
+     */
+    sendStateIfSizeIncreases(prevBagSize: int): void {
+        if (!this.items[INVENTORY_DRAG_SLOT_INDEX] && this.getSize().bagSize > prevBagSize) {
+            this.sendStateChange()
+        }
+    }
+
+    /**
+     * Отправляет состояние на сервер. Пытается пренести предметы из драг слота и несуществующих слотов
+     * в существующие, иначе выбасывает их.
+     */
+    sendStateChange(params: TInventoryStateChangeParams = {}): void {
+        const size = this.getSize()
+        const items = this.items
+        const thrown_items = params.thrown_items ?? []
+
+        const dragItem = this.clearDragItem(true)
+        if (dragItem) {
+            thrown_items.push(dragItem)
+        }
+
+        for(const i of size.invalidIndices()) {
+            const item = items[i]
+            if (item) {
+                // добавить предмет к существующим слотам (пыстым или нет). Возможно, переложить другие предметы чтобы освободить место.
+                this.incrementAndReorganize(item)
+                // если еще осталось - выкинуть
+                if (item.count) {
+                    thrown_items.push(item)
+                }
+                items[i] = null
+            }
+        }
+
+        this.player.world.server.InventoryNewState({
+            state: this.exportItems(),
+            ...params
+        })
+    }
+
+    /**
+     * @returns true если может поднять целиком хотя бы 1 из педметов. На сервере проверяется так же,
+     *   см. обработчик {@link ServerClient.CMD_DROP_ITEM_PICKUP}
+     */
+    canPickup(items: (IInventoryItem | IBlockItem)[]) : boolean {
+        const hasDrag = this.items[INVENTORY_DRAG_SLOT_INDEX] != null
+        for (const item of items) {
+            const max_stack = this.block_manager.getItemMaxStack(item)
+            let count = item.count
+
+            // Допустим, инвентарь был полон, а мы только что взяли из него предмет и держим его мышью.
+            // Место осободилось, но сервер об этом не знает, и если мы поднимем с земли, может быть некуда
+            // деть драг слот. Чтобы этого избежать, проверяем что есть дополнительный свободный стек.
+            if (hasDrag) {
+                count += max_stack
+            }
+
+            for (const i of this.getSize().bagIndices()) {
+                const exItem = this.items[i]
+                if (!exItem) {
+                    count -= max_stack
+                    if (count <= 0) {
+                        return true
+                    }
+                } else if (InventoryComparator.itemsEqualExceptCount(exItem, item)) {
+                    count -= Math.max(max_stack - exItem.count)
+                    if (count <= 0) {
+                        return true
+                    }
+                }
+            }
+        }
+        return false
     }
 }

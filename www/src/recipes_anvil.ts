@@ -39,7 +39,7 @@ export type TUsedAnvilRecipe = {
 type TAnvilGetResultFn = (first_item: IInventoryItem | null, second_item: IInventoryItem | null,
                 label: string | null | false, outUsedCount: [int, int]) => IInventoryItem | null
 
-type TAnvilRecipe = {
+export type TAnvilRecipe = {
     id: string
     getResult: TAnvilGetResultFn
 }

@@ -245,7 +245,7 @@ export class InHandOverlay {
             pos.set(0, 0, 0);
 
             //
-            let mainHandItem = {...matInHand};
+            let mainHandItem = {...matInHand} as any;
             mainHandItem.isEmpty = function() {
                 return this.id == 0;
             };

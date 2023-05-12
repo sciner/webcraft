@@ -3,7 +3,6 @@ import { Lang } from "../lang.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 
 export class DoubleChestWindow extends BaseChestWindow {
-    [key: string]: any;
 
     constructor(inventory) {
 
@@ -17,6 +16,7 @@ export class DoubleChestWindow extends BaseChestWindow {
             }
         })
 
+        this.createButtonSortChest()
     }
 
     prepareSlots() {

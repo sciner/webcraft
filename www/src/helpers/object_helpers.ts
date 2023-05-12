@@ -10,6 +10,12 @@ export class ObjectHelpers {
         return true;
     }
 
+    static clear(obj: Dict): void {
+        for (let key in obj) {
+            delete obj[key]
+        }
+    }
+
     // For now, it supports only plain objects, Array, primitives and Vector.
     static deepClone(v: any, depth : number = Infinity): any {
         if (v == null) {
@@ -126,5 +132,25 @@ export class ObjectHelpers {
             result.push(prefix + key + ': ' + obj[key])
         }
         return result.join('\n')
+    }
+
+    static toArray<ObjT, ArrT = ObjT>(obj: Dict<ObjT>,
+        dst: ArrT[] | null = null,
+        length: int | null = null,
+        toIndexFn: ((key: string, value: ObjT) => int)  = (key, _) => parseInt(key),
+        toValueFn: ((key: string, value: ObjT) => ArrT) = (_, value) => value as any
+    ): ArrT[] {
+        dst ??= []
+        dst.length = length ?? 0
+        dst.fill(null)
+        for(let key in obj) {
+            const value = obj[key]
+            const ind = toIndexFn(key, value)
+            while (dst.length < ind) {
+                dst.push(null)
+            }
+            dst[ind] = toValueFn(key, value)
+        }
+        return dst
     }
 }

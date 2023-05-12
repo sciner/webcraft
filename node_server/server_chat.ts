@@ -228,6 +228,7 @@ export class ServerChat {
                 }
                 break;
             }
+            case '/h':
             case '/help': {
                 let commands
                 if (args[1] === 'admin') {

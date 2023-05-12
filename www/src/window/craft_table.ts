@@ -115,12 +115,9 @@ export class CraftTable extends BaseCraftWindow {
 
     // Обработчик закрытия формы
     onHide() {
-        const thrown_items = this.clearCraft()
-        // Save inventory
-        this.world.server.InventoryNewState({
-            state: this.inventory.exportItems(),
-            used_recipes: this.lblResultSlot.getUsedRecipes(),
-            thrown_items
+        this.inventory.sendStateChange({
+            thrown_items: this.clearCraft(),
+            used_recipes: this.lblResultSlot.getUsedRecipes()
         })
         super.onHide()
     }

@@ -31,8 +31,6 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         this.h *= this.zoom
 
         this.player = player
-        this.skinKey = null
-        this.skinViewer = null // lazy initialized if necessary
 
         // Craft area
         this.area = {
@@ -70,7 +68,10 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         }
 
         // кнопка сортировки
-        this.createButtonSort()
+        this.createButtonSort(true, 0, () => {
+            this.autoSortItems()
+            this.refresh()
+        })
         
         // слот для удаления преметов
         this.createDeleteSlot(this.cell_size)
@@ -104,16 +105,11 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
     // Обработчик закрытия формы
     onHide() {
         this.lblPlayerBox?.removeChildren();
-        // Drag
-        this.inventory.clearDragItem(true)
+
         // Update player mob model
         this.inventory.player.updateArmor()
-        // Sort and save inventory
-        this.autoSortItems()
 
-        if(this.skinViewer) {
-            this.skinViewer.renderPaused = true
-        }
+        this.inventory.sendStateChange()
     }
 
     async previewSkin() {

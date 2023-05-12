@@ -21,6 +21,7 @@ import { teleport_title_regexp } from "plugins/chat_teleport.js";
 import { OLD_CHUNK_SIZE } from "@client/chunk_const.js";
 import { PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT } from "@client/constant.js";
 import { DBWorldDriving } from "./world/driving.js";
+import type {TChestSlots} from "@client/block_helpers.js";
 
 export type BulkDropItemsRow = [
     string,     // entity_id
@@ -633,14 +634,11 @@ export class DBWorld {
     }
 
     // Return ender chest content
-    async loadEnderChest(player)  {
-        const rows = await this.conn.all('SELECT ender_chest FROM user WHERE id = :id', {
+    async loadEnderChest(player): Promise<TChestSlots> {
+        const row = await this.conn.get('SELECT ender_chest FROM user WHERE id = :id', {
             ':id': player.session.user_id
-        });
-        for(let row of rows) {
-            return JSON.parse(row.ender_chest);
-        }
-        return null;
+        })
+        return JSON.parse(row.ender_chest) // это поле не null по умолчанию, см. определение таблицы user
     }
 
     async setTitle(title : string)  {

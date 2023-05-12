@@ -1,5 +1,5 @@
 import { Vector } from "@client/helpers.js";
-import { isBlockRoughlyWithinPickatRange } from "@client/block_helpers.js";
+import {isBlockRoughlyWithinPickatRange, TChestInfo} from "@client/block_helpers.js";
 import { ServerClient } from "@client/server_client.js";
 import { PacketHelpers } from "../../server_helpers.js";
 import { CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD
@@ -25,7 +25,7 @@ export default class packet_reader {
     /**
      * Request chest content
      */
-    static async read(player: ServerPlayer, packet) {
+    static async read(player: ServerPlayer, packet: INetworkMessage<TChestInfo>) {
 
         function forceClose(removeCurrentChests) {
             if (removeCurrentChests) {
@@ -67,7 +67,10 @@ export default class packet_reader {
             forceClose(false);
             throw `error_chest_not_found|${pos.x},${pos.y},${pos.z}`;
         } else {
-            await player.world.chests.sendContentToPlayers([player], chest);
+            const success = await player.world.chests.loadAndSendToPlayers(player, chest)
+            if (!success) {
+                forceClose(true)
+            }
         }
         return true;
     }

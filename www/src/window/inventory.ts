@@ -16,7 +16,6 @@ export class InventoryWindow extends BaseCraftWindow {
 
     slot_empty = 'slot_empty'
     slot_full = 'slot_full'
-    cell_size : float
     slot_margin : float
     slots_x : float
     slots_y : float
@@ -28,9 +27,6 @@ export class InventoryWindow extends BaseCraftWindow {
         this.w *= this.zoom
         this.h *= this.zoom
         this.recipes = recipes
-
-        this.skinKey = null
-        this.skinViewer = null // lazy initialized if necessary
 
         // Ширина / высота слота
         this.cell_size     = UI_THEME.window_slot_size * this.zoom
@@ -124,16 +120,10 @@ export class InventoryWindow extends BaseCraftWindow {
 
     // Обработчик закрытия формы
     onHide() {
-
-        const thrown_items = this.clearCraft()
-
-        // Save inventory
-        this.world.server.InventoryNewState({
-            state: this.inventory.exportItems(),
+        this.inventory.sendStateChange({
             used_recipes: this.lblResultSlot.getUsedRecipes(),
-            thrown_items
+            thrown_items: this.clearCraft()
         })
-
     }
 
     /**

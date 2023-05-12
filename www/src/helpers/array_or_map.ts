@@ -12,7 +12,6 @@
  * It can be optimized at the expense of code size.
  */
 export class ArrayOrMap {
-    [key: string]: any;
 
     static get(collection, key) {
         return collection instanceof Map ? collection.get(key) : collection[key];
@@ -58,6 +57,13 @@ export class ArrayOrMap {
     static *keys(collection, emptyValue = undefined) {
         if (collection instanceof Map) {
             yield *collection.keys();
+        } else if (collection.length != null && Array.isArray(collection)) {
+            for(let key = 0; key < collection.length; key++) {
+                const v = collection[key];
+                if (v !== undefined && v !== emptyValue) {
+                    yield key;
+                }
+            }
         } else {
             for(let key in collection) {
                 const v = collection[key];
@@ -68,10 +74,17 @@ export class ArrayOrMap {
         }
     }
 
-    /** The only difference with {@link keys} is that it retuens Object's keys as numbers. */
-    static *numericKeys(collection, emptyValue = undefined) {
+    /** The only difference with {@link keys} is that it returns Object's keys as numbers. */
+    static *numericKeys(collection, emptyValue = undefined): IterableIterator<number> {
         if (collection instanceof Map) {
             yield *collection.keys();
+        } else if (collection.length != null && Array.isArray(collection)) {
+            for(let key = 0; key < collection.length; key++) {
+                const v = collection[key];
+                if (v !== undefined && v !== emptyValue) {
+                    yield key;
+                }
+            }
         } else {
             for(let key in collection) {
                 const v = collection[key];

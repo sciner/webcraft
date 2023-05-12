@@ -480,7 +480,7 @@ export class BLOCK {
     }
 
     // Return new simplified item
-    static convertItemToInventoryItem(item, b, no_copy_extra_data : boolean = false) : IInventoryItem {
+    static convertItemToInventoryItem(item, b?, no_copy_extra_data : boolean = false) : IInventoryItem {
         if(!item || !('id' in item) || item.id < 0) {
             return null;
         }

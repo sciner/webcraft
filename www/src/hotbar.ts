@@ -464,7 +464,7 @@ export class Hotbar {
         // хотбар и селектор
         const sx = this.sx
         const sy = this.sy
-        const count = this.inventory.getHotbarLength()
+        const size = this.inventory.getSize()
         for (let i = 0; i < HOTBAR_LENGTH_MAX; i++) {
             const x = this.inventory_slots_window.x + i * (sx * SLOT_MARGIN_PERCENT)
             const y = this.inventory_slots_window.y
@@ -475,8 +475,7 @@ export class Hotbar {
             if (i == this.inventory.getRightIndex()) {
                 this.tilemap.drawImage(this.hud_sprites.slot_selection, x, y)
             }
-            this.inventory_slots_window.slots[i].locked = (i > count) ? true : false
-            this.inventory_slots_window.slots[i].refresh()
+            this.inventory_slots_window.slots[i].locked = !size.slotExists(i)
         }
 
         if(hotbar_height == 0) {

@@ -85,13 +85,15 @@ export class GradientGraphics {
 export class Window extends PIXI.Container {
     [key: string]: any;
 
+    declare zoom:           number
+    declare x:              number
+    declare y:              number
+    declare z:              number
     #_tooltip:              any = null
     #_bgicon:               any = null
     #_wmclip:               any = null
     style:                  Style
     draggable:              boolean = false
-
-    canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
 
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
 
@@ -105,7 +107,7 @@ export class Window extends PIXI.Container {
         this._h = 0
         this.interactiveChildren = true
 
-        // List of childs
+        // List of children
         this.list = {
             values: () => {
                 const resp = []
@@ -597,11 +599,6 @@ export class Window extends PIXI.Container {
     }
 
     show(args?) {
-        // for(let w of wmGlobal.visibleWindows()) {
-        //     if (!this.canBeOpenedWith.includes(w.id) && !(w?.canBeOpenedWith?.includes(this.id) ?? false)) {
-        //         return
-        //     }
-        // }
         this.visible = true
         this.resetHover()
         this.onShow(args)
@@ -1416,8 +1413,11 @@ export class SimpleBlockSlot extends Window {
 
     }
 
-    set locked(val) {
-        this.#locked = val
+    set locked(val: boolean) {
+        if (val !== this.#locked) {
+            this.#locked = val
+            this.refresh()
+        }
     }
 
     get locked() {

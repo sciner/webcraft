@@ -1,4 +1,5 @@
 import {Mth} from "./mth.js";
+import {ObjectHelpers} from "./object_helpers.js";
 
 export type UintArrayConstructor = Uint8ArrayConstructor | Uint16ArrayConstructor | Uint32ArrayConstructor
 
@@ -162,17 +163,34 @@ export class ArrayHelpers {
         }
     }
 
-    static toObject(arr: any[], toKeyFn = (ind : number, _ : any) => ind, toValueFn = (_ : number, value : any) => value): object {
-        const res = {};
+    /**
+     * Помещает не null занчения значения элементов массив в объект.
+     * @param dst - существующий объект (необязательный)
+     * @param toKeyFn - ключ объекта на основе индекса и занчения элемента массива
+     * @param toValueFn - значение объекта на основе индекса и занчения элемента массива
+     * @returns объект (новый или dst)
+     */
+    static toObject<ArrT, ObjT = ArrT>(arr: ArrT[],
+        dst: Dict<ObjT> | null = null,
+        toKeyFn:   ((ind: int, value: ArrT) => int | string)    = (ind, _) => ind,
+        toValueFn: ((ind: int, value: ArrT) => ObjT) | ObjT     = (_, value) => value as any
+    ): Dict<ObjT> {
+        if (dst == null) {
+            dst = {}
+        } else {
+            ObjectHelpers.clear(dst)
+        }
         if (typeof toValueFn !== 'function') {
             const value = toValueFn;
             toValueFn = () => value;
         }
         for(let i = 0; i < arr.length; i++) {
             const v = arr[i];
-            res[toKeyFn(i, v)] = toValueFn(i, v);
+            if (v != null) {
+                dst[toKeyFn(i, v)] = (toValueFn as Function)(i, v)
+            }
         }
-        return res;
+        return dst
     }
 
     static create<T = any>(size: int, fill?: ((index: int) => T) | T): T[] {

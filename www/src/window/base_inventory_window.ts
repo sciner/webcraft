@@ -1,4 +1,4 @@
-import { INVENTORY_DRAG_SLOT_INDEX, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, UI_THEME } from "../constant.js";
+import {INVENTORY_DRAG_SLOT_INDEX, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, UI_THEME, BAG_MAX_INDEX} from "../constant.js";
 import { InventoryComparator } from "../inventory_comparator.js";
 import { BlankWindow } from "./blank.js";
 import type {PlayerInventory} from "../player_inventory.js";
@@ -7,9 +7,10 @@ import type {World} from "../world.js";
 import type {ServerClient} from "../server_client.js";
 import type {GameClass} from "../game.js";
 import {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
+import {Label} from "../ui/wm.js";
+import {Resources} from "../resources.js";
 
 export class BaseInventoryWindow extends BlankWindow {
-    [key: string]: any;
 
     world       : World
     server ?    : ServerClient
@@ -26,6 +27,23 @@ export class BaseInventoryWindow extends BlankWindow {
         this.inventory  = inventory
         this.drag       = Qubatch.hud.wm.drag
 
+    }
+
+    /** Создает кнопку сортировки с указанным обработчиком */
+    protected createButtonSort(alignRight: boolean, dy: number, onMouseDown: () => void): Label {
+        const size = 18 * this.zoom
+        const x = alignRight
+            ? this.w - size - UI_THEME.window_padding * this.zoom
+            : UI_THEME.window_padding * this.zoom
+        const y = (dy + UI_THEME.window_padding) * this.zoom
+        const hud_atlas = Resources.atlas.get('hud')
+        // кнопка сортировки
+        const btnSort = new Label(x, y, size, size, 'btnSort')
+        btnSort.setIcon(hud_atlas.getSpriteFromMap('sort'), 'centerstretch', .9)
+        btnSort.z = 1
+        btnSort.onMouseDown = onMouseDown
+        this.add(btnSort)
+        return btnSort
     }
 
     // Updates drag UI if the dragged item changed
@@ -48,6 +66,15 @@ export class BaseInventoryWindow extends BlankWindow {
         return []   // override in subclasses
     }
 
+    refresh(): void {
+        this.inventory.moveFromInvalidSlotsIfPossible()
+
+        const size = this.inventory.getSize()
+        for (let i = 0; i < this.inventory_slots.length; i++) {
+            this.inventory_slots[i].locked = !size.slotExists(i)
+        }
+    }
+
     /**
      * It's to find a possible bug where an item gets count=0.
      * It sets null to slots with count=0 and notifies the player.
@@ -58,7 +85,7 @@ export class BaseInventoryWindow extends BlankWindow {
      */
     fixAndValidateSlots(context) {
         // compare inventory slots and items
-        for(let i = 0; i < (BAG_LENGTH_MAX + HOTBAR_LENGTH_MAX); i++) {
+        for(let i = 0; i < BAG_MAX_INDEX; i++) {
             const item = this.inventory.items[i]
             const slotItem = this.inventory_slots[i].getItem()
             if (!InventoryComparator.itemsEqual(item, slotItem)) {
@@ -92,8 +119,7 @@ export class BaseInventoryWindow extends BlankWindow {
             const mouseYaw = (e.x - screenWidth * 0.5) / screenWidth * fov
             const playerYaw = this.inventory.player.rotate.z
             // tell the server to throw the item from the inventory
-            this.world.server.InventoryNewState({
-                state: this.inventory.exportItems(),
+            this.inventory.sendStateChange({
                 thrown_items: [item],
                 throw_yaw: playerYaw + mouseYaw
             })
@@ -103,116 +129,6 @@ export class BaseInventoryWindow extends BlankWindow {
     }
 
     // TODO move more shared code from BaseChestWindow and BaseCraftWindow here.
-
-    /** 
-    * Автоматическая сортировка инвентаря
-    * @param full - сортировать и основное поле
-    */
-    autoSortItems(full: boolean = false) {
-        const items = this.inventory.items
-        const bm = this.world.block_manager
-        const bag_len = this.inventory.getBagLength()
-        const hotbar_len = this.inventory.getHotbarLength()
-        if (full) {
-            for (let i = HOTBAR_LENGTH_MAX; i < bag_len; i++) {
-                if (items[i]) {
-                    const max_stack = bm.getItemMaxStack(items[i])
-                    for (let j = i + 1; j < bag_len; j++) {
-                        if (items[j] && items[i].id == items[j].id) {
-                            const count = items[i].count + items[j].count
-                            if (count <= max_stack) {
-                                items[i].count += items[j].count
-                                items[j] = null
-                            } else {
-                                items[i].count = max_stack
-                                items[j].count = count - max_stack
-                            }
-                        }
-                    }
-                }
-            }
-            for (let i = HOTBAR_LENGTH_MAX; i < bag_len; i++) {
-                if (!items[i]) {
-                    for (let j = i + 1; j < bag_len; j++) {
-                        if (items[j]) {
-                            items[i] = {id: items[j].id, count: items[j].count}
-                            items[j] = null
-                            break
-                        }
-                    }
-                }
-            }
-        }
-        for (let i = bag_len; i < (BAG_LENGTH_MAX + HOTBAR_LENGTH_MAX); i++) {
-            if (items[i]) {
-                const max_stack = bm.getItemMaxStack(items[i])
-                for (let j = HOTBAR_LENGTH_MAX; j < bag_len; j++) {
-                    if (items[j] && items[i].id == items[j].id) {
-                        const count = items[i].count + items[j].count
-                        if (count <= max_stack) {
-                            items[i].count += items[j].count
-                            items[j] = null
-                        } else {
-                            items[i].count = max_stack
-                            items[j].count = count - max_stack
-                        }
-                    }
-                }
-            }
-        }
-        for (let i = bag_len; i < (BAG_LENGTH_MAX + HOTBAR_LENGTH_MAX); i++) {
-            if (items[i]) {
-                for (let j = HOTBAR_LENGTH_MAX; j < bag_len; j++) {
-                    if (!items[j]) {
-                        items[j] = {id: items[i].id, count: items[i].count}
-                        items[i] = null
-                        break
-                    }
-                }
-            }
-        }
-        for (let i = hotbar_len + 1; i < HOTBAR_LENGTH_MAX; i++) {
-            if (items[i]) {
-                const max_stack = bm.getItemMaxStack(items[i])
-                for (let j = HOTBAR_LENGTH_MAX; j < (BAG_LENGTH_MAX + HOTBAR_LENGTH_MAX); j++) {
-                    if (items[j] && items[i].id == items[j].id) {
-                        const count = items[i].count + items[j].count
-                        if (count <= max_stack) {
-                            items[j].count += items[i].count
-                            items[i] = null
-                            break
-                        } else {
-                            items[j].count = max_stack
-                            items[i].count = count - max_stack
-                        }
-                    }
-                }
-            }
-        }
-        for (let i = hotbar_len + 1; i < HOTBAR_LENGTH_MAX; i++) {
-            if (items[i]) {
-                for (let j = HOTBAR_LENGTH_MAX; j < (BAG_LENGTH_MAX + HOTBAR_LENGTH_MAX); j++) {
-                    if (!items[j]) {
-                        items[j] = {id: items[i].id, count: items[i].count}
-                        items[i] = null
-                        break
-                    }
-                }
-            }
-        }
-        const thrown_items = []
-        for (let i = bag_len; i < (BAG_LENGTH_MAX + HOTBAR_LENGTH_MAX); i++) {
-            if (items[i]) {
-                thrown_items.push(items[i])
-                items[i] = null
-            }
-        }
-        this.world.server.InventoryNewState({
-            state: this.inventory.exportItems(),
-            thrown_items: thrown_items
-        })
-        return true
-    }
 
     /**
     * Создание слотов для инвентаря

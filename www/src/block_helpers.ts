@@ -1,13 +1,26 @@
 import { BLOCK } from "./blocks.js";
 import { ITEM_LABEL_MAX_LENGTH } from "./constant.js";
 import { ROTATE, Vector, ObjectHelpers } from "./helpers.js";
+import type {TBlock} from "./typed_blocks3.js";
+
+export type TChestInfo = {
+    pos         : Vector
+    block_id    : int
+    extra_data  : Dict
+    chestSessionId ? : number
+    otherPos ?  : Vector
+};
+
+/** Структура данных, используемая во многих местах для описания сундуков */
+export type TChestSlots = {
+    slots : Dict<IInventoryItem>
+}
 
 export class ChestHelpers {
-    [key: string]: any;
 
     // If block is a half-chest, it returns the expected position of the other half.
     // Otherwise it returns null.
-    static getSecondHalfPos(block) {
+    static getSecondHalfPos(block: TBlock | null): Vector | null {
         if (!block || block.material.name !== "CHEST") {
             return null;
         }
@@ -22,7 +35,7 @@ export class ChestHelpers {
 
     // If there are two valid half-chests, and one of them has position pos,
     // it returns a descriptor of the other half. Otherwise it returns null.
-    static getSecondHalf(world, pos) {
+    static getSecondHalf(world: IWorld, pos: IVector): TChestInfo | null {
         const block = world.getBlock(pos);
         const secondPos = ChestHelpers.getSecondHalfPos(block);
         if (!secondPos) {
@@ -44,7 +57,7 @@ export class ChestHelpers {
     }
 
     // returns a range that one chest ocupies withing a single/double chest UI
-    static getOneChestRange(isFirst, hasSecond, length) {
+    static getOneChestRange(isFirst: boolean, hasSecond: boolean, length: int): { min: number, max: number } {
         var min = 0;
         if (hasSecond) {
             length /= 2;

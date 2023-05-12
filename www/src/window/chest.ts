@@ -4,7 +4,6 @@ import type { PlayerInventory } from "../player_inventory.js";
 import { BaseChestWindow } from "./base_chest_window.js";
 
 export class ChestWindow extends BaseChestWindow {
-    [key: string]: any;
 
     constructor(inventory : PlayerInventory) {
 
@@ -17,6 +16,8 @@ export class ChestWindow extends BaseChestWindow {
                 close: {tag: bm.CHEST.sound, action: 'close'}
             }
         })
+
+        this.createButtonSortChest()
     }
 
 }

@@ -1,7 +1,7 @@
 import { Vector } from "./helpers.js";
-import type {TUsedRecipe} from "./inventory_comparator.js";
-import type {TInventoryState, TInventoryStateChangeMessage} from "./inventory.js";
+import type {TChestConfirmData, TInventoryStateChangeMessage} from "./inventory.js";
 import type { ChunkManager } from "./chunk_manager.js";
+import type {TChestInfo} from "./block_helpers.js";
 
 type CmdListener = (INetworkMessage) => void
 type CmdListenersSet = Set<CmdListener>
@@ -58,6 +58,7 @@ export class ServerClient {
     static CMD_CHEST_CONTENT            = 46; // server -> player (when player request chest content)
     static CMD_CHEST_CONFIRM            = 47; // player -> server (player change chest content)
     static CMD_CHEST_FORCE_CLOSE        = 108; // server -> player (a server tells the client to close the chest window)
+    static CMD_CHEST_CHANGE_PROCESSED   = 123 // s->p: сервер сообщил об окончании операции, которую ждал клиент (успешной или нет - не важно)
 
     //
     static CMD_CHANGE_POS_SPAWN         = 63; // player -> server (request to change spawn point)
@@ -123,7 +124,7 @@ export class ServerClient {
 
     static CMD_BUILDING_SCHEMA_ADD      = 107;
 
-    // NEXT UNUSED COMMAND INDEX        = 123
+    // NEXT UNUSED COMMAND INDEX        = 124
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;
@@ -363,12 +364,12 @@ export class ServerClient {
     }
 
     // Запрос содержимого сундука
-    LoadChest(info) {
+    LoadChest(info: TChestInfo) {
         this.Send({name: ServerClient.CMD_LOAD_CHEST, data: info});
     }
 
     //
-    ChestConfirm(params) {
+    ChestConfirm(params: TChestConfirmData) {
         this.Send({name: ServerClient.CMD_CHEST_CONFIRM, data: params});
     }
 
@@ -429,7 +430,7 @@ export class ServerClient {
         this.Send({name: ServerClient.CMD_QUEST_GET_ENABLED, data: null});
     }
 
-    PickupDropItem(entity_ids) {
+    PickupDropItem(entity_ids: string[]) {
         this.Send({name: ServerClient.CMD_DROP_ITEM_PICKUP, data: entity_ids});
     }
 
