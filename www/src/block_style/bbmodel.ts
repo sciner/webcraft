@@ -23,6 +23,7 @@ const DEFAULT_AABB_SIZE = new Vector(12, 12, 12)
 const pivotObj = new Vector(0.5, .5, 0.5)
 const xyz = new Vector(0, 0, 0)
 const randoms = new FastRandom('bbmodel', MAX_CHUNK_SQUARE)
+const DEFAULT_SIX_ROTATE = Vector.YP.clone()
 
 class BBModel_TextureRule {
     /**
@@ -243,6 +244,27 @@ export default class style {
                                         throw 'error_not_implemented'
                                     }
                                 }
+                            }
+                            break
+                        }
+                        case 'cog':
+                        case 'rotate_by_pos_n_6':
+                        case 'six': {
+                            if(tblock.rotate && tblock instanceof TBlock) {
+                                const rotate = tblock.rotate || DEFAULT_SIX_ROTATE
+                                const cardinal_direction = tblock.getCardinalDirection()
+                                const mx = calcRotateMatrix(tblock.material, rotate, cardinal_direction, matrix)
+                                // if(rot.type == 'cog') {
+                                //     mat4.rotateY(mx, mx, Math.PI / 8)
+                                // }
+                                // хак со сдвигом матрицы в центр блока
+                                const v = vec3.create()
+                                v[1] = 0.5
+                                vec3.transformMat4(v, v, mx)
+                                mx[12] += - v[0]
+                                mx[13] += 0.5 - v[1]
+                                mx[14] += - v[2]
+                                mat4.copy(matrix, mx)
                             }
                             break
                         }

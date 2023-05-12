@@ -239,7 +239,7 @@ export class MobModel extends NetworkPhysicObject {
     /**
      * Draw mob model
      */
-    draw(render : Renderer, camPos : Vector, delta : float, speed? : float, draw_debug_grid : boolean = false) {
+    draw(render : Renderer, camPos : Vector, delta : float, speed? : float, draw_debug_grid : boolean = false) : boolean {
         if(!this.isAlive) {
             return false
         }
@@ -252,6 +252,19 @@ export class MobModel extends NetworkPhysicObject {
         // if(this.type == MOB_TYPE.SHEEP && this.extra_data?.is_sheared) {
         //     ignore_roots.push('geometry.sheep.v1.8:geometry.sheep.sheared.v1.8');
         // }
+
+        // hide invisible mobs
+        if(this.extra_data && 'invisible' in this.extra_data) {
+            const mesh = this._mesh
+            if(this.extra_data.invisible) {
+                mesh.destroyBlockDrawer()
+                return false
+            } else {
+                if(this.extra_data.blocks) {
+                    mesh.setupBlockDrawer(this.extra_data.blocks)
+                }
+            }
+        }
 
         // Draw in fire
         if(this.extra_data?.in_fire) {
@@ -276,6 +289,8 @@ export class MobModel extends NetworkPhysicObject {
                 mesh.gl_material.tintColor.set(0, 0, 0, 0)
             }
         }
+
+        return true
     }
 
     doAnims() {
