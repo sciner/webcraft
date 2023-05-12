@@ -371,6 +371,8 @@ export const PLAYER_PHYSICS_HALF_WIDTH      = 0.3 * PLAYER_ZOOM; // default play
 export const SNEAK_MINUS_Y_MUL              = 0.2 * PLAYER_ZOOM; // decrease player height to this percent value
 export const PLAYER_DIAMETER                = 0.7;
 export const PLAYER_RADIUS                  = PLAYER_DIAMETER / 2;
+export const MIN_HEIGHT_PLAY_SOUND          = .4
+export const MIN_STEP_PLAY_SOUND            = 1.6
 export const MOB_EYE_HEIGHT_PERCENT         = 1 - 1/16;
 export const THIRD_PERSON_CAMERA_DISTANCE   = 5 * PLAYER_ZOOM;
 

@@ -1589,7 +1589,7 @@ export class Renderer {
 
     // Original bobView
     bobView(player, viewMatrix, forDrop = false) {
-
+        return // @todo need?
         let p_109140_ = (player.walking_frame * 2) % 1;
 
         //
