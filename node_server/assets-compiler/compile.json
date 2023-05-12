@@ -10590,6 +10590,26 @@
             }
         },
         {
+            "id": 1100,
+            "max_in_stack": 1,
+            "name": "COPPER_HELMET",
+            "style": "extruder",
+            "texture": "item/leather_helmet.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "copper"
+            },
+            "armor": {
+                "slot": 39,
+                "durability": 55,
+                "damage": 1
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper"
+            }
+        },
+        {
             "id": 276,
             "max_in_stack": 1,
             "name": "CHAINMAIL_HELMET",
@@ -10698,6 +10718,26 @@
             "item": {"name": "armor"},
             "material": {
                 "id": "leather"
+            },
+            "armor": {
+                "slot": 38,
+                "durability": 80,
+                "damage": 3
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper"
+            }
+        },
+        {
+            "id": 1101,
+            "max_in_stack": 1,
+            "name": "COPPER_CHESTPLATE",
+            "style": "extruder",
+            "texture": "item/leather_chestplate.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "copper"
             },
             "armor": {
                 "slot": 38,
@@ -10830,6 +10870,26 @@
             }
         },
         {
+            "id": 1102,
+            "max_in_stack": 1,
+            "name": "COPPER_LEGGINGS",
+            "style": "extruder",
+            "texture": "item/leather_leggings.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "copper"
+            },
+            "armor": {
+                "slot": 37,
+                "durability": 80,
+                "damage": 2
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper"
+            }
+        },
+        {
             "id": 288,
             "max_in_stack": 1,
             "name": "CHAINMAIL_LEGGINGS",
@@ -10938,6 +10998,26 @@
             "item": {"name": "armor"},
             "material": {
                 "id": "leather"
+            },
+            "armor": {
+                "slot": 36,
+                "durability": 65,
+                "damage": 1
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper"
+            }
+        },
+        {
+            "id": 1103,
+            "max_in_stack": 1,
+            "name": "COPPER_BOOTS",
+            "style": "extruder",
+            "texture": "item/leather_boots.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "copper"
             },
             "armor": {
                 "slot": 36,
