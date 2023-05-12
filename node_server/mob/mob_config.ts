@@ -10,6 +10,7 @@ export const DEFAULT_DRIVING_SOUND = {tag: 'madcraft:block.cloth', action: 'hit'
  * Options for one type of mobs.
  */
 export type TMobConfig = {
+    drop_on_kill?   : string    // block name
     physics         : TPrismarineOptions
     brain ?         : string    // the default is the mob name
     health ?        : int       // максимальное здоровье

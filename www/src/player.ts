@@ -30,6 +30,8 @@ const MOVING_MIN_BLOCKS_PER_SECOND      = 0.1; // the minimum actual speed at wh
 const ATTACK_PROCESS_NONE = 0;
 const ATTACK_PROCESS_ONGOING = 1;
 const ATTACK_PROCESS_FINISHED = 2;
+const MIN_HEIGHT_PLAY_SOUND = .4
+const MIN_STEP_PLAY_SOUND = 2
 
 export type Indicators = {
     live: number
@@ -256,6 +258,9 @@ export class Player implements IPlayer {
     /** значения, которые можно установить командой /debugplayer (и на клиенте, и на сервере) и использовать для любых целей */
     debugValues                 = new Map<string, string>()
     #timer_attack:              number = 0
+    #distance: number = 0
+    #old_distance: number = 0 
+    #old_y: number = 0
 
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
@@ -504,8 +509,8 @@ export class Player implements IPlayer {
             // проверяем e.number чтобы не садиться в моба сразу после его спауна при удержании мыши
             if (e.number == 0 && mob.supportsDriving && !mob.driving?.isFull()) {
                 // Попробовать присоединиться к езде
-                this.controlManager.triedDrving = true
-                this.controlManager.syncWithActionId(e.id, true)
+                this.controlManager.triedDriving = true
+                this.controlManager.syncWithPickatEvent(e, true)
                 return true
             }
         }
@@ -609,26 +614,23 @@ export class Player implements IPlayer {
         if(!player || (!args.force && (player.in_water || !player.walking || !player.controls.enabled))) {
             return;
         }
-        const f = this.walkDist - this.walkDistO;
-        if(f > 0 || args.force) {
-            const pos = player.pos;
-            const world_block = world.chunkManager.getBlock(Math.floor(pos.x), Math.ceil(pos.y) - 1, Math.floor(pos.z));
-            const can_play_sound = world_block && world_block.id > 0 && world_block.material && (!world_block.material.passable || world_block.material.passable == 1);
-            if(can_play_sound) {
-                const block_over = world.chunkManager.getBlock(world_block.posworld.x, world_block.posworld.y + 1, world_block.posworld.z);
-                if(!block_over || !(block_over.fluid > 0)) {
-                    const default_sound   = 'madcraft:block.stone';
-                    const action          = 'step';
-                    let sound             = world_block.getSound();
-                    const sound_list      = Qubatch.sounds.getList(sound, action) ?? Qubatch.sounds.getList(sound, 'hit');
-                    if(!sound_list) {
-                        sound = default_sound;
-                    }
-                    Qubatch.sounds.play(sound, action);
-                    if(player.running) {
-                        // play destroy particles
-                        this.render.destroyBlock(world_block.material, player.pos, true, this.scale, this.scale);
-                    }
+        const pos = player.pos
+        const world_block = world.chunkManager.getBlock(Math.floor(pos.x), Math.ceil(pos.y) - 1, Math.floor(pos.z));
+        const can_play_sound = world_block && world_block.id > 0 && world_block.material && (!world_block.material.passable || world_block.material.passable == 1);
+        if (can_play_sound) {
+            const block_over = world.chunkManager.getBlock(world_block.posworld.x, world_block.posworld.y + 1, world_block.posworld.z);
+            if (!block_over || !(block_over.fluid > 0)) {
+                const default_sound = 'madcraft:block.stone';
+                const action = 'step';
+                let sound = world_block.getSound();
+                const sound_list = Qubatch.sounds.getList(sound, action) ?? Qubatch.sounds.getList(sound, 'hit');
+                if (!sound_list) {
+                    sound = default_sound;
+                }
+                Qubatch.sounds.play(sound, action);
+                if (player.running) {
+                    // play destroy particles
+                    this.render.destroyBlock(world_block.material, player.pos, true, this.scale, this.scale);
                 }
             }
         }
@@ -795,6 +797,7 @@ export class Player implements IPlayer {
                 await this.world.applyActions(actions, this);
                 e_orig.actions = {blocks: actions.blocks};
                 e_orig.eye_pos = this.getEyePos();
+                this.controlManager.syncWithWorldActionIfNeeded(e_orig, actions)
                 // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
                 this.world.server.Send({
                     name: ServerClient.CMD_PICKAT_ACTION,
@@ -963,9 +966,19 @@ export class Player implements IPlayer {
             this.onGround   = pc.player_state.onGround || this.isOnLadder;
             this.in_water   = pc.player_state.isInWater;
             // Trigger events
-            if(this.onGround && !this.onGroundO) {
-                this.triggerEvent('step', {force: true});
+            if (this.#distance > (this.#old_distance + (this.running ? MIN_STEP_PLAY_SOUND : MIN_STEP_PLAY_SOUND * 1.2))) {
+                this.triggerEvent('step', {force: true})
+                this.#old_distance = this.#distance
             }
+            if(this.onGround) {
+                if (Math.abs(this.#old_y - this.pos.y) > MIN_HEIGHT_PLAY_SOUND) {
+                    this.triggerEvent('step', {force: true})
+                }
+                this.#old_y = this.pos.y
+            } else if(this.onGroundO){
+                this.#old_y = this.pos.y
+            }
+            
             if(this.in_water && !this.in_water_o) {
                 this.triggerEvent('legs_enter_to_water');
             }
@@ -1001,6 +1014,7 @@ export class Player implements IPlayer {
                     this.bob += (f - this.bob) * 0.04
                 }
             }
+            this.#distance += this.lerpPos.horizontalDistance(this.posO)
             //
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {

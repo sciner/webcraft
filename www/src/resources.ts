@@ -125,10 +125,8 @@ export class Resources {
         // Others
         all.push(loadImage('media/mask_color_with_swamp.png').then((img) => { this.maskColor = img}));
         all.push(loadImage('media/weather.png').then((img) => { this.weather.image = img}));
-        // all.push(loadImage('media/snow.png').then((img) => { this.weather.snow = img}));
         all.push(loadImage('media/pickat_target.png').then((img) => { this.pickat.target = img}));
         all.push(loadImage('media/shadow.png').then((img) => { this.shadow.main = img}));
-        all.push(loadImage('media/debug_frame.png').then((img) => { this.pickat.debug = img}));
         all.push(fetch('/data/sounds.json').then(response => response.json()).then(json => { this.sounds = json;}));
         all.push(fetch(CLIENT_MUSIC_ROOT + 'music.json')
             .then(response => response.ok ? response.json() : null)
@@ -185,15 +183,6 @@ export class Resources {
             ctx.drawImage(image1, 0, 0, 256, 256, 0, 0, 256, 256);
             this.clouds.texture = ctx.getImageData(0, 0, 256, 256);
         }));
-
-        // Mob & player models
-        // all.push(
-        //     Resources.loadJsonDatabase('/media/models/database.json', '/media/models/')
-        //         .then((t) => Object.assign(this.models, t.assets))
-        //         .then((loaded) => {
-        //             console.debug("Loaded models:", loaded);
-        //         })
-        // );
 
         // Loading progress calculator
         let d = 0;
@@ -367,28 +356,10 @@ export class Resources {
         return resp;
     }
 
-
-    // Load skins
-    // static async loadSkins() {
-    //     const json = await Helpers.fetchJSON('../media/models/database.json');
-    //     const resp = json.player_skins;
-    //     for(var skin of resp) {
-    //         skin.preview = CLIENT_SKIN_ROOT + 'preview/' + skin.file + '.png';
-    //         skin.file = CLIENT_SKIN_ROOT + skin.file + '.png';
-    //     }
-    //     resp.sort((a, b) => a.id - b.id);
-    //     return resp;
-    // }
-
     // Load recipes
     static async loadRecipes() {
         return  Helpers.fetchJSON('../data/recipes.json', true);
     }
-
-    // // Load models
-    // static async loadModels() {
-    //     return  Helpers.fetchJSON('../media/models/database.json');
-    // }
 
     // Load materials
     static async loadMaterials() {

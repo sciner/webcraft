@@ -134,4 +134,12 @@ export class TerrainMapCell extends Default_Terrain_Map_Cell {
         return dl.cap_block_id
     }
 
+    inCanyon(density : float) : boolean {
+        const cp = this.canyon_point
+        if(cp == undefined) {
+            return false
+        }
+        return cp > -density && cp < density
+    }
+
 }

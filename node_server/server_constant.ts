@@ -5,6 +5,9 @@ import { MAX_PACKET_LAG_SECONDS } from "@client/constant.js"
 /** The server sends a command to each player at least once per this interval of time. */
 export const SERVER_SEND_CMD_MAX_INTERVAL = 1000
 
+// TODO удалить эту настройку вместе со альтернативным кодом
+export const COMMANDS_IN_ACTIONS_QUEUE = true
+
 // ================================ управление ================================
 
 // by how many blocks the client's pos may differ without needing correction

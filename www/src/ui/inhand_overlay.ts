@@ -1,4 +1,4 @@
-import glMatrix from "../../vendors/gl-matrix.js";
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import { BLOCK } from "../blocks.js";
 import { Camera } from "../camera.js";
 import { NOT_SPAWNABLE_BUT_INHAND_BLOCKS } from "../constant.js";

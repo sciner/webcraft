@@ -31,7 +31,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     lightTex:       any= null
     chunk:          any = null
     entity_id:      string
-    scale           = new Vector(.2, .2, .2)    // TODO может сделать static, т.к. всегда одинаково
+    scale           = new Vector(.3, .3, .3)    // TODO может сделать static, т.к. всегда одинаково
     create_time:    number  // performance.now()
     pn:             number  // рандом, чтобы одновременно сгенерированные дропы крутились не одинаково
     now_draw:       boolean

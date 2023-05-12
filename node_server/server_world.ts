@@ -26,7 +26,7 @@ import { DEFAULT_MOB_TEXTURE_NAME, GAME_DAY_SECONDS, GAME_ONE_SECOND, MOB_TYPE, 
 import { Weather } from "@client/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
-import { SHUTDOWN_ADDITIONAL_TIMEOUT } from "./server_constant.js"
+import {COMMANDS_IN_ACTIONS_QUEUE, SHUTDOWN_ADDITIONAL_TIMEOUT} from "./server_constant.js"
 
 import {TActionBlock, WorldAction} from "@client/world_action.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
@@ -172,6 +172,7 @@ export class ServerWorld implements IWorld {
         this.grid           = this.chunkManager.grid
         this.quests         = new QuestManager(this);
         this.actions_queue  = new WorldActionQueue(this);
+        this.packet_reader.actions_queue = COMMANDS_IN_ACTIONS_QUEUE ? this.actions_queue : null
         this.admins         = new WorldAdminManager(this);
         this.chests         = new WorldChestManager(this);
         this.mobs           = new WorldMobManager(this);
@@ -1101,7 +1102,6 @@ export class ServerWorld implements IWorld {
             server_player.state.rotate = Vector.vectorify(actions.sitting.rotate)
             server_player.controlManager.setPos(actions.sitting.pos)
                 .setVelocity(0, 0, 0)
-                .syncWithActionId(actions.id)
         }
         // Sleep
         if(actions.sleep) {
@@ -1110,7 +1110,6 @@ export class ServerWorld implements IWorld {
             server_player.state.sitting = false
             server_player.controlManager.setPos(actions.sleep.pos)
                 .setVelocity(0, 0, 0)
-                .syncWithActionId(actions.id)
         }
         // Spawn mobs
         if(actions.mobs.spawn.length > 0) {
@@ -1123,6 +1122,9 @@ export class ServerWorld implements IWorld {
         for(const params of actions.mobs.activate) {
             await this.mobs.activate(params.id, params.spawn_pos, params.rotate);
         }
+
+        // синхронизировать управление с действие, если нужно (независимо от успешности действия)
+        server_player?.controlManager.syncWithEvent(actions)
     }
 
     // Return generator options

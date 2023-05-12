@@ -1,8 +1,39 @@
 import {Vector} from '../helpers.js';
-import BaseRenderer from "./BaseRenderer.js";
+import BaseRenderer, {BaseTexture} from "./BaseRenderer.js";
 
 export class BaseTexture3D {
-    [key: string]: any;
+    width: number;
+    height: number;
+    depth: number;
+    offset = new Vector(0, 0, 0);
+    minFilter: string;
+    magFilter: string;
+    wrap: string;
+    type: string;
+    data: Uint8Array | Uint16Array | Int32Array;
+    context: BaseRenderer;
+    id = BaseRenderer.ID++;
+    dirty = true;
+    prevLength = 0;
+
+    innerWidth: number;
+    innerHeight: number;
+    innerDepth: number;
+
+    regionsToUpdate: Array<RegionTexture3D> = [];
+    useSubRegions = false;
+    ownerPool = null;
+    isRegion = false;
+    isEmpty = false;
+    fixedSize: boolean;
+    emptyRegion: RegionTexture3D = null;
+    pixelSize: number;
+
+    /**
+     * permanent location for base light texture in pool
+     */
+    _poolLocation = -1;
+
     constructor(context, {
         width = 1,
         height = 1,
@@ -11,35 +42,34 @@ export class BaseTexture3D {
         filter = 'nearest',
         wrap = 'clamp',
         data = null,
-        fixedSize = true
+        fixedSize = true,
+        pixelSize = 1,
     } = {}) {
         this.width = width;
         this.height = height;
         this.depth = depth;
-        this.offset = new Vector(0, 0, 0);
+
+        this.innerWidth = width / pixelSize;
+        this.innerHeight = height / pixelSize;
+        this.innerDepth = depth / pixelSize;
+        if (!data) {
+            this.innerWidth += this.innerWidth % 2;
+            this.innerHeight += this.innerHeight % 2;
+            this.innerDepth += this.innerDepth % 2;
+        }
+
         this.minFilter = filter;
         this.magFilter = filter;
         this.wrap = wrap;
         this.type = type;
         this.data = data;
+        this.pixelSize = pixelSize;
 
         this.context = context;
         this.id = BaseRenderer.ID++;
         this.dirty = true;
         this.prevLength = 0;
-
-        this.regionsToUpdate = [];
-        this.useSubRegions = false;
-        this.ownerPool = null;
-        this.isRegion = false;
-        this.isEmpty = false;
         this.fixedSize = fixedSize;
-        this.emptyRegion = null;
-
-        /**
-         * permanent location for base light texture in pool
-         */
-        this._poolLocation = -1;
     }
 
     upload() {
@@ -67,7 +97,22 @@ export class BaseTexture3D {
 }
 
 export class RegionTexture3D {
-    [key: string]: any;
+    baseTexture: BaseTexture3D;
+    width: number;
+    height: number;
+    depth: number;
+    offset: Vector;
+    type: string;
+    data: Uint8Array | Uint16Array | Int32Array;
+    allocated = false;
+
+    context: BaseRenderer;
+    id = BaseRenderer.ID++;
+    dirty: boolean;
+    ownerPool: any = null;
+    isRegion = true;
+    isEmpty = false;
+
     constructor(context, {
         baseTexture = null,
         width = 0,
@@ -87,11 +132,7 @@ export class RegionTexture3D {
         this.allocated = false;
 
         this.context = context;
-        this.id = BaseRenderer.ID++;
         this.dirty = data !== null;
-        this.ownerPool = null;
-        this.isRegion = true;
-        this.isEmpty = false;
     }
 
     dispose() {

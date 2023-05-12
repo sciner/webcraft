@@ -1,35 +1,36 @@
+declare type FSMState = {
+    func : Function
+    args : any
+}
+
 export class FSMStack {
-    list: any[];
-
-    constructor() {
-        this.list = [];
+    list: FSMState[] = []
+    
+    tick(delta : float, context : any) : FSMState | null{
+        const current = this.getCurrentState()
+        if(current) {
+            const func = current.func
+            func.call(context, delta, current.args)
+        }
+        return current
     }
     
-    tick(delta, context) {
-        let currentStateFunction = this.getCurrentState();
-        currentStateFunction?.call(context, delta);
-        return currentStateFunction;
-    }
-    
-    popState() {
-        return this.list.pop();
-    }
-    
-    pushState(state) {
-        if (this.getCurrentState() !== state) {
-            this.list.push(state);
+    pushState(func : Function, args? : any) {
+        if (this.getCurrentState()?.func !== func) {
+            this.list.push({func, args})
         }
     }
 
-    replaceState(state) {
-        if (this.getCurrentState() !== state) {
+    replaceState(func : Function, args? : any) {
+        if (this.getCurrentState()?.func !== func) {
             this.list.pop();
-            this.list.push(state);
+            this.list.push({func, args} as FSMState)
         }
     }
     
-    getCurrentState() {
-        return this.list.length > 0 ? this.list[this.list.length - 1] : null;
+    getCurrentState() : FSMState | null {
+        const index = this.list.length - 1
+        return index >= 0 ? this.list[index] : null
     }
 
 }

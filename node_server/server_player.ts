@@ -1046,7 +1046,7 @@ export class ServerPlayer extends Player {
                     }
                 }
             } else { // попробовать присоединиться к вождению
-                world.drivingManager.tryJoinDriving(this, mob, pickatEvent.id)
+                world.drivingManager.tryJoinDriving(this, mob)
             }
         }
     }

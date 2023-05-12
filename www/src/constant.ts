@@ -281,7 +281,8 @@ export enum MOB_TYPE {
     SNOWBALL    = 'mob/snowball',
     SNOW_GOLEM  = 'mob/snow_golem',
     ZOMBIE      = 'mob/zombie',
-    BOAT        = 'transport/boat'
+    BOAT        = 'transport/boat',
+    RAFT        = 'transport/raft'
 }
 
 export enum DAYLIGHT_VALUE {

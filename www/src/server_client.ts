@@ -50,7 +50,7 @@ export class ServerClient {
     static CMD_PLAYER_CONTROL_ACCEPTED  = 115 // s->p (a server notifies the client that is accepts its state)
 
     // The current player
-    static CMD_STANDUP_STRAIGHT         = 48; // p->s, s->p встать с дивана/кресла
+    static CMD_STANDUP_STRAIGHT         = 48; // p->s, s->p встать с дивана/кресла/моба. Необязательный парамерт - controlEventId
     static CMD_PLAYER_WORLD_DATA        = 116 // s->p (an update to player.world_data)
 
     // Entities

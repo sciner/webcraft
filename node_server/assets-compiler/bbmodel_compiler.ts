@@ -3,6 +3,7 @@ import { Spritesheet } from "./spritesheet.js";
 import skiaCanvas from 'skia-canvas';
 import fs from 'fs';
 import { BBModel_Compiler_Base } from "@client/bbmodel/compiler_base.js";
+import { Vector } from "@client/helpers.js";
 
 export class BBModel_Compiler extends BBModel_Compiler_Base {
 
@@ -33,7 +34,7 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
             }
             const model_json = JSON.parse(fs.readFileSync(path, 'utf-8'));
             model_json._properties = {
-                shift: bb.shift
+                shift: bb.shift ?? Vector.ZERO.clone()
             }
             bb.json = model_json
             this.models.set(bb.name, model_json)

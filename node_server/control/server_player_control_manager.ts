@@ -18,6 +18,8 @@ import {PlayerControlCorrectionPacket, PlayerControlPacketReader, PlayerControlS
 import type {PlayerTickData} from "@client/control/player_tick_data.js";
 import {LimitedLogger} from "@client/helpers/limited_logger.js";
 import {PLAYER_TICK_MODE} from "@client/control/player_tick_data.js";
+import type {WorldAction} from "@client/world_action.js";
+import type {ICmdPickatData} from "@client/pickat.js";
 
 const MAX_ACCUMULATED_DISTANCE_INCREMENT = 1.0 // to handle sudden big pos changes (if they ever happen)
 const MAX_CLIENT_QUEUE_LENGTH = MAX_PACKET_LAG_SECONDS * 1000 / PHYSICS_INTERVAL_MS | 0 // a protection against memory leaks if there is garbage input
@@ -33,6 +35,9 @@ const MAX_CLIENT_QUEUE_LENGTH = MAX_PACKET_LAG_SECONDS * 1000 / PHYSICS_INTERVAL
  */
 const ACCEPT_SMALL_CLIENT_ERRORS = true
 
+/** Через сколько секунд удалять элементы из {@link ServerPlayerControlManager.controlEventsExecuted}. Если это происходит, это не нормально. */
+const UNUSED_EVENTS_TTL_SECONDS = 180
+
 // @ts-expect-error
 export class ServerPlayerControlManager extends PlayerControlManager<ServerPlayer> {
     private lastData: ServerPlayerTickData
@@ -42,12 +47,17 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
 
     // Data from client. Some of it may be waiting for WorldAction to be executed
     private clientDataQueue = new SimpleQueue<ServerPlayerTickData>()
-    // ids of WorldAction of that player that are related to physics and have been recently executed
-    private worldActionIdsExecuted: {
-        performanceNow: number, // it's to delete old records
-        id: string | int
-    }[] = []   // we don't have to wait these actions
-    private expectedExternalChangeTick: int
+
+    /**
+     * id недавно выполненнхы событий, с которыми связана синронизация управления.
+     * Они удаляются когда их встречает ссылающийся на них {@link PlayerTickData}, пришедший с клиента.
+     * См. общее описание синхронизации в doc/player_control.md
+     */
+    private controlEventsExecuted: {
+        id: int,
+        tick: int,
+        performanceNow: number // it's to delete old records
+    }[] = []
 
     /** {@see DONT_VALIDATE_AFTER_MODE_CHANGE_MS} */
     private maxUnvalidatedPhysicsTick: int = -Infinity
@@ -120,10 +130,9 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
         this.updateLastData()
         this.maxUnvalidatedPhysicsTick = -Infinity // clear the previous value, otherwise validation might be disabled for a long time
         this.clientPhysicsTicks = 0
-        if (this.worldActionIdsExecuted) { // if the subclass constructor finished
-            this.worldActionIdsExecuted.length = 0
+        if (this.controlEventsExecuted) { // if the subclass constructor finished
+            this.controlEventsExecuted.length = 0
         }
-        this.expectedExternalChangeTick = -1
     }
 
     setPos(pos: IVector): this {
@@ -132,15 +141,32 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
         return this
     }
 
-    syncWithActionId(worldActionId: string | int | null): this {
-        if (worldActionId != null) {
-            this.worldActionIdsExecuted.push({
-                performanceNow: performance.now(),
-                id: worldActionId
+    /**
+     * Синхронизиует управление с собитием, см. {@link ClientPlayerControlManager.syncWithEventId}.
+     * Можно вызывать как сразу до так и сразу после изменений состояния игрока (без await между ними!).
+     * Конкретно: запоминает что обытие произошло. Если уже есть (или когда будут) клиентские данные,
+     * ссылающиеся на это событие, сервер на них сможет ответить, и симуляция сможет продолжиться.
+     */
+    syncWithEventId(controlEventId: int | null): this {
+        if (controlEventId != null) {
+            this.controlEventsExecuted.push({
+                id: controlEventId,
+                tick: this.knownPhysicsTicks,
+                performanceNow: performance.now()
             })
-            this.expectedExternalChangeTick = this.knownPhysicsTicks
         }
         return this
+    }
+
+    /**
+     * Если {@link event} содержит поле controlEventId: делает то же, что и {@link syncWithEventId} и
+     * удаляет это поле (чтобы ненароком 2-й раз не вызывали). Этот метод просто для удобства.
+     */
+    syncWithEvent(event: ICmdPickatData | WorldAction): void {
+        if (event.controlEventId != null) {
+            this.syncWithEventId(event.controlEventId)
+            event.controlEventId = null
+        }
     }
 
     onClientSession(data: PlayerControlSessionPacket): void {
@@ -215,8 +241,9 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
         let simulatePhysics = debugValueSimulatePhysics
             ? debugValueSimulatePhysics === 'true'
             : SIMULATE_PLAYER_PHYSICS
-        // чтобы не клиент не переписал внешние серверные изменения
-        simulatePhysics ||= this.detectExternalChanges(false) != null
+        // Чтобы клиент не переписал внешние серверные изменения своими данными: если такие изменения есть,
+        // то несмотря на настройки, симулировать физику вместо принятия данных клиента.
+        simulatePhysics ||= this.detectAnyExternalChanges() != null
 
         this.updateControlFromPlayerState()
 
@@ -270,14 +297,14 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
                 hasNewData = true
             }
 
-            // check if it's waiting for WorldActions
-            if (clientData.inputWorldActionIds) {
+            // check if it's waiting for control events
+            if (clientData.inputEventIds) {
                 // if an action was executed, and a tick data was waiting for it, remove this action's id from both lists
-                ArrayHelpers.filterSelf(this.worldActionIdsExecuted, (v) =>
-                    !ArrayHelpers.fastDeleteValue(clientData.inputWorldActionIds, v.id)
+                ArrayHelpers.filterSelf(this.controlEventsExecuted, (v) =>
+                    !ArrayHelpers.fastDeleteValue(clientData.inputEventIds, v.id)
                 )
                 // if the tick data is still waiting for an action
-                if (clientData.inputWorldActionIds.length) {
+                if (clientData.inputEventIds.length) {
                     break
                 }
             }
@@ -292,7 +319,8 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
 
             // Do the simulation if it's needed
             let simulatedSuccessfully: boolean
-            if (clientData.inputWorldActionIds) {
+            if (clientData.inputEventIds) {
+                // в этих данных клиент ожидает внешнего изменения (и раз эта строка выполняется - то дождался). Не выполнять симуляцию.
                 newData.initOutputFrom(this.current)
                 this.onSimulation(this.lastData.outPos, newData)
                 this.updateLastData(newData)
@@ -318,7 +346,7 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
                     if (ACCEPT_SMALL_CLIENT_ERRORS) {
                         newData.copyOutputFrom(clientData)
                     }
-                } else if (clientData.inputWorldActionIds) {
+                } else if (clientData.inputEventIds) {
                     // Клиент ожидал серверного действия. В зависимости от типа действия результат должен был совпасть или нет.
                     // Мы не различаем такие ситуации (не видно нужды в этом). Это ок, что не совпало.
                     this.fineLog(`    simulation with inputWorldActionIds doesn't match ${clientData} ${newData}`)
@@ -350,7 +378,8 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
         }
 
         if (!hasNewData) {
-            correctionReason = this.detectExternalChanges(true)
+            // Если есть внешнее изменение которое ожидаемо клиентом, создать данные тика, содержашие его
+            correctionReason = this.detectAndApplyUnexpectedExternalChanges()
             hasNewData = correctionReason != null
         }
         if (hasNewData) {
@@ -420,55 +449,63 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
     }
 
     /**
-     * Обнаруживает неожиданные (т.е. не в тик {@link expectedExternalChangeTick}) изменения состяония
-     * игрока, произведеные чем-то извне.
-     * @param apply - если false, то только проверяет и возвращает есть ли изменения
-     *   если false - то если есть изменения, создает данные для нового тика, содержащие эти изменения,
-     *   и возвращет появились ли новые данные
-     * @return null если неи изменений, иначе строка, описывающая тип изменений (она же -причина коррекции клиенту, если таковая будет)
+     * Обнаруживает изменения состяония, произведеные чем-то извне.
+     * @return null если нет изменений, иначе строка, описывающая тип изменений (она же - причина коррекции клиенту, если таковая будет)
      */
-    private detectExternalChanges(apply: boolean): string | null {
-        if (this.expectedExternalChangeTick === this.knownPhysicsTicks) {
-            return null
-        }
+    private detectAnyExternalChanges(): string | null {
         const lastData = this.lastData
         const newData = this.newData
         newData.initContextFrom(this)
         newData.initOutputFrom(this.current)
-        const result = !lastData.outputSimilar(newData)
+        return !lastData.outputSimilar(newData)
             ? 'external_change'
             : (lastData.contextEqual(newData) ? null : 'external_context_change')
-        if (!result || !apply) {
-            return result
-        }
+    }
+
+    /**
+     * Обнаруживает неожиданные (т.е. не содержащиеся в {@link controlEventsExecuted}) изменения состояния
+     * игрока, произведеные чем-то извне и создает даные тика с этими изменениями.
+     * @return то же, что и у {@link detectAnyExternalChanges}
+     */
+    private detectAndApplyUnexpectedExternalChanges(): string | null {
+        // если knownPhysicsTicks слишком далеко в будущее, и мы не можем пока создать новый тик - ничего не делать, ждать
         if (this.knownPhysicsTicks > Math.max(this.clientPhysicsTicks, this.getPhysicsTickNow())) {
-            // если knownPhysicsTicks слишком далеко в будущее, и мы не можем пока создать новый тик - ничего не делать, ждать
             return null
         }
-        if (DEBUG_LOG_PLAYER_CONTROL_DETAIL || result === 'external_change') {
-            this.log(result, () => `detected ${result} ${lastData} -> ${newData}`)
+        // если это изменение связано с событием, то оно ожидаемо клиентом, и должно быть обработано вместе с соответствующими данными тика
+        if (this.controlEventsExecuted.find(it => it.tick === this.knownPhysicsTicks)) {
+            return null
         }
-        newData.initInputEmpty(this.lastData, this.knownPhysicsTicks, 1)
-        this.knownPhysicsTicks++
-        this.updateLastData(newData)
+        const result = this.detectAnyExternalChanges()
+        if (result) {
+            if (DEBUG_LOG_PLAYER_CONTROL_DETAIL || result === 'external_change') {
+                this.log(result, () => `detected ${result} ${this.lastData} -> ${this.newData}`)
+            }
+            this.newData.initInputEmpty(this.lastData, this.knownPhysicsTicks, 1)
+            this.knownPhysicsTicks++
+            this.updateLastData(this.newData)
+        }
         return result
     }
 
-    private doGarbageCollection() {
+    private doGarbageCollection(): void {
         // prevent memory leak if something goes wrong
         while (this.clientDataQueue.length > MAX_CLIENT_QUEUE_LENGTH) {
             this.clientDataQueue.shift()
         }
-        // remove obsolete data (normally it's removed when used, but it may remain due to bugs)
-        const worldActionIdsExecuted = this.worldActionIdsExecuted
-        while(worldActionIdsExecuted.length &&
-            worldActionIdsExecuted[0].performanceNow < performance.now() - MAX_PACKET_LAG_SECONDS * 1000
+        // Удалить старые не запрошенные события, для которых не пришло соответствующих данных с клиента.
+        // Обычно они удаляются когда с клиента приходят соответствующие данные тиков. Если нет - значит баги.
+        // Неизвестно, случается ли это.
+        const controlEventsExecuted = this.controlEventsExecuted
+        while(controlEventsExecuted.length &&
+            controlEventsExecuted[0].performanceNow < performance.now() - UNUSED_EVENTS_TTL_SECONDS * 1000
         ) {
-            worldActionIdsExecuted.shift()
+            console.error('unused control event deleted')
+            controlEventsExecuted.shift()
         }
     }
 
-    private updateLastData(newData?: ServerPlayerTickData) {
+    private updateLastData(newData?: ServerPlayerTickData): void {
         const lastData = this.lastData ??= new ServerPlayerTickData()
         if (newData) {
             lastData.copyInputFrom(newData)
@@ -570,15 +607,20 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
             return
         }
 
-        const distance = Math.min(data.outPos.distance(prevPos), MAX_ACCUMULATED_DISTANCE_INCREMENT)
+        let distance = Math.min(data.outPos.distance(prevPos), MAX_ACCUMULATED_DISTANCE_INCREMENT)
 
         if (sitsOrSleeps) {
+            // сразу после того как лег/сел, парктически не учитывать перемешение (оно может включать перемещение до кровати)
+            if (this.accumulatedSleepSittingDistance === 0) {
+                distance = Math.min(distance, 0.001)
+            }
             // If the player moved too much while sitting/sleeping, then there is no more chair or a bed under them
             this.accumulatedSleepSittingDistance += distance
             if (this.accumulatedSleepSittingDistance > WAKEUP_MOVEMENT_DISTANCE) {
                 this.accumulatedSleepSittingDistance = 0
                 this.serverPlayer.standUp()
             }
+            return
         }
 
         // add exhaustion
