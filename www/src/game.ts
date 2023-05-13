@@ -547,7 +547,7 @@ export class GameClass {
                             } else if(e.ctrlKey) {
                                 player.teleport('random', null, false)
                             } else {
-                                ClipboardHelper.copy(player.pos.toHash().replaceAll(',', ' ') + ' ' + this.world.info.seed)
+                                ClipboardHelper.copy(player.pos.floored().toHash().replaceAll(',', ' ') + ' ' + this.world.info.seed)
                                 vt.success(Lang.copied)
                             }
                         }
