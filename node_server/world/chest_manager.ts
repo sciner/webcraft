@@ -191,7 +191,7 @@ export class WorldChestManager {
         }
 
         if (forceClose || error) {
-            player.inventory.moveOrDropFromDragSlot();
+            player.inventory.moveOrDropFromInvalidOrTemporarySlots(false);
             player.inventory.refresh(true);
             if (forceClose) {
                 player.currentChests = null;

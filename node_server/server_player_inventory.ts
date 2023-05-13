@@ -1,4 +1,4 @@
-import {INVENTORY_DRAG_SLOT_INDEX} from "@client/constant.js";
+import {INVENTORY_DRAG_SLOT_INDEX, INVENTORY_SLOT_COUNT} from "@client/constant.js";
 import {InventoryComparator, IRecipeManager, TUsedRecipe} from "@client/inventory_comparator.js";
 import {Inventory, InventorySize, TInventoryState, TInventoryStateChangeMessage} from "@client/inventory.js";
 import { ServerClient } from "@client/server_client.js";
@@ -183,29 +183,18 @@ export class ServerPlayerInventory extends Inventory {
     }
 
     // returns true if changed
-    moveOrDropFromDragSlot(): boolean {
-        const drag_item = this.items[INVENTORY_DRAG_SLOT_INDEX];
-        if (!drag_item) {
-            return false;
+    moveOrDropFromInvalidOrTemporarySlots(resend = true): void {
+        const items = this.items
+        for (const i of this.getSize().invalidAndTemporaryIndices()) {
+            const item = items[i]
+            if (item) {
+                if (!this.incrementAndReorganize(item, true, resend)) {
+                    this.createDropItem([item], 0)
+                }
+                items[i] = null
+            }
         }
-        if (!this.increment(drag_item, true)) {
-            this.dropFromDragSlot()
-        }
-        this.items[INVENTORY_DRAG_SLOT_INDEX] = null
-        return true
-    }
-
-    // Drop item from drag temporary slot
-    dropFromDragSlot(): boolean {
-        const slot_index = INVENTORY_DRAG_SLOT_INDEX;
-        const item = this.items[slot_index];
-        if(!item) {
-            return false;
-        }
-        console.log(this.player.state)
-        this.createDropItem([item])
-        this.items[slot_index] = null;
-        return true;
+        items.length = INVENTORY_SLOT_COUNT // обрезать длину если слишком велика
     }
 
     writeToWorldTransaction(underConstruction) {

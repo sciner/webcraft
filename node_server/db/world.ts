@@ -299,6 +299,7 @@ export class DBWorld {
         )
         if(row) {
 
+            // Это не полный фикс инвентаря. Вторая часть фикса при загрзке - см. moveOrDropFromInvalidOrTemporarySlots
             const fixInventory = (inventory) => {
                 if(inventory.items.length < INVENTORY_SLOT_COUNT) {
                     inventory.items.push(...new Array(INVENTORY_SLOT_COUNT - inventory.items.length).fill(null));

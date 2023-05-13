@@ -188,6 +188,12 @@ export class InventorySize {
             yield i
         }
     }
+
+    /** Итерирует индексы несуществующих и временных слотов (драг слота) */
+    *invalidAndTemporaryIndices(): IterableIterator<int> {
+        yield *this.invalidIndices()
+        yield INVENTORY_DRAG_SLOT_INDEX
+    }
 }
 
 /** A base class for ServerPlayerInventory and the client inventory {@link PlayerInventory} */
@@ -259,7 +265,7 @@ export abstract class Inventory {
     }
 
     //
-    select(index: int): void {
+    select(index: int, resend = true): void {
         const count = this.getSize().hotbar
         if(index < 0) {
             index = count;
@@ -268,7 +274,7 @@ export abstract class Inventory {
             index = 0
         }
         this.current.index = index;
-        this.refresh(true);
+        this.refresh(resend);
         this.onSelect(this.current_item)
     }
 
@@ -277,10 +283,11 @@ export abstract class Inventory {
      * Производит (возможно неполную) валидацию {@link src}
      * @param no_update_if_remains - если true и не получилось добавить целиком, то не добавлется ничего
      * @param updateSource - если true, то count в исходном предмете уменьшается на добалвенное количество
+     * @param resend - отправить изменения игроку (только на сервере)
      * @returns true если что-то изменилось
      * @throws если src некорректно
      */
-    increment(src: IInventoryItem, no_update_if_remains?: boolean, updateSource?: boolean): boolean {
+    increment(src: IInventoryItem, no_update_if_remains?: boolean, updateSource?: boolean, resend = true): boolean {
         if(!src.id) {
             throw 'error_empty_block_id';
         }
@@ -359,10 +366,76 @@ export abstract class Inventory {
             if(select_index >= 0) {
                 this.select(select_index); // вызывает внутри refresh
             } else {
-                this.refresh(true);
+                this.refresh(resend);
             }
         }
         return changed
+    }
+
+    /**
+     * Пытается объединить неполные кучки предметов чтобы освободить слот.
+     * Не удаляет из HUD слотов, но может добавить к ним.
+     *
+     * Не оптимизировано, но это кажется не важно.
+     *
+     * @return индекс освободенного слота, или -1 если не получилось
+     */
+    private reorganizeFreeSlot(): int {
+        const bm     = this.block_manager
+        const items  = this.items
+        const size = this.getSize()
+        const simpleKeys = new Array<string>(size.bagEnd)
+        const freeSpaceByKey: Dict<int> = {} // total free space in all stacks of this type of item
+
+        for(const i of size.bagIndices()) {
+            const item = items[i]
+            if (item) {
+                const key = InventoryComparator.makeItemCompareKey(item)
+                simpleKeys[i] = key
+                const thisItemFreeSpace = bm.getItemMaxStack(item) - item.count
+                freeSpaceByKey[key] = (freeSpaceByKey[key] ?? 0) + thisItemFreeSpace
+            }
+        }
+
+        // for each slot that can be freed. It excludes HUD slots
+        for(let i = HOTBAR_LENGTH_MAX; i < size.bagEnd; i++) {
+            const item = items[i]
+            if (!item) {
+                continue
+            }
+            // check if this item can be completely moved to partially other filled slots
+            const key = simpleKeys[i]
+            const thisItemFreeSpace = bm.getItemMaxStack(item) - item.count
+            const otherItemsFreeSpace = freeSpaceByKey[key] - thisItemFreeSpace
+            if (item.count > otherItemsFreeSpace) {
+                continue
+            }
+            // move the item to other slots
+            items[i] = null // do it before incrementing, so it won't add to itself
+            if (this.increment(item, true, false, false) && !items[i]) {
+                return i
+            }
+        }
+        return -1
+    }
+
+    /**
+     * Похоже на {@link increment}, но если не может добавить предмет, то пытается объединить неполные кучки
+     * других предметов чтоыб освободить место. Обновляет count в {@link item}.
+     * @return true если что-то изменилось
+     */
+    incrementAndReorganize(item: IInventoryItem, no_update_if_remains?: boolean, resend = true): boolean {
+        let result = this.increment(item, no_update_if_remains, true, resend)
+        if (item.count) {
+            const slotIndex = this.reorganizeFreeSlot()
+            if (slotIndex >= 0) {
+                this.items[slotIndex] = {...item}
+                item.count = 0
+                this.refresh(resend)
+                result = true
+            }
+        }
+        return result
     }
 
     /** Decrements the power of {@link current_item}. */
