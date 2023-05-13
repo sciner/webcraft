@@ -487,3 +487,14 @@ declare type DirtPalette = {
     h:              int
     noise_range:    int
 }
+
+declare type IQuboidInfo = {
+    pos1:   IVector
+    volume: int
+    volx:   int
+    voly:   int
+    volz:   int
+    signx:  int
+    signy:  int
+    signz:  int
+}

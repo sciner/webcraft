@@ -22,6 +22,9 @@
         {"name": "mob/deer"},
         {"name": "mob/snowball"},
 
+        {"name": "mechanism/cogwheel"},
+        {"name": "mechanism/windmill_bearing"},
+
         {"name": "transport/boat"},
         {"name": "transport/raft"},
 
@@ -102,6 +105,12 @@
         {"name": "sanded_stones"},
         {"name": "small_stones_desert"},
         {"name": "pinecones"},
+        {"name": "raw_titanium"},
+        {"name": "titanium_ingot"},
+        {"name": "titanium_nugget"},
+        {"name": "titanium_ore"},
+        {"name": "poor_titanium_ore"},
+        {"name": "amethyst_cluster"},
 
         {"name": "tool/primitive_axe"},
         {"name": "tool/sunglasses"},
@@ -112,6 +121,11 @@
         {"name": "tool/sword"},
         {"name": "tool/backpack_basic"},
         {"name": "tool/toolbelt_basic"},
+        {"name": "tool/industrial_axe"},
+        {"name": "tool/industrial_hoe"},
+        {"name": "tool/industrial_pickaxe"},
+        {"name": "tool/industrial_shovel"},
+        {"name": "tool/industrial_sword"},
 
         {"name": "armor/scrap_armor"}
 
@@ -1993,16 +2007,6 @@
             }
         },
         {
-            "id": 610,
-            "name": "DIAMOND_SWORD",
-            "bb": {
-                "model": "tool/sword",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
             "id": 611,
             "name": "NETHERITE_SWORD",
             "bb": {
@@ -2054,9 +2058,9 @@
         },
         {
             "id": 555,
-            "name": "DIAMOND_PICKAXE",
+            "name": "TITANIUM_PICKAXE",
             "bb": {
-                "model": "tool/pickaxe",
+                "model": "tool/industrial_pickaxe",
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
@@ -2105,16 +2109,6 @@
         {
             "id": 563,
             "name": "GOLD_SHOVEL",
-            "bb": {
-                "model": "tool/shovel",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
-            "id": 564,
-            "name": "DIAMOND_SHOVEL",
             "bb": {
                 "model": "tool/shovel",
                 "select_texture": [
@@ -2173,16 +2167,6 @@
             }
         },
         {
-            "id": 570,
-            "name": "DIAMOND_HOE",
-            "bb": {
-                "model": "tool/hoe",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
             "id": 571,
             "name": "NETHERITE_HOE",
             "bb": {
@@ -2225,16 +2209,6 @@
         {
             "id": 558,
             "name": "GOLD_AXE",
-            "bb": {
-                "model": "tool/axe",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
-            "id": 559,
-            "name": "DIAMOND_AXE",
             "bb": {
                 "model": "tool/axe",
                 "select_texture": [
@@ -2515,6 +2489,117 @@
             "bb": {
                 "model": "transport/boat",
                 "import_anyway": true
+            }
+        },
+        {
+            "id": 1094,
+            "name": "RAW_TITANIUM",
+            "bb": {
+                "model": "raw_titanium"
+            }
+        },
+        {
+            "id": 1095,
+            "name": "TITANIUM_NUGGET",
+            "bb": {
+                "model": "titanium_nugget"
+            }
+        },
+        {
+            "id": 1096,
+            "name": "TITANIUM_INGOT",
+            "bb": {
+                "model": "titanium_ingot"
+            }
+        },
+        {
+            "id": 564,
+            "name": "TITANIUM_SHOVEL",
+            "bb": {
+                "model": "tool/industrial_shovel",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 570,
+            "name": "TITANIUM_HOE",
+            "bb": {
+                "model": "tool/industrial_hoe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 559,
+            "name": "TITANIUM_AXE",
+            "bb": {
+                "model": "tool/industrial_axe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 610,
+            "name": "TITANIUM_SWORD",
+            "bb": {
+                "model": "tool/industrial_sword",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1097,
+            "name": "TITANIUM_ORE",
+            "bb": {
+                "model": "titanium_ore"
+            }
+        },
+        {
+            "id": 1098,
+            "name": "POOR_TITANIUM_ORE",
+            "bb": {
+                "model": "poor_titanium_ore"
+            }
+        },
+        {
+            "id": 597,
+            "name": "AMETHYST_CLUSTER",
+            "bb": {
+                "model": "amethyst_cluster",
+                "rotate": {"type": "three"},
+                "set_state": [
+                    {"name": "age4"}
+                ]
+            }
+        },
+        {
+            "id": 492,
+            "name": "COGWHEEL",
+            "bb": {
+                "model": "mechanism/cogwheel",
+                "rotate": {"type": "cog"},
+                "import_anyway": true
+            }
+        },
+        {
+            "id": 494,
+            "name": "WINDMILL_BEARING",
+            "bb": {
+                "model": "mechanism/windmill_bearing",
+                "rotate": {"type": "six"},
+                "import_anyway": true,
+                "set_state": [
+                    {"name": "base", "when": {"extra_data.in_mesh": true}},
+                    {"name": "table", "when": {"extra_data.invisible": false}}
+                ],
+                "select_texture": [
+                    {"name": "WINDMILL_BEARING"}
+                ]
             }
         }
     ]

@@ -122,7 +122,8 @@ export class Biome3TerrainMap extends TerrainMap {
                 const simplified_cell = map_manager.makeSimplifiedCell(xyz)
                 for(let y = CHUNK_SIZE_Y; y >= 0; y--) {
                     xyz.y = tree_y_base + y
-                    const underwater = xyz.y < map.cluster.y_base
+                    const inside_canyon_floor = false // simplified_cell.inCanyon(CANYON.FLOOR_DENSITY) && (xyz.y >= 45) && (xyz.y <= 50)
+                    const underwater = xyz.y < (inside_canyon_floor ? 45 : map.cluster.y_base)
                     const preset = map_manager.getPreset(xyz);
                     simplified_cell.preset = preset
                     const {density} = map_manager.calcDensity(xyz, simplified_cell, density_params, map)
@@ -135,7 +136,7 @@ export class Biome3TerrainMap extends TerrainMap {
                         if(free_height >= TREE_MIN_Y_SPACE) {
                             xyz.y++
                             map_manager.calcDensity(xyz, simplified_cell, density_params, map)
-                            if(underwater || xyz.y > density_params.local_water_line) {
+                            if(underwater || xyz.y > (inside_canyon_floor ? 45 : density_params.local_water_line)) {
                                 if(this.addTree(chunk, cluster, aleaRandom, rnd, x, xyz.y, z, biome, underwater)) {
                                     if(this.trees.length == MAX_TREES_PER_CHUNK) {
                                         break;

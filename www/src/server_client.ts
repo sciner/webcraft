@@ -76,6 +76,9 @@ export class ServerClient {
     static CMD_STOP_PLAY_DISC           = 91;
 	static CMD_WORLD_UPDATE_INFO        = 92; // server -> player
 
+    // Others
+    static CMD_MECHANISM                = 123 // player -> server
+
     // Quests
     static CMD_QUEST_GET_ENABLED        = 93
 	static CMD_QUEST_ALL                = 94;

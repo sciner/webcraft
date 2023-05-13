@@ -231,6 +231,14 @@
         "slots": {"en": "Slots", "ru": "Ячеек", "fr": "", "es": "", "man": ""},
         "toolbelt": {"en": "Toolbelt", "ru": "Пояс", "fr": "", "es": "", "man": ""},
         "yes": {"en": "Yes", "ru": "Да", "fr": "", "es": "", "man": ""},
-        "no": {"en": "No", "ru": "Нет", "fr": "", "es": "", "man": ""}
+        "no": {"en": "No", "ru": "Нет", "fr": "", "es": "", "man": ""},
+        "added_blocks": {"en": "Added %0 block(s)", "ru": "Добавлено %0 блоков", "fr": "", "es": "", "man": ""},
+        "error_max_volume": {"en": "Max volume %0 block(s)", "ru": "Максимальный объем %0 блоков", "fr": "", "es": "", "man": ""},
+        "error_mob_not_found": {"en": "Mob not found", "ru": "Моб не найден", "fr": "", "es": "", "man": ""},
+        "click_again_to_confirm": {"en": "Click again to confirm", "ru": "Отметьте следующий угол для подтверждения", "fr": "", "es": "", "man": ""},
+        "assembly_discarded": {"en": "Assembly discarded", "ru": "Сборка отменена", "fr": "", "es": "", "man": ""},
+        "error_pos1_not_defined": {"en": "pos1 not defined", "ru": "Первая точка не отмечена", "fr": "", "es": "", "man": ""},
+        "error_pos2_not_defined": {"en": "pos2 not defined", "ru": "Вторая точка не отмечена", "fr": "", "es": "", "man": ""},
+        "error_volume_0": {"en": "No volume", "ru": "Нет объема", "fr": "", "es": "", "man": ""}
     }
 }

@@ -3,7 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
-import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE} from "./constant.js";
+import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE, MIN_STEP_PLAY_SOUND, MIN_HEIGHT_PLAY_SOUND} from "./constant.js";
 import {ClientPlayerControlManager} from "./control/player_control_manager.js";
 import {PlayerControl, PlayerControls} from "./control/player_control.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -20,6 +20,7 @@ import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
 import type {ClientDriving} from "./control/driving.js";
 import type {PlayerModel} from "./player_model.js";
+import { MechanismAssembler } from "./mechanism_assembler.js";
 
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
@@ -30,8 +31,6 @@ const MOVING_MIN_BLOCKS_PER_SECOND      = 0.1; // the minimum actual speed at wh
 const ATTACK_PROCESS_NONE = 0;
 const ATTACK_PROCESS_ONGOING = 1;
 const ATTACK_PROCESS_FINISHED = 2;
-const MIN_HEIGHT_PLAY_SOUND = .4
-const MIN_STEP_PLAY_SOUND = 2
 
 export type Indicators = {
     live: number
@@ -261,6 +260,7 @@ export class Player implements IPlayer {
     #distance: number = 0
     #old_distance: number = 0 
     #old_y: number = 0
+    mechanism_assembler?:       MechanismAssembler
 
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
@@ -269,6 +269,7 @@ export class Player implements IPlayer {
         this.effects = {effects:[]}
         this.status = PLAYER_STATUS.WAITING_DATA;
         this.sharedProps = this._createSharedProps();
+        this.mechanism_assembler = new MechanismAssembler(this)
     }
 
     /** A protected factory method that creates {@link IPlayerSharedProps} of the appropriate type */
@@ -604,14 +605,17 @@ export class Player implements IPlayer {
     }
 
     // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
-    onStep(args) {
+    onStep() {
         this.steps_count++;
         if(this.isSneak) {
             return;
         }
+        if(this.game_mode.isSpectator()) {
+            return
+        }
         const world = this.world;
         const player = this;
-        if(!player || (!args.force && (player.in_water || !player.walking || !player.controls.enabled))) {
+        if(!player || player.in_water || !player.walking || !player.controls.enabled) {
             return;
         }
         const pos = player.pos
@@ -966,13 +970,13 @@ export class Player implements IPlayer {
             this.onGround   = pc.player_state.onGround || this.isOnLadder;
             this.in_water   = pc.player_state.isInWater;
             // Trigger events
-            if (this.#distance > (this.#old_distance + (this.running ? MIN_STEP_PLAY_SOUND : MIN_STEP_PLAY_SOUND * 1.2))) {
-                this.triggerEvent('step', {force: true})
+            if (this.#distance > (this.#old_distance + (this.running ? MIN_STEP_PLAY_SOUND : MIN_STEP_PLAY_SOUND * 1.09))) {
+                this.triggerEvent('step')
                 this.#old_distance = this.#distance
             }
             if(this.onGround) {
                 if (Math.abs(this.#old_y - this.pos.y) > MIN_HEIGHT_PLAY_SOUND) {
-                    this.triggerEvent('step', {force: true})
+                    this.triggerEvent('step')
                 }
                 this.#old_y = this.pos.y
             } else if(this.onGroundO){
@@ -1107,7 +1111,7 @@ export class Player implements IPlayer {
     triggerEvent(name : string, args : object = null) {
         switch(name) {
             case 'step': {
-                this.onStep(args);
+                this.onStep()
                 break;
             }
             case 'legs_enter_to_water': {
