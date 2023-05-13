@@ -335,7 +335,7 @@ export abstract class Inventory {
         }
         // 2. start new slot
         if(mat.count > 0) {
-            for(const i of size.backpackHotbarIndices()) {
+            for(const i of size.bagIndices()) {
                 if(!this.items[i]) {
                     const new_slot = {...mat};
                     added.set(i, new_slot);
