@@ -165,7 +165,8 @@ export class InHandOverlay {
         this.camera.width = camera.width;
         this.camera.height = camera.height;
 
-        const id = player.currentInventoryItem ? player.currentInventoryItem.id : -1;
+        const item = player.driving?.config.hideHandItem ? null : player.currentInventoryItem
+        const id = item?.id ?? -1
 
         if (id !== this.inHandItemId && !this.changeAnimation) {
             this.changAnimationTime = 0;
@@ -176,7 +177,7 @@ export class InHandOverlay {
             this.changAnimationTime += 0.05 * delta;
 
             if (this.changAnimationTime > 0.5) {
-                this.reconstructInHandItem(player.currentInventoryItem);
+                this.reconstructInHandItem(item);
             }
 
             if (this.changAnimationTime >= 1) {

@@ -48,6 +48,8 @@ export type TDrivingConfig = {
         moving?: string  // анимация водителя при движении
     }
 
+    hideHandItem?: boolean // если true, то не рисует предмет в руке водителя
+
     /**
      * Если true, то то угол поворота контролируется стрелками с заданной скоростью/ускорением.
      * Иначе - свободно задается поворотом мыши.
@@ -386,8 +388,7 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
         const models = this.models
         for(let place = 0; place < models.length; place++) {
             if (models[place] === model) {
-                model.driving = null
-                models[place] = null
+                this.disconnectModel(place)
                 return
             }
         }
@@ -396,10 +397,7 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
     onDelete(): void {
         const models = this.models
         for(let place = 0; place < models.length; place++) {
-            const model = models[place]
-            if (model) {
-                model.driving = null
-            }
+            this.disconnectModel(place)
         }
         if (this.myPlayer.driving === this) {
             this.myPlayer.driving = null
@@ -442,8 +440,7 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
                     continue // модель та, что нужно; ничего не делаем
                 }
                 // эта модель не подходит, надо ее заменить (в коде ниже)
-                this.models[place] = null
-                oldModel.driving = null
+                this.disconnectModel(place)
             } else {
                 if (mobId == null && playerId == null) {
                     continue // модели нет и не должно быть, не надо искать другую
@@ -461,6 +458,10 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
             if (newModel && newModel.driving == null) {
                 this.models[place] = newModel
                 newModel.driving = this
+                // обновить руки игрока - чтобы они скрылись во время вождения, если нужно
+                if (newModel instanceof PlayerModel) {
+                    newModel.changeSlots(newModel.activeSlotsData)
+                }
             }
         }
 
@@ -474,4 +475,15 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
         }
     }
 
+    private disconnectModel(place: DrivingPlace): void {
+        const model = this.models[place]
+        if (model) {
+            this.models[place] = null
+            model.driving = null
+            // обновить руки игрока - чтобы они показались если были скрыты
+            if (model instanceof PlayerModel) {
+                model.changeSlots(model.activeSlotsData)
+            }
+        }
+    }
 }
