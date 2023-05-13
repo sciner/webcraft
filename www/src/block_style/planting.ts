@@ -138,7 +138,7 @@ export default class style {
         let texture = bm.calcMaterialTexture(material, texture_dir, null, null, block, undefined, randoms.double(random_index))
 
         let dx = 0, dy = 0, dz = 0;
-        let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
+        let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP
 
         style.lm.copyFrom(IndexedColor.WHITE);
         style.lm.b = bm.getAnimations(material, 'up');

@@ -704,7 +704,7 @@
         },
         {
             "id": 564,
-            "name": "DIAMOND_SHOVEL",
+            "name": "TITANIUM_SHOVEL",
             "sound": "madcraft:block.shovel",
             "transparent": true,
             "max_in_stack": 1,
@@ -715,7 +715,7 @@
             "damage": 5.5,
             "speed": 1,
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "texture": {
                 "side": "item/diamond_shovel.png"
@@ -824,7 +824,7 @@
         },
         {
             "id": 570,
-            "name": "DIAMOND_HOE",
+            "name": "TITANIUM_HOE",
             "sound": "madcraft:block.shovel",
             "transparent": true,
             "max_in_stack": 1,
@@ -835,7 +835,7 @@
             "damage": 1,
             "speed": 4,
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "texture": {
                 "side": "item/diamond_hoe.png"
@@ -940,7 +940,7 @@
         },
         {
             "id": 559,
-            "name": "DIAMOND_AXE",
+            "name": "TITANIUM_AXE",
             "style": "extruder",
             "sound": "madcraft:axe",
             "transparent": true,
@@ -951,7 +951,7 @@
             "damage": 9,
             "speed": 1,
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "texture": {
                 "side": "item/diamond_axe.png"
@@ -1050,7 +1050,7 @@
         },
         {
             "id": 555,
-            "name": "DIAMOND_PICKAXE",
+            "name": "TITANIUM_PICKAXE",
             "transparent": true,
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
@@ -1060,7 +1060,7 @@
             "damage": 5,
             "speed": 1.2,
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "texture": {
                 "side": "item/diamond_pickaxe.png"
@@ -1118,7 +1118,7 @@
             ],
             "texture": {
                 "side": "block/birch_leaves.png",
-                "round": "./textures/birch_leaves.png"
+                "round": "block/round_leaves/birch_leaves.png"
             },
             "material": {
                 "id": "leaves"
@@ -1157,7 +1157,7 @@
             ],
             "texture": {
                 "side": "block/oak_leaves.png",
-                "round": "./textures/oak_leaves.png"
+                "round": "block/round_leaves/oak_leaves.png"
             },
             "material": {
                 "id": "leaves"
@@ -1199,7 +1199,7 @@
             ],
             "texture": {
                 "side": "block/acacia_leaves.png",
-                "round": "./textures/acacia_leaves.png"
+                "round": "block/round_leaves/acacia_leaves.png"
             },
             "material": {
                 "id": "leaves"
@@ -1238,7 +1238,7 @@
             ],
             "texture": {
                 "side": "block/spruce_leaves.png",
-                "round": "./textures/spruce_leaves.png"
+                "round": "block/round_leaves/spruce_leaves.png"
             },
             "material": {
                 "id": "leaves"
@@ -1277,7 +1277,7 @@
             ],
             "texture": {
                 "side": "block/dark_oak_leaves.png",
-                "round": "./textures/dark_oak_leaves.png"
+                "round": "block/round_leaves/dark_oak_leaves.png"
             },
             "material": {
                 "id": "leaves"
@@ -1315,7 +1315,7 @@
             ],
             "texture": {
                 "side": "block/jungle_leaves.png",
-                "round": "./textures/jungle_leaves.png"
+                "round": "block/round_leaves/jungle_leaves.png"
             },
             "material": {
                 "id": "leaves"
@@ -1331,7 +1331,7 @@
             "name": "JUNGLE_LEAVES_FLOWER",
             "transparent": true,
             "sound": "madcraft:block.grass",
-            "texture": "./textures/jungle_leaves.png",
+            "texture": "block/round_leaves/jungle_leaves.png",
             "material": {
                 "id": "leaves"
             },
@@ -1736,7 +1736,7 @@
             "drop_item": [
                 {
                     "name": "GOLD_BLOCK",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ]
         },
@@ -1777,7 +1777,7 @@
             "drop_item": [
                 {
                     "name": "DIAMOND_BLOCK",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ]
         },
@@ -1792,7 +1792,7 @@
             "drop_item": [
                 {
                     "name": "OBSIDIAN",
-                    "instrument": ["DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -1912,7 +1912,7 @@
             "drop_item": [
                 {
                     "name": "LAPIS_LAZULI",
-                    "instrument": ["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"],
+                    "instrument": ["STONE_PICKAXE", "IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"],
                     "count": {
                         "min": 2,
                         "max": 5
@@ -1937,7 +1937,7 @@
             "drop_item": [
                 {
                     "name": "LAPIS_BLOCK",
-                    "instrument": ["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["STONE_PICKAXE", "IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ]
         },
@@ -2468,7 +2468,7 @@
             "drop_item": [
                 {
                     "name": "DIAMOND",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -3133,7 +3133,7 @@
             "tags": [
                 "alpha"
             ],
-            "texture": "./textures/cloud.png",
+            "texture": "block/cloud.png",
             "spawnable": false
         },
         {
@@ -3474,7 +3474,7 @@
             "drop_item": [
                 {
                     "name": "EMERALD",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -3627,12 +3627,12 @@
                 "id": "wood"
             },
             "texture": {
-                "up": "./textures/test_top.png",
-                "down": "./textures/test_bottom.png",
-                "south": "./textures/test_south.png",
-                "west": "./textures/test_west.png",
-                "north": "./textures/test_north.png",
-                "east": "./textures/test_east.png"
+                "up": "block/test_top.png",
+                "down": "block/test_bottom.png",
+                "south": "block/test_south.png",
+                "west": "block/test_west.png",
+                "north": "block/test_north.png",
+                "east": "block/test_east.png"
             },
             "can_rotate": true
         },
@@ -3650,7 +3650,7 @@
             "tags": [
                 "no_drop_ao"
             ],
-            "texture": "./textures/air.png",
+            "texture": "block/air.png",
             "texture_animations": {
                 "side": null
             }
@@ -4602,13 +4602,13 @@
             "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
             "inventory": {
                 "style": "extruder",
-                "texture": "./textures/tall_grass.png"
+                "texture": "block/tall_grass/tall_grass.png"
             },
             "material": {
                 "id": "plant"
             },
             "texture": {
-                "side": "./textures/tall_grass.png"
+                "side": "block/tall_grass/tall_grass.png"
             },
             "texture_variants": [
                 {"side": "block/tall_grass/tall_grass1.png"},
@@ -4954,7 +4954,7 @@
             "drop_item": [
                 {
                     "name": "REDSTONE_WIRE",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -5149,7 +5149,7 @@
         },
         {
             "id": 610,
-            "name": "DIAMOND_SWORD",
+            "name": "TITANIUM_SWORD",
             "transparent": true,
             "max_in_stack": 1,
             "style": "extruder",
@@ -5159,7 +5159,7 @@
             "damage": 7,
             "speed": 1.6,
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "texture": {
                 "side": "item/diamond_sword.png"
@@ -6442,7 +6442,7 @@
                 "id": "iron"
             },
             "texture": {
-                "side": "./textures/car_battery.png"
+                "side": "block/car_battery.png"
             }
         },
         {
@@ -6462,10 +6462,10 @@
                 "type": "charging_station"
             },
             "texture": {
-                "up": "./textures/charging_station_top.png",
-                "down": "./textures/charging_station_bottom.png",
-                "north": "./textures/charging_station_front.png",
-                "side": "./textures/charging_station_side.png"
+                "up": "block/charging_station_top.png",
+                "down": "block/charging_station_bottom.png",
+                "north": "block/charging_station_front.png",
+                "side": "block/charging_station_side.png"
             }
         },
         {
@@ -6879,6 +6879,7 @@
                 "type": "bee_nest"
             },
             "tags": [
+                "no_drop_ao",
                 "drop_as_entity",
                 "bee_nest"
             ],
@@ -7557,7 +7558,7 @@
             "drop_item": [
                 {
                     "name": "WAXED_CUT_COPPER_STAIRS",
-                    "instrument": ["IRON_PICKAXE", "STONE_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -8019,7 +8020,14 @@
                 "3": "block/decals/snow_block/3.png",
                 "all": "block/decals/snow_block/all.png",
                 "opposite": "block/decals/snow_block/opposite.png"
-            }
+            },
+            "drop_item": [
+                {
+                    "name": "SNOWBALL",
+                    "instrument": ["_SHOVEL"],
+                    "count": 4
+                }
+            ]
         },
         {
             "id": 182,
@@ -8074,7 +8082,7 @@
             "drop_item": [
                 {
                     "name": "EMERALD_BLOCK",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ]
         },
@@ -9191,7 +9199,7 @@
             "drop_item": [
                 {
                     "name": "GOLD_BLOCK",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -10326,7 +10334,7 @@
                 "id": "powder"
             },
             "armor": {
-                "slot": 39,
+                "slot": 89,
                 "durability": 276,
                 "damage": 0
             },
@@ -10573,6 +10581,26 @@
                 "id": "leather"
             },
             "armor": {
+                "slot": 89,
+                "durability": 55,
+                "damage": 1
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper"
+            }
+        },
+        {
+            "id": 1100,
+            "max_in_stack": 1,
+            "name": "COPPER_HELMET",
+            "style": "extruder",
+            "texture": "item/leather_helmet.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "copper"
+            },
+            "armor": {
                 "slot": 39,
                 "durability": 55,
                 "damage": 1
@@ -10593,7 +10621,7 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 39,
+                "slot": 89,
                 "durability": 165,
                 "damage": 2
             },
@@ -10613,7 +10641,7 @@
                 "id": "iron"
             },
             "armor": {
-                "slot": 39,
+                "slot": 89,
                 "durability": 165,
                 "damage": 2
             },
@@ -10625,21 +10653,21 @@
         {
             "id": 278,
             "max_in_stack": 1,
-            "name": "DIAMOND_HELMET",
+            "name": "TITANIUM_HELMET",
             "style": "extruder",
             "texture": "item/diamond_helmet.png",
             "item": {"name": "armor"},
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "armor": {
-                "slot": 39,
+                "slot": 89,
                 "durability": 363,
                 "damage": 3
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond"
+                "texture": "scrap_armor_titanium"
             }
         },
         {
@@ -10653,7 +10681,7 @@
                 "id": "gold"
             },
             "armor": {
-                "slot": 39,
+                "slot": 89,
                 "durability": 77,
                 "damage": 2
             },
@@ -10673,7 +10701,7 @@
                 "id": "netherite"
             },
             "armor": {
-                "slot": 39,
+                "slot": 89,
                 "durability": 407,
                 "damage": 3
             },
@@ -10691,6 +10719,26 @@
             "item": {"name": "armor"},
             "material": {
                 "id": "leather"
+            },
+            "armor": {
+                "slot": 88,
+                "durability": 80,
+                "damage": 3
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper"
+            }
+        },
+        {
+            "id": 1101,
+            "max_in_stack": 1,
+            "name": "COPPER_CHESTPLATE",
+            "style": "extruder",
+            "texture": "item/leather_chestplate.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "copper"
             },
             "armor": {
                 "slot": 38,
@@ -10713,7 +10761,7 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 38,
+                "slot": 88,
                 "durability": 240,
                 "damage": 5
             },
@@ -10733,7 +10781,7 @@
                 "id": "iron"
             },
             "armor": {
-                "slot": 38,
+                "slot": 88,
                 "durability": 240,
                 "damage": 6
             },
@@ -10745,21 +10793,21 @@
         {
             "id": 284,
             "max_in_stack": 1,
-            "name": "DIAMOND_CHESTPLATE",
+            "name": "TITANIUM_CHESTPLATE",
             "style": "extruder",
             "texture": "item/diamond_chestplate.png",
             "item": {"name": "armor"},
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "armor": {
-                "slot": 38,
+                "slot": 88,
                 "durability": 528,
                 "damage": 8
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond"
+                "texture": "scrap_armor_titanium"
             }
         },
         {
@@ -10773,7 +10821,7 @@
                 "id": "gold"
             },
             "armor": {
-                "slot": 38,
+                "slot": 88,
                 "durability": 112,
                 "damage": 5
             },
@@ -10793,7 +10841,7 @@
                 "id": "netherite"
             },
             "armor": {
-                "slot": 38,
+                "slot": 88,
                 "durability": 592,
                 "damage": 8
             },
@@ -10811,6 +10859,26 @@
             "item": {"name": "armor"},
             "material": {
                 "id": "leather"
+            },
+            "armor": {
+                "slot": 87,
+                "durability": 80,
+                "damage": 2
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper"
+            }
+        },
+        {
+            "id": 1102,
+            "max_in_stack": 1,
+            "name": "COPPER_LEGGINGS",
+            "style": "extruder",
+            "texture": "item/leather_leggings.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "copper"
             },
             "armor": {
                 "slot": 37,
@@ -10833,7 +10901,7 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 37,
+                "slot": 87,
                 "durability": 240,
                 "damage": 4
             },
@@ -10853,7 +10921,7 @@
                 "id": "iron"
             },
             "armor": {
-                "slot": 37,
+                "slot": 87,
                 "durability": 240,
                 "damage": 5
             },
@@ -10865,21 +10933,21 @@
         {
             "id": 290,
             "max_in_stack": 1,
-            "name": "DIAMOND_LEGGINGS",
+            "name": "TITANIUM_LEGGINGS",
             "style": "extruder",
             "texture": "item/diamond_leggings.png",
             "item": {"name": "armor"},
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "armor": {
-                "slot": 37,
+                "slot": 87,
                 "durability": 528,
                 "damage": 6
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond"
+                "texture": "scrap_armor_titanium"
             }
         },
         {
@@ -10893,7 +10961,7 @@
                 "id": "gold"
             },
             "armor": {
-                "slot": 37,
+                "slot": 87,
                 "durability": 112,
                 "damage": 3
             },
@@ -10913,7 +10981,7 @@
                 "id": "netherite"
             },
             "armor": {
-                "slot": 37,
+                "slot": 87,
                 "durability": 592,
                 "damage": 6
             },
@@ -10931,6 +10999,26 @@
             "item": {"name": "armor"},
             "material": {
                 "id": "leather"
+            },
+            "armor": {
+                "slot": 86,
+                "durability": 65,
+                "damage": 1
+            },
+            "model": {
+                "name": "armor/scrap_armor",
+                "texture": "scrap_armor_copper"
+            }
+        },
+        {
+            "id": 1103,
+            "max_in_stack": 1,
+            "name": "COPPER_BOOTS",
+            "style": "extruder",
+            "texture": "item/leather_boots.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "copper"
             },
             "armor": {
                 "slot": 36,
@@ -10953,7 +11041,7 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 36,
+                "slot": 86,
                 "durability": 195,
                 "damage": 1
             },
@@ -10973,7 +11061,7 @@
                 "id": "iron"
             },
             "armor": {
-                "slot": 36,
+                "slot": 86,
                 "durability": 195,
                 "damage": 2
             },
@@ -10985,21 +11073,21 @@
         {
             "id": 296,
             "max_in_stack": 1,
-            "name": "DIAMOND_BOOTS",
+            "name": "TITANIUM_BOOTS",
             "style": "extruder",
             "texture": "item/diamond_boots.png",
             "item": {"name": "armor"},
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "armor": {
-                "slot": 36,
+                "slot": 86,
                 "durability": 429,
                 "damage": 3
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond"
+                "texture": "scrap_armor_titanium"
             }
         },
         {
@@ -11013,7 +11101,7 @@
                 "id": "gold"
             },
             "armor": {
-                "slot": 36,
+                "slot": 86,
                 "durability": 91,
                 "damage": 1
             },
@@ -11033,7 +11121,7 @@
                 "id": "netherite"
             },
             "armor": {
-                "slot": 36,
+                "slot": 86,
                 "durability": 481,
                 "damage": 3
             },
@@ -11565,7 +11653,7 @@
             "material": {
                 "id": "plant"
             },
-            "texture": "./textures/cattail.png",
+            "texture": "block/cattail.png",
             "tags": [
                 "is_tall_grass",
                 "is_tall_grass_3"
@@ -11635,10 +11723,10 @@
                 "id": "plant"
             },
             "texture": {
-                "side": "./textures/reed.png",
-                "side2": "./textures/reed2.png",
-                "side_short": "./textures/reed_short.png",
-                "side_short2": "./textures/reed2_short.png"
+                "side": "block/reed/reed.png",
+                "side2": "block/reed/reed2.png",
+                "side_short": "block/reed/reed_short.png",
+                "side_short2": "block/reed/reed2_short.png"
             },
             "tags": [
                 "has_short",
@@ -11755,6 +11843,7 @@
             "name": "OAK_BOAT",
             "style": "extruder",
             "texture": "item/oak_boat.png",
+            "max_in_stack": 1,
             "item": {
                 "name": "boat"
             },
@@ -12304,34 +12393,34 @@
                 "a": 200
             },
             "texture": {
-                "side": "./textures/glowing_hanging_liana/glowingplant_base.png"
+                "side": "block/glowing_hanging_liana/glowingplant_base.png"
             },
             "hanging_textures": [
                 {
                     "ripe": [
-                        "./textures/glowing_hanging_liana/glowingplant_base_b.png"
+                        "block/glowing_hanging_liana/glowingplant_base_b.png"
                     ],
                     "noripe": [
-                        "./textures/glowing_hanging_liana/glowingplant_base.png",
-                        "./textures/glowing_hanging_liana/glowingplant_base_s.png"
+                        "block/glowing_hanging_liana/glowingplant_base.png",
+                        "block/glowing_hanging_liana/glowingplant_base_s.png"
                     ]
                 },
                 {
                     "ripe": [
-                        "./textures/glowing_hanging_liana/glowingplant_body_b.png"
+                        "block/glowing_hanging_liana/glowingplant_body_b.png"
                     ],
                     "noripe": [
-                        "./textures/glowing_hanging_liana/glowingplant_body.png",
-                        "./textures/glowing_hanging_liana/glowingplant_body_s.png"
+                        "block/glowing_hanging_liana/glowingplant_body.png",
+                        "block/glowing_hanging_liana/glowingplant_body_s.png"
                     ]
                 },
                 {
                     "ripe": [
-                        "./textures/glowing_hanging_liana/glowingplant_head_b.png"
+                        "block/glowing_hanging_liana/glowingplant_head_b.png"
                     ],
                     "noripe": [
-                        "./textures/glowing_hanging_liana/glowingplant_head.png",
-                        "./textures/glowing_hanging_liana/glowingplant_head_s.png"
+                        "block/glowing_hanging_liana/glowingplant_head.png",
+                        "block/glowing_hanging_liana/glowingplant_head_s.png"
                     ]
                 }
             ]
@@ -12482,6 +12571,52 @@
             "composter_chance": 0.3
         },
         {
+            "id": 1094,
+            "name": "BACKPACK_BASIC",
+            "style": "extruder",
+            "texture": "item/turtle_helmet.png",
+            "max_in_stack": 1,
+            "item": {"name": "armor"},
+            "material": {
+                "id": "powder"
+            },
+            "armor": {
+                "slot": 84,
+                "durability": 276,
+                "damage": 0
+            },
+            "model": {
+                "name": "tool/backpack_basic",
+                "texture": "backpack_basic" 
+            },
+            "extra_data": {
+                "slot": 5
+            }
+        },
+        {
+            "id": 1095,
+            "name": "TOOLBELT_BASIC",
+            "max_in_stack": 1,
+            "style": "extruder",
+            "texture": "item/turtle_helmet.png",
+            "item": {"name": "armor"},
+            "material": {
+                "id": "powder"
+            },
+            "armor": {
+                "slot": 85,
+                "durability": 276,
+                "damage": 0
+            },
+            "model": {
+                "name": "tool/toolbelt_basic",
+                "texture": "toolbelt_basic" 
+            },
+            "extra_data": {
+                "hotbar": 5
+            }
+        },
+        {
             "id": 489,
             "name": "SKYLIGHT",
             "light_power": {
@@ -12515,6 +12650,169 @@
             "connected_sides": {
                 "12": "block/decals/reinforced_concrete/12.png"
             }
+        },
+        {
+            "id": 491,
+            "name": "RAFT",
+            "material": {
+                "id": "wood"
+            },
+            "max_in_stack": 1,
+            "spawn_egg": {
+                "type": "transport/raft",
+                "skin": "base"
+            },
+            "tags": [
+                "set_on_water"
+            ],
+            "texture": "block/stone.png"
+        },
+        {
+            "id": 1094,
+            "name": "RAW_TITANIUM",
+            "coocked_item": {"name": "TITANIUM_INGOT", "count": 1},
+            "style": "extruder",
+            "texture": "block/stone.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "titanium"
+            }
+        },
+        {
+            "id": 1095,
+            "name": "TITANIUM_NUGGET",
+            "piece_of": "TITANIUM_INGOT",
+            "item": {"name": "nugget"},
+            "style": "extruder",
+            "material": {
+                "id": "titanium"
+            },
+            "texture": "item/titanium_nugget.png"
+        },
+        {
+            "id": 1096,
+            "name": "TITANIUM_INGOT",
+            "item": {"name": "ingot"},
+            "style": "extruder",
+            "material": {
+                "id": "titanium"
+            },
+            "texture": "item/titanium_ingot.png"
+        },
+        {
+            "id": 1097,
+            "name": "TITANIUM_ORE",
+            "sound": "madcraft:block.stone",
+            "coocked_item": {"name": "TITANIUM_ORE", "count": 1},
+            "drop_item": [
+                {
+                    "name": "RAW_TITANIUM",
+                    "instrument": ["NETHERITE_PICKAXE", "IRON_PICKAXE", "TITANIUM_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ],
+            "texture": "block/titanium_ore.png",
+            "material": {
+                "id": "titanium"
+            },
+            "tags": [
+                "ore"
+            ]
+        },
+        {
+            "id": 1098,
+            "name": "POOR_TITANIUM_ORE",
+            "inherit": "TITANIUM_ORE",
+            "coocked_item": null,
+            "drop_item": [
+                {
+                    "name": "TITANIUM_NUGGET",
+                    "instrument": ["NETHERITE_PICKAXE", "IRON_PICKAXE", "TITANIUM_PICKAXE"],
+                    "count": {
+                        "min": 1,
+                        "max": 9
+                    }
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
+        },
+        {
+            "id": 1099,
+            "name": "LIMESTONE",
+            "sound": "madcraft:block.stone",
+            "drop_item": [
+                {
+                    "name": "LIMESTONE",
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 2,
+                        "max": 3
+                    }
+                }
+            ],
+            "texture": "block/limestone.png",
+            "material": {
+                "id": "stone"
+            }
+        },
+        {
+            "id": 492,
+            "name": "COGWHEEL",
+            "sound": "madcraft:block.wood",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "no_drop_ao",
+                "rotate_by_pos_n_6"
+            ],
+            "texture": "block/stone.png"
+        },
+        {
+            "id": 493,
+            "name": "MECHANISM_ASSEMBLER",
+            "sound": "madcraft:block.wood",
+            "style": "extruder",
+            "item": {"name": "instrument", "instrument_id": "mechanism_assembler"},
+            "material": {
+                "id": "wood"
+            },
+            "texture": "item/mechanism_assembler.png"
+        },
+        {
+            "id": 494,
+            "name": "WINDMILL_BEARING",
+            "sound": "madcraft:block.wood",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "no_drop_ao",
+                "rotate_by_pos_n_6"
+            ],
+            "texture": "block/stone.png"
         }
+        
     ]
 }

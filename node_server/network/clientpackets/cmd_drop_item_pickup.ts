@@ -2,6 +2,7 @@ import { WorldAction } from "@client/world_action.js";
 import { ServerClient } from "@client/server_client.js";
 import { PlayerEvent } from "../../player_event.js";
 import { MAX_DIST_FOR_PICKUP } from "@client/constant.js";
+import type {ServerPlayer} from "../../server_player.js";
 
 export default class packet_reader {
 
@@ -15,11 +16,11 @@ export default class packet_reader {
         return ServerClient.CMD_DROP_ITEM_PICKUP;
     }
 
-    static async read(player, packet) {
+    static async read(player: ServerPlayer, packet: INetworkMessage<string[]>) {
 
         const world = player.world;
         const data = packet.data;
-
+        
         for(let i = 0; i < data.length; i++) {
 
             const entity_id = data[i];
@@ -44,7 +45,12 @@ export default class packet_reader {
                 continue;
             }
 
-            // 1. add items to inventory
+            /**
+             * 1. add items to inventory
+             * Если можем поднять целиком >= 1 предмет - поднимаем их.
+             * Если остались неподняые предметы - запоминаем их, позже создаем новый dropItem с ними.
+             * Логика проверки должна совпадать с {@link PlayerInventory.canPickup}
+             */
             const items = drop_item.items;
             const restored_items = [];
             for(const item of items) {
@@ -52,13 +58,12 @@ export default class packet_reader {
                 // check if not ok!
                 if(!ok) {
                     restored_items.push(item);
-                    continue;
                 }
             }
 
-            // restore if not applyed no one item
+            // restore if not applied to at least one item
             if(restored_items.length == items.length) {
-                console.log(`restore if not applyed no one item ${restored_items.length} == ${items.length}`)
+                console.log(`restore if not applied to one item ${restored_items.length} == ${items.length}`)
                 this.restoreDropItemForPlayer(player, drop_item);
                 continue;
             }

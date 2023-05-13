@@ -27,8 +27,8 @@ import { BBModel_DropPaste } from "./bbmodel/drop_paste.js";
 
 import type { Player, PlayerStateUpdate } from "./player.js";
 import type { HUD } from "./hud.js";
-import {ServerClient} from "./server_client.js";
 import {canSwitchFlying} from "./control/player_control.js";
+import { ClipboardHelper } from "./ui/clipboard.js";
 
 // TrackerPlayer
 (globalThis as any).TrackerPlayer = new Tracker_Player();
@@ -86,6 +86,7 @@ export class GameSettings implements TWorldSettings {
     // interface
     window_size:             float = 100
     show_compass:            boolean = true
+    check_delete_item:       boolean = true
 
     //
     _json_url?: string
@@ -543,6 +544,9 @@ export class GameClass {
                                         player.teleport(null, pos, false);
                                     }
                                 }, 1000);
+                            } else if(e.ctrlKey) {
+                                ClipboardHelper.copy(player.pos.toHash().replaceAll(',', ' ') + ' ' + this.world.info.seed)
+                                vt.success(Lang.copied)
                             } else {
                                 player.teleport('random', null, false);
                             }
@@ -624,10 +628,16 @@ export class GameClass {
                         e.shiftKey,
                         player.controls.sprint
                     );
-                    // 0...9 (Select material)
-                    if(!e.down && (e.keyCode >= 48 && e.keyCode <= 57)) {
+                    // 0...9,-,= (Select material)
+                    if(!e.down && ((e.keyCode >= 48 && e.keyCode <= 57) || e.keyCode == 187 || e.keyCode == 189)) {
                         if(e.keyCode == 48) {
                             e.keyCode = 58;
+                        }
+                        if(e.keyCode == 189) {
+                            e.keyCode = 59
+                        }
+                        if(e.keyCode == 187) {
+                            e.keyCode = 60
                         }
                         player.inventory.select(e.keyCode - 49);
                         return true;

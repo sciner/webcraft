@@ -16,16 +16,23 @@ export class Brain extends FSMBrain {
         const mob = this.mob;
         const world = mob.getWorld();
         const actions = new WorldAction();
-        actions.addDropItem({
-            pos: mob.pos,
-            items: [
-                {
-                    id: BLOCK.OAK_BOAT.id,
-                    count: 1
-                }
-            ],
-            force: true
-        });
+        if(this.mob.config.drop_on_kill) {
+            const block_name = this.mob.config.drop_on_kill
+            const block = BLOCK.fromName(block_name)
+            if(!block) {
+                console.error(`error_invalid_kill_drop_block|${block_name}`)
+            }
+            actions.addDropItem({
+                pos: mob.pos,
+                items: [
+                    {
+                        id: block.id,
+                        count: 1
+                    }
+                ],
+                force: true
+            })
+        }
         actions.addPlaySound({ tag: 'madcraft:block.pig', action: 'death', pos: mob.pos.clone() });
         world.actions_queue.add(actor, actions);
     }

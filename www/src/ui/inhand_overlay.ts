@@ -1,4 +1,4 @@
-import glMatrix from "../../vendors/gl-matrix.js";
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import { BLOCK } from "../blocks.js";
 import { Camera } from "../camera.js";
 import { NOT_SPAWNABLE_BUT_INHAND_BLOCKS } from "../constant.js";
@@ -245,7 +245,7 @@ export class InHandOverlay {
             pos.set(0, 0, 0);
 
             //
-            let mainHandItem = {...matInHand};
+            let mainHandItem = {...matInHand} as any;
             mainHandItem.isEmpty = function() {
                 return this.id == 0;
             };

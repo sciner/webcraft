@@ -16,7 +16,7 @@ export class ChunkLight {
     _dataTextureDirty = false;
     _tempLightSource: Uint8Array = null;
     lightData: Uint8Array = null;
-    lightTexData: Uint8Array = null;
+    lightTexData: Int32Array = null;
     hasTexture = false;
     currentDelta: number[] = [];
 
@@ -37,12 +37,13 @@ export class ChunkLight {
         this.lightData = args.lightData || this.lightData;
         chunk.tblocks.lightData = this.lightData;
         if (args.lightTexData) {
+            const int32 = new Int32Array(args.lightTexData.buffer);
             this.hasTexture = true;
             this._gridTextureDirty = true;
             if (this.lightTex !== null) {
-                this.lightTex.update(args.lightTexData)
+                this.lightTex.update(int32)
             } else {
-                this.lightTexData = args.lightTexData;
+                this.lightTexData = int32;
             }
         }
     }
@@ -102,7 +103,7 @@ export class ChunkLight {
         this._dataTextureDirty = true;
         this._gridTextureDirty = true;
         if (this.lightTex) {
-            const base = this.lightTex.baseTexture || this.lightTex;
+            const base: any = this.lightTex.baseTexture || this.lightTex;
             const {offset} = this.lightTex;
             //offset is XZY, and packedLightCoord is XZY
             this.packedLightCoord = (offset.x) | (offset.y << 9) | (offset.z << 18) | (base._poolLocation << 27);

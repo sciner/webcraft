@@ -187,14 +187,13 @@ export class Renderer {
 
         const renderList = world.chunkManager.renderList;
         if (renderBackend.gl) {
-            // world.chunkManager.renderList.setLightTexFormat('rgba4unorm', false);
-            if (settings.use_light === LIGHT_TYPE.RTX) {
+            /*if (settings.use_light === LIGHT_TYPE.RTX) {
                 renderList.setLightTexFormat(true);
                 renderBackend.preprocessor.useNormalMap = true;
                 renderBackend.globalUniforms.useNormalMap = true;
-            } else {
+            } else {*/
                 renderList.setLightTexFormat(false);
-            }
+            //}
         } else {
             renderList.setLightTexFormat(false);
         }
@@ -437,7 +436,7 @@ export class Renderer {
         mat4.rotateX(matrix, matrix, Math.PI / 6);
         mat4.rotateY(matrix, matrix, Math.PI / 4);
         //
-        camera.set(new Vector(0, 0, 2), new Vector(0, 0, Math.PI));
+        camera.set(new Vector(0, 0, 5), new Vector(0, 0, Math.PI));
         // larg for valid render results
         gu.fogColor = [0, 0, 0, 0];
         gu.fogDensity = 100;
@@ -960,6 +959,8 @@ export class Renderer {
         if (!this.world) {
             renderBackend._emptyTexInt.bind(3);
             renderBackend._emptyTex3DInt.bind(6);
+            renderBackend._emptyTex3DInt.bind(7);
+            renderBackend._emptyTex3DInt.bind(8);
             return;
         }
         const cm = this.world.chunkManager;
@@ -971,8 +972,8 @@ export class Renderer {
         // webgl bind all texture-3d-s
         if (lp) {
             // renderBackend._emptyTex3D.bind(6);
-            for (let i = 1; i <= lp.maxBoundTextures; i++) {
-                const tex = (bindLights && lp.boundTextures[i]) || renderBackend._emptyTex3D;
+            for (let i = 1; i <= 2; i++) {
+                const tex = (bindLights && lp.boundTextures[i]) || renderBackend._emptyTex3DInt;
                 if (tex) {
                     tex.bind(6 + i);
                 }
@@ -1588,7 +1589,7 @@ export class Renderer {
 
     // Original bobView
     bobView(player, viewMatrix, forDrop = false) {
-
+        return // @todo need?
         let p_109140_ = (player.walking_frame * 2) % 1;
 
         //
@@ -1621,7 +1622,7 @@ export class Renderer {
         }
         if(Math.sign(viewMatrix[1]) != Math.sign(this.step_side)) {
             this.step_side = viewMatrix[1];
-            player.triggerEvent('step', {step_side: this.step_side});
+            //player.triggerEvent('step', {step_side: this.step_side});
         }
     }
 
@@ -1682,6 +1683,8 @@ export class Renderer {
         pixiRender.reset();
         pixiRender.texture.bind(null, 3);
         pixiRender.texture.bind(null, 6);
+        pixiRender.texture.bind(null, 7);
+        pixiRender.texture.bind(null, 8);
     }
 
     // getVideoCardInfo...

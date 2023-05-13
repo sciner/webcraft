@@ -8,39 +8,51 @@ import type { Player } from '../../player.js';
 import type { World } from '../../world.js';
 import type { Renderer } from '../../render.js';
 
+const MAX_FLY_TIME              = 200; // ms
+const MAX_FLY_SPEED             = 12; // m/s
+const MIN_DIST_FOR_PICKUP_NOW   = .3; // m
+
 const {mat4, quat, vec3} = glMatrix;
 const tmpMatrix = mat4.create()
 const _matrix_rot = mat4.create()
+const tmpTargetPos = new Vector()
 
 // Mesh_Object_Block_Drop
 export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
-    [key: string]: any;
 
     static neighbours = null;
     static mesh_groups_cache = new Map();
 
     mesh_group:     MeshGroup
     posFact:        Vector
+    block:          FakeTBlock
     this:           Vector
     modelMatrix:    imat4 = mat4.create()
     lightTex:       any= null
     chunk:          any = null
-    // mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.swapYZ().toArray());
+    entity_id:      string
+    scale           = new Vector(.3, .3, .3)    // TODO может сделать static, т.к. всегда одинаково
+    create_time:    number  // performance.now()
+    pn:             number  // рандом, чтобы одновременно сгенерированные дропы крутились не одинаково
+    now_draw:       boolean
+    private pickup_timeout: any | null = null   // если не null, то игрок пытается поднять этот предмет
+    items:                  (IInventoryItem | IBlockItem)[]    // Все предметы
+    block_material:         IBlockMaterial      // Материал 0-го (видимого) предмета/блока
+    minPickupTime:          number  // unixTime - минимальное время, когда мой игрок может его поднять
+    deathTime:              number  // unixTime
 
-    constructor(world : World, gl, entity_id : string, items : any[], pos : Vector, matrix?: float[], pivot? : Vector, use_cache : boolean = false) {
+    constructor(world : World, gl, entity_id : string, items : (IInventoryItem | IBlockItem)[], pos : Vector, matrix?: float[], pivot? : Vector, use_cache : boolean = false) {
 
         super(world, new Vector(pos.x, pos.y, pos.z), new Vector(0, 0, 0))
 
         this.create_time = performance.now()
         this.entity_id = entity_id
         const block = items[0]
-
-        this.scale          = new Vector(.2, .2, .2)
         this.pn             = performance.now() + Math.random() * 2000 // рандом, чтобы одновременно сгенерированные дропы крутились не одинаково
-        this.life           = 1.0
         this.posFact        = this.pos.clone()
         this.block          = new FakeTBlock(block.id)
         this.block_material = this.block.material
+        this.items          = items
 
         // draw_style
         let draw_style = this.block_material?.inventory_style ?? this.block_material.style
@@ -71,7 +83,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
             this.mesh_group.addBlock(Vector.ZERO, this.block)
 
             // 2. Add couples block
-            if(['fence', 'wall'].includes(block.style_name)) {
+            if(['fence', 'wall'].includes(this.block_material.style_name)) {
                 this.mesh_group.addBlock(Vector.XP, new FakeTBlock(block.id))
             }
 
@@ -118,53 +130,52 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
     }
 
-    pickup() {
+    pickup(): void {
+        clearTimeout(this.pickup_timeout)
+        this.pickup_timeout = null
         this.now_draw = true;
         // Qubatch.sounds.play('madcraft:entity.item.pickup', 'hit');
     }
 
-    // Update player
-    updatePlayer(player: Player, delta: number) {
+    /** Обновляет предмет с учетом игрока. */
+    updatePlayer(player: Player, delta: number): void {
 
-        if(this.now_draw || !player.game_mode.canPickupItems()) {
-            return false;
+        if (this.now_draw) {
+            return
         }
 
-        const MAX_FLY_TIME              = 200; // ms
-        const MAX_FLY_SPEED             = 12; // m/s
-        const MIN_DIST_FOR_PICKUP_NOW   = .3; // m
-
-        const target_pos = player.lerpPos.clone().addScalarSelf(0, .85, 0)
+        const target_pos = tmpTargetPos.copyFrom(player.lerpPos).addScalarSelf(0, .85, 0)
         const dist = this.pos.distance(target_pos)
 
-        // if drop item already find near player
-        if(this.no_update) {
-            if(dist < MIN_DIST_FOR_PICKUP_NOW) {
-                clearTimeout(this.pickup_timeout)
-                return this.pickup()
-            }
-            this.pos.addSelf(this.pos.sub(target_pos).normalize().multiplyScalarSelf(-MAX_FLY_SPEED * delta / 1000))
-        } else if(dist < MAX_DIST_FOR_PICKUP && (performance.now() - this.create_time > MAX_FLY_TIME && !this.isDead())
-        ) {
-            if(this.age > PICKUP_OWN_DELAY_SECONDS) {
-                // if dist less need, drop item start to fly to center of player body
-                this.no_update = true
-                // start timeout for pickup
-                this.pickup_timeout = setTimeout(() => {
+        const canPickup = player.game_mode.canPickupItems() &&
+            dist < MAX_DIST_FOR_PICKUP &&           // это отсеит большинство предметов - проверим в начале
+            unixTime() > this.minPickupTime &&      // мин. время для этого игрока (с учетом задержки для своих предметов)
+            performance.now() - this.create_time > MAX_FLY_TIME &&
+            !this.isDead() &&
+            player.inventory.canPickup(this.items)  // самая медленная проверка - последняя
+
+        if (canPickup) {
+            if (this.pickup_timeout != null) {
+                if (dist < MIN_DIST_FOR_PICKUP_NOW) {
                     this.pickup()
-                }, MAX_FLY_TIME)
-                //
-                player.world.server.PickupDropItem([this.entity_id])
+                    return
+                }
+                this.pos.addSelf(this.pos.sub(target_pos).normalize().multiplyScalarSelf(-MAX_FLY_SPEED * delta / 1000))
+            } else {
+               // if dist less need, drop item start to fly to center of player body
+               // start timeout for pickup
+               this.pickup_timeout = setTimeout(() => this.pickup(), MAX_FLY_TIME)
+               player.world.server.PickupDropItem([this.entity_id])
             }
-        } if(!this.no_update) {
+        } else {
+            if (this.pickup_timeout != null) {
+                clearTimeout(this.pickup_timeout)
+                this.pickup_timeout = null
+            }
             // if drop item in calm state
             this.update()
         }
 
-    }
-
-    get age() {
-        return unixTime() - this.dt
     }
 
     isDead() {
@@ -227,7 +238,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         // rotate
         mat4.identity(_matrix_rot)
         quat.fromEuler(temp_quat, 0, addY/60/Math.PI*180, 0, 'xyz')
-        pivot.set(position)
+        // pivot.set(position)
         vec3.set(position, 0, 0, 0)
         vec3.set(scale, 1, 1, 1)
         mat4.fromRotationTranslationScaleOrigin(_matrix_rot, temp_quat, position, scale, pivot)
@@ -282,7 +293,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     }
 
     get isAlive() : boolean {
-        return this.life > 0
+        return !this.isDead()
     }
 
 }

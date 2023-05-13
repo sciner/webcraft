@@ -22,6 +22,10 @@ export class AABB extends BaseAABB {
     }
 
     contract(x: number, y: number, z: number): this {
+        // гарантируем что размер не станет нулевым
+        x = Math.min(x, this.width * 0.499999)
+        y = Math.min(y, this.height * 0.499999)
+        z = Math.min(z, this.depth * 0.499999)
         this.x_min += x
         this.y_min += y
         this.z_min += z

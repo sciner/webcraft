@@ -12,6 +12,9 @@ import  registerTextFilter from './angular/textfilter.js';
 import { Resources } from '../resources.js';
 import { ClipboardHelper } from './clipboard.js';
 import { HUD } from '../hud.js';
+import { msdf } from '../../data/font.js'
+
+globalThis.alphabet = {msdf}
 
 function isSupported() {
     // we should support webgl2 strictly
@@ -884,13 +887,17 @@ class GameController {
         selector = selector ?? '.slim-select'
         this.$timeout(() => {
             const selects = document.querySelectorAll(selector)
-            selects.forEach((selectElement) => {
-                new SlimSelect({
-                    select: selectElement,
-                    showSearch: false
-                });
-                // setSlimData(selectElement)
-            })
+            try {
+                selects.forEach((selectElement) => {
+                    new SlimSelect({
+                        select: selectElement,
+                        showSearch: false
+                    });
+                    // setSlimData(selectElement)
+                })
+            } catch(e) {
+                console.debug('error', e)
+            }
         }, 0)
     }
 

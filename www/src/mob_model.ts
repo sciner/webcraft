@@ -2,7 +2,7 @@ import { Resources } from "./resources.js";
 import { Color, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { AABBDrawable, NetworkPhysicObject } from './network_physic_object.js';
-import { MOB_TYPE, MOUSE } from "./constant.js";
+import { MOB_TYPE } from "./constant.js";
 import { Mesh_Object_MobFire } from "./mesh/object/mob_fire.js";
 import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
@@ -10,10 +10,15 @@ import type { ArmorState, TAnimState, TSittingState, TSleepState } from "./playe
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import type { TMobProps } from "./mob_manager.js";
 import type { Mesh_Object_Base } from "./mesh/object/base.js";
-import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 import type {ClientDriving} from "./control/driving.js";
+import type { BLOCK } from "./blocks.js";
+import { CD_ROT } from "./core/CubeSym.js";
 
-const {mat4} = glMatrix
+const MAX_CHESTPLATE_COUNT = 6
+const MAX_LEG_COUNT = 10
+const MAX_BOOTS_COUNT = 10
+
+const {mat4, vec3} = glMatrix
 
 // Анимация повороа говоры отдельно от тела, нужно перенести в bbmodel
 // head({part, index, delta, animable, camPos}) {
@@ -69,7 +74,8 @@ export class MobModel extends NetworkPhysicObject {
                             body: null,
                             leg: null,
                             boot: null,
-                            skin: null
+                            skin: null,
+                            backpack: null
                         }
     slots:              any
     tmpDrawPos?:        Vector
@@ -241,13 +247,64 @@ export class MobModel extends NetworkPhysicObject {
     /**
      * Draw mob model
      */
-    draw(render : Renderer, camPos : Vector, delta : float, speed? : float, draw_debug_grid : boolean = false) {
+    draw(render : Renderer, camPos : Vector, delta : float, speed? : float, draw_debug_grid : boolean = false) : boolean {
         if(!this.isAlive) {
             return false
         }
 
         this.update(render, camPos, delta, speed);
-        
+
+        // TODO: need to migrate to bbmodels
+        // // ignore_roots
+        // const ignore_roots = [];
+        // if(this.type == MOB_TYPE.SHEEP && this.extra_data?.is_sheared) {
+        //     ignore_roots.push('geometry.sheep.v1.8:geometry.sheep.sheared.v1.8');
+        // }
+
+        let mx = null
+        const bm : BLOCK = this.world.block_manager
+
+        // hide invisible mobs
+        if(this.extra_data && 'invisible' in this.extra_data) {
+            const mesh = this._mesh
+            if(this.extra_data.invisible) {
+                mesh.destroyBlockDrawer()
+                return false
+            } else {
+                if(this.extra_data.blocks) {
+                    mesh.setupBlockDrawer(this.extra_data.blocks)
+                    let rotate = this.extra_data.rotate
+                    if(rotate) {
+                        rotate = new Vector().copyFrom(rotate)
+                        mx = mat4.create()
+                        switch(rotate.x) {
+                            case CD_ROT.EAST:
+                            case CD_ROT.WEST: {
+                                mat4.rotateX(mx, mx, mesh.rotation[2])
+                                break
+                            }
+                            case CD_ROT.SOUTH:
+                            case CD_ROT.NORTH: {
+                                mat4.rotateZ(mx, mx, mesh.rotation[2])
+                                break
+                            }
+                            default: {
+                                mat4.rotateY(mx, mx, mesh.rotation[2])
+                                break
+                            }
+                        }
+                        // хак со сдвигом матрицы в центр блока
+                        const v = vec3.create()
+                        v[1] = 0.5
+                        vec3.transformMat4(v, v, mx)
+                        mx[12] += - v[0]
+                        mx[13] += 0.5 - v[1]
+                        mx[14] += - v[2]
+                    }
+                }
+            }
+        }
+
         // Draw in fire
         if (this.fire || this.extra_data?.in_fire) {
             this.drawInFire(render, delta);
@@ -266,11 +323,13 @@ export class MobModel extends NetworkPhysicObject {
                 debugger
             }
             mesh.apos.copyFrom(this.pos)
-            mesh.drawBuffered(render, delta)
+            mesh.drawBuffered(render, delta, mx)
             if(mesh.gl_material.tintColor) {
                 mesh.gl_material.tintColor.set(0, 0, 0, 0)
             }
         }
+
+        return true
     }
 
     doAnims() {
@@ -361,6 +420,7 @@ export class MobModel extends NetworkPhysicObject {
 
         const block = Qubatch.world.block_manager
 
+        // helmet
         if (armor.head != this.prev.head) {
             if (armor.head) {
                 const item = block.fromId(armor.head)
@@ -372,49 +432,64 @@ export class MobModel extends NetworkPhysicObject {
             this.prev.head = armor.head
         }
 
+        // chestplates
         if (armor.body != this.prev.body) {
             if (armor.body) {
                 const item = block.fromId(armor.body)
-                for (let i = 0; i < 6; i++) {
-                    this._mesh.modifiers.replaceGroup('chestplate' + i, item.model.name, item.model.texture)
-                    this._mesh.modifiers.showGroup('chestplate' + i)
+                for (let i = 0; i < MAX_CHESTPLATE_COUNT; i++) {
+                    this._mesh.modifiers.replaceGroup(`chestplate${i}`, item.model.name, item.model.texture)
+                    this._mesh.modifiers.showGroup(`chestplate${i}`)
                 }
             } else {
-                for (let i = 0; i < 6; i++) {
-                    this._mesh.modifiers.hideGroup('chestplate' + i)
+                for (let i = 0; i < MAX_CHESTPLATE_COUNT; i++) {
+                    this._mesh.modifiers.hideGroup(`chestplate${i}`)
                 }
             }
             this.prev.body = armor.body
         }
 
+        // pants
         if (armor.leg != this.prev.leg) {
             if (armor.leg) {
                 const item = block.fromId(armor.leg)
-                for (let i = 0; i < 10; i++) {
-                    this._mesh.modifiers.replaceGroup('pants' + i, item.model.name, item.model.texture)
-                    this._mesh.modifiers.showGroup('pants' + i)
+                for (let i = 0; i < MAX_LEG_COUNT; i++) {
+                    this._mesh.modifiers.replaceGroup(`pants${i}`, item.model.name, item.model.texture)
+                    this._mesh.modifiers.showGroup(`pants${i}`)
                 }
             } else {
-                for (let i = 0; i < 10; i++) {
-                    this._mesh.modifiers.hideGroup('pants' + i)
+                for (let i = 0; i < MAX_LEG_COUNT; i++) {
+                    this._mesh.modifiers.hideGroup(`pants${i}`)
                 }
             }
             this.prev.leg = armor.leg
         }
 
+        // boots
         if (armor.boot != this.prev.boot) {
             if (armor.boot) {
                 const item = block.fromId(armor.boot)
-                for (let i = 0; i < 10; i++) {
-                    this._mesh.modifiers.replaceGroup('boots' + i, item.model.name, item.model.texture)
-                    this._mesh.modifiers.showGroup('boots' + i)
+                for (let i = 0; i < MAX_BOOTS_COUNT; i++) {
+                    this._mesh.modifiers.replaceGroup(`boots${i}`, item.model.name, item.model.texture)
+                    this._mesh.modifiers.showGroup(`boots${i}`)
                 }
             } else {
-                for (let i = 0; i < 10; i++) {
-                    this._mesh.modifiers.hideGroup('boots' + i)
+                for (let i = 0; i < MAX_BOOTS_COUNT; i++) {
+                    this._mesh.modifiers.hideGroup(`boots${i}`)
                 }
             }
             this.prev.boot = armor.boot
+        }
+
+        // backpack
+        if (armor.backpack != this.prev.backpack) {
+            if (armor.backpack) {
+                const item = block.fromId(armor.backpack)
+                this._mesh.modifiers.replaceGroup('backpack', item.model.name, item.model.texture)
+                this._mesh.modifiers.showGroup('backpack')
+            } else {
+                this._mesh.modifiers.hideGroup('backpack')
+            }
+            this.prev.backpack = armor.backpack
         }
 
     }

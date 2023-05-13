@@ -719,9 +719,10 @@ export class CompileData {
     initNumber() {
         let id = START_NUMBER_ID;
         for(let i = 0; i < 2; i++) {
+            const num = i + 1
             const b = {
                 "id":           id + i,
-                "name":         `NUM${i + 1}`,
+                "name":         `NUM${num}`,
                 "transparent":  true,
                 "sound":        "madcraft:block.wood",
                 "mining_time":  0,
@@ -729,7 +730,7 @@ export class CompileData {
                     "id": "wood"
                 },
                 "texture": {
-                    "side": `./textures/${i + 1}.png`
+                    "side": `block/${num}.png`
                 },
                 "tags": [
                     "no_drop_ao"
@@ -768,6 +769,7 @@ export class CompileData {
             {name: 'MOSS_STONE', 'texture': "block/mossy_cobblestone.png", "sound": "madcraft:block.stone", "material": {"id": "stone"}},
             {name: 'MOSS_BLOCK', 'texture': "./textures/moss_block.png", "sound": "madcraft:block.grass", "material": {"id": "cobblestone"}},
             {name: 'COBBLESTONE', 'texture': "block/cobblestone.png", "sound": "madcraft:block.stone", "material": {"id": "stone"}},
+            {name: 'SAND', 'texture': `block/sand.png`},
         ];
         for(let p of PALETTE) {
             let b = {

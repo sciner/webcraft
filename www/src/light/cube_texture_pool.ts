@@ -19,6 +19,7 @@ export class GridCubeTexture {
             width: dims.x * to.width,
             height: dims.y * to.height,
             depth: dims.z * to.depth,
+            pixelSize: to.pixelSize,
             filter: to.filter,
             type: to.type
         });
@@ -50,13 +51,19 @@ export class CubeTexturePool {
         defWidth = 18,
         defHeight = 18,
         defDepth = 42,
-        bigWidth = 256,
+        bigWidth = 128,
         bigHeight = 256,
         bigDepth = 256,
         type = 'rgba8unorm',
         filter = 'linear',
-        maxBoundTextures = 10,
+        maxBoundTextures = 3,
+        pixelSize,
     }) {
+        if (pixelSize) {
+            bigWidth *= pixelSize;
+            bigHeight *= pixelSize;
+            bigDepth *= pixelSize;
+        }
         this.bigWidth = bigWidth;
         this.bigHeight = bigHeight;
         this.bigDepth = bigDepth;
@@ -65,6 +72,7 @@ export class CubeTexturePool {
             height: defHeight,
             depth: defDepth,
             filter, type,
+            pixelSize
         }
         this.context = context;
         this.singles = []
@@ -76,7 +84,7 @@ export class CubeTexturePool {
         this.totalRegions = 0;
         this.maxBoundTextures = maxBoundTextures;
         this.boundTextures = [null];
-        this.bytePerElement = (type === 'rgb565unorm' || type === 'rgba4unorm' ? 2 : 4 );
+        this.bytePerElement = (type === 'rgb565unorm' || type === 'rgba4unorm' || type === 'rgba32sint' ? 2 : 4 );
     }
 
     alloc({width, height, depth, type, filter, data}) {

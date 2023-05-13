@@ -23,6 +23,7 @@ const DEFAULT_AABB_SIZE = new Vector(12, 12, 12)
 const pivotObj = new Vector(0.5, .5, 0.5)
 const xyz = new Vector(0, 0, 0)
 const randoms = new FastRandom('bbmodel', MAX_CHUNK_SQUARE)
+const DEFAULT_SIX_ROTATE = Vector.YP.clone()
 
 class BBModel_TextureRule {
     /**
@@ -45,7 +46,6 @@ class BBModel_TextureRule {
 
 // Block model
 export default class style {
-    [key: string]: any;
 
     static block_manager : BlockManager
 
@@ -63,41 +63,40 @@ export default class style {
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
         const bb = tblock.material.bb
-        const behavior = bb.behavior || bb.model.name
 
-        switch(behavior) {
-            case 'cake': {
-                return [new AABB(0, 0, 0, 1, .5, 1)]
-            }
-            case 'chain': {
-                const aabb_size = tblock.material.aabb_size || DEFAULT_AABB_SIZE
-                const aabb = new AABB()
-                aabb.set(0, 0, 0, 0, 0, 0)
-                aabb
-                    .translate(.5 * TX_SIZE, aabb_size.y/2, .5 * TX_SIZE)
-                    .expand(aabb_size.x/2, aabb_size.y/2, aabb_size.z/2)
-                    .div(TX_SIZE)
-                // Rotate
-                if(tblock.getCardinalDirection) {
-                    const cardinal_direction = tblock.getCardinalDirection()
-                    const matrix = CubeSym.matrices[cardinal_direction]
-                    // on the ceil
-                    if(tblock.rotate && tblock.rotate.y == -1) {
-                        if(tblock.hasTag('rotate_by_pos_n')) {
-                            aabb.translate(0, 1 - aabb.y_max, 0)
+        if (!for_physic) {
+            switch(bb.model.name) {
+                case 'cake': {
+                    return [new AABB(0, 0, 0, 1, .5, 1)]
+                }
+                case 'chain': {
+                    const aabb_size = tblock.material.aabb_size || DEFAULT_AABB_SIZE
+                    const aabb = new AABB()
+                    aabb.set(0, 0, 0, 0, 0, 0)
+                    aabb
+                        .translate(.5 * TX_SIZE, aabb_size.y/2, .5 * TX_SIZE)
+                        .expand(aabb_size.x/2, aabb_size.y/2, aabb_size.z/2)
+                        .div(TX_SIZE)
+                    // Rotate
+                    if(tblock.getCardinalDirection) {
+                        const cardinal_direction = tblock.getCardinalDirection()
+                        const matrix = CubeSym.matrices[cardinal_direction]
+                        // on the ceil
+                        if(tblock.rotate && tblock.rotate.y == -1) {
+                            if(tblock.hasTag('rotate_by_pos_n')) {
+                                aabb.translate(0, 1 - aabb.y_max, 0)
+                            }
                         }
+                        aabb.applyMatrix(matrix, pivotObj)
                     }
-                    aabb.applyMatrix(matrix, pivotObj)
+                    return [aabb]
                 }
-                return [aabb]
             }
-            default: {
-                const styleVariant = style.block_manager.styles.get(behavior)
-                if(styleVariant?.aabb) {
-                    return styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
-                }
-                break
-            }
+        }
+
+        const styleVariant = style.block_manager.styles.get(bb.behavior)
+        if(styleVariant?.aabb) {
+            return styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
         }
 
         const aabb = new AABB()
@@ -248,9 +247,30 @@ export default class style {
                             }
                             break
                         }
+                        case 'cog':
+                        case 'rotate_by_pos_n_6':
+                        case 'six': {
+                            if(tblock.rotate && (tblock instanceof TBlock || tblock instanceof FakeTBlock)) {
+                                const rotate = tblock.rotate || DEFAULT_SIX_ROTATE
+                                const cardinal_direction = tblock.getCardinalDirection()
+                                const mx = calcRotateMatrix(tblock.material, rotate, cardinal_direction, matrix)
+                                // if(rot.type == 'cog') {
+                                //     mat4.rotateY(mx, mx, Math.PI / 8)
+                                // }
+                                // хак со сдвигом матрицы в центр блока
+                                const v = vec3.create()
+                                v[1] = 0.5
+                                vec3.transformMat4(v, v, mx)
+                                mx[12] += - v[0]
+                                mx[13] += 0.5 - v[1]
+                                mx[14] += - v[2]
+                                mat4.copy(matrix, mx)
+                            }
+                            break
+                        }
                         case 'three': {
                             // rotation only in three axes X, Y or Z
-                            if(tblock.rotate && tblock instanceof TBlock) {
+                            if(tblock.rotate && (tblock instanceof TBlock || tblock instanceof FakeTBlock)) {
                                 const cd = tblock.getCardinalDirection()
                                 const mx = calcRotateMatrix(tblock.material, tblock.rotate, cd, matrix)
                                 // хак со сдвигом матрицы в центр блока

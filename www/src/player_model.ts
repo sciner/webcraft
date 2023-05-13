@@ -368,17 +368,18 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
     }
 
-    draw(render : Renderer, camPos : Vector, delta : float) {
+    draw(render : Renderer, camPos : Vector, delta : float, speed? : float, draw_debug_grid : boolean = false) : boolean {
         if(this.isAlive == false) {
-            return;
+            return false
         }
         if(!this.prev_pos) {
             this.prev_pos = this.pos.clone();
-            return false;
+            return false
         }
-        const speed = Helpers.calcSpeed(this.prev_pos, this.pos, delta / 1000);
+        speed = Helpers.calcSpeed(this.prev_pos, this.pos, delta / 1000);
         this.prev_pos.copyFrom(this.pos);
-        super.draw(render, camPos, delta, speed);
+        super.draw(render, camPos, delta, speed)
+        return true
     }
 
     get isAlive() : boolean {

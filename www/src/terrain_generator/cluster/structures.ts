@@ -4,6 +4,8 @@ import { BuildingTemplate } from "./building_template.js";
 import { Vector } from "../../helpers.js";
 import type { ClusterManager } from "./manager.js";
 import type { Biome } from "../biome3/biomes.js";
+import { TerrainMapManager3 } from "../biome3/terrain/manager.js";
+import { CANYON } from "../default.js";
 
 export declare type IStructureList = {
     chance: float,
@@ -89,7 +91,7 @@ export class ClusterStructures extends ClusterBuildingBase {
 
     }
 
-    addStructure(schema_name : string, coord : Vector, door_direction : int) {
+    addStructure(schema_name : string, coord : Vector, door_direction : int) : BuildingBlocks | null {
         const bm = this.block_manager
         const template = BuildingTemplate.fromSchema(schema_name, bm)
         const xz = coord.clone()
@@ -102,11 +104,23 @@ export class ClusterStructures extends ClusterBuildingBase {
             null,
             template
         )
+        //
+        if(this.clusterManager.layer.maps instanceof TerrainMapManager3) {
+            // Не ставим структуры внутри или вблизи каньонов
+            // TODO: Нужно сделать проверку по всем 4-м углам структуры, а не только по одному
+            const mm = this.clusterManager.layer.maps as TerrainMapManager3
+            const simplified_cell = mm.makeSimplifiedCell(coord)
+            if(simplified_cell.canyon_point > -CANYON.STRUCTURE_DIST && simplified_cell.canyon_point < CANYON.STRUCTURE_DIST) {
+                return null
+            }
+        }
+        //
         // const aabb = building.getRealAABB()
         // const am = getAheadMove(door_direction).multiplyScalarSelf(16)
         // building.translate(am)
         // building.movePosTo(this.coord)
         this.buildings.set(building.coord, building)
+        return building
     }
 
     fillMask() {

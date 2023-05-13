@@ -1,8 +1,9 @@
 import { BLOCK } from '../../blocks.js';
 import { Vector } from "../../helpers.js";
-import { alea } from "../default.js";
+import { alea, CANYON } from "../default.js";
 import { DENSITY_AIR_THRESHOLD } from "./terrain/manager_vars.js";
-import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
+import { createNoise3D } from '../../../vendors/simplex-noise.js';
+import type { TerrainMapManager3 } from './terrain/manager.js';
 
 export const AQUIFERA_UP_PADDING = 10
 
@@ -31,24 +32,42 @@ export class AquiferaParams {
 }
 
 export class Aquifera {
-    [key: string]: any;
+    options: {
+        y: { min: number; max: number; };
+        rad: { min: number; max: number; };
+        chance: number;
+        rad_mul: number;
+    }
+    pos:        Vector
+    coord:      Vector
+    size:       Vector
+    addr:       Vector
+    rad:        int
+    is_empty:   boolean
+    rand:       any
+    n3d:        any
+    block_id:   any
 
-    /**
-     * @param {Vector} coord
-     */
-    constructor(coord) {
+    constructor(map_manager : TerrainMapManager3, coord : Vector) {
         this.options = {
-            y: {min: 20, max: 50},
-            rad: {min: 28, max: 48},
-            chance: .5,
+            y:       {min: 20, max: 50},
+            rad:     {min: 28, max: 48},
+            chance:  .5,
             rad_mul: 1.5
         }
         // WARNING: x and z of size must be a multiple of 16
+        // TODO: а что происходит, если размер чанка не 16 блоков?
         this.size = new Vector(96, 512, 96)
         this.addr = coord.clone().div(this.size).flooredSelf()
         this.coord = this.addr.mul(this.size)
         this.rand = new alea(`aquifera_rand_${this.addr.toHash()}`)
         this.is_empty = this.rand.double() > this.options.chance
+        // не ставим аквиферу посередине каньона
+        const canyon_point = map_manager.makeCanyonPoint(this.coord)
+        if(canyon_point < CANYON.AQUIFERA_DIST) {
+            this.is_empty = true
+        }
+        //
         if(!this.is_empty) {
             this.n3d = createNoise3D(new alea(`aquifera_` + this.addr.toHash()));
             const y = Math.floor(this.rand.double() * (this.options.y.max - this.options.y.min + 1) + this.options.y.min)

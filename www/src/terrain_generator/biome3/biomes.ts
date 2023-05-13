@@ -81,8 +81,8 @@ const DEFAULT_GRASS = {
 }
 
 const TAIGA_FOG_PRESET = {
-    color: [110 / 255, 150 / 255, 235 / 255, 0.1],
-    addColor: [110 / 255, 150 / 255, 235 / 255, 0.1],
+    color: [110 / 255, 150 / 255, 235 / 255, 0.02],
+    addColor: [110 / 255, 150 / 255, 235 / 255, 0.02],
     density: 0.025,
     illuminate: 0.15,
 }
@@ -455,6 +455,7 @@ export class Biomes {
                         delete(b.name)
                         b.id = block.id
                         b.is_petals = block.tags.includes('is_petals')
+                        b.is_leaves = block.is_leaves
                         b.is_grass = block.is_grass
                         b.is_flower = block.is_flower
                     }
@@ -629,8 +630,8 @@ export class Biomes {
                 {percent: .14, blocks: [{name: 'TALL_GRASS'}, {name: 'TALL_GRASS', extra_data: {is_head: true}}]}
             ]
         }, new IndexedColor(70, 368, 0), new IndexedColor(1, 254, 0), undefined, undefined, undefined, undefined, undefined, undefined, {
-            color: [94 / 255, 113 / 255, 75 / 255, 0.1],
-            addColor: [94 / 255, 113 / 255, 75 / 255, 0.1],
+            color: [94 / 255, 113 / 255, 75 / 255, 0.02],
+            addColor: [94 / 255, 113 / 255, 75 / 255, 0.02],
             density: 0.05,
             illuminate: 0.15,
         });
@@ -749,8 +750,8 @@ export class Biomes {
             },
             null, undefined, undefined, DESERT_BUILDINGS, undefined, undefined, undefined, undefined, undefined,
             {
-                color: [207 / 255, 188 / 255, 143 / 255, 0.1],
-                addColor: [207 / 255, 188 / 255, 143 / 255, 0.1],
+                color: [207 / 255, 188 / 255, 143 / 255, 0.02],
+                addColor: [207 / 255, 188 / 255, 143 / 255, 0.02],
                 density: 0.05,
                 illuminate: 0.15,
             }
@@ -812,8 +813,8 @@ export class Biomes {
         this.addBiome(500, 'Летающие острова', .911, .911, undefined, undefined, undefined, undefined, undefined, undefined, undefined,
             undefined, undefined, undefined, undefined, undefined,
             {
-                color: [205 / 255, 200 / 255, 150 / 255, 0.1],
-                addColor: [205 / 255, 200 / 255, 150 / 255, 0.1],
+                color: [205 / 255, 200 / 255, 150 / 255, 0.02],
+                addColor: [205 / 255, 200 / 255, 150 / 255, 0.02],
                 density: 0.05,
                 illuminate: 0.15,
             }
@@ -873,8 +874,8 @@ export class Biomes {
                 {value: 1, block_name: 'SOUL_SAND'}
             ],
             {
-                color: [78 / 255, 27 / 255, 21 / 255, 0.1],
-                addColor: [78 / 255, 27 / 255, 21 / 255, 0.1],
+                color: [78 / 255, 27 / 255, 21 / 255, 0.02],
+                addColor: [78 / 255, 27 / 255, 21 / 255, 0.02],
                 density: 0.05,
                 illuminate: 0.15,
             }
@@ -934,8 +935,8 @@ export class Biomes {
                 {value: 1, block_name: 'SOUL_SAND'}
             ],
             {
-                color: [78 / 255, 27 / 255, 21 / 255, 0.1],
-                addColor: [78 / 255, 27 / 255, 21 / 255, 0.1],
+                color: [78 / 255, 27 / 255, 21 / 255, 0.02],
+                addColor: [78 / 255, 27 / 255, 21 / 255, 0.02],
                 density: 0.05,
                 fixLum: 1,
                 illuminate: 0.15,

@@ -249,10 +249,9 @@ outerLop:   for(let canReplacePlayerId = 0; canReplacePlayerId <= 1; canReplaceP
     }
 
     /** Игрок добровольно покидает вождение */
-    onStandUp(player: ServerPlayer, actionId: int | null): void {
+    onStandUp(player: ServerPlayer): void {
         this.sendSound()
         this.removePlayerId(player.userId)
-        player.controlManager.syncWithActionId(actionId)
     }
 
     /**

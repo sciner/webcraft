@@ -4,7 +4,7 @@ import { DENSITY_AIR_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "../terrain/manag
 import { AQUIFERA_UP_PADDING } from "../aquifera.js";
 import { WorldClientOreGenerator } from "../client_ore_generator.js";
 import { DungeonGenerator } from "../../dungeon.js";
-import { alea } from "../../default.js";
+import { alea, CANYON } from "../../default.js";
 import { DensityParams, WATER_LEVEL } from "../terrain/manager_vars.js";
 import { FLUID_STRIDE } from "../../../fluid/FluidConst.js";
 import { Biome3LayerBase } from "./base.js";
@@ -335,7 +335,9 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                         }
                         rotate = new Vector(Math.floor(rnd.double() * 4), 1, 0)
                     }
-                    chunk.setBlockIndirect(x, y + i, z, p.id, rotate, extra_data);
+                    if(!p.is_leaves || !cell.inCanyon(CANYON.FLOOR_DENSITY)) {
+                        chunk.setBlockIndirect(x, y + i, z, p.id, rotate, extra_data)
+                    }
                 }
                 return !!plant_blocks[0].not_transparent
             }
@@ -354,7 +356,9 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                 const cell                  = map.getCell(x, z)
                 const has_cluster           = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.z, 2);
                 const cluster_cell          = has_cluster ? cluster.getCell(xyz.x, xyz.z) : null;
-                const big_stone_density     = this.calcBigStoneDensity(xyz, has_cluster);
+                const big_stone_density     = this.calcBigStoneDensity(xyz, has_cluster)
+                const in_canyon             = cell.inCanyon(CANYON.FLOOR_DENSITY)
+                const bridge_in_canyon      = cell.inCanyon(CANYON.BRIDGE_DIST)
 
                 // const {dist_percent, op /*, relief, mid_level, radius, dist, density_coeff*/ } = cell.preset;
                 // const hanging_foliage_block_id = cell.biome.blocks.hanging_foliage.id
@@ -374,6 +378,48 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                 for(let y = chunk.size.y - 1; y >= 0; y--) {
 
                     xyz.y = chunk.coord.y + y;
+
+                    // Make canyon bridge
+                    if(bridge_in_canyon) {
+                        if(xyz.y == 80 || xyz.y == 81 || xyz.y == 82) {
+                            const bridge_pos = Math.abs(xyz.x + xyz.z)
+                            const bridge = bridge_pos % 150
+                            if(bridge_pos > 10 && bridge < 6) {
+                                // const cyp_1 = Math.abs(map_manager.makeCanyonPoint(xyz.add(new Vector(-1, 0, 1))) - cell.canyon_point)
+                                // const cyp_2 = Math.abs(map_manager.makeCanyonPoint(xyz.add(new Vector(1, 0, 1))) - cell.canyon_point)
+                                // if(cyp_1 > cyp_2) {
+                                const edge_of_bridge = bridge == 0 || bridge == 5
+                                const inside_edge_of_bridge = bridge == 1 || bridge == 4
+                                if(xyz.y == 80) {
+                                    if(bridge == 0 || bridge == 5) {
+                                        chunk.setBlockIndirect(x, y, z, 536)
+                                    } else {
+                                        if(inside_edge_of_bridge) {
+                                            chunk.setBlockIndirect(x, y, z, 460)
+                                        } else {
+                                            chunk.setBlockIndirect(x, y, z, 461, null, {point: new Vector(0, .5, 0)})
+                                        }
+                                        
+                                    }
+                                } else if(xyz.y == 81) {
+                                    if(edge_of_bridge || bridge == 1 || bridge == 4) {
+                                        chunk.setBlockIndirect(x, y, z, 536)
+                                    }
+                                } else if(xyz.y == 82) {
+                                    if(bridge == 0 || bridge == 5) {
+                                        if(xyz.x % 5 == 0 && xyz.z % 5 == 0) {
+                                            if(cell.inCanyon(0.05)) {
+                                                if(rnd.double() < .35) {
+                                                    chunk.setBlockIndirect(x, y, z, 50)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                // }
+                            }
+                        }
+                    }
 
                     // получает плотность в данном блоке (допом приходят коэффициенты, из которых посчитана данная плотность)
                     map_manager.calcDensity(xyz, cell, density_params, map);
@@ -402,7 +448,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                         let {dirt_layer, block_id} = map_manager.getBlock(xyz, not_air_count, cell, density_params, block_result)
 
                         if(block_id == grass_block_id && !cell.biome.is_snowy) {
-                            if(xyz.y - WATER_LEVEL < 2) {
+                            if(xyz.y - WATER_LEVEL < 2 && !in_canyon) {
                                 if(d4 * .3 + d3 * .7 < 0) {
                                     block_id = cell.biome.is_swamp ? podzol_block_id : sand_block_id
                                 }
@@ -519,6 +565,19 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                             } else {
 
                                 // первый слой поверхности под водой (дно)
+
+                                // Plants and grass (растения и трава в каньонах)
+                                if(in_canyon) {
+                                    // шапка слоя земли (если есть)
+                                    if(xyz.y > 41 && dirt_layer.cap_block_id) {
+                                        // chunk.setGroundInColumIndirect(columnIndex, x, y + 1, z, dirt_layer.cap_block_id);
+                                        chunk.setBlockIndirect(x, y + 1, z, dirt_layer.cap_block_id)
+                                    }
+                                    if(plantGrass(x, y + 1, z, xyz, block_id, cell, density_params)) {
+                                        // замена блока травы на землю, чтобы потом это не делал тикер (например арбуз)
+                                        block_id = dirt_block_id
+                                    }
+                                }
 
                                 // если это не пещера
                                 if(dcaves_over === 0) {

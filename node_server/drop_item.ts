@@ -7,6 +7,7 @@ import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.
 import type { BulkDropItemsRow } from "./db/world.js"
 import { InventoryComparator } from "@client/inventory_comparator.js";
 import type {World} from "@client/world.js";
+import type {ServerChunk} from "./server_chunk.js";
 
 export const MOTION_MOVED = 0;  // It moved OR it lacks a chunk
 export const MOTION_JUST_STOPPED = 1;
@@ -33,30 +34,33 @@ export type DropItemParams = {
 export class DropItem {
 
     #world : ServerWorld;
-    #chunk_addr : Vector;
+    #chunk_addr = new Vector(0, 0, 0)
     #pc: PrismarinePlayerControl;
 
     static DIRTY_CLEAR      = 0;
     static DIRTY_NEW        = 1;
     static DIRTY_UPDATE     = 2;
     static DIRTY_DELETE     = 3;
-    entity_id: any;
-    dt: any;
-    items: any;
-    pos: Vector;
-    posO: Vector;
-    rowId: any;
-    dirty: number;
-    inChunk: any;
-    motion: number;
-    load_time: number;
-    /** If it's defined, it's a plyer who has delay picking up this item. */
-    delayUserId?: int;
+    entity_id   : string
+    dt          : number            // unixTime - время создания или последнего крупного изменения (объединения) предмета
+    items       : IInventoryItem[]
+    pos         : Vector
+    posO        : Vector
+    rowId       : int | undefined
+    dirty       : int               // TODO создать enum
+    /**
+     * The chunk in which this item is currently listed.
+     * It may be different from {@link chunk_addr} and {@link getChunk}
+     */
+    inChunk     : ServerChunk | null = null
+    motion      : int               // TODO создать enum
+    load_time   : number
+    delayUserId?: int               // If it's defined, it's a player who has delay picking up this item.
 
     constructor(world : ServerWorld, params: DropItemParams, velocity? : Vector, isNew : boolean = false) {
         this.#world         = world;
-        this.entity_id      = params.entity_id,
-        this.dt             = params.dt,
+        this.entity_id      = params.entity_id
+        this.dt             = params.dt
         this.items          = params.items;
         this.pos            = new Vector(params.pos);
         this.posO           = new Vector(Infinity, Infinity, Infinity);
@@ -64,13 +68,7 @@ export class DropItem {
         // Don't set this.dirty directly, call markDirty() instead.
         this.dirty          = isNew ? DropItem.DIRTY_NEW : DropItem.DIRTY_CLEAR;
         this.delayUserId    = params.delayUserId;
-        /**
-         * The chunk in which this item is currently listed.
-         * It may be different from {@link chunk_addr} and {@link getChunk}
-         */
-        this.inChunk        = null;
-        // Private properties
-        this.#chunk_addr    = new Vector(0, 0, 0);
+
         // Сохраним drop item в глобальном хранилище, чтобы не пришлось искать по всем чанкам
         world.all_drop_items.set(this.entity_id, this);
         //

@@ -450,6 +450,13 @@ interface IPickatEvent {
     createBlock:        boolean
     destroyBlock:       boolean
     id:                 int
+
+
+
+
+
+
+
     interactMobID?:     int
     interactPlayerID?:  int
     number:             int
@@ -479,4 +486,15 @@ declare type DirtPalette = {
     w:              int
     h:              int
     noise_range:    int
+}
+
+declare type IQuboidInfo = {
+    pos1:   IVector
+    volume: int
+    volx:   int
+    voly:   int
+    volz:   int
+    signx:  int
+    signy:  int
+    signz:  int
 }

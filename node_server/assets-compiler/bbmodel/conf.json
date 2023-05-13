@@ -5,113 +5,130 @@
     },
     "textures": {},
     "bbmodels": [
-        {"name": "arm",                 "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "arm"},
 
-        {"name": "mob/pig",             "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob/zombie",          "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob/skeleton",        "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob/cow",             "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob/bee",             "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob/zombie_bomber",   "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob/chicken",         "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob/humanoid",        "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob/sheep",           "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob/horse",           "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob/fox",             "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob/npc",             "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob/deer",            "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob/snowball",        "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob/combat_dummy",    "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "mob/pig"},
+        {"name": "mob/zombie"},
+        {"name": "mob/skeleton"},
+        {"name": "mob/cow"},
+        {"name": "mob/bee"},
+        {"name": "mob/zombie_bomber"},
+        {"name": "mob/chicken"},
+        {"name": "mob/humanoid"},
+        {"name": "mob/sheep"},
+        {"name": "mob/horse"},
+        {"name": "mob/fox"},
+        {"name": "mob/npc"},
+        {"name": "mob/deer"},
+        {"name": "mob/snowball"},
+        {"name": "mob/combat_dummy"},
 
-        {"name": "transport/boat",      "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "mechanism/cogwheel"},
+        {"name": "mechanism/windmill_bearing"},
 
-        {"name": "ladder",              "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "torch",               "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "fence",               "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "pot",                 "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "stairs",              "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "shulker",             "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "chest",               "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "anvil",               "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "tnt",                 "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "chain",               "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "sign",                "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "lantern",             "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "soul_lantern",        "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "coal_ore",            "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "copper_ore",          "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "iron_ore",            "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "diamond_ore",         "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "redstone_ore",        "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "gold_ore",            "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "lapis_lazuli_ore",    "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "emerald_ore",         "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "poor_copper_ore",     "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "poor_diamond_ore",    "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "poor_emerald_ore",    "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "poor_gold_ore",       "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "poor_iron_ore",       "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "poor_coal_ore",       "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "carrot",              "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "brown_mushroom",      "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "red_mushroom",        "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "cauldron",            "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "bookshelf",           "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "crafting_table",      "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "barrel",              "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "furnace",             "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "dead_bush",           "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "candle",              "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "rail",                "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "powered_rail",        "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "iron_bars",           "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "door",                "shift": {"x": 7, "y": 0, "z": -7}},
-        {"name": "beacon",              "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "bee_nest",            "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "jukebox",             "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "enchanting_table",    "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "lectern",             "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "fence_gate",          "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "bed",                 "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "chair",               "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "stool",               "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "cactus",              "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "sweet_berry_bush",    "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "cake",                "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "ender_chest",         "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "mob_spawn",           "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "hay_block",           "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "fern",                "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "burdock",             "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "wildflowers",         "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "cattail",             "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "reed",                "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "sugar_cane",          "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "bough",               "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "dandelion",           "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "poppy",               "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "small_rock",          "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "raw_copper",          "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "raw_gold",            "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "raw_iron",            "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "gold_nugget",         "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "iron_nugget",         "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "copper_nugget",       "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "small_cactus",        "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "skull_desert",        "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "sanded_stones",       "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "small_stones_desert", "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "pinecones",           "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "transport/boat"},
+        {"name": "transport/raft"},
 
-        {"name": "tool/primitive_axe",  "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "tool/sunglasses",     "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "tool/axe",            "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "tool/hoe",            "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "tool/pickaxe",        "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "tool/shovel",         "shift": {"x": 0, "y": 0, "z": 0}},
-        {"name": "tool/sword",          "shift": {"x": 0, "y": 0, "z": 0}},
+        {"name": "ladder"},
+        {"name": "torch"},
+        {"name": "fence"},
+        {"name": "pot"},
+        {"name": "stairs"},
+        {"name": "shulker"},
+        {"name": "chest"},
+        {"name": "anvil"},
+        {"name": "tnt"},
+        {"name": "chain"},
+        {"name": "sign"},
+        {"name": "lantern"},
+        {"name": "soul_lantern"},
+        {"name": "coal_ore"},
+        {"name": "copper_ore"},
+        {"name": "iron_ore"},
+        {"name": "diamond_ore"},
+        {"name": "redstone_ore"},
+        {"name": "gold_ore"},
+        {"name": "lapis_lazuli_ore"},
+        {"name": "emerald_ore"},
+        {"name": "poor_copper_ore"},
+        {"name": "poor_diamond_ore"},
+        {"name": "poor_emerald_ore"},
+        {"name": "poor_gold_ore"},
+        {"name": "poor_iron_ore"},
+        {"name": "poor_coal_ore"},
+        {"name": "carrot"},
+        {"name": "brown_mushroom"},
+        {"name": "red_mushroom"},
+        {"name": "cauldron"},
+        {"name": "bookshelf"},
+        {"name": "crafting_table"},
+        {"name": "barrel"},
+        {"name": "furnace"},
+        {"name": "dead_bush"},
+        {"name": "candle"},
+        {"name": "rail"},
+        {"name": "powered_rail"},
+        {"name": "iron_bars"},
+        {"name": "door", "shift": {"x": 7, "y": 0, "z": -7}},
+        {"name": "beacon"},
+        {"name": "bee_nest"},
+        {"name": "jukebox"},
+        {"name": "enchanting_table"},
+        {"name": "lectern"},
+        {"name": "fence_gate"},
+        {"name": "bed"},
+        {"name": "chair"},
+        {"name": "stool"},
+        {"name": "cactus"},
+        {"name": "sweet_berry_bush"},
+        {"name": "cake"},
+        {"name": "ender_chest"},
+        {"name": "mob_spawn"},
+        {"name": "hay_block"},
+        {"name": "fern"},
+        {"name": "burdock"},
+        {"name": "wildflowers"},
+        {"name": "cattail"},
+        {"name": "reed"},
+        {"name": "sugar_cane"},
+        {"name": "bough"},
+        {"name": "dandelion"},
+        {"name": "poppy"},
+        {"name": "small_rock"},
+        {"name": "raw_copper"},
+        {"name": "raw_gold"},
+        {"name": "raw_iron"},
+        {"name": "gold_nugget"},
+        {"name": "iron_nugget"},
+        {"name": "copper_nugget"},
+        {"name": "small_cactus"},
+        {"name": "skull_desert"},
+        {"name": "sanded_stones"},
+        {"name": "small_stones_desert"},
+        {"name": "pinecones"},
+        {"name": "raw_titanium"},
+        {"name": "titanium_ingot"},
+        {"name": "titanium_nugget"},
+        {"name": "titanium_ore"},
+        {"name": "poor_titanium_ore"},
+        {"name": "amethyst_cluster"},
 
-        {"name": "armor/scrap_armor",   "shift": {"x": 0, "y": 0, "z": 0}}
+        {"name": "tool/primitive_axe"},
+        {"name": "tool/sunglasses"},
+        {"name": "tool/axe"},
+        {"name": "tool/hoe"},
+        {"name": "tool/pickaxe"},
+        {"name": "tool/shovel"},
+        {"name": "tool/sword"},
+        {"name": "tool/backpack_basic"},
+        {"name": "tool/toolbelt_basic"},
+        {"name": "tool/industrial_axe"},
+        {"name": "tool/industrial_hoe"},
+        {"name": "tool/industrial_pickaxe"},
+        {"name": "tool/industrial_shovel"},
+        {"name": "tool/industrial_sword"},
+
+        {"name": "armor/scrap_armor"}
 
     ],
     "blocks": [
@@ -1950,20 +1967,6 @@
                 "model": "poppy"
             }
         },
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
         {
             "id": 606,
             "name": "COPPER_SWORD",
@@ -2005,16 +2008,6 @@
             }
         },
         {
-            "id": 610,
-            "name": "DIAMOND_SWORD",
-            "bb": {
-                "model": "tool/sword",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
             "id": 611,
             "name": "NETHERITE_SWORD",
             "bb": {
@@ -2024,9 +2017,6 @@
                 ]
             }
         },
-
-
-
         {
             "id": 131,
             "name": "COPPER_PICKAXE",
@@ -2069,9 +2059,9 @@
         },
         {
             "id": 555,
-            "name": "DIAMOND_PICKAXE",
+            "name": "TITANIUM_PICKAXE",
             "bb": {
-                "model": "tool/pickaxe",
+                "model": "tool/industrial_pickaxe",
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
@@ -2087,9 +2077,6 @@
                 ]
             }
         },
-
-
-
         {
             "id": 137,
             "name": "COPPER_SHOVEL",
@@ -2131,16 +2118,6 @@
             }
         },
         {
-            "id": 564,
-            "name": "DIAMOND_SHOVEL",
-            "bb": {
-                "model": "tool/shovel",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
             "id": 565,
             "name": "NETHERITE_SHOVEL",
             "bb": {
@@ -2150,9 +2127,6 @@
                 ]
             }
         },
-
-
-    
         {
             "id": 566,
             "name": "COPPER_HOE",
@@ -2194,16 +2168,6 @@
             }
         },
         {
-            "id": 570,
-            "name": "DIAMOND_HOE",
-            "bb": {
-                "model": "tool/hoe",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
             "id": 571,
             "name": "NETHERITE_HOE",
             "bb": {
@@ -2213,9 +2177,6 @@
                 ]
             }
         },
-
-
-                                
         {
             "id": 132,
             "name": "COPPER_AXE",
@@ -2257,16 +2218,6 @@
             }
         },
         {
-            "id": 559,
-            "name": "DIAMOND_AXE",
-            "bb": {
-                "model": "tool/axe",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
             "id": 560,
             "name": "NETHERITE_AXE",
             "bb": {
@@ -2276,16 +2227,6 @@
                 ]
             }
         },
-
-
-
-
-
-
-
-
-
-
         {
             "id": 798,
             "name": "PRIMITIVE_AXE",
@@ -2499,23 +2440,167 @@
                     {"names": ["variant0", "variant1", "variant2", "variant3"]}
                 ]
             }
-        },{
+        },
+        {
             "id": 1091,
             "name": "COPPER_ORE",
             "bb": {
                 "model": "copper_ore"
             }
-        },{
+        },
+        {
             "id": 1092,
             "name": "POOR_COPPER_ORE",
             "bb": {
                 "model": "poor_copper_ore"
             }
-        },{
+        },
+        {
+            "id": 1094,
+            "name": "BACKPACK_BASIC",
+            "bb": {
+                "model": "tool/backpack_basic"
+            }
+        },
+        {
+            "id": 1095,
+            "name": "TOOLBELT_BASIC",
+            "bb": {
+                "model": "tool/toolbelt_basic"
+            }
+        },
+        {
             "id": 14,
             "name": "GOLD_ORE",
             "bb": {
                 "model": "gold_ore"
+            }
+        },
+        {
+            "id": 491,
+            "name": "RAFT",
+            "bb": {
+                "model": "transport/raft",
+                "import_anyway": true
+            }
+        },
+        {
+            "id": 1049,
+            "name": "OAK_BOAT",
+            "bb": {
+                "model": "transport/boat",
+                "import_anyway": true
+            }
+        },
+        {
+            "id": 1094,
+            "name": "RAW_TITANIUM",
+            "bb": {
+                "model": "raw_titanium"
+            }
+        },
+        {
+            "id": 1095,
+            "name": "TITANIUM_NUGGET",
+            "bb": {
+                "model": "titanium_nugget"
+            }
+        },
+        {
+            "id": 1096,
+            "name": "TITANIUM_INGOT",
+            "bb": {
+                "model": "titanium_ingot"
+            }
+        },
+        {
+            "id": 564,
+            "name": "TITANIUM_SHOVEL",
+            "bb": {
+                "model": "tool/industrial_shovel",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 570,
+            "name": "TITANIUM_HOE",
+            "bb": {
+                "model": "tool/industrial_hoe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 559,
+            "name": "TITANIUM_AXE",
+            "bb": {
+                "model": "tool/industrial_axe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 610,
+            "name": "TITANIUM_SWORD",
+            "bb": {
+                "model": "tool/industrial_sword",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1097,
+            "name": "TITANIUM_ORE",
+            "bb": {
+                "model": "titanium_ore"
+            }
+        },
+        {
+            "id": 1098,
+            "name": "POOR_TITANIUM_ORE",
+            "bb": {
+                "model": "poor_titanium_ore"
+            }
+        },
+        {
+            "id": 597,
+            "name": "AMETHYST_CLUSTER",
+            "bb": {
+                "model": "amethyst_cluster",
+                "rotate": {"type": "three"},
+                "set_state": [
+                    {"name": "age4"}
+                ]
+            }
+        },
+        {
+            "id": 492,
+            "name": "COGWHEEL",
+            "bb": {
+                "model": "mechanism/cogwheel",
+                "rotate": {"type": "cog"},
+                "import_anyway": true
+            }
+        },
+        {
+            "id": 494,
+            "name": "WINDMILL_BEARING",
+            "bb": {
+                "model": "mechanism/windmill_bearing",
+                "rotate": {"type": "six"},
+                "import_anyway": true,
+                "set_state": [
+                    {"name": "base", "when": {"extra_data.in_mesh": true}},
+                    {"name": "table", "when": {"extra_data.invisible": false}}
+                ],
+                "select_texture": [
+                    {"name": "WINDMILL_BEARING"}
+                ]
             }
         }
     ]

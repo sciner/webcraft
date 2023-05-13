@@ -148,7 +148,7 @@
                 "baseSpeed": 0.4,
                 "playerHeight": 0.6,
                 "playerHalfWidth": 0.9,
-                "floatSubmergedHeight": 0.1,
+                "floatSubmergedHeight": 0.4,
                 "useBoatSpeed": true,
                 "jumpSpeed": 0,
                 "stepHeight": 0.75
@@ -160,11 +160,43 @@
                 "useAngularSpeed": true,
                 "maxYawDelta": 1.6
             },
+            "drop_on_kill": "OAK_BOAT",
+            "timer_panic": 0,
+            "damageAddsVelocity": false,
+            "can_asphyxiate": false
+        },
+        "transport/raft": {
+            "brain": "boat",
+            "physics": {
+                "baseSpeed": 0.4,
+                "playerHeight": 0.25,
+                "playerHalfWidth": 0.6,
+                "floatSubmergedHeight": 0.24,
+                "useBoatSpeed": true,
+                "jumpSpeed": 0,
+                "stepHeight": 0.75
+            },
+            "driving": {
+                "offsets": [
+                    { "x": 0, "y": 0.2, "z": 0.5 }
+                ],
+                "useAngularSpeed": true,
+                "maxYawDelta": 1.6
+            },
+            "drop_on_kill": "RAFT",
             "timer_panic": 0,
             "damageAddsVelocity": false,
             "can_asphyxiate": false
         },
         "mob/snowball": {
+            "physics": {
+                "playerHeight": 0.16,
+                "playerHalfWidth": 0.08
+            },
+            "can_asphyxiate": false
+        },
+        "mechanism/windmill_bearing": {
+            "brain": "windmill_bearing",
             "physics": {
                 "playerHeight": 0.16,
                 "playerHalfWidth": 0.08
@@ -271,7 +303,8 @@
         "cmd_modify_indicator_request",
         "cmd_use_item",
         "cmd_play_anim",
-        "cmd_use_weapon"
+        "cmd_use_weapon",
+        "cmd_mechanism"
     ],
     "treasure_chests": [
         {

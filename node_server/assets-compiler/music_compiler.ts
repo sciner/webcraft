@@ -75,8 +75,8 @@ export class Music_Compiler {
             throw `Can't read ${srcDir}`
         })
         const dstFiles = await readdirExt(dstDir)
-        const srcFilesByName = ArrayHelpers.toObject(srcFiles, (i, v) => v.name)
-        const dstFilesByName = ArrayHelpers.toObject(dstFiles, (i, v) => v.name)
+        const srcFilesByName = ArrayHelpers.toObject(srcFiles, null, (i, v) => v.name)
+        const dstFilesByName = ArrayHelpers.toObject(dstFiles, null, (i, v) => v.name)
 
         // copy new and/or updated files and directories
         for(const srcFile of srcFiles) {

@@ -25,6 +25,7 @@ import { SERVER_SEND_CMD_MAX_INTERVAL } from "./server_constant.js";
 import {ServerPlayerControlManager} from "./control/server_player_control_manager.js";
 import type {ServerDriving} from "./control/server_driving.js";
 import { ServerPlayerCombat } from "player/combat.js";
+import type {TChestSlots} from "@client/block_helpers.js";
 
 export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
     time?: number;
@@ -104,12 +105,12 @@ export class ServerPlayer extends Player {
     in_portal: boolean;
     prev_use_portal: number;        // time, performance.now()
     prev_near_players: Set<int>;    // set of user_ids
-    ender_chest: any;
+    ender_chest?: TChestSlots;
     dbDirtyFlags: int;
     netDirtyFlags: int;
     cast: { id: number; time: number; };
     mining_time_old: number;
-    currentChests: Vector[] | null; // positins of chests opened by this player at this moment
+    currentChests: IVector[] | null; // positions of chests opened by this player at this moment
     timer_reload: number;
     _aabb: AABB;
     live_level: number;
@@ -976,10 +977,10 @@ export class ServerPlayer extends Player {
     }
 
     /**
-     * Return ender chest content
-     * @returns
+     * Загружает и кеширует ender chest, если это еще не сделано.
+     * @returns кешированный ender chest.
      */
-    async loadEnderChest() {
+    async loadEnderChest(): Promise<TChestSlots> {
         if (!this.ender_chest) {
             const loaded = await this.world.db.loadEnderChest(this);
             // If loading is called multiple times before it completes, ensure that the cahced value isn't replaced
@@ -1050,7 +1051,7 @@ export class ServerPlayer extends Player {
                     }
                 }
             } else { // попробовать присоединиться к вождению
-                world.drivingManager.tryJoinDriving(this, mob, pickatEvent.id)
+                world.drivingManager.tryJoinDriving(this, mob)
             }
         }
     }
