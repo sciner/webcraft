@@ -5,7 +5,7 @@
  * @param {string} src - The vertex shader source as an array of strings.
  * @returns {WebGLShader} the shader
  */
-export function compileShader(gl: WebGLRenderingContextBase, type: number, src: string): WebGLShader
+export function compileShader(gl: WebGL2RenderingContext, type: number, src: string): WebGLShader
 {
     const shader = gl.createShader(type);
 

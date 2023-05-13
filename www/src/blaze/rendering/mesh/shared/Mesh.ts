@@ -11,7 +11,7 @@ export class Mesh extends Container<MeshRenderable>
     {
         super();
 
-        this.renderable = new MeshRenderable({ ...options, renderableData: this });
+        this.renderable = new MeshRenderable({ ...options, renderableData: this } as any);
     }
 
     get texture()

@@ -1,5 +1,4 @@
 import { ExtensionType } from '../../../../extensions/Extensions.js';
-import { unsafeEvalSupported } from '../../../../utils/unsafeEvalSupported.js';
 import { generateUniformsSync } from './program/generateUniformsSync.js';
 
 import type { ExtensionMetadata } from '../../../../extensions/Extensions.js';
@@ -58,11 +57,11 @@ export class GlUniformGroupSystem implements ISystem
      */
     private systemCheck(): void
     {
-        if (!unsafeEvalSupported())
-        {
-            throw new Error('Current environment does not allow unsafe-eval, '
-                + 'please use @pixi/unsafe-eval module to enable support.');
-        }
+        // if (!unsafeEvalSupported())
+        // {
+        //     throw new Error('Current environment does not allow unsafe-eval, '
+        //         + 'please use @pixi/unsafe-eval module to enable support.');
+        // }
     }
 
     protected contextChange(gl: GlRenderingContext): void

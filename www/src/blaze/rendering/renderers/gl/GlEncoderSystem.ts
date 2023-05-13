@@ -25,6 +25,8 @@ export class GlEncoderSystem implements ISystem
     };
 
     renderer: WebGLRenderer;
+    gl: GlRenderingContext;
+    renderPassEncoder: any;
 
     constructor(renderer: WebGLRenderer)
     {
@@ -164,5 +166,9 @@ export class GlEncoderSystem implements ISystem
     restoreRenderPass()
     {
         // do stuff
+    }
+
+    destroy() {
+
     }
 }

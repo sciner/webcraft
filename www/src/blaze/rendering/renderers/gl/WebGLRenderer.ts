@@ -193,12 +193,12 @@ export class WebGLRenderer extends SystemManager<WebGLRenderer> implements GLRen
      * The collection of installed systems.
      * @private
      */
-    static readonly __systems: {name: string, value: ISystemConstructor}[] = [];
+    static readonly __systems: {name: string, value: ISystemConstructor<WebGLRenderer>}[] = [];
     /**
      * The collection of installed pipes.
      * @private
      */
-    static readonly __pipes: Record<string, ISystemConstructor> = {};
+    static readonly __pipes: Record<string, ISystemConstructor<WebGLRenderer>> = {};
     /**
      * The collection of installed pipe adaptors.
      * @private

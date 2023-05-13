@@ -1,6 +1,6 @@
 import { GlBatchAdaptor } from '../../batcher/gl/GlBatchAdaptor.js';
 import { GlFilterAdaptor } from '../../filters/gl/GlFilterAdaptor.js';
-import { GlGraphicsAdaptor } from '../../graphics/gl/GlGraphicsAdaptor.js';
+//import { GlGraphicsAdaptor } from '../../graphics/gl/GlGraphicsAdaptor.js';
 import { GlMeshAdaptor } from '../../mesh/gl/GlMeshAdaptor.js';
 import { GlBufferSystem } from './buffer/GlBufferSystem.js';
 import { GlContextSystem } from './context/GlContextSystem.js';
@@ -54,6 +54,6 @@ export const WebGLSystemExtensions = [
     // Adapters
     GlBatchAdaptor,
     GlMeshAdaptor,
-    GlGraphicsAdaptor,
+    // GlGraphicsAdaptor,
     GlFilterAdaptor,
 ];

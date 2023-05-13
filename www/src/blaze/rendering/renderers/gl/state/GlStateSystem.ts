@@ -285,7 +285,7 @@ export class GlStateSystem implements ISystem
         this.forceState(this.defaultState);
 
         this._blendEq = true;
-        this.blendMode = -1;
+        this.blendMode = BLEND_MODES.WHAT;
         this.setBlendMode(1);
     }
 

@@ -60,7 +60,7 @@ export function mapFormatToGlFormat(gl: GlRenderingContext): Record<string, numb
         rgba32float: gl.RGBA,
 
         // Depth/stencil formats
-        stencil8: gl.STENCIL_INDEX,
+        stencil8: gl.STENCIL_INDEX8,
         depth16unorm: gl.DEPTH_COMPONENT,
         depth24plus: gl.DEPTH_COMPONENT,
         'depth24plus-stencil8': gl.DEPTH_STENCIL,

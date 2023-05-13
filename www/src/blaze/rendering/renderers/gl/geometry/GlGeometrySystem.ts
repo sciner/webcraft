@@ -83,7 +83,7 @@ export class GlGeometrySystem implements ISystem
     {
         //   this.disposeAll(true);
 
-        this.CONTEXT_UID = this.renderer.CONTEXT_UID;
+        this.CONTEXT_UID = (this.renderer as any).CONTEXT_UID;
     }
 
     /**
@@ -199,7 +199,7 @@ export class GlGeometrySystem implements ISystem
         const attribs = geometry.attributes;
         const shaderAttributes = program.attributeData;
 
-        const strings = ['g', geometry.id];
+        const strings = ['g', geometry.uid];
 
         for (const i in attribs)
         {
@@ -271,7 +271,7 @@ export class GlGeometrySystem implements ISystem
                 console.warn(`PIXI Geometry attribute '${j}' size cannot be determined (likely the bound shader does not have the attribute)`);  // eslint-disable-line
             }
 
-            tempStride[attributes[j].buffer] += attributes[j].size * byteSizeMap[attributes[j].type];
+            tempStride[(attributes[j] as any).buffer] += attributes[j].size * byteSizeMap[attributes[j].type];
         }
 
         for (const j in attributes)
@@ -279,23 +279,25 @@ export class GlGeometrySystem implements ISystem
             const attribute = attributes[j];
             const attribSize = attribute.size;
 
+            const bufIndex = (attribute.buffer as any);
+
             if (attribute.stride === undefined)
             {
-                if (tempStride[attribute.buffer] === attribSize * byteSizeMap[attribute.type])
+                if (tempStride[bufIndex] === attribSize * byteSizeMap[attribute.type])
                 {
                     attribute.stride = 0;
                 }
                 else
                 {
-                    attribute.stride = tempStride[attribute.buffer];
+                    attribute.stride = tempStride[bufIndex];
                 }
             }
 
             if (attribute.start === undefined)
             {
-                attribute.start = tempStart[attribute.buffer];
+                attribute.start = tempStart[bufIndex];
 
-                tempStart[attribute.buffer] += attribSize * byteSizeMap[attribute.type];
+                tempStart[bufIndex] += attribSize * byteSizeMap[attribute.type];
             }
         }
 
@@ -324,7 +326,7 @@ export class GlGeometrySystem implements ISystem
         this.activateVao(geometry, program);
 
         // add it to the cache!
-        vaoObjectHash[program.id] = vao;
+        vaoObjectHash[program.key] = vao;
         vaoObjectHash[signature] = vao;
 
         gl.bindVertexArray(null);

@@ -13,6 +13,7 @@ import type { GpuRenderTarget } from './renderTarget/GpuRenderTarget.js';
 import type { BindGroup } from './shader/BindGroup.js';
 import type { GpuProgram } from './shader/GpuProgram.js';
 import type { WebGPURenderer } from './WebGPURenderer.js';
+import type { Buffer } from '../shared/buffer/Buffer.js';
 
 export class GpuEncoderSystem implements ISystem
 {
@@ -306,5 +307,9 @@ export class GpuEncoderSystem implements ISystem
 
         this.boundIndexBuffer = null;
         this.boundPipeline = null;
+    }
+
+    destroy() {
+
     }
 }

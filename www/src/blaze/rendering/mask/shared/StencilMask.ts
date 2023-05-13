@@ -13,7 +13,7 @@ export class StencilMask implements Effect, PoolItem
     mask: Container;
     pipe = 'stencilMask';
 
-    constructor(options: {mask: Container})
+    constructor(options?: {mask: Container})
     {
         if (options?.mask)
         {

@@ -10,7 +10,7 @@ import type { IAttributeData } from '../GlProgram.js';
  * @param {WebGLRenderingContext} [gl] - the WebGL context
  * @returns {object} the attribute data for this program
  */
-export function getAttributeData(program: WebGLProgram, gl: WebGLRenderingContextBase): Record<string, IAttributeData>
+export function getAttributeData(program: WebGLProgram, gl: WebGL2RenderingContext): Record<string, IAttributeData>
 {
     const attributes: {[key: string]: IAttributeData} = {};
 

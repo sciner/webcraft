@@ -7,6 +7,7 @@
  */
 export enum BLEND_MODES
 {
+    WHAT = -1,
     // first four bits are the gl blend mode
     // last 4 the advanced ones
     INHERIT = 0,

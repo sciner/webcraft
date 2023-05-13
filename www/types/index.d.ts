@@ -790,8 +790,8 @@ interface GPUExternalTextureBindingLayout {}
 interface GPUExternalTextureDescriptor
   extends GPUObjectDescriptorBase {
   source:
-    | HTMLVideoElement
-    | VideoFrame;
+    HTMLVideoElement;
+      //| VideoFrame;
   colorSpace?: PredefinedColorSpace;
 }
 

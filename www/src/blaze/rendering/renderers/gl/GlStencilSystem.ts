@@ -124,4 +124,8 @@ export class GlStencilSystem implements ISystem
         gl.stencilFunc(this.comparisonFuncMapping[mode.stencilBack.compare], stencilReference, 0xFFFFFF);
         gl.stencilOp(gl.KEEP, gl.KEEP, this.stencilOpsMapping[mode.stencilBack.passOp]);
     }
+
+    destroy() {
+
+    }
 }

@@ -17,6 +17,7 @@ export interface IAttributeData
 
 export interface IUniformData
 {
+    name?: string;
     index: number;
     type: string;
     size: number;
@@ -49,6 +50,7 @@ export class GlProgram
 {
     fragment?: string;
     vertex?: string;
+    extra?: any;
 
     attributeData: Record<string, IAttributeData>;
     uniformData: Record<string, IUniformData>;

@@ -6,7 +6,7 @@ import type { Effect } from '../../scene/Effect.js';
 interface MaskConversionTest
 {
     test: (item: any) => boolean;
-    maskClass: new (item: PoolItemConstructor) => Effect & PoolItem;
+    maskClass: new () => Effect & PoolItem;
 }
 
 export class MaskEffectManagerClass

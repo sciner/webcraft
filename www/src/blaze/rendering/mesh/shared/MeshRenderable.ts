@@ -63,17 +63,17 @@ export class MeshRenderable<GEOMETRY extends MeshGeometry = MeshGeometry>impleme
 
     constructor(options: MeshRenderableOptions)
     {
-        this.shader = (options as MeshRenderableShaderOptions).shader;
+        this.shader = (options as any).shader;
 
-        if (options.texture)
+        if ((options as any).texture)
         {
-            this.texture = options.texture;
+            this.texture = (options as any).texture;
         }
 
         this.data = options.renderableData;
         this.matrix = options.renderableData.worldTransform;
 
-        this._geometry = options.geometry;
+        this._geometry = options.geometry as any;
         this._geometry.onUpdate.add(this);
         this.onRenderableUpdate();
     }

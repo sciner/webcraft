@@ -1,14 +1,14 @@
-import { PIXI } from "../../blaze/pixi.js";
+import * as PIXI from "../../blaze/pixi.js";
 import { BLOCK } from "../../blocks.js";
 import { INVENTORY_ICON_COUNT_PER_TEX } from "../../chunk_const.js";
 import { Resources } from "../../resources.js";
 
 /**
  * Return block image icon
- * 
- * @param {object} block Block object with id property 
+ *
+ * @param {object} block Block object with id property
  * @param {int} size Width and height
- * 
+ *
  * @returns {?Image}
  */
 export function getBlockImage(block) {

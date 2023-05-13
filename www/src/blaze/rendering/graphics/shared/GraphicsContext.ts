@@ -1,0 +1,1 @@
+export type BatchMode = 'auto' | 'batch' | 'no-batch';

@@ -4,6 +4,8 @@ import { ensureIsBuffer } from './utils/ensureIsBuffer.js';
 import type { Buffer, TypedArray } from '../buffer/Buffer.js';
 import type { Topology, VertexFormat } from './const.js';
 
+export {VertexFormat};
+
 export interface Attribute
 {
     buffer: Buffer;
@@ -12,6 +14,10 @@ export interface Attribute
     format: VertexFormat;
     instance?: boolean;
     shaderLocation: number; // TODO - auto assign this move this?? introspection??
+
+    size?: number;
+    type?: number;
+    start?: number;
 }
 
 type AttributesOption = Omit<Attribute, 'buffer'> & { buffer: Buffer | TypedArray | number[]};
@@ -34,6 +40,7 @@ export class Geometry
     attributes: Record<string, Attribute>;
     buffers: Buffer[];
     indexBuffer: Buffer;
+    instanced = false;
 
     _layoutKey = 0;
     _bufferLayout: Record<number, Buffer>;

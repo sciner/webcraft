@@ -9,5 +9,5 @@ export interface ISystem<INIT_OPTIONS = null, DESTROY_OPTIONS = null>
 
 export interface ISystemConstructor<R = WebGPURenderer>
 {
-    new (renderer: R): ISystem;
+    new (renderer: R, arg2?: any): ISystem;
 }

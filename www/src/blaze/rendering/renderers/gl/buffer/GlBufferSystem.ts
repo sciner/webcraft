@@ -76,7 +76,7 @@ export class GlBufferSystem implements ISystem
         this.gl = this.renderer.gl;
 
         // TODO fill out...
-        this.CONTEXT_UID = this.renderer.CONTEXT_UID;
+        this.CONTEXT_UID = (this.renderer as any).CONTEXT_UID;
     }
 
     getGlBuffer(buffer: Buffer): GlBuffer

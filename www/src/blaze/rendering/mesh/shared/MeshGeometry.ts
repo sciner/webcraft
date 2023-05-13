@@ -1,9 +1,9 @@
-import { Buffer } from '../../renderers/shared/buffer/Buffer';
-import { BufferUsage } from '../../renderers/shared/buffer/const';
-import { Geometry } from '../../renderers/shared/geometry/Geometry';
+import { Buffer } from '../../renderers/shared/buffer/Buffer.js';
+import { BufferUsage } from '../../renderers/shared/buffer/const.js';
+import { Geometry } from '../../renderers/shared/geometry/Geometry.js';
 
-import type { BatchMode } from '../../graphics/shared/GraphicsContext';
-import type { Topology } from '../../renderers/shared/geometry/const';
+import type { BatchMode } from '../../graphics/shared/GraphicsContext.js';
+import type { Topology } from '../../renderers/shared/geometry/const.js';
 
 export interface MeshOptions
 {

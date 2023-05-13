@@ -10,7 +10,7 @@ import type { IUniformData } from '../GlProgram.js';
  * @param gl - the WebGL context
  * @returns {object} the uniform data for this program
  */
-export function getUniformData(program: WebGLProgram, gl: WebGLRenderingContextBase): {[key: string]: IUniformData}
+export function getUniformData(program: WebGLProgram, gl: WebGL2RenderingContext): {[key: string]: IUniformData}
 {
     const uniforms: {[key: string]: IUniformData} = {};
 

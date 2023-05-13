@@ -35,4 +35,8 @@ export class GlColorMaskSystem implements ISystem
             !!(colorMask & 0b0001)
         );
     }
+
+    destroy() {
+
+    }
 }

@@ -229,9 +229,10 @@ export function generateUniformsSync(group: UniformGroup, uniformData: Record<st
 
         if (!data)
         {
-            if (group.uniforms[i] instanceof UniformGroup)
+            const ug = group.uniforms[i] as UniformGroup;
+            if (ug instanceof UniformGroup)
             {
-                if (group.uniforms[i].ubo)
+                if (ug.ubo)
                 {
                     funcFragments.push(`
                         renderer.shader.bindUniformBlock(uv.${i}, "${i}");

@@ -1,4 +1,4 @@
-import { PIXI } from "../../tools/gui/pixi.js";
+import * as PIXI from "../../tools/gui/pixi.js";
 import { isScalar } from "../helpers.js";
 
 const atlases = new Map()

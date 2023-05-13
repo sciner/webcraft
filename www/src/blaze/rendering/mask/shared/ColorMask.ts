@@ -9,7 +9,7 @@ export class ColorMask implements Effect, PoolItem
     mask: number;
     pipe = 'colorMask';
 
-    constructor(options: {mask: number})
+    constructor(options?: {mask: number})
     {
         if (options?.mask)
         {
