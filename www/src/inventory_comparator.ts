@@ -39,7 +39,7 @@ export class InventoryComparator {
         return ObjectHelpers.deepEqual(itemA, itemB);
     }
 
-    static itemsEqualExceptCount(itemA: IInventoryItem, itemB: IInventoryItem): boolean {
+    static itemsEqualExceptCount(itemA: IInventoryItem, itemB: IInventoryItem | IBlockItem): boolean {
         if (itemA == null) {
             return itemB == null;
         }
@@ -97,19 +97,17 @@ export class InventoryComparator {
     /**
      * Sanitizes (see {@link BLOCK.sanitizeAndValidateInventoryItem}) and validates
      * the items from the client. Invalid items are removed from the list.
-     * @param keysObject - optional - provides keys that are being processed.
-     *   The values are boolean, indicating whether the key is non-optional.
      * @return null if success, or an error message. It's messy, but good enough for debug.
      */
-    static sanitizeAndValidateItems(list: (IInventoryItem | null)[] | Dict<IInventoryItem>,
-                                    keysObject?: Dict | null): null | string {
+    static sanitizeAndValidateItems(list: (IInventoryItem | null)[] | Dict<IInventoryItem>, canHaveNulls: boolean): null | string {
         const errors = []
         if (!list || typeof list !== 'object') {
             return 'not a list';
         }
-        const isArray = Array.isArray(list);
-        const keys = keysObject ?? list;
-        for(let key in keys) {
+        if (!Array.isArray(list) && canHaveNulls) {
+            return '!Array.isArray(list) && canHaveNulls' // если не массив, то ключи пустых ключей не может быть
+        }
+        for(let key of ArrayOrMap.keys(list)) {
             const item = list[key];
             if (item != null) {
                 const new_item = BLOCK.sanitizeAndValidateInventoryItem(item)
@@ -120,8 +118,7 @@ export class InventoryComparator {
                     list[key] = new_item
                 }
             } else {
-                const isMandatory = keysObject ? keysObject[key] : !isArray;
-                if (isMandatory) {
+                if (!canHaveNulls) {
                     errors.push('null value')
                 }
             }
@@ -142,7 +139,8 @@ export class InventoryComparator {
         new_items: (IInventoryItem | null)[],
         used_recipes?: TUsedRecipe[],
         recipeManager?: IRecipeManager,
-        thrownItems?: IInventoryItem[]
+        thrownItems?: IInventoryItem[],
+        deleteItems?: IInventoryItem[]
     ): boolean {
         let old_simple = InventoryComparator.groupToSimpleItems(old_items);
         let new_simple = InventoryComparator.groupToSimpleItems(new_items);
@@ -201,15 +199,18 @@ export class InventoryComparator {
                 return false;
             }
         }
-        if (Array.isArray(thrownItems)) {
-            for(let thrownItem of thrownItems) {
-                if (typeof thrownItem.count !== 'number' || thrownItem.count <= 0) {
-                    console.log('incorrect thrownItem')
-                    return false
-                }
-                if (!this.subtractFromSimpleItems(old_simple, thrownItem)) {
-                    console.log("thrownItem isn't found, or not enough count")
-                    return false
+        // учесть пердметы, которые выбывают из инвентаря
+        for(const arr of [thrownItems, deleteItems]) {
+            if (Array.isArray(arr)) {
+                for(let item of arr) {
+                    if (typeof item.count !== 'number' || item.count <= 0) {
+                        console.log('incorrect thrownItem')
+                        return false
+                    }
+                    if (!this.subtractFromSimpleItems(old_simple, item)) {
+                        console.log("thrownItem isn't found, or not enough count")
+                        return false
+                    }
                 }
             }
         }

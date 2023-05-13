@@ -1,7 +1,7 @@
 import { Label, Window } from "../ui/wm.js";
 import { BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_HOTBAR_SLOT_COUNT, UI_THEME } from "../constant.js";
+import { BAG_LINE_COUNT, UI_THEME } from "../constant.js";
 import type { InventoryRecipeWindow } from "./inventory_recipe.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import type { InGameMain } from "./ingamemain.js";
@@ -16,7 +16,6 @@ export class InventoryWindow extends BaseCraftWindow {
 
     slot_empty = 'slot_empty'
     slot_full = 'slot_full'
-    cell_size : float
     slot_margin : float
     slots_x : float
     slots_y : float
@@ -28,9 +27,6 @@ export class InventoryWindow extends BaseCraftWindow {
         this.w *= this.zoom
         this.h *= this.zoom
         this.recipes = recipes
-
-        this.skinKey = null
-        this.skinViewer = null // lazy initialized if necessary
 
         // Ширина / высота слота
         this.cell_size     = UI_THEME.window_slot_size * this.zoom
@@ -64,7 +60,7 @@ export class InventoryWindow extends BaseCraftWindow {
         this.createCraft(sx, sy, sz, szm)
 
         // Calc backpack slots width
-        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * INVENTORY_HOTBAR_SLOT_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
+        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * BAG_LINE_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
 
         // Создание слотов для инвентаря
         const x = this.w / this.zoom - slots_width
@@ -91,6 +87,14 @@ export class InventoryWindow extends BaseCraftWindow {
             this.add(lbl)
         }
 
+        // кнопка сортировки
+        //this.createButtonSort()
+
+        // слот для удаления преметов
+        this.createDeleteSlot(this.cell_size)
+
+        // обновить gui
+        this.refresh()
     }
 
     // Обработчик открытия формы
@@ -116,16 +120,10 @@ export class InventoryWindow extends BaseCraftWindow {
 
     // Обработчик закрытия формы
     onHide() {
-
-        const thrown_items = this.clearCraft()
-
-        // Save inventory
-        this.world.server.InventoryNewState({
-            state: this.inventory.exportItems(),
+        this.inventory.sendStateChange({
             used_recipes: this.lblResultSlot.getUsedRecipes(),
-            thrown_items
+            thrown_items: this.clearCraft()
         })
-
     }
 
     /**

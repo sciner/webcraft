@@ -436,7 +436,7 @@ export class Renderer {
         mat4.rotateX(matrix, matrix, Math.PI / 6);
         mat4.rotateY(matrix, matrix, Math.PI / 4);
         //
-        camera.set(new Vector(0, 0, 2), new Vector(0, 0, Math.PI));
+        camera.set(new Vector(0, 0, 5), new Vector(0, 0, Math.PI));
         // larg for valid render results
         gu.fogColor = [0, 0, 0, 0];
         gu.fogDensity = 100;

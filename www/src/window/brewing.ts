@@ -1,25 +1,19 @@
-import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Vector } from "../helpers.js";
 import { Lang } from "../lang.js";
 import { BaseChestWindow } from "./base_chest_window.js";
+import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH } from "../constant.js";
 
 export class BrewingWindow extends BaseChestWindow {
     [key: string]: any;
 
     constructor(inventory) {
 
-        super(0, 0, 352, 332, 'frmBrewing', null, null, inventory, {
+        super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmBrewing', null, null, inventory, {
             title: Lang.brewing,
             sound: {
                 open: null, // {tag: BLOCK.CHARGING_STATION.sound, action: 'open'},
                 close: null // {tag: BLOCK.CHARGING_STATION.sound, action: 'close'}
             }
-        })
-
-        // Create sprite atlas
-        this.atlas = new SpriteAtlas()
-        this.atlas.fromFile('./media/gui/brewing_stand.png').then(async atlas => {
-            this.setBackground(await atlas.getSprite(0, 0, 352 * 2, 332 * 2), 'none', this.zoom / 2.0)
         })
 
     }

@@ -74,6 +74,7 @@ export type ArmorState = {
     body ? : int
     leg  ? : int
     boot ? : int
+    backpack ? : int
 }
 
 export type TSleepState = {

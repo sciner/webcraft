@@ -449,11 +449,7 @@ export class CreativeInventoryWindow extends BlankWindow {
 
     // Обработчик закрытия формы
     onHide() {
-        const thrown_item = this.inventory.clearDragItem()
-        // Save inventory
-        this.world.server.InventoryNewState({
-            state: this.inventory.exportItems(),
-            thrown_items: [thrown_item],
+        this.inventory.sendStateChange({
             dont_check_equal: true
         })
     }

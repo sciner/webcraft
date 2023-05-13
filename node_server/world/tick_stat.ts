@@ -199,7 +199,7 @@ export class WorldTickStat {
     _moveSlidingWindow() {
         this.slidingOld     = this.slidingCurrent
         this.slidingCurrent = {
-            values: ArrayHelpers.toObject(this.stat_names,
+            values: ArrayHelpers.toObject(this.stat_names, null,
                 (i, name) => name,
                 this._createSlidingValue
             ),

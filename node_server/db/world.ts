@@ -19,7 +19,9 @@ import type { Indicators, PlayerState } from "@client/player.js";
 import { SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS } from "../server_constant.js";
 import { teleport_title_regexp } from "plugins/chat_teleport.js";
 import { OLD_CHUNK_SIZE } from "@client/chunk_const.js";
-import {DBWorldDriving} from "./world/driving.js";
+import { PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT } from "@client/constant.js";
+import { DBWorldDriving } from "./world/driving.js";
+import type {TChestSlots} from "@client/block_helpers.js";
 
 export type BulkDropItemsRow = [
     string,     // entity_id
@@ -268,9 +270,11 @@ export class DBWorld {
 
     // Return default inventory for user
     getDefaultInventory() {
-        const MAX_INVERTORY_SLOT_COUNT = 42;
+        const items = new Array(INVENTORY_SLOT_COUNT).fill(null)
+        items[PAPERDOLL_BACKPACK] = {id: 1094, count: 1}
+        items[PAPERDOLL_TOOLBELT] = {id: 1095, count: 1}
         const resp = {
-            items: new Array(MAX_INVERTORY_SLOT_COUNT).fill(null),
+            items: items,
             current: {
                 index: 0, // right hand
                 index2: -1 // left hand
@@ -295,6 +299,7 @@ export class DBWorld {
         )
         if(row) {
 
+            // Это не полный фикс инвентаря. Вторая часть фикса при загрзке - см. moveOrDropFromInvalidOrTemporarySlots
             const fixInventory = (inventory) => {
                 if(inventory.items.length < INVENTORY_SLOT_COUNT) {
                     inventory.items.push(...new Array(INVENTORY_SLOT_COUNT - inventory.items.length).fill(null));
@@ -630,14 +635,11 @@ export class DBWorld {
     }
 
     // Return ender chest content
-    async loadEnderChest(player)  {
-        const rows = await this.conn.all('SELECT ender_chest FROM user WHERE id = :id', {
+    async loadEnderChest(player): Promise<TChestSlots> {
+        const row = await this.conn.get('SELECT ender_chest FROM user WHERE id = :id', {
             ':id': player.session.user_id
-        });
-        for(let row of rows) {
-            return JSON.parse(row.ender_chest);
-        }
-        return null;
+        })
+        return JSON.parse(row.ender_chest) // это поле не null по умолчанию, см. определение таблицы user
     }
 
     async setTitle(title : string)  {

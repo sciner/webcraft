@@ -5,6 +5,7 @@ import { BaseChestWindow } from "./base_chest_window.js"
 import { Vector } from "../helpers.js"
 import { Effect } from "../block_type/effect.js"
 import { Lang } from "../lang.js";
+import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH } from "../constant.js";
 
 // кнопки активации
 class OkButton extends Window {
@@ -125,7 +126,7 @@ export class BeaconWindow extends BaseChestWindow {
     [key: string]: any;
 
     constructor(inventory) {
-        super(0, 0, 459, 438, 'frmBeacon', null, null, inventory, {
+        super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmBeacon', null, null, inventory, {
             title: '',
             sound: {
                 open: null, // {tag: BLOCK.CHARGING_STATION.sound, action: 'open'},
@@ -134,7 +135,6 @@ export class BeaconWindow extends BaseChestWindow {
         })
         this.bm = inventory.player.world.block_manager
         this.atlas = Resources.atlas.get('bn')
-        this.setBackground(this.atlas.getSpriteFromMap('background'))
         // надписи на окне
         this.craeteLabels()
         // Создание кнопок для эффектов

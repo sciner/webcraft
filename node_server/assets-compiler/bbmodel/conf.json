@@ -119,6 +119,8 @@
         {"name": "tool/pickaxe"},
         {"name": "tool/shovel"},
         {"name": "tool/sword"},
+        {"name": "tool/backpack_basic"},
+        {"name": "tool/toolbelt_basic"},
         {"name": "tool/industrial_axe"},
         {"name": "tool/industrial_hoe"},
         {"name": "tool/industrial_pickaxe"},
@@ -1964,20 +1966,6 @@
                 "model": "poppy"
             }
         },
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
         {
             "id": 606,
             "name": "COPPER_SWORD",
@@ -2088,9 +2076,6 @@
                 ]
             }
         },
-
-
-
         {
             "id": 137,
             "name": "COPPER_SHOVEL",
@@ -2141,9 +2126,6 @@
                 ]
             }
         },
-
-
-    
         {
             "id": 566,
             "name": "COPPER_HOE",
@@ -2194,9 +2176,6 @@
                 ]
             }
         },
-
-
-                                
         {
             "id": 132,
             "name": "COPPER_AXE",
@@ -2247,16 +2226,6 @@
                 ]
             }
         },
-
-
-
-
-
-
-
-
-
-
         {
             "id": 798,
             "name": "PRIMITIVE_AXE",
@@ -2483,6 +2452,20 @@
             "name": "POOR_COPPER_ORE",
             "bb": {
                 "model": "poor_copper_ore"
+            }
+        },
+        {
+            "id": 1094,
+            "name": "BACKPACK_BASIC",
+            "bb": {
+                "model": "tool/backpack_basic"
+            }
+        },
+        {
+            "id": 1095,
+            "name": "TOOLBELT_BASIC",
+            "bb": {
+                "model": "tool/toolbelt_basic"
             }
         },
         {

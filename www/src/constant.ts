@@ -64,14 +64,41 @@ export const DEFAULT_STYLE_NAME             = 'cube'
 export const DEFAULT_RENDER_DISTANCE        = 5
 export const DEFAULT_LIGHT_TYPE_ID          = LIGHT_TYPE.SMOOTH
 
-export const INVENTORY_SLOT_SIZE            = 36;
-export const HAND_ANIMATION_SPEED           = 20;
-export const INVENTORY_SLOT_COUNT           = 42;
-export const INVENTORY_VISIBLE_SLOT_COUNT   = 36;
-export const INVENTORY_DRAG_SLOT_INDEX      = 41;
-export const INVENTORY_HOTBAR_SLOT_COUNT    = 9;
 export const MAGIC_ROTATE_DIV               = 900;
-export const DRAW_SLOT_INDEX                = false;
+
+// =========================== интерфейс инвентаря ============================
+
+export const INVENTORY_SLOT_SIZE            = 36    // размер слота в пикселях
+export const DRAW_SLOT_INDEX                = true;
+export const BAG_LINE_COUNT                 = 9
+export const CHEST_LINE_COUNT               = 7
+// The maximum time for which the client don't send inventory changes (used only in chest windows so far)
+export const MAX_DIRTY_INVENTORY_DURATION   = 5000
+
+// ==================== индексы слотов и размер инвентаря =====================
+
+export const HOTBAR_LENGTH_MIN              = 4
+export const HOTBAR_LENGTH_MAX              = 12
+export const BAG_LENGTH_MIN                 = 27
+export const BAG_LENGTH_MAX                 = 72
+export const BAG_MAX_INDEX                  = HOTBAR_LENGTH_MAX + BAG_LENGTH_MAX
+
+// Player paperdoll slots
+export const PAPERDOLL_MIN_INDEX            = 84  // индекс минимального слота на кукле персонажа (сейчас равен BAG_MAX_INDEX, но в будущем может отличаться)
+export const PAPERDOLL_BACKPACK             = 84; // backpack
+export const PAPERDOLL_TOOLBELT             = 85; // toolbelt
+export const PAPERDOLL_BOOTS                = 86; // boots
+export const PAPERDOLL_LEGGINGS             = 87; // legs
+export const PAPERDOLL_CHESTPLATE           = 88; // body
+export const PAPERDOLL_HELMET               = 89; // head
+export const PAPERDOLL_MAX_INDEX            = 89  // индекс максимального слота на кукле персонажа
+/** номера слотов, предметы в кторых могут увеличить размер инвентаря */
+export const PAPERDOLL_CONTAINERS_SLOTS     = [PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT]
+
+export const INVENTORY_DRAG_SLOT_INDEX      = 99
+export const INVENTORY_SLOT_COUNT           = 100
+
+// ================================= сундуки ==================================
 
 export const DEFAULT_CHEST_SLOT_COUNT       = 27;
 // It's added to pickatDistance on the client.
@@ -83,9 +110,10 @@ export const CHEST_INTERACTION_MARGIN_BLOCKS = 2;
 // It serves 2 purposes: against cheaters who try to interact over huge distance,
 // and to have a margin of safety ehn checking one half of a double chest in sendChestToPlayers()
 export const CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD = 2;
-// The maximum time for which the client don't send inventory changes (used only in chest windows so far)
-export const MAX_DIRTY_INVENTORY_DURATION   = 5000;
 
+// ============================================================================
+
+export const HAND_ANIMATION_SPEED           = 20;
 export const RENDER_DEFAULT_ARM_HIT_PERIOD  = 200; // ms (player arm hit period)
 export const MIN_BRIGHTNESS                 = 0.275;
 export const PLAYER_MAX_DRAW_DISTANCE       = 256; // draw only nearest players
@@ -115,7 +143,7 @@ export const UI_THEME = {
     label_text_color: '#ffffff33',
     window_padding: 10,
     slot_margin: 5,
-    window_slot_size: 40,
+    window_slot_size: 39,
     button: {
         font: {
             size: 14,
@@ -209,6 +237,20 @@ export const UI_THEME = {
         font: {
             color: '#3a576f',
             size: 36
+        }
+    },
+    popup: {
+        title: {
+            font: {
+                color: '#feaa25',
+                size: 16
+            }
+        },
+        text: {
+            font: {
+                color: '#5bc4da',
+                size: 12
+            }
         }
     }
 }
@@ -378,12 +420,6 @@ export const MOB_EYE_HEIGHT_PERCENT         = 1 - 1/16;
 export const THIRD_PERSON_CAMERA_DISTANCE   = 5 * PLAYER_ZOOM;
 
 export const SPECTATOR_SPEED_MUL            = 1 * PLAYER_ZOOM;
-
-// Player armor slots
-export const PLAYER_ARMOR_SLOT_BOOTS        = 36; // boots
-export const PLAYER_ARMOR_SLOT_LEGGINGS     = 37; // legs
-export const PLAYER_ARMOR_SLOT_CHESTPLATE   = 38; // body
-export const PLAYER_ARMOR_SLOT_HELMET       = 39; // head
 
 // portal
 export const PORTAL_USE_INTERVAL            = 5000; // ms
