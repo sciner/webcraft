@@ -12668,7 +12668,7 @@
             "texture": "block/stone.png"
         },
         {
-            "id": 1094,
+            "id": 1104,
             "name": "RAW_TITANIUM",
             "coocked_item": {"name": "TITANIUM_INGOT", "count": 1},
             "style": "extruder",
@@ -12681,7 +12681,7 @@
             }
         },
         {
-            "id": 1095,
+            "id": 1105,
             "name": "TITANIUM_NUGGET",
             "piece_of": "TITANIUM_INGOT",
             "item": {"name": "nugget"},
