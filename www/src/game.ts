@@ -545,10 +545,10 @@ export class GameClass {
                                     }
                                 }, 1000);
                             } else if(e.ctrlKey) {
+                                player.teleport('random', null, false)
+                            } else {
                                 ClipboardHelper.copy(player.pos.toHash().replaceAll(',', ' ') + ' ' + this.world.info.seed)
                                 vt.success(Lang.copied)
-                            } else {
-                                player.teleport('random', null, false);
                             }
                         }
                         return true;
