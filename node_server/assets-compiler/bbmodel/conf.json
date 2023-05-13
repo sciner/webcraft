@@ -21,6 +21,7 @@
         {"name": "mob/npc"},
         {"name": "mob/deer"},
         {"name": "mob/snowball"},
+        {"name": "mob/combat_dummy"},
 
         {"name": "mechanism/cogwheel"},
         {"name": "mechanism/windmill_bearing"},

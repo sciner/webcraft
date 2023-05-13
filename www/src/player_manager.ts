@@ -87,6 +87,8 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
         player.sitting = data.sitting
         player.ground = data.ground
         player.running = data.running
+        player.attack = data.attack
+        player.fire = data.fire
         if(data.pos) {
             player.applyNetState({
                 pos: data.pos,

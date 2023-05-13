@@ -421,6 +421,14 @@ export const THIRD_PERSON_CAMERA_DISTANCE   = 5 * PLAYER_ZOOM;
 
 export const SPECTATOR_SPEED_MUL            = 1 * PLAYER_ZOOM;
 
+export const PLAYER_BURNING_TIME            = 3 // в секундах
+
+// Player armor slots
+export const PLAYER_ARMOR_SLOT_BOOTS        = 36; // boots
+export const PLAYER_ARMOR_SLOT_LEGGINGS     = 37; // legs
+export const PLAYER_ARMOR_SLOT_CHESTPLATE   = 38; // body
+export const PLAYER_ARMOR_SLOT_HELMET       = 39; // head
+
 // portal
 export const PORTAL_USE_INTERVAL            = 5000; // ms
 export const PORTAL_SIZE                    = {width: 4, height: 5};

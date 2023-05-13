@@ -1,5 +1,15 @@
 {
     "mobs": {
+        "mob/combat_dummy": {
+            "physics": {
+                "baseSpeed": 0.5,
+                "playerHeight": 1.5,
+                "stepHeight": 1.5,
+                "playerHalfWidth": 0.45
+            },
+            "health": 29,
+            "distance_view": 6
+        },
         "mob/chicken": {
             "physics": {
                 "baseSpeed": 0.5,

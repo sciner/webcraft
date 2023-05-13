@@ -81,12 +81,14 @@ export class MobModel extends NetworkPhysicObject {
     tmpDrawPos?:        Vector
     drawPos?:           Vector
     draw_yaw?:          float
-    sleep?:             false | TSleepState
-    sitting?:           false | TSittingState
+    sleep?:             false | TSleepState = false
+    sitting?:           false | TSittingState = false
     aabb:               AABBDrawable = null
     _mesh:              Mesh_Object_BBModel
     _fire_mesh:         any
-    anim?:              false | TAnimState
+    anim?:              false | TAnimState = false
+    fire?:              boolean = false
+    attack?:            false | TAnimState = false
     ground:             boolean = true
     running:            boolean = false
     driving?:           ClientDriving | null
@@ -304,7 +306,7 @@ export class MobModel extends NetworkPhysicObject {
         }
 
         // Draw in fire
-        if(this.extra_data?.in_fire) {
+        if (this.fire || this.extra_data?.in_fire) {
             this.drawInFire(render, delta);
         }
 
@@ -350,6 +352,8 @@ export class MobModel extends NetworkPhysicObject {
                 mesh.setAnimation(this.driving.config.driverAnimation ?? 'sitting')
             } else if (this.sitting) {
                 mesh.setAnimation('sitting')
+            } else if (this?.extra_data?.attack || this.attack) {
+                mesh.setAnimation('attack')
             } else if (!this.ground) {
                 mesh.setAnimation('jump')
             } else if (this.moving) {
@@ -362,7 +366,7 @@ export class MobModel extends NetworkPhysicObject {
                 }
             } else if (this.sneak) {
                 mesh.setAnimation('sneak_idle')
-            } else if (this.anim) {
+            } else  if (this.anim) {
                 mesh.setAnimation(this.anim.title)
             } else {
                 mesh.setAnimation('idle')
