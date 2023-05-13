@@ -158,7 +158,8 @@
                     { "x": 0, "y": 0.2, "z": 0.5 }
                 ],
                 "useAngularSpeed": true,
-                "maxYawDelta": 1.6
+                "maxYawDelta": 1.6,
+                "hideHandItem": true
             },
             "drop_on_kill": "OAK_BOAT",
             "timer_panic": 0,
@@ -178,10 +179,20 @@
             },
             "driving": {
                 "offsets": [
-                    { "x": 0, "y": 0.2, "z": 0.5 }
+                    { "x": 0, "y": 0.28, "z": -0.03 }
                 ],
+                "vehicleAnimation": {
+                    "rotateLeft": "walk",
+                    "rotateRight": "walk",
+                    "idleNotEmpty": "raft_idle"
+                },
+                "driverAnimation": {
+                    "idle": "raft_idle",
+                    "moving": "raft_move"
+                },
                 "useAngularSpeed": true,
-                "maxYawDelta": 1.6
+                "maxYawDelta": 1.6,
+                "hideHandItem": true
             },
             "drop_on_kill": "RAFT",
             "timer_panic": 0,

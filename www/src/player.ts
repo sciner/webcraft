@@ -1215,9 +1215,11 @@ export class Player implements IPlayer {
             * Нужно передавать, то что приходит с сервера или будут отличия
             */
             model.hide_nametag = true;
+            const drivingProvides = this.driving?.providesPosition()
             model.setProps(
-                this.lerpPos,
-                this.rotate,
+                // Если есть вождение, то оно обновит pos и rotate, а тут не нужно передавать другие значения
+                drivingProvides ? null : this.lerpPos,
+                drivingProvides ? null : this.rotate,
                 this.controls.sneak,
                 this.running && !this.isSneak,
                 this.state.hands,

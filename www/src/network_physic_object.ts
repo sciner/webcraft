@@ -2,6 +2,8 @@ import { Mth, Vector} from './helpers.js';
 import { AABB } from './core/AABB.js';
 import type { World } from './world.js';
 
+const ROTATING_THRESHOLD = 0.001
+
 // AABBDrawable
 export class AABBDrawable extends AABB {
     [key: string]: any;
@@ -36,12 +38,17 @@ export class NetworkPhysicObject {
 
     #world : World
     netBuffer           : NetworkPhysicObjectState[]
-    yaw                 : float
+    private _yaw        : float
     pitch               : float
     protected sneak     : number | boolean
     private _pos        : Vector
     private _prevPos    : Vector    // не используется, можно убрать
-    protected moving    : boolean
+    protected moving    = false     // true, если последняя установка pos изменила значение достаточно сильно
+    /**
+     * Показывает направление изменения угла. Аналог {@link moving}.
+     * -1 или 1, если последняя установка yaw изменила значение достаточно сильно, иначе 0.
+     */
+    protected rotationSign : int = 0
     private _chunk_addr : Vector
     private latency     : number
     aabb                : AABBDrawable | null
@@ -56,9 +63,8 @@ export class NetworkPhysicObject {
         this._pos           = pos;
         this._prevPos       = new Vector(pos);
 
-        this.moving         = false;
         this._chunk_addr    = new Vector(0, 0, 0);
-        this.yaw            = rotate.z;
+        this._yaw           = rotate.z;
         this.pitch          = rotate.x;
         this.sneak          = 0;
 
@@ -95,6 +101,14 @@ export class NetworkPhysicObject {
         this._pos.copyFrom(v);
 
         this.moving = Math.abs(dx) + Math.abs(dz) > 0.002
+    }
+
+    get yaw(): float { return this._yaw }
+
+    set yaw(v: float) {
+        const delta = Mth.radians_to_minus_PI_PI_range(v - this._yaw)
+        this.rotationSign = delta > ROTATING_THRESHOLD ? 1 : delta < -ROTATING_THRESHOLD ? -1 : 0
+        this._yaw = v
     }
 
     get clientTime() {

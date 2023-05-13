@@ -23,6 +23,7 @@ const KEY_SLOT_MAP = {
 export class ModelSlot {
     id: int = -1
     item?: Mesh_Object_Block_Drop
+    hideByDriving = false   // true если слот скрыт из-за того, что игрок в вождении, скрывающим предметы
 
     constructor() {}
 
@@ -100,6 +101,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             return
         }
 
+        const hideByDriving = this.driving?.config.hideHandItem
         const block_id = props.id = typeof props.id !== 'number' ? -1 : props.id
         let slot : ModelSlot = this.slots.get(name)
         if(!slot) {
@@ -107,7 +109,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             this.slots.set(name, slot)
         }
 
-        if (block_id == slot.id && slot.item) {
+        if (block_id == slot.id && slot.item && slot.hideByDriving === hideByDriving) {
             return
         }
 
@@ -119,11 +121,12 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
 
         slot.id = block_id
+        slot.hideByDriving = hideByDriving
 
         const mesh_modifiers = this._mesh.modifiers
         mesh_modifiers.hideGroup(name)
 
-        if (block_id === -1) {
+        if (block_id === -1 || hideByDriving) {
             return
         }
 
@@ -343,12 +346,16 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.swingProgress = this.swingProgressInt / asa;
     }
 
-    setProps(pos: Vector, rotate: Vector, sneak: boolean, running: boolean,
+    setProps(pos: IVector | null, rotate: IVector | null, sneak: boolean, running: boolean,
         hands: PlayerHands, sitting: false | TSittingState,
         sleep: false | TSleepState, anim : false | TAnimState, attack: false | TAnimState, fire: boolean, health?: number, on_ground: boolean = true): void {
-        this.pos = pos
-        this.yaw = rotate.z; // around
-        this.pitch = rotate.x; // head rotate
+        if (pos) {
+            this.pos = pos
+        }
+        if (rotate) {
+            this.yaw = rotate.z; // around
+            this.pitch = rotate.x; // head rotate
+        }
         this.sneak = sneak;
         //this.moving = moving;
         this.running = running;
