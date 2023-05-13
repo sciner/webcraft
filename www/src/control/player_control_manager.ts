@@ -696,7 +696,7 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
         }
 
         const logger = ['simulation_differs inputWorldActionIds'].includes(packet.log) ? this.logger : this.alwaysLogger
-        logger.log(packet.log, `correction ${this.knownPhysicsTicks} -> ..+${exData.physicsTicks}=${correctedPhysicsTicks} ${packet.log} ${exData} ${correctedData}`)
+        logger.debug(packet.log, `correction ${this.knownPhysicsTicks} -> ..+${exData.physicsTicks}=${correctedPhysicsTicks} ${packet.log} ${exData} ${correctedData}`)
 
         // The data differs. Set the result at that tick, and invalidate the results in later ticks
         this.hasCorrection = true
