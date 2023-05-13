@@ -276,7 +276,6 @@ export abstract class Inventory {
         this.current.index = index;
         this.refresh(resend);
         this.onSelect(this.current_item)
-        this.update_number++
         if(this.player.mechanism_assembler.pos1) {
             this.player.mechanism_assembler.pos1 = null
             this.player.mechanism_assembler.pos2 = null
