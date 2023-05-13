@@ -188,12 +188,6 @@
             "side": [3, 1]
         }
     },
-    {"id": 610, "name": "DIAMOND_SWORD",
-        "texture": {
-            "id": "default",
-            "side": [4, 1]
-        }
-    },
     {"id": 611, "name": "NETHERITE_SWORD",
         "texture": {
             "id": "default",
