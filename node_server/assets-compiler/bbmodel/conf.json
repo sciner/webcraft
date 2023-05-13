@@ -107,6 +107,7 @@
         {"name": "titanium_nugget"},
         {"name": "titanium_ore"},
         {"name": "poor_titanium_ore"},
+        {"name": "amethyst_cluster"},
 
         {"name": "tool/primitive_axe"},
         {"name": "tool/sunglasses"},
@@ -2577,6 +2578,17 @@
             "name": "POOR_TITANIUM_ORE",
             "bb": {
                 "model": "poor_titanium_ore"
+            }
+        },
+        {
+            "id": 597,
+            "name": "AMETHYST_CLUSTER",
+            "bb": {
+                "model": "amethyst_cluster",
+                "rotate": {"type": "three"},
+                "set_state": [
+                    {"name": "age4"}
+                ]
             }
         }
     ]

@@ -6879,6 +6879,7 @@
                 "type": "bee_nest"
             },
             "tags": [
+                "no_drop_ao",
                 "drop_as_entity",
                 "bee_nest"
             ],

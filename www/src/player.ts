@@ -608,6 +608,9 @@ export class Player implements IPlayer {
         if(this.isSneak) {
             return;
         }
+        if(this.game_mode.isSpectator()) {
+            return
+        }
         const world = this.world;
         const player = this;
         if(!player || (!args.force && (player.in_water || !player.walking || !player.controls.enabled))) {
