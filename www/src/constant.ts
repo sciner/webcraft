@@ -95,6 +95,11 @@ export const PAPERDOLL_MAX_INDEX            = 89  // индекс максима
 /** номера слотов, предметы в кторых могут увеличить размер инвентаря */
 export const PAPERDOLL_CONTAINERS_SLOTS     = [PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT]
 
+export enum BLOCK_IDS {
+    BACKPACK_BASIC = 1094,
+    TOOLBELT_BASIC = 1095,
+}
+
 export const INVENTORY_DRAG_SLOT_INDEX      = 99
 export const INVENTORY_SLOT_COUNT           = 100
 

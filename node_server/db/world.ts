@@ -1,7 +1,7 @@
 import { Vector, unixTime } from "@client/helpers.js";
 import { DropItem } from '../drop_item.js';
 import { BulkSelectQuery, preprocessSQL, run } from './db_helpers.js';
-import { INVENTORY_SLOT_COUNT, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS, WORLD_TYPE_NORMAL } from '@client/constant.js';
+import { BLOCK_IDS, INVENTORY_SLOT_COUNT, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS, WORLD_TYPE_NORMAL } from '@client/constant.js';
 
 // Database packages
 import { DBWorldMob } from './world/mob.js';
@@ -271,8 +271,8 @@ export class DBWorld {
     // Return default inventory for user
     getDefaultInventory() {
         const items = new Array(INVENTORY_SLOT_COUNT).fill(null)
-        items[PAPERDOLL_BACKPACK] = {id: 1094, count: 1}
-        items[PAPERDOLL_TOOLBELT] = {id: 1095, count: 1}
+        items[PAPERDOLL_BACKPACK] = {id: BLOCK_IDS.BACKPACK_BASIC, count: 1}
+        items[PAPERDOLL_TOOLBELT] = {id: BLOCK_IDS.TOOLBELT_BASIC, count: 1}
         const resp = {
             items: items,
             current: {

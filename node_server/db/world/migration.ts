@@ -1,4 +1,4 @@
-import {DEFAULT_RENDER_DISTANCE, INVENTORY_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT} from "@client/constant.js";
+import {BLOCK_IDS, DEFAULT_RENDER_DISTANCE, INVENTORY_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT} from "@client/constant.js";
 import type { Indicators } from "@client/player.js";
 import type { ServerWorld } from "../../server_world.js";
 import { OLD_CHUNK_SIZE } from "@client/chunk_const.js";
@@ -1026,10 +1026,10 @@ export class DBWorldMigration {
                 for(const user of src) {
                     const inventory: TInventoryState = JSON.parse(user.inventory)
                     const items = inventory.items
-                    if (items[PAPERDOLL_BACKPACK]?.id !== 1094 || items[PAPERDOLL_TOOLBELT]?.id !== 1095) {
+                    if (items[PAPERDOLL_BACKPACK]?.id !== BLOCK_IDS.BACKPACK_BASIC || items[PAPERDOLL_TOOLBELT]?.id !== BLOCK_IDS.TOOLBELT_BASIC) {
                         items.push(...new Array(INVENTORY_SLOT_COUNT - items.length).fill(null))
-                        items[PAPERDOLL_BACKPACK] = {id: 1094, count: 1}
-                        items[PAPERDOLL_TOOLBELT] = {id: 1095, count: 1}
+                        items[PAPERDOLL_BACKPACK] = {id: BLOCK_IDS.BACKPACK_BASIC, count: 1}
+                        items[PAPERDOLL_TOOLBELT] = {id: BLOCK_IDS.TOOLBELT_BASIC, count: 1}
                         dst.push([user.id, JSON.stringify(inventory)])
                     }
                 }
