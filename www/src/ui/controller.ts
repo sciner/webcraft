@@ -12,6 +12,9 @@ import  registerTextFilter from './angular/textfilter.js';
 import { Resources } from '../resources.js';
 import { ClipboardHelper } from './clipboard.js';
 import { HUD } from '../hud.js';
+import { msdf } from '../../data/font.js'
+
+globalThis.alphabet = {msdf}
 
 function isSupported() {
     // we should support webgl2 strictly

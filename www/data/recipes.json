@@ -642,11 +642,11 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": "madcraft:diamond"
+                "item": "madcraft:titanium_ingot"
             }
         },
         "result": {
-            "item": "madcraft:diamond_axe",
+            "item": "madcraft:titanium_axe",
             "count": 1
         }
     },
@@ -663,11 +663,11 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": "madcraft:diamond"
+                "item": "madcraft:titanium_ingot"
             }
         },
         "result": {
-            "item": "madcraft:diamond_pickaxe",
+            "item": "madcraft:titanium_pickaxe",
             "count": 1
         }
     },
@@ -684,11 +684,11 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": "madcraft:diamond"
+                "item": "madcraft:titanium_ingot"
             }
         },
         "result": {
-            "item": "madcraft:diamond_shovel",
+            "item": "madcraft:titanium_shovel",
             "count": 1
         }
     },
@@ -705,11 +705,11 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": "madcraft:diamond"
+                "item": "madcraft:titanium_ingot"
             }
         },
         "result": {
-            "item": "madcraft:diamond_sword",
+            "item": "madcraft:titanium_sword",
             "count": 1
         }
     },
@@ -726,11 +726,11 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": "madcraft:diamond"
+                "item": "madcraft:titanium_ingot"
             }
         },
         "result": {
-            "item": "madcraft:diamond_hoe",
+            "item": "madcraft:titanium_hoe",
             "count": 1
         }
     },
@@ -1184,11 +1184,11 @@
         ],
         "key": {
             "L": {
-                "item": "madcraft:diamond"
+                "item": "madcraft:titanium_ingot"
             }
         },
         "result": {
-            "item": "madcraft:diamond_helmet",
+            "item": "madcraft:titanium_helmet",
             "count": 1
         }
     },
@@ -1256,11 +1256,11 @@
         ],
         "key": {
             "L": {
-                "item": "madcraft:diamond"
+                "item": "madcraft:titanium_ingot"
             }
         },
         "result": {
-            "item": "madcraft:diamond_chestplate",
+            "item": "madcraft:titanium_chestplate",
             "count": 1
         }
     },
@@ -1328,11 +1328,11 @@
         ],
         "key": {
             "L": {
-                "item": "madcraft:diamond"
+                "item": "madcraft:titanium_ingot"
             }
         },
         "result": {
-            "item": "madcraft:diamond_leggings",
+            "item": "madcraft:titanium_leggings",
             "count": 1
         }
     },
@@ -1400,11 +1400,11 @@
         ],
         "key": {
             "L": {
-                "item": "madcraft:diamond"
+                "item": "madcraft:titanium_ingot"
             }
         },
         "result": {
-            "item": "madcraft:diamond_boots",
+            "item": "madcraft:titanium_boots",
             "count": 1
         }
     },
@@ -1489,7 +1489,7 @@
         "result": {
             "item": {
                 "suffix": "_INGOT",
-                "additional": ["EMERALD", "DIAMOND", "COAL"]
+                "additional": ["EMERALD", "COAL"]
             },
             "count": 9
         }
@@ -1713,6 +1713,30 @@
         }
     },
     {
+        "id": "59520417-59cb-428f-8a38-4358dde3cde5",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "c c",
+            "c c",
+            "lsl"
+        ],
+        "key": {
+            "l": {
+                "item": "madcraft:limestone"
+            },
+            "s": {
+                "item": "madcraft:sand"
+            },
+            "c": {
+                "item": "madcraft:clay_ball"
+            }
+        },
+        "result": {
+            "item": "madcraft:light_gray_concrete",
+            "count": 1
+        }
+    },
+    {
         "id": "bab5c07e-3ca5-4ec7-a1cb-383734920e39",
         "type": "madcraft:crafting_shaped",
         "pattern": [
@@ -1763,6 +1787,27 @@
         },
         "result": {
             "item": "madcraft:copper_boots",
+            "count": 1
+        }
+    },
+    {
+        "id": "9605801d-bfe3-493c-92c6-938b0209563b",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "   ",
+            "li "
+        ],
+        "key": {
+            "l": {
+                "item": "madcraft:light_gray_concrete"
+            },
+            "i": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:reinforced_concrete",
             "count": 1
         }
     }

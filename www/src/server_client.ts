@@ -75,6 +75,9 @@ export class ServerClient {
     static CMD_STOP_PLAY_DISC           = 91;
 	static CMD_WORLD_UPDATE_INFO        = 92; // server -> player
 
+    // Others
+    static CMD_MECHANISM                = 123 // player -> server
+
     // Quests
     static CMD_QUEST_GET_ENABLED        = 93
 	static CMD_QUEST_ALL                = 94;
@@ -123,7 +126,7 @@ export class ServerClient {
 
     static CMD_BUILDING_SCHEMA_ADD      = 107;
 
-    // NEXT UNUSED COMMAND INDEX        = 123
+    // NEXT UNUSED COMMAND INDEX        = 124
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;

@@ -8,6 +8,7 @@ import type { BaseResourcePack } from '../../base_resource_pack.js';
 import type { BBModel_Group } from '../../bbmodel/group.js';
 import type Mesh_Object_Block_Drop from './block_drop.js';
 import type { Renderer } from '../../render.js';
+import { Mesh_Object_Asteroid } from './asteroid.js';
 
 declare type IGroupModifiers = {
     append:             MeshObjectModifyAppend[],
@@ -238,6 +239,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
     chunk_coord:        Vector
     animation_name:     string
     animation_name_o:   string
+    private _block_drawer: Mesh_Object_Asteroid
 
     constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false) {
         super(undefined)
@@ -335,6 +337,12 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
             this.apos.copyFrom(pos)
         }
 
+        if(this._block_drawer) {
+            this._block_drawer.pos.copyFrom(this.apos)
+            this._block_drawer.draw(render, delta, m)
+            return
+        }
+
         if(!this.animation_changed) {
             this.prev_animations.clear()
         } else {
@@ -374,6 +382,19 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
 
     get isAlive() : boolean {
         return this.life > 0;
+    }
+
+    setupBlockDrawer(blocks: object) {
+        if(!this._block_drawer) {
+            this._block_drawer = new Mesh_Object_Asteroid(this.render.world, this.render, this.pos, undefined, blocks)
+        }
+    }
+
+    destroyBlockDrawer() {
+        if(this._block_drawer) {
+            this._block_drawer.destroy()
+            this._block_drawer = null
+        }
     }
 
     /*

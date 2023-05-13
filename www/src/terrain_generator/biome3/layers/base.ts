@@ -70,7 +70,7 @@ export class Biome3LayerBase {
                 }
 
                 // Draw tree blocks into chunk
-                if(!tree.type.underwater || cell.canyon_point > CANYON.TREE_DIST) {
+                if(!tree.type.underwater || (cell.canyon_point > CANYON.TREE_DIST || cell.inCanyon(CANYON.FLOOR_DENSITY))) {
                     this.generator.plantTree(this.generator.world, tree, chunk, x, y, z, true)
                 }
 

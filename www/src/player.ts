@@ -20,6 +20,7 @@ import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
 import type {ClientDriving} from "./control/driving.js";
 import type {PlayerModel} from "./player_model.js";
+import { MechanismAssembler } from "./mechanism_assembler.js";
 
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
@@ -258,6 +259,7 @@ export class Player implements IPlayer {
     #distance: number = 0
     #old_distance: number = 0 
     #old_y: number = 0
+    mechanism_assembler?:       MechanismAssembler
 
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
@@ -266,6 +268,7 @@ export class Player implements IPlayer {
         this.effects = {effects:[]}
         this.status = PLAYER_STATUS.WAITING_DATA;
         this.sharedProps = this._createSharedProps();
+        this.mechanism_assembler = new MechanismAssembler(this)
     }
 
     /** A protected factory method that creates {@link IPlayerSharedProps} of the appropriate type */
@@ -605,6 +608,9 @@ export class Player implements IPlayer {
         this.steps_count++;
         if(this.isSneak) {
             return;
+        }
+        if(this.game_mode.isSpectator()) {
+            return
         }
         const world = this.world;
         const player = this;

@@ -704,7 +704,7 @@
         },
         {
             "id": 564,
-            "name": "DIAMOND_SHOVEL",
+            "name": "TITANIUM_SHOVEL",
             "sound": "madcraft:block.shovel",
             "transparent": true,
             "max_in_stack": 1,
@@ -715,7 +715,7 @@
             "damage": 5.5,
             "speed": 1,
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "texture": {
                 "side": "item/diamond_shovel.png"
@@ -824,7 +824,7 @@
         },
         {
             "id": 570,
-            "name": "DIAMOND_HOE",
+            "name": "TITANIUM_HOE",
             "sound": "madcraft:block.shovel",
             "transparent": true,
             "max_in_stack": 1,
@@ -835,7 +835,7 @@
             "damage": 1,
             "speed": 4,
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "texture": {
                 "side": "item/diamond_hoe.png"
@@ -940,7 +940,7 @@
         },
         {
             "id": 559,
-            "name": "DIAMOND_AXE",
+            "name": "TITANIUM_AXE",
             "style": "extruder",
             "sound": "madcraft:axe",
             "transparent": true,
@@ -951,7 +951,7 @@
             "damage": 9,
             "speed": 1,
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "texture": {
                 "side": "item/diamond_axe.png"
@@ -1050,7 +1050,7 @@
         },
         {
             "id": 555,
-            "name": "DIAMOND_PICKAXE",
+            "name": "TITANIUM_PICKAXE",
             "transparent": true,
             "max_in_stack": 1,
             "item": {"name": "instrument", "instrument_id": "pickaxe"},
@@ -1060,7 +1060,7 @@
             "damage": 5,
             "speed": 1.2,
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "texture": {
                 "side": "item/diamond_pickaxe.png"
@@ -1736,7 +1736,7 @@
             "drop_item": [
                 {
                     "name": "GOLD_BLOCK",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ]
         },
@@ -1777,7 +1777,7 @@
             "drop_item": [
                 {
                     "name": "DIAMOND_BLOCK",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ]
         },
@@ -1792,7 +1792,7 @@
             "drop_item": [
                 {
                     "name": "OBSIDIAN",
-                    "instrument": ["DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -1912,7 +1912,7 @@
             "drop_item": [
                 {
                     "name": "LAPIS_LAZULI",
-                    "instrument": ["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"],
+                    "instrument": ["STONE_PICKAXE", "IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"],
                     "count": {
                         "min": 2,
                         "max": 5
@@ -1937,7 +1937,7 @@
             "drop_item": [
                 {
                     "name": "LAPIS_BLOCK",
-                    "instrument": ["STONE_PICKAXE", "IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["STONE_PICKAXE", "IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ]
         },
@@ -2468,7 +2468,7 @@
             "drop_item": [
                 {
                     "name": "DIAMOND",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -3474,7 +3474,7 @@
             "drop_item": [
                 {
                     "name": "EMERALD",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -4954,7 +4954,7 @@
             "drop_item": [
                 {
                     "name": "REDSTONE_WIRE",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -5149,7 +5149,7 @@
         },
         {
             "id": 610,
-            "name": "DIAMOND_SWORD",
+            "name": "TITANIUM_SWORD",
             "transparent": true,
             "max_in_stack": 1,
             "style": "extruder",
@@ -5159,7 +5159,7 @@
             "damage": 7,
             "speed": 1.6,
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "texture": {
                 "side": "item/diamond_sword.png"
@@ -6879,6 +6879,7 @@
                 "type": "bee_nest"
             },
             "tags": [
+                "no_drop_ao",
                 "drop_as_entity",
                 "bee_nest"
             ],
@@ -7557,7 +7558,7 @@
             "drop_item": [
                 {
                     "name": "WAXED_CUT_COPPER_STAIRS",
-                    "instrument": ["IRON_PICKAXE", "STONE_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -8081,7 +8082,7 @@
             "drop_item": [
                 {
                     "name": "EMERALD_BLOCK",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 }
             ]
         },
@@ -9198,7 +9199,7 @@
             "drop_item": [
                 {
                     "name": "GOLD_BLOCK",
-                    "instrument": ["IRON_PICKAXE", "DIAMOND_PICKAXE", "NETHERITE_PICKAXE"]
+                    "instrument": ["IRON_PICKAXE", "TITANIUM_PICKAXE", "NETHERITE_PICKAXE"]
                 },
                 {
                     "name": "SMALL_ROCK",
@@ -10652,12 +10653,12 @@
         {
             "id": 278,
             "max_in_stack": 1,
-            "name": "DIAMOND_HELMET",
+            "name": "TITANIUM_HELMET",
             "style": "extruder",
             "texture": "item/diamond_helmet.png",
             "item": {"name": "armor"},
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "armor": {
                 "slot": 39,
@@ -10666,7 +10667,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond"
+                "texture": "scrap_armor_titanium"
             }
         },
         {
@@ -10792,12 +10793,12 @@
         {
             "id": 284,
             "max_in_stack": 1,
-            "name": "DIAMOND_CHESTPLATE",
+            "name": "TITANIUM_CHESTPLATE",
             "style": "extruder",
             "texture": "item/diamond_chestplate.png",
             "item": {"name": "armor"},
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "armor": {
                 "slot": 38,
@@ -10806,7 +10807,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond"
+                "texture": "scrap_armor_titanium"
             }
         },
         {
@@ -10932,12 +10933,12 @@
         {
             "id": 290,
             "max_in_stack": 1,
-            "name": "DIAMOND_LEGGINGS",
+            "name": "TITANIUM_LEGGINGS",
             "style": "extruder",
             "texture": "item/diamond_leggings.png",
             "item": {"name": "armor"},
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "armor": {
                 "slot": 37,
@@ -10946,7 +10947,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond"
+                "texture": "scrap_armor_titanium"
             }
         },
         {
@@ -11072,12 +11073,12 @@
         {
             "id": 296,
             "max_in_stack": 1,
-            "name": "DIAMOND_BOOTS",
+            "name": "TITANIUM_BOOTS",
             "style": "extruder",
             "texture": "item/diamond_boots.png",
             "item": {"name": "armor"},
             "material": {
-                "id": "diamond"
+                "id": "titanium"
             },
             "armor": {
                 "slot": 36,
@@ -11086,7 +11087,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_diamond"
+                "texture": "scrap_armor_titanium"
             }
         },
         {
@@ -12619,6 +12620,153 @@
                 "set_on_water"
             ],
             "texture": "block/stone.png"
+        },
+        {
+            "id": 1094,
+            "name": "RAW_TITANIUM",
+            "coocked_item": {"name": "TITANIUM_INGOT", "count": 1},
+            "style": "extruder",
+            "texture": "block/stone.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "titanium"
+            }
+        },
+        {
+            "id": 1095,
+            "name": "TITANIUM_NUGGET",
+            "piece_of": "TITANIUM_INGOT",
+            "item": {"name": "nugget"},
+            "style": "extruder",
+            "material": {
+                "id": "titanium"
+            },
+            "texture": "item/titanium_nugget.png"
+        },
+        {
+            "id": 1096,
+            "name": "TITANIUM_INGOT",
+            "item": {"name": "ingot"},
+            "style": "extruder",
+            "material": {
+                "id": "titanium"
+            },
+            "texture": "item/titanium_ingot.png"
+        },
+        {
+            "id": 1097,
+            "name": "TITANIUM_ORE",
+            "sound": "madcraft:block.stone",
+            "coocked_item": {"name": "TITANIUM_ORE", "count": 1},
+            "drop_item": [
+                {
+                    "name": "RAW_TITANIUM",
+                    "instrument": ["NETHERITE_PICKAXE", "IRON_PICKAXE", "TITANIUM_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ],
+            "texture": "block/titanium_ore.png",
+            "material": {
+                "id": "titanium"
+            },
+            "tags": [
+                "ore"
+            ]
+        },
+        {
+            "id": 1098,
+            "name": "POOR_TITANIUM_ORE",
+            "inherit": "TITANIUM_ORE",
+            "coocked_item": null,
+            "drop_item": [
+                {
+                    "name": "TITANIUM_NUGGET",
+                    "instrument": ["NETHERITE_PICKAXE", "IRON_PICKAXE", "TITANIUM_PICKAXE"],
+                    "count": {
+                        "min": 1,
+                        "max": 9
+                    }
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
+        },
+        {
+            "id": 1099,
+            "name": "LIMESTONE",
+            "sound": "madcraft:block.stone",
+            "drop_item": [
+                {
+                    "name": "LIMESTONE",
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 2,
+                        "max": 3
+                    }
+                }
+            ],
+            "texture": "block/limestone.png",
+            "material": {
+                "id": "stone"
+            }
+        },
+        {
+            "id": 492,
+            "name": "COGWHEEL",
+            "sound": "madcraft:block.wood",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "no_drop_ao",
+                "rotate_by_pos_n_6"
+            ],
+            "texture": "block/stone.png"
+        },
+        {
+            "id": 493,
+            "name": "MECHANISM_ASSEMBLER",
+            "sound": "madcraft:block.wood",
+            "style": "extruder",
+            "item": {"name": "instrument", "instrument_id": "mechanism_assembler"},
+            "material": {
+                "id": "wood"
+            },
+            "texture": "item/mechanism_assembler.png"
+        },
+        {
+            "id": 494,
+            "name": "WINDMILL_BEARING",
+            "sound": "madcraft:block.wood",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "no_drop_ao",
+                "rotate_by_pos_n_6"
+            ],
+            "texture": "block/stone.png"
         }
+        
     ]
 }
