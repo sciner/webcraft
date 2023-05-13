@@ -16,7 +16,8 @@ import {
 import { BLOCK_FLAG, COVER_STYLE_SIDES, DEFAULT_STYLE_NAME, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
-import type {TSittingState, TSleepState} from "./player.js";
+import type { TSittingState, TSleepState} from "./player.js";
+import { MechanismAssembler } from "./mechanism_assembler.js";
 
 /** A type that is as used as player in actions. */
 export type ActionPlayerInfo = {
@@ -1076,7 +1077,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         // Другие действия с инструментами/предметами в руке
         if(mat_block.item && mat_block.style_name != 'planting') {
             // Use intruments
-            for(let func of FUNCS.useItem2 ??= [useShovel, useHoe, useAxe, useBoneMeal]) {
+            for(let func of FUNCS.useItem2 ??= [useShovel, useHoe, useAxe, useBoneMeal, MechanismAssembler.useMechanismAssemblerWorldAction]) {
                 if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                     return [actions, pos];
                 }

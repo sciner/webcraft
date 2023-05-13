@@ -22,6 +22,9 @@
         {"name": "mob/deer"},
         {"name": "mob/snowball"},
 
+        {"name": "mechanism/cogwheel"},
+        {"name": "mechanism/windmill_bearing"},
+
         {"name": "transport/boat"},
         {"name": "transport/raft"},
 
@@ -2588,6 +2591,31 @@
                 "rotate": {"type": "three"},
                 "set_state": [
                     {"name": "age4"}
+                ]
+            }
+        },
+        {
+            "id": 492,
+            "name": "COGWHEEL",
+            "bb": {
+                "model": "mechanism/cogwheel",
+                "rotate": {"type": "cog"},
+                "import_anyway": true
+            }
+        },
+        {
+            "id": 494,
+            "name": "WINDMILL_BEARING",
+            "bb": {
+                "model": "mechanism/windmill_bearing",
+                "rotate": {"type": "six"},
+                "import_anyway": true,
+                "set_state": [
+                    {"name": "base", "when": {"extra_data.in_mesh": true}},
+                    {"name": "table", "when": {"extra_data.invisible": false}}
+                ],
+                "select_texture": [
+                    {"name": "WINDMILL_BEARING"}
                 ]
             }
         }

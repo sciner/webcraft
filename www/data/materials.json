@@ -1,5 +1,6 @@
 {
     "instruments": {
+        "mechanism_assembler": {},
         "flint_and_steel": {},
         "primitive_axe": {},
         "shears": {},

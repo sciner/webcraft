@@ -221,26 +221,27 @@ export enum LEAVES_TYPE {
 
 /** Подмножество названий типов мобов. Это не все типы. */
 export enum MOB_TYPE {
-    AXOLOTL     = 'mob/axolotl',
-    BEE         = 'mob/bee',
-    CHICKEN     = 'mob/chicken',
-    CREEPER     = 'mob/creeper',
-    COW         = 'mob/cow',
-    DEER        = 'mob/deer',
-    FOX         = 'mob/fox',
-    GOAT        = 'mob/goat',
-    HORSE       = 'mob/horse',
-    HUMANOID    = 'mob/humanoid',
-    OCELOT      = 'mob/ocelot',
-    PANDA       = 'mob/panda',
-    PIG         = 'mob/pig',
-    SHEEP       = 'mob/sheep',
-    SKELETON    = 'mob/skeleton',
-    SNOWBALL    = 'mob/snowball',
-    SNOW_GOLEM  = 'mob/snow_golem',
-    ZOMBIE      = 'mob/zombie',
-    BOAT        = 'transport/boat',
-    RAFT        = 'transport/raft'
+    AXOLOTL             = 'mob/axolotl',
+    BEE                 = 'mob/bee',
+    CHICKEN             = 'mob/chicken',
+    CREEPER             = 'mob/creeper',
+    COW                 = 'mob/cow',
+    DEER                = 'mob/deer',
+    FOX                 = 'mob/fox',
+    GOAT                = 'mob/goat',
+    HORSE               = 'mob/horse',
+    HUMANOID            = 'mob/humanoid',
+    OCELOT              = 'mob/ocelot',
+    PANDA               = 'mob/panda',
+    PIG                 = 'mob/pig',
+    SHEEP               = 'mob/sheep',
+    SKELETON            = 'mob/skeleton',
+    SNOWBALL            = 'mob/snowball',
+    SNOW_GOLEM          = 'mob/snow_golem',
+    ZOMBIE              = 'mob/zombie',
+    BOAT                = 'transport/boat',
+    RAFT                = 'transport/raft',
+    WINDMILL_BEARING    = 'mechanism/windmill_bearing'
 }
 
 export enum DAYLIGHT_VALUE {
