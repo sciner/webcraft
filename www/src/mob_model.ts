@@ -369,9 +369,9 @@ export class MobModel extends NetworkPhysicObject {
                 let anim: string | null = null
                 if (driving && this === driving.getVehicleModel()) { // если это транспорт
                     const vehicleAnimation = driving.config.vehicleAnimation
-                    if (this.rotationSign === 1) {
+                    if (this.rotationSign === -1) {
                         anim = vehicleAnimation?.rotateLeft
-                    } else if (this.rotationSign === -1) {
+                    } else if (this.rotationSign === 1) {
                         anim = vehicleAnimation?.rotateRight
                     }
                     if (driving.hasDriverOrPassenger()) {
