@@ -171,7 +171,7 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": "madcraft:cobblestone"
+                "item": "madcraft:stone"
             }
         },
         "result": {
@@ -213,7 +213,7 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": ["madcraft:cobblestone"]
+                "item": ["madcraft:stone"]
             }
         },
         "result": {
@@ -357,24 +357,6 @@
         }
     },
     {
-        "id": "b1ef267f-dd80-4045-b41b-f2dbe4762dfd",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "",
-            "",
-            "H"
-        ],
-        "key": {
-            "H": {
-                "item": "madcraft:hay_block"
-            }
-        },
-        "result": {
-            "item": "madcraft:wheat",
-            "count": 9
-        }
-    },
-    {
         "id": "5857efa1-7997-4ce7-a769-5625d5d26f3e",
         "type": "madcraft:crafting_shaped",
         "pattern": [
@@ -405,7 +387,7 @@
         ],
         "key": {
             "#": {
-                "item": "madcraft:cobblestone"
+                "item": "madcraft:stone"
             },
             "S": {
                 "item": "madcraft:stick"
@@ -492,7 +474,7 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": "madcraft:cobblestone"
+                "item": "madcraft:stone"
             }
         },
         "result": {
@@ -1591,7 +1573,7 @@
                 "item": "madcraft:stick"
             },
             "#": {
-                "item": "madcraft:cobblestone"
+                "item": "madcraft:stone"
             }
         },
         "result": {
@@ -1714,6 +1696,23 @@
         }
     },
     {
+        "id": "3cdb7d66-59a0-4e1c-b3eb-3faca3330982",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "LLL",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:copper_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:copper_helmet",
+            "count": 1
+        }
+    },
+    {
         "id": "59520417-59cb-428f-8a38-4358dde3cde5",
         "type": "madcraft:crafting_shaped",
         "pattern": [
@@ -1734,6 +1733,60 @@
         },
         "result": {
             "item": "madcraft:light_gray_concrete",
+            "count": 1
+        }
+    },
+    {
+        "id": "bab5c07e-3ca5-4ec7-a1cb-383734920e39",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "L L",
+            "LLL",
+            "LLL"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:copper_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:copper_chestplate",
+            "count": 1
+        }
+    },
+    {
+        "id": "83ce7698-f45b-4e48-ba66-ca9b87ab3bcb",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "LLL",
+            "L L",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:copper_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:copper_leggings",
+            "count": 1
+        }
+    },
+    {
+        "id": "87156e9f-7096-4503-b57f-c84b97b79894",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "L L",
+            "L L"
+        ],
+        "key": {
+            "L": {
+                "item": "madcraft:copper_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:copper_boots",
             "count": 1
         }
     },
