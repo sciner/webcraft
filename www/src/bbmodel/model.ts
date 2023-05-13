@@ -441,6 +441,7 @@ export class BBModel_Model {
                             );
                         if(keyframe.channel === 'position') {
                             dp.divScalarSelf(16);
+                            dp.x *= -1
                         } else if (keyframe.channel === 'rotation') {
                             dp.x = -dp.x;
                             dp.y = -dp.y;
