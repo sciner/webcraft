@@ -1,8 +1,10 @@
-import { DEFAULT_RENDER_DISTANCE } from "@client/constant.js";
+import {BLOCK_IDS, DEFAULT_RENDER_DISTANCE, INVENTORY_SLOT_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT} from "@client/constant.js";
 import type { Indicators } from "@client/player.js";
 import type { ServerWorld } from "../../server_world.js";
 import { OLD_CHUNK_SIZE } from "@client/chunk_const.js";
 import { Vector } from "@client/helpers.js";
+import type {TInventoryState} from "@client/inventory.js";
+import {preprocessSQL} from "../db_helpers.js";
 
 /* Как делать миграцию блоков.
 
@@ -1016,6 +1018,27 @@ export class DBWorldMigration {
             `ALTER TABLE user   ADD COLUMN driving_id INTEGER DEFAULT NULL;`
         ]});
 
+        migrations.push({version: 101, queries: [
+            // добавить пояс и рюкзак старым игрокам
+            async function (db: DBConnection): Promise<[]> {
+                const src: { id: int, inventory: string }[] = await db.all('SELECT id, inventory FROM user')
+                const dst = []
+                for(const user of src) {
+                    const inventory: TInventoryState = JSON.parse(user.inventory)
+                    const items = inventory.items
+                    if (items[PAPERDOLL_BACKPACK]?.id !== BLOCK_IDS.BACKPACK_BASIC || items[PAPERDOLL_TOOLBELT]?.id !== BLOCK_IDS.TOOLBELT_BASIC) {
+                        items.push(...new Array(INVENTORY_SLOT_COUNT - items.length).fill(null))
+                        items[PAPERDOLL_BACKPACK] = {id: BLOCK_IDS.BACKPACK_BASIC, count: 1}
+                        items[PAPERDOLL_TOOLBELT] = {id: BLOCK_IDS.TOOLBELT_BASIC, count: 1}
+                        dst.push([user.id, JSON.stringify(inventory)])
+                    }
+                }
+                const sql = preprocessSQL('UPDATE user SET inventory = %1 FROM json_each(?) WHERE user.id = %0')
+                await db.run(sql, [JSON.stringify(dst)])
+                return []
+            }
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
@@ -1023,7 +1046,7 @@ export class DBWorldMigration {
                     if (typeof query === 'string') {
                         await this.db.get(query);
                     } else if(query instanceof Function) {
-                        for(let sub_query of await query()) {
+                        for(let sub_query of await query(this.db)) {
                             await this.db.run(sub_query)
                         }
                     } else {

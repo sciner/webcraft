@@ -3,28 +3,39 @@ import { BLOCK } from "../blocks.js";
 import { Label } from "../ui/wm.js";
 import {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
-import { DEFAULT_CHEST_SLOT_COUNT, INVENTORY_HOTBAR_SLOT_COUNT, INVENTORY_SLOT_SIZE, 
-    INVENTORY_VISIBLE_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX,
-    CHEST_INTERACTION_MARGIN_BLOCKS, MAX_DIRTY_INVENTORY_DURATION, UI_THEME
-} from "../constant.js";
-import { INVENTORY_CHANGE_NONE, INVENTORY_CHANGE_SLOTS, 
-    INVENTORY_CHANGE_CLOSE_WINDOW } from "../inventory.js";
-import { ChestHelpers, isBlockRoughlyWithinPickatRange } from "../block_helpers.js"
+import {BAG_LINE_COUNT, CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_LINE_COUNT, DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MAX_DIRTY_INVENTORY_DURATION, UI_THEME} from "../constant.js";
+import {ChestHelpers, isBlockRoughlyWithinPickatRange, TChestInfo} from "../block_helpers.js"
 import { Lang } from "../lang.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
 import type { TBlock } from "../typed_blocks3.js";
-
-class ChestConfirmData {
-    chestSessionId: string
-    chest: { pos: Vector, slots: Dict<IInventoryItem> }
-    secondChest: { pos: Vector, slots: Dict<IInventoryItem> }
-    inventory_slots: IInventoryItem[]
-    change: any
-}
+import {CHEST_CHANGE, TChestChange, TChestConfirmData} from "../inventory.js";
 
 export class BaseChestWindow extends BaseInventoryWindow {
 
+    /** Слоты сундука, или объединение двух сундуков */
     chest: { slots: CraftTableInventorySlot[] }
+
+    /** Описывает последнее произошедшее изменение (которое должно быть отиправлено на сервер) */
+    lastChange: TChestChange = {
+        type: CHEST_CHANGE.NONE,
+        slotIndex: -1,
+        slotInChest: false,
+        slotPrevItem: null,
+        dragPrevItem: null,
+        prevInventory: null
+    }
+
+    /** A random number. If it's null, no confirmation is requested when closing. */
+    chestSessionId: number | null = null
+
+    info            : TChestInfo        // информация о первом сундуке
+    secondInfo      : TChestInfo | null // информация о втором сундуке
+
+    firstLoading    = false
+    secondLoading   = false
+    changeLoading   = false // если true, то оба сундука загружены, но клент ждет результат какой-то операции над нимим
+    timeout         : any = null
+    maxDirtyTime    : number | null = null
 
     constructor(x, y, w, h, id, title, text, inventory, options) {
 
@@ -42,33 +53,14 @@ export class BaseChestWindow extends BaseInventoryWindow {
         this.slots_x       = UI_THEME.window_padding * this.zoom
         this.slots_y       = 62 * this.zoom
 
-        this.firstLoading  = false;
-        this.secondLoading = false;
-        this.timeout    = null;
-        this.maxDirtyTime  = null;
+        this.setBackground('./media/gui/form-quest.png')
 
         // Создание слотов
         this.createSlots(this.prepareSlots())
-        
-        const szm = this.cell_size + this.slot_margin
-        const inventory_y = this.h - szm * 4 - (UI_THEME.window_padding * this.zoom)
 
         // Создание слотов для инвентаря
-        this.createInventorySlots(this.cell_size, UI_THEME.window_padding, inventory_y / this.zoom)
-        
-        this.lastChange = {
-            type: INVENTORY_CHANGE_NONE,
-            // the slots are ignored when (type == INVENTORY_CHANGE_CLOSE_WINDOW)
-            slotIndex: -1,
-            slotInChest: false,
-            slotPrevItem: null,
-            dragPrevItem: null,
-            prevInventory: null
-        }
-
-        // A random number. If it's null, no confirmation
-        // is reqested when closing.
-        this.chestSessionId = null
+        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * BAG_LINE_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
+        this.createInventorySlots(this.cell_size, (this.w / this.zoom) - slots_width, 60, UI_THEME.window_padding, undefined, true)
 
         //
         this.blockModifierListener = (tblock : TBlock) => {
@@ -93,7 +85,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
         }
 
         // Add labels to window
-        this.lbl2 = new Label(UI_THEME.window_padding * this.zoom, inventory_y - (UI_THEME.base_font.size + UI_THEME.window_padding) * this.zoom, this.w / 2, 30 * this.zoom, 'lbl2', null, Lang.inventory)
+        this.lbl2 = new Label((this.w / this.zoom) - slots_width, 60, 0, 0, 'lbl2', null, '')
         this.add(this.lbl2);
         for(let lbl of [this.lbl2]) {
             lbl.style.font.color = UI_THEME.label_text_color
@@ -104,6 +96,13 @@ export class BaseChestWindow extends BaseInventoryWindow {
         this.server.AddCmdListener([ServerClient.CMD_CHEST_CONTENT], (cmd) => {
             this.setData(cmd.data);
         });
+
+        this.server.AddCmdListener([ServerClient.CMD_CHEST_CHANGE_PROCESSED], (cmd: INetworkMessage<int>) => {
+            if (cmd.data === this.chestSessionId) {
+                this.changeLoading = false
+                this.onLoadingChanged()
+            }
+        })
 
         this.server.AddCmdListener([ServerClient.CMD_CHEST_FORCE_CLOSE], (cmd) => {
             if (cmd.data.chestSessionId === this.chestSessionId) {
@@ -128,9 +127,30 @@ export class BaseChestWindow extends BaseInventoryWindow {
 
     }
 
+    protected onLoadingChanged(): void {
+        const loading = this.loading
+        for(const slot of this.chest.slots) {
+            slot.locked = loading
+        }
+    }
+
+    protected createButtonSortChest(): void {
+        this.createButtonSort(false, 25,() => {
+            if (this.loading) {
+                return
+            }
+            // послать запрос на сортировку сундука
+            this.lastChange.type = CHEST_CHANGE.SORT
+            this.lastChange.prevInventory = null // сервер применит текущее состояние инвентаря, предыдущее не нужно
+            this.confirmAction()
+            this.changeLoading = true
+        })
+    }
+
     // Обработчик открытия формы
     onShow(args : any) {
-        this.lastChange.type = INVENTORY_CHANGE_NONE
+        this.lastChange.type = CHEST_CHANGE.NONE
+        this.changeLoading = false
         this.getRoot().center(this)
         Qubatch.releaseMousePointer()
         if(this.options.sound.open) {
@@ -139,17 +159,15 @@ export class BaseChestWindow extends BaseInventoryWindow {
         this.world.blockModifierListeners.push(this.blockModifierListener)
         super.onShow(args)
         this.fixAndValidateSlots('onShow')
+        this.refresh()
     }
 
     // Обработчик закрытия формы
     onHide(was_visible : boolean) {
         if (this.chestSessionId != null) { // if the closing wasn't forced by the server
-            this.lastChange.type = INVENTORY_CHANGE_CLOSE_WINDOW
-            // Перекидываем таскаемый айтем в инвентарь, чтобы не потерять его
-            // @todo Обязательно надо проработать кейс, когда в инвентаре нет места для этого айтема
-            this.inventory.clearDragItem(true)
-            this.fixAndValidateSlots('clearDragItem')
-            this.confirmAction()
+            this.inventory.sendStateChange({
+                forget_chests: true
+            })
         }
         if(was_visible && this.options.sound.close) {
             Qubatch.sounds.play(this.options.sound.close.tag, this.options.sound.close.action)
@@ -166,7 +184,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
         // Remembers two affected slots before a user action is executed.
         function updateLastChangeSlots(craftSlot) {
             const lastChange = craftSlot.parent.lastChange;
-            lastChange.type = INVENTORY_CHANGE_SLOTS;
+            lastChange.type = CHEST_CHANGE.SLOTS;
             lastChange.slotIndex = craftSlot.getIndex();
             lastChange.slotInChest = craftSlot.is_chest_slot;
             const item = craftSlot.getItem();
@@ -206,15 +224,15 @@ export class BaseChestWindow extends BaseInventoryWindow {
     }
 
     // Confirm action
-    confirmAction() {
+    confirmAction(): void {
         this.fixAndValidateSlots('confirmAction')
 
         const that = this
 
         function extractOneChest(isFirst, info) {
             const res = { pos: info.pos, slots: {} };
-            const range = ChestHelpers.getOneChestRange(isFirst, that.secondInfo, that.chest.slots.length);
-            for(var i = range.min; i < range.max; i++) {
+            const range = ChestHelpers.getOneChestRange(isFirst, that.secondInfo != null, that.chest.slots.length);
+            for(let i = range.min; i < range.max; i++) {
                 let item = that.chest.slots[i]?.item;
                 if (item) {
                     res.slots[i - range.min] = item;
@@ -223,11 +241,11 @@ export class BaseChestWindow extends BaseInventoryWindow {
             return res;
         }
 
-        if (this.lastChange.type === INVENTORY_CHANGE_NONE) {
+        if (this.lastChange.type === CHEST_CHANGE.NONE) {
             return;
         }
         // Delay sending changes that don't affect the chest.
-        if (this.lastChange.type === INVENTORY_CHANGE_SLOTS && !this.lastChange.slotInChest) {
+        if (this.lastChange.type === CHEST_CHANGE.SLOTS && !this.lastChange.slotInChest) {
             const now = performance.now();
             this.maxDirtyTime = this.maxDirtyTime ?? now + MAX_DIRTY_INVENTORY_DURATION;
             if (this.loading || this.maxDirtyTime > now) {
@@ -235,22 +253,14 @@ export class BaseChestWindow extends BaseInventoryWindow {
             }
         }
         // Here there may or may not be some change, described by this.lastChange or not.
-        const params = {
+        const params: TChestConfirmData = {
             chestSessionId:  this.chestSessionId,
             chest:           extractOneChest(true, this.info),
-            inventory_slots: new Array(this.inventory.items.length),
+            inventory_slots: [ ...this.inventory.items ],
             change:          { ...this.lastChange }
-        } as ChestConfirmData;
+        };
         if (this.secondInfo) {
             params.secondChest = extractOneChest(false, this.secondInfo);
-        }
-        // inventory
-        for(let i = 0; i < this.inventory.items.length; i++) {
-            params.inventory_slots[i] = this.inventory.items[i];
-        }
-        for(let slot of this.inventory_slots) {
-            const item = slot.getItem();
-            params.inventory_slots[slot.slot_index] = item || null;
         }
         // Send to server
         this.server.ChestConfirm(params);
@@ -260,11 +270,11 @@ export class BaseChestWindow extends BaseInventoryWindow {
     }
 
     get loading() {
-        return this.firstLoading || this.secondLoading;
+        return this.firstLoading || this.secondLoading || this.changeLoading
     }
 
     // Запрос содержимого сундука
-    load(info, secondInfo = null) {
+    load(info: TChestInfo, secondInfo: TChestInfo | null = null) {
         if (this.timeout) { // a player is clicking too fast
             return;
         }
@@ -308,6 +318,8 @@ export class BaseChestWindow extends BaseInventoryWindow {
             this.setLocalData(firstBlock);
         }
 
+        this.onLoadingChanged()
+
         if (this.loading) {
             this.timeout = setTimeout(function() {
                 that.timeout = null;
@@ -321,7 +333,6 @@ export class BaseChestWindow extends BaseInventoryWindow {
     }
 
     setLocalData(tblock) {
-        // see WorldChestManager.sendContentToPlayers()
         this.setData({
             pos:            tblock.posworld,
             slots:          tblock.extra_data.slots,
@@ -334,7 +345,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
         if (!this.info) {
             return;
         }
-        var isFirst = false;
+        let isFirst = false;
         const wasLoading = this.loading;
         if (this.info.pos.equal(chest.pos)) {
             this.firstLoading = false;
@@ -358,12 +369,13 @@ export class BaseChestWindow extends BaseInventoryWindow {
             this.lbl1.setText(title);
         }
         // copy data slots to the UI slots
-        const range = ChestHelpers.getOneChestRange(isFirst, this.secondInfo, this.chest.slots.length)
+        const range = ChestHelpers.getOneChestRange(isFirst, this.secondInfo != null, this.chest.slots.length)
         for(var i = range.min; i < range.max; i++) {
             // this.chest.slots[i].item = chest.slots[i - range.min] || null;
             this.chest.slots[i].setItem(chest.slots[i - range.min] || null)
         }
         this.fixAndValidateSlots('setData')
+        this.onLoadingChanged()
     }
 
     // Очистка слотов сундука от предметов
@@ -377,9 +389,9 @@ export class BaseChestWindow extends BaseInventoryWindow {
     prepareSlots(count = DEFAULT_CHEST_SLOT_COUNT) {
 
         const resp  = [];
-        const xcnt  = INVENTORY_HOTBAR_SLOT_COUNT
+        const xcnt  = CHEST_LINE_COUNT
         const sx    = this.slots_x
-        const sy    = 40 * this.zoom
+        const sy    = 60 * this.zoom
         const sz    = this.cell_size
         const szm   = sz + this.slot_margin
 
@@ -428,64 +440,6 @@ export class BaseChestWindow extends BaseInventoryWindow {
             this.chest.slots.push(lblSlot)
             ct.add(lblSlot)
         }
-    }
-
-    /**
-    * Создание слотов для инвентаря
-    */
-    createInventorySlots(sz, sx = UI_THEME.window_padding, sy : float = 205, belt_x? : float, belt_y? : float) {
-
-        const ct = this;
-        if(ct.inventory_slots) {
-            console.error('createInventorySlots() already created')
-            return
-        }
-
-        const szm = sz + UI_THEME.slot_margin * this.zoom
-
-        ct.inventory_slots  = []
-        const xcnt = INVENTORY_HOTBAR_SLOT_COUNT
-        sx *= this.zoom
-        sy *= this.zoom
-        let index = 0
-        const padding = UI_THEME.window_padding * this.zoom
-
-        if(belt_x === undefined) {
-            belt_x = sx
-        } else {
-            belt_x *= this.zoom
-        }
-
-        if(belt_y === undefined) {
-            belt_y = this.h - sz - padding
-        } else {
-            belt_y *= this.zoom
-        }
-
-        //
-        const createSlot = (x : float, y : float) => {
-            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, `lblSlot${index}`, null, null, this, index)
-            ct.add(lblSlot)
-            ct.inventory_slots.push(lblSlot)
-            index++
-        }
-
-        // не менять порядок нижних и верхних!
-        // иначе нарушится их порядок в массиве ct.inventory_slots
-        // нижний ряд (видимые на хотбаре)
-        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            const x = belt_x + (i % xcnt) * szm
-            const y = belt_y
-            createSlot(x, y)
-        }
-
-        // верхние 3 ряда
-        for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT - INVENTORY_HOTBAR_SLOT_COUNT; i++) {
-            const x = sx + (i % xcnt) * szm
-            const y = sy + Math.floor(i / xcnt) * szm
-            createSlot(x, y)
-        }
-
     }
 
     getCraftOrChestSlots(): CraftTableSlot[] {

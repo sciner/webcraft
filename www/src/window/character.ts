@@ -1,7 +1,7 @@
 import { Label } from "../ui/wm.js";
-import { ArmorSlot, BaseCraftWindow } from "./base_craft_window.js";
+import { BaseCraftWindow, PaperDollSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_HOTBAR_SLOT_COUNT, UI_THEME } from "../constant.js";
+import { BAG_LINE_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_BOOTS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, PAPERDOLL_LEGGINGS, PAPERDOLL_TOOLBELT, UI_THEME } from "../constant.js";
 import type { InventoryRecipeWindow } from "./inventory_recipe.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import type { InGameMain } from "./ingamemain.js";
@@ -15,7 +15,7 @@ import {PixiGuiPlayer} from "../vendors/wm/pixi_gui_player.js";
 export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
 
     frmInventoryRecipe : InventoryRecipeWindow
-    armor_slots : ArmorSlot[]
+    paperdoll : PaperDollSlot[] = []
     player : Player
 
     slot_empty = 'slot_empty'
@@ -31,8 +31,6 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         this.h *= this.zoom
 
         this.player = player
-        this.skinKey = null
-        this.skinViewer = null // lazy initialized if necessary
 
         // Craft area
         this.area = {
@@ -48,26 +46,53 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
 
         this.hud_atlas = Resources.atlas.get('hud')
 
+        
         // Ширина / высота слота
         this.cell_size = UI_THEME.window_slot_size * this.zoom
 
-        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * INVENTORY_HOTBAR_SLOT_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
+        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * BAG_LINE_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
 
         // Создание слотов для инвентаря
         const x = this.w / this.zoom - slots_width
         const y = 35
         this.createInventorySlots(this.cell_size, x, y, UI_THEME.window_padding, undefined, true)
 
+        const labels = [
+            new Label(x * this.zoom, UI_THEME.window_padding * this.zoom, 0, 30 * this.zoom, 'lblBackpack', null, Lang.backpack)
+        ]
+
+        for(let lbl of labels) {
+            lbl.style.font.color = UI_THEME.label_text_color
+            lbl.style.font.size = UI_THEME.base_font.size
+            this.add(lbl)
+        }
+
+        // кнопка сортировки
+        this.createButtonSort(true, 0, () => {
+            this.autoSortItems()
+            this.refresh()
+        })
+        
+        // слот для удаления преметов
+        this.createDeleteSlot(this.cell_size)
+
         // Создания слота для армора
-        this.createArmorSlots(this.cell_size)
+        this.createLeftPaperDoll(this.cell_size)
 
         //
         this.addPlayerBox()
 
-        // Add label
-        const lblBackpackWidth = (slots_width - UI_THEME.window_padding) * this.zoom
-        const lblBackpackHeight = 30 * this.zoom
-        this.addLabel(x * this.zoom, UI_THEME.window_padding * this.zoom, lblBackpackWidth, lblBackpackHeight, Lang.backpack)
+        this.createRightPaperDoll(this.cell_size)
+
+        // обновить gui
+        this.refresh()
+
+        for(const slot of this.paperdoll) {
+            slot.onSetItem = () => {
+                this.player.getModel().updateArmor()
+                this.refresh()
+            }
+        }
 
     }
 
@@ -80,15 +105,11 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
     // Обработчик закрытия формы
     onHide() {
         this.lblPlayerBox?.removeChildren();
-        // Drag
-        this.inventory.clearDragItem(true)
+
         // Update player mob model
         this.inventory.player.updateArmor()
-        // Save inventory
-        this.world.server.InventoryNewState({ state: this.inventory.exportItems() })
-        if(this.skinViewer) {
-            this.skinViewer.renderPaused = true
-        }
+
+        this.inventory.sendStateChange()
     }
 
     async previewSkin() {
@@ -102,7 +123,7 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         const ct = this;
 
         const sprite_character_back = this.hud_atlas.getSpriteFromMap('char_back')
-        const armor_slot = this.armor_slots[0]
+        const armor_slot = this.paperdoll[0]
         const margin = UI_THEME.slot_margin * this.zoom
 
         const PLAYER_BOX_HEIGHT = (this.cell_size + margin) * 4 - margin
@@ -112,20 +133,10 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         // this.lblPlayerBox.setBackground(sprite_character_back)
         this.lblPlayerBox.style.background.color = '#00000000'
 
-        // Add locked armor slots
-        for(let lbl of ct.inventory_slots) {
-            if(lbl instanceof ArmorSlot) {
-                const x = this.lblPlayerBox.x + this.lblPlayerBox.w + margin
-                const l = new Label(x, lbl.y, lbl.w, lbl.w, `${lbl.id}_fake`)
-                l.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
-                ct.add(l)
-            }
-        }
-
         ct.add(this.lblPlayerBox)
     }
 
-    createArmorSlots(sz : float) {
+    createLeftPaperDoll(sz : float) {
 
         const ct = this;
         const x = UI_THEME.window_padding * this.zoom
@@ -138,30 +149,56 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
             return resp
         }
 
-        const lblSlotHead = new ArmorSlot(x, getY(), sz, 39, this)
+        const lblSlotHead = new PaperDollSlot(x, getY(), sz, PAPERDOLL_HELMET, this)
         ct.add(lblSlotHead)
         ct.inventory_slots.push(lblSlotHead)
+        this.paperdoll.push(lblSlotHead)
 
-        const lblSlotChest = new ArmorSlot(x, getY(), sz, 38, this)
+        const lblSlotChest = new PaperDollSlot(x, getY(), sz, PAPERDOLL_CHESTPLATE, this)
         ct.add(lblSlotChest)
         ct.inventory_slots.push(lblSlotChest)
+        this.paperdoll.push(lblSlotChest)
 
-        const lblSlotLeggs = new ArmorSlot(x, getY(), sz, 37, this)
+        const lblSlotLeggs = new PaperDollSlot(x, getY(), sz, PAPERDOLL_LEGGINGS, this)
         ct.add(lblSlotLeggs)
         ct.inventory_slots.push(lblSlotLeggs)
+        this.paperdoll.push(lblSlotLeggs)
 
-        const lblSlotBoots = new ArmorSlot(x, getY(), sz, 36, this)
+        const lblSlotBoots = new PaperDollSlot(x, getY(), sz, PAPERDOLL_BOOTS, this)
         ct.add(lblSlotBoots)
         ct.inventory_slots.push(lblSlotBoots)
+        this.paperdoll.push(lblSlotBoots)
+    }
 
-        this.armor_slots = [lblSlotHead, lblSlotChest, lblSlotLeggs, lblSlotBoots]
+    createRightPaperDoll(sz : float) {
+        const ct = this
+        const x = this.lblPlayerBox.x + this.lblPlayerBox.w + UI_THEME.window_padding * this.zoom
 
-        for(const slot of this.armor_slots) {
-            slot.onSetItem = (item) => {
-                this.player.getModel().updateArmor()
-            }
+        let y = 16 * this.zoom
+
+        const getY = () => {
+            const resp = y
+            y += sz + UI_THEME.slot_margin * this.zoom
+            return resp
         }
+        
+        const lblSlotBackPack = new PaperDollSlot(x, getY(), sz, PAPERDOLL_BACKPACK, this)
+        ct.add(lblSlotBackPack)
+        ct.inventory_slots.push(lblSlotBackPack)
+        this.paperdoll.push(lblSlotBackPack)
 
+        const lblSlotToolBelt = new PaperDollSlot(x, getY(), sz, PAPERDOLL_TOOLBELT, this)
+        ct.add(lblSlotToolBelt)
+        ct.inventory_slots.push(lblSlotToolBelt)
+        this.paperdoll.push(lblSlotToolBelt)
+
+        const lblSlotFakeOne = new Label(x, getY(), sz, sz, 'fake_labl_slot_one')
+        lblSlotFakeOne.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
+        ct.add(lblSlotFakeOne)
+
+        const lblSlotFakeTwo = new Label(x, getY(), sz, sz, 'fake_labl_slot_two')
+        lblSlotFakeTwo.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
+        ct.add(lblSlotFakeTwo)
     }
 
 }

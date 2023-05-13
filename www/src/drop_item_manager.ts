@@ -1,15 +1,15 @@
 import {ServerClient} from "./server_client.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
-import { DROP_LIFE_TIME_SECONDS } from "./constant.js";
+import {DROP_LIFE_TIME_SECONDS, PICKUP_OWN_DELAY_SECONDS} from "./constant.js";
 import type { World } from "./world.js";
 import { Vector } from "./helpers.js";
 
 /** Data of one drop item sent to the client. */
 export type DropItemPacket = {
     entity_id   : string
-    items
+    items       : IInventoryItem[]
     pos         : IVector
-    dt          : int       // unixTime()
+    dt          : int       // unixTime() - время создания или последнего важного обновления предмета
     delayUserId ? : int     // id of a user that has pickup delay for this item
 }
 
@@ -45,7 +45,7 @@ export class DropItemManager {
                         });
                         if (cmd.name === ServerClient.CMD_DROP_ITEM_FULL_UPDATE) {
                             drop_item.items = cmd.data.items;
-                            drop_item.dt = cmd.data.dt;
+                            drop_item.deathTime = cmd.data.dt + DROP_LIFE_TIME_SECONDS;
                         }
                     } else {
                         // Drop item not found
@@ -66,8 +66,8 @@ export class DropItemManager {
     add(data: DropItemPacket, time: number) {
         if(data.items[0].id < 1) return;
         const drop_item = new Mesh_Object_Block_Drop(this.#world, null, data.entity_id, data.items, new Vector().copyFrom(data.pos));
-        drop_item.dt = data.delayUserId === Qubatch.player.session.user_id
-            ? data.dt
+        drop_item.minPickupTime = data.delayUserId === Qubatch.player.session.user_id
+            ? data.dt + PICKUP_OWN_DELAY_SECONDS
             : -Infinity
         drop_item.deathTime = data.dt + DROP_LIFE_TIME_SECONDS;
         drop_item.applyNetState({

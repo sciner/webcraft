@@ -326,7 +326,7 @@ export class BLOCK {
             : mat.title;
     }
 
-    static getLightPower(material : IBlockMaterial) : number {
+    static getLightPower(material : IBlockMaterial) : int {
         if (!material) {
             return MASK_SRC_NONE
         }
@@ -343,14 +343,15 @@ export class BLOCK {
         } else if (!material.transparent) {
             val = MASK_SRC_BLOCK
         }
-        return val + (material.visible_for_ao ? MASK_SRC_AO : MASK_SRC_NONE);
+        val += (material.visible_for_ao ? MASK_SRC_AO : MASK_SRC_NONE)
+        return val
     }
 
     /**
      * Returns a new simplified item (for inventory, drop item).
      * For blocks, use {@link convertBlockToDBItem} instead.
      */
-    static convertItemToDBItem(item) : IBlockItem {
+    static convertItemToDBItem(item : any) : IBlockItem {
         if(!item || !('id' in item)) {
             return null;
         }
@@ -480,7 +481,7 @@ export class BLOCK {
     }
 
     // Return new simplified item
-    static convertItemToInventoryItem(item, b, no_copy_extra_data : boolean = false) : IInventoryItem {
+    static convertItemToInventoryItem(item, b?, no_copy_extra_data : boolean = false) : IInventoryItem {
         if(!item || !('id' in item) || item.id < 0) {
             return null;
         }
@@ -687,6 +688,7 @@ export class BLOCK {
         if(this.hasOwnProperty(name)) {
             return this[name]
         }
+        console.log(name)
         console.error('Warning: name missing in BLOCK ' + name);
         return this.DUMMY;
     }
@@ -1032,13 +1034,6 @@ export class BLOCK {
         if(block.planting || block.light_power || block.height || ['fence', 'wall', 'pane', 'ladder'].includes(block.style_name) || block.tags.includes('no_drop_ao')) {
             this.addFlag(BLOCK_FLAG.AO_INVISIBLE, block.id)
         }
-        // Calculate in last time, after all init procedures
-        block.visible_for_ao = BLOCK.visibleForAO(block.id);
-        block.light_power_number = BLOCK.getLightPower(block);
-        block.interact_water = block.tags.includes('interact_water');
-        if(!block.support_style && block.planting) {
-            block.support_style = 'planting';
-        }
         // Append to collections
         if(replace_block) {
             original_props.push('resource_pack');
@@ -1055,24 +1050,6 @@ export class BLOCK {
             this[block.name] = block;
             BLOCK.BLOCK_BY_ID[block.id] = block;
             this.list.set(block.id, block);
-        }
-        // After add works
-        // Add spawn egg
-        if(block.spawn_egg) {
-            BLOCK.addFlag(BLOCK_FLAG.SPAWN_EGG, block.id)
-        }
-        if(block.tags.includes('mask_biome')) {
-            BLOCK.addFlag(BLOCK_FLAG.BIOME, block.id)
-        }
-        if(block.tags.includes('mask_color')) {
-            BLOCK.addFlag(BLOCK_FLAG.COLOR, block.id)
-        }
-        // Parse tags
-        for(let tag of block.tags) {
-            if(!this.BLOCK_BY_TAGS.has(tag)) {
-                this.BLOCK_BY_TAGS.set(tag, new Map());
-            }
-            this.BLOCK_BY_TAGS.get(tag).set(block.id, block);
         }
         // Max block ID
         if(block.id > this.max_id) {
@@ -1564,6 +1541,34 @@ export class BLOCK {
         }
     }
 
+    // Calculate in last time, after all init procedures
+    static calcProps() {
+        for(const block of BLOCK.list.values()) {
+            block.visible_for_ao = BLOCK.visibleForAO(block.id)
+            block.light_power_number = BLOCK.getLightPower(block)
+            block.interact_water = block.tags.includes('interact_water')
+            if(!block.support_style && block.planting) {
+                block.support_style = 'planting'
+            }
+            // Parse tags
+            for(const tag of block.tags) {
+                if(!this.BLOCK_BY_TAGS.has(tag)) {
+                    this.BLOCK_BY_TAGS.set(tag, new Map())
+                }
+                this.BLOCK_BY_TAGS.get(tag).set(block.id, block)
+            }
+            if(block.spawn_egg) {
+                BLOCK.addFlag(BLOCK_FLAG.SPAWN_EGG, block.id)
+            }
+            if(block.tags.includes('mask_biome')) {
+                BLOCK.addFlag(BLOCK_FLAG.BIOME, block.id)
+            }
+            if(block.tags.includes('mask_color')) {
+                BLOCK.addFlag(BLOCK_FLAG.COLOR, block.id)
+            }
+        }
+    }
+
     //
     static sortBlocks() {
         //
@@ -1700,6 +1705,7 @@ export class BLOCK {
         }
 
         await Promise.all(all).then(([block_styles, _]) => {
+            BLOCK.calcProps()
             BLOCK.sortBlocks()
             BLOCK.autoTags()
             BLOCK.addHardcodedFlags()

@@ -21,6 +21,7 @@
         {"name": "mob/npc"},
         {"name": "mob/deer"},
         {"name": "mob/snowball"},
+        {"name": "mob/combat_dummy"},
 
         {"name": "mechanism/cogwheel"},
         {"name": "mechanism/windmill_bearing"},
@@ -105,6 +106,12 @@
         {"name": "sanded_stones"},
         {"name": "small_stones_desert"},
         {"name": "pinecones"},
+        {"name": "raw_titanium"},
+        {"name": "titanium_ingot"},
+        {"name": "titanium_nugget"},
+        {"name": "titanium_ore"},
+        {"name": "poor_titanium_ore"},
+        {"name": "amethyst_cluster"},
 
         {"name": "tool/primitive_axe"},
         {"name": "tool/sunglasses"},
@@ -113,6 +120,13 @@
         {"name": "tool/pickaxe"},
         {"name": "tool/shovel"},
         {"name": "tool/sword"},
+        {"name": "tool/backpack_basic"},
+        {"name": "tool/toolbelt_basic"},
+        {"name": "tool/industrial_axe"},
+        {"name": "tool/industrial_hoe"},
+        {"name": "tool/industrial_pickaxe"},
+        {"name": "tool/industrial_shovel"},
+        {"name": "tool/industrial_sword"},
 
         {"name": "armor/scrap_armor"}
 
@@ -1953,20 +1967,6 @@
                 "model": "poppy"
             }
         },
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
         {
             "id": 606,
             "name": "COPPER_SWORD",
@@ -2008,16 +2008,6 @@
             }
         },
         {
-            "id": 610,
-            "name": "DIAMOND_SWORD",
-            "bb": {
-                "model": "tool/sword",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
             "id": 611,
             "name": "NETHERITE_SWORD",
             "bb": {
@@ -2027,9 +2017,6 @@
                 ]
             }
         },
-
-
-
         {
             "id": 131,
             "name": "COPPER_PICKAXE",
@@ -2072,9 +2059,9 @@
         },
         {
             "id": 555,
-            "name": "DIAMOND_PICKAXE",
+            "name": "TITANIUM_PICKAXE",
             "bb": {
-                "model": "tool/pickaxe",
+                "model": "tool/industrial_pickaxe",
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
@@ -2090,9 +2077,6 @@
                 ]
             }
         },
-
-
-
         {
             "id": 137,
             "name": "COPPER_SHOVEL",
@@ -2134,16 +2118,6 @@
             }
         },
         {
-            "id": 564,
-            "name": "DIAMOND_SHOVEL",
-            "bb": {
-                "model": "tool/shovel",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
             "id": 565,
             "name": "NETHERITE_SHOVEL",
             "bb": {
@@ -2153,9 +2127,6 @@
                 ]
             }
         },
-
-
-    
         {
             "id": 566,
             "name": "COPPER_HOE",
@@ -2197,16 +2168,6 @@
             }
         },
         {
-            "id": 570,
-            "name": "DIAMOND_HOE",
-            "bb": {
-                "model": "tool/hoe",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
             "id": 571,
             "name": "NETHERITE_HOE",
             "bb": {
@@ -2216,9 +2177,6 @@
                 ]
             }
         },
-
-
-                                
         {
             "id": 132,
             "name": "COPPER_AXE",
@@ -2260,16 +2218,6 @@
             }
         },
         {
-            "id": 559,
-            "name": "DIAMOND_AXE",
-            "bb": {
-                "model": "tool/axe",
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
-            }
-        },
-        {
             "id": 560,
             "name": "NETHERITE_AXE",
             "bb": {
@@ -2279,16 +2227,6 @@
                 ]
             }
         },
-
-
-
-
-
-
-
-
-
-
         {
             "id": 798,
             "name": "PRIMITIVE_AXE",
@@ -2518,6 +2456,20 @@
             }
         },
         {
+            "id": 1094,
+            "name": "BACKPACK_BASIC",
+            "bb": {
+                "model": "tool/backpack_basic"
+            }
+        },
+        {
+            "id": 1095,
+            "name": "TOOLBELT_BASIC",
+            "bb": {
+                "model": "tool/toolbelt_basic"
+            }
+        },
+        {
             "id": 14,
             "name": "GOLD_ORE",
             "bb": {
@@ -2538,6 +2490,92 @@
             "bb": {
                 "model": "transport/boat",
                 "import_anyway": true
+            }
+        },
+        {
+            "id": 1104,
+            "name": "RAW_TITANIUM",
+            "bb": {
+                "model": "raw_titanium"
+            }
+        },
+        {
+            "id": 1105,
+            "name": "TITANIUM_NUGGET",
+            "bb": {
+                "model": "titanium_nugget"
+            }
+        },
+        {
+            "id": 1096,
+            "name": "TITANIUM_INGOT",
+            "bb": {
+                "model": "titanium_ingot"
+            }
+        },
+        {
+            "id": 564,
+            "name": "TITANIUM_SHOVEL",
+            "bb": {
+                "model": "tool/industrial_shovel",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 570,
+            "name": "TITANIUM_HOE",
+            "bb": {
+                "model": "tool/industrial_hoe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 559,
+            "name": "TITANIUM_AXE",
+            "bb": {
+                "model": "tool/industrial_axe",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 610,
+            "name": "TITANIUM_SWORD",
+            "bb": {
+                "model": "tool/industrial_sword",
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1097,
+            "name": "TITANIUM_ORE",
+            "bb": {
+                "model": "titanium_ore"
+            }
+        },
+        {
+            "id": 1098,
+            "name": "POOR_TITANIUM_ORE",
+            "bb": {
+                "model": "poor_titanium_ore"
+            }
+        },
+        {
+            "id": 597,
+            "name": "AMETHYST_CLUSTER",
+            "bb": {
+                "model": "amethyst_cluster",
+                "rotate": {"type": "three"},
+                "set_state": [
+                    {"name": "age4"}
+                ]
             }
         },
         {

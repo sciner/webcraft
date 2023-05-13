@@ -604,10 +604,9 @@ export class ServerWorld implements IWorld {
         }]);
         // 7. Write to chat about new player
         this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, Array.from(this.players.keys()));
-        // 8. Drop item if stored
-        if (player.inventory.moveOrDropFromDragSlot()) {
-            player.inventory.markDirty();
-        }
+        // 8. Move or drop items from wrong slots
+        // Это не полный фикс инвентаря. Первая часть фикса - см. при загрузке в DBWorld.registerPlayer()
+        player.inventory.moveOrDropFromInvalidOrTemporarySlots(false)
         // 9. Send CMD_CONNECTED
         const data: PlayerConnectData = {
             session: player.session,

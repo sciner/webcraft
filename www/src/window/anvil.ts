@@ -1,16 +1,17 @@
 import { ItemHelpers } from "../block_helpers.js";
 import { Label, TextEdit } from "../ui/wm.js";
-import { ITEM_LABEL_MAX_LENGTH, UI_THEME } from "../constant.js";
-import { AnvilRecipeManager } from "../recipes_anvil.js";
-import { CraftTableSlot, BaseCraftWindow } from "./base_craft_window.js";
-import { SpriteAtlas } from "../core/sprite_atlas.js";
+import { BAG_LINE_COUNT, ITEM_LABEL_MAX_LENGTH, UI_THEME } from "../constant.js";
+import {AnvilRecipeManager, TAnvilRecipe} from "../recipes_anvil.js";
+import {CraftTableSlot, BaseCraftWindow, TCraftTableSlotContext} from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
 import type { PlayerInventory } from "../player_inventory.js";
+import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH } from "../constant.js";
 
 //
-class AnvilSlot extends CraftTableSlot {
-    [key: string]: any;
+export class AnvilSlot extends CraftTableSlot {
+
+    declare ct: AnvilWindow
 
     constructor(x, y, w, h, id, title, text, ct) {
         super(x, y, w, h, id, title, text, ct, null)
@@ -24,7 +25,7 @@ class AnvilSlot extends CraftTableSlot {
         if (!dragItem) {
             return
         }
-        if (this == ct.result_slot) {
+        if (this == ct.lblResultSlot) {
             ct.useRecipe();
         }
         this.getInventory().setDragItem(this, dragItem, e.drag, this.w, this.h)
@@ -34,7 +35,7 @@ class AnvilSlot extends CraftTableSlot {
 
     onDrop(e : any) {
         const ct = this.ct
-        if (this == ct.result_slot) {
+        if (this == ct.lblResultSlot) {
             return;
         }
         const oldItem = this.getItem();
@@ -57,65 +58,61 @@ class AnvilSlot extends CraftTableSlot {
 //
 export class AnvilWindow extends BaseCraftWindow {
 
+    lbl_edit                    : TextEdit
+    first_slot                  : AnvilSlot
+    second_slot                 : AnvilSlot
+    recipes                     = new AnvilRecipeManager()
+    used_recipes : {
+        recipe_id       : string
+        used_items_keys : string[]
+        count           : [int, int]
+        label           : string
+    }[] = []
+    current_recipe              : TAnvilRecipe | null = null
+    current_recipe_outCount     : [int, int] | null = null
+    current_recipe_label?       : string
+
     constructor(inventory : PlayerInventory) {
-
-        const w = 420
-        const h = 400
-
-        super(0, 0, w, h, 'frmAnvil', null, null, inventory)
+        
+        super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmAnvil', null, null, inventory)
         this.w *= this.zoom
         this.h *= this.zoom
 
-        this.recipes = new AnvilRecipeManager()
-        this.used_recipes = []
-        this.current_recipe = null
-        this.current_recipe_outCount = null
+        // Ширина / высота слота
+        this.cell_size = UI_THEME.window_slot_size * this.zoom
+        this.slot_margin = UI_THEME.slot_margin * this.zoom
+        this.slots_x = UI_THEME.window_padding * this.zoom
+        this.slots_y = 60 * this.zoom
 
-        // Create sprite atlas
-        this.atlas = new SpriteAtlas()
-        this.atlas.fromFile('./media/gui/anvil.png').then(async (atlas : SpriteAtlas) => {
+        this.setBackground('./media/gui/form-quest.png')
 
-            this.setBackground(await atlas.getSprite(0, 0, w * 2, h * 2), 'stretch', this.zoom / 2.0)
+        // Создание слотов для инвентаря
+        const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * BAG_LINE_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
+        this.createInventorySlots(this.cell_size, (this.w / this.zoom) - slots_width, 60, UI_THEME.window_padding, undefined, true)
 
-            // Ширина / высота слота
-            this.cell_size     = UI_THEME.window_slot_size * this.zoom
-            this.slot_margin   = UI_THEME.slot_margin * this.zoom
-            this.slots_x       = UI_THEME.window_padding * this.zoom
-            this.slots_y       = 62 * this.zoom
+        // Создание слотов для крафта
+        this.createCraft(this.cell_size);
 
-            const szm = this.cell_size + this.slot_margin
-            const inventory_y = this.h - szm * 4 - (UI_THEME.window_padding * this.zoom)
+        // Редактор названия предмета
+        this.createEdit()
 
-             // Создание слотов для инвентаря
-            this.createInventorySlots(this.cell_size, undefined, inventory_y / this.zoom)
+        // Add labels to window
+        this.addWindowTitle(Lang.repair)
 
-            // Создание слотов для крафта
-            this.createCraft(this.cell_size);
-
-            // Редактор названия предмета
-            this.createEdit()
-
-            // Add labels to window
-            this.addWindowTitle(Lang.repair)
-
-            // Add close button
-            this.addCloseButton()
-
-        })
+        // Add close button
+        this.addCloseButton()
 
     }
 
     // Обработчик закрытия формы
     onHide() {
-        const thrown_items = this.clearCraft()
-        // Save inventory
-        this.world.server.InventoryNewState({
-            state: this.inventory.exportItems(),
+        this.inventory.sendStateChange({
             used_recipes: this.used_recipes,
             recipe_manager_type: 'anvil',
-            thrown_items
+            thrown_items: this.clearCraft()
         })
         this.used_recipes = []
+        this.refresh()
     }
 
     // Обработчик открытия формы
@@ -129,7 +126,7 @@ export class AnvilWindow extends BaseCraftWindow {
         this.lbl_edit.paste(str)
     }
 
-    async createEdit() {
+    private createEdit() {
         this.lbl_edit = new TextEdit(118 * this.zoom, 62.5 * this.zoom, 220 * this.zoom, 32 * this.zoom, 'lbl_edit', null, 'Hello, World!')
         this.lbl_edit.word_wrap          = false
         this.lbl_edit.max_length         = ITEM_LABEL_MAX_LENGTH
@@ -139,19 +136,34 @@ export class AnvilWindow extends BaseCraftWindow {
         this.lbl_edit.style.textAlign.vertical = 'middle'
         this.lbl_edit.onChange = this.updateResult.bind(this)
         this.add(this.lbl_edit)
+
+        // Тексовая метка
+        const lbl = new Label(20 * this.zoom, this.lbl_edit.y + 10, 100 * this.zoom, 30 * this.zoom, 'lblName', null, Lang['item_name'])
+        lbl.style.font.color = UI_THEME.label_text_color
+        this.add(lbl)
     }
 
-    createCraft(cell_size) {
-        this.craft = {
-            slots: [null, null]
-        };
-        const y = 91 + 22.5
+    private createCraft(cell_size: number) {
+        const y = 91 + 27.5
         this.first_slot = new AnvilSlot(52 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilFirstSlot', null, null, this);
-        this.second_slot = new AnvilSlot(150 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilSecondSlot', null, null, this);
-        this.result_slot = new AnvilSlot(266 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilResultSlot', null, null, this);
-        this.add(this.craft.slots[0] = this.first_slot);
-        this.add(this.craft.slots[1] = this.second_slot);
-        this.add(this.lblResultSlot = this.result_slot);
+        this.second_slot = new AnvilSlot(158 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilSecondSlot', null, null, this);
+        this.lblResultSlot = new AnvilSlot(266 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilResultSlot', null, null, this);
+        this.add(this.first_slot);
+        this.add(this.second_slot);
+        this.add(this.lblResultSlot);
+        this.craft = {
+            slots: [this.first_slot, this.second_slot]
+        };
+
+        // Добавить текстовые метки к слотам
+        const sy = y - 15
+        const lblPlus  = new Label(107 * this.zoom, sy * this.zoom, 20 * this.zoom, 30 * this.zoom, 'lblPlus', null, '+')
+        const lblEqual = new Label(215 * this.zoom, sy * this.zoom, 20 * this.zoom, 30 * this.zoom, 'lblEqual', null, '=')
+        for(let lbl of [lblPlus, lblEqual]) {
+            lbl.style.font.color = UI_THEME.label_text_color
+            lbl.style.font.size = 48
+            this.add(lbl)
+        }
     }
 
     updateResult() {
@@ -160,7 +172,7 @@ export class AnvilWindow extends BaseCraftWindow {
             if(this.lbl_edit.text != '') {
                 this.lbl_edit.text = ''
             }
-            this.result_slot.setItem(null)
+            this.lblResultSlot.setItem(null)
             return
         }
         const second_item = this.second_slot.getItem()
@@ -174,9 +186,9 @@ export class AnvilWindow extends BaseCraftWindow {
             // It must be checked here, not in the recipes, because it depeends on the user's locale.
             label = null;
         }
-        const outCount = [];
+        const outCount: [int, int] = [0, 0]
         const found = this.recipes.findRecipeAndResult(first_item, second_item, label, outCount);
-        this.result_slot.setItem(found?.result);
+        this.lblResultSlot.setItem(found?.result);
         if (found) {
             this.current_recipe = found.recipe;
             this.current_recipe_outCount = outCount;

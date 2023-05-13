@@ -1,31 +1,34 @@
 import {MOTION_MOVED, MOTION_JUST_STOPPED, MOTION_STAYED, DropItem} from "./drop_item.js";
 import {CHUNK_STATE} from "@client/chunk_const.js"
-
 import {ServerClient} from "@client/server_client.js";
 import { unixTime } from "@client/helpers.js";
 import {DROP_LIFE_TIME_SECONDS} from "@client/constant.js";
 import {ITEM_MERGE_RADIUS, IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB} from "./server_constant.js";
 import type { ServerChunk } from "./server_chunk.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
+import {InventoryComparator} from "@client/inventory_comparator.js";
+import type {BLOCK} from "@client/blocks.js";
+import type {ServerChunkManager} from "./server_chunk_manager.js";
+import type {ServerWorld} from "./server_world.js";
 
 
 export class ItemWorld {
 
     // temporary collections
-    #mergeableItems = [];
-    #nonPendingItems = [];
-    chunkManager: any;
-    world: any;
-    chunksItemMergingQueue: Set<ServerChunk>;
-    all_drop_items: Map<any, any>;
-    deletedEntityIds: any[];
+    #mergeableItems     : DropItem[] = []
+    #nonPendingItems    : DropItem[] = []
+
+    chunkManager        : ServerChunkManager
+    world               : ServerWorld
+    chunksItemMergingQueue = new Set<ServerChunk>()
+    all_drop_items      = new Map<string, DropItem>() // by entity_id. Maybe make it by Id to increase performance?
+    deletedEntityIds    : string[] = []
+    bm                  : typeof BLOCK
 
     constructor(chunkManager) {
         this.chunkManager = chunkManager;
         this.world = chunkManager.world;
-        this.chunksItemMergingQueue = new Set();
-        this.all_drop_items = new Map(); // by entity_id. Maybe make it by Id to increase performance?
-        this.deletedEntityIds = [];
+        this.bm = this.world.block_manager
     }
 
     /**
@@ -65,7 +68,7 @@ export class ItemWorld {
         this.chunksItemMergingQueue.clear();
     }
 
-    #mergeItems(chunk) {
+    #mergeItems(chunk: ServerChunk): void {
         this.#mergeableItems.length = 0;
         this.#nonPendingItems.length = 0;
         /* The first pendingLength items of mergeableItems are from the current chunk
@@ -114,12 +117,20 @@ export class ItemWorld {
                         continue;
                     }
                 }
+
                 // here we know that dropItemA.items.length == 1
-                let itemId = dropItemA.items[0].id;
+                const dropItemA0 = dropItemA.items[0]
+                const max_stack = this.bm.getItemMaxStack(dropItemA0)
+                if (dropItemA0.count >= max_stack) {
+                    ++dropItemJ
+                    continue
+                }
 
                 var indexB = -1;
                 for(let i=0; i<dropItemB.items.length; ++i) {
-                    if(dropItemB.items[i].id === itemId) {
+                    if (InventoryComparator.itemsEqualExceptCount(dropItemB.items[i], dropItemA0) &&
+                        dropItemB.items[i].count + dropItemA0.count <= max_stack
+                    ) {
                         indexB = i;
                         break;
                     }
@@ -150,7 +161,7 @@ export class ItemWorld {
 
                 // increment dropItemB count
                 dropItemB.items[indexB].count += dropItemA.items[0].count;
-                dropItemB.dt = Math.max(dropItemB.dt, dropItemA.dt); // renvew the item age, so it won't disappear soon
+                dropItemB.dt = Math.max(dropItemB.dt, dropItemA.dt); // renew the item age, so it won't disappear soon
                 dropItemB.markDirty(DropItem.DIRTY_UPDATE);
                 const packetsB = [{
                     name: ServerClient.CMD_DROP_ITEM_FULL_UPDATE,
@@ -190,7 +201,7 @@ export class ItemWorld {
             item.writeToWorldTransaction(underConstruction);
         }
         underConstruction.pushPromises(
-            this.world.db.bulkDeleteDropItems(this.deletedEntityIds, underConstruction.dt)
+            this.world.db.bulkDeleteDropItems(this.deletedEntityIds)
         );
         this.deletedEntityIds = [];
     }

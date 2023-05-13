@@ -661,12 +661,29 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
     }
     
-    makeSimplifiedCell(xz : Vector) : ISImplifiedCell {
-        return {
-            river_point:  this.makeRiverPoint(xz),
-            canyon_point: this.makeCanyonPoint(xz),
-            preset:       this.getPreset(xz)
+    makeSimplifiedCell(xz : Vector) : SimplifiedCell {
+        return new SimplifiedCell(xz, this)
+    }
+
+}
+
+export class SimplifiedCell implements ISImplifiedCell {
+    river_point: RiverPoint | null
+    canyon_point : float
+    preset: MapCellPresetResult
+
+    constructor(xz : Vector, map_manager: TerrainMapManager3) {
+        this.river_point = map_manager.makeRiverPoint(xz)
+        this.canyon_point = map_manager.makeCanyonPoint(xz)
+        this.preset = map_manager.getPreset(xz)
+    }
+
+    inCanyon(density : float) : boolean {
+        const cp = this.canyon_point
+        if(cp == undefined) {
+            return false
         }
+        return cp > -density && cp < density
     }
 
 }

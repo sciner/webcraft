@@ -4,8 +4,7 @@ import { Resources } from "./resources.js";
 
 import { Effect } from "./block_type/effect.js";
 import { CraftTableInventorySlot } from "./window/base_craft_window.js";
-import { INVENTORY_HOTBAR_SLOT_COUNT, PLAYER_ARMOR_SLOT_BOOTS, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_HELMET, PLAYER_ARMOR_SLOT_LEGGINGS } from "./constant.js";
-import type { Inventory } from "./inventory.js";
+import { BAG_LINE_COUNT, HOTBAR_LENGTH_MAX, PAPERDOLL_BOOTS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, PAPERDOLL_LEGGINGS } from "./constant.js";
 import type { SpriteAtlas } from "./core/sprite_atlas.js";
 import type { HUD } from "./hud.js";
 import type { PlayerInventory } from "./player_inventory.js";
@@ -264,25 +263,25 @@ export class Hotbar {
         armor_base_window.auto_center = false
         armor_base_window.setBackground(armor_base_sprite)
         this.armors = {}
-        this.armors[PLAYER_ARMOR_SLOT_HELMET]     = new Label(8.5 * this.zoom, 0, 47 * sprite_zoom, 38 * sprite_zoom, 'armor_helmet')
-        this.armors[PLAYER_ARMOR_SLOT_CHESTPLATE] = new Label(0, 12 * this.zoom, 104 * sprite_zoom, 71 * sprite_zoom, 'armor_chestplate')
-        this.armors[PLAYER_ARMOR_SLOT_LEGGINGS]   = new Label(7.5 * this.zoom, 33 * this.zoom, 53 * sprite_zoom, 62 * sprite_zoom, 'armor_leggins')
-        this.armors[PLAYER_ARMOR_SLOT_BOOTS]      = new Label(7.5 * this.zoom, 52 * this.zoom, 53 * sprite_zoom, 26 * sprite_zoom, 'armor_boots')
+        this.armors[PAPERDOLL_HELMET]     = new Label(8.5 * this.zoom, 0, 47 * sprite_zoom, 38 * sprite_zoom, 'armor_helmet')
+        this.armors[PAPERDOLL_CHESTPLATE] = new Label(0, 12 * this.zoom, 104 * sprite_zoom, 71 * sprite_zoom, 'armor_chestplate')
+        this.armors[PAPERDOLL_LEGGINGS]   = new Label(7.5 * this.zoom, 33 * this.zoom, 53 * sprite_zoom, 62 * sprite_zoom, 'armor_leggins')
+        this.armors[PAPERDOLL_BOOTS]   = new Label(7.5 * this.zoom, 52 * this.zoom, 53 * sprite_zoom, 26 * sprite_zoom, 'armor_boots')
         for(let k in this.armors) {
             armor_base_window.add(this.armors[k])
         }
         this.hud.wm.addChild(armor_base_window)
 
-        const inventory_slots_window = this.inventory_slots_window = new Window(bars_base_window.x + bars_base_window.w + MARGIN * this.zoom, 0, INVENTORY_HOTBAR_SLOT_COUNT * (sz * SLOT_MARGIN_PERCENT) - (sz * SLOT_MARGIN_PERCENT - sz), sz, 'hotbar_inventory_slots')
+        const inventory_slots_window = this.inventory_slots_window = new Window(bars_base_window.x + bars_base_window.w + MARGIN * this.zoom, 0, BAG_LINE_COUNT * (sz * SLOT_MARGIN_PERCENT) - (sz * SLOT_MARGIN_PERCENT - sz), sz, 'hotbar_inventory_slots')
         inventory_slots_window.auto_center = false
         inventory_slots_window.catchEvents = false
         inventory_slots_window.slots = []
 
-        for(let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+        for(let i = 0; i < HOTBAR_LENGTH_MAX; i++) {
             const lblSlot = new CraftTableInventorySlot(i * (sz * SLOT_MARGIN_PERCENT), 0, sz, sz, `lblSlot${i}`, null, null, this, i)
             lblSlot.slot_empty  = 'slot_empty'
             lblSlot.slot_full   = 'slot_full'
-            lblSlot.slot_locked = 'slot_empty'
+            lblSlot.slot_locked = 'none'
             lblSlot.style.background.color = '#00000000'
             lblSlot.style.border.hidden = true
             inventory_slots_window.add(lblSlot)
@@ -441,7 +440,7 @@ export class Hotbar {
                 }
             }
 
-            for(const slot_index of [PLAYER_ARMOR_SLOT_BOOTS, PLAYER_ARMOR_SLOT_LEGGINGS, PLAYER_ARMOR_SLOT_CHESTPLATE, PLAYER_ARMOR_SLOT_HELMET]) {
+            for(const slot_index of [PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET]) {
                 const slot = this.armors[slot_index]
                 if (slot) {
                     const power = this.inventory.getArmorPower(slot_index)
@@ -465,7 +464,8 @@ export class Hotbar {
         // хотбар и селектор
         const sx = this.sx
         const sy = this.sy
-        for (let i = 0; i < INVENTORY_HOTBAR_SLOT_COUNT; i++) {
+        const size = this.inventory.getSize()
+        for (let i = 0; i < HOTBAR_LENGTH_MAX; i++) {
             const x = this.inventory_slots_window.x + i * (sx * SLOT_MARGIN_PERCENT)
             const y = this.inventory_slots_window.y
             // item
@@ -475,6 +475,7 @@ export class Hotbar {
             if (i == this.inventory.getRightIndex()) {
                 this.tilemap.drawImage(this.hud_sprites.slot_selection, x, y)
             }
+            this.inventory_slots_window.slots[i].locked = !size.slotExists(i)
         }
 
         if(hotbar_height == 0) {

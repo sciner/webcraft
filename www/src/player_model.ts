@@ -348,7 +348,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
     setProps(pos: IVector | null, rotate: IVector | null, sneak: boolean, running: boolean,
         hands: PlayerHands, sitting: false | TSittingState,
-        sleep: false | TSleepState, anim : false | TAnimState, health?: number, on_ground: boolean = true): void {
+        sleep: false | TSleepState, anim : false | TAnimState, attack: false | TAnimState, fire: boolean, health?: number, on_ground: boolean = true): void {
         if (pos) {
             this.pos = pos
         }
@@ -361,6 +361,8 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.running = running;
         this.sitting = sitting;
         this.anim = anim
+        this.attack = attack
+        this.fire = fire
         this.sleep = sleep
         this.ground = on_ground
         this.health = health

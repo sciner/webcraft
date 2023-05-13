@@ -85,13 +85,15 @@ export class GradientGraphics {
 export class Window extends PIXI.Container {
     [key: string]: any;
 
+    declare zoom:           number
+    declare x:              number
+    declare y:              number
+    declare z:              number
     #_tooltip:              any = null
     #_bgicon:               any = null
     #_wmclip:               any = null
     style:                  Style
     draggable:              boolean = false
-
-    canBeOpenedWith = [] // allows this window to be opened even if some other windows are opened
 
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
 
@@ -105,7 +107,7 @@ export class Window extends PIXI.Container {
         this._h = 0
         this.interactiveChildren = true
 
-        // List of childs
+        // List of children
         this.list = {
             values: () => {
                 const resp = []
@@ -597,11 +599,6 @@ export class Window extends PIXI.Container {
     }
 
     show(args?) {
-        // for(let w of wmGlobal.visibleWindows()) {
-        //     if (!this.canBeOpenedWith.includes(w.id) && !(w?.canBeOpenedWith?.includes(this.id) ?? false)) {
-        //         return
-        //     }
-        // }
         this.visible = true
         this.resetHover()
         this.onShow(args)
@@ -1278,7 +1275,8 @@ class Tooltip extends Label {
 
 export class SimpleBlockSlot extends Window {
 
-    bar :       Label           = null
+    #locked   : boolean         = false
+    bar       : Label           = null
     bar_value : Label           = null
     hud_atlas : SpriteAtlas     = null
 
@@ -1367,6 +1365,14 @@ export class SimpleBlockSlot extends Window {
 
         let label = null
 
+        if (this.locked) {
+            this.setIcon(null)
+            this.bar.visible = false
+            this.text = null
+            this.setBackground( this.slot_locked == 'none' ? null : hud_atlas.getSpriteFromMap(this.slot_locked))
+            return true
+        }
+
         // draw count && instrument livebar
         if(item) {
 
@@ -1407,6 +1413,16 @@ export class SimpleBlockSlot extends Window {
 
     }
 
+    set locked(val: boolean) {
+        if (val !== this.#locked) {
+            this.#locked = val
+            this.refresh()
+        }
+    }
+
+    get locked() {
+        return this.#locked
+    }
 }
 
 //
@@ -1742,6 +1758,13 @@ export class ToggleButton extends Button {
 
     onMouseLeave() {
         super.onMouseEnter()
+        this.style.background.color = this.toggled ? this.toggled_bgcolor : this.untoggled_bgcolor
+        this.style.font.color = this.toggled ? this.toggled_font_color : this.untoggled_font_color
+    }
+
+    onMouseDown(e) {
+        super.onMouseDown()
+        this.toggled = (this.toggled) ? false : true
         this.style.background.color = this.toggled ? this.toggled_bgcolor : this.untoggled_bgcolor
         this.style.font.color = this.toggled ? this.toggled_font_color : this.untoggled_font_color
     }
