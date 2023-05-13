@@ -37,7 +37,16 @@ export type TDrivingConfig = {
      */
     sound ?         : {tag: string, action: string} | null
 
-    driverAnimation?: string
+    vehicleAnimation?: {
+        rotateLeft?: string     // анимация когда транспорт поворачивается влево на месте
+        rotateRight?: string
+        idleNotEmpty?: string   // idle анимация транспорта, если на нем кто-то есть. Если никого нет - то просто idle.
+    }
+
+    driverAnimation?: {
+        idle?: string    // анимация водителя без движения
+        moving?: string  // анимация водителя при движении
+    }
 
     /**
      * Если true, то то угол поворота контролируется стрелками с заданной скоростью/ускорением.
@@ -252,6 +261,16 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
                 return false
             }
         }
+        return true
+    }
+
+    hasDriverOrPassenger(): boolean {
+        const state = this.state
+        for(let place = DrivingPlace.DRIVER; place < state.mobIds.length; place++) {
+            if (state.playerIds[place] || state.mobIds[place]) {
+                return true
+            }
+        }
         return false
     }
 
@@ -274,10 +293,18 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
         return actionId
     }
 
+    /**
+     * @return если достаточно данных чтобы вождение в настощий момент задавало позицию зависимым моделям,
+     *   то тот же результат, что {@link getPositionProvider}. Иначе - null.
+     */
+    providesPosition(): MobModel | Player | null {
+        return this.physicsInitialized ? this.getPositionProvider() : null
+    }
+
     /** Обновляет позицию и угол в кажде зависимых учатников движения */
     applyInterpolatedStateToDependentParticipants(): void {
-        const positionProvider = this.getPositionProvider()
-        if (positionProvider == null || !this.physicsInitialized) {
+        const positionProvider = this.providesPosition()
+        if (!positionProvider) {
             return // неоткуда брать достоверные данные
         }
         for(let place = 0; place < this.models.length; place++) {
@@ -285,11 +312,17 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
             if (model && model !== positionProvider) {
                 const tmpVec = tmpVec_applyInterpolatedStateToDependentParticipants
                 this.copyPosWithOffset(tmpVec, place, this.interpolatedYaw, this.interpolatedPos)
+
+                /* TODO вращение головы
+
                 // Определить угол модели. Если это модель моего игрока, то взять угол из моего игрока.
                 let yaw = place === this.myPlayerPlace
                     ? this.myPlayer.rotate.z
                     : this.interpolatedYaw
                 model.forceLocalUpdate(tmpVec, yaw)
+                */
+
+                model.forceLocalUpdate(tmpVec, this.interpolatedYaw)
             }
         }
         if (this.myPlayerPlace != null && this.myPlayerPlace !== DrivingPlace.DRIVER) {

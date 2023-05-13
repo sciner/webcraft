@@ -83,17 +83,21 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
     }
 
     /**
-     * Должен быть выгружен (но не удален) если:
-     * 1. {@link TDrivingConfig.unloads} == true
-     * 2. Не несохраненных изменений в БД.
-     * 3. Числится как минимум 1 игрок, но все игроки-участники отсутствуют.
+     * Обязательное условие -  не несохраненных изменений в БД.
+     * Далее возможны :
+     * Должен быть выгружен (но не удален) в 2 случаях:
+     * 1. Если этот тип моба выгружается вместе с игроком. {@link TDrivingConfig.unloads} == true
+     *   и числится как минимум 1 игрок, но все игроки-участники отсутствуют.
+     * 2. Если выгрузились все участники (видимо выгрузился чанк)
      * Тогда оно будет загружено снова при появлении любого из этих игроков.
      * Есть ли мобы - не важно. Если они есть, деактивировать их.
      */
     shouldUnload(): boolean {
-        return this.config.unloads && !this.dbDirty &&
-            this.state.playerIds.some(it => it != null) &&
-            this.players.every(it => it == null)
+        if (this.dbDirty || this.players.some(it => it != null)) {
+            return false
+        }
+        return this.config.unloads && this.state.playerIds.some(it => it != null) // выгружается вместе с ушедшимими игроками
+            || this.mobs.every(it => it == null) // выгружается потому что выгрузились все мобы (и наверное весь чанк)
     }
     
     tick(): void {

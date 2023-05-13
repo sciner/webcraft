@@ -343,12 +343,16 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.swingProgress = this.swingProgressInt / asa;
     }
 
-    setProps(pos: Vector, rotate: Vector, sneak: boolean, running: boolean,
+    setProps(pos: IVector | null, rotate: IVector | null, sneak: boolean, running: boolean,
         hands: PlayerHands, sitting: false | TSittingState,
         sleep: false | TSleepState, anim : false | TAnimState, health?: number, on_ground: boolean = true): void {
-        this.pos = pos
-        this.yaw = rotate.z; // around
-        this.pitch = rotate.x; // head rotate
+        if (pos) {
+            this.pos = pos
+        }
+        if (rotate) {
+            this.yaw = rotate.z; // around
+            this.pitch = rotate.x; // head rotate
+        }
         this.sneak = sneak;
         //this.moving = moving;
         this.running = running;

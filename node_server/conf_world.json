@@ -170,6 +170,15 @@
                 "offsets": [
                     { "x": 0, "y": 0.2, "z": 0.5 }
                 ],
+                "vehicleAnimation": {
+                    "rotateLeft": "walk",
+                    "rotateRight": "walk",
+                    "idleNotEmpty": "raft_idle"
+                },
+                "driverAnimation": {
+                    "idle": "raft_idle",
+                    "moving": "raft_move"
+                },
                 "useAngularSpeed": true,
                 "maxYawDelta": 1.6
             },

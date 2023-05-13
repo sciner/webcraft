@@ -135,8 +135,8 @@ export class MobModel extends NetworkPhysicObject {
      */
     processNetState(): void {
         const driving = this.driving
-        if (driving) {
-            const positionProvider = driving.getPositionProvider()
+        const positionProvider = driving?.providesPosition()
+        if (positionProvider) {
             if (positionProvider === this) {
                 // обработать новую позицию, и применить ее ко всем участникам движения
                 super.processNetState()
@@ -342,8 +342,13 @@ export class MobModel extends NetworkPhysicObject {
             mesh.setAnimation('sleep')
         } else {
             mesh.rotation[2] = this.draw_yaw ?? 0
-            if (this.driving && this !== this.driving.getVehicleModel()) {
-                mesh.setAnimation(this.driving.config.driverAnimation ?? 'sitting')
+            const driving = this.driving
+            if (driving && this !== driving.getVehicleModel()) { // если водитель
+                let anim = driving.config.driverAnimation?.idle ?? 'sitting'
+                if (this.moving) {
+                    anim = driving.config.driverAnimation?.moving ?? anim
+                }
+                mesh.setAnimation(anim)
             } else if (this.sitting) {
                 mesh.setAnimation('sitting')
             } else if (!this.ground) {
@@ -360,8 +365,20 @@ export class MobModel extends NetworkPhysicObject {
                 mesh.setAnimation('sneak_idle')
             } else if (this.anim) {
                 mesh.setAnimation(this.anim.title)
-            } else {
-                mesh.setAnimation('idle')
+            } else { // idle
+                let anim: string | null = null
+                if (driving && this === driving.getVehicleModel()) { // если это транспорт
+                    const vehicleAnimation = driving.config.vehicleAnimation
+                    if (this.rotationSign === 1) {
+                        anim = vehicleAnimation?.rotateLeft
+                    } else if (this.rotationSign === -1) {
+                        anim = vehicleAnimation?.rotateRight
+                    }
+                    if (driving.hasDriverOrPassenger()) {
+                        anim ??= vehicleAnimation?.idleNotEmpty
+                    }
+                }
+                mesh.setAnimation(anim ?? 'idle')
             }
         }
     }
