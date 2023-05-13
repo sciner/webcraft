@@ -1,7 +1,7 @@
 // RenderSystems
 import { GpuBatchAdaptor } from '../../batcher/gpu/GpuBatchAdaptor.js';
 import { GpuFilterAdapter } from '../../filters/gpu/GpuFilterAdapter.js';
-import { GpuGraphicsAdaptor } from '../../graphics/gpu/GpuGraphicsAdaptor.js';
+// import { GpuGraphicsAdaptor } from '../../graphics/gpu/GpuGraphicsAdaptor.js';
 import { GpuScissorMaskPipe } from '../../mask/gpu/GpuScissorMaskPipe.js';
 import { GpuMeshAdapter } from '../../mesh/gpu/GpuMeshAdapter.js';
 import { UniformBatchPipe } from '../shared/instructions/UniformBatchPipe.js';
@@ -64,6 +64,6 @@ export const WebGPUSystemsExtensions = [
     // Adapters
     GpuBatchAdaptor,
     GpuMeshAdapter,
-    GpuGraphicsAdaptor,
+    // GpuGraphicsAdaptor,
     GpuFilterAdapter,
 ];

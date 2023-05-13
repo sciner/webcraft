@@ -65,7 +65,7 @@ export class BindGroup
         this.dirty = true;
     }
 
-    getResource(index: number): void
+    getResource(index: number): BindResource
     {
         return this.resources[index];
     }

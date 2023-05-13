@@ -303,4 +303,8 @@ export class GpuRenderTargetSystem implements ISystem
     {
         this.bind(this.rootRenderTarget, false);
     }
+
+    destroy() {
+
+    }
 }

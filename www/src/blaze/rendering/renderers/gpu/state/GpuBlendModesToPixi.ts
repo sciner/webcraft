@@ -121,109 +121,109 @@ GpuBlendModesToPixi[BLEND_MODES.SCREEN_NPM] = {
 };
 
 // composite operations
-GpuBlendModesToPixi[BLEND_MODES.SRC_IN] = {
-    alpha: {
-        srcFactor: 'src-alpha',
-        dstFactor: 'one-minus-src-alpha',
-        operation: 'add',
-    },
-    color: {
-        srcFactor: 'dst-alpha',
-        dstFactor: 'zero',
-        operation: 'add',
-    },
-};
-
-GpuBlendModesToPixi[BLEND_MODES.SRC_OUT] = {
-    alpha: {
-        srcFactor: 'src-alpha',
-        dstFactor: 'one-minus-src-alpha',
-        operation: 'add',
-    },
-    color: {
-        srcFactor: 'one-minus-dst-alpha',
-        dstFactor: 'zero',
-        operation: 'add',
-    },
-};
-
-GpuBlendModesToPixi[BLEND_MODES.SRC_ATOP] = {
-    alpha: {
-        srcFactor: 'src-alpha',
-        dstFactor: 'one-minus-src-alpha',
-        operation: 'add',
-    },
-    color: {
-        srcFactor: 'dst-alpha',
-        dstFactor: 'one-minus-src-alpha',
-        operation: 'add',
-    },
-};
-
-GpuBlendModesToPixi[BLEND_MODES.DST_OVER] = {
-    alpha: {
-        srcFactor: 'src-alpha',
-        dstFactor: 'one-minus-src-alpha',
-        operation: 'add',
-    },
-    color: {
-        srcFactor: 'one-minus-dst-alpha',
-        dstFactor: 'one',
-        operation: 'add',
-    },
-};
-
-GpuBlendModesToPixi[BLEND_MODES.DST_IN] = {
-    alpha: {
-        srcFactor: 'src-alpha',
-        dstFactor: 'one-minus-src-alpha',
-        operation: 'add',
-    },
-    color: {
-        srcFactor: 'zero',
-        dstFactor: 'src-alpha',
-        operation: 'add',
-    },
-};
-
-GpuBlendModesToPixi[BLEND_MODES.DST_OUT] = {
-    alpha: {
-        srcFactor: 'src-alpha',
-        dstFactor: 'one-minus-src-alpha',
-        operation: 'add',
-    },
-    color: {
-        srcFactor: 'zero',
-        dstFactor: 'one-minus-src-alpha',
-        operation: 'add',
-    },
-};
-
-GpuBlendModesToPixi[BLEND_MODES.DST_ATOP] = {
-    alpha: {
-        srcFactor: 'src-alpha',
-        dstFactor: 'one-minus-src-alpha',
-        operation: 'add',
-    },
-    color: {
-        srcFactor: 'one-minus-dst-alpha',
-        dstFactor: 'src-alpha',
-        operation: 'add',
-    },
-};
-
-GpuBlendModesToPixi[BLEND_MODES.XOR] = {
-    alpha: {
-        srcFactor: 'src-alpha',
-        dstFactor: 'one-minus-src-alpha',
-        operation: 'add',
-    },
-    color: {
-        srcFactor: 'one-minus-dst-alpha',
-        dstFactor: 'one-minus-src-alpha',
-        operation: 'add',
-    },
-};
+// GpuBlendModesToPixi[BLEND_MODES.SRC_IN] = {
+//     alpha: {
+//         srcFactor: 'src-alpha',
+//         dstFactor: 'one-minus-src-alpha',
+//         operation: 'add',
+//     },
+//     color: {
+//         srcFactor: 'dst-alpha',
+//         dstFactor: 'zero',
+//         operation: 'add',
+//     },
+// };
+//
+// GpuBlendModesToPixi[BLEND_MODES.SRC_OUT] = {
+//     alpha: {
+//         srcFactor: 'src-alpha',
+//         dstFactor: 'one-minus-src-alpha',
+//         operation: 'add',
+//     },
+//     color: {
+//         srcFactor: 'one-minus-dst-alpha',
+//         dstFactor: 'zero',
+//         operation: 'add',
+//     },
+// };
+//
+// GpuBlendModesToPixi[BLEND_MODES.SRC_ATOP] = {
+//     alpha: {
+//         srcFactor: 'src-alpha',
+//         dstFactor: 'one-minus-src-alpha',
+//         operation: 'add',
+//     },
+//     color: {
+//         srcFactor: 'dst-alpha',
+//         dstFactor: 'one-minus-src-alpha',
+//         operation: 'add',
+//     },
+// };
+//
+// GpuBlendModesToPixi[BLEND_MODES.DST_OVER] = {
+//     alpha: {
+//         srcFactor: 'src-alpha',
+//         dstFactor: 'one-minus-src-alpha',
+//         operation: 'add',
+//     },
+//     color: {
+//         srcFactor: 'one-minus-dst-alpha',
+//         dstFactor: 'one',
+//         operation: 'add',
+//     },
+// };
+//
+// GpuBlendModesToPixi[BLEND_MODES.DST_IN] = {
+//     alpha: {
+//         srcFactor: 'src-alpha',
+//         dstFactor: 'one-minus-src-alpha',
+//         operation: 'add',
+//     },
+//     color: {
+//         srcFactor: 'zero',
+//         dstFactor: 'src-alpha',
+//         operation: 'add',
+//     },
+// };
+//
+// GpuBlendModesToPixi[BLEND_MODES.DST_OUT] = {
+//     alpha: {
+//         srcFactor: 'src-alpha',
+//         dstFactor: 'one-minus-src-alpha',
+//         operation: 'add',
+//     },
+//     color: {
+//         srcFactor: 'zero',
+//         dstFactor: 'one-minus-src-alpha',
+//         operation: 'add',
+//     },
+// };
+//
+// GpuBlendModesToPixi[BLEND_MODES.DST_ATOP] = {
+//     alpha: {
+//         srcFactor: 'src-alpha',
+//         dstFactor: 'one-minus-src-alpha',
+//         operation: 'add',
+//     },
+//     color: {
+//         srcFactor: 'one-minus-dst-alpha',
+//         dstFactor: 'src-alpha',
+//         operation: 'add',
+//     },
+// };
+//
+// GpuBlendModesToPixi[BLEND_MODES.XOR] = {
+//     alpha: {
+//         srcFactor: 'src-alpha',
+//         dstFactor: 'one-minus-src-alpha',
+//         operation: 'add',
+//     },
+//     color: {
+//         srcFactor: 'one-minus-dst-alpha',
+//         dstFactor: 'one-minus-src-alpha',
+//         operation: 'add',
+//     },
+// };
 
 // TODO - fix me
 // GLBlendModesToPixi[BLEND_MODES.SUBTRACT] = {

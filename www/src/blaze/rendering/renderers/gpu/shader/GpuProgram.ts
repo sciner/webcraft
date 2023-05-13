@@ -4,6 +4,7 @@ import { generateLayoutHash } from './generateLayoutHash.js';
 
 import type { ProgramLayout, ProgramPipelineLayoutDescription } from '../../gl/shader/GlProgram.js';
 import type { StructsAndGroups } from './extractStructAndGroups.js';
+export type { ProgramLayout, ProgramPipelineLayoutDescription };
 
 export interface ProgramSource
 {

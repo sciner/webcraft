@@ -13,6 +13,7 @@ import type { GpuRenderTarget } from './renderTarget/GpuRenderTarget.js';
 import type { BindGroup } from './shader/BindGroup.js';
 import type { GpuProgram } from './shader/GpuProgram.js';
 import type { WebGPURenderer } from './WebGPURenderer.js';
+import type { UniformGroup } from '../shared/shader/UniformGroup.js';
 import type { Buffer } from '../shared/buffer/Buffer.js';
 
 export class GpuEncoderSystem implements ISystem
@@ -71,7 +72,7 @@ export class GpuEncoderSystem implements ISystem
 
         this.clearCache();
 
-        this.renderPassEncoder = this.commandEncoder.beginRenderPass(gpuRenderTarget.descriptor);
+        this.renderPassEncoder = this.commandEncoder.beginRenderPass(gpuRenderTarget.descriptor as GPURenderPassDescriptor);
 
         this.setViewport(renderTarget.viewport);
     }
@@ -187,7 +188,7 @@ export class GpuEncoderSystem implements ISystem
                 this.syncBindGroup(bindGroup);
             }
 
-            this.setBindGroup(i, bindGroup, shader.gpuProgram);
+            this.setBindGroup(+i, bindGroup, shader.gpuProgram);
         }
     }
 
@@ -197,9 +198,9 @@ export class GpuEncoderSystem implements ISystem
         {
             const resource = bindGroup.resources[j];
 
-            if (resource.group)
+            if ((resource as UniformGroup).group)
             {
-                this.renderer.uniformBuffer.updateUniformGroup(resource);
+                this.renderer.uniformBuffer.updateUniformGroup(resource as UniformGroup);
             }
         }
     }
@@ -244,7 +245,7 @@ export class GpuEncoderSystem implements ISystem
     {
         this.finishRenderPass();
 
-        this.gpu.device.queue.submit([this.commandEncoder.finish()]);
+        this.renderer.gpu.device.queue.submit([this.commandEncoder.finish()]);
 
         this.resolveCommandFinished();
     }
@@ -282,16 +283,16 @@ export class GpuEncoderSystem implements ISystem
 
         this.setPipeline(boundPipeline);
 
-        let i: number;
+        let i: any;
 
         for (i in boundVertexBuffer)
         {
-            this.setVertexBuffer(i, boundVertexBuffer[i]);
+            this.setVertexBuffer(+i, boundVertexBuffer[i]);
         }
 
         for (i in boundBindGroup)
         {
-            this.setBindGroup(i, boundBindGroup[i], null);
+            this.setBindGroup(+i, boundBindGroup[i], null);
         }
 
         this.setIndexBuffer(boundIndexBuffer);

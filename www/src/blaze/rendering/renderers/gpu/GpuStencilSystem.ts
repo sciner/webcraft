@@ -34,4 +34,8 @@ export class GpuStencilSystem implements ISystem
         renderer.pipeline.setStencilMode(stencilMode);
         renderer.encoder.renderPassEncoder.setStencilReference(stencilReference);
     }
+
+    destroy() {
+
+    }
 }

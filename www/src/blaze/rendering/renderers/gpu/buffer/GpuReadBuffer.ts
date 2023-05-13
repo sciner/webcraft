@@ -7,7 +7,7 @@ export function GpuReadBuffer(buffer: Buffer, renderer: WebGPURenderer)
 {
     const bufferSize = buffer.descriptor.size;
 
-    const device = renderer.context.gpu.device;
+    const device = renderer.gpu.device;
 
     const stagingBuffer = new Buffer({
         data: new Float32Array(2400000),

@@ -1,8 +1,8 @@
 import { TilingSpritePipe } from '../../../../tiling-sprite/TilingSpritePipe.js';
 import { BatcherPipe } from '../../../batcher/shared/BatcherPipe.js';
 import { FilterPipe } from '../../../filters/shared/FilterPipe.js';
-import { GraphicsContextSystem } from '../../../graphics/shared/GraphicsContextSystem.js';
-import { GraphicsPipe } from '../../../graphics/shared/GraphicsPipe.js';
+// import { GraphicsContextSystem } from '../../../graphics/shared/GraphicsContextSystem.js';
+// import { GraphicsPipe } from '../../../graphics/shared/GraphicsPipe.js';
 import { AlphaMaskPipe } from '../../../mask/shared/AlphaMaskPipe.js';
 import { ColorMaskPipe } from '../../../mask/shared/ColorMaskPipe.js';
 import { StencilMaskPipe } from '../../../mask/shared/StencilMaskPipe.js';
@@ -43,7 +43,7 @@ export interface SharedRenderSystems extends PixiMixins.SharedRenderSystems
     texturePool: TexturePoolSystem,
     globalUniforms: GlobalUniformSystem,
     sprite: SpriteSystem,
-    graphicsContext: GraphicsContextSystem,
+    // graphicsContext: GraphicsContextSystem,
     canvasText: CanvasTextSystem,
 }
 
@@ -57,7 +57,7 @@ export interface SharedRenderPipes extends PixiMixins.SharedRenderPipes
     alphaMask: AlphaMaskPipe,
     stencilMask: StencilMaskPipe,
     colorMask: ColorMaskPipe,
-    graphics: GraphicsPipe,
+    // graphics: GraphicsPipe,
     text: CanvasTextPipe,
     bitmapText: BitmapTextPipe,
     filter: FilterPipe,
