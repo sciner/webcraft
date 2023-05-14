@@ -44,8 +44,10 @@ export type TDrivingConfig = {
     }
 
     driverAnimation?: {
-        idle?: string    // анимация водителя без движения
-        moving?: string  // анимация водителя при движении
+        idle?: string           // анимация водителя без движения
+        moving?: string         // анимация водителя при движении
+        rotateLeft?: string     // анимация когда транспорт поворачивается влево на месте
+        rotateRight?: string
     }
 
     hideHandItem?: boolean // если true, то не рисует предмет в руке водителя
@@ -300,7 +302,9 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
      *   то тот же результат, что {@link getPositionProvider}. Иначе - null.
      */
     providesPosition(): MobModel | Player | null {
-        return this.physicsInitialized ? this.getPositionProvider() : null
+        return this.myPlayerPlace !== null && !this.physicsInitialized
+            ? null
+            : this.getPositionProvider()
     }
 
     /** Обновляет позицию и угол в кажде зависимых учатников движения */

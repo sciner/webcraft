@@ -188,7 +188,9 @@
                 },
                 "driverAnimation": {
                     "idle": "raft_idle",
-                    "moving": "raft_move"
+                    "moving": "raft_move",
+                    "rotateLeft": "raft_move",
+                    "rotateRight": "raft_move"
                 },
                 "useAngularSpeed": true,
                 "maxYawDelta": 1.6,

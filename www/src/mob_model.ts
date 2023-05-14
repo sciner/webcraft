@@ -1,3 +1,4 @@
+import glMatrix from "../vendors/gl-matrix-3.3.min.js";
 import { Resources } from "./resources.js";
 import { Color, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
@@ -349,12 +350,21 @@ export class MobModel extends NetworkPhysicObject {
         } else {
             mesh.rotation[2] = this.draw_yaw ?? 0
             const driving = this.driving
-            if (driving && this !== driving.getVehicleModel()) { // если водитель
-                let anim = driving.config.driverAnimation?.idle ?? 'sitting'
-                if (this.moving) {
-                    anim = driving.config.driverAnimation?.moving ?? anim
+            const vehicleModel = driving?.getVehicleModel()
+            if (driving && this !== vehicleModel) { // если водитель
+                const srcModel = vehicleModel ?? this   // модель от которой берется moving и rotationSign
+                const driverAnimation = driving.config.driverAnimation
+                let anim: string | null
+                if (srcModel.moving) {
+                    anim = driverAnimation?.moving
+                } else if (srcModel.rotationSign === -1) {
+                    anim = driverAnimation?.rotateLeft
+                } else if (srcModel.rotationSign === 1) {
+                    anim = driverAnimation?.rotateRight
+                } else {
+                    anim = driverAnimation?.idle
                 }
-                mesh.setAnimation(anim)
+                mesh.setAnimation(anim ?? 'sitting')
             } else if (this.sitting) {
                 mesh.setAnimation('sitting')
             } else if (this?.extra_data?.attack || this.attack) {
