@@ -1430,6 +1430,8 @@ export class Player implements IPlayer {
                 const {reverse, mul, name} = BBModel_Model.parseAnimationName(animation_name)
                 const animation = model._mesh.model.animations.get(name)
                 time = animation?.length ?? 1
+            } else {
+                time = 1
             }
         }
 
