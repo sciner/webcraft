@@ -172,7 +172,7 @@ export default class emitter extends BaseEmitter {
             } else if(blockFlags & BLOCK_FLAG.COLOR) {
                 lm.set(block.mask_color.r, block.mask_color.g, block.mask_color.b);
                 flags |= QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
-            } else if(block.tags.includes('multiply_color')) {
+            } else if(block.multiply_color && block.tags.includes('multiply_color')) {
                 lm.set(block.multiply_color.r, block.multiply_color.g, block.multiply_color.b);
                 flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
             }

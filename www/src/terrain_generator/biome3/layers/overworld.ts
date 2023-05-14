@@ -294,6 +294,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         const xyz_temp                  = new Vector(0, 0, 0);
         const density_params            = new DensityParams(0, 0, 0, 0, 0, 0);
         const over_density_params       = new DensityParams(0, 0, 0, 0, 0, 0);
+        const over2_density_params      = new DensityParams(0, 0, 0, 0, 0, 0);
         const cluster                   = chunk.cluster; // 3D clusters
         const dirt_block_id             = bm.DIRT.id
         const grass_block_id            = bm.GRASS_BLOCK.id
@@ -322,7 +323,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         chunk.timers.start('generate_noise3d')
         const sz = this.calcColumnNoiseSize(chunk)
         const crd = chunk.coord.clone()
-        sz.y++
+        sz.y+=2
         crd.y--
         // TODO: for air, ignore this all?
         this.generator.noise3d.generate4(crd, sz);
@@ -462,10 +463,15 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                             xyz.y++
                             map_manager.calcDensity(xyz, cell, over_density_params, map);
                             xyz.y--
+                            not_air_count = 1
                             if(over_density_params.density > DENSITY_AIR_THRESHOLD) {
-                                not_air_count = 100;
-                            } else {
-                                not_air_count = 1
+                                not_air_count++
+                                xyz.y += 2
+                                map_manager.calcDensity(xyz, cell, over2_density_params, map)
+                                xyz.y -= 2
+                                if(over2_density_params.density > DENSITY_AIR_THRESHOLD) {
+                                    not_air_count++
+                                }
                             }
                         }
 

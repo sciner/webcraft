@@ -41,6 +41,9 @@ export class SkinManager {
 
     // Init
     async init() {
+        if((this.#controller as any).mygames.enterWorld.getWorldGuid()) {
+            return
+        }
         this.reloadSkins(async (list) => {
             if(this.preview.isActive) {
                 const skin_id = this.load()

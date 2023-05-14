@@ -424,7 +424,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
         const dirt_layers = cell.biome.dirt_layers;
         const dist_percent = cell.preset.dist_percent;
-        const {d1, d2, d3, d4, density} = density_params;
+        const {d1, d2, d3, d4} = density_params;
         const bm = this.block_manager
 
         // 1. select dirt layer
@@ -450,7 +450,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
             // 2. select block in dirt layer
             const dirt_layer_blocks = dirt_layer.blocks;
             const dirt_layer_blocks_count = dirt_layer_blocks.length
-            let local_water_line = WATER_LEVEL // density_params.local_water_line
+            let local_water_line = WATER_LEVEL - Math.abs(d4 * 5) // density_params.local_water_line
 
             // Оформление каньонов
             // устанавливаем блоки земли на "полу" каньонов (иначе дно будет каменное)

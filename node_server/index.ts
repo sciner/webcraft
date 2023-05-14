@@ -201,10 +201,14 @@ Config.init().then(async (config) => {
     });
 
     // "SPA" yet for just one type of ulrs only
-    app.use('/worlds', async(req, res) => {
+    app.use('/worlds', async(req, res, next) => {
         const world_guid = req.url.split('/')[1]
-        const world = await Qubatch.db.getWorld(world_guid);
-        res.render(pathToIndex, {page: {...page, title: `${config.ProjectName} - ${world.title}`}, world});
+        try {
+            const world = await Qubatch.db.getWorld(world_guid);
+            res.render(pathToIndex, {page: {...page, title: `${config.ProjectName} - ${world.title}`}, world});
+        } catch(e) {
+            next(e)
+        }
     });
 
     await Qubatch.start(config);

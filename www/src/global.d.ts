@@ -289,6 +289,8 @@ interface IBlockMaterial {
     random_ticker: string
     resource_pack: any
     extra_data: any
+    aabb: tupleFloat6
+    aabb_size: IVector
     item: {
         indicator? : any
         name: string
@@ -327,7 +329,15 @@ interface IBlockMaterial {
     generator? : {
         can_replace_to_slab: string
     }
-    bb: any
+    bb: {
+        model:              string | any
+        aabb_stylename?:    string
+        behavior?:          string
+        select_texture?:    any
+        set_state?:         any
+        particles?:         any
+        rotate?:            any
+    }
     flags: int // BLOCK_FLAG enum
     planes: IPlane[]
     tx_cnt: number
@@ -408,7 +418,6 @@ interface IBlockMaterial {
     //
     tags: string[]
     rotate: IVector
-    aabb_size: IVector
     width?: float
     height?: float
     depth: float
@@ -417,7 +426,6 @@ interface IBlockMaterial {
     sound: string
     inventory_icon_id?: number
     max_in_stack: number
-    aabb: tupleFloat6
 }
 
 interface INetworkMessage<DataT = any> {

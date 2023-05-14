@@ -94,7 +94,7 @@ export default class style {
             }
         }
 
-        const styleVariant = style.block_manager.styles.get(bb.behavior)
+        const styleVariant = style.block_manager.styles.get(bb?.aabb_stylename ?? bb.behavior)
         if(styleVariant?.aabb) {
             return styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
         }

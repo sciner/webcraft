@@ -846,7 +846,7 @@ export class BLOCK {
 
         if(existing_block) {
             if(replace_block) {
-                const existingBehavior = existing_block.bb?.behavior ?? existing_block.style
+                // const existingBehavior = existing_block.bb?.behavior ?? existing_block.style
                 this.flags[existing_block.id] = 0 // clear the old block flags; the new block might not have them
                 for(let prop_name in existing_block) {
 
@@ -861,9 +861,9 @@ export class BLOCK {
                         block[prop_name] = prop_value
                     }
                 }
-                if (block.bb) {
-                    block.bb.behavior = existingBehavior
-                }
+                // if (block.bb) {
+                //     block.bb.behavior = existingBehavior
+                // }
             } else {
                 console.error('Duplicate block id ', block.id, block)
             }
@@ -934,6 +934,9 @@ export class BLOCK {
             if(!block.tags.includes('swinging_in_the_wind')) {
                 block.tags.push('swinging_in_the_wind')
             }
+        }
+        if(block.aabb_size) {
+            block.aabb_size = new Vector().copyFrom(block.aabb_size)
         }
         if (block.chest) {
             /* Properties:
@@ -1550,6 +1553,11 @@ export class BLOCK {
             if(!block.support_style && block.planting) {
                 block.support_style = 'planting'
             }
+            // if (block.bb) {
+            //     if(!block.bb.behavior) {
+            //         block.bb.behavior = block.style
+            //     }
+            // }
             // Parse tags
             for(const tag of block.tags) {
                 if(!this.BLOCK_BY_TAGS.has(tag)) {

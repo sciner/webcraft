@@ -78,7 +78,16 @@ export default class style {
     // computeAABB
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
-        const aabb_size = tblock.material.aabb_size || DEFAULT_AABB_SIZE;
+        const material = tblock.material
+        let aabb_size = (material.aabb_size ?? DEFAULT_AABB_SIZE) as Vector
+
+        if(material.seeds && material.ticking?.type == 'stage') {
+            if(tblock.extra_data?.stage != undefined) {
+                aabb_size = aabb_size.clone()
+                aabb_size.y *= (tblock.extra_data?.stage + 1) / (material.ticking.max_stage + 1)
+            }
+        }
+        
         aabb.set(0, 0, 0, 0, 0, 0)
         aabb
             .translate(.5 * TX_SIZE, aabb_size.y/2, .5 * TX_SIZE)

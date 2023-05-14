@@ -529,6 +529,7 @@
             "bb": {
                 "model": "carrot",
                 "behavior": "age",
+                "aabb_stylename": "planting",
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
                 ]

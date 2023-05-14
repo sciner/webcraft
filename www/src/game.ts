@@ -19,7 +19,8 @@ import {
     INGAME_MAIN_WIDTH,
     INGAME_MAIN_HEIGHT,
     CHUNK_GEOMETRY_MODE,
-    CHUNK_GEOMETRY_ALLOC
+    CHUNK_GEOMETRY_ALLOC,
+    PLAYER_STATUS
 } from "./constant.js";
 import { JoystickController } from "./ui/joystick.js";
 import { Lang } from "./lang.js";
@@ -295,6 +296,9 @@ export class GameClass {
                     return true;
                 } else if (type == MOUSE.WHEEL) {
                     if(player) {
+                        if(player.status == PLAYER_STATUS.DEAD) {
+                            return false
+                        }
                         if(controls.enabled) {
                             if(!player.controlManager.changeSpectatorSpeed(-e.deltaY)) {
                                 player.onScroll(e.deltaY > 0);
@@ -332,6 +336,14 @@ export class GameClass {
             },
             // Hook for keyboard input
             onKeyEvent: (e: KbEvent) => {
+
+                if(player.status == PLAYER_STATUS.DEAD) {
+                    if(e.keyCode == KEY.F5 && e.down && e.ctrlKey) {
+                        location.reload()
+                    }
+                    return false
+                }
+
                 // Chat
                 if(player.chat.active && (e.keyCode < 112 || e.keyCode > 123)) {
                     player.chat.onKeyEvent(e);
@@ -809,7 +821,11 @@ export class GameClass {
                     // we should skip this ESC
                     // otherwise we never can open mine menu
                     this.kb.skipUntil(200);
-                    this.hud.frmMainMenu.show();
+                    if(this.player.status == PLAYER_STATUS.DEAD) {
+                        this.player.inventory.hud.wm.getWindow('frmDie').show()
+                    } else {
+                        this.hud.frmMainMenu.show()
+                    }
                 }
 
             }

@@ -18,7 +18,7 @@ export declare type IPlayerSkin = {
 }
 
 export class BBModel_Preview {
-    #_active:       boolean = true
+    #_active:       boolean = false
     render:         RendererBBModel
     m4:             any = mat4.create()
     prev_time:      float = performance.now()
