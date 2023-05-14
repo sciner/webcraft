@@ -154,6 +154,15 @@ export class BBModel_Model {
      */
     playAnimation(animation_name : string, dt : float, mesh : Mesh_Object_BBModel = null) : boolean {
 
+        if(!animation_name) {
+            return false
+        }
+
+        const reverse = animation_name.startsWith('-')
+        if(reverse) {
+            animation_name = animation_name.substring(1)
+        }
+
         const animation = this.animations.get(animation_name)
         if(!animation) {
             return false
@@ -172,7 +181,7 @@ export class BBModel_Model {
         }
 
         //
-        const time = dt % animation.length;
+        const time = reverse ? animation.length - (dt % animation.length) : (dt % animation.length)
         const loop_mode = animation.loop;
         const loop_delay = animation.loop_delay;
 
