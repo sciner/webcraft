@@ -13,7 +13,7 @@ export const CANYON = {
     AQUIFERA_DIST:     .4,
     BRIDGE_DIST:       0.075 + 0.025,
     BRIDGE_FENCE_DIST: 0.065,
-    BUILDING_DIST:     .2 + 0.05,
+    BUILDING_DIST:     .075,
     STRUCTURE_DIST:    .2 + 0.05,
     TREE_DIST:         .2 + 0.05,
     DENSITY_MARGIN:    0.175 + 0.05,
