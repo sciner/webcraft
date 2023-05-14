@@ -615,7 +615,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             }
         }
         // 2. проход в поисках свободных слотов
-        // если это инвентарь - то сначала проходи по хотабру, а потом по инвентарю. Иначе - по порядку
+        // если это инвентарь - то сначала проходим по инвентарю, а потом по хотабру. Иначе - по порядку
         const slotsSize = target_list === this.parent.inventory_slots
             ? this.getInventory().getSize()
             : new InventorySize().setFakeContinuous(target_list.length)
