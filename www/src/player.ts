@@ -21,6 +21,7 @@ import type { World } from "./world.js";
 import type {ClientDriving} from "./control/driving.js";
 import type {PlayerModel} from "./player_model.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
+import { BBModel_Model } from "./bbmodel/model.js";
 
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
@@ -1419,19 +1420,29 @@ export class Player implements IPlayer {
     }
 
     /*
-    * Метод устанавливает проигрвание анимации
+    * Метод устанавливает проигрывание анимации
     */
-    setAnimation(title: string, speed: number = 1, time: number = 1) {
+    setAnimation(animation_name: string, speed: float = 1, time?: float) {
+        
+        if(typeof time === 'undefined') {
+            const model = this.getModel()
+            if(model) {
+                const {reverse, mul, name} = BBModel_Model.parseAnimationName(animation_name)
+                const animation = model._mesh.model.animations.get(name)
+                time = animation?.length ?? 1
+            }
+        }
+
         this.world.server.Send({
             name: ServerClient.CMD_PLAY_ANIM,
             data: {
-                title,
+                title: animation_name,
                 speed,
                 time,
             }
         })
         this.state.anim = {
-            title,
+            title: animation_name,
             speed
         }
         this.timer_anim = performance.now() + (time * 1000) / speed

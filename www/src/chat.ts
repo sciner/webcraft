@@ -260,6 +260,11 @@ export class Chat extends TextBox {
                     this.history.clear();
                     break;
                 }
+                case '/emote': {
+                    player.setAnimation(`emote_${temp[0]}`)
+                    no_send = true;
+                    break
+                }
                 case '/anim': {
                     player.setAnimation(temp[0], temp[1], temp[2])
                     no_send = true;

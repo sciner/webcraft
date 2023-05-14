@@ -1085,9 +1085,9 @@ export class ServerPlayer extends Player {
         return this.world.admins.checkIsAdmin(this)
     }
 
-    setAnimation(title, speed = 1, time = 1) {
+    setAnimation(animation_name : string, speed : float = 1, time : float = 1) {
         this.state.anim = {
-            title,
+            title: animation_name,
             speed
         }
         this.timer_anim = performance.now() + (time * 1000) / speed

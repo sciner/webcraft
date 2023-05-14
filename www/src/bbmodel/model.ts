@@ -149,6 +149,26 @@ export class BBModel_Model {
         this.root.drawBuffered(render, mesh, pos, lm, matrix, undefined, vertices, emmit_particles_func)
     }
 
+    static parseAnimationName(animation_name : string) : {name: string, reverse: boolean, mul: float} {
+
+        const reverse = animation_name.startsWith('-')
+        let mul = 1.
+        if(reverse) {
+            animation_name = animation_name.substring(1)
+        }
+
+        if(animation_name.indexOf('*') >= 0) {
+            const temp : any[] = animation_name.split('*')
+            if(!isNaN(temp[1])) {
+                mul = parseFloat(temp[1])
+                animation_name = temp[0]
+            }
+        }
+
+        return {name: animation_name, reverse, mul}
+
+    }
+
     /**
      * Play animations
      */
@@ -158,20 +178,11 @@ export class BBModel_Model {
             return false
         }
 
-        const reverse = animation_name.startsWith('-')
-        if(reverse) {
-            animation_name = animation_name.substring(1)
-        }
+        const {reverse, mul, name} = BBModel_Model.parseAnimationName(animation_name)
 
-        if(animation_name.indexOf('*') >= 0) {
-            const temp : any[] = animation_name.split('*')
-            if(!isNaN(temp[1])) {
-                dt *= parseFloat(temp[1])
-                animation_name = temp[0]
-            }
-        }
+        dt *= mul
 
-        const animation = this.animations.get(animation_name)
+        const animation = this.animations.get(name)
         if(!animation) {
             return false
         }
