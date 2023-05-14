@@ -153,6 +153,7 @@ export class PrismarinePlayerControl extends PlayerControl<PrismarinePlayerState
     get playerHeight(): float       { return this.player_state.options.playerHeight }
     get playerHalfWidth(): float    { return this.player_state.options.playerHalfWidth }
 
+    /** Симулирует необходимое число тиков, если возможно. Используется для предметов, мобов и т.п. */
     tick(deltaSeconds: float): void {
         const pos = this.getPos()
         // check if the chunk is ready (it doesn't guarantee correctness, neighbouring chunk may be missing)
@@ -168,7 +169,7 @@ export class PrismarinePlayerControl extends PlayerControl<PrismarinePlayerState
             this.timeAccumulator += deltaSeconds
             while(this.timeAccumulator >= PHYSICS_TIMESTEP) {
                 this.timeAccumulator -= PHYSICS_TIMESTEP;
-                if (!this.simulatePhysicsTick()) {
+                if (!this.simulatePhysicsTick(false)) {
                     this.copyPartialStateFromTo(this.backupState, this.player_state)
                     break
                 }
@@ -185,16 +186,7 @@ export class PrismarinePlayerControl extends PlayerControl<PrismarinePlayerState
         this.player_state.jumpTicks = 0
     }
 
-    /**
-     * Выполняет симуляцию одного физического тика.
-     * @param driving - не null если данный игрок является водителем (если участник движения, но не водитель, то
-     *   симуляция не должна для него вызываться)
-     * @return true если симуляция успешна. Если она не успешна, сосояние неопределено и нуждается в восстановлении,
-     *   см. {@link copyPartialStateFromTo}
-     *
-     * @return true if simulation is successful. If it's not successful, the state is undefined.
-     */
-    simulatePhysicsTick(): boolean {
+    simulatePhysicsTick(repeated: boolean): boolean {
         if (!this.physicsEnabled) {
             return true
         }

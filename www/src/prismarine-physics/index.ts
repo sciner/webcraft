@@ -136,6 +136,7 @@ export class Physics {
 
     // ========================== temporary objects ===========================
 
+    private repeated        : boolean   // true если симуляция повторная (на клиенте)
     private tmpPlayerBB     = new AABB()
     private tmpWaterBB      = new AABB()
     private tmpLavaBB       = new AABB()
@@ -258,7 +259,8 @@ export class Physics {
         const oldVelY = dy
         let oldVelZ = dz
 
-        if (entity.control.sneak && entity.onGround) {
+        // не допустить падения с блока
+        if (entity.onGround && (entity.control.sneak || this.repeated)) {
             const step = 0.05
 
             // In the 3 loops bellow, y offset should be -1, but that doesnt reproduce vanilla behavior.
@@ -816,11 +818,16 @@ export class Physics {
         }
     }
 
-    simulatePlayer(entity: PrismarinePlayerState): void {
+    /**
+     * @param repeated - true если это повтор симляции.
+     */
+    simulatePlayer(entity: PrismarinePlayerState, repeated = false): void {
         const options = entity.options
         const vel = entity.vel
         const pos = entity.pos
         const control = entity.control
+
+        this.repeated = repeated
 
         entity.isOnLadder = this.isOnLadder(pos);
 

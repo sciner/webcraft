@@ -351,12 +351,16 @@ export class MobModel extends NetworkPhysicObject {
             mesh.rotation[2] = this.draw_yaw ?? 0
             const driving = this.driving
             const vehicleModel = driving?.getVehicleModel()
+            const vehicleAnimation = driving?.config.vehicleAnimation
             if (driving && this !== vehicleModel) { // если водитель
                 const srcModel = vehicleModel ?? this   // модель от которой берется moving и rotationSign
                 const driverAnimation = driving.config.driverAnimation
                 let anim: string | null
                 if (srcModel.moving) {
-                    anim = driverAnimation?.moving
+                    if (srcModel.moving === -1) {
+                        anim = driverAnimation?.walkBack
+                    }
+                    anim ??= driverAnimation?.walk
                 } else if (srcModel.rotationSign === -1) {
                     anim = driverAnimation?.rotateLeft
                 } else if (srcModel.rotationSign === 1) {
@@ -375,7 +379,11 @@ export class MobModel extends NetworkPhysicObject {
                 if (this.sneak) {
                     mesh.setAnimation('sneak')
                 } else if (!this.running) {
-                    mesh.setAnimation('walk')
+                    let anim: string | null = null
+                    if (this === vehicleModel && this.moving === -1) {
+                        anim = vehicleAnimation?.walkBack
+                    }
+                    mesh.setAnimation(anim ?? 'walk')
                 } else {
                     mesh.setAnimation('run')
                 }
@@ -385,8 +393,7 @@ export class MobModel extends NetworkPhysicObject {
                 mesh.setAnimation(this.anim.title)
             } else { // idle
                 let anim: string | null = null
-                if (driving && this === driving.getVehicleModel()) { // если это транспорт
-                    const vehicleAnimation = driving.config.vehicleAnimation
+                if (this === vehicleModel) {
                     if (this.rotationSign === -1) {
                         anim = vehicleAnimation?.rotateLeft
                     } else if (this.rotationSign === 1) {

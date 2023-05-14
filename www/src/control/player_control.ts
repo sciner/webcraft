@@ -186,8 +186,14 @@ export abstract class PlayerControl<TState extends IPlayerControlState = IPlayer
      */
     abstract copyPartialStateFromTo(src: any, dst: any): void
 
-    /** Performs player's movement during one physics tick, see {@link PHYSICS_INTERVAL_MS} */
-    abstract simulatePhysicsTick(): boolean
+    /**
+     * Выполняет симуляцию одного физического тика, см. {@link PHYSICS_INTERVAL_MS}.
+     * @param repeated - если true, то эта симуляция является повтороной (на клиенте, вызвано коррекицей).
+     *   Отличие от не-повторной - игроку не разрешается упасть с блока.
+     * @return true если симуляция успешна. Если она не успешна, сосояние неопределено и нуждается в восстановлении,
+     *   см. {@link copyPartialStateFromTo}
+     */
+    abstract simulatePhysicsTick(repeated: boolean): boolean
 
     /**
      * Server-only.

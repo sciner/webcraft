@@ -1,7 +1,7 @@
 import {BLOCK} from "../blocks.js";
 import { ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers } from "../helpers.js";
 import {INVENTORY_DRAG_SLOT_INDEX, MOUSE, UI_THEME, HOTBAR_LENGTH_MAX} from "../constant.js";
-import {CHEST_CHANGE, Inventory} from "../inventory.js";
+import {CHEST_CHANGE, Inventory, InventorySize} from "../inventory.js";
 import { Label, SimpleBlockSlot, Window, Button, ToggleButton } from "../ui/wm.js";
 import { Recipe } from "../recipes.js";
 import { InventoryComparator } from "../inventory_comparator.js";
@@ -615,7 +615,12 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             }
         }
         // 2. проход в поисках свободных слотов
-        for(let slot of target_list) {
+        // если это инвентарь - то сначала проходим по инвентарю, а потом по хотабру. Иначе - по порядку
+        const slotsSize = target_list === this.parent.inventory_slots
+            ? this.getInventory().getSize()
+            : new InventorySize().setFakeContinuous(target_list.length)
+        for(const i of slotsSize.backpackHotbarIndices()) {
+            const slot = target_list[i]
             if(slot instanceof CraftTableInventorySlot) {
                 if(!slot.locked && !slot.readonly && !slot.getItem()) {
                     slot.setItem({...srcItem});

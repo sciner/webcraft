@@ -508,7 +508,8 @@ export class WorldChestManager {
             }
             return resultFlags;
         }
-        // The same result as in client PlayerInventory.clearDragItem()
+
+        // Должно давать такой же резулльтат, как CraftTableInventorySlot.appendToList
         if (change.type === CHEST_CHANGE.SHIFT_SPREAD) {
             if (!prevCliSlot) {
                 return 0; // incorrect change
@@ -523,6 +524,7 @@ export class WorldChestManager {
             updateSlot(change.slotIndex, change.slotInChest);
             return resultFlags;
         }
+
         if (change.type !== CHEST_CHANGE.SLOTS) {
             return 0;
         }

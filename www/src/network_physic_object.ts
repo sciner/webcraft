@@ -1,6 +1,7 @@
 import { Mth, Vector} from './helpers.js';
 import { AABB } from './core/AABB.js';
 import type { World } from './world.js';
+import type {MobModel} from "./mob_model.js";
 
 const ROTATING_THRESHOLD = 0.001
 
@@ -32,6 +33,7 @@ export type NetworkPhysicObjectState = {
  */
 const tPos = new Vector()
 const tRot = new Vector()
+const tmpSetPosVec = new Vector()
 
 // NetworkPhysicObject
 export class NetworkPhysicObject {
@@ -43,7 +45,13 @@ export class NetworkPhysicObject {
     protected sneak     : number | boolean
     private _pos        : Vector
     private _prevPos    : Vector    // не используется, можно убрать
-    protected moving    = false     // true, если последняя установка pos изменила значение достаточно сильно
+    /**
+     * Не 0, если последняя установка pos изменила значение достаточно сильно.
+     * Если не 0, то:
+     *  - в режиме вождения -1 или 1 - показывает направление движения
+     *  - без вождения 1 (направление не важно, не делаем лишних вычислений)
+     */
+    protected moving    : int = 0
     /**
      * Показывает направление изменения угла. Аналог {@link moving}.
      * -1 или 1, если последняя установка yaw изменила значение достаточно сильно, иначе 0.
@@ -100,7 +108,18 @@ export class NetworkPhysicObject {
         this._prevPos.copyFrom(this._pos);
         this._pos.copyFrom(v);
 
-        this.moving = Math.abs(dx) + Math.abs(dz) > 0.002
+        if (Math.abs(dx) + Math.abs(dz) > 0.002) {
+            // в режиме вождения определить не только наличие движения, но и направление (вперед/назад)
+            if ((this as unknown as MobModel).driving) {
+                const movementYaw = tmpSetPosVec.setScalar(dx, dy, dz).getYaw()
+                const deltaYaw = Mth.radians_to_minus_PI_PI_range(movementYaw - this._yaw)
+                this.moving = Math.abs(deltaYaw) <= Mth.PI_DIV2 ? 1 : -1
+            } else {
+                this.moving = 1
+            }
+        } else {
+            this.moving = 0
+        }
     }
 
     get yaw(): float { return this._yaw }
