@@ -1810,5 +1810,22 @@
             "item": "madcraft:reinforced_concrete",
             "count": 1
         }
+    },
+    {
+        "id": "ba429c4d-58bf-46a9-b5d6-2077450f9e17",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "P P",
+            "PPP"
+        ],
+        "key": {
+            "P": {
+                "item": "special:planks"
+            }
+        },
+        "result": {
+            "item": "madcraft:raft",
+            "count": 1
+        }
     }
 ]
