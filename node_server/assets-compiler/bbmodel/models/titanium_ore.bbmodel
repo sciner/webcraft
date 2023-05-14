@@ -1646,10 +1646,21 @@
 			"relative_path": "../TITANIUM_ORE.png"
 		}
 	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [0, -30, 0],
+			"scale": [0.34, 0.34, 0.34]
+		},
+		"gui": {
+			"rotation": [25, 30, 0],
+			"translation": [0, -4.75, 0],
+			"scale": [0.65, 0.65, 0.65]
+		}
+	},
 	"geckoSettings": {
 		"formatVersion": 2,
 		"modSDK": "Forge 1.12 - 1.16",
-		"objectType": "OBJ_TYPE_ENTITY",
+		"objectType": "OBJ_TYPE_ITEM_BLOCK",
 		"entityType": "Entity",
 		"javaPackage": "com.example.mod",
 		"animFileNamespace": "MODID",

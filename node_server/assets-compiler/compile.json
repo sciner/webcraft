@@ -10609,7 +10609,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper"
+                "texture": "scrap_armor_leather"
             }
         },
         {
@@ -10617,7 +10617,7 @@
             "max_in_stack": 1,
             "name": "COPPER_HELMET",
             "style": "extruder",
-            "texture": "item/leather_helmet.png",
+            "texture": "item/copper_helmet.png",
             "item": {"name": "armor"},
             "material": {
                 "id": "copper"
@@ -10649,7 +10649,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper"
+                "texture": "scrap_armor_iron"
             }
         },
         {
@@ -10677,7 +10677,7 @@
             "max_in_stack": 1,
             "name": "TITANIUM_HELMET",
             "style": "extruder",
-            "texture": "item/diamond_helmet.png",
+            "texture": "item/titanium_helmet.png",
             "item": {"name": "armor"},
             "material": {
                 "id": "titanium"
@@ -10729,7 +10729,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper"
+                "texture": "scrap_armor_netherite"
             }
         },
         {
@@ -10749,7 +10749,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper"
+                "texture": "scrap_armor_leather"
             }
         },
         {
@@ -10757,7 +10757,7 @@
             "max_in_stack": 1,
             "name": "COPPER_CHESTPLATE",
             "style": "extruder",
-            "texture": "item/leather_chestplate.png",
+            "texture": "item/copper_chestplate.png",
             "item": {"name": "armor"},
             "material": {
                 "id": "copper"
@@ -10789,7 +10789,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper"
+                "texture": "scrap_armor_iron"
             }
         },
         {
@@ -10817,7 +10817,7 @@
             "max_in_stack": 1,
             "name": "TITANIUM_CHESTPLATE",
             "style": "extruder",
-            "texture": "item/diamond_chestplate.png",
+            "texture": "item/titanium_chestplate.png",
             "item": {"name": "armor"},
             "material": {
                 "id": "titanium"
@@ -10869,7 +10869,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper"
+                "texture": "scrap_armor_netherite"
             }
         },
         {
@@ -10889,7 +10889,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper"
+                "texture": "scrap_armor_leather"
             }
         },
         {
@@ -10897,7 +10897,7 @@
             "max_in_stack": 1,
             "name": "COPPER_LEGGINGS",
             "style": "extruder",
-            "texture": "item/leather_leggings.png",
+            "texture": "item/copper_leggings.png",
             "item": {"name": "armor"},
             "material": {
                 "id": "copper"
@@ -10929,7 +10929,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper"
+                "texture": "scrap_armor_iron"
             }
         },
         {
@@ -10957,7 +10957,7 @@
             "max_in_stack": 1,
             "name": "TITANIUM_LEGGINGS",
             "style": "extruder",
-            "texture": "item/diamond_leggings.png",
+            "texture": "item/titanium_leggings.png",
             "item": {"name": "armor"},
             "material": {
                 "id": "titanium"
@@ -11009,7 +11009,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper"
+                "texture": "scrap_armor_netherite"
             }
         },
         {
@@ -11029,7 +11029,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper"
+                "texture": "scrap_armor_leather"
             }
         },
         {
@@ -11037,7 +11037,7 @@
             "max_in_stack": 1,
             "name": "COPPER_BOOTS",
             "style": "extruder",
-            "texture": "item/leather_boots.png",
+            "texture": "item/copper_boots.png",
             "item": {"name": "armor"},
             "material": {
                 "id": "copper"
@@ -11069,7 +11069,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper"
+                "texture": "scrap_armor_iron"
             }
         },
         {
@@ -11097,7 +11097,7 @@
             "max_in_stack": 1,
             "name": "TITANIUM_BOOTS",
             "style": "extruder",
-            "texture": "item/diamond_boots.png",
+            "texture": "item/titanium_boots.png",
             "item": {"name": "armor"},
             "material": {
                 "id": "titanium"
@@ -11149,7 +11149,7 @@
             },
             "model": {
                 "name": "armor/scrap_armor",
-                "texture": "scrap_armor_copper"
+                "texture": "scrap_armor_netherite"
             }
         },
         {

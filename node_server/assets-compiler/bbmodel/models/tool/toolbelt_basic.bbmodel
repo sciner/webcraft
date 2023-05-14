@@ -262,6 +262,9 @@
 			"translation": [2.75, 0, 0],
 			"scale": [0.7, 0.7, 0.7]
 		},
+		"ground": {
+			"scale": [0.6, 0.6, 0.6]
+		},
 		"gui": {
 			"rotation": [25, -150, 0],
 			"translation": [-0.25, -1.25, 0],

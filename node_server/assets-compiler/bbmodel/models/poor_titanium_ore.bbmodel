@@ -6,6 +6,7 @@
 	},
 	"name": "poor_titanium_ore",
 	"model_identifier": "",
+	"front_gui_light": false,
 	"visible_box": [1, 1, 0],
 	"variable_placeholders": "",
 	"variable_placeholder_buttons": [],
@@ -884,10 +885,25 @@
 			"relative_path": "../POOR_TITANIUM_ORE.png"
 		}
 	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [0, -30, 0],
+			"scale": [0.35, 0.35, 0.35]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [0, -30, 0],
+			"scale": [0.35, 0.35, 0.35]
+		},
+		"gui": {
+			"rotation": [25, 30, 0],
+			"translation": [0, -4.75, 0],
+			"scale": [0.65, 0.65, 0.65]
+		}
+	},
 	"geckoSettings": {
 		"formatVersion": 2,
 		"modSDK": "Forge 1.12 - 1.16",
-		"objectType": "OBJ_TYPE_ENTITY",
+		"objectType": "OBJ_TYPE_ITEM_BLOCK",
 		"entityType": "Entity",
 		"javaPackage": "com.example.mod",
 		"animFileNamespace": "MODID",
