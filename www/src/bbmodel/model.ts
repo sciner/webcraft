@@ -320,11 +320,7 @@ export class BBModel_Model {
 
     }
 
-    /**
-     * @param {string} key
-     * @returns
-     */
-    getElement(key) {
+    getElement(key : string) {
         const resp = this.elements.get(key);
         if(!resp) debugger;
         return resp;
@@ -478,12 +474,7 @@ export class BBModel_Model {
         }
     }
 
-    /**
-     * @param {Vector} pos
-     * @param {object} group
-     * @returns
-     */
-    addGroup(pos, group) {
+    addGroup(pos : Vector, group : any) {
 
         if(group.name == 'hitbox') {
             return false;
@@ -520,12 +511,7 @@ export class BBModel_Model {
 
     }
 
-    /**
-     * @param {Vector} pos
-     * @param {object} el
-     * @returns
-     */
-    addElement(pos, el) {
+    addElement(pos : Vector, el : any) {
 
         if(el.children) {
             return this.addGroup(pos, el);

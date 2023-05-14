@@ -12,6 +12,7 @@ import type { WorkerWorld } from "../worker/world.js";
 export const CANYON = {
     AQUIFERA_DIST:     .4,
     BRIDGE_DIST:       0.075 + 0.025,
+    BRIDGE_FENCE_DIST: 0.065,
     BUILDING_DIST:     .2 + 0.05,
     STRUCTURE_DIST:    .2 + 0.05,
     TREE_DIST:         .2 + 0.05,

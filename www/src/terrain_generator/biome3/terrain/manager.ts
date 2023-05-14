@@ -393,6 +393,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
         const canyon = cell.canyon_point
         const canyon_range = CANYON.FLOOR_DENSITY + d2 / 32
         const canyon_margin = CANYON.DENSITY_MARGIN
+        const is_underworld = this.layer.name == 'underworld'
 
         // Чтобы вода рек и океанов не выливалась в каньон (сглаживание окрестностей с каньоном)
         if(canyon > -canyon_margin && canyon < canyon_margin) {
@@ -410,7 +411,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
         if(canyon > -canyon_range && canyon < canyon_range) {
             const canyon_d3 = d3 / 2
-            if(xyz.y > (45 + d3 * canyon_dist) + (canyon_dist + (canyon_d3 * canyon_dist)) * 60 + d2 * 4) {
+            if(xyz.y > ((is_underworld ? 70 : 45) + d3 * canyon_dist) + (canyon_dist + (canyon_d3 * canyon_dist)) * 60 + d2 * 4) {
                 density = DENSITY_AIR_THRESHOLD
                 res.dcaves = density
             }

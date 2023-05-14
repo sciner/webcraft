@@ -22,6 +22,7 @@ export class Biome3LayerBase {
     seed:                   string
     filter_biome_list:      int[] = []
     dayLightDefaultValue:   int = DAYLIGHT_VALUE.FULL
+    name:                   string = 'default'
 
     init(generator : any) : Biome3LayerBase {
 
@@ -70,7 +71,7 @@ export class Biome3LayerBase {
                 }
 
                 // Draw tree blocks into chunk
-                if(!tree.type.underwater || (cell.canyon_point > CANYON.TREE_DIST || cell.inCanyon(CANYON.FLOOR_DENSITY))) {
+                if(!tree.type.underwater || (cell.canyon_point > CANYON.TREE_DIST /*|| cell.inCanyon(CANYON.FLOOR_DENSITY)*/)) {
                     this.generator.plantTree(this.generator.world, tree, chunk, x, y, z, true)
                 }
 

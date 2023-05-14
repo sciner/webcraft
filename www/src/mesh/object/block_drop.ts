@@ -3,7 +3,7 @@ import { Vector, unixTime, Helpers, QUAD_FLAGS } from '../../helpers.js';
 import { NetworkPhysicObject } from '../../network_physic_object.js';
 import { MeshGroup } from '../group.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
-import { MAX_DIST_FOR_PICKUP, PICKUP_OWN_DELAY_SECONDS } from '../../constant.js';
+import { MAX_DIST_FOR_PICKUP } from '../../constant.js';
 import type { Player } from '../../player.js';
 import type { World } from '../../world.js';
 import type { Renderer } from '../../render.js';
@@ -81,6 +81,13 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
             // 1. First main block
             this.mesh_group.addBlock(Vector.ZERO, this.block)
+
+            // if(this.block.material.bb) {
+            //     const bb = this.block.material.bb
+            //     const model : BBModel_Model = bb.model
+            //     model.playAnimation('', 0)
+            //     model.playAnimation(this.animation_name, (this.start_time + performance.now()) / 1000, this)
+            // }
 
             // 2. Add couples block
             if(['fence', 'wall'].includes(this.block_material.style_name)) {

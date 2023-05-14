@@ -49,8 +49,7 @@ export class WorldClientOreGenerator {
             let n = nhi * .5 + nlo * .5
             if(n < 0) n = -n
             if(n > threshold) {
-
-                const nhi = noise_hi(pos.x / scale, pos.y / scale, pos.z / scale);
+                // const nhi = noise_hi(pos.x / scale, pos.y / scale, pos.z / scale);
                 return ore_block_id
             }
         }

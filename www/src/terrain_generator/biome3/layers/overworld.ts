@@ -26,6 +26,8 @@ const DEFAULT_CLUSTER_LIST = [
     {chance: 1, class: ClusterStructures},
 ]
 
+const slab_up_extra_data = {point: new Vector(0, .5, .0)}
+
 const BIG_STONE_DESNSITY = 0.6;
 const GROUND_PLACE_SIZE = 3
 let _ground_places = new Array(1)
@@ -294,16 +296,27 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         const over_density_params       = new DensityParams(0, 0, 0, 0, 0, 0);
         const cluster                   = chunk.cluster; // 3D clusters
         const dirt_block_id             = bm.DIRT.id
-        const stone_block_id            = bm.STONE.id
         const grass_block_id            = bm.GRASS_BLOCK.id
         const sand_block_id             = bm.SAND.id
         const podzol_block_id           = bm.PODZOL.id
         const gravel_id                 = bm.GRAVEL.id
+        const fire_block_id             = bm.FIRE.id
         const blockFlags                = bm.flags
         const block_result              = new MapsBlockResult()
         const rand_lava                 = new alea('random_lava_source_' + this.seed)
         const map_manager               = this.maps as TerrainMapManager3
         const {relativePosToFlatIndexInChunk_s} = chunk.chunkManager.grid.math;
+
+        const cell = map.getCell(0, 0)
+        const is_ice_picks = cell.biome.title == 'Ледяные пики'
+        const is_ereb = cell.biome.title == 'Эреб'
+
+        const bridge_blocks = {
+            TORCH:   bm.TORCH.id, // is_ereb ? bm.SHROOMLIGHT.id : bm.TORCH.id,
+            FENCE:   is_ereb ? (bm.CRIMSON_FENCE.id) : (is_ice_picks ? bm.SPRUCE_FENCE.id : bm.DARK_OAK_FENCE.id),
+            PLANKS:  is_ereb ? (bm.NETHER_BRICKS.id) : (is_ice_picks ? bm.ICE.id : bm.SPRUCE_PLANKS.id),
+            SLAB:    is_ereb ? (bm.NETHER_BRICK_SLAB.id) : (is_ice_picks ? bm.ICE.id : bm.SPRUCE_SLAB.id),
+        }
 
         // generate densisiy values for column
         chunk.timers.start('generate_noise3d')
@@ -353,12 +366,13 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                 xyz.set(chunk.coord.x + x, chunk.coord.y, chunk.coord.z + z);
                 // const columnIndex = chunk.getColumnIndex(x, z)
 
-                const cell                  = map.getCell(x, z)
-                const has_cluster           = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.z, 2);
-                const cluster_cell          = has_cluster ? cluster.getCell(xyz.x, xyz.z) : null;
-                const big_stone_density     = this.calcBigStoneDensity(xyz, has_cluster)
-                const in_canyon             = cell.inCanyon(CANYON.FLOOR_DENSITY)
-                const bridge_in_canyon      = cell.inCanyon(CANYON.BRIDGE_DIST)
+                const cell                      = map.getCell(x, z)
+                const has_cluster               = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.z, 2);
+                const cluster_cell              = has_cluster ? cluster.getCell(xyz.x, xyz.z) : null;
+                const big_stone_density         = this.calcBigStoneDensity(xyz, has_cluster)
+                const in_canyon                 = cell.inCanyon(CANYON.FLOOR_DENSITY)
+                const bridge_in_canyon          = cell.inCanyon(CANYON.BRIDGE_DIST)
+                const bridge_fence_in_canyon    = cell.inCanyon(CANYON.BRIDGE_FENCE_DIST)
 
                 // const {dist_percent, op /*, relief, mid_level, radius, dist, density_coeff*/ } = cell.preset;
                 // const hanging_foliage_block_id = cell.biome.blocks.hanging_foliage.id
@@ -379,51 +393,60 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
                     xyz.y = chunk.coord.y + y;
 
+                    // получает плотность в данном блоке (допом приходят коэффициенты, из которых посчитана данная плотность)
+                    map_manager.calcDensity(xyz, cell, density_params, map)
+                    let {d1, d2, d3, d4, density, in_aquifera, local_water_line} = density_params
+
                     // Make canyon bridge
-                    if(bridge_in_canyon) {
-                        if(xyz.y == 80 || xyz.y == 81 || xyz.y == 82) {
+                    if(bridge_in_canyon && d4 < .7) {
+                        const by = xyz.y - 80
+                        if(by == 0 || by == 1 || by == 2) {
                             const bridge_pos = Math.abs(xyz.x + xyz.z)
-                            const bridge = bridge_pos % 150
+                            const bridge = bridge_pos % 240
                             if(bridge_pos > 10 && bridge < 6) {
-                                // const cyp_1 = Math.abs(map_manager.makeCanyonPoint(xyz.add(new Vector(-1, 0, 1))) - cell.canyon_point)
-                                // const cyp_2 = Math.abs(map_manager.makeCanyonPoint(xyz.add(new Vector(1, 0, 1))) - cell.canyon_point)
-                                // if(cyp_1 > cyp_2) {
                                 const edge_of_bridge = bridge == 0 || bridge == 5
                                 const inside_edge_of_bridge = bridge == 1 || bridge == 4
-                                if(xyz.y == 80) {
+                                if(by == 0) {
                                     if(bridge == 0 || bridge == 5) {
-                                        chunk.setBlockIndirect(x, y, z, 536)
+                                        if(bridge_fence_in_canyon) {
+                                            chunk.setBlockIndirect(x, y, z, bridge_blocks.FENCE)
+                                        }
                                     } else {
                                         if(inside_edge_of_bridge) {
-                                            chunk.setBlockIndirect(x, y, z, 460)
+                                            chunk.setBlockIndirect(x, y, z, bridge_blocks.PLANKS)
                                         } else {
-                                            chunk.setBlockIndirect(x, y, z, 461, null, {point: new Vector(0, .5, 0)})
-                                        }
-                                        
-                                    }
-                                } else if(xyz.y == 81) {
-                                    if(edge_of_bridge || bridge == 1 || bridge == 4) {
-                                        chunk.setBlockIndirect(x, y, z, 536)
-                                    }
-                                } else if(xyz.y == 82) {
-                                    if(bridge == 0 || bridge == 5) {
-                                        if(xyz.x % 5 == 0 && xyz.z % 5 == 0) {
-                                            if(cell.inCanyon(0.05)) {
-                                                if(rnd.double() < .35) {
-                                                    chunk.setBlockIndirect(x, y, z, 50)
+                                            const r = rnd.double()
+                                            const slab_threshold = .8
+                                            if(r < slab_threshold) {
+                                                chunk.setBlockIndirect(x, y, z, bridge_blocks.SLAB, null, slab_up_extra_data)
+                                                const {dirt_layer, block_id} = map_manager.getBlock(xyz, 1, cell, density_params, block_result)
+                                                if(dirt_layer.cap_block_id) {
+                                                    if((r/slab_threshold < .75)) {
+                                                        chunk.setBlockIndirect(x, y + 1, z, dirt_layer.cap_block_id)
+                                                    }
+                                                } else if((r/slab_threshold < 1/2000)) {
+                                                    chunk.setBlockIndirect(x, y + 1, z, fire_block_id)
                                                 }
                                             }
                                         }
                                     }
+                                } else if(by == 1 && bridge_fence_in_canyon) {
+                                    if(edge_of_bridge || bridge == 1 || bridge == 4) {
+                                        chunk.setBlockIndirect(x, y, z, bridge_blocks.FENCE)
+                                    }
+                                } else if(by == 2 && bridge_fence_in_canyon) {
+                                    if(bridge == 0 || bridge == 5) {
+                                        if(xyz.x % 5 == 0 && xyz.z % 5 == 0) {
+                                            if(cell.inCanyon(0.05)) {
+                                                chunk.setBlockIndirect(x, y, z, bridge_blocks.TORCH)
+                                                chunk.setBlockIndirect(x, y - 1, z, bridge_blocks.FENCE)
+                                            }
+                                        }
+                                    }
                                 }
-                                // }
                             }
                         }
                     }
-
-                    // получает плотность в данном блоке (допом приходят коэффициенты, из которых посчитана данная плотность)
-                    map_manager.calcDensity(xyz, cell, density_params, map);
-                    let {d1, d2, d3, d4, density, in_aquifera, local_water_line} = density_params;
 
                     dcaves_over = dcaves
                     dcaves = density_params.dcaves
@@ -441,6 +464,8 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                             xyz.y--
                             if(over_density_params.density > DENSITY_AIR_THRESHOLD) {
                                 not_air_count = 100;
+                            } else {
+                                not_air_count = 1
                             }
                         }
 
