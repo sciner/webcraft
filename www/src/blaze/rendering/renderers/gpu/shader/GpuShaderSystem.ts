@@ -7,6 +7,7 @@ import type { ISystem } from '../../shared/system/ISystem.js';
 import type { GPU } from '../GpuDeviceSystem.js';
 import type { WebGPURenderer } from '../WebGPURenderer.js';
 import type { GpuProgram } from './GpuProgram.js';
+import {BindResource} from "./BindResource";
 
 export class GpuShaderSystem implements ISystem
 {
@@ -69,7 +70,7 @@ export class GpuShaderSystem implements ISystem
 
             for (const j in groupLayout)
             {
-                const resource: GPUBindingResource = group.resources[j] ?? group.resources[groupLayout[j]];
+                const resource: BindResource = group.resources[j] ?? group.resources[groupLayout[j]];
 
                 // TODO make this dynamic..
                 if (resource instanceof UniformGroup)
