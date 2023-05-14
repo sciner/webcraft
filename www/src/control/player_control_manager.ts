@@ -148,12 +148,13 @@ export abstract class PlayerControlManager<TPlayer extends Player> {
      * If the simulation is successful, sets output of {@link data}.
      * If the simulation is unsuccessful, sets output of {@link data} only on the client.
      * @param outPosBeforeLastTick - the position before the last simulated tick.
+     * @param repeated - true если это повтор симуляции (на клиенте из-за коррекции)
      * @return true if the simulation was successful, i.e. the {@link PlayerControl.simulatePhysicsTick}.
      *   It may be unsuccessful if the chunk is not ready.
      *   If the simulation fails, all the important properties of {@link PlayerControl} remain unchanged
      *     (assuming {@link PlayerControl.copyPartialStateFromTo} is correct).
      */
-    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData): boolean {
+    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData, repeated: boolean): boolean {
         const pc = this.controlByType[data.contextControlType]
         const gameMode = GameMode.byIndex[data.contextGameModeIndex]
         const player_state = pc.player_state
@@ -195,7 +196,7 @@ export abstract class PlayerControlManager<TPlayer extends Player> {
                 }
             }
             this.onBeforeSimulatingTick(pc)
-            if (!pc.simulatePhysicsTick()) {
+            if (!pc.simulatePhysicsTick(repeated)) {
                 pc.copyPartialStateFromTo(pc.backupState, pc.simulatedState)
                 return false
             }
@@ -512,7 +513,7 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
 
             while (++ind < dataQueue.length) {
                 const data = dataQueue.get(ind)
-                this.simulate(prevData, data)
+                this.simulate(prevData, data, true)
                 this.knownPhysicsTicks += data.physicsTicks
                 data.invalidated = false
                 prevData = data
@@ -588,7 +589,7 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
             }
 
             const prevData = dataQueue.getLast()
-            this.simulate(prevData, data)
+            this.simulate(prevData, data, false)
 
             this.fineLogger.log(() => `simulated t${this.knownPhysicsTicks} ${data.outPos} ${data.outVelocity}`)
 
@@ -801,10 +802,10 @@ export class ClientPlayerControlManager extends PlayerControlManager<Player> {
         this.player.world.server.Send({name: ServerClient.CMD_PLAYER_CONTROL_SESSION, data})
     }
 
-    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData): boolean {
+    protected simulate(prevData: PlayerTickData | null | undefined, data: PlayerTickData, repeated: boolean): boolean {
         const pc = this.controlByType[data.contextControlType]
         prevData?.applyOutputToControl(pc)
-        if (super.simulate(prevData, data)) {
+        if (super.simulate(prevData, data, repeated)) {
             return true
         }
         data.initOutputFrom(pc)

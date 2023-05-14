@@ -626,6 +626,12 @@ export class Vector implements IVector {
         return this
     }
 
+    /** @returns угол по горизонтали от 0 (включительно) до 2*PI (не включительно) - такой же yaw во многих местах кода */
+    getYaw(): float {
+        const angle = Math.atan2(this.x, this.z)
+        return (angle >= 0) ? angle : angle + Mth.PI_MUL2
+    }
+
     //
     moveToSelf(rotate, dist) {
         this.x += dist * Math.cos(rotate.x) * Math.sin(rotate.z - Math.PI);

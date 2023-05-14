@@ -38,16 +38,18 @@ export type TDrivingConfig = {
     sound ?         : {tag: string, action: string} | null
 
     vehicleAnimation?: {
+        walkBack?: string
         rotateLeft?: string     // анимация когда транспорт поворачивается влево на месте
         rotateRight?: string
         idleNotEmpty?: string   // idle анимация транспорта, если на нем кто-то есть. Если никого нет - то просто idle.
     }
 
     driverAnimation?: {
-        idle?: string           // анимация водителя без движения
-        moving?: string         // анимация водителя при движении
+        walk?: string           // анимация водителя при движении
+        walkBack?: string       // анимация водителя при движении
         rotateLeft?: string     // анимация когда транспорт поворачивается влево на месте
         rotateRight?: string
+        idle?: string           // анимация водителя без движения
     }
 
     hideHandItem?: boolean // если true, то не рисует предмет в руке водителя

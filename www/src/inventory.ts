@@ -266,14 +266,8 @@ export abstract class Inventory {
 
     //
     select(index: int, resend = true): void {
-        const count = this.getSize().hotbar
-        if(index < 0) {
-            index = count;
-        }
-        if(index > count) {
-            index = 0
-        }
-        this.current.index = index;
+        const hotbar = this.getSize().hotbar
+        this.current.index = (index + hotbar) % hotbar
         this.refresh(resend);
         this.onSelect(this.current_item)
         if(this.player.mechanism_assembler.pos1) {

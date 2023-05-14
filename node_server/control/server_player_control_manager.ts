@@ -587,7 +587,7 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
     }
 
     protected simulate(prevData: ServerPlayerTickData | null | undefined, data: ServerPlayerTickData): boolean {
-        const res = super.simulate(prevData, data)
+        const res = super.simulate(prevData, data, false)
         if (res) {
             this.updateLastData(data)
         }
