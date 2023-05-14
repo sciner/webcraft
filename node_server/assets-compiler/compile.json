@@ -5149,6 +5149,28 @@
         },
         {
             "id": 610,
+            "name": "DIAMOND_SWORD",
+            "transparent": true,
+            "max_in_stack": 1,
+            "style": "extruder",
+            "item": {"name": "instrument", "instrument_id": "sword"},
+            "diagonal": true,
+            "power": 1561,
+            "damage": 7,
+            "speed": 1.6,
+            "material": {
+                "id": "diamond"
+            },
+            "texture": {
+                "side": "item/diamond_sword.png"
+            },
+            "tags": [
+                "#combat"
+            ],
+            "light": null
+        },
+        {
+            "id": 1216,
             "name": "TITANIUM_SWORD",
             "transparent": true,
             "max_in_stack": 1,

@@ -300,7 +300,9 @@ export class ClientDriving extends Driving<ClientDrivingManager> {
      *   то тот же результат, что {@link getPositionProvider}. Иначе - null.
      */
     providesPosition(): MobModel | Player | null {
-        return this.physicsInitialized ? this.getPositionProvider() : null
+        return this.myPlayerPlace !== null && !this.physicsInitialized
+            ? null
+            : this.getPositionProvider()
     }
 
     /** Обновляет позицию и угол в кажде зависимых учатников движения */
