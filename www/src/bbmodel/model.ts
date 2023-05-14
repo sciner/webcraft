@@ -163,6 +163,14 @@ export class BBModel_Model {
             animation_name = animation_name.substring(1)
         }
 
+        if(animation_name.indexOf('*') >= 0) {
+            const temp : any[] = animation_name.split('*')
+            if(!isNaN(temp[1])) {
+                dt *= parseFloat(temp[1])
+                animation_name = temp[0]
+            }
+        }
+
         const animation = this.animations.get(animation_name)
         if(!animation) {
             return false
