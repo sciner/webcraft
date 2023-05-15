@@ -133,8 +133,8 @@ export class Quest {
                count: reward.cnt
             };
             //
-            const block = BLOCK.fromId(reward_item.id);
-            if(block) {
+            const block = BLOCK.fromId(reward_item.id)
+            if(!block.is_dummy) {
                 server_player.inventory.increment(reward_item);
                 // отправить сообщение
                 this.#quest_player.sendMessage(`You have got reward ${block.name}x${reward_item.count}`);

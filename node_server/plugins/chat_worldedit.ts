@@ -832,7 +832,7 @@ export default class WorldEdit {
         const fake_pos = {...new Vector(0, 0, 0), n: new Vector(0, 0, 0), point: undefined} as IVectorPoint;
         for(let item of blockChances) {
             const b = item.name ? bm.fromName(item.name) : bm.fromId(item.block_id)
-            if(!b || b.id < 0) throw 'error_invalid_block'
+            if(b.is_dummy) throw 'error_invalid_block'
             if(b.deprecated) throw 'error_block_is_deprecated'
             if(b.item || b.next_part || b.previous_part || ['extruder', 'text', 'painting'].indexOf(b.style_name) >= 0) throw 'error_this_block_cannot_be_setted';
             //

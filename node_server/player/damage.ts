@@ -72,6 +72,11 @@ export class ServerPlayerDamage {
         
         // Урон от падения 
         const ground = player.controlManager.prismarine.player_state.onGround
+        const is_ladder = player.controlManager.prismarine.player_state.isOnLadder
+        const is_flaying = player.controlManager.prismarine.player_state.flying
+        if (is_ladder || is_flaying || player.in_portal || this.#ground) {
+            this.#last_height = position.y
+        }
         if (!this.#ground) {
             const block = world.getBlock(position)
             if (block.id == 0 && (block.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
@@ -83,13 +88,10 @@ export class ServerPlayerDamage {
                     const power = -height - MAX_UNDAMAGED_HEIGHT - player.effects.getEffectLevel(Effect.JUMP_BOOST)
                     if (power > 0) {
                         damage += power
-                        console.log("fall damage: " + power)
                     }
                 }
                 this.#last_height = position.y
             }
-        } else {
-            this.#last_height = position.y
         }
         this.#ground = ground
 

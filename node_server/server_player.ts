@@ -850,6 +850,7 @@ export class ServerPlayer extends Player {
         if (this.state.sitting || this.state.sleep) {
             this.standUp()
         }
+        this.#timer_immunity = performance.now()
         const world = this.world;
         let new_pos = null;
         let teleported_player = this;
@@ -1003,9 +1004,9 @@ export class ServerPlayer extends Player {
         if (!world_block) {
             return false;
         }
-        const block = bm.fromId(world_block.id);
-        if (!block) {
-            return false;
+        const block = bm.fromId(world_block.id)
+        if(block.is_dummy) {
+            return false
         }
         const head = world.getBlock(this.getEyePos());
         if (!head) {

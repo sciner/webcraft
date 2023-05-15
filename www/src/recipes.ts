@@ -354,16 +354,16 @@ export class RecipeManager implements IRecipeManager<Recipe> {
                 if(!recipe.hasOwnProperty('result')) {
                     throw 'Recipe result not defined';
                 }
-                let result_block = BLOCK.fromName(recipe.result.item);
-                if(result_block.id == BLOCK.DUMMY.id) {
+                const result_block = BLOCK.fromName(recipe.result.item);
+                if(result_block.is_dummy) {
                     throw 'Invalid recipe result block type ' + recipe.result.item;
                 }
                 recipe.result.item_id = result_block.id;
                 // Key variants
-                let keys_variants = [];
+                const keys_variants = [];
                 const blockNameToId = (block_name) => {
-                    let block = BLOCK.fromName(block_name);
-                    if(block.id == BLOCK.DUMMY.id) {
+                    const block = BLOCK.fromName(block_name);
+                    if(block.is_dummy) {
                         throw `Invalid recipe key name '${block_name}'`;
                     }
                     return block.id;

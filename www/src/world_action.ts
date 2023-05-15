@@ -363,7 +363,7 @@ export function dropBlock(player : any = null, tblock : TBlock | FakeTBlock, act
         }
     } else if(drop_item) {
         const drop_block = BLOCK.fromName(drop_item?.name);
-        if(drop_block) {
+        if(!drop_block.is_dummy) {
             const chance = drop_item.chance ?? 1;
             if(Math.random() < chance) {
                 let count = drop_item.count;
@@ -401,7 +401,7 @@ export function dropBlock(player : any = null, tblock : TBlock | FakeTBlock, act
                     const count = Helpers.getRandomInt(r.count.min, r.count.max);
                     if(count > 0) {
                         const result_block = BLOCK.fromName(r.name.toUpperCase());
-                        if(!result_block || result_block.id < 0) {
+                        if(result_block.is_dummy) {
                             throw 'error_invalid_result_block|' + r.name;
                         }
                         items.push(makeDropItem(tblock, {id: result_block.id, count: count}));
@@ -1038,12 +1038,12 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         // Получаем материал выбранного блока в инвентаре
         let mat_block = current_inventory_item ? BLOCK.fromId(current_inventory_item.id) : null;
 
-        if(mat_block && mat_block.item?.emit_on_set) {
+        if(mat_block && !mat_block.is_dummy && mat_block.item?.emit_on_set) {
             // bucket etc.
             mat_block = BLOCK.fromName(mat_block.item.emit_on_set);
         }
 
-        if(mat_block && (mat_block.deprecated || (!world.isBuildingWorld() && (blockFlags[mat_block.id] & BLOCK_FLAG.NOT_CREATABLE)))) {
+        if(mat_block && !mat_block.is_dummy && (mat_block.deprecated || (!world.isBuildingWorld() && (blockFlags[mat_block.id] & BLOCK_FLAG.NOT_CREATABLE)))) {
             console.warn('warning_mat_block.deprecated');
             return [null, pos];
         }
@@ -1571,7 +1571,7 @@ function putInBucket(e, world, pos, player, world_block, world_material, mat_blo
     if(world_material.put_in_bucket) {
         // get filled bucket
         const filled_bucket = BLOCK.fromName(world_material.put_in_bucket);
-        if(filled_bucket) {
+        if(!filled_bucket.is_dummy) {
             const item : IBlockItem = {
                 id: filled_bucket.id,
                 count: 1
@@ -2611,7 +2611,7 @@ function useAxe(e, world, pos, player, world_block, world_material, mat_block : 
     }
     if(world_material.tags.includes('log') && world_material.stripped_log) {
         const stripped_block = BLOCK.fromName(world_material.stripped_log);
-        if(stripped_block) {
+        if(!stripped_block.is_dummy) {
             actions.addBlocks([{pos: new Vector(pos), item: {id: stripped_block.id, rotate: world_block.rotate, extra_data: world_block.extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
             if(mat_block.sound) {
                 actions.addPlaySound({tag: mat_block.sound, action: 'strip', pos: new Vector(pos), except_players: [player.session.user_id]});

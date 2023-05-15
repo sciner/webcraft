@@ -321,7 +321,7 @@ export class ServerChunkManager {
     randomTick(tick_number) {
 
         const world_light = this.world.getLight();
-        const check_count = Math.floor(this.world.rules.getValue('randomTickSpeed') * 2.5);
+        const check_count = Math.floor(this.world.rules.getRandomTickSpeedValue() * 2.5);
         let rtc = 0;
 
         if(check_count == 0) {

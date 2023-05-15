@@ -150,7 +150,7 @@ export class Compiler {
     }
 
     //
-    async compileBlocks(blocks, spritesheet_storage? : any) {
+    async compileBlocks(blocks : IBlockMaterial[], spritesheet_storage? : any) {
 
         if(!spritesheet_storage) {
             spritesheet_storage = this
@@ -173,7 +173,7 @@ export class Compiler {
             //
             block.tags = block.tags ?? [];
 
-            block.flammable = this.flammable_blocks.get(block.name) ?? false;
+            block.flammable = this.flammable_blocks.get(block.name) ?? null
 
             // Auto add tags
             const tags = block.tags = block.tags || [];
@@ -416,8 +416,8 @@ export class Compiler {
                     }
                     //
                     const spritesheet = spritesheet_storage.getSpritesheetByID(spritesheet_id);
-                    if(value.indexOf('|') >= 0) {
-                        const pos_arr = value.split('|');
+                    if((value as string).indexOf('|') >= 0) {
+                        const pos_arr = (value as string).split('|');
                         tex = {pos: {x: parseFloat(pos_arr[0]), y: parseFloat(pos_arr[1])}};
                     } else {
                         const img = await spritesheet.loadTex(value, DEFAULT_TEXTURE_SUFFIXES);

@@ -1,8 +1,9 @@
 import { Vector } from '@client/helpers.js';
 import { ServerClient } from '@client/server_client.js';
 import { WorldAction } from '@client/world_action.js';
-import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
+import { FLUID_TYPE_MASK, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import type { TickingBlockManager } from "../server_chunk.js";
+import type { ServerWorld } from 'server_world.js';
 
 // Проверка позиции для установки арбуза
 function getFreePosition(world, pos) {
@@ -35,13 +36,13 @@ export default class Ticker {
     static type = 'stage';
 
     //
-    static func(this: TickingBlockManager, tick_number, world, chunk, v) {
+    static func(this: TickingBlockManager, tick_number : int, world : ServerWorld, chunk, v) {
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
         if (!extra_data?.bone) {
             extra_data.bone = 0;
         }
-        const random_tick_speed = world.rules.getValue('randomTickSpeed') / 4096;
+        const random_tick_speed = world.rules.getRandomTickSpeedValue() / 4096
         const is_tick = Math.random() < random_tick_speed;
         const is_bone = extra_data.bone > 0;
         if (!is_tick && !is_bone) {

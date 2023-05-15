@@ -266,6 +266,7 @@ interface IBlockMaterial {
     passable: number
     power: number
     can_auto_drop: boolean
+    is_dummy: boolean
     /**
      * @deprecated
      */
@@ -285,6 +286,11 @@ interface IBlockMaterial {
         slab?: boolean
         full_block_name: string
     }
+    flammable?: {
+        catch_chance_modifier: float
+        destroy_chance_modifier: float
+    }
+    compile: any
     redstone: any
     random_ticker: string
     resource_pack: any
@@ -505,4 +511,10 @@ declare type IQuboidInfo = {
     signx:  int
     signy:  int
     signz:  int
+}
+
+declare type IUpdateBlock = {
+    pos: IVector
+    item: any
+    action_id: int
 }
