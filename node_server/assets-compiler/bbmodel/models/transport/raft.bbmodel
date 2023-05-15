@@ -3642,7 +3642,7 @@
 		},
 		{
 			"uuid": "8bba934e-78c1-fdf1-72c6-cd251b964e9c",
-			"name": "walk",
+			"name": "raft_walk",
 			"loop": "loop",
 			"override": false,
 			"length": 1.14583,
