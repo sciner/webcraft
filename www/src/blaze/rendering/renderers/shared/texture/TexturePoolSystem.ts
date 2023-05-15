@@ -68,7 +68,7 @@ export class TexturePoolSystem implements ISystem
             texture.color = [Math.random(), Math.random(), Math.random(), 1];
         }
 
-        const renderTarget = renderer.renderTarget.push(texture, true, texture.color);
+        const renderTarget = renderer.renderTarget.push(texture as any, true, texture.color);
         // set the global uniforms to take into account the bounds offset required
 
         renderer.globalUniforms.push(renderTarget.projectionMatrix, boundsMatrix, 1);

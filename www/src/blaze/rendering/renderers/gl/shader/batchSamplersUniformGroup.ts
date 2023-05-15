@@ -8,4 +8,4 @@ for (let i = 0; i < MAX_TEXTURES; i++)
     sampleValues[i] = i;
 }
 
-export const batchSamplersUniformGroup = new UniformGroup({ uSamplers: sampleValues }, { isStatic: true });
+export const batchSamplersUniformGroup = new UniformGroup({ uSamplers: sampleValues } as any, { isStatic: true });

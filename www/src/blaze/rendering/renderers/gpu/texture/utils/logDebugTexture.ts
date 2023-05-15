@@ -5,6 +5,7 @@ import type { ICanvas } from '../../../../../settings/adapter/ICanvas';
 import type { WebGLRenderer } from '../../../gl/WebGLRenderer';
 import type { Texture } from '../../../shared/texture/Texture';
 import type { Renderer } from '../../../types';
+import type { GpuRenderTargetSystem } from '../../renderTarget/GpuRenderTargetSystem';
 
 export function textureToCanvas(texture: Texture, renderer: WebGPURenderer): ICanvas
 {
@@ -140,7 +141,7 @@ export async function logDebugTexture(texture: Texture, renderer: Renderer, size
         canvas = textureToCanvasWebGL(texture, renderer);
     }
 
-    await renderer.renderTarget.commandFinished;
+    await (renderer.renderTarget as any).commandFinished;
 
     const base64 = canvas.toDataURL();
 

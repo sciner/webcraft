@@ -1,4 +1,4 @@
-import { TilingSpritePipe } from '../../../../tiling-sprite/TilingSpritePipe.js';
+// import { TilingSpritePipe } from '../../../../tiling-sprite/TilingSpritePipe.js';
 import { BatcherPipe } from '../../../batcher/shared/BatcherPipe.js';
 import { FilterPipe } from '../../../filters/shared/FilterPipe.js';
 // import { GraphicsContextSystem } from '../../../graphics/shared/GraphicsContextSystem.js';
@@ -53,7 +53,7 @@ export interface SharedRenderPipes extends PixiMixins.SharedRenderPipes
     batch: BatcherPipe,
     mesh: MeshPipe,
     sprite: SpritePipe,
-    tilingSprite: TilingSpritePipe,
+    // tilingSprite: TilingSpritePipe,
     alphaMask: AlphaMaskPipe,
     stencilMask: StencilMaskPipe,
     colorMask: ColorMaskPipe,
@@ -85,7 +85,7 @@ export const SharedDefaultRendererOptions = {
 };
 
 export const SharedRendererExtensions = [
-    GraphicsContextSystem,
+    // GraphicsContextSystem,
     BackgroundSystem,
     InstructionSystem,
     GlobalUniformSystem,
@@ -101,7 +101,7 @@ export const SharedRendererExtensions = [
     // Render Pipes
     BatcherPipe,
     FilterPipe,
-    GraphicsPipe,
+    // GraphicsPipe,
     BlendModePipe,
     InstructionPipe,
     AlphaMaskPipe,
@@ -109,7 +109,7 @@ export const SharedRendererExtensions = [
     StencilMaskPipe,
     MeshPipe,
     SpritePipe,
-    TilingSpritePipe,
+    // TilingSpritePipe,
     BitmapTextPipe,
     CanvasTextPipe,
     GpuGlobalUniformPipe,

@@ -41,7 +41,7 @@ export const WGSL_TO_STD40_SIZE: Record<string, number> = {
 export interface UniformData
 {
     /** the value of the uniform, this could be any object - a parser will figure out how to write it to the buffer */
-    value: unknown;
+    value: any;
 
     type: UNIFORM_TYPES;
     /** the size of the variable (eg 2 for vec2, 3 for vec3, 4 for vec4) */

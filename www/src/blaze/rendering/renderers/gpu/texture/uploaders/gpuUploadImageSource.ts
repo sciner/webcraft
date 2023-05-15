@@ -8,12 +8,12 @@ export const gpuUploadImageResource = {
 
     upload(source: ImageSource, gpuTexture: GPUTexture, gpu: GPU)
     {
-        const resource = source.resource;
+        const resource = source.resource as any;
 
         if (!resource) return;
 
-        const width = source.resource?.width || source.pixelWidth;
-        const height = source.resource?.height || source.pixelHeight;
+        const width = resource.width || source.pixelWidth;
+        const height = resource.height || source.pixelHeight;
 
         gpu.device.queue.copyExternalImageToTexture(
             { source: resource },

@@ -28,7 +28,7 @@ export class GlBatchAdaptor implements BatcherAdaptor
         const uniforms = new UniformGroup({
             tint: { value: new Float32Array([1, 1, 1, 1]), type: 'f32' },
             translationMatrix: { value: new Matrix(), type: 'mat3x3<f32>' },
-            batchSamplers: batchSamplersUniformGroup,
+            batchSamplers: batchSamplersUniformGroup as any,
         });
 
         this.shader = new Shader({

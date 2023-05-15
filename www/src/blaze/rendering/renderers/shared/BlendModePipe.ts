@@ -32,6 +32,8 @@ import type { InstructionSet } from './instructions/InstructionSet.js';
 import type { InstructionGenerator, InstructionRunner } from './instructions/RenderPipe.js';
 import type { Renderable } from './Renderable.js';
 
+const BLEND_MODE_FILTERS = {};
+
 export interface AdvancedBlendInstruction extends Instruction
 {
     type: 'blendMode',

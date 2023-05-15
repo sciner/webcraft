@@ -43,5 +43,5 @@ export function logTexture(texture: Texture, renderer: WebGPURenderer): Texture
 
     renderer.gpu.device.queue.submit([commandEncoder.finish()]);
 
-    return canvas;
+    return canvas as any;
 }

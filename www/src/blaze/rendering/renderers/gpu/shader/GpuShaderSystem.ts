@@ -7,7 +7,7 @@ import type { ISystem } from '../../shared/system/ISystem.js';
 import type { GPU } from '../GpuDeviceSystem.js';
 import type { WebGPURenderer } from '../WebGPURenderer.js';
 import type { GpuProgram } from './GpuProgram.js';
-import {BindResource} from "./BindResource";
+import type {BindResource} from "./BindResource.js";
 
 export class GpuShaderSystem implements ISystem
 {

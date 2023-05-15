@@ -32,6 +32,7 @@ export class Texture implements BindableTexture
     }
 
     label?: string;
+    color?: [number, number, number, number];
     id = UID++;
     styleSourceKey = 0;
 

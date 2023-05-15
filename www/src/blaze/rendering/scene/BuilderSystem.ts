@@ -107,7 +107,7 @@ export class BuilderSystem implements ISystem
             renderer.renderPipes.blendMode.setBlendMode(renderable, container.worldBlendMode);
 
             renderer.instructions.buildAdd(renderable);
-            renderable.updateTick = updateTick;
+            (renderable as any).updateTick = updateTick;
         }
 
         const children = container.children;
@@ -161,7 +161,7 @@ export class BuilderSystem implements ISystem
                 renderPipes.blendMode.setBlendMode(renderable, container.worldBlendMode);
 
                 renderer.instructions.buildAdd(renderable);
-                renderable.updateTick = updateTick;
+                (renderable as any).updateTick = updateTick;
             }
 
             const children = container.children;

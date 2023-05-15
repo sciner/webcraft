@@ -5,11 +5,8 @@
         "ignoreDeprecations": "5.0",
         "outDir": "js",
     },
-    "files": [
-        "src/package.json"
-    ],
     "include": [
-        "src/**/*"
+        "src/**/*.ts"
     ],
     "exclude": [
         "src/renders/webgpu/**/*",

@@ -46,7 +46,7 @@ export class UniformBufferSystem implements ISystem
         {
             const elements = Object.keys(uniformGroup.uniformStructures).map((i) => uniformGroup.uniformStructures[i]);
 
-            const layout = createUBOElements(elements);
+            const layout = createUBOElements(elements as any);
 
             const syncFunction = generateUniformBufferSync(layout.uboElements);
 

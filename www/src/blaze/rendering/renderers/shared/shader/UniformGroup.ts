@@ -5,10 +5,10 @@ import type { BindResource } from '../../gpu/shader/BindResource.js';
 import type { Buffer } from '../buffer/Buffer.js';
 import type { UniformData } from './utils/createUBOElements.js';
 
-type FLOPS<T = UniformData> = T['value'];
+type FLOPS<T extends UniformData = UniformData> = T['value'];
 
 // TODO replace..T['value']
-type ExtractUniformObject<T = Record<string, UniformData>> = {
+type ExtractUniformObject<T extends Record<string, UniformData>> = {
     [K in keyof T]: FLOPS<T[K]>;
 };
 
@@ -17,7 +17,7 @@ export type UniformGroupOptions = {
     isStatic?: boolean;
 };
 
-export class UniformGroup<UNIFORMS={ [key: string]: UniformData }> implements BindResource
+export class UniformGroup<UNIFORMS extends Record<string, UniformData> ={ [key: string]: UniformData }> implements BindResource
 {
     static DEFAULT: UniformGroupOptions = {
         ubo: false,

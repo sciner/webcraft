@@ -104,7 +104,7 @@ export class TexturePool
         texture.source.pixelWidth = minWidth;
         texture.source.pixelHeight = minHeight;
 
-        this.poolKeyHash[texture.id as any] = key;
+        this.poolKeyHash[texture.id + ""] = key;
 
         return texture;
     }
