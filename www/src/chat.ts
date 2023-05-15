@@ -357,10 +357,46 @@ export class Chat extends TextBox {
 
             this.messagesUpdateID = this.messages.updateID
 
+           /* const lines = []
+            for (const message of this.messages.list) {
+                const message_html = this.sanitizeHTML(message.text)
+            }*/
+            let test = []
             let prev_username = null
             let pos = 0
             let count = 0
             for (const m of this.messages.list) {
+                let message_html = this.sanitizeHTML(m.text)
+                let need_hr = false
+                if(!prev_username || (prev_username != m.username)) {
+                    if(prev_username) {
+                        need_hr = true
+                    }
+                    prev_username = m.username
+                }
+
+                // первый блок 
+               // test.push(`<font color="${UI_THEME.base_font.color}">${this.sanitizeHTML(m.username)}:</font>` + message_html.slice(0, COUNT_CHARS_IN_LINE - m.username.length) + '<br/>')
+                //message_html = message_html.slice(COUNT_CHARS_IN_LINE - m.username.length)
+                const texts = message_html.split('\n')
+                for(let i = 0; i < texts.length; i++) {
+                
+                }
+                /*for(let i = 0; i < message_html.length; i++) {
+                    if (i == 0) {
+                        test.push(`<font color="${UI_THEME.base_font.color}">${this.sanitizeHTML(m.username)}:</font>` + message_html.slice(0, COUNT_CHARS_IN_LINE - m.username.length) + '<br/>')
+                        i = COUNT_CHARS_IN_LINE - m.username.length
+                    } else if (i % COUNT_CHARS_IN_LINE == 0 || message_html[i] == '\n') {
+                        test.push('&nbsp;&nbsp;' + message_html.slice(i, i + COUNT_CHARS_IN_LINE) + '<br/>')
+                    }
+                }*/
+            }
+            
+            console.log(test)
+
+            test.splice(0, this.#shift)
+             
+           /* for (const m of this.messages.list) {
                 pos += Math.ceil((m.username.length + m.text.length) / COUNT_CHARS_IN_LINE)
                 if (pos < this.#shift || (pos - this.#shift) > COUNT_LINES) {
                     continue
@@ -382,15 +418,15 @@ export class Chat extends TextBox {
                     strings.push(text)
                 }
             }
-             
-            if (Qubatch.settings.chat_reverse) {
-                for (let i = 0; i < COUNT_LINES - count; i++) {
-                    strings.push('<br/>')
-                }
-                strings = strings.reverse()
-            }
+            */
+           // if (Qubatch.settings.chat_reverse) {
+                //for (let i = 0; i < COUNT_LINES - count; i++) {
+                    //test.push('<br/>')
+               // }
+               //test = test.reverse()
+           // }
             
-            const htmlText = '<div style="word-wrap: break-word;">' + strings.join('') + '</div>'
+            const htmlText = '<div style="word-wrap: break-word;">' + test.join('') + '</div>'
             this.htmlText1.text = htmlText
 
         }
@@ -487,10 +523,10 @@ export class Chat extends TextBox {
 
     onScroll(up: boolean) {
         if (up) {
-            const count = this.getRealLength()
-            if (this.#shift < (count - COUNT_LINES)) {
+           // const count = this.getRealLength()
+            //if (this.#shift < (count - COUNT_LINES)) {
                 this.#shift++
-            }
+           // }
         } else {
             if (this.#shift > 0) {
                 this.#shift--
