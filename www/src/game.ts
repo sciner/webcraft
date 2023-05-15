@@ -299,6 +299,10 @@ export class GameClass {
                         if(player.status == PLAYER_STATUS.DEAD) {
                             return false
                         }
+                        if(player.chat.active) {
+                            player.chat.onScroll(e.deltaY > 0)
+                            return true
+                        }
                         if(controls.enabled) {
                             if(!player.controlManager.changeSpectatorSpeed(-e.deltaY)) {
                                 player.onScroll(e.deltaY > 0);

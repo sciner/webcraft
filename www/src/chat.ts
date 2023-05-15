@@ -12,6 +12,8 @@ const SYSTEM_NAME = '<MadCraft>';
 
 export class Chat extends TextBox {
 
+    #shift: number
+
     constructor(player) {
         super(UI_ZOOM * Qubatch.settings.window_size / 100);
         this.zoom = UI_ZOOM * Qubatch.settings.window_size / 100
@@ -127,12 +129,14 @@ export class Chat extends TextBox {
                 for (let i = 0; i < hist.length; i++) {
                     const buf = hist[i];
                     if (Array.isArray(buf)) {
+                        this.messages.add('123', buf.join(''))
                         this.history.add(buf);
                     }
                 }
             }
         }
         this.hud_atlas = Resources.atlas.get('hud')
+        this.#shift = 0
     }
 
     //
@@ -293,10 +297,11 @@ export class Chat extends TextBox {
         const margin = UI_THEME.window_padding * this.zoom
         const strings = []
 
-        const getLength = () => {
+        const getLength = (val) => {
+            console.log(val)
             let len = 0
-            for (const s of strings) {
-                len += Math.ceil(s.length / 46)
+            for (const s of val) {
+                len += Math.ceil(s.text.length / 40)
             }
             return len
         }
@@ -377,15 +382,30 @@ export class Chat extends TextBox {
                 }
             }
 
-            while (getLength() > 32) {
-                strings.pop()
-            }
+            //while (getLength() > 32) {
+                //strings.pop()
+            //}
+
+            strings.splice(0, this.#shift)
 
             const htmlText = '<div style="word-wrap: break-word;">' + strings.join('') + '</div>'
             this.htmlText1.text = htmlText
 
         }
 
+    }
+
+    getRealLength() {
+        const COUNT_CHARS_IN_LINE = 40
+        let len = 0
+        let pos = 0
+        for (const s of this.messages.list) {
+            if (this.#shift > pos++) {
+                continue
+            }
+            len += Math.ceil(s.text.length / COUNT_CHARS_IN_LINE)
+        }
+        return len
     }
 
     sanitizeHTML(text : string) : string {
@@ -454,14 +474,26 @@ export class Chat extends TextBox {
                 }
                 return true;
             }
-            /* The control reacts to ENTER itself in another place.
+            /* The control reacts to ENTER itself in another place.*/
             case KEY.ENTER: {
-                if(!down) {
-                    this.submit();
-                }
+                this.#shift = 0
                 return true;
             }
-            */
+        }
+    }
+
+    onScroll(up: boolean) {
+        const count = this.getRealLength()
+        if (up) {
+            if (count > 20) {
+                this.#shift++
+                this.messages.updateID++
+            }
+        } else {
+            if (this.#shift > 0) {
+                this.#shift--
+                this.messages.updateID++
+            }
         }
     }
 
