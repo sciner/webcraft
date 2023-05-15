@@ -9,7 +9,7 @@ import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
 import type { ArmorState, TAnimState, TSittingState, TSleepState } from "./player.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
-import type { TMobProps } from "./mob_manager.js";
+import type {TMobAnimations, TMobProps} from "./mob_manager.js";
 import type { Mesh_Object_Base } from "./mesh/object/base.js";
 import type {ClientDriving} from "./control/driving.js";
 import type { BLOCK } from "./blocks.js";
@@ -91,10 +91,12 @@ export class MobModel extends NetworkPhysicObject {
     fire?:              boolean = false
     attack?:            false | TAnimState = false
     ground:             boolean = true
+    inLiquid:           boolean = false
     running:            boolean = false
     driving?:           ClientDriving | null
     hasUse?:            boolean     // см. TMobConfig.hasUse
     supportsDriving?:   boolean
+    animations?:        TMobAnimations
     textures :          Map<string, any> = new Map()
 
     is_sheared:         boolean = false
@@ -349,13 +351,14 @@ export class MobModel extends NetworkPhysicObject {
             mesh.setAnimation('sleep')
         } else {
             mesh.rotation[2] = this.draw_yaw ?? 0
+            const animations = this.animations
             const driving = this.driving
             const vehicleModel = driving?.getVehicleModel()
             const vehicleAnimation = driving?.config.vehicleAnimation
+            let anim: string | null = null
             if (driving && this !== vehicleModel) { // если водитель
                 const srcModel = vehicleModel ?? this   // модель от которой берется moving и rotationSign
                 const driverAnimation = driving.config.driverAnimation
-                let anim: string | null
                 if (srcModel.moving) {
                     if (srcModel.moving === -1) {
                         anim = driverAnimation?.walkBack
@@ -373,26 +376,38 @@ export class MobModel extends NetworkPhysicObject {
                 mesh.setAnimation('sitting')
             } else if (this?.extra_data?.attack || this.attack) {
                 mesh.setAnimation('attack')
-            } else if (!this.ground) {
-                mesh.setAnimation('jump')
-            } else if (this.moving) {
-                if (this.sneak) {
-                    mesh.setAnimation('sneak')
-                } else if (!this.running) {
-                    let anim: string | null = null
-                    if (this === vehicleModel && this.moving === -1) {
-                        anim = vehicleAnimation?.walkBack
+            } else if (!this.ground && !animations?.noAirborne) { // прыжок или полет (в том числе в жидкости)
+                if (animations?.fly) {
+                    if (!this.moving) {     // более медленные анимации если полет вниз или на месте
+                        switch (this.movingY) {
+                            case -1: anim = animations.flyDown;    break
+                            case 0:  anim = animations.flyIdle;    break
+                        }
                     }
-                    mesh.setAnimation(anim ?? 'walk')
-                } else {
-                    mesh.setAnimation('run')
+                    anim ??= this.animations.fly
                 }
+                mesh.setAnimation(anim ?? 'jump')
+            } else if (this.moving) {
+                const reverse = this.moving === -1 && this.animations?.reverseBack
+                if (this.sneak) {
+                    anim = reverse ? '-sneak' : 'sneak'
+                } else if (!this.running) {
+                    if (this === vehicleModel) {
+                        if (this.moving === -1) {
+                            anim = vehicleAnimation?.walkBack
+                        }
+                        anim ??= vehicleAnimation?.walk
+                    }
+                    anim ??= reverse ? '-walk' : 'walk'
+                } else {
+                    anim = reverse ? '-run' : 'run'
+                }
+                mesh.setAnimation(anim)
             } else if (this.sneak) {
                 mesh.setAnimation('sneak_idle')
             } else  if (this.anim) {
                 mesh.setAnimation(this.anim.title)
             } else { // idle
-                let anim: string | null = null
                 if (this === vehicleModel) {
                     if (this.rotationSign === -1) {
                         anim = vehicleAnimation?.rotateLeft

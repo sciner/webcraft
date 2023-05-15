@@ -3,7 +3,8 @@ import GeometryTerrain from '../../geometry_terrain.js';
 import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
 import { Mesh_Object_Base } from './base.js';
 import { Resources } from '../../resources.js';
-import type { BBModel_Model } from '../../bbmodel/model.js';
+import type {TParsedAnimation} from '../../bbmodel/model.js';
+import {BBModel_Model} from '../../bbmodel/model.js';
 import type { BaseResourcePack } from '../../base_resource_pack.js';
 import { BBModel_Group } from '../../bbmodel/group.js';
 import type Mesh_Object_Block_Drop from './block_drop.js';
@@ -246,6 +247,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
     modifiers:          MeshObjectModifiers
     hide_groups:        string[] = []
     render:             Renderer
+    /** Время в секундах, когда измеился тип анимации. Не учитывает изменения скорости и направления. */
     animation_changed:  float | null = null
     animations:         Map<string, any> = new Map()
     prev_animations:    Map<string, any> = new Map()
@@ -255,8 +257,8 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
     apos:               Vector
     chunk_addr:         Vector
     chunk_coord:        Vector
-    animation_name:     string
-    animation_name_o:   string
+    parsed_animation?:  TParsedAnimation | null
+    animation_name_o?:  string | null
     private _block_drawer: Mesh_Object_Asteroid
 
     constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false) {
@@ -295,17 +297,27 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
 
     }
 
+    /** @returns полное имя анимации (с параметрами) */
+    get animation_name(): string | null | undefined {
+        return this.parsed_animation?.full_name
+    }
+
     //
     setAnimation(animation_name : string) {
-        this.animation_changed = (this.animation_name && this.animation_name != animation_name) ? (performance.now() / 1000) : null
-        this.animation_name = animation_name
+        if (this.parsed_animation?.full_name == animation_name) { // если вообще ничего не изменилось - не парсить
+            return
+        }
+        const oldShortName = this.parsed_animation?.name
+        this.parsed_animation = animation_name && BBModel_Model.parseAnimationName(animation_name)
+        // прверить, изменился ли тип анимации
+        this.animation_changed = (oldShortName && oldShortName != this.parsed_animation.name) ? (performance.now() / 1000) : null
     }
 
     redraw(delta: float) {
         this.vertices = []
         const mx = mat4.create();
         mat4.rotateY(mx, mx, this.rotation[2]);
-        this.model.playAnimation(this.animation_name, (this.start_time + performance.now()) / 1000, this)
+        this.model.playAnimation(this.parsed_animation, (this.start_time + performance.now()) / 1000, this)
         this.model.draw(this.vertices, vecZero, lm, mx);
         this.buffer.updateInternal(this.vertices);
     }

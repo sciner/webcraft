@@ -242,6 +242,7 @@
         "error_volume_0": {"en": "No volume", "ru": "Нет объема", "fr": "", "es": "", "man": ""},
         "chat": {"en": "Chat", "ru": "Чат", "fr": "", "es": "", "man": ""},
         "chat_reverse": {"en": "Chat reverse", "ru": "Вывод сообщений снизу вверх", "fr": "", "es": "", "man": ""},
-        "chat_time": {"en": "Show time chat", "ru": "Время показывания чата", "fr": "", "es": "", "man": ""}
+        "chat_time": {"en": "Show time chat", "ru": "Время показывания чата", "fr": "", "es": "", "man": ""},
+        "error_undefined_animation_name": {"en": "Undefined animation `%0`", "ru": "Неизвестная анимация `%0`", "fr": "", "es": "", "man": ""}
     }
 }

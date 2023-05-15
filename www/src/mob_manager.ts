@@ -5,6 +5,25 @@ import { Resources } from "./resources.js";
 import { ServerClient } from "./server_client.js";
 import type {Indicators, PlayerSkin} from "./player.js";
 import type { World } from "./world.js";
+import {unpackBooleans} from "./packet_compressor.js";
+
+export type TMobAnimations = {
+    /**
+     * Если true, то обыные анимация движения назад (не из конфига вождения) - walk, sneak, run  проигрывается в
+     * обратную сторону. Не влияет на анимаии, определенные в свойствах вождения.
+     */
+    reverseBack?: boolean
+
+    /**
+     * Если false, то не на земле (т.е. в воздухе или жидкости) проигрывается анимация прыжка или полета. Это старое поведение.
+     * Если true, то всегда та же анимация, что и на земле.
+     */
+    noAirborne?: boolean
+
+    fly?: string        // анимация полета (иначе испольузется 'jump')
+    flyIdle?: string    // анимация полета без движения (если не задано - испольузется fly)
+    flyDown?: string    // анимация полета вниз (если не задано - испольузется fly)
+}
 
 export declare type TMobProps = {
     health?:        float       // не определено для моба
@@ -24,6 +43,7 @@ export declare type TMobProps = {
     hands?:         any
     hasUse?:        boolean     // не определено для игрока, см. TMobConfig.hasUse
     supportsDriving?: boolean   // не определено для игрока
+    animations?:    TMobAnimations | null
 }
 
 export class MobManager {
@@ -72,7 +92,7 @@ export class MobManager {
                     case ServerClient.CMD_MOB_UPDATE: {
                         if(Array.isArray(cmd.data)) {
                             const add_pos = cmd.data.slice(0, 3)
-                            for(let i = 3; i < cmd.data.length; i += 6) {
+                            for(let i = 3; i < cmd.data.length; i += 7) {
                                 const mob = this.list.get(cmd.data[i]);
                                 if(mob) {
                                     const new_state = {
@@ -86,6 +106,9 @@ export class MobManager {
                                         time: cmd.time
                                     };
                                     mob.applyNetState(new_state)
+                                    const [ground, inLiquid] = unpackBooleans(cmd.data[i + 6], 2) // флаги, упакованные в одно число
+                                    mob.ground = ground
+                                    mob.inLiquid = inLiquid
                                     if (new_state?.extra_data) {
                                         mob.health = new_state.extra_data.health
                                     }
