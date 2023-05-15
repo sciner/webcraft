@@ -123,6 +123,11 @@
                 "unloads": true,
                 "offsets": [ { "x": 0, "y": 0.25, "z": -0.1 } ]
             },
+            "animations": {
+                "fly": "walk",
+                "flyIdle": "walk*0.5",
+                "flyDown": "walk*0.25"
+            },
             "health": 10
         },
         "mob/parrot": {
@@ -161,6 +166,9 @@
                 "maxYawDelta": 1.6,
                 "hideHandItem": true
             },
+            "animations": {
+                "noAirborne": true
+            },
             "drop_on_kill": "OAK_BOAT",
             "timer_panic": 0,
             "damageAddsVelocity": false,
@@ -182,9 +190,10 @@
                     { "x": 0, "y": 0.28, "z": -0.03 }
                 ],
                 "vehicleAnimation": {
-                    "walkBack": "-walk",
-                    "rotateLeft": "-walk",
-                    "rotateRight": "walk",
+                    "walk": "raft_walk",
+                    "walkBack": "-raft_walk",
+                    "rotateLeft": "-raft_walk",
+                    "rotateRight": "raft_walk",
                     "idleNotEmpty": "raft_idle"
                 },
                 "driverAnimation": {
@@ -197,6 +206,9 @@
                 "useAngularSpeed": true,
                 "maxYawDelta": 1.6,
                 "hideHandItem": true
+            },
+            "animations": {
+                "noAirborne": true
             },
             "drop_on_kill": "RAFT",
             "timer_panic": 0,

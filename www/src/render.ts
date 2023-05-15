@@ -776,8 +776,8 @@ export class Renderer {
         const player_matrix = mat4.create()
         mat4.rotateY(player_matrix, player_matrix, Math.PI * .9)
 
-        const orig_animation = player_mesh.animation_name
-        player_mesh.animation_name = null
+        const orig_animation = player_mesh.parsed_animation
+        player_mesh.parsed_animation = null
         player_mesh.setAnimation('idle')
         player_mesh.redraw(0)
 
@@ -786,7 +786,7 @@ export class Renderer {
 
         // this.renderBackend.drawMesh(player_mesh.buffer, player_mesh.gl_material, pos, player_matrix)
 
-        player_mesh.animation_name = orig_animation
+        player_mesh.parsed_animation = orig_animation
 
         this.renderBackend.endPass()
 
