@@ -205,8 +205,8 @@ export class ServerChat {
                 }
                 const bm = this.world.block_manager
                 cnt = Math.max(cnt | 0, 1);
-                const b = bm.fromName(name.toUpperCase());
-                if(b && b.id > 0) {
+                const b = bm.fromName(name.toUpperCase())
+                if(!b.is_dummy) {
                     // TODO: check admin rights
                     if(!is_admin) {
                         const blockFlags = bm.flags

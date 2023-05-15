@@ -108,7 +108,7 @@ export class QuestView extends Window {
         const rewards = []
         for(const item of quest.rewards) {
             const block = BLOCK.fromId(item.block_id)
-            if(block) {
+            if(!block.is_dummy) {
                 rewards.push((rewards.length + 1) + '. ' + block.name.replaceAll('_', ' ') + ' × ' + item.cnt)
             }
         }

@@ -309,7 +309,7 @@ export class DBWorld {
                     const item = inventory.items[i]
                     if(!item) continue
                     const mat = world.block_manager.fromId(item.id)
-                    if(mat && item.count) {
+                    if(!mat.is_dummy && item.count) {
                         // fix items count
                         if(item.count > mat.max_in_stack) {
                             item.count = mat.max_in_stack

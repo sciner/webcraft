@@ -22,7 +22,8 @@ export const NO_DESTRUCTABLE_BLOCKS         = ['BEDROCK', 'STILL_WATER']
 export const DIRT_BLOCK_NAMES               = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET']
 export const LAYERING_MOVE_TO_DOWN_STYLES   = ['grass', 'tall_grass', 'wildflowers']
 
-const AIR_BLOCK_STRINGIFIED = '{"id":0}'
+export const AIR_BLOCK_SIMPLE = Object.freeze({id: 0})
+const AIR_BLOCK_STRINGIFIED = '{"id":0}' // JSON.stringify(AIR_BLOCK_SIMPLE)
 
 export enum BLOCK_SAME_PROPERTY {
     EXTRA_DATA = 1,
@@ -688,7 +689,6 @@ export class BLOCK {
         if(this.hasOwnProperty(name)) {
             return this[name]
         }
-        console.log(name)
         console.error('Warning: name missing in BLOCK ' + name);
         return this.DUMMY;
     }
@@ -710,8 +710,8 @@ export class BLOCK {
 
     // Возвращает True если блок является растением
     static isPlants(id : int) : boolean {
-        let b = this.fromId(id);
-        return b && !!b.planting;
+        const b = this.fromId(id)
+        return !b.is_dummy && b.planting
     }
 
     // Can replace
@@ -1547,6 +1547,7 @@ export class BLOCK {
     // Calculate in last time, after all init procedures
     static calcProps() {
         for(const block of BLOCK.list.values()) {
+            block.is_dummy = !!block.is_dummy
             block.visible_for_ao = BLOCK.visibleForAO(block.id)
             block.light_power_number = BLOCK.getLightPower(block)
             block.interact_water = block.tags.includes('interact_water')

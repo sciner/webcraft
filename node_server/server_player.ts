@@ -1004,9 +1004,9 @@ export class ServerPlayer extends Player {
         if (!world_block) {
             return false;
         }
-        const block = bm.fromId(world_block.id);
-        if (!block) {
-            return false;
+        const block = bm.fromId(world_block.id)
+        if(block.is_dummy) {
+            return false
         }
         const head = world.getBlock(this.getEyePos());
         if (!head) {

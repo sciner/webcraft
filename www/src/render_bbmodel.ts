@@ -171,7 +171,7 @@ export class RendererBBModel {
 
         if (this.player.currentInventoryItem) {
             const mat = BLOCK.fromId(this.player.currentInventoryItem.id)
-            if(mat && !mat.is_dynamic_light) {
+            if(!mat.is_dummy && !mat.is_dynamic_light) {
                 const power = mat.light_power_number
                 // and skip all block that have power greater that 0x0f
                 // it not a light source, it store other light data

@@ -49,9 +49,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
 
     constructor() {
         this.addRecipe('rename',
-            function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-                     label: string | null | false, outUsedCount: [int, int]): IInventoryItem | null
-            {
+            function(first_item: IInventoryItem | null, second_item: IInventoryItem | null, label: string | null | false, outUsedCount: [int, int]): IInventoryItem | null {
                 if (first_item == null || second_item != null || label === false) {
                     return null;
                 }

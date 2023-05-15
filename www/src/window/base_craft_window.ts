@@ -97,23 +97,21 @@ export class CraftTableSlot extends SimpleBlockSlot {
         if(item) {
             if(item.id) {
                 const block = BLOCK.fromId(item.id)
-                if(block) {
-                    const label = item.extra_data?.label;
-                    resp = label
-                        ? `${label} (${block.title}, #${item.id})`
-                        : `${block.title} (#${item.id})`;
-                    for(const [e, lvl] of Enchantments.ofItem(item)) {
-                        resp += '\r' + e.name + ' ' + StringHelpers.romanize(lvl);
-                    }
-                    if (item.extra_data?.age) {
-                        resp += '\rAnvil uses: ' + item.extra_data?.age;
-                    }
-                    if (block.extra_data?.slot) {
-                        resp += '\r' + Lang['backpack'] + ' (' + Lang['slots'] + ': ' + block.extra_data.slot + ')'
-                    }
-                    if (block.extra_data?.hotbar) {
-                        resp += '\r' + Lang['toolbelt'] + ' (' + Lang['slots'] + ': ' + block.extra_data.hotbar + ')'
-                    }
+                const label = item.extra_data?.label;
+                resp = label
+                    ? `${label} (${block.title}, #${item.id})`
+                    : `${block.title} (#${item.id})`;
+                for(const [e, lvl] of Enchantments.ofItem(item)) {
+                    resp += '\r' + e.name + ' ' + StringHelpers.romanize(lvl);
+                }
+                if (item.extra_data?.age) {
+                    resp += '\rAnvil uses: ' + item.extra_data?.age;
+                }
+                if (block.extra_data?.slot) {
+                    resp += '\r' + Lang['backpack'] + ' (' + Lang['slots'] + ': ' + block.extra_data.slot + ')'
+                }
+                if (block.extra_data?.hotbar) {
+                    resp += '\r' + Lang['toolbelt'] + ' (' + Lang['slots'] + ': ' + block.extra_data.hotbar + ')'
                 }
             }
         }

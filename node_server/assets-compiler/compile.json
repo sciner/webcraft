@@ -434,6 +434,7 @@
             "name": "DUMMY",
             "spawnable": false,
             "transparent": true,
+            "is_dummy": true,
             "sound": "madcraft:block.stone",
             "material": {
                 "id": "bedrock"

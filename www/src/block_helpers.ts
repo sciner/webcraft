@@ -121,7 +121,7 @@ export class ItemHelpers {
         return label !== '' ? label : null;
     }
 
-    static getLabel(item) {
+    static getLabel(item) : string {
         return item.extra_data?.label ?? BLOCK.fromId(item.id).title;
     }
 

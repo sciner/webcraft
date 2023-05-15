@@ -471,7 +471,7 @@ export class Player implements IPlayer {
             const hand_current_item = this.inventory.current_item;
             if(e && e.createBlock && hand_current_item) {
                 const hand_item_mat = this.world.block_manager.fromId(hand_current_item.id);
-                if(hand_item_mat && hand_item_mat.tags.includes('set_on_water')) {
+                if(!hand_item_mat.is_dummy && hand_item_mat.tags.includes('set_on_water')) {
                     if(e.number++ == 0) {
                         e.pos = bPos;
                         const e_orig: ICmdPickatData = ObjectHelpers.deepClone(e);

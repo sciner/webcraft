@@ -557,7 +557,7 @@ export class  BIOMES {
             }
             for(let tree of biome.trees.list) {
                 const trunk_block = BLOCK.fromId(tree.trunk);
-                if(!trunk_block) throw 'invalid_trunk_block';
+                if(trunk_block.is_dummy) throw 'invalid_trunk_block';
                 tree.transparent_trunk = trunk_block.transparent;
             }
             biome.dirt_palette = DEFAULT_DIRT_PALETTE

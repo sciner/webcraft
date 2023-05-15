@@ -99,10 +99,10 @@ export class QuestPlayer {
     // Handler
     onSetBlock(e) {
         const block = this.world.block_manager.fromId(e.data.block.id);
-        if(!block) {
+        if(block.is_dummy) {
             throw 'error_invalid_block';
         }
-        const pos = e.data.pos.toHash();
+        // const pos = e.data.pos.toHash();
         for(let quest of this.quests.values()) {
             if(quest.is_completed) {
                 continue;
@@ -122,10 +122,10 @@ export class QuestPlayer {
     // Handler
     onDestroyBlock(e) {
         const block = this.world.block_manager.fromId(e.data.block.id);
-        if(!block) {
+        if(block.is_dummy) {
             throw 'error_invalid_block';
         }
-        const pos = e.data.pos.toHash();
+        // const pos = e.data.pos.toHash();
         // this.sendMessage(`${e.player.session.username} destroy block ${block.name} on pos ${pos}`);
     }
 
@@ -150,7 +150,7 @@ export class QuestPlayer {
     onCraft(e) {
         const item = e.data.item;
         const block = this.world.block_manager.fromId(item.block_id);
-        if(!block) {
+        if(block.is_dummy) {
             throw 'error_invalid_block';
         }
         for(let quest of this.quests.values()) {
@@ -173,7 +173,7 @@ export class QuestPlayer {
     onItemToInventory(e) {
         const item = e.data.item;
         const block = this.world.block_manager.fromId(item.block_id);
-        if(!block) {
+        if(block.is_dummy) {
             throw 'error_invalid_block';
         }
         for(let quest of this.quests.values()) {

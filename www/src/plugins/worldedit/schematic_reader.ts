@@ -140,7 +140,7 @@ export class SchematicReader {
                     // e.g. INFESTED_STONE_BRICKS
                     const name2 = name.substring(9);
                     const b2 = BLOCK.fromName(name2);
-                    if(b2 && b2.id > 0) {
+                    if(!b2.is_dummy) {
                         new_block = new DBItemBlock(b2.id, {infested: true})
                     }
                 }
@@ -571,7 +571,7 @@ export class SchematicReader {
                 const slot_index = item.Slot;
                 chest_item_name = chest_item_name.toUpperCase();
                 const chest_item_block = BLOCK.fromName(chest_item_name);
-                if(chest_item_block && chest_item_block.id > 0) {
+                if(!chest_item_block.is_dummy) {
                     const count = item.Count;
                     if(count > 0) {
                         const tag = item.tag ?? null;

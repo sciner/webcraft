@@ -1,14 +1,15 @@
 import { ServerClient } from '@client/server_client.js';
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import type { TickingBlockManager } from "../server_chunk.js";
+import type { ServerWorld } from 'server_world.js';
 
 export default class Ticker {
 
     static type = 'dripstone';
 
     //
-    static func(this: TickingBlockManager, tick_number, world, chunk, v) {
-        const random_tick_speed = world.rules.getValue('randomTickSpeed') / 4096
+    static func(this: TickingBlockManager, tick_number : int, world : ServerWorld, chunk, v) {
+        const random_tick_speed = world.rules.getRandomTickSpeedValue() / 4096
         const is_tick = Math.random() < random_tick_speed
         if (!is_tick) {
             return

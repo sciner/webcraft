@@ -297,7 +297,7 @@ export abstract class Inventory {
         if(src.count < 1) {
             throw 'error_increment_value_less_then_one';
         }
-        if(!this.block_manager.fromId(src.id)) {
+        if(this.block_manager.fromId(src.id).is_dummy) {
             throw 'error_invalid_block_id';
         }
         no_update_if_remains = !!no_update_if_remains;
@@ -678,7 +678,7 @@ export abstract class Inventory {
             return false;
         }
         while(mat.previous_part && mat.previous_part.id != mat.id) {
-            let b = block_manager.fromId(mat.previous_part.id);
+            const b = block_manager.fromId(mat.previous_part.id);
             mat = {id: b.id, previous_part: b.previous_part} as IBlockMaterial;
         }
         const cloned_block = block_manager.convertItemToInventoryItem(mat);

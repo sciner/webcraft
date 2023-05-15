@@ -1,11 +1,19 @@
 import { ObjectHelpers } from "@client/helpers.js";
+import type { ServerWorld } from "server_world";
 
 export class GameRule {
 
-    #world;
+    #world : ServerWorld;
     default_rules: {
-        doDaylightCycle: { default: boolean; type: string; }; // /gamerule doDaylightCycle false|true
-        doWeatherCycle: { default: boolean; type: string; }; doMobSpawning: { default: boolean; type: string; }; pvp: { default: boolean; type: string; }; randomTickSpeed: { default: number; type: string; }; difficulty: { default: number; type: string; }; fluidTickRate: { default: number; min: number; max: number; type: string; }; lavaSpeed: { default: number; min: number; max: number; type: string; }; ambientLight: { default: number; min: number; max: number; type: string; };
+        doDaylightCycle:    { default: boolean; type: string; };
+        doWeatherCycle:     { default: boolean; type: string; };
+        doMobSpawning:      { default: boolean; type: string; };
+        pvp:                { default: boolean; type: string; };
+        randomTickSpeed:    { default: number; type: string; };
+        difficulty:         { default: number; type: string; };
+        fluidTickRate:      { default: number; min: number; max: number; type: string; };
+        lavaSpeed:          { default: number; min: number; max: number; type: string; };
+        ambientLight:       { default: number; min: number; max: number; type: string; };
     };
 
     constructor(world) {
@@ -13,7 +21,7 @@ export class GameRule {
         this.default_rules = {
             doDaylightCycle:    {default: true, type: 'boolean'}, // /gamerule doDaylightCycle false|true
             doWeatherCycle:     {default: true, type: 'boolean'},
-            doMobSpawning:     {default: true, type: 'boolean'},
+            doMobSpawning:      {default: true, type: 'boolean'},
             pvp:                {default: true, type: 'boolean'},
             randomTickSpeed:    {default: 3, type: 'int'},
             difficulty:         {default: 1, type: 'int'},
@@ -42,6 +50,12 @@ export class GameRule {
             return world.info.rules[rule_code] ?? this.default_rules[rule_code].default;
         }
         throw 'error_incorrect_rule_code';
+    }
+
+    getRandomTickSpeedValue() : float {
+        const chunkSize = this.#world.grid.chunkSize
+        const volume = chunkSize.x * chunkSize.y * chunkSize.z
+        return this.getValue('randomTickSpeed') / 10240 * volume // 10240 = 16х40х16
     }
 
     // Set world game rule value

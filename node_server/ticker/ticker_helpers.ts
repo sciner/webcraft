@@ -1,7 +1,7 @@
 import { parseManyToMany, loadMappedImports, importClassInstanceWithId } from '../server_helpers.js'
 import { BLOCK } from '@client/blocks.js';
 import { TBlock } from "@client/typed_blocks3.js";
-import { ArrayHelpers, ArrayOrMap } from '@client/helpers.js';
+import { ArrayHelpers, ArrayOrMap, Vector } from '@client/helpers.js';
 import { ServerClient } from '@client/server_client.js';
 import { FLUID_TYPE_MASK, FLUID_WATER_INTERACT, FLUID_WATER_REMOVE,
     FLUID_WATER_ABOVE_INTERACT, FLUID_WATER_ABOVE_REMOVE 
@@ -183,14 +183,14 @@ const tmp_DelayedBlockListener_block = new TBlock();
 // helper methods and constructors for frequently used block updates
 export class BlockUpdates {
     
-    static igniteTNT(pos, block) {
+    static igniteTNT(pos : Vector, block) {
         if (block.extra_data?.explode) {
             // If it's already burning, don't overwrite the counter.
             // It may cause TNT to never explode.
             return null;
         }
         return {
-            pos: pos,
+            pos: pos.clone(),
             item: {id: BLOCK.TNT.id, extra_data: {explode: true, fuse: 0}},
             action_id: ServerClient.BLOCK_ACTION_MODIFY
         };
