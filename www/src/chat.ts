@@ -297,15 +297,6 @@ export class Chat extends TextBox {
         const margin = UI_THEME.window_padding * this.zoom
         const strings = []
 
-        const getLength = (val) => {
-            console.log(val)
-            let len = 0
-            for (const s of val) {
-                len += Math.ceil(s.text.length / 40)
-            }
-            return len
-        }
-
         //
         if (!this.chat_input) {
             this.init(hud)
@@ -329,6 +320,7 @@ export class Chat extends TextBox {
                 htmlText1.htmlStyle.fontFamily = UI_THEME.base_font.family
             })
             htmlText1.clip(0, 0, w - margin * 2, h - margin * 2)
+            console.log(htmlText1)
             this.history_messages_window.addChild(htmlText1)
         }
 
@@ -386,7 +378,7 @@ export class Chat extends TextBox {
                 //strings.pop()
             //}
 
-            strings.splice(0, this.#shift)
+            //strings.splice(0, this.#shift)
 
             const htmlText = '<div style="word-wrap: break-word;">' + strings.join('') + '</div>'
             this.htmlText1.text = htmlText
@@ -396,6 +388,9 @@ export class Chat extends TextBox {
     }
 
     getRealLength() {
+        /*]
+            fontsize 22 - 16,5
+        */
         const COUNT_CHARS_IN_LINE = 40
         let len = 0
         let pos = 0
@@ -484,6 +479,7 @@ export class Chat extends TextBox {
 
     onScroll(up: boolean) {
         const count = this.getRealLength()
+        console.log('up: ' + up + ' len: ' + count)
         if (up) {
             if (count > 20) {
                 this.#shift++
