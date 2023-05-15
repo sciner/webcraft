@@ -376,12 +376,31 @@ export class Chat extends TextBox {
                 }
 
                 // первый блок 
-               // test.push(`<font color="${UI_THEME.base_font.color}">${this.sanitizeHTML(m.username)}:</font>` + message_html.slice(0, COUNT_CHARS_IN_LINE - m.username.length) + '<br/>')
-                //message_html = message_html.slice(COUNT_CHARS_IN_LINE - m.username.length)
+                let br = ''
+                let first = message_html.indexOf('\n')
+                if (first == -1 || first > COUNT_CHARS_IN_LINE - m.username.length) {
+                    first = COUNT_CHARS_IN_LINE - m.username.length
+                    br = '<br/>'
+                }
+                test.push(`<font color="${UI_THEME.base_font.color}">${this.sanitizeHTML(m.username)}:</font>` + message_html.slice(0, first) + br)
+                // откусываем кусок
+                message_html = message_html.slice(first)
+                // если есть переносы, то переносим
                 const texts = message_html.split('\n')
                 for(let i = 0; i < texts.length; i++) {
-                
+                    // дробим строку по длине
+                    for(let j = 0; j < texts[i].length; j++) {
+                        if (j % COUNT_CHARS_IN_LINE == 0) {
+                            test.push('&nbsp;&nbsp;' + texts[i].slice(j, j + COUNT_CHARS_IN_LINE) + '<br/>')
+                        }
+                    }
                 }
+               // test.push(`<font color="${UI_THEME.base_font.color}">${this.sanitizeHTML(m.username)}:</font>` + message_html.slice(0, COUNT_CHARS_IN_LINE - m.username.length) + '<br/>')
+                //message_html = message_html.slice(COUNT_CHARS_IN_LINE - m.username.length)
+                //const texts = message_html.split('\n')
+                //for(let i = 0; i < texts.length; i++) {
+                
+                //}
                 /*for(let i = 0; i < message_html.length; i++) {
                     if (i == 0) {
                         test.push(`<font color="${UI_THEME.base_font.color}">${this.sanitizeHTML(m.username)}:</font>` + message_html.slice(0, COUNT_CHARS_IN_LINE - m.username.length) + '<br/>')
@@ -392,9 +411,12 @@ export class Chat extends TextBox {
                 }*/
             }
             
-            console.log(test)
+            //console.log(test)
 
             test.splice(0, this.#shift)
+            console.log(test)
+            test.splice(14, test.length - 14)
+            console.log(test)
              
            /* for (const m of this.messages.list) {
                 pos += Math.ceil((m.username.length + m.text.length) / COUNT_CHARS_IN_LINE)
