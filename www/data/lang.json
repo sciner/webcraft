@@ -239,6 +239,7 @@
         "assembly_discarded": {"en": "Assembly discarded", "ru": "Сборка отменена", "fr": "", "es": "", "man": ""},
         "error_pos1_not_defined": {"en": "pos1 not defined", "ru": "Первая точка не отмечена", "fr": "", "es": "", "man": ""},
         "error_pos2_not_defined": {"en": "pos2 not defined", "ru": "Вторая точка не отмечена", "fr": "", "es": "", "man": ""},
-        "error_volume_0": {"en": "No volume", "ru": "Нет объема", "fr": "", "es": "", "man": ""}
+        "error_volume_0": {"en": "No volume", "ru": "Нет объема", "fr": "", "es": "", "man": ""},
+        "error_undefined_animation_name": {"en": "Undefined animation `%0`", "ru": "Неизвестная анимация `%0`", "fr": "", "es": "", "man": ""}
     }
 }

@@ -121,7 +121,8 @@ export class NetworkPhysicObject {
             if (mobModel.animations?.reverseBack || mobModel.driving) {
                 const movementYaw = tmpSetPosVec.setScalar(dx, dy, dz).getYaw()
                 const deltaYaw = Mth.radians_to_minus_PI_PI_range(movementYaw - this._yaw)
-                this.moving = Math.abs(deltaYaw) <= Mth.PI_DIV2 ? 1 : -1
+                // this.moving = Math.abs(deltaYaw) <= Mth.PI_DIV2 ? 1 : -1
+                this.moving = Math.abs(deltaYaw) <= Math.PI * 0.625 ? 1 : -1
             } else {
                 this.moving = 1
             }
