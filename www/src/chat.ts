@@ -390,6 +390,7 @@ export class Chat extends TextBox {
     getRealLength() {
         /*]
             fontsize 22 - 16,5
+            fortsize 18.86 - 16,5
         */
         const COUNT_CHARS_IN_LINE = 40
         let len = 0
@@ -400,6 +401,7 @@ export class Chat extends TextBox {
             }
             len += Math.ceil(s.text.length / COUNT_CHARS_IN_LINE)
         }
+        console.log('rel len: ' + len)
         return len
     }
 
