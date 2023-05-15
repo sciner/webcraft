@@ -239,6 +239,9 @@
         "assembly_discarded": {"en": "Assembly discarded", "ru": "Сборка отменена", "fr": "", "es": "", "man": ""},
         "error_pos1_not_defined": {"en": "pos1 not defined", "ru": "Первая точка не отмечена", "fr": "", "es": "", "man": ""},
         "error_pos2_not_defined": {"en": "pos2 not defined", "ru": "Вторая точка не отмечена", "fr": "", "es": "", "man": ""},
-        "error_volume_0": {"en": "No volume", "ru": "Нет объема", "fr": "", "es": "", "man": ""}
+        "error_volume_0": {"en": "No volume", "ru": "Нет объема", "fr": "", "es": "", "man": ""},
+        "chat": {"en": "Chat", "ru": "Чат", "fr": "", "es": "", "man": ""},
+        "chat_reverse": {"en": "Chat reverse", "ru": "Вывод сообщений снизу вверх", "fr": "", "es": "", "man": ""},
+        "chat_time": {"en": "Show time chat", "ru": "Время показывания чата", "fr": "", "es": "", "man": ""}
     }
 }

@@ -451,6 +451,24 @@
                         </div>
                     </div>
                 </div>
+                <div class="chat">
+                    <h1>{{Lang.chat}}</h1>
+                    <div class="input-group">
+                        <div class="switcher-container" style="margin-top: 1em;">
+                            <input type="checkbox" id="chk-schat-reverse" value="" ng-model="settings.form.chat_reverse" />
+                            <div class="switcher">
+                                <small></small>
+                            </div>
+                            <label for="chk-schat-reverse">{{Lang.chat_reverse}}</label>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <p>{{Lang.chat_time}}: <span>{{settings.form.chat_time}}</span>c</p>
+                        <div class="rangeContainer" style="margin-bottom: 20px;">
+                            <input id="input_chat_time" class="slider" type="range" min="0" max="7" step="1" value="settings.form.chat_time" ng-model="settings.form.chat_time">
+                        </div>
+                    </div>
+                </div>
                 <div class="interface">
                     <h1 style="display: flex; align-items: center; justify-content: space-between;">
                         <span>{{Lang.advanced_settings}}</span>

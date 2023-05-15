@@ -7,7 +7,8 @@ import type { KbEvent } from "./kb.js";
 import { Resources } from "./resources.js";
 import type { HUD } from "./hud.js";
 
-const MESSAGE_SHOW_TIME = 7000; // максимальное время отображения текста, после закрытия чата (мс)
+const COUNT_LINES = 17
+const COUNT_CHARS_IN_LINE = 49
 const SYSTEM_NAME = '<MadCraft>';
 
 export class Chat extends TextBox {
@@ -129,7 +130,7 @@ export class Chat extends TextBox {
                 for (let i = 0; i < hist.length; i++) {
                     const buf = hist[i];
                     if (Array.isArray(buf)) {
-                        this.messages.add('123', buf.join(''))
+                        //this.messages.add('123', buf.join(''))
                         this.history.add(buf);
                     }
                 }
@@ -295,7 +296,7 @@ export class Chat extends TextBox {
         const width = 400
         const bottom = 170
         const margin = UI_THEME.window_padding * this.zoom
-        const strings = []
+        let strings = []
 
         //
         if (!this.chat_input) {
@@ -321,6 +322,7 @@ export class Chat extends TextBox {
             })
             htmlText1.clip(0, 0, w - margin * 2, h - margin * 2)
             console.log(htmlText1)
+            console.log(this.zoom)
             this.history_messages_window.addChild(htmlText1)
         }
 
@@ -333,9 +335,10 @@ export class Chat extends TextBox {
             this.draw(0, hud.height - bottom * this.zoom, width * this.zoom, this.line_height, margin)
             this.old_time = performance.now()
         } 
+        const show_time = Qubatch.settings.chat_time * 1000 + 10
         const time = performance.now() - this.old_time
-        const half_show_time = (MESSAGE_SHOW_TIME / 2)
-        if (time >= MESSAGE_SHOW_TIME) {
+        const half_show_time = (show_time / 2)
+        if (time >= show_time) {
             this.history_messages_window.visible = false
         } else if (time >= half_show_time) {
             const transparent_time = time - half_show_time
@@ -355,9 +358,15 @@ export class Chat extends TextBox {
             this.messagesUpdateID = this.messages.updateID
 
             let prev_username = null
-
+            let pos = 0
+            let count = 0
             for (const m of this.messages.list) {
-                let message_html = this.sanitizeHTML(m.text)
+                pos += Math.ceil((m.username.length + m.text.length) / COUNT_CHARS_IN_LINE)
+                if (pos < this.#shift || (pos - this.#shift) > COUNT_LINES) {
+                    continue
+                }
+                count = pos
+                const message_html = this.sanitizeHTML(m.text)
                 let need_hr = false
                 if(!prev_username || (prev_username != m.username)) {
                     if(prev_username) {
@@ -367,19 +376,20 @@ export class Chat extends TextBox {
                 }
                 const texts = message_html.split('\n')
                 for(let i = 0; i < texts.length; i++) {
-                    let text = texts[i] + '<br>'
-                    let hr = i == 0 && need_hr ? '<br>' : ''
+                    let text = texts[i] + '<br/>'
+                    let hr = i == 0 && need_hr ? '<br/>' : ''
                     text = i === 0 ? `${hr}<font color="${UI_THEME.base_font.color}">${this.sanitizeHTML(m.username)}:</font> ${text}` : `&nbsp;&nbsp;${text}`
                     strings.push(text)
                 }
             }
-
-            //while (getLength() > 32) {
-                //strings.pop()
-            //}
-
-            //strings.splice(0, this.#shift)
-
+             
+            if (Qubatch.settings.chat_reverse) {
+                for (let i = 0; i < COUNT_LINES - count; i++) {
+                    strings.push('<br/>')
+                }
+                strings = strings.reverse()
+            }
+            
             const htmlText = '<div style="word-wrap: break-word;">' + strings.join('') + '</div>'
             this.htmlText1.text = htmlText
 
@@ -389,19 +399,14 @@ export class Chat extends TextBox {
 
     getRealLength() {
         /*]
-            fontsize 22 - 16,5
+            fontsize 26.88 line 50 zoom 1.9200000286102294 count 16
             fortsize 18.86 - 16,5
+            
         */
-        const COUNT_CHARS_IN_LINE = 40
         let len = 0
-        let pos = 0
         for (const s of this.messages.list) {
-            if (this.#shift > pos++) {
-                continue
-            }
-            len += Math.ceil(s.text.length / COUNT_CHARS_IN_LINE)
+            len += Math.ceil((s.username.length + s.text.length) / COUNT_CHARS_IN_LINE)
         }
-        console.log('rel len: ' + len)
         return len
     }
 
@@ -474,25 +479,24 @@ export class Chat extends TextBox {
             /* The control reacts to ENTER itself in another place.*/
             case KEY.ENTER: {
                 this.#shift = 0
+                this.messages.updateID++
                 return true;
             }
         }
     }
 
     onScroll(up: boolean) {
-        const count = this.getRealLength()
-        console.log('up: ' + up + ' len: ' + count)
         if (up) {
-            if (count > 20) {
+            const count = this.getRealLength()
+            if (this.#shift < (count - COUNT_LINES)) {
                 this.#shift++
-                this.messages.updateID++
             }
         } else {
             if (this.#shift > 0) {
                 this.#shift--
-                this.messages.updateID++
             }
         }
+        this.messages.updateID++
     }
 
 }

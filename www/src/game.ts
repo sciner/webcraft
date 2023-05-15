@@ -88,6 +88,8 @@ export class GameSettings implements TWorldSettings {
     window_size:             float = 100
     show_compass:            boolean = true
     check_delete_item:       boolean = true
+    chat_reverse:            boolean = false
+    chat_time:               float = 7 
 
     //
     _json_url?: string
