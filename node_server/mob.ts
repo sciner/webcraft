@@ -1,5 +1,5 @@
 import { MOB_TYPE, MOUSE, PLAYER_STATUS } from "@client/constant.js";
-import { Vector } from "@client/helpers.js";
+import {ObjectHelpers, Vector} from "@client/helpers.js";
 import { ServerClient } from "@client/server_client.js";
 import { MOB_SAVE_PERIOD, MOB_SAVE_DISTANCE } from "./server_constant.js";
 import { DBWorldMob, MobRow } from "./db/world/mob.js"
@@ -16,6 +16,7 @@ import type {ServerDriving} from "./control/server_driving.js";
 import type {TMobConfig} from "./mob/mob_config.js";
 import type {PrismarinePlayerControl} from "@client/prismarine-physics/using.js";
 import type {TMobProps} from "@client/mob_manager.js";
+import {packBooleans} from "@client/packet_compressor.js";
 
 export class MobSpawnParams {
     // These values are added by WorldMobManager.create
@@ -44,34 +45,32 @@ export class MobSpawnParams {
 
 //
 export class MobState {
-    id: any;
+    id: int;
     pos: Vector;
     rotate: Vector;
-    extra_data: any;
+    extra_data: Dict;
+    flags: int          // несколько bool значений упакованных в одно поле
 
-    constructor(id : int, pos : Vector, rotate : Vector, extra_data : any) {
+    constructor(id : int, pos : Vector, rotate : Vector, extra_data : Dict, flags : int) {
         this.id = id;
         this.pos = new Vector(pos).roundSelf(3)
         this.rotate = new Vector(rotate).roundSelf(3)
-        this.extra_data = JSON.parse(JSON.stringify(extra_data))
+        this.extra_data = ObjectHelpers.deepClone(extra_data)
         if(this.extra_data?.time_fire !== undefined) {
             this.extra_data.in_fire = this.extra_data.time_fire > 0
             delete(this.extra_data.time_fire)
         }
+        this.flags = flags
     }
 
     /**
      * Compare
      */
     equal(state: MobState): boolean {
-        if (this.pos.equal(state.pos)) {
-            if (this.rotate.equal(state.rotate)) {
-                if(JSON.stringify(this.extra_data) == JSON.stringify(state.extra_data)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return this.pos.equal(state.pos) &&
+            this.rotate.equal(state.rotate) &&
+            ObjectHelpers.deepEqual(this.extra_data, state.extra_data) &&
+            this.flags === state.flags
     }
 
 }
@@ -263,7 +262,8 @@ export class Mob {
             skin        : this.skin,
             extra_data  : this.extra_data,
             hasUse      : config.hasUse,
-            supportsDriving : config.driving != null
+            supportsDriving : config.driving != null,
+            animations  : config.animations ?? null
         }
     }
 
@@ -418,12 +418,14 @@ export class Mob {
     }
 
     exportState(return_diff = false): MobState | null {
-        const new_state = new MobState(this.id, this.pos, this.rotate, this.extra_data)
+        const player_sate = this.playerControl.player_state
+        const flags = packBooleans(player_sate.onGround, player_sate.isInLiquid)
+        const new_state = new MobState(this.id, this.pos, this.rotate, this.extra_data, flags)
         if(return_diff && this.#prev_state) {
             if(new_state.equal(this.#prev_state)) {
                 return null
             }
-            if(JSON.stringify(new_state.extra_data) == JSON.stringify(this.#prev_state.extra_data)) {
+            if(ObjectHelpers.deepEqual(new_state.extra_data, this.#prev_state.extra_data)) {
                 new_state.extra_data = null
             }
         }

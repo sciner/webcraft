@@ -1,6 +1,7 @@
 import type {TPrismarineOptions} from "@client/prismarine-physics/using.js";
 import {addDefaultPhysicsOptions} from "@client/prismarine-physics/using.js";
 import type {TDrivingConfig} from "@client/control/driving.js";
+import type {TMobAnimations} from "@client/mob_manager.js";
 
 export const DEFAULT_DRIVING_SOUND = {tag: 'madcraft:block.cloth', action: 'hit'}
 
@@ -30,6 +31,8 @@ export type TMobConfig = {
      * @see Brain.onUse
      */
     hasUse ?        : boolean
+
+    animations ?    : TMobAnimations
 }
 
 /** Производит препроцесинг конфигов мобов, добавлет им значения свойств по умолчанию. */
