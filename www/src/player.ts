@@ -806,6 +806,9 @@ export class Player implements IPlayer {
                 }
                 await this.world.applyActions(actions, this);
                 e_orig.actions = {blocks: actions.blocks};
+                if(actions.mechanism) {
+                    e_orig.actions.mechanism = actions.mechanism
+                }
                 e_orig.eye_pos = this.getEyePos();
                 this.controlManager.syncWithWorldActionIfNeeded(e_orig, actions)
                 // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком

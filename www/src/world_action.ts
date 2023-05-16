@@ -437,7 +437,7 @@ class DestroyBlocks {
     }
 
     //
-    add(tblock, pos, no_drop = false) {
+    add(tblock : TBlock, pos, no_drop = false) {
         const cv        = this.cv;
         const world     = this.world;
         const player    = this.player;
@@ -496,25 +496,9 @@ class DestroyBlocks {
             }
         }
         // Удаляем второй блок (кровати, двери, высокая трава и высокие цветы)
-        if(tblock.material.has_head) {
-            const head_pos = new Vector(tblock.material.has_head.pos);
-            const connected_pos = new Vector(pos);
-            if(tblock.rotate && head_pos.z) {
-                let rot = tblock.rotate.x;
-                if(!tblock.extra_data?.is_head) {
-                    rot += 2;
-                }
-                connected_pos.addByCardinalDirectionSelf(head_pos, rot);
-            } else {
-                if(tblock.extra_data?.is_head) {
-                    head_pos.multiplyScalarSelf(-1);
-                }
-                connected_pos.addSelf(head_pos);
-            }
-            const block_connected = world.getBlock(connected_pos);
-            if(block_connected.id == tblock.id) {
-                this.add(block_connected, connected_pos, true);
-            }
+        const head_connected_block = tblock.getHeadBlock(world)
+        if(head_connected_block) {
+            this.add(head_connected_block, head_connected_block.posworld.clone(), true)
         }
         // Destroy chain blocks to down
         if(tblock.material.tags.includes('destroy_to_down')) {
@@ -925,6 +909,13 @@ export class WorldAction {
 
     generateTree(params) {
         this.generate_tree.push(params);
+    }
+
+    appendMechanismBlocks(qi : IQuboidInfo) {
+        this.mechanism = {
+            action: 'append_blocks',
+            append_blocks: qi,
+        }
     }
 
 }

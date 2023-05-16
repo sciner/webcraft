@@ -94,7 +94,7 @@ export class Mesh_Object_Asteroid extends NetworkPhysicObject {
         let x = -.5
         let y = 0.
         let z = -.5
-        this.mesh_group.buildVertices(x, y, z, false)
+        this.mesh_group.buildVertices(x, y, z, false, undefined, undefined, world.chunkManager.grid.chunkSize.clone())
 
     }
 

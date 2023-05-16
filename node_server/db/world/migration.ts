@@ -977,7 +977,10 @@ export class DBWorldMigration {
             `CREATE INDEX "main"."user_is_admin"
             ON "user" (
               "is_admin" ASC
-            );`
+            );`,
+
+            `DROP TABLE "_user_old_20230312"`
+
         ]});
 
         migrations.push({version: 95, queries: [

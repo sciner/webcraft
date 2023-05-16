@@ -1,10 +1,11 @@
 import { DBItemBlock } from "./blocks.js";
+import { DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE } from "./constant.js";
 import { Vector, VectorCollector } from "./helpers.js";
 import { Lang } from "./lang.js";
 import type { Player } from "./player.js";
 import { ServerClient } from "./server_client.js";
 import type { TBlock } from "./typed_blocks3.js";
-import type { TActionBlock, WorldAction } from "./world_action.js";
+import { TActionBlock, WorldAction } from "./world_action.js";
 
 export const MAX_MECHANISM_VOLUME =  262144
 
@@ -31,10 +32,6 @@ export class MechanismAssembler {
         if(qi.volume > this.max_volume) {
             throw `error_max_volume|${this.max_volume}`
         }
-        this.pos2 = new Vector().copyFrom(pos)
-        const player = this.player
-        const {pos1, pos2} = this
-        player.world.server.Send({name: ServerClient.CMD_MECHANISM, data: {action: 'assembly', args: {pos1, pos2}}})
         this.reset()
         return qi
     }
@@ -92,13 +89,9 @@ export class MechanismAssembler {
                 ma.setPos1(pos)
                 msg = 'click_again_to_confirm'
             } else {
-                if(!ma.pos1) {
-                    debugger
-                }
                 const qi = ma.setPos2(pos)
                 if(qi) {
-                    const volume = qi.volume
-                    msg = `added_blocks|${volume}`
+                    actions.appendMechanismBlocks(qi)
                 }
             }
             if(msg) {
@@ -106,7 +99,97 @@ export class MechanismAssembler {
             }
             return true
         } else {
-            if(try_reactivate) {
+
+            const mechanism_cmd = e.actions?.mechanism
+
+            if(mechanism_cmd) {
+
+                switch(mechanism_cmd.action) {
+                    case 'append_blocks': {
+                        const qi : IQuboidInfo = mechanism_cmd.append_blocks
+                        const pos = new Vector(0, 0, 0)
+                        const bm = world.block_manager
+                        const windmill_bearing_id = bm.fromName('WINDMILL_BEARING').id
+                        const actions = new WorldAction(null, null, true, false)
+                        let mob_id = null
+                        for(let x = 0; x < qi.volx; x++) {
+                            for(let y = 0; y < qi.voly; y++) {
+                                for(let z = 0; z < qi.volz; z++) {
+                                    pos.copyFrom(qi.pos1).addScalarSelf(x * qi.signx, y * qi.signy, z * qi.signz)
+                                    const tblock = world.getBlock(pos)
+                                    if(tblock && tblock.id > 0) {
+                                        const item = tblock.convertToDBItem()
+                                        if(!item.extra_data) {
+                                            item.extra_data = {}
+                                        }
+                                        if(tblock.extra_data?.mob_id) {
+                                            mob_id = tblock.extra_data?.mob_id
+                                        }
+                                        actions.addBlocks([{pos: pos.clone(), item, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
+                                    }
+                                }
+                            }
+                        }
+                        if(actions.blocks.list.length > 0) {
+                            if(!mob_id) {
+                                let new_mob_pos = null
+                                for(let action_block of actions.blocks.list) {
+                                    if(action_block.item.extra_data.mob_id) {
+                                        mob_id = action_block.item.extra_data.mob_id
+                                        if(action_block.item.id == windmill_bearing_id) {
+                                            mob_id = action_block.item.extra_data.mob_id
+                                            break
+                                        }
+                                    } else {
+                                        if(action_block.item.id === windmill_bearing_id) {
+                                            if(!new_mob_pos) {
+                                                new_mob_pos = action_block.pos.clone()
+                                            }
+                                        }
+                                    }
+                                }
+                                if(!mob_id && new_mob_pos) {
+                                    // const mob = world.mobs.get(4)
+                                    const model_name = MOB_TYPE.WINDMILL_BEARING
+                                    const spawn_pos = new Vector().copyFrom(new_mob_pos).addScalarSelf(0.5, 0, 0.5)
+                                    // MobSpawnParams
+                                    const params = {
+                                        skin:       {
+                                            model_name: model_name,
+                                            texture_name: DEFAULT_MOB_TEXTURE_NAME
+                                        },
+                                        pos:        spawn_pos,
+                                        pos_spawn:  spawn_pos.clone(),
+                                        rotate:     new Vector(0, 0, 0).toAngles()
+                                    }
+                                    // const params = new MobSpawnParams(spawn_pos, Vector.ZERO.clone(), {model_name, texture_name: DEFAULT_MOB_TEXTURE_NAME})
+                                    const mob = (world as any).mobs.create(params)
+                                    mob_id = mob.id
+                                }
+                            }
+
+                            if(!mob_id) {
+                                world.chat.sendSystemChatMessageToSelectedPlayers(`error_mechanism_not_connected_to_windmill_bearing`, real_player)
+                                return true
+                            }
+                            
+                            //
+                            for(let action_block of actions.blocks.list) {
+                                action_block.item.extra_data.mob_id = mob_id
+                                if(action_block.item.id > 0) {
+                                    actions.addParticles([{ type: 'villager_happy', pos: action_block.pos }])
+                                }
+                            }
+                            // добавить действие в мир
+                            world.actions_queue.add(player, actions)
+                            world.chat.sendSystemChatMessageToSelectedPlayers(`added_blocks|${actions.blocks.list.length}`, real_player)
+
+                        }
+                        break
+                    }
+                }
+
+            } else if(try_reactivate) {
                 const mob_id = world_block.extra_data.mob_id
                 if(mob_id) {
                     const extra_data = world_block.extra_data
@@ -116,6 +199,7 @@ export class MechanismAssembler {
                         mob.extra_data.invisible = invisible
                         extra_data.invisible = invisible
                         if(invisible) {
+                            // stop rotation
                             // restore world blocks
                             if(mob.extra_data.blocks) {
                                 for(let pos_key in mob.extra_data.blocks) {
@@ -142,8 +226,10 @@ export class MechanismAssembler {
                                     }
                                 }
                                 delete(mob.extra_data.blocks)
+                                mob.getBrain().stopRotation()
                             }
                         } else {
+                            // start rotation
                             // destroy world blocks
                             const item_air = new DBItemBlock(0)
                             const mob_blocks = new VectorCollector()
@@ -154,20 +240,32 @@ export class MechanismAssembler {
                                 const n = world.getBlock(pos) as TBlock
                                 if(n.extra_data?.mob_id == mob_id) {
                                     if(!mob_blocks.has(pos)) {
-                                        const ndb = n.convertToDBItem()
-                                        if(pos.equal(world_block.posworld)) {
-                                            ndb.extra_data = JSON.parse(JSON.stringify(ndb.extra_data))
-                                            ndb.extra_data.invisible = true
-                                            ndb.extra_data.in_mesh = true
-                                        } else {
-                                            actions.addBlocks([{pos: pos.clone(), item: item_air, action_id: ServerClient.BLOCK_ACTION_REPLACE}])
+                                        //
+                                        const addBlock = (n : TBlock, pos : Vector) => {
+                                            const ndb = n.convertToDBItem()
+                                            if(pos.equal(world_block.posworld)) {
+                                                ndb.extra_data = JSON.parse(JSON.stringify(ndb.extra_data))
+                                                ndb.extra_data.invisible = true
+                                                ndb.extra_data.in_mesh = true
+                                            } else {
+                                                actions.addBlocks([{pos: pos.clone(), item: item_air, action_id: ServerClient.BLOCK_ACTION_REPLACE}])
+                                            }
+                                            if(count++ > max_volume) {
+                                                throw `error_max_volume|${max_volume}`
+                                            }
+                                            //
+                                            mob_blocks.set(pos, ndb)
+                                            const pos_key = pos.sub(world_block.posworld).toHash()
+                                            ndbs[pos_key] = ndb
                                         }
-                                        if(count++ > max_volume) {
-                                            throw `error_max_volume|${max_volume}`
+                                        //
+                                        addBlock(n, pos)
+                                        //
+                                        const head_connected_block = n.getHeadBlock(world)
+                                        if(head_connected_block) {
+                                            addBlock(head_connected_block, head_connected_block.posworld)
                                         }
-                                        mob_blocks.set(pos, ndb)
-                                        const pos_key = pos.sub(world_block.posworld).toHash()
-                                        ndbs[pos_key] = ndb
+                                        //
                                         findNeighbours(mob_id, pos.add(Vector.XN))
                                         findNeighbours(mob_id, pos.add(Vector.YN))
                                         findNeighbours(mob_id, pos.add(Vector.ZN))
@@ -177,14 +275,12 @@ export class MechanismAssembler {
                                     }
                                 }
                             }
-                            // const pn = performance.now()
-                            findNeighbours(mob_id, world_block.posworld.clone()/*.add(Vector.YP)*/)
+                            findNeighbours(mob_id, world_block.posworld.clone())
                             if(mob_blocks.size > 0) {
                                 actions.blocks.options.on_block_set = false
-                                mob.extra_data.blocks = ndbs
-                                mob.extra_data.rotate = new Vector().copyFrom(world_block.rotate)
-                                // console.log(mob_blocks.size, performance.now() - pn)
-                                // console.log(JSON.stringify(ndbs))
+                                mob.extra_data.blocks = ndbs // из каких блоков состоит моб
+                                mob.extra_data.rotate = new Vector().copyFrom(world_block.rotate) // чтобы моб правильно рисовал сам блок привода
+                                mob.getBrain().startRotation()
                             }
                         }
                         actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate: world_block.rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}])

@@ -330,8 +330,7 @@
         "cmd_modify_indicator_request",
         "cmd_use_item",
         "cmd_play_anim",
-        "cmd_use_weapon",
-        "cmd_mechanism"
+        "cmd_use_weapon"
     ],
     "treasure_chests": [
         {

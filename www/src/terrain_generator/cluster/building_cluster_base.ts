@@ -44,10 +44,12 @@ export class ClusterBuildingBase extends ClusterBase {
         }
 
         // Не ставим здания внутри или вблизи каньонов
-        const mm = this.clusterManager.layer.maps as TerrainMapManager3
-        const simplified_cell = mm.makeSimplifiedCell(coord)
-        if(simplified_cell.canyon_point > -CANYON.BUILDING_DIST && simplified_cell.canyon_point < CANYON.BUILDING_DIST) {
-            return null
+        if(this.clusterManager.layer) {
+            const mm = this.clusterManager.layer.maps as TerrainMapManager3
+            const simplified_cell = mm.makeSimplifiedCell(coord)
+            if(simplified_cell.canyon_point > -CANYON.BUILDING_DIST && simplified_cell.canyon_point < CANYON.BUILDING_DIST) {
+                return null
+            }
         }
 
         const building = this.building_palettes.next(this, seed, door_direction, size, coord, entrance, is_crossroad)

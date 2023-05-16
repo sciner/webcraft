@@ -142,7 +142,7 @@ export default class style {
         const is_flower = block.hasTag('flower');
         const is_agriculture = block.hasTag('agriculture');
         const is_grass = material.is_grass;
-        const random_index = (z * chunk.size.x + x) % randoms.length
+        const random_index = ((z * chunk.size.x + x) % randoms.length) | 0
 
         let texture = bm.calcMaterialTexture(material, texture_dir, null, null, block, undefined, randoms.double(random_index))
 

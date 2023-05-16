@@ -127,6 +127,7 @@
         {"name": "tool/industrial_pickaxe"},
         {"name": "tool/industrial_shovel"},
         {"name": "tool/industrial_sword"},
+        {"name": "tool/mechanism_assembler"},
 
         {"name": "armor/scrap_armor"}
 
@@ -2678,6 +2679,13 @@
                 "select_texture": [
                     {"name": "WINDMILL_BEARING"}
                 ]
+            }
+        },
+        {
+            "id": 493,
+            "name": "MECHANISM_ASSEMBLER",
+            "bb": {
+                "model": "tool/mechanism_assembler"
             }
         }
     ]
