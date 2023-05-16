@@ -5,7 +5,7 @@
  * pixi.js is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
  */
-export var PIXI = (function (exports) {
+var PIXI = (function (exports) {
   'use strict';
 
   var ENV = /* @__PURE__ */ ((ENV2) => {
@@ -25004,7 +25004,6 @@ ${e}`);
   const _HTMLText = class extends Sprite {
     constructor(text = "", style = {}) {
       super(Texture.EMPTY);
-      this._updateID = 0
       this._text = null;
       this._style = null;
       this._autoResolution = true;
@@ -25086,29 +25085,25 @@ ${e}`);
       if (!this.dirty && respectDirty) {
         return;
       }
-      this.dirty = false;
-      const _updateID = ++this._updateID
       const { width, height } = this.measureText();
       image.width = loadImage.width = Math.ceil(Math.max(1, width));
       image.height = loadImage.height = Math.ceil(Math.max(1, height));
-      await new Promise((resolve) => {
-        loadImage.onload = async () => {
-          if(_updateID < this._updateID) {
-            return resolve()
-          }
-          await style.onBeforeDraw();
-          image.src = loadImage.src;
-          loadImage.onload = null;
-          loadImage.src = "";
-          this.updateTexture();
-          resolve();
-        };
-        const svg = new XMLSerializer().serializeToString(this._svgRoot);
-        // const blob = new Blob([svg], {type: 'image/svg+xml;charset=utf8'});
-        // const url = URL.createObjectURL(blob);
-        // loadImage.src = url
-        loadImage.src = `data:image/svg+xml;charset=utf8,${encodeURIComponent(svg)}`;
-      });
+      if (!this._loading) {
+        this._loading = true;
+        await new Promise((resolve) => {
+          loadImage.onload = async () => {
+            await style.onBeforeDraw();
+            this._loading = false;
+            image.src = loadImage.src;
+            loadImage.onload = null;
+            loadImage.src = "";
+            this.updateTexture();
+            resolve();
+          };
+          const svgURL = new XMLSerializer().serializeToString(this._svgRoot);
+          loadImage.src = `data:image/svg+xml;charset=utf8,${encodeURIComponent(svgURL)}`;
+        });
+      }
     }
     get source() {
       return this._image;
@@ -25499,3 +25494,4 @@ ${e}`);
   return exports;
 
 })({});
+//# sourceMappingURL=pixi.js.map
