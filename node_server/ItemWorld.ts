@@ -10,6 +10,7 @@ import {InventoryComparator} from "@client/inventory_comparator.js";
 import type {BLOCK} from "@client/blocks.js";
 import type {ServerChunkManager} from "./server_chunk_manager.js";
 import type {ServerWorld} from "./server_world.js";
+import { WorldAction } from "@client/world_action.js";
 
 
 export class ItemWorld {
@@ -31,11 +32,30 @@ export class ItemWorld {
         this.bm = this.world.block_manager
     }
 
+    plantingSapling(uid) {
+        const block = this.all_drop_items.get(uid)
+        const id = block.items[0].id
+        if (![this.bm.OAK_SAPLIMG.id].includes(id))
+        const pos = block.pos
+        console.log(id)
+        const actions = new WorldAction(null, this.world, false, false);
+        actions.addBlocks([
+            {
+                pos: pos, 
+                item: {
+                    id: 199
+                }, 
+                action_id: ServerClient.BLOCK_ACTION_CREATE}
+        ])
+        this.world.actions_queue.add(null, actions);
+    }
+
     /**
      * Deletes dropItem from the data structures.
      * It doesn't notify the players.
      */
     delete(dropItem, deleteFromDB = true) {
+        this.plantingSapling(dropItem.entity_id)
         // Delete from the chunk. The chunk may be absent.
         dropItem.inChunk?.drop_items?.delete(dropItem.entity_id);
 
