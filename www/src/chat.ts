@@ -6,7 +6,7 @@ import { KEY, UI_THEME } from "./constant.js";
 import type { KbEvent } from "./kb.js";
 import { Resources } from "./resources.js";
 import type { HUD } from "./hud.js";
-import { StringHelpers } from "./helpers.js";
+import { Mth, StringHelpers } from "./helpers.js";
 
 const COUNT_LINES = 17
 const COUNT_CHARS_IN_LINE = 49
@@ -295,41 +295,46 @@ export class Chat extends TextBox {
 
     makeLines(list : any[]) : string[] {
         let lines = []
-        const MAX_STRING_LEN = 48
+        const replaceUsername = (str : string, username : string) : string => {
+            const ln = str.substring(username.length + 1)
+            str = `<font class="username" color="${UI_THEME.base_font.color}">${this.sanitizeHTML(username)}:</font>` + this.sanitizeHTML(ln)
+            return str
+        }
         for(const message of list) {
             let message_lines = []
             const chunks = message.text.split('\n')
             let line = ' '.repeat(message.username.length) + ':'
-            let username_printed = false
             for(let i = 0; i < chunks.length; i++) {
                 let c = chunks[i].split(' ')
                 for(let w of c) {
-                    if(w.length > MAX_STRING_LEN) {
-                        w = w.substring(0, MAX_STRING_LEN - 3) + '...'
+                    if(w.length > COUNT_CHARS_IN_LINE) {
+                        w = w.substring(0, COUNT_CHARS_IN_LINE - 3) + '...'
                     }
-                    if(line.length + w.length >= MAX_STRING_LEN - 1) {
-                        if(!username_printed) {
-                            username_printed = true
-                            const username = this.sanitizeHTML(message.username)
-                            let ln = line.substring(message.username.length + 1)
-                            line = `<font color="${UI_THEME.base_font.color}">${username}:</font>` + this.sanitizeHTML(ln)
+                    if(line.length + w.length >= COUNT_CHARS_IN_LINE - 1) {
+                        if(message_lines.length == 0) {
+                            line = replaceUsername(line, message.username)
                         } else {
                             line = this.sanitizeHTML(line)
                         }
-                        // message_lines.push(StringHelpers.applyMCStyles(line))
                         message_lines.push(line)
                         line = ' '
-                        if(w.length > MAX_STRING_LEN - 2) {
+                        if(w.length > COUNT_CHARS_IN_LINE - 2) {
                             w = w.substring(2)
                         }
                     }
                     line += ` ${w}`
                 }
             }
-            message_lines.push(this.sanitizeHTML(line), '')
+            if(message_lines.length == 0) {
+                message_lines.push(replaceUsername(line, message.username))
+            } else {
+                message_lines.push(this.sanitizeHTML(line))
+            }
+            message_lines.push('')
             message_lines = StringHelpers.applyMCStyles(message_lines.join('\n')).split('\n')
             lines.push(...message_lines)
         }
+        lines.pop()
         return lines
     }
 
@@ -398,62 +403,32 @@ export class Chat extends TextBox {
             this.messagesUpdateID = this.messages.updateID
 
             let list = this.messages.list.slice(0)
-            if (Qubatch.settings.chat_reverse) {
+            const reverse = Qubatch.settings.chat_reverse
+            if(reverse) {
                 list = list.reverse()
             }
 
-            let lines = this.makeLines(list)
+            let all_lines = this.makeLines(list)
 
-            // console.log(lines.join('\n'))
+            this.#shift = Mth.clamp(this.#shift, 0, Math.max(all_lines.length - COUNT_LINES, 0))
 
-            lines = lines.slice(this.#shift, this.#shift + COUNT_LINES)
+            const lines = all_lines.slice(this.#shift, this.#shift + COUNT_LINES)
 
-            // const htmlText = '<div style="word-wrap: break-word;">' + strings.slice(this.#shift, this.#shift + COUNT_LINES).join('') + '</div>'
-            const htmlText = '<div style="word-wrap: break-word;">' + lines.join('<br>') + '</div>'
-            console.log(lines.join('\n'))
+            let margin = 0
+            if(lines.length > 0) {
+                while(lines[0].indexOf('<font class="username"') !== 0) {
+                    lines.unshift(all_lines[this.#shift + --margin])
+                }
+            }
+
+            // Если обратный вывод сообщений, до дополняем до необходимого количества строк,
+            // чтобы сообщения рисовались в нижней части окна сообщений
+            if(reverse && lines.length < COUNT_LINES) {
+                lines.unshift(...new Array(COUNT_LINES - lines.length).fill(''))
+            }
+
+            const htmlText = `<div style="word-wrap: break-word; margin-top: ${margin}em;">${lines.join('<br>')}</div>`
             this.htmlText1.text = htmlText
-
-            // let strings = []
-            // for(const message of list) {
-            //     let html = this.sanitizeHTML(message.text)
-            //     // первый блок 
-            //     let first = html.indexOf('\n')
-            //     const username = this.sanitizeHTML(message.username)
-            //     if (first == -1 || first > COUNT_CHARS_IN_LINE - username.length) {
-            //         first = COUNT_CHARS_IN_LINE - username.length
-            //     }
-            //     strings.push(`<font color="${UI_THEME.base_font.color}">${username}:</font>` + html.slice(0, first) + '<br/>')
-            //     // откусываем кусок
-            //     html = html.slice(first + 1)
-            //     // если есть переносы, то переносим
-            //     const texts = html.split('\n')
-            //     for(let i = 0; i < texts.length; i++) {
-            //         // дробим строку по длине
-            //         for(let j = 0; j < texts[i].length; j++) {
-            //             if (j % COUNT_CHARS_IN_LINE == 0) {
-            //                 strings.push('&nbsp;&nbsp;' + texts[i].slice(j, j + COUNT_CHARS_IN_LINE) + '<br/>')
-            //             }
-            //         }
-            //     }
-            // }
-            // if (Qubatch.settings.chat_reverse) {
-            //     // дополняем строки для старта снизу
-            //     const n = COUNT_LINES - strings.length
-            //     for (let i = 0; i < n; i++) {
-            //         strings.unshift('<br/>')
-            //     }
-            // }
-            // this.#count = strings.length
-            // // проверка дипазона
-            // const n = this.#count - COUNT_LINES
-            // if (this.#shift > n) {
-            //     this.#shift = n
-            // }
-            // if (this.#shift < 0) {
-            //     this.#shift = 0
-            // }
-            // const htmlText = '<div style="word-wrap: break-word;">' + strings.slice(this.#shift, this.#shift + COUNT_LINES).join('') + '</div>'
-            // this.htmlText1.text = htmlText
 
         }
 
@@ -538,12 +513,7 @@ export class Chat extends TextBox {
     }
 
     onScroll(up: boolean) {
-        if (up) {
-            this.#shift++
-        } else {
-            this.#shift--
-        }
-        this.#shift = Math.max(this.#shift, 0)
+        this.#shift += (up ? 1 : -1) * 1
         this.messages.updateID++
     }
 

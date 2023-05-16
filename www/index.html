@@ -463,9 +463,9 @@
                         </div>
                     </div>
                     <div class="input-group">
-                        <p>{{Lang.chat_time}}: <span>{{settings.form.chat_time}}</span>c</p>
+                        <p>{{Lang.chat_time}}: <span>{{settings.form.chat_time}}</span> {{Lang.sec}}</p>
                         <div class="rangeContainer" style="margin-bottom: 20px;">
-                            <input id="input_chat_time" class="slider" type="range" min="0" max="7" step="1" value="settings.form.chat_time" ng-model="settings.form.chat_time">
+                            <input id="input_chat_time" class="slider" type="range" min="0" max="60" step="1" value="settings.form.chat_time" ng-model="settings.form.chat_time">
                         </div>
                     </div>
                 </div>
