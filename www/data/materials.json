@@ -18,7 +18,7 @@
         "clay": {"mining": {"time": 4, "instruments": {"shovel": 1}, "blast_resistance": 0.5}},
         "cobblestone": {"mining": {"time": 5, "instruments": {"pickaxe": 1}, "blast_resistance": 6}},
         "diamond": {"mining": {"time": 25, "instruments": {"pickaxe": 8}, "blast_resistance": 6}},
-        "titanium": {"mining": {"time": 25, "instruments": {"pickaxe": 8}, "blast_resistance": 6}},
+        "titanium": {"mining": {"time": 25, "instruments": {"pickaxe": 8, "axe": 8}, "blast_resistance": 6}},
         "dirt": {"mining": {"time": 2, "instruments": {"shovel": 1}, "blast_resistance": 0.5}},
         "dust": {"mining": {"time": 0, "instruments": {}, "blast_resistance": 0.5}},
         "feather": {"mining": {"time": 0, "instruments": {}, "blast_resistance": 0.2}},
