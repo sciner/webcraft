@@ -24,6 +24,7 @@
         "feather": {"mining": {"time": 0, "instruments": {}, "blast_resistance": 0.2}},
         "food": {"mining": {"time": -1, "instruments": {}, "blast_resistance": 0.2}},
         "glass": {"mining": {"time": 1, "instruments": {}, "blast_resistance": 0.3}},
+        "glowstone": {"mining": {"time": 1, "blast_resistance": 0.4}},
         "gold": {"mining": {"time": 5, "instruments": {"pickaxe": 12}, "blast_resistance": 6}},
         "gravel": {"mining": {"time": 2, "instruments": {"shovel": 1}, "blast_resistance": 2.25}},
         "ice": {"mining": {"time": 5, "instruments": {"pickaxe": 1}, "blast_resistance": 0.5}},
