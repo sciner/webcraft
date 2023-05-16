@@ -12,7 +12,6 @@ import type {ServerChunkManager} from "./server_chunk_manager.js";
 import type {ServerWorld} from "./server_world.js";
 import { WorldAction } from "@client/world_action.js";
 
-
 export class ItemWorld {
 
     // temporary collections
@@ -32,22 +31,40 @@ export class ItemWorld {
         this.bm = this.world.block_manager
     }
 
-    plantingSapling(uid) {
-        const block = this.all_drop_items.get(uid)
-        const id = block.items[0].id
-        if (![this.bm.OAK_SAPLIMG.id].includes(id))
-        const pos = block.pos
-        console.log(id)
-        const actions = new WorldAction(null, this.world, false, false);
-        actions.addBlocks([
-            {
-                pos: pos, 
-                item: {
-                    id: 199
-                }, 
-                action_id: ServerClient.BLOCK_ACTION_CREATE}
-        ])
-        this.world.actions_queue.add(null, actions);
+    /**
+     * Функция сажает деревья из дропа
+     * @param dropItem 
+     */
+
+    plantingSapling(dropItem) {
+        const PR_RISE = .1
+        const b = this.all_drop_items.get(dropItem.entity_id)
+        for (const item of b.items) {
+            if (Math.random() < PR_RISE) {
+                const block = this.bm.fromId(item.id)
+                if (block.is_sapling) {
+                    const pos = b.pos.floored()
+                    const under = this.world.getBlock(pos.offset(0, -1, 0))
+                    const bm = this.bm
+                    if ([bm.GRASS_BLOCK.id, bm.GRASS_BLOCK_SLAB.id, bm.FARMLAND.id, bm.FARMLAND_WET.id].includes(under.id)) {
+                        const extra_data = this.bm.calculateExtraData(block.extra_data, pos)
+                        const action = new WorldAction(null, this.world, false, false)
+                        action.addBlocks([
+                            {
+                                pos: pos,
+                                item: {
+                                    id: block.id,
+                                    extra_data: extra_data
+                                },
+                                action_id: ServerClient.BLOCK_ACTION_CREATE
+                            }
+                        ])
+                        this.world.actions_queue.add(null, action)
+                    }
+                }
+            }
+
+        }
     }
 
     /**
@@ -55,7 +72,6 @@ export class ItemWorld {
      * It doesn't notify the players.
      */
     delete(dropItem, deleteFromDB = true) {
-        this.plantingSapling(dropItem.entity_id)
         // Delete from the chunk. The chunk may be absent.
         dropItem.inChunk?.drop_items?.delete(dropItem.entity_id);
 
@@ -75,7 +91,8 @@ export class ItemWorld {
             if (drop_item.dt >= minDt) {
                 drop_item.tick(delta);
             } else {
-                this.delete(drop_item, IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB);
+                this.plantingSapling(drop_item)
+                this.delete(drop_item, IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB)
             }
         }
         if (ITEM_MERGE_RADIUS >= 0) {
