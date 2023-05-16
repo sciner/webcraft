@@ -94,6 +94,7 @@ export class Window extends PIXI.Container {
     #_wmclip:               any = null
     style:                  Style
     draggable:              boolean = false
+    autofocus:              boolean = false
 
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
 
@@ -265,11 +266,15 @@ export class Window extends PIXI.Container {
     onDrop(_e?) {}
     onWheel(_e?) {}
     onHide(_e?) {}
+    onBlur(_e?) {}
+    onFocus(_e?) {}
 
     onShow(_args) {
         for(let window of this.list.values()) {
             if(window instanceof TextEdit) {
-                window.focused = true
+                if(window.autofocus) {
+                    window.focused = true
+                }
                 break
             }
         }
@@ -381,7 +386,7 @@ export class Window extends PIXI.Container {
         super.visible = value
     }
 
-    getRoot() : Window {
+    getRoot() : WindowManager {
         return globalThis.wmGlobal
     }
 
@@ -695,6 +700,7 @@ export class Window extends PIXI.Container {
     _mousedown(e) {
         let {window, event} = this._clarifyMouseEvent(e)
         if(window) {
+            this.getRoot().removeFocusFromControl()
             if(window.draggable) {
                 const e2 = {...e}
                 e2.x = e2.x - (this.ax + window.x)
@@ -992,7 +998,7 @@ export class Window extends PIXI.Container {
         if(value) {
             this.getRoot().setFocusedControl(this)
         } else {
-            this.getRoot().removeFocusFromControl(this)
+            this.getRoot().removeFocusFromControl()
         }
     }
 
@@ -1140,6 +1146,7 @@ export class TextEdit extends Window {
 
         // Properties
         this.focused = false
+        this.autofocus = true
         this.buffer = []
 
         // Backspace pressed
@@ -1148,8 +1155,8 @@ export class TextEdit extends Window {
                 return;
             }
             if(this.buffer.length > 0) {
-                this.buffer.pop();
-                this._changed();
+                this.buffer.pop()
+                this._changed()
             }
         }
 
@@ -1175,25 +1182,16 @@ export class TextEdit extends Window {
         }
     }
 
-    /**
-     * @returns {string}
-     */
-    get text() {
+    get text() : string {
         return this.buffer.join('');
     }
 
-    /**
-     * @param {string} value
-     */
-    set text(value) {
+    set text(value : string) {
         this.buffer = RuneStrings.toArray(value || '')
         this._changed()
     }
 
-    /**
-     * @param {string} value
-     */
-    setIndirectText(value) {
+    setIndirectText(value : string) {
         super.text = value
     }
 
@@ -1236,6 +1234,20 @@ export class TextEdit extends Window {
             }
         }
         return false
+    }
+
+    onMouseDown(_e?: any): void {
+        if(!this.focused) {
+            this.focused = true
+        }
+    }
+
+    onFocus() {
+        this.style.border.hidden = false
+    }
+
+    onBlur() {
+        this.style.border.hidden = true
     }
 
 }
@@ -1453,6 +1465,7 @@ class WindowManagerOverlay extends Window {
 
 // WindowManager
 export class WindowManager extends Window {
+    _focus_started_at : float = performance.now()
 
     static draw_calls = 0
 
@@ -1497,7 +1510,7 @@ export class WindowManager extends Window {
             const fc = this._focused_control
             if(fc && fc instanceof TextEdit && fc.parent.visible) {
                 if(fc.draw_cariage) {
-                    const vis = (performance.now() % (this._cariage_speed * 2)) < this._cariage_speed
+                    const vis = ((performance.now() - this._focus_started_at) % (this._cariage_speed * 2)) < this._cariage_speed
                     if(vis) {
                         fc.setIndirectText(fc.text + '_')
                     } else {
@@ -1518,14 +1531,23 @@ export class WindowManager extends Window {
         return this._focused_control
     }
 
-    setFocusedControl(window) {
+    setFocusedControl(window? : Window) {
+        if(this._focused_control) {
+            const fc =this._focused_control
+            if(fc instanceof TextEdit) {
+                fc._changed()
+            }
+            fc.onBlur()
+        }
         this._focused_control = window
+        this._focus_started_at = performance.now()
+        if(window) {
+            window.onFocus()
+        }
     }
 
-    removeFocusFromControl(window) {
-        if(this._focused_control == window) {
-            this._focused_control = null
-        }
+    removeFocusFromControl() {
+        this.setFocusedControl(null)
     }
 
     preloadFont() {

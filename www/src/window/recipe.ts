@@ -186,9 +186,9 @@ export class RecipeWindow extends BlankWindow {
         const h = 25 * this.zoom
 
         // Text editor
-        const txtSearch = new TextEdit(x, sy, w, h, 'txtSearch1', null, 'Type for search')
+        const txtSearch = new TextEdit(x, sy, w, h, 'txtSearch1', null, 'Click for search')
         txtSearch.word_wrap                 = false
-        txtSearch.focused                   = true
+        txtSearch.autofocus                 = false
         txtSearch.max_length                = 100
         txtSearch.max_lines                 = 1
         txtSearch.max_chars_per_line        = 20

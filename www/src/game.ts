@@ -30,6 +30,7 @@ import type { Player, PlayerStateUpdate } from "./player.js";
 import type { HUD } from "./hud.js";
 import {canSwitchFlying} from "./control/player_control.js";
 import { ClipboardHelper } from "./ui/clipboard.js";
+import { TextEdit } from "./ui/wm.js";
 
 // TrackerPlayer
 (globalThis as any).TrackerPlayer = new Tracker_Player();
@@ -232,11 +233,21 @@ export class GameClass {
 
     // Set the canvas the renderer uses for some input operations.
     setInputElement(el) {
-        const that = this;
-        const hud = this.hud;
-        const player = this.player;
-        const add_mouse_rotate = new Vector();
-        const controls = that.player.controls;
+        const that = this
+        const hud = this.hud
+        const player = this.player
+        const add_mouse_rotate = new Vector()
+        const controls = that.player.controls
+
+        const esc = () : boolean => {
+            if(hud.frmMainMenu.visible || hud.wm.getWindow('frmInGameMain').visible ) {
+                hud.wm.closeAll()
+                Qubatch.setupMousePointer(false)
+                return true
+            }
+            return false
+        }
+
         const kb = this.kb = new Kb(el, {
             onPaste: (e) => {
                 const clipboardData = e.clipboardData || (window as any).clipboardData;
@@ -427,11 +438,17 @@ export class GameClass {
                             return true
                         }
                     }
+                    if(!e.down && e.keyCode == KEY.E) {
+                        const fc = hud.wm.getFocusedControl()
+                        if(!fc || !(fc instanceof TextEdit)) {
+                            hud.wm.closeAll()
+                            Qubatch.setupMousePointer(false)
+                            return true
+                        }
+                    }
                     if(e.keyCode == KEY.ESC) {
                         if(!e.down) {
-                            if(hud.frmMainMenu.visible || hud.wm.getWindow('frmInGameMain').visible ) {
-                                hud.wm.closeAll()
-                                Qubatch.setupMousePointer(false)
+                            if(esc()) {
                                 return true
                             }
                         }
@@ -591,11 +608,11 @@ export class GameClass {
                     case KEY.E: {
                         if(!e.down) {
                             if(!hud.wm.hasVisibleWindow()) {
-                                player.inventory.open();
-                                return true;
+                                player.inventory.open()
+                                return true
                             }
                         }
-                        break;
+                        break
                     }
                     // Tab (Quests)
                     case KEY.TAB: {
