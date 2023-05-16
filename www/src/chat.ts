@@ -6,11 +6,16 @@ import { KEY, UI_THEME } from "./constant.js";
 import type { KbEvent } from "./kb.js";
 import { Resources } from "./resources.js";
 import type { HUD } from "./hud.js";
+import { Mth, StringHelpers } from "./helpers.js";
 
-const MESSAGE_SHOW_TIME = 7000; // максимальное время отображения текста, после закрытия чата (мс)
+const COUNT_LINES = 17
+const COUNT_CHARS_IN_LINE = 49
 const SYSTEM_NAME = '<MadCraft>';
 
 export class Chat extends TextBox {
+
+    #shift: number
+    #count: number
 
     constructor(player) {
         super(UI_ZOOM * Qubatch.settings.window_size / 100);
@@ -117,8 +122,9 @@ export class Chat extends TextBox {
                     cmd.data.text = Lang[cmd.data.text];
                 }
             }
-            this.messages.add(cmd.data.username, cmd.data.text);
-        });
+            this.messages.add(cmd.data.username, cmd.data.text)
+            this.onPosChat()
+        })
         // Restore sent history
         let hist = localStorage.getItem(`chat_history_${that.player.world.info.guid}`);
         if (hist) {
@@ -133,6 +139,7 @@ export class Chat extends TextBox {
             }
         }
         this.hud_atlas = Resources.atlas.get('hud')
+        this.#shift = 0
     }
 
     //
@@ -279,10 +286,56 @@ export class Chat extends TextBox {
             }
             this.history.add(this.buffer);
         }
-        this.buffer = [];
-        this.resetCarriage();
-        this.close();
+        this.buffer = []
+        this.resetCarriage()
+        this.close()
+        this.onPosChat()
         return true
+    }
+
+    makeLines(list : any[]) : string[] {
+        let lines = []
+        const replaceUsername = (str : string, username : string) : string => {
+            const ln = str.substring(username.length + 1)
+            str = `<font class="username" color="${UI_THEME.base_font.color}">${this.sanitizeHTML(username)}:</font>` + this.sanitizeHTML(ln)
+            return str
+        }
+        for(const message of list) {
+            let message_lines = []
+            const chunks = message.text.split('\n')
+            let line = ' '.repeat(message.username.length) + ':'
+            for(let i = 0; i < chunks.length; i++) {
+                let c = chunks[i].split(' ')
+                for(let w of c) {
+                    if(w.length > COUNT_CHARS_IN_LINE) {
+                        w = w.substring(0, COUNT_CHARS_IN_LINE - 3) + '...'
+                    }
+                    if(line.length + w.length >= COUNT_CHARS_IN_LINE - 1) {
+                        if(message_lines.length == 0) {
+                            line = replaceUsername(line, message.username)
+                        } else {
+                            line = this.sanitizeHTML(line)
+                        }
+                        message_lines.push(line)
+                        line = ' '
+                        if(w.length > COUNT_CHARS_IN_LINE - 2) {
+                            w = w.substring(2)
+                        }
+                    }
+                    line += ` ${w}`
+                }
+            }
+            if(message_lines.length == 0) {
+                message_lines.push(replaceUsername(line, message.username))
+            } else {
+                message_lines.push(this.sanitizeHTML(line))
+            }
+            message_lines.push('')
+            message_lines = StringHelpers.applyMCStyles(message_lines.join('\n')).split('\n')
+            lines.push(...message_lines)
+        }
+        lines.pop()
+        return lines
     }
 
     drawHUD(hud : HUD) {
@@ -291,15 +344,6 @@ export class Chat extends TextBox {
         const width = 400
         const bottom = 170
         const margin = UI_THEME.window_padding * this.zoom
-        const strings = []
-
-        const getLength = () => {
-            let len = 0
-            for (const s of strings) {
-                len += Math.ceil(s.length / 46)
-            }
-            return len
-        }
 
         //
         if (!this.chat_input) {
@@ -336,9 +380,10 @@ export class Chat extends TextBox {
             this.draw(0, hud.height - bottom * this.zoom, width * this.zoom, this.line_height, margin)
             this.old_time = performance.now()
         } 
+        const show_time = Qubatch.settings.chat_time * 1000 + 10
         const time = performance.now() - this.old_time
-        const half_show_time = (MESSAGE_SHOW_TIME / 2)
-        if (time >= MESSAGE_SHOW_TIME) {
+        const half_show_time = (show_time / 2)
+        if (time >= show_time) {
             this.history_messages_window.visible = false
         } else if (time >= half_show_time) {
             const transparent_time = time - half_show_time
@@ -357,31 +402,32 @@ export class Chat extends TextBox {
 
             this.messagesUpdateID = this.messages.updateID
 
-            let prev_username = null
+            let list = this.messages.list.slice(0)
+            const reverse = Qubatch.settings.chat_reverse
+            if(reverse) {
+                list = list.reverse()
+            }
 
-            for (const m of this.messages.list) {
-                let message_html = this.sanitizeHTML(m.text)
-                let need_hr = false
-                if(!prev_username || (prev_username != m.username)) {
-                    if(prev_username) {
-                        need_hr = true
-                    }
-                    prev_username = m.username
-                }
-                const texts = message_html.split('\n')
-                for(let i = 0; i < texts.length; i++) {
-                    let text = texts[i] + '<br>'
-                    let hr = i == 0 && need_hr ? '<br>' : ''
-                    text = i === 0 ? `${hr}<font color="${UI_THEME.base_font.color}">${this.sanitizeHTML(m.username)}:</font> ${text}` : `&nbsp;&nbsp;${text}`
-                    strings.push(text)
+            let all_lines = this.makeLines(list)
+
+            this.#shift = Mth.clamp(this.#shift, 0, Math.max(all_lines.length - COUNT_LINES, 0))
+
+            const lines = all_lines.slice(this.#shift, this.#shift + COUNT_LINES)
+
+            let margin = 0
+            if(lines.length > 0) {
+                while(lines[0].indexOf('<font class="username"') !== 0) {
+                    lines.unshift(all_lines[this.#shift + --margin])
                 }
             }
 
-            while (getLength() > 32) {
-                strings.pop()
+            // Если обратный вывод сообщений, до дополняем до необходимого количества строк,
+            // чтобы сообщения рисовались в нижней части окна сообщений
+            if(reverse && lines.length < COUNT_LINES) {
+                lines.unshift(...new Array(COUNT_LINES - lines.length).fill(''))
             }
 
-            const htmlText = '<div style="word-wrap: break-word;">' + strings.join('') + '</div>'
+            const htmlText = `<div style="word-wrap: break-word; margin-top: ${margin}em;">${lines.join('<br>')}</div>`
             this.htmlText1.text = htmlText
 
         }
@@ -389,7 +435,7 @@ export class Chat extends TextBox {
     }
 
     sanitizeHTML(text : string) : string {
-        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')
+        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/ /g, '&nbsp;').replace(/'/g, '&#039;').replace(/\r/g, '')
     }
 
     // Hook for keyboard input.
@@ -454,15 +500,21 @@ export class Chat extends TextBox {
                 }
                 return true;
             }
-            /* The control reacts to ENTER itself in another place.
-            case KEY.ENTER: {
-                if(!down) {
-                    this.submit();
-                }
-                return true;
-            }
-            */
         }
+    }
+
+    onPosChat() {
+        if (Qubatch.settings.chat_reverse) {
+            this.#shift = Number.MAX_VALUE
+        } else {
+            this.#shift = 0
+        }
+        this.messages.updateID++
+    }
+
+    onScroll(up: boolean) {
+        this.#shift += (up ? 1 : -1) * 1
+        this.messages.updateID++
     }
 
 }

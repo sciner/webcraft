@@ -72,4 +72,60 @@ export class StringHelpers {
         }
         return this.capitalizeChatAt(res, 0);
     }
+
+    static applyMCStyles(str : string) : string {
+
+        const styleMap = {
+            '0': 'color:#000000',
+            '1': 'color:#0000AA',
+            '2': 'color:#00AA00',
+            '3': 'color:#00AAAA',
+            '4': 'color:#AA0000',
+            '5': 'color:#AA00AA',
+            '6': 'color:#FFAA00',
+            '7': 'color:#AAAAAA',
+            '8': 'color:#555555',
+            '9': 'color:#5555FF',
+            'a': 'color:#55FF55',
+            'b': 'color:#55FFFF',
+            'c': 'color:#FF5555',
+            'd': 'color:#FF55FF',
+            'e': 'color:#FFFF55',
+            'f': 'color:#FFFFFF',
+            'l': 'font-weight:bold',
+            'm': 'text-decoration:line-through',
+            'n': 'text-decoration:underline',
+            'o': 'font-style:italic',
+        }
+
+        const code_char = '§'
+        let cnt = 0
+        let resp = ''
+        for(let i = 0; i < str.length; i++) {
+            const l = str.substring(i, i + 1)
+            if(l == code_char) {
+                i++
+                const code = str.substring(i, i + 1)
+                if(code == 'r') {
+                    resp += '</span>'.repeat(cnt)
+                    cnt = 0
+                } else {
+                    const style = styleMap[code]
+                    if(style) {
+                        resp += `<span style="${style}">`
+                        cnt++
+                    } else {
+                        i--
+                        resp += l
+                    }
+                }
+            } else {
+                resp += l
+            }
+        }
+        resp += '</span>'.repeat(cnt)
+
+        return resp
+    }
+
 }

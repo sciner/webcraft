@@ -89,6 +89,8 @@ export class GameSettings implements TWorldSettings {
     window_size:             float = 100
     show_compass:            boolean = true
     check_delete_item:       boolean = true
+    chat_reverse:            boolean = true
+    chat_time:               float = 7 
 
     //
     _json_url?:             string
@@ -310,6 +312,10 @@ export class GameClass {
                     if(player) {
                         if(player.status == PLAYER_STATUS.DEAD) {
                             return false
+                        }
+                        if(player.chat.active) {
+                            player.chat.onScroll(e.deltaY > 0)
+                            return true
                         }
                         if(controls.enabled) {
                             if(!player.controlManager.changeSpectatorSpeed(-e.deltaY)) {
