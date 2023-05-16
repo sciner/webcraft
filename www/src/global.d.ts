@@ -105,6 +105,7 @@ interface TBlocksSettings {
     draw_improved_blocks?:      boolean
     beautiful_leaves?:          boolean
     resource_packs_basedir?:    string
+    only_bbmodel?:              boolean
 }
 
 interface TWorldSettings extends TBlocksSettings {

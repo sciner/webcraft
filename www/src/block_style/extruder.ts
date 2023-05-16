@@ -78,7 +78,7 @@ class FakeCloudWorld {
                 for(let x = 0; x < tex_w; x++) {
                     for(let y = 0; y < tex_h; y++) {
                         let index = ((y + tex_y) * tex.width + (x + tex_x)) * 4;
-                        let is_opaque = tex.imageData.data[index + 3] > 10;
+                        let is_opaque = tex.getImageData().data[index + 3] > 10
                         if(is_opaque) {
                             this.blocks[x + 1][y + 1] = 1;
                         }

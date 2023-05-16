@@ -593,7 +593,7 @@ export class Renderer {
                 const getTextureOrigImage = (tex) => {
                     let canvas = texs.get(tex)
                     if(!canvas) {
-                        const imagedata = tex.imageData
+                        const imagedata = tex.getImageData()
                         canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
                         canvas.width = imagedata.width;

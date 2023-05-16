@@ -76,15 +76,13 @@ export class BBModel_Preview {
         this.render.world = world
         this.render.player = player
 
+        const settings = {...world.settings, only_bbmodel: true, mipmap: false}
+
         // Init blocks
-        await BLOCK.init(world.settings)
-        // BLOCK.reset()
-        // BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK)
-        // await BLOCK.resource_pack_manager.init(world.settings)
-        // BLOCK.reset()
+        await BLOCK.init(settings)
 
         world.block_manager = BLOCK
-        await this.render.init(world, world.settings)
+        await this.render.init(world, settings)
         this.render.camPos = this.camPos
 
         this.skins = []
@@ -117,7 +115,7 @@ export class BBModel_Preview {
         let demo_animation_frame = 0
         const demo_animations = ['walk', 'emote_hi', 'idle' /*'sitting', 'eat', 'sleep',*/]
         this.intv = setInterval(() => {
-            this.current.mesh.setAnimation(demo_animations[++demo_animation_frame % demo_animations.length])
+            this.current?.mesh?.setAnimation(demo_animations[++demo_animation_frame % demo_animations.length])
         }, 4000)
 
         // Add humanoid mesh #2
@@ -201,6 +199,10 @@ export class BBModel_Preview {
         this.render.camera.set(this.render.camPos, this.camRot, this.m4)
 
         const item = this.current
+        if(!item) {
+            return
+        }
+
         // item.mesh.rotation[2] = Math.PI * 1.15
         item.mesh.rotation[2] = performance.now() / 1000
 

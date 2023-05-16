@@ -90,8 +90,9 @@ export class GameSettings implements TWorldSettings {
     check_delete_item:       boolean = true
 
     //
-    _json_url?: string
-    _resource_packs_url?: string
+    _json_url?:             string
+    _resource_packs_url?:   string
+    only_bbmodel:           boolean
 
     constructor() {
         this.load()
