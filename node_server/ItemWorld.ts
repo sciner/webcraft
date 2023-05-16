@@ -37,28 +37,41 @@ export class ItemWorld {
      */
 
     plantingSapling(dropItem) {
-        const PR_RISE = .1
+        const PR_RISE = 1.1
         const b = this.all_drop_items.get(dropItem.entity_id)
         for (const item of b.items) {
-            if (Math.random() < PR_RISE) {
+            if (Math.random() < PR_RISE * item.count) {
                 const block = this.bm.fromId(item.id)
                 if (block.is_sapling) {
                     const pos = b.pos.floored()
                     const under = this.world.getBlock(pos.offset(0, -1, 0))
                     const bm = this.bm
-                    if ([bm.GRASS_BLOCK.id, bm.GRASS_BLOCK_SLAB.id, bm.FARMLAND.id, bm.FARMLAND_WET.id].includes(under.id)) {
+                    if ([bm.SNOW_DIRT.id, bm.DIRT.id, bm.DIRT.id, bm.GRASS_BLOCK.id, bm.GRASS_BLOCK_SLAB.id, bm.FARMLAND.id, bm.FARMLAND_WET.id].includes(under.id)) {
                         const extra_data = this.bm.calculateExtraData(block.extra_data, pos)
                         const action = new WorldAction(null, this.world, false, false)
-                        action.addBlocks([
+                        const blocks = [
                             {
                                 pos: pos,
                                 item: {
                                     id: block.id,
                                     extra_data: extra_data
                                 },
-                                action_id: ServerClient.BLOCK_ACTION_CREATE
+                                action_id: ServerClient.BLOCK_ACTION_REPLACE
                             }
-                        ])
+                        ]
+                        if (under.id == bm.SNOW_DIRT.id) {
+                            blocks.push(
+                                {
+                                    pos: pos.offset(0, -1, 0),
+                                    item: {
+                                        id: bm.DIRT.id,
+                                        extra_data: null
+                                    },
+                                    action_id: ServerClient.BLOCK_ACTION_REPLACE
+                                } 
+                            )
+                        }
+                        action.addBlocks(blocks)
                         this.world.actions_queue.add(null, action)
                     }
                 }
