@@ -345,6 +345,7 @@ export class MobModel extends NetworkPhysicObject {
             }
         }
         this.setArmor()
+        const attack = this?.extra_data?.attack ? this.extra_data.attack : this.attack
         if (this.sleep) {
             const rot = this.sleep.rotate.z * 2 * Math.PI
             mesh.rotation[2] = rot % Math.PI ? rot : rot + Math.PI
@@ -374,8 +375,8 @@ export class MobModel extends NetworkPhysicObject {
                 mesh.setAnimation(anim ?? 'sitting')
             } else if (this.sitting) {
                 mesh.setAnimation('sitting')
-            } else if (this?.extra_data?.attack || this.attack) {
-                mesh.setAnimation('attack')
+            } else if (attack) {
+                mesh.setAnimation(attack.title + '*' + attack.speed)
             } else if (!this.ground && !animations?.noAirborne) { // прыжок или полет (в том числе в жидкости)
                 if (animations?.fly) {
                     if (!this.moving) {     // более медленные анимации если полет вниз или на месте
