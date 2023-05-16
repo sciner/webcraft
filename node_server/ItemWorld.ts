@@ -37,13 +37,13 @@ export class ItemWorld {
      */
 
     plantingSapling(dropItem) {
-        const PR_RISE = 1.1
+        const PR_RISE = .1
         const b = this.all_drop_items.get(dropItem.entity_id)
         for (const item of b.items) {
             if (Math.random() < PR_RISE * item.count) {
                 const block = this.bm.fromId(item.id)
                 if (block.is_sapling) {
-                    const pos = b.pos.floored()
+                    const pos = b.pos.offset(0, .2, 0).floored()
                     const under = this.world.getBlock(pos.offset(0, -1, 0))
                     const bm = this.bm
                     if ([bm.SNOW_DIRT.id, bm.DIRT.id, bm.DIRT.id, bm.GRASS_BLOCK.id, bm.GRASS_BLOCK_SLAB.id, bm.FARMLAND.id, bm.FARMLAND_WET.id].includes(under.id)) {
