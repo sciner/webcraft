@@ -96,12 +96,12 @@ export class RendererBBModel {
 
         const {renderBackend} = this
 
-        if (renderBackend.gl) {
-            if (settings.use_light === LIGHT_TYPE.RTX) {
-                renderBackend.preprocessor.useNormalMap = true
-                renderBackend.globalUniforms.useNormalMap = true
-            }
-        }
+        // if (renderBackend.gl) {
+        //     if (settings.use_light === LIGHT_TYPE.RTX) {
+        //         renderBackend.preprocessor.useNormalMap = true
+        //         renderBackend.globalUniforms.useNormalMap = true
+        //     }
+        // }
 
         // if(!settings || !settings?.disable_env) {
         //     this.env.init(this)
