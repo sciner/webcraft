@@ -428,7 +428,7 @@ export class Player implements IPlayer {
         }, (e : IPickatEvent) => {
             if (e.button_id == MOUSE.BUTTON_LEFT) {
                 const instrument = this.getCurrentInstrument()
-                const speed = 1//instrument?.material?.speed ?? 1
+                const speed = instrument?.material?.speed ?? 1
                 if (!this.state.attack) {
                     this.world.server.Send({
                         name: ServerClient.CMD_USE_WEAPON,
@@ -440,12 +440,9 @@ export class Player implements IPlayer {
                         }
                     })
                     this.state.attack = {title: 'strike', speed: speed}
-                    console.log(speed)
-                    console.log(performance.now())
                     setTimeout(() => {
                         Qubatch.sounds.play('madcraft:block.player', 'hit');
                         this.state.attack = false
-                        console.log(performance.now())
                     }, (ATTACK_COOLDOWN / speed) + 300)
                 }
             } else {
@@ -716,7 +713,7 @@ export class Player implements IPlayer {
                 if (cur_mat_id) {
                     const cur_mat = BLOCK.fromId(cur_mat_id)
                     if (cur_mat?.item?.name == 'instrument') {
-                        this.startArmSwingProgress() // @todo визуальная времянка
+                        //this.startArmSwingProgress() // @todo визуальная времянка
                     }
                 }
             }
@@ -783,7 +780,7 @@ export class Player implements IPlayer {
                 if(typeof this.hitIndexO === undefined || hitIndex > this.hitIndexO) {
                     this.render.destroyBlock(block, new Vector(bPos as IVector).addScalarSelf(.5, .5, .5), true);
                     Qubatch.sounds.play(block.sound, 'hit');
-                    this.startArmSwingProgress();
+                    this.startArmSwingProgress(true);
                 }
                 this.hitIndexO = hitIndex;
             }
@@ -1210,9 +1207,9 @@ export class Player implements IPlayer {
     }
 
     // Start arm swing progress
-    startArmSwingProgress() {
+    startArmSwingProgress(destroy: boolean = false) {
         this.inMiningProcess = true;
-        this.inhand_animation_duration = 1 * RENDER_DEFAULT_ARM_HIT_PERIOD;
+        this.inhand_animation_duration = (destroy ? 1 : 2.5) * RENDER_DEFAULT_ARM_HIT_PERIOD;
         const itsme = this.getModel()
         if(itsme) {
             itsme.startArmSwingProgress();
