@@ -15,7 +15,12 @@
         "inlineSourceMap": true,
         "moduleResolution": "node",
         "resolveJsonModule": true,
-        "outDir": "js"
+        "outDir": "js",
+
+        "baseUrl": "./" ,
+        "paths": {
+            "@vaux/*": ["../node_modules/vauxcel/lib"],
+        }
     },
     "files": [
         "src/package.json"

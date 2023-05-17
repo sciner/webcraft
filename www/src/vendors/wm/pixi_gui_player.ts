@@ -1,6 +1,4 @@
-import { PIXI } from '../../../tools/gui/pixi.js';
-
-export class PixiGuiPlayer extends PIXI.Container {
+export class PixiGuiPlayer extends VAUX.Container {
     _render(pixiRender) {
 
         /**

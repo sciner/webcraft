@@ -1,4 +1,3 @@
-import { PIXI } from "../../../tools/gui/pixi.js"
 import { MySprite } from "./MySpriteRenderer.js";
 import { Vector } from "../../helpers.js";
 
@@ -92,7 +91,7 @@ export class BackgroundStyle {
     constructor(window) {
         this.#window = window
         // Background image
-        this.#_wmbgimage = new MySprite(PIXI.Texture.EMPTY)
+        this.#_wmbgimage = new MySprite(VAUX.Texture.EMPTY)
         window._wmbgimage = this.#_wmbgimage
         window._wmbgimage.catchEvents = false
         // this.#_wmbgimage.anchor.x = 0
@@ -101,16 +100,16 @@ export class BackgroundStyle {
         // this.#_wmbgimage.position.y = 0
         window.addChildAt(this.#_wmbgimage, 0)
         // Create a Graphics object, set a fill color, draw a rectangle
-        this.#_bgcolor = new PIXI.Graphics()
+        this.#_bgcolor = new VAUX.Graphics()
         window.addChildAt(this.#_bgcolor, 1)
         //
         this.scale = undefined // window.zoom / 2.0
         this._image_size_mode = null
         this.color = '#00000000'
     }
-    
+
     /**
-     * @type {PIXI.Sprite}
+     * @type {VAUX.Sprite}
      */
     get sprite() {
         return this.#_wmbgimage
@@ -134,7 +133,7 @@ export class BackgroundStyle {
         if (urlOrImage.baseTexture) {
             background.texture = urlOrImage
         } else {
-            background.texture = PIXI.Texture.from(urlOrImage)
+            background.texture = VAUX.Texture.from(urlOrImage)
         }
 
         if (isNaN(scale)) {
@@ -171,7 +170,7 @@ export class BackgroundStyle {
                 const sp = new Vector(background.width, background.height, 0)
                 const winratio = bgSize.x / bgSize.y
                 const spratio = sp.x / sp.y
-                const pos = new PIXI.Point(0, 0)
+                const pos = new VAUX.Point(0, 0)
                 let scale = 1
                 // if(type == 'cover' ? (winratio > spratio) : (winratio < spratio)) {
                 if(winratio > spratio) {
@@ -184,7 +183,7 @@ export class BackgroundStyle {
                     pos.x = -((sp.x * scale) - bgSize.x) / 2
                 }
                 background.anchor.set(0, 0)
-                background.scale = new PIXI.Point(scale, scale)
+                background.scale = new VAUX.Point(scale, scale)
                 background.position.x = pos.x
                 background.position.y = pos.y
                 break
@@ -252,7 +251,7 @@ export class BorderStyle {
         this.#window = window
 
         // Border
-        const border = this.#_wmborder = new PIXI.Graphics()
+        const border = this.#_wmborder = new VAUX.Graphics()
         border.visible = false
         border.w = window.w
         border.h = window.h
@@ -471,7 +470,7 @@ export class TextShadowStyle {
     [key: string]: any;
 
     #window
-    
+
     constructor(window) {
         this.#window = window
     }
@@ -531,7 +530,7 @@ export class FontStyle {
             fontName: 'UbuntuMono-Regular',
             fontSize: 20 * window.zoom,
         }
-        this._font_style = new PIXI.TextStyle({
+        this._font_style = new VAUX.TextStyle({
             fontFamily: 'Tahoma',
             fontSize: 16 * window.zoom,
             fontWeight: 'normal'
