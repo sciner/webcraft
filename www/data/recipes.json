@@ -1827,5 +1827,23 @@
             "item": "madcraft:raft",
             "count": 1
         }
+    },
+    {
+        "id": "1734e359-1ac2-40d5-94ba-6e5b0aede500",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "gg ",
+            "gg "
+        ],
+        "key": {
+            "g": {
+                "item": "special:glowstone_dust"
+            }
+        },
+        "result": {
+            "item": "madcraft:glowstone",
+            "count": 1
+        }
     }
 ]

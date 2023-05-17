@@ -1451,7 +1451,7 @@
                 "a": 255
             },
             "material": {
-                "id": "stone"
+                "id": "glowstone"
             },
             "sound": "madcraft:block.stone",
             "texture": "block/glowstone.png",
