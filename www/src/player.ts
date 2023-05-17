@@ -428,7 +428,7 @@ export class Player implements IPlayer {
         }, (e : IPickatEvent) => {
             if (e.button_id == MOUSE.BUTTON_LEFT) {
                 const instrument = this.getCurrentInstrument()
-                const speed = 1//instrument?.material?.speed ?? 1
+                const speed = instrument?.material?.speed ?? 1
                 if (!this.state.attack) {
                     this.world.server.Send({
                         name: ServerClient.CMD_USE_WEAPON,
@@ -711,9 +711,6 @@ export class Player implements IPlayer {
         }
         if(type == MOUSE.DOWN) {
             this.pickAt.setEvent(this, {button_id, shiftKey});
-            if(e.button_id == MOUSE.BUTTON_LEFT) {
-                this.startArmSwingProgress();
-            }
         } else if (type == MOUSE.UP) {
             this.resetMouseActivity();
         }

@@ -382,7 +382,8 @@ export class CompileData {
             zombie_villager: {base: '#563C33', overlay: '#799C65'},
             //
             deer: {base: '#9d9186', overlay: '#4a3f35'},
-            snow_golem: {base: '#a5d8d8', overlay: '#96500a'}
+            snow_golem: {base: '#a5d8d8', overlay: '#96500a'},
+            combat_dummy: {base: '#a008d8', overlay: '#96500a'}
         };
 
         const eggs = [
@@ -405,6 +406,7 @@ export class CompileData {
             //
             {id: 1452, type: MOB_TYPE.DEER, skin: DEFAULT_MOB_TEXTURE_NAME},
             {id: 1459, type: MOB_TYPE.SNOW_GOLEM, skin: DEFAULT_MOB_TEXTURE_NAME},
+            {id: 1106, type: MOB_TYPE.COMBAT, skin: DEFAULT_MOB_TEXTURE_NAME},
             /*
             Under construction:
             - bat
