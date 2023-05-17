@@ -1,5 +1,5 @@
 import { Spritesheet_Base } from "../core/spritesheet_base.js";
-import { isScalar } from "../helpers.js";
+import { isScalar, Vector } from "../helpers.js";
 
 export class BBModel_Compiler_Base {
     [key: string]: any;
@@ -152,14 +152,38 @@ export class BBModel_Compiler_Base {
         // each model elements
         for(let el of model.elements) {
             if(el.faces) {
+                // Remove invisible polygons
+                const sz = new Vector(el.from).subSelf(new Vector(el.to))
+                if(sz.x * sz.y * sz.z === 0) {
+                    const delete_faces = []
+                    if(sz.x == 0) {
+                        // west or east
+                        delete_faces.push(...['up', 'down', 'south', 'north'])
+                        delete_faces.push(el.faces.east?.texture ? 'west' : 'east')
+                    } else if(sz.y == 0) {
+                        // up or down
+                        delete_faces.push(...['south', 'north', 'east', 'west'])
+                        delete_faces.push(el.faces.up?.texture ? 'down' : 'up')
+                    } else if(sz.z == 0) {
+                        // west or east
+                        delete_faces.push(...['up', 'down', 'east', 'west'])
+                        delete_faces.push(el.faces.south?.texture ? 'north' : 'south')
+                    }
+                    if(delete_faces.length > 0) {
+                        for(const name of delete_faces) {
+                            delete(el.faces[name])
+                        }
+                    }
+                }
+                //
                 for(let side in el.faces) {
-                    model.polygons += 2
                     const face = el.faces[side];
                     if('texture' in face && 'uv' in face) {
                         if(face.texture === null) {
                             delete(el.faces[side])
                             continue
                         }
+                        model.polygons += 2
                         let face_texture_id = face.texture + '';
                         if(face_texture_id !== null) {
 
@@ -171,11 +195,6 @@ export class BBModel_Compiler_Base {
                             if(texture_item) {
 
                                 const uv = face.uv
-
-                                // const uvx1 = Math.min(uv[0], uv[2]) * texture_item.scale_x
-                                // const uvy1 = Math.min(uv[1], uv[3]) * texture_item.scale_y
-                                // const uvx2 = Math.max(uv[0], uv[2]) * texture_item.scale_x
-                                // const uvy2 = Math.max(uv[1], uv[3]) * texture_item.scale_y
 
                                 const uvx1 = uv[2] * texture_item.scale_x
                                 const uvy1 = uv[3] * texture_item.scale_y
