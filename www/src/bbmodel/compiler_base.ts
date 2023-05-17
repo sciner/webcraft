@@ -159,15 +159,15 @@ export class BBModel_Compiler_Base {
                     if(sz.x == 0) {
                         // west or east
                         delete_faces.push(...['up', 'down', 'south', 'north'])
-                        delete_faces.push(el.faces.east?.texture ? 'west' : 'east')
+                        delete_faces.push(el.faces.east?.texture !== null ? 'west' : 'east')
                     } else if(sz.y == 0) {
                         // up or down
                         delete_faces.push(...['south', 'north', 'east', 'west'])
-                        delete_faces.push(el.faces.up?.texture ? 'down' : 'up')
+                        delete_faces.push(el.faces.up?.texture !== null ? 'down' : 'up')
                     } else if(sz.z == 0) {
                         // west or east
                         delete_faces.push(...['up', 'down', 'east', 'west'])
-                        delete_faces.push(el.faces.south?.texture ? 'north' : 'south')
+                        delete_faces.push(el.faces.south?.texture !== null ? 'north' : 'south')
                     }
                     if(delete_faces.length > 0) {
                         for(const name of delete_faces) {
