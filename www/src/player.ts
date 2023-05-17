@@ -428,7 +428,7 @@ export class Player implements IPlayer {
         }, (e : IPickatEvent) => {
             if (e.button_id == MOUSE.BUTTON_LEFT) {
                 const instrument = this.getCurrentInstrument()
-                const speed = instrument?.material?.speed ?? 1
+                const speed = 1//instrument?.material?.speed ?? 1
                 if (!this.state.attack) {
                     this.world.server.Send({
                         name: ServerClient.CMD_USE_WEAPON,
@@ -439,14 +439,14 @@ export class Player implements IPlayer {
                             }
                         }
                     })
-                    this.state.attack = {title: 'attack', speed: speed}
+                    this.state.attack = {title: 'strike', speed: speed}
                     console.log(speed)
                     console.log(performance.now())
                     setTimeout(() => {
                         Qubatch.sounds.play('madcraft:block.player', 'hit');
                         this.state.attack = false
                         console.log(performance.now())
-                    }, ATTACK_COOLDOWN / speed)
+                    }, (ATTACK_COOLDOWN / speed) + 300)
                 }
             } else {
                 const instrument = this.getCurrentInstrument()
@@ -711,6 +711,15 @@ export class Player implements IPlayer {
         }
         if(type == MOUSE.DOWN) {
             this.pickAt.setEvent(this, {button_id, shiftKey});
+            if(e.button_id == MOUSE.BUTTON_LEFT) {
+                const cur_mat_id = this.inventory.current_item?.id
+                if (cur_mat_id) {
+                    const cur_mat = BLOCK.fromId(cur_mat_id)
+                    if (cur_mat?.item?.name == 'instrument') {
+                        this.startArmSwingProgress() // @todo визуальная времянка
+                    }
+                }
+            }
         } else if (type == MOUSE.UP) {
             this.resetMouseActivity();
         }
@@ -798,7 +807,7 @@ export class Player implements IPlayer {
             const [actions, pos] = await doBlockAction(e, this.world, action_player_info, this.currentInventoryItem);
             if (actions) {
                 e_orig.snapshotId = pos && this.world.history.makeSnapshot(pos);
-                if(e.createBlock && actions.blocks.list.length > 0) {
+                if(e.createBlock && (actions.blocks.list.length > 0 || actions.decrement)) {
                     this.startArmSwingProgress();
                 }
                 await this.world.applyActions(actions, this);
@@ -1264,6 +1273,9 @@ export class Player implements IPlayer {
         switch(item_name) {
             case 'bottle':
             case 'food': {
+                if (this.indicators.food >= 20 && item_name == 'food') {
+                    return false
+                }
                 const itsme = this.getModel()
                 this.world.server.Send({name: ServerClient.CMD_USE_ITEM});
                 this.inhand_animation_duration = RENDER_EAT_FOOD_DURATION;
