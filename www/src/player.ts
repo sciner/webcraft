@@ -747,10 +747,6 @@ export class Player implements IPlayer {
 
     // onPickAtTarget
     async onPickAtTarget(e : IPickatEvent, times : float, number : int): Promise<boolean> {
-
-        this.inMiningProcess = true;
-        this.inhand_animation_duration = (e.destroyBlock ? 1 : 2.5) * RENDER_DEFAULT_ARM_HIT_PERIOD;
-
         let bPos = e.pos;
         // create block
         if(e.createBlock) {
@@ -1209,6 +1205,8 @@ export class Player implements IPlayer {
 
     // Start arm swing progress
     startArmSwingProgress() {
+        this.inMiningProcess = true;
+        this.inhand_animation_duration = 1 * RENDER_DEFAULT_ARM_HIT_PERIOD;
         const itsme = this.getModel()
         if(itsme) {
             itsme.startArmSwingProgress();
