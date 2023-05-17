@@ -17,21 +17,24 @@ const NO_IMPORT_BLOCKS = ['AIR', 'NETHER_PORTAL'];
 export class SchematicReader {
     blocks: VectorCollector;
     fluids: any[];
-    replaced_names: { BARRIER: string; CAVE_AIR: string; SPAWNER: string; LAVA: string; WATER: string; WHEAT: string; COCOA: string; SIGN: string; };
+    replaced_names: {
+        [key: string]: string
+    };
 
     constructor() {
         this.blocks = new VectorCollector();
         this.fluids = [];
         this.replaced_names = {
-            BARRIER:    'AIR',
-            CAVE_AIR:   'AIR',
-            SPAWNER:    'MOB_SPAWN',
-            LAVA:       'STILL_LAVA',
-            WATER:      'STILL_WATER',
-            WHEAT:      'WHEAT_SEEDS',
-            COCOA:      'COCOA_BEANS',
-            SIGN:       'BIRCH_SIGN'
-        };
+            BARRIER:                'AIR',
+            CAVE_AIR:               'AIR',
+            SPAWNER:                'MOB_SPAWN',
+            LAVA:                   'STILL_LAVA',
+            WATER:                  'STILL_WATER',
+            WHEAT:                  'WHEAT_SEEDS',
+            COCOA:                  'COCOA_BEANS',
+            SIGN:                   'BIRCH_SIGN',
+            DETECTOR_RAIL:          'POWERED_RAIL'
+        }
     }
 
     // Read schematic file
@@ -203,6 +206,9 @@ export class SchematicReader {
         if(block.name == 'wall_torch') {
             block.on_wall = true;
             block.name = 'torch';
+        } else if(block.name == 'redstone_wall_torch') {
+            block.on_wall = true;
+            block.name = 'redstone_torch';
         } else if(block.name.endsWith('_sign')) {
             block.on_wall = block.name.endsWith('_wall_sign');
             if(block.on_wall) {
@@ -400,6 +406,10 @@ export class SchematicReader {
                 if('facing' in props) {
                     if(b.tags.includes('rotate_by_pos_n_6')) {
                         new_block.rotate = SIX_VECS[props.facing].clone();
+                    } else if(['fence_gate'].includes(b.style_name)) {
+                        setExtraData('facing', props.facing)
+                        new_block.rotate.x = facings4.indexOf(props.facing) ?? 0
+                        new_block.rotate.y = 1
                     } else {
                         new_block.rotate.x = Math.max(facings4.indexOf(props.facing), 0);
                         if(['stairs', 'door', 'cocoa', 'anvil'].indexOf(b.style_name) >= 0) {

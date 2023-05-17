@@ -12,7 +12,7 @@
         },
         "mob/chicken": {
             "physics": {
-                "baseSpeed": 0.5,
+                "baseSpeed": 0.25,
                 "playerHeight": 0.65,
                 "stepHeight": 1.25,
                 "playerHalfWidth": 0.2
