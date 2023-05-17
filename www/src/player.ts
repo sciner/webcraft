@@ -747,7 +747,10 @@ export class Player implements IPlayer {
 
     // onPickAtTarget
     async onPickAtTarget(e : IPickatEvent, times : float, number : int): Promise<boolean> {
-        let bPos = e.pos;
+        if(this.state.sitting || this.state.sleep) {
+            console.log('Stand up first');
+            return false
+        }
         // create block
         if(e.createBlock) {
             if(e.number > 1 && times < .02) {
@@ -760,6 +763,7 @@ export class Player implements IPlayer {
             }
         // destroy block
         } else if(e.destroyBlock) {
+            const bPos = e.pos;
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
             let mul             = Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
@@ -791,10 +795,6 @@ export class Player implements IPlayer {
         }
         //
         if(!this.limitBlockActionFrequency(e) && this.game_mode.canBlockAction()) {
-            if(this.state.sitting || this.state.sleep) {
-                console.log('Stand up first');
-                return false;
-            }
             this.mineTime = 0;
             const e_orig: ICmdPickatData = ObjectHelpers.deepClone(e);
             const action_player_info = this.getActionPlayerInfo()
