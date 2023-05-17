@@ -428,7 +428,7 @@ export class Player implements IPlayer {
         }, (e : IPickatEvent) => {
             if (e.button_id == MOUSE.BUTTON_LEFT) {
                 const instrument = this.getCurrentInstrument()
-                const speed = instrument?.material?.speed ?? 1
+                const speed = 1//instrument?.material?.speed ?? 1
                 if (!this.state.attack) {
                     this.world.server.Send({
                         name: ServerClient.CMD_USE_WEAPON,
@@ -440,8 +440,11 @@ export class Player implements IPlayer {
                         }
                     })
                     this.state.attack = {title: 'attack', speed: speed}
+                    console.log(speed)
+                    console.log(performance.now())
                     setTimeout(() => {
                         this.state.attack = false
+                        console.log(performance.now())
                     }, ATTACK_COOLDOWN / speed)
                 }
             } else {

@@ -571,7 +571,7 @@ export class WorldAction {
             create_chest:               null,
             load_chest:                 null,
             open_window:                null,
-            put_in_backet:              null,
+            put_in_bucket:              null,
             put_in_bottle:              null,
             clone_block:                false,
             reset_mouse_actions:        false,
@@ -664,10 +664,10 @@ export class WorldAction {
 
     //
     putInBucket(item) {
-        if(this.put_in_backet) {
+        if(this.put_in_bucket) {
             throw 'error_put_already';
         }
-        this.put_in_backet = item;
+        this.put_in_bucket = item;
     }
     //
     putInBottle(item) {
