@@ -35,7 +35,7 @@ export class SchematicReader {
     }
 
     // Read schematic file
-    async read(orig_file_name) {
+    async read(orig_file_name : string) {
 
         orig_file_name += ''
 
@@ -45,7 +45,7 @@ export class SchematicReader {
         // Check schem file exists and try extension append
         const fileExists = path => fs.stat(path).then(() => true, () => false);
         if(!await fileExists(file_name)) {
-            if(orig_file_name.indexOf('.') < 0) {
+            if(!orig_file_name.includes('.')) {
                 let found = false;
                 for(let ext of ['schem', 'schematic', 'schema']) {
                     let next_file_name = `${file_name}.${ext}`;
@@ -56,6 +56,7 @@ export class SchematicReader {
                     }
                 }
                 if(!found) {
+                    console.log(await fs.realpath('./'))
                     throw 'error_schem_file_not_found';
                 }
             }

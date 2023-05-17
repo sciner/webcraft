@@ -74,9 +74,9 @@ export class Helpers {
     }
 
     //
-    angleTo(pos, target) {
-        let angle = Math.atan2(target.x - pos.x, target.z - pos.z);
-        return (angle > 0) ? angle : angle + 2 * Math.PI;
+    static angleTo(pos : Vector, target : Vector) {
+        const angle = Math.atan2(target.x - pos.x, target.z - pos.z)
+        return (angle > 0) ? angle : angle + 2 * Math.PI
     }
 
     // clamp

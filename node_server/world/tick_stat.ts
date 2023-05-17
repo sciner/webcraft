@@ -26,7 +26,7 @@ export class WorldTickStat {
     static DEFAULT_STAT_NAMES = ['chunks.tick', 'player.preTick', 'tickChunkQueue', 'player.postTick',
         'mobs', 'drop_items', 'packet_reader_queue',
         'maps_clear', 'packets_queue_send', 'chunks_random_tick', 'actions_queue', 'fluid_queue',
-        'db_fluid_save', 'auto_spawn_hostile_mobs', 'world_transaction_sync', 'other'];
+        'db_fluid_save', 'auto_spawn_hostile_mobs', 'world_transaction_sync', 'other', 'entity_collide'];
 
     static DEFAULT_DECIMALS = {
         min:        3,
@@ -62,7 +62,7 @@ export class WorldTickStat {
         if (!value) {
             if (allowAdding) {
                 if (this.pn_values == null) {
-                    console.error('calling add() withot start()')
+                    console.error('calling add() without start()')
                 }
                 this.stat_names.push(field)
                 value  = this._createValue()

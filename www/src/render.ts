@@ -982,7 +982,7 @@ export class Renderer {
     }
 
     // Render one frame of the world to the canvas.
-    draw(delta, args) {
+    draw(delta : float, args) {
         const { renderBackend, camera, player } = this;
         const { globalUniforms } = renderBackend;
         const { renderList } = this.world.chunkManager;
@@ -1046,7 +1046,6 @@ export class Renderer {
                     this.drawDropItems(delta);
                     // 6. Draw meshes
                     // this.meshes.draw(this, delta, player.lerpPos);
-
                     // 7. Draw mobs that must be drawn last (boats)
                     this.drawMobs(delta, true);
                     // 8. Draw shadows
@@ -1234,87 +1233,85 @@ export class Renderer {
 
     // drawPlayers
     drawPlayers(delta : float) {
-        this.lastDeltaForMeGui = delta;
+        this.lastDeltaForMeGui = delta
         if(this.world.players.count < 1) {
-            return;
+            return
         }
         let shader_binded = false
-        for(const player of this.world.players.values()) {
-            if(player.itsMe()) {
-                if(this.camera_mode == CAMERA_MODE.SHOOTER || this.player.game_mode.isSpectator()) {
-                    continue;
-                }
-                this.lastDeltaForMeGui = 0;
-            }
+        for(const player_model of this.world.players.values()) {
             // this.camPos.distance
-            if(player.itsMe() || player.distance !== null) {
+            if(player_model.distance !== null || player_model.itsMe()) {
+                if(player_model.itsMe()) {
+                    this.lastDeltaForMeGui = 0
+                    if(this.camera_mode == CAMERA_MODE.SHOOTER || this.player.game_mode.isSpectator()) {
+                        continue;
+                    }
+                    if(player_model.nametag) {
+                        player_model.nametag.visible = false
+                    }
+                }
                 if(!shader_binded) {
                     shader_binded = true
                     this.defaultShader.bind()
                 }
-                if(player.itsMe() && player.nametag) {
-                    player.nametag.visible = false
-                }
-                player.draw(this, this.camPos, delta);
+                player_model.draw(this, this.camPos, delta, this.world.mobs.draw_debug_grid)
             }
         }
     }
 
     // drawMobs
     drawMobs(delta : float, renderLast: boolean) : DrawMobsStat | null {
-        const mobs_count = this.world.mobs.list.size;
-        if(mobs_count < 1) {
-            return this.draw_mobs_stat;
+
+        const mobs_list = this.world.mobs.list
+        if(mobs_list.size < 1) {
+            return this.draw_mobs_stat
         }
-        const {renderBackend, defaultShader} = this;
-        defaultShader.bind();
-        let prev_chunk = null;
-        let prev_chunk_addr = new Vector();
-        const pos_of_interest = this.player.getEyePos();
+
+        const pos_of_interest = this.player.getEyePos()
 
         if (renderLast) {
             for(const mob of this.mobsDrawnLast) {
-                mob.draw(this, pos_of_interest, delta, undefined, this.world.mobs.draw_debug_grid);
+                mob.draw(this, pos_of_interest, delta, this.world.mobs.draw_debug_grid)
             }
             this.mobsDrawnLast.length = 0
             return null
         }
 
-        const mobs_list = this.world.mobs.list.values()
         this.draw_mobs_stat.count = 0
         this.draw_mobs_stat.time = performance.now()
-        for(let mob of mobs_list) {
-            const ca = mob.chunk_addr;
-            if(!prev_chunk || !prev_chunk_addr.equal(ca)) {
-                prev_chunk_addr.copyFrom(ca);
-                prev_chunk = this.world.chunkManager.getChunk(ca);
+        this.defaultShader.bind()
+
+        let prev_chunk = null
+        for(let mob of mobs_list.values()) {
+            const ca = mob.chunk_addr
+            if(!prev_chunk || !prev_chunk.addr.equal(ca)) {
+                prev_chunk = this.world.chunkManager.getChunk(ca)
             }
             if(prev_chunk && prev_chunk.cullID === this.cullID) {
-                if (mob.renderLast) {
+                if(mob.renderLast) {
                     // запомнить моба чтобы нарисовать его на втором проходе быстро без проверок чанка
                     this.mobsDrawnLast.push(mob)
                     mob.processNetState() // даже если моб не рисуется на первом проходе - обновить его (например, чтобы его вождение обновило других мобов)
                     continue
                 }
-                mob.draw(this, pos_of_interest, delta, undefined, this.world.mobs.draw_debug_grid);
+                mob.draw(this, pos_of_interest, delta, this.world.mobs.draw_debug_grid)
                 this.draw_mobs_stat.count++
             }
         }
+
         this.draw_mobs_stat.time = performance.now() - this.draw_mobs_stat.time
         return this.draw_mobs_stat
     }
 
-    // drawDropItems
-    drawDropItems(delta) {
+    // Draw dropped items
+    drawDropItems(delta : float) {
         if(this.world.drop_items.list.size < 1) {
-            return;
+            return
         }
-        const {renderBackend, defaultShader} = this;
-        defaultShader.bind();
-
-        for(let [id, drop_item] of this.world.drop_items.list) {
-            drop_item.updatePlayer(this.player, delta);
-            drop_item.draw(this, delta);
+        this.defaultShader.bind()
+        for(const drop_item of this.world.drop_items.list.values()) {
+            drop_item.updatePlayer(this.player, delta)
+            drop_item.draw(this, delta)
         }
     }
 
@@ -1333,7 +1330,7 @@ export class Renderer {
         }
 
         const world = Qubatch.world;
-        const TARGET_TEXTURES = [.5, .5, 1, 1];
+        const TARGET_TEXTURES : [number, number, number, number] = [.5, .5, 1, 1]
         // Material (shadow)
         if(!this.material_shadow) {
             const mat = this.renderBackend.createMaterial({
@@ -1358,7 +1355,7 @@ export class Renderer {
         const blockPosDiff = player_pos.sub(player.blockPos);
         const vertices = [];
         const vec = new Vector();
-        const appendPos = (pos) => {
+        const appendPos = (pos : Vector) => {
             const shapes = [];
             for(let x = -1; x <= 1; x++) {
                 for(let z = -1; z <= 1; z++) {
@@ -1409,9 +1406,9 @@ export class Renderer {
             vertices.push(...player_vertices);
         };
         // draw players shadow
+        const _pos = new Vector()
         for(const player of world.players.values()) {
-            const pos = player.pos.clone();
-            appendPos(pos);
+            appendPos(_pos.copyFrom(player.pos))
         }
         /*
         // draw drop items shadow
@@ -1428,7 +1425,7 @@ export class Renderer {
     }
 
     // createShadowBuffer...
-    createShadowVertices(vertices, shapes, pos, c) {
+    createShadowVertices(vertices : float[], shapes : tupleFloat6[], pos : Vector, c : tupleFloat4) {
         let lm          = new IndexedColor(0, 0, Math.round((performance.now() / 1000) % 1 * 255));
         let flags       = QUAD_FLAGS.QUAD_FLAG_OPACITY, sideFlags = 0, upFlags = QUAD_FLAGS.NO_FOG;
         for (let i = 0; i < shapes.length; i++) {

@@ -107,6 +107,10 @@ export class AABB {
         return this._center;
     }
 
+    get volume() : float {
+        return this.width * this.height * this.depth
+    }
+
     clone() : AABB {
         return new AABB(this.x_min, this.y_min, this.z_min, this.x_max, this.y_max, this.z_max)
     }

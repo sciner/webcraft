@@ -1,6 +1,6 @@
 import glMatrix from "../vendors/gl-matrix-3.3.min.js";
 import { Resources } from "./resources.js";
-import { Color, Vector } from "./helpers.js";
+import { Color, Helpers, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { AABBDrawable, NetworkPhysicObject } from './network_physic_object.js';
 import { MOB_TYPE } from "./constant.js";
@@ -238,7 +238,7 @@ export class MobModel extends NetworkPhysicObject {
 
     }
 
-    update(render? : Renderer, camPos? : Vector, delta? : float, speed? : float) {
+    update(render? : Renderer, camPos? : Vector, delta? : float) {
         super.update()
         this.computeLocalPosAndLight(render, delta)
     }
@@ -250,12 +250,12 @@ export class MobModel extends NetworkPhysicObject {
     /**
      * Draw mob model
      */
-    draw(render : Renderer, camPos : Vector, delta : float, speed? : float, draw_debug_grid : boolean = false) : boolean {
+    draw(render : Renderer, camPos : Vector, delta : float, draw_debug_grid : boolean = false) : boolean {
         if(!this.isAlive) {
             return false
         }
 
-        this.update(render, camPos, delta, speed);
+        this.update(render, camPos, delta);
 
         // TODO: need to migrate to bbmodels
         // // ignore_roots
@@ -428,7 +428,7 @@ export class MobModel extends NetworkPhysicObject {
     }
 
     drawInGui(render : Renderer, delta : float) {
-        this.update(render, new Vector(), delta, 0);
+        this.update(render, new Vector(), delta);
         const mesh = this._mesh;
         if (mesh) {
             this.doAnims();
@@ -440,17 +440,12 @@ export class MobModel extends NetworkPhysicObject {
 
     drawInFire(render : Renderer, delta : float) {
         if(this._fire_mesh) {
-            this._fire_mesh.yaw = Math.PI - this.angleTo(this.pos, render.camPos);
+            this._fire_mesh.yaw = Math.PI - Helpers.angleTo(this.pos, render.camPos);
             this._fire_mesh.apos.copyFrom(this.pos);
             this._fire_mesh.draw(render, delta);
         } else {
             this._fire_mesh = new Mesh_Object_MobFire(this, this.world)
         }
-    }
-
-    angleTo(pos : Vector, target : Vector) {
-        const angle = Math.atan2(target.x - pos.x, target.z - pos.z);
-        return (angle > 0) ? angle : angle - 2 * Math.PI;
     }
 
     onUnload() {

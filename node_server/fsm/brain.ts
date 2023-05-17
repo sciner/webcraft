@@ -1,6 +1,6 @@
 import { FSMStack } from "./stack.js";
-import {PrismarinePlayerControl, TPrismarineOptions} from "@client/prismarine-physics/using.js";
-import { Vector } from "@client/helpers.js";
+import {PrismarinePlayerControl} from "@client/prismarine-physics/using.js";
+import { Helpers, Vector } from "@client/helpers.js";
 import { ServerClient } from "@client/server_client.js";
 import type { Mob } from "../mob.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
@@ -76,7 +76,7 @@ export class FSMBrain {
         mobs.ticks_stat.add(name, allowAdding)
     }
 
-    tick(delta) {
+    tick(delta : float) {
         const chunk = this.mob.inChunk
         if (!chunk?.isReady()) {
             return
@@ -148,10 +148,8 @@ export class FSMBrain {
     }
 
     // угол между таргетом и мобом
-    angleTo(target) {
-        const pos = this.mob.pos;
-        const angle = Math.atan2(target.x - pos.x, target.z - pos.z);
-        return (angle > 0) ? angle : angle + 2 * Math.PI;
+    angleTo(target : Vector) {
+        return Helpers.angleTo(this.mob.pos, target)
     }
 
     /**
@@ -176,9 +174,8 @@ export class FSMBrain {
 
     /**
      * Returns the position of the eyes of the mob
-     * @returns {Vector}
      */
-    getEyePos() {
+    getEyePos() : Vector {
         const mob = this.mob;
         const subY = 0;
         //if(this.state.sitting) {
@@ -193,7 +190,7 @@ export class FSMBrain {
 
     get distance_view(): int { return this.mob.config.distance_view }
 
-    // контроль жизней и состяния моба
+    // контроль жизней и состояния моба
     onLive() {
         const mob = this.mob;
         const config = mob.config
@@ -329,8 +326,8 @@ export class FSMBrain {
         this.sendState();
     }
 
-    /** Стоит на месте, но иногда начинает идти; реагирует на разыне ситуации. См. также {@link doNothing} */
-    doStand(delta) {
+    /** Стоит на месте, но иногда начинает идти; реагирует на разные ситуации. См. также {@link doNothing} */
+    doStand(delta : float) {
         // нашел цель
         if (this.target) {
             this.stack.replaceState(this.doCatch);
@@ -345,7 +342,6 @@ export class FSMBrain {
             this.stack.replaceState(this.doForward);
             return;
         }
-        const mob = this.mob;
         this.updateControl({
             forward: false,
             jump: false,
@@ -502,6 +498,11 @@ export class FSMBrain {
      */
     onUse(actor : any, item : any) : boolean{
         return false;
+    }
+
+    addVelocity(vec : Vector) {
+        this.pc.player_state.vel.addSelf(vec)
+        this.pc.tick(0)
     }
 
 }
