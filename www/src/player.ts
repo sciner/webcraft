@@ -712,7 +712,7 @@ export class Player implements IPlayer {
         if(type == MOUSE.DOWN) {
             this.pickAt.setEvent(this, {button_id, shiftKey});
             if(e.button_id == MOUSE.BUTTON_LEFT) {
-                //this.startArmSwingProgress();
+                this.startArmSwingProgress();
             }
         } else if (type == MOUSE.UP) {
             this.resetMouseActivity();
@@ -747,6 +747,11 @@ export class Player implements IPlayer {
 
     // onPickAtTarget
     async onPickAtTarget(e : IPickatEvent, times : float, number : int): Promise<boolean> {
+
+        this.inMiningProcess = true;
+        this.inhand_animation_duration = (e.destroyBlock ? 1 : 2.5) * RENDER_DEFAULT_ARM_HIT_PERIOD;
+
+        let bPos = e.pos;
         // create block
         if(e.createBlock) {
             if(e.number > 1 && times < .02) {
@@ -759,7 +764,6 @@ export class Player implements IPlayer {
             }
         // destroy block
         } else if(e.destroyBlock) {
-            const bPos          = e.pos
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
             let mul             = Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
@@ -801,10 +805,8 @@ export class Player implements IPlayer {
             const [actions, pos] = await doBlockAction(e, this.world, action_player_info, this.currentInventoryItem);
             if (actions) {
                 e_orig.snapshotId = pos && this.world.history.makeSnapshot(pos);
-                if(e.createBlock && (actions.blocks.list.length > 0 || actions.open_window)) {
-                    this.startArmSwingProgress()
-                } else {
-                    console.log(actions)
+                if(e.createBlock && actions.blocks.list.length > 0) {
+                    this.startArmSwingProgress();
                 }
                 await this.world.applyActions(actions, this);
                 e_orig.actions = {blocks: actions.blocks};
@@ -1207,8 +1209,6 @@ export class Player implements IPlayer {
 
     // Start arm swing progress
     startArmSwingProgress() {
-        this.inMiningProcess = true;
-        this.inhand_animation_duration = 1  * RENDER_DEFAULT_ARM_HIT_PERIOD;
         const itsme = this.getModel()
         if(itsme) {
             itsme.startArmSwingProgress();

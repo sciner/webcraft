@@ -35,7 +35,6 @@ import type { MobModel } from "./mob_model.js";
 import type { HUD } from "./hud.js";
 import type {Player} from "./player.js";
 import type WebGLRenderer from "./renders/webgl/index.js";
-import { PlayerArm } from "./player_arm.js";
 
 const {mat3, mat4, quat, vec3} = glMatrix;
 
@@ -84,7 +83,7 @@ export class Renderer {
     meshes:                 MeshManager
     camera:                 Camera
     debugGeom:              LineGeometry
-    inHandOverlay?:         PlayerArm//InHandOverlay
+    inHandOverlay?:         InHandOverlay
     canvas:                 any
     drop_item_meshes:       any[]
     settings:               any
@@ -1161,12 +1160,12 @@ export class Renderer {
     drawInhandItem(delta : float) {
 
         if (!this.inHandOverlay) {
-            this.inHandOverlay = new PlayerArm(this.player, this)// new InHandOverlay(this.world, this.player.skin, this);
+            this.inHandOverlay = new InHandOverlay(this.world, this.player.skin, this);
         }
 
-        //if(this.camera_mode == CAMERA_MODE.SHOOTER) {
-            this.inHandOverlay.draw(delta);
-        //}
+        if(this.camera_mode == CAMERA_MODE.SHOOTER) {
+            this.inHandOverlay.draw(this, delta);
+        }
 
         // we should reset camera state because a viewMatrix used for picking
         this.camera.use(this.globalUniforms);

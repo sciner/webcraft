@@ -13,22 +13,16 @@ const vecZero   = Vector.ZERO.clone()
 export class PlayerArm {
     [key: string]: any;
 
-    #player: Player
-    #render: Renderer
-
     constructor(player : Player, render : Renderer) {
 
-        this.#player = player
-        this.#render = render
-
         const model = Resources._bbmodels.get('arm')
-        this.mesh = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
-        this.mesh.setAnimation('idle') // atack_sword
+        const arm = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
+        arm.setAnimation('idle') // atack_sword
 
         //
-      /*  const atack_sword_animation = arm.model.animations.get('atack_sword')
+        const atack_sword_animation = arm.model.animations.get('atack_sword')
 
-        //const orig_draw = arm.draw.bind(arm)
+        const orig_draw = arm.draw.bind(arm)
 
         this.mesh = arm
 
@@ -64,19 +58,11 @@ export class PlayerArm {
         }
         redraw.bind(arm)
         arm.redraw = redraw
-        */
+
     }
 
-    draw(delta) {
-        if (this.mesh) {
-            const rotate = new Vector(Math.sin(this.#player.rotate.z + Math.PI/4), Math.sin(this.#player.rotate.x), Math.cos(this.#player.rotate.z + Math.PI/4))
-            const pos = this.#player.getEyePos().add(rotate)
-            this.mesh.apos.copyFrom(pos);
-            const mx = mat4.create();
-            mat4.rotateY(mx, mx, this.#player.rotate.z + Math.PI/2);
-           // mat4.rotateZ(mx, mx, this.#player.rotate.x);
-            this.mesh.drawBuffered(this.#render, delta, mx)
-        }
+    draw(render, pos, mx, delta) {
+        return this.mesh.draw(render, pos, mx, delta)
     }
 
 }
