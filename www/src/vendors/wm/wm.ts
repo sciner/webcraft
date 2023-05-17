@@ -1959,6 +1959,7 @@ export class HTMLText extends Window {
 
     set text(value : string) {
         this.#_wmhtmltext.text = value
+        // this.#_wmhtmltext.updateText()
     }
 
     set w(value : float) {

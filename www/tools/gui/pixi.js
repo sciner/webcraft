@@ -1,6 +1,6 @@
 /*!
- * pixi.js - v7.2.2
- * Compiled Tue, 21 Mar 2023 12:27:22 UTC
+ * pixi.js - v7.2.4
+ * Compiled Thu, 06 Apr 2023 19:36:45 UTC
  *
  * pixi.js is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
@@ -3452,19 +3452,21 @@ Deprecated since v${version}`);
       this._value = null;
       return this;
     }
-    toPremultiplied(alpha) {
+    toPremultiplied(alpha, applyToRGB = true) {
       if (alpha === 1) {
-        return (alpha * 255 << 24) + this._int;
+        return (255 << 24) + this._int;
       }
       if (alpha === 0) {
-        return 0;
+        return applyToRGB ? 0 : this._int;
       }
       let r = this._int >> 16 & 255;
       let g = this._int >> 8 & 255;
       let b = this._int & 255;
-      r = r * alpha + 0.5 | 0;
-      g = g * alpha + 0.5 | 0;
-      b = b * alpha + 0.5 | 0;
+      if (applyToRGB) {
+        r = r * alpha + 0.5 | 0;
+        g = g * alpha + 0.5 | 0;
+        b = b * alpha + 0.5 | 0;
+      }
       return (alpha * 255 << 24) + (r << 16) + (g << 8) + b;
     }
     toHex() {
@@ -3477,16 +3479,14 @@ Deprecated since v${version}`);
       return this.toHex() + "00".substring(0, 2 - alphaString.length) + alphaString;
     }
     setAlpha(alpha) {
-      this._components[3] = alpha;
+      this._components[3] = this._clamp(alpha);
       return this;
     }
-    round(step) {
+    round(steps) {
       const [r, g, b] = this._components;
-      this._components.set([
-        Math.min(255, r / step * step),
-        Math.min(255, g / step * step),
-        Math.min(255, b / step * step)
-      ]);
+      this._components[0] = Math.round(r * steps) / steps;
+      this._components[1] = Math.round(g * steps) / steps;
+      this._components[2] = Math.round(b * steps) / steps;
       this.refreshInt();
       this._value = null;
       return this;
@@ -3501,21 +3501,26 @@ Deprecated since v${version}`);
       return out;
     }
     normalize(value) {
-      let components;
+      let r;
+      let g;
+      let b;
+      let a;
       if ((typeof value === "number" || value instanceof Number) && value >= 0 && value <= 16777215) {
         const int = value;
-        components = [
-          (int >> 16 & 255) / 255,
-          (int >> 8 & 255) / 255,
-          (int & 255) / 255,
-          1
-        ];
-      } else if ((Array.isArray(value) || value instanceof Float32Array) && value.length >= 3 && value.length <= 4 && value.every((v) => v <= 1 && v >= 0)) {
-        const [r, g, b, a = 1] = value;
-        components = [r, g, b, a];
+        r = (int >> 16 & 255) / 255;
+        g = (int >> 8 & 255) / 255;
+        b = (int & 255) / 255;
+        a = 1;
+      } else if ((Array.isArray(value) || value instanceof Float32Array) && value.length >= 3 && value.length <= 4) {
+        value = this._clamp(value);
+        [r, g, b, a = 1] = value;
       } else if ((value instanceof Uint8Array || value instanceof Uint8ClampedArray) && value.length >= 3 && value.length <= 4) {
-        const [r, g, b, a = 255] = value;
-        components = [r / 255, g / 255, b / 255, a / 255];
+        value = this._clamp(value, 0, 255);
+        [r, g, b, a = 255] = value;
+        r /= 255;
+        g /= 255;
+        b /= 255;
+        a /= 255;
       } else if (typeof value === "string" || typeof value === "object") {
         if (typeof value === "string") {
           const match = _Color.HEX_PATTERN.exec(value);
@@ -3525,21 +3530,35 @@ Deprecated since v${version}`);
         }
         const color = w(value);
         if (color.isValid()) {
-          const { r, g, b, a } = color.rgba;
-          components = [r / 255, g / 255, b / 255, a];
+          ({ r, g, b, a } = color.rgba);
+          r /= 255;
+          g /= 255;
+          b /= 255;
         }
       }
-      if (components) {
-        this._components.set(components);
+      if (r !== void 0) {
+        this._components[0] = r;
+        this._components[1] = g;
+        this._components[2] = b;
+        this._components[3] = a;
         this.refreshInt();
       } else {
         throw new Error(`Unable to convert color ${value}`);
       }
     }
     refreshInt() {
-      this._components.forEach((value, i) => this._components[i] = Math.min(Math.max(value, 0), 1));
+      this._clamp(this._components);
       const [r, g, b] = this._components;
       this._int = (r * 255 << 16) + (g * 255 << 8) + (b * 255 | 0);
+    }
+    _clamp(value, min = 0, max = 1) {
+      if (typeof value === "number") {
+        return Math.min(Math.max(value, min), max);
+      }
+      value.forEach((v, i) => {
+        value[i] = Math.min(Math.max(v, min), max);
+      });
+      return value;
     }
   };
   let Color = _Color;
@@ -4649,7 +4668,7 @@ Deprecated since v${version}`);
       buffer = buffer || new Float32Array(width * height * 4);
       const resource = new BufferResource(buffer, { width, height });
       const type = buffer instanceof Float32Array ? TYPES.FLOAT : TYPES.UNSIGNED_BYTE;
-      return new _BaseTexture(resource, Object.assign({}, defaultBufferOptions, options || { width, height, type }));
+      return new _BaseTexture(resource, Object.assign({}, defaultBufferOptions, { type }, options));
     }
     static addToCache(baseTexture, id) {
       if (id) {
@@ -7018,7 +7037,7 @@ ${this.fragmentSrc}`;
       const vertexData = element.vertexData;
       const textureId = element._texture.baseTexture._batchLocation;
       const alpha = Math.min(element.worldAlpha, 1);
-      const argb = Color.shared.setValue(element._tintRGB).toPremultiplied(alpha);
+      const argb = Color.shared.setValue(element._tintRGB).toPremultiplied(alpha, element._texture.baseTexture.alphaMode > 0);
       for (let i = 0; i < vertexData.length; i += 2) {
         float32View[aIndex++] = vertexData[i];
         float32View[aIndex++] = vertexData[i + 1];
@@ -8831,6 +8850,7 @@ ${this.fragmentSrc}`;
       this.bind(framebuffer);
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fbo.framebuffer);
       gl.blitFramebuffer(sourcePixels.left, sourcePixels.top, sourcePixels.right, sourcePixels.bottom, destPixels.left, destPixels.top, destPixels.right, destPixels.bottom, gl.COLOR_BUFFER_BIT, sameSize ? gl.NEAREST : gl.LINEAR);
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, framebuffer.glFramebuffers[this.CONTEXT_UID].framebuffer);
     }
     disposeFramebuffer(framebuffer, contextLost) {
       const fbo = framebuffer.glFramebuffers[this.CONTEXT_UID];
@@ -9866,6 +9886,10 @@ ${this.fragmentSrc}`;
       this.destinationFrame = new Rectangle();
       this.viewportFrame = new Rectangle();
     }
+    contextChange() {
+      const attributes = this.renderer?.gl.getContextAttributes();
+      this._rendererPremultipliedAlpha = !!(attributes && attributes.alpha && attributes.premultipliedAlpha);
+    }
     bind(renderTexture = null, sourceFrame, destinationFrame) {
       const renderer = this.renderer;
       this.current = renderTexture;
@@ -9922,7 +9946,10 @@ ${this.fragmentSrc}`;
     }
     clear(clearColor, mask) {
       const fallbackColor = this.current ? this.current.baseTexture.clear : this.renderer.background.backgroundColor;
-      const color = clearColor ? Color.shared.setValue(clearColor) : fallbackColor;
+      const color = Color.shared.setValue(clearColor ? clearColor : fallbackColor);
+      if (this.current && this.current.baseTexture.alphaMode > 0 || !this.current && this._rendererPremultipliedAlpha) {
+        color.premultiply(color.alpha);
+      }
       const destinationFrame = this.destinationFrame;
       const baseFrame = this.current ? this.current.baseTexture : this.renderer._view.screen;
       const clearMask = destinationFrame.width !== baseFrame.width || destinationFrame.height !== baseFrame.height;
@@ -10391,7 +10418,7 @@ ${this.fragmentSrc}`;
       const { renderer } = this;
       renderer.runners.init.emit(renderer.options);
       if (options.hello) {
-        console.log(`PixiJS ${"7.2.2"} - ${renderer.rendererLogId} - https://pixijs.com`);
+        console.log(`PixiJS ${"7.2.4"} - ${renderer.rendererLogId} - https://pixijs.com`);
       }
       renderer.resize(renderer.screen.width, renderer.screen.height);
     }
@@ -12577,7 +12604,7 @@ ${this.fragmentSrc}`;
     }
   }
 
-  const VERSION = "7.2.2";
+  const VERSION = "7.2.4";
 
   class Bounds {
     constructor() {
@@ -15169,7 +15196,7 @@ ${this.fragmentSrc}`;
       this.eventPool = /* @__PURE__ */ new Map();
       this._allInteractiveElements = [];
       this._hitElements = [];
-      this._collectInteractiveElements = false;
+      this._isPointerMoveEvent = false;
       this.rootTarget = rootTarget;
       this.hitPruneFn = this.hitPruneFn.bind(this);
       this.hitTestFn = this.hitTestFn.bind(this);
@@ -15221,7 +15248,9 @@ ${this.fragmentSrc}`;
     }
     hitTest(x, y) {
       EventsTicker.pauseUpdate = true;
-      const invertedPath = this.hitTestRecursive(this.rootTarget, this.rootTarget.eventMode, tempHitLocation.set(x, y), this.hitTestFn, this.hitPruneFn);
+      const useMove = this._isPointerMoveEvent && this.enableGlobalMoveEvents;
+      const fn = useMove ? "hitTestMoveRecursive" : "hitTestRecursive";
+      const invertedPath = this[fn](this.rootTarget, this.rootTarget.eventMode, tempHitLocation.set(x, y), this.hitTestFn, this.hitPruneFn);
       return invertedPath && invertedPath[0];
     }
     propagate(e, type) {
@@ -15273,8 +15302,49 @@ ${this.fragmentSrc}`;
       propagationPath.reverse();
       return propagationPath;
     }
+    hitTestMoveRecursive(currentTarget, eventMode, location, testFn, pruneFn, ignore = false) {
+      let shouldReturn = false;
+      if (this._interactivePrune(currentTarget))
+        return null;
+      if (currentTarget.eventMode === "dynamic" || eventMode === "dynamic") {
+        EventsTicker.pauseUpdate = false;
+      }
+      if (currentTarget.interactiveChildren && currentTarget.children) {
+        const children = currentTarget.children;
+        for (let i = children.length - 1; i >= 0; i--) {
+          const child = children[i];
+          const nestedHit = this.hitTestMoveRecursive(child, this._isInteractive(eventMode) ? eventMode : child.eventMode, location, testFn, pruneFn, ignore || pruneFn(currentTarget, location));
+          if (nestedHit) {
+            if (nestedHit.length > 0 && !nestedHit[nestedHit.length - 1].parent) {
+              continue;
+            }
+            const isInteractive = currentTarget.isInteractive();
+            if (nestedHit.length > 0 || isInteractive) {
+              if (isInteractive)
+                this._allInteractiveElements.push(currentTarget);
+              nestedHit.push(currentTarget);
+            }
+            if (this._hitElements.length === 0)
+              this._hitElements = nestedHit;
+            shouldReturn = true;
+          }
+        }
+      }
+      const isInteractiveMode = this._isInteractive(eventMode);
+      const isInteractiveTarget = currentTarget.isInteractive();
+      if (isInteractiveTarget && isInteractiveTarget)
+        this._allInteractiveElements.push(currentTarget);
+      if (ignore || this._hitElements.length > 0)
+        return null;
+      if (shouldReturn)
+        return this._hitElements;
+      if (isInteractiveMode && (!pruneFn(currentTarget, location) && testFn(currentTarget, location))) {
+        return isInteractiveTarget ? [currentTarget] : [];
+      }
+      return null;
+    }
     hitTestRecursive(currentTarget, eventMode, location, testFn, pruneFn) {
-      if (pruneFn(currentTarget, location)) {
+      if (this._interactivePrune(currentTarget) || pruneFn(currentTarget, location)) {
         return null;
       }
       if (currentTarget.eventMode === "dynamic" || eventMode === "dynamic") {
@@ -15290,28 +15360,14 @@ ${this.fragmentSrc}`;
               continue;
             }
             const isInteractive = currentTarget.isInteractive();
-            if (nestedHit.length > 0 || isInteractive) {
-              if (this._collectInteractiveElements && isInteractive) {
-                this._allInteractiveElements.push(currentTarget);
-              }
+            if (nestedHit.length > 0 || isInteractive)
               nestedHit.push(currentTarget);
-            }
-            if (this._collectInteractiveElements && this._hitElements.length === 0) {
-              this._hitElements = nestedHit;
-            }
-            if (!this._collectInteractiveElements)
-              return nestedHit;
+            return nestedHit;
           }
         }
       }
       const isInteractiveMode = this._isInteractive(eventMode);
       const isInteractiveTarget = currentTarget.isInteractive();
-      if (this._collectInteractiveElements) {
-        if (isInteractiveMode && isInteractiveTarget)
-          this._allInteractiveElements.push(currentTarget);
-        if (this._hitElements.length > 0)
-          return null;
-      }
       if (isInteractiveMode && testFn(currentTarget, location)) {
         return isInteractiveTarget ? [currentTarget] : [];
       }
@@ -15320,7 +15376,7 @@ ${this.fragmentSrc}`;
     _isInteractive(int) {
       return int === "static" || int === "dynamic";
     }
-    hitPruneFn(displayObject, location) {
+    _interactivePrune(displayObject) {
       if (!displayObject || displayObject.isMask || !displayObject.visible || !displayObject.renderable) {
         return true;
       }
@@ -15333,8 +15389,9 @@ ${this.fragmentSrc}`;
       if (displayObject.isMask) {
         return true;
       }
-      if (this._collectInteractiveElements)
-        return false;
+      return false;
+    }
+    hitPruneFn(displayObject, location) {
       if (displayObject.hitArea) {
         displayObject.worldTransform.applyInverse(location, tempLocalMapping);
         if (!displayObject.hitArea.contains(tempLocalMapping.x, tempLocalMapping.y)) {
@@ -15395,9 +15452,9 @@ ${this.fragmentSrc}`;
       }
       this._allInteractiveElements.length = 0;
       this._hitElements.length = 0;
-      this._collectInteractiveElements = true;
+      this._isPointerMoveEvent = true;
       const e = this.createPointerEvent(from);
-      this._collectInteractiveElements = false;
+      this._isPointerMoveEvent = false;
       const isMouse = e.pointerType === "mouse" || e.pointerType === "pen";
       const trackingData = this.trackingData(from.pointerId);
       const outTarget = this.findMountedTarget(trackingData.overTargets);
@@ -17046,12 +17103,24 @@ ${e}`);
     "font/woff",
     "font/woff2"
   ];
+  const CSS_IDENT_TOKEN_REGEX = /^(--|-?[A-Z_])[0-9A-Z_-]*$/i;
   function getFontFamilyName(url) {
     const ext = path.extname(url);
     const name = path.basename(url, ext);
     const nameWithSpaces = name.replace(/(-|_)/g, " ");
-    const nameTitleCase = nameWithSpaces.toLowerCase().split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
-    return nameTitleCase;
+    const nameTokens = nameWithSpaces.toLowerCase().split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1));
+    let valid = nameTokens.length > 0;
+    for (const token of nameTokens) {
+      if (!token.match(CSS_IDENT_TOKEN_REGEX)) {
+        valid = false;
+        break;
+      }
+    }
+    let fontFamilyName = nameTokens.join(" ");
+    if (!valid) {
+      fontFamilyName = `"${fontFamilyName.replace(/[\\"]/g, "\\$&")}"`;
+    }
+    return fontFamilyName;
   }
   const loadWebFont = {
     extension: {
@@ -17333,15 +17402,13 @@ ${e}`);
     },
     async parse(asset, data, loader) {
       const src = new SVGResource(asset, data?.data?.resourceOptions);
+      await src.load();
       const base = new BaseTexture(src, {
         resolution: getResolutionOfUrl(asset),
         ...data?.data
       });
       base.resource.src = asset;
       const texture = createTexture(base, loader, asset);
-      if (!data?.data?.resourceOptions?.autoLoad) {
-        await src.load();
-      }
       return texture;
     },
     async load(url, _options) {
@@ -18004,26 +18071,32 @@ ${e}`);
       super(data, options);
       this.origin = origin;
       this.buffer = data ? new ViewableBuffer(data) : null;
-      if (this.origin && options.autoLoad !== false) {
+      this._load = null;
+      this.loaded = false;
+      if (this.origin !== null && options.autoLoad !== false) {
         this.load();
       }
-      if (data?.length) {
+      if (this.origin === null && this.buffer) {
+        this._load = Promise.resolve(this);
         this.loaded = true;
         this.onBlobLoaded(this.buffer.rawBinaryData);
       }
     }
     onBlobLoaded(_data) {
     }
-    async load() {
-      const response = await fetch(this.origin);
-      const blob = await response.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      this.data = new Uint32Array(arrayBuffer);
-      this.buffer = new ViewableBuffer(arrayBuffer);
-      this.loaded = true;
-      this.onBlobLoaded(arrayBuffer);
-      this.update();
-      return this;
+    load() {
+      if (this._load) {
+        return this._load;
+      }
+      this._load = fetch(this.origin).then((response) => response.blob()).then((blob) => blob.arrayBuffer()).then((arrayBuffer) => {
+        this.data = new Uint32Array(arrayBuffer);
+        this.buffer = new ViewableBuffer(arrayBuffer);
+        this.loaded = true;
+        this.onBlobLoaded(arrayBuffer);
+        this.update();
+        return this;
+      });
+      return this._load;
     }
   }
 
@@ -18708,37 +18781,51 @@ ${e}`);
     }
     async base64(target, format, quality) {
       const canvas = this.canvas(target);
+      if (canvas.toBlob !== void 0) {
+        return new Promise((resolve, reject) => {
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              reject(new Error("ICanvas.toBlob failed!"));
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          }, format, quality);
+        });
+      }
       if (canvas.toDataURL !== void 0) {
         return canvas.toDataURL(format, quality);
       }
       if (canvas.convertToBlob !== void 0) {
         const blob = await canvas.convertToBlob({ type: format, quality });
-        return await new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
           reader.readAsDataURL(blob);
         });
       }
-      throw new Error("Extract.base64() requires ICanvas.toDataURL or ICanvas.convertToBlob to be implemented");
+      throw new Error("Extract.base64() requires ICanvas.toDataURL, ICanvas.toBlob, or ICanvas.convertToBlob to be implemented");
     }
     canvas(target, frame) {
       const { pixels, width, height, flipY } = this._rawPixels(target, frame);
-      let canvasBuffer = new CanvasRenderTarget(width, height, 1);
-      const canvasData = canvasBuffer.context.getImageData(0, 0, width, height);
-      _Extract.arrayPostDivide(pixels, canvasData.data);
-      canvasBuffer.context.putImageData(canvasData, 0, 0);
       if (flipY) {
-        const target2 = new CanvasRenderTarget(canvasBuffer.width, canvasBuffer.height, 1);
-        target2.context.scale(1, -1);
-        target2.context.drawImage(canvasBuffer.canvas, 0, -height);
-        canvasBuffer.destroy();
-        canvasBuffer = target2;
+        _Extract._flipY(pixels, width, height);
       }
+      _Extract._unpremultiplyAlpha(pixels);
+      const canvasBuffer = new CanvasRenderTarget(width, height, 1);
+      const imageData = new ImageData(new Uint8ClampedArray(pixels.buffer), width, height);
+      canvasBuffer.context.putImageData(imageData, 0, 0);
       return canvasBuffer.canvas;
     }
     pixels(target, frame) {
-      const { pixels } = this._rawPixels(target, frame);
-      _Extract.arrayPostDivide(pixels, pixels);
+      const { pixels, width, height, flipY } = this._rawPixels(target, frame);
+      if (flipY) {
+        _Extract._flipY(pixels, width, height);
+      }
+      _Extract._unpremultiplyAlpha(pixels);
       return pixels;
     }
     _rawPixels(target, frame) {
@@ -18754,19 +18841,10 @@ ${e}`);
         if (target instanceof RenderTexture) {
           renderTexture = target;
         } else {
-          const multisample = renderer.context.webGLVersion >= 2 ? renderer.multisample : MSAA_QUALITY.NONE;
-          renderTexture = renderer.generateTexture(target, { multisample });
-          if (multisample !== MSAA_QUALITY.NONE) {
-            const resolvedTexture = RenderTexture.create({
-              width: renderTexture.width,
-              height: renderTexture.height
-            });
-            renderer.framebuffer.bind(renderTexture.framebuffer);
-            renderer.framebuffer.blit(resolvedTexture.framebuffer);
-            renderer.framebuffer.bind();
-            renderTexture.destroy(true);
-            renderTexture = resolvedTexture;
-          }
+          renderTexture = renderer.generateTexture(target, {
+            resolution: renderer.resolution,
+            multisample: renderer.multisample
+          });
           generated = true;
         }
       }
@@ -18774,13 +18852,19 @@ ${e}`);
         resolution = renderTexture.baseTexture.resolution;
         frame = frame ?? renderTexture.frame;
         flipY = false;
-        renderer.renderTexture.bind(renderTexture);
+        if (!generated) {
+          renderer.renderTexture.bind(renderTexture);
+          const fbo = renderTexture.framebuffer.glFramebuffers[renderer.CONTEXT_UID];
+          if (fbo.blitFramebuffer) {
+            renderer.framebuffer.bind(fbo.blitFramebuffer);
+          }
+        }
       } else {
         resolution = renderer.resolution;
         if (!frame) {
           frame = TEMP_RECT;
-          frame.width = renderer.width;
-          frame.height = renderer.height;
+          frame.width = renderer.width / resolution;
+          frame.height = renderer.height / resolution;
         }
         flipY = true;
         renderer.renderTexture.bind();
@@ -18798,17 +18882,30 @@ ${e}`);
     destroy() {
       this.renderer = null;
     }
-    static arrayPostDivide(pixels, out) {
-      for (let i = 0; i < pixels.length; i += 4) {
-        const alpha = out[i + 3] = pixels[i + 3];
+    static _flipY(pixels, width, height) {
+      const w = width << 2;
+      const h = height >> 1;
+      const temp = new Uint8Array(w);
+      for (let y = 0; y < h; y++) {
+        const t = y * w;
+        const b = (height - y - 1) * w;
+        temp.set(pixels.subarray(t, t + w));
+        pixels.copyWithin(t, b, b + w);
+        pixels.set(temp, b);
+      }
+    }
+    static _unpremultiplyAlpha(pixels) {
+      if (pixels instanceof Uint8ClampedArray) {
+        pixels = new Uint8Array(pixels.buffer);
+      }
+      const n = pixels.length;
+      for (let i = 0; i < n; i += 4) {
+        const alpha = pixels[i + 3];
         if (alpha !== 0) {
-          out[i] = Math.round(Math.min(pixels[i] * 255 / alpha, 255));
-          out[i + 1] = Math.round(Math.min(pixels[i + 1] * 255 / alpha, 255));
-          out[i + 2] = Math.round(Math.min(pixels[i + 2] * 255 / alpha, 255));
-        } else {
-          out[i] = pixels[i];
-          out[i + 1] = pixels[i + 1];
-          out[i + 2] = pixels[i + 2];
+          const a = 255.001 / alpha;
+          pixels[i] = pixels[i] * a + 0.5;
+          pixels[i + 1] = pixels[i + 1] * a + 0.5;
+          pixels[i + 2] = pixels[i + 2] * a + 0.5;
         }
       }
     }
@@ -20439,7 +20536,7 @@ ${e}`);
       const uniforms = shader.uniforms;
       const drawCalls = geometry.drawCalls;
       uniforms.translationMatrix = this.transform.worldTransform;
-      Color.shared.setValue(this._tintColor).multiply([worldAlpha, worldAlpha, worldAlpha]).setAlpha(worldAlpha).toArray(uniforms.tint);
+      Color.shared.setValue(this._tintColor).premultiply(worldAlpha).toArray(uniforms.tint);
       renderer.shader.bind(shader);
       renderer.geometry.bind(geometry, shader);
       renderer.state.set(this.state);
@@ -21639,7 +21736,7 @@ ${e}`);
     uploadTint(children, startIndex, amount, array, stride, offset) {
       for (let i = 0; i < amount; ++i) {
         const sprite = children[startIndex + i];
-        const result = Color.shared.setValue(sprite._tintRGB).toPremultiplied(sprite.alpha);
+        const result = Color.shared.setValue(sprite._tintRGB).toPremultiplied(sprite.alpha, sprite.texture.baseTexture.alphaMode > 0);
         array[offset] = result;
         array[offset + stride] = result;
         array[offset + stride * 2] = result;
@@ -24907,6 +25004,7 @@ ${e}`);
   const _HTMLText = class extends Sprite {
     constructor(text = "", style = {}) {
       super(Texture.EMPTY);
+      this._updateID = 0
       this._text = null;
       this._style = null;
       this._autoResolution = true;
@@ -24988,25 +25086,29 @@ ${e}`);
       if (!this.dirty && respectDirty) {
         return;
       }
+      this.dirty = false;
+      const _updateID = ++this._updateID
       const { width, height } = this.measureText();
       image.width = loadImage.width = Math.ceil(Math.max(1, width));
       image.height = loadImage.height = Math.ceil(Math.max(1, height));
-      if (!this._loading) {
-        this._loading = true;
-        await new Promise((resolve) => {
-          loadImage.onload = async () => {
-            await style.onBeforeDraw();
-            this._loading = false;
-            image.src = loadImage.src;
-            loadImage.onload = null;
-            loadImage.src = "";
-            this.updateTexture();
-            resolve();
-          };
-          const svgURL = new XMLSerializer().serializeToString(this._svgRoot);
-          loadImage.src = `data:image/svg+xml;charset=utf8,${encodeURIComponent(svgURL)}`;
-        });
-      }
+      await new Promise((resolve) => {
+        loadImage.onload = async () => {
+          if(_updateID < this._updateID) {
+            return resolve()
+          }
+          await style.onBeforeDraw();
+          image.src = loadImage.src;
+          loadImage.onload = null;
+          loadImage.src = "";
+          this.updateTexture();
+          resolve();
+        };
+        const svg = new XMLSerializer().serializeToString(this._svgRoot);
+        // const blob = new Blob([svg], {type: 'image/svg+xml;charset=utf8'});
+        // const url = URL.createObjectURL(blob);
+        // loadImage.src = url
+        loadImage.src = `data:image/svg+xml;charset=utf8,${encodeURIComponent(svg)}`;
+      });
     }
     get source() {
       return this._image;
