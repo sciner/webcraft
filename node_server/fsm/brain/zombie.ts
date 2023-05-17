@@ -154,7 +154,7 @@ export class Brain extends FSMBrain {
         } else {
             if (this.timer_attack++ >= this.interval_attack) {
                 this.timer_attack = 0;
-                mob.extra_data.attack = true
+                mob.extra_data.attack = {title: 'attack', speed: 1}
                 switch(difficulty) {
                     case EnumDifficulty.EASY: this.target.setDamage(Math.random() < 0.5 ? 2 : 3); break;
                     case EnumDifficulty.NORMAL: this.target.setDamage(3); break;

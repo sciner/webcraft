@@ -443,6 +443,7 @@ export class Player implements IPlayer {
                     console.log(speed)
                     console.log(performance.now())
                     setTimeout(() => {
+                        Qubatch.sounds.play('madcraft:block.player', 'hit');
                         this.state.attack = false
                         console.log(performance.now())
                     }, ATTACK_COOLDOWN / speed)
