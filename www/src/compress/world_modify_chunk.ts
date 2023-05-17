@@ -1,7 +1,7 @@
 import { gzip, ungzip, inflate, deflate } from '../../vendors/pako.esm.min.mjs';
 import { BLOCK } from '../blocks.js';
 
-const COL_D = '|';
+const COL_D = String.fromCharCode(8);
 const ROW_D = '\t';
 
 const VERSION_1 = '1';
@@ -26,7 +26,7 @@ class CompressedModifiersBuilder {
         }
         let row = index + COL_D + id + COL_D;
         if (item.extra_data) {
-            row += JSON.stringify(item.extra_data)
+            row += JSON.stringify(item.extra_data).replaceAll(COL_D, '')
         };
         row += COL_D;
         if (item.rotate) {
