@@ -93,7 +93,13 @@ export class Window extends VAUX.Container {
     style:                  Style
     draggable:              boolean = false
     autofocus:              boolean = false
-    wmParent: any;
+
+    get untypedParent(): Window {
+        return this.parent as any;
+    }
+    set untypedParent(val: Window) {
+        this.parent = val;
+    }
     // children: Array<any>;
 
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
@@ -1480,8 +1486,8 @@ export class WindowManager extends Window {
 
         this.preloadFont();
 
-        this.wmParent = new VAUX.Container()
-        this.wmParent.addChild(this)
+        this.parent = new VAUX.Container()
+        this.parent.addChild(this)
 
         this.rootMouseEnter = (_el) => {}
         this.rootMouseLeave = (_el) => {}
@@ -1505,11 +1511,11 @@ export class WindowManager extends Window {
 
         // // Add pointer and tooltip controls
         this._wmoverlay = new WindowManagerOverlay(0, 0, w, h, '_wmoverlay')
-        this.wmParent.addChild(this._wmoverlay)
+        this.untypedParent.addChild(this._wmoverlay)
 
         this.cariageTimer = setInterval(() => {
             const fc = this._focused_control
-            if(fc && fc instanceof TextEdit && fc.wmParent.visible) {
+            if(fc && fc instanceof TextEdit && fc.untypedParent.visible) {
                 if(fc.draw_cariage) {
                     const vis = ((performance.now() - this._focus_started_at) % (this._cariage_speed * 2)) < this._cariage_speed
                     if(vis) {
@@ -1589,7 +1595,7 @@ export class WindowManager extends Window {
         this.pixiRender.texture.bind(null, 7);
         this.pixiRender.texture.bind(null, 8);
 
-        this.pixiRender.render(this.wmParent);
+        this.pixiRender.render(this.untypedParent);
     }
 
     initRender(qubatchRender) {
@@ -1612,7 +1618,7 @@ export class WindowManager extends Window {
             })
             const ticker = new VAUX.Ticker();
             ticker.add(() => {
-                this.pixiRender.render(this.wmParent);
+                this.pixiRender.render(this.untypedParent);
             }, VAUX.UPDATE_PRIORITY.LOW)
             ticker.start();
         }
@@ -1792,12 +1798,12 @@ export class ToggleButton extends Button {
 
     //
     toggle() {
-        if(this.wmParent.__toggledButton) {
-            this.wmParent.__toggledButton.toggled = false;
-            this.wmParent.__toggledButton.onMouseLeave();
+        if(this.untypedParent.__toggledButton) {
+            this.untypedParent.__toggledButton.toggled = false;
+            this.untypedParent.__toggledButton.onMouseLeave();
         }
         this.toggled = !this.toggled;
-        this.wmParent.__toggledButton = this;
+        this.untypedParent.__toggledButton = this;
         this.style.background.color = this.toggled ? this.toggled_bgcolor : this.untoggled_bgcolor
         this.style.font.color = this.toggled ? this.toggled_font_color : this.untoggled_font_color
     }
