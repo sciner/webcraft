@@ -323,6 +323,16 @@ export class HUD {
         hudwindow.w = wm.w
         hudwindow.h = wm.h
 
+        // Hide all inner text blocks
+        for(let c of this.wm.hud_window.children) {
+            if(c instanceof HUDLabel) {
+                c.visible = false
+            }
+            if(c instanceof Label) {
+                c.visible = false
+            }
+        }
+
         for(const item of this.items) {
             for(const e of item) {
                 e.item.drawHUD(this)
