@@ -22,6 +22,7 @@
         {"name": "mob/deer"},
         {"name": "mob/snowball"},
         {"name": "mob/combat_dummy"},
+        {"name": "mob/snow_golem"},
 
         {"name": "mechanism/cogwheel"},
         {"name": "mechanism/windmill_bearing"},
@@ -575,6 +576,7 @@
         {
             "id": 5,
             "name": "BOOKSHELF",
+            "transparent": true,
             "bb": {
                 "model": "bookshelf"
             }
@@ -1154,8 +1156,8 @@
         },
         {
             "id": 84,
-            "transparent": true,
             "name": "JUKEBOX",
+            "transparent": true,
             "group": "doubleface_transparent",
             "bb": {
                 "model": "jukebox",
@@ -2404,6 +2406,7 @@
             "transparent": true,
             "mining_time": 0,
             "passable": 1,
+            "can_rotate": true,
             "sound": "madcraft:block.cloth",
             "drop_item": [
                 {
@@ -2415,6 +2418,7 @@
                 }
             ],
             "tags": [
+                "rotate_x16",
                 "layering_move_to_down",
                 "no_drop_ao"
             ],
@@ -2422,7 +2426,10 @@
             "bb": {
                 "model": "skull_desert",
                 "import_anyway": true,
-                "rotate": [
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "_rotate": [
                     {"type": "random", "axes": ["y"]}
                 ]
             }

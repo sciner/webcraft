@@ -2,7 +2,7 @@ import { FakeTBlock } from '../../blocks.js';
 import { Vector, unixTime, Helpers, QUAD_FLAGS } from '../../helpers.js';
 import { NetworkPhysicObject } from '../../network_physic_object.js';
 import { MeshGroup } from '../group.js';
-import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { MAX_DIST_FOR_PICKUP } from '../../constant.js';
 import type { Player } from '../../player.js';
 import type { World } from '../../world.js';

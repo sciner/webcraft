@@ -1,6 +1,7 @@
 /world
 www/js-gen
 www/js-bundles
+www/js-lib
 node_server/js_server
 *.obj
 *.mtl

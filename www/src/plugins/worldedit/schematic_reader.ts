@@ -1,7 +1,7 @@
 import { BLOCK, DBItemBlock } from "../../blocks.js";
 import { Schematic } from "../../../../node_server/node_modules/prismarine-schematic/index.js";
 import { promises as fs } from 'fs';
-import { SIX_VECS, Vector, VectorCollector } from "../../helpers.js";
+import { DIRECTION_BIT, SIX_VECS, Vector, VectorCollector } from "../../helpers.js";
 import { RailShape } from "../../block_type/rail_shape.js";
 import * as FLUID from '../../fluid/FluidConst.js';
 
@@ -17,25 +17,29 @@ const NO_IMPORT_BLOCKS = ['AIR', 'NETHER_PORTAL'];
 export class SchematicReader {
     blocks: VectorCollector;
     fluids: any[];
-    replaced_names: { BARRIER: string; CAVE_AIR: string; SPAWNER: string; LAVA: string; WATER: string; WHEAT: string; COCOA: string; SIGN: string; };
+    replaced_names: {
+        [key: string]: string
+    };
 
     constructor() {
         this.blocks = new VectorCollector();
         this.fluids = [];
         this.replaced_names = {
-            BARRIER:    'AIR',
-            CAVE_AIR:   'AIR',
-            SPAWNER:    'MOB_SPAWN',
-            LAVA:       'STILL_LAVA',
-            WATER:      'STILL_WATER',
-            WHEAT:      'WHEAT_SEEDS',
-            COCOA:      'COCOA_BEANS',
-            SIGN:       'BIRCH_SIGN'
-        };
+            BARRIER:                'AIR',
+            CAVE_AIR:               'AIR',
+            SPAWNER:                'MOB_SPAWN',
+            LAVA:                   'STILL_LAVA',
+            WATER:                  'STILL_WATER',
+            WHEAT:                  'WHEAT_SEEDS',
+            COCOA:                  'COCOA_BEANS',
+            SIGN:                   'BIRCH_SIGN',
+            DETECTOR_RAIL:          'POWERED_RAIL',
+            SKELETON_SKULL:         'SKULL_DESERT',
+        }
     }
 
     // Read schematic file
-    async read(orig_file_name) {
+    async read(orig_file_name : string) {
 
         orig_file_name += ''
 
@@ -45,7 +49,7 @@ export class SchematicReader {
         // Check schem file exists and try extension append
         const fileExists = path => fs.stat(path).then(() => true, () => false);
         if(!await fileExists(file_name)) {
-            if(orig_file_name.indexOf('.') < 0) {
+            if(!orig_file_name.includes('.')) {
                 let found = false;
                 for(let ext of ['schem', 'schematic', 'schema']) {
                     let next_file_name = `${file_name}.${ext}`;
@@ -56,6 +60,7 @@ export class SchematicReader {
                     }
                 }
                 if(!found) {
+                    console.log(await fs.realpath('./'))
                     throw 'error_schem_file_not_found';
                 }
             }
@@ -202,6 +207,9 @@ export class SchematicReader {
         if(block.name == 'wall_torch') {
             block.on_wall = true;
             block.name = 'torch';
+        } else if(block.name == 'redstone_wall_torch') {
+            block.on_wall = true;
+            block.name = 'redstone_torch';
         } else if(block.name.endsWith('_sign')) {
             block.on_wall = block.name.endsWith('_wall_sign');
             if(block.on_wall) {
@@ -224,7 +232,7 @@ export class SchematicReader {
     }
 
     //
-    createBlockFromSchematic(block, b) {
+    createBlockFromSchematic(block, b : IBlockMaterial) {
         const props = block._properties;
         let new_block = new DBItemBlock(b.id)
         if(new_block.id == 0) {
@@ -399,12 +407,25 @@ export class SchematicReader {
                 if('facing' in props) {
                     if(b.tags.includes('rotate_by_pos_n_6')) {
                         new_block.rotate = SIX_VECS[props.facing].clone();
+                    } else if(['fence_gate'].includes(b.style_name)) {
+                        setExtraData('facing', props.facing)
+                        new_block.rotate.x = facings4.indexOf(props.facing) ?? 0
+                        new_block.rotate.y = 1
                     } else {
                         new_block.rotate.x = Math.max(facings4.indexOf(props.facing), 0);
                         if(['stairs', 'door', 'cocoa', 'anvil'].indexOf(b.style_name) >= 0) {
                             new_block.rotate.x = (new_block.rotate.x + 2) % 4;
                         }
                         new_block.rotate.y = 0;
+                    }
+                }
+                //
+                if(props.rotation) {
+                    if(b.tags.includes('rotate_x8')) {
+                        new_block.rotate.x = Math.round(props.rotation / 8 * 360) % 360
+                    } else if(b.tags.includes('rotate_x16')) {
+                        new_block.rotate.x = Math.round(props.rotation / 16 * 360) % 360
+                        setExtraData('rotation', props.rotation)
                     }
                 }
             }
@@ -509,6 +530,16 @@ export class SchematicReader {
             if('lit' in props) {
                 setExtraData('lit', props.lit);
             }
+            if(b.tags.includes('mushroom_block')) {
+                let t = 0
+                if(props.north) t |= (1 << DIRECTION_BIT.NORTH)
+                if(props.south) t |= (1 << DIRECTION_BIT.SOUTH)
+                if(props.west) t |= (1 << DIRECTION_BIT.WEST)
+                if(props.east) t |= (1 << DIRECTION_BIT.EAST)
+                if(props.up) t |= (1 << DIRECTION_BIT.UP)
+                if(props.down) t |= (1 << DIRECTION_BIT.DOWN)
+                setExtraData('t', t)
+            }
             // bamboo
             if(b.name == 'BAMBOO') {
                 switch(props?.leaves) {
@@ -550,9 +581,9 @@ export class SchematicReader {
     }
 
     parseChestPropsExtraData(props) {
-        const res = { can_destroy: true, slots: {} } as any;
+        const res = { can_destroy: true, slots: {} } as any
         if (props.type) {
-            if(['left', 'right'].includes(res.type)) {
+            if(['left', 'right'].includes(props.type)) {
                 res.type = props.type
             }
         }

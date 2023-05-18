@@ -16,7 +16,7 @@ import { WorldDBActor } from "./db/world/WorldDBActor.js";
 import { WorldChunkFlags } from "./db/world/WorldChunkFlags.js";
 import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
-import { ArrayHelpers, Vector, VectorCollector, PerformanceTimer } from "@client/helpers.js";
+import { ArrayHelpers, Vector, VectorCollector, PerformanceTimer, Helpers } from "@client/helpers.js";
 import { AABB } from "@client/core/AABB.js";
 import { BLOCK, DBItemBlock } from "@client/blocks.js";
 import { ServerClient } from "@client/server_client.js";
@@ -34,7 +34,7 @@ import { WorldOreGenerator } from "./world/ore_generator.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
 import { shallowCloneAndSanitizeIfPrivate } from "@client/compress/world_modify_chunk.js";
 import { Effect } from "@client/block_type/effect.js";
-import { MobSpawnParams } from "./mob.js";
+import { Mob, MobSpawnParams } from "./mob.js";
 import type { DBWorld } from "./db/world.js";
 import type { TBlock } from "@client/typed_blocks3.js";
 import type { ServerPlayer } from "./server_player.js";
@@ -492,6 +492,9 @@ export class ServerWorld implements IWorld {
             //
             this.drivingManager.tick();
             this.ticks_stat.add('other');
+            //
+            this.entityCollide()
+            this.ticks_stat.add('entity_collide');
             // 6.
             await this.packet_reader.queue.process();
             this.ticks_stat.add('packet_reader_queue');
@@ -1328,6 +1331,67 @@ export class ServerWorld implements IWorld {
             action.addBlocks(updated_blocks);
             this.actions_queue.add(null, action);
         }
+    }
+
+    entityCollide() {
+        // const entities = []
+        // for(const player of this.players.values()) {
+        //     if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS.DEAD) {
+        //         if (!player.state.sleep) {
+        //             entities.push(player)
+        //         }
+        //     }
+        // }
+        const entities = [] // new VectorCollector()
+        for(const mob of this.mobs.list.values()) {
+            entities.push(mob)
+        }
+
+        const velocity = new Vector()
+        const horizontalVelocity = 0.075
+        const addAngleAfterCollide = Math.PI / 180 * 10
+        const addVelocityAngleAfterCollide = Math.PI / 180 * 2
+        const verticalVelocity = 0
+        const mul_vec = new Vector(0, 0, 0)
+    
+        for(let i = 0; i < entities.length; i++) {
+            for(let j = 0; j < entities.length; j++) {
+                if(i != j) {
+                    const e1 = entities[i] as Mob
+                    const e2 = entities[j] as Mob
+                    if(e1 && e2) {
+                        if(e1.aabb.intersect(e2.aabb)) {
+                            entities[i] = null
+                            entities[j] = null
+                            const total_mass = e1.aabb.volume + e2.aabb.volume
+                            // e2
+                            const e2_mass_mul = 1 - e2.aabb.volume / total_mass
+                            let yaw = Helpers.angleTo(e1.pos, e2.pos) + addVelocityAngleAfterCollide
+                            // velocity.set(horizontalVelocity * Math.sin(yaw), verticalVelocity, horizontalVelocity * Math.cos(yaw))
+                            velocity.set(horizontalVelocity, verticalVelocity, horizontalVelocity)
+                                    .mulScalarSelf(e2_mass_mul)
+                                    .multiplyVecSelf(mul_vec.set(Math.sin(yaw), 1, Math.cos(yaw)))
+                            e2.getBrain().addVelocity(velocity)
+                            if(e2 instanceof Mob) {
+                                e2.rotate.z += addAngleAfterCollide * e2_mass_mul
+                            }
+                            // e1
+                            const e1_mass_mul = 1 - e1.aabb.volume / total_mass
+                            yaw += Math.PI
+                            // velocity.set(horizontalVelocity * Math.sin(yaw), verticalVelocity, horizontalVelocity * Math.cos(yaw))
+                            velocity.set(horizontalVelocity, verticalVelocity, horizontalVelocity)
+                                    .mulScalarSelf(e1_mass_mul)
+                                    .multiplyVecSelf(mul_vec.set(Math.sin(yaw), 1, Math.cos(yaw)))
+                            e1.getBrain().addVelocity(velocity)
+                            if(e1 instanceof Mob) {
+                                e1.rotate.z -= addAngleAfterCollide * e1_mass_mul
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
 }

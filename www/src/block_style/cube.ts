@@ -6,7 +6,7 @@ import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style, QuadPlane, TCalcSideParamsResult } from './default.js';
 import { BLOCK_FLAG, GRASS_PALETTE_OFFSET, LEAVES_TYPE } from '../constant.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { BLOCK, BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';

@@ -1,5 +1,5 @@
 import { IndexedColor } from "../../helpers.js";
-import { createNoise2D } from '../../../vendors/simplex-noise.js';
+import { createNoise2D } from '@vendors/simplex-noise.js';
 import { NoiseFactory } from "./NoiseFactory.js";
 import { GENERATOR_OPTIONS, WATER_LEVEL } from "./terrain/manager_vars.js";
 import { alea, Default_Terrain_Generator, Default_Terrain_Map, Default_Terrain_Map_Cell } from "../default.js";

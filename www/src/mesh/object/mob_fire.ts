@@ -2,7 +2,7 @@ import { DIRECTION, IndexedColor, QUAD_FLAGS, Vector } from '../../helpers.js';
 import { BLOCK } from '../../blocks.js';
 import GeometryTerrain from '../../geometry_terrain.js';
 import { AABB, AABBSideParams, pushAABB } from '../../core/AABB.js';
-import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { MobModel } from '../../mob_model.js';
 import type { World } from '../../world.js';
 

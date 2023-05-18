@@ -240,11 +240,6 @@ export default class Mesh_Object_Rain {
 
     }
 
-    angleTo(pos, target) {
-        const angle = Math.atan2(target.x - pos.x, target.z - pos.z);
-        return (angle > 0) ? angle : angle - 2 * Math.PI;
-    }
-
     // Update height map
     updateHeightMap() {
 

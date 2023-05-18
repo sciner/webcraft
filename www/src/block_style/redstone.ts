@@ -3,7 +3,7 @@
 import { DIRECTION, FastRandom, IndexedColor, QUAD_FLAGS } from '../helpers.js';
 import { MAX_CHUNK_SQUARE} from "../chunk_const.js";
 import { AABB } from '../core/AABB.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_ATLAS_SIZE } from '../constant.js';
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';

@@ -66,7 +66,7 @@ export class RecipeSlot extends Window {
             }
         }
         if(this.can_make) {
-            let craft_area_size = this.parent.craft_window.area.size;
+            let craft_area_size = this.untypedParent.craft_window.area.size;
             this.can_make = this.recipe.size.width <= craft_area_size.width &&
                             this.recipe.size.height <= craft_area_size.height;
         }

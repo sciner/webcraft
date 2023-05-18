@@ -4,7 +4,7 @@ import { Vector } from "../helpers.js"
 import { ChunkDataTexture } from "../light/ChunkDataTexture.js"
 import { RendererBBModel } from "../render_bbmodel.js"
 import { Resources } from "../resources.js"
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
+import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import { BLOCK } from "../blocks.js"
 import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js"
 

@@ -192,7 +192,7 @@ export class Vector implements IVector {
         return new Vector(this.x * vec.x, this.y * vec.y, this.z * vec.z);
     }
 
-    mulScalar(k) {
+    mulScalar(k : float) {
         return new Vector(this.x * k, this.y * k, this.z * k)
     }
 

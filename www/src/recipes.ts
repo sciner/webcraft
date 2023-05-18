@@ -1,7 +1,7 @@
 import {COLOR_PALETTE, Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { md5, ObjectHelpers, ArrayOrScalar } from "./helpers.js";
-import {default as runes} from "../vendors/runes.js";
+import {default as runes} from "@vendors/runes.js";
 import { InventoryComparator, IRecipeManager } from "./inventory_comparator.js";
 
 const MAX_SIZE = 3;

@@ -3,7 +3,7 @@ import { Default_Terrain_Generator, Default_Terrain_Map, alea } from '../default
 import { BLOCK } from '../../blocks.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 import { Biomes } from '../biome3/biomes.js';
-import { createNoise2D } from '../../../vendors/simplex-noise.js';
+import { createNoise2D } from '@vendors/simplex-noise.js';
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
     [key: string]: any;

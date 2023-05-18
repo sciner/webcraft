@@ -5,7 +5,7 @@ import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
 import { MobModel } from "./mob_model.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { Mesh_Object_Base } from "./mesh/object/base.js";
-import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
 import type { PlayerHands, TAnimState, TSittingState, TSleepState} from "./player.js";
 import type { NetworkPhysicObjectState } from "./network_physic_object.js";
@@ -225,8 +225,8 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
     }
 
-    update(render : Renderer, camPos : Vector, delta : float, speed : float) {
-        super.update(render, camPos, delta, speed)
+    update(render : Renderer, camPos : Vector, delta : float) {
+        super.update(render, camPos, delta)
 
         this.updateArmSwingProgress(delta)
 
@@ -380,7 +380,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
     }
 
-    draw(render : Renderer, camPos : Vector, delta : float, speed? : float, draw_debug_grid : boolean = false) : boolean {
+    draw(render : Renderer, camPos : Vector, delta : float, draw_debug_grid : boolean = false) : boolean {
         if(this.isAlive == false) {
             return false
         }
@@ -388,9 +388,9 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             this.prev_pos = this.pos.clone();
             return false
         }
-        speed = Helpers.calcSpeed(this.prev_pos, this.pos, delta / 1000);
+        // speed = Helpers.calcSpeed(this.prev_pos, this.pos, delta / 1000);
         this.prev_pos.copyFrom(this.pos);
-        super.draw(render, camPos, delta, speed)
+        super.draw(render, camPos, delta, draw_debug_grid)
         return true
     }
 

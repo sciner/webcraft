@@ -3,7 +3,7 @@
 */
 import { RuneStrings, deepAssign, isScalar, Mth, Vector } from "../../helpers.js";
 import { getBlockImage } from "../../window/tools/blocks.js";
-import { PIXI } from '../../../tools/gui/pixi.js';
+import * as VAUX from 'vauxcel';
 import {Style} from "./styles.js";
 
 import { msdf } from "../../../data/font.js";
@@ -32,7 +32,7 @@ export type TMouseEvent = {
     y           : number
 }
 
-export class Graphics extends PIXI.Graphics {
+export class Graphics extends VAUX.Graphics {
     [key: string]: any;
 
     constructor(id? : any) {
@@ -48,7 +48,7 @@ export class Graphics extends PIXI.Graphics {
 export class GradientGraphics {
 
     /**
-     * PIXI.Graphics
+     * VAUX.Graphics
      * @param {*} from color
      * @param {*} to color
      * @param {int} height
@@ -56,7 +56,7 @@ export class GradientGraphics {
      */
     static createVertical(from, to, height = 256) {
         const gradient = GradientGraphics._createVerticalGradient(from, to, height)
-        const graphics = new PIXI.Graphics()
+        const graphics = new VAUX.Graphics()
         graphics.clear()
         graphics.beginTextureFill(gradient)
         // hud_graphics.beginFill(0x00ffff)
@@ -75,19 +75,17 @@ export class GradientGraphics {
         ctx.fillStyle = grd
         ctx.fillRect(0, 0, 1, size)
         return {
-            texture: new PIXI.Texture(new PIXI.BaseTexture(c))
+            texture: new VAUX.Texture(new VAUX.BaseTexture(c))
         }
     }
 
 }
 
 // Base window
-export class Window extends PIXI.Container {
+export class Window extends VAUX.Container {
     [key: string]: any;
 
     declare zoom:           number
-    declare x:              number
-    declare y:              number
     declare z:              number
     #_tooltip:              any = null
     #_bgicon:               any = null
@@ -95,6 +93,14 @@ export class Window extends PIXI.Container {
     style:                  Style
     draggable:              boolean = false
     autofocus:              boolean = false
+
+    get untypedParent(): Window {
+        return this.parent as any;
+    }
+    set untypedParent(val: Window) {
+        this.parent = val;
+    }
+    // children: Array<any>;
 
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
 
@@ -119,7 +125,7 @@ export class Window extends PIXI.Container {
                 }
                 return resp
             },
-            keys: () => this.children.map(c => c.id),
+            keys: () => this.children.map((c : any) => c.id),
             has(id) {
                 return !!this.get(id)
             },
@@ -131,7 +137,7 @@ export class Window extends PIXI.Container {
             },
             get: (id) => {
                 for(let w of this.children) {
-                    if(w.id == id) return w
+                    if((w as any).id == id) return w
                 }
                 return null
             },
@@ -344,7 +350,7 @@ export class Window extends PIXI.Container {
                 return
             }
             if (this.style._font.useBitmapFont) {
-                this.text_container = new PIXI.BitmapText(value, this.style.font._bitmap_font_style)
+                this.text_container = new VAUX.BitmapText(value, this.style.font._bitmap_font_style)
             } else {
                 this.text_container = new MyText(value, this.style.font._font_style)
             }
@@ -493,7 +499,8 @@ export class Window extends PIXI.Container {
     hasVisibleWindow() {
 
         for(let w of this.getRoot().children) {
-            if(w && w.id && w.visible && !(w instanceof Label) && w.catchEvents) return true
+            const wnd = w as any
+            if(wnd && wnd.id && wnd.visible && !(wnd instanceof Label) && wnd.catchEvents) return true
         }
 
         return false
@@ -545,7 +552,7 @@ export class Window extends PIXI.Container {
     /**
      * Return current text metrics
      * @param {boolean} ignore_bitmap_font_metrics
-     * @returns {PIXI.TextMetrics}
+     * @returns {VAUX.TextMetrics}
      */
     getTextMetrics(ignore_bitmap_font_metrics) {
         const tc = this.text_container;
@@ -560,7 +567,7 @@ export class Window extends PIXI.Container {
             }
         }
 
-        return PIXI.TextMetrics.measureText(this.text_container.text, this.style.font._font_style)
+        return VAUX.TextMetrics.measureText(this.text_container.text, this.style.font._font_style)
     }
 
     /**
@@ -1479,7 +1486,7 @@ export class WindowManager extends Window {
 
         this.preloadFont();
 
-        this.parent = new PIXI.Container()
+        this.parent = new VAUX.Container()
         this.parent.addChild(this)
 
         this.rootMouseEnter = (_el) => {}
@@ -1504,11 +1511,11 @@ export class WindowManager extends Window {
 
         // // Add pointer and tooltip controls
         this._wmoverlay = new WindowManagerOverlay(0, 0, w, h, '_wmoverlay')
-        this.parent.addChild(this._wmoverlay)
+        this.untypedParent.addChild(this._wmoverlay)
 
         this.cariageTimer = setInterval(() => {
             const fc = this._focused_control
-            if(fc && fc instanceof TextEdit && fc.parent.visible) {
+            if(fc && fc instanceof TextEdit && fc.untypedParent.visible) {
                 if(fc.draw_cariage) {
                     const vis = ((performance.now() - this._focus_started_at) % (this._cariage_speed * 2)) < this._cariage_speed
                     if(vis) {
@@ -1555,20 +1562,20 @@ export class WindowManager extends Window {
             return;
         }
         this.bfTextures = [
-            new PIXI.Texture(new PIXI.BaseTexture())
+            new VAUX.Texture(new VAUX.BaseTexture())
         ];
-        const bfData = new PIXI.BitmapFontData();
+        const bfData = new VAUX.BitmapFontData();
         bfData.char = msdf.chars
         bfData.page = [{id: 0, file: "UbuntuMono-Regular.png"}]
         bfData.info = [msdf.info]
         bfData.common = [msdf.common]
         bfData.distanceField = [msdf.distanceField]
-        PIXI.BitmapFont.install(bfData, this.bfTextures);
+        VAUX.BitmapFont.install(bfData, this.bfTextures);
     }
 
     loadFont() {
         const baseRp = Qubatch.world.block_manager.resource_pack_manager.list.get('base');
-        const res = new PIXI.ImageBitmapResource(baseRp.textures.get('alphabet').texture.source);
+        const res = new VAUX.ImageBitmapResource(baseRp.textures.get('alphabet').texture.source);
         this.bfTextures[0].baseTexture.setResource(res);
     }
 
@@ -1588,14 +1595,14 @@ export class WindowManager extends Window {
         this.pixiRender.texture.bind(null, 7);
         this.pixiRender.texture.bind(null, 8);
 
-        this.pixiRender.render(this.parent);
+        this.pixiRender.render(this.untypedParent);
     }
 
     initRender(qubatchRender) {
         if (qubatchRender) {
             this.qubatchRender = qubatchRender;
             this.canvas = qubatchRender.canvas;
-            this.pixiRender = new PIXI.Renderer({
+            this.pixiRender = new VAUX.Renderer({
                 context: qubatchRender.renderBackend.gl,
                 view: this.canvas,
                 width: this.canvas.width,
@@ -1603,18 +1610,16 @@ export class WindowManager extends Window {
                 clearBeforeRender: false
             })
         } else {
-            this.pixiRender = new PIXI.Renderer({
+            this.pixiRender = new VAUX.Renderer({
                 view: this.canvas,
                 width: this.canvas.width,
                 height: this.canvas.height,
-                backgroundAlpha: 0,
-                background: 'transparent',
-                transparent: true
+                backgroundAlpha: 0
             })
-            const ticker = new PIXI.Ticker();
+            const ticker = new VAUX.Ticker();
             ticker.add(() => {
-                this.pixiRender.render(this.parent);
-            }, PIXI.UPDATE_PRIORITY.LOW)
+                this.pixiRender.render(this.untypedParent);
+            }, VAUX.UPDATE_PRIORITY.LOW)
             ticker.start();
         }
         // this.loadFont();
@@ -1793,12 +1798,12 @@ export class ToggleButton extends Button {
 
     //
     toggle() {
-        if(this.parent.__toggledButton) {
-            this.parent.__toggledButton.toggled = false;
-            this.parent.__toggledButton.onMouseLeave();
+        if(this.untypedParent.__toggledButton) {
+            this.untypedParent.__toggledButton.toggled = false;
+            this.untypedParent.__toggledButton.onMouseLeave();
         }
         this.toggled = !this.toggled;
-        this.parent.__toggledButton = this;
+        this.untypedParent.__toggledButton = this;
         this.style.background.color = this.toggled ? this.toggled_bgcolor : this.untoggled_bgcolor
         this.style.font.color = this.toggled ? this.toggled_font_color : this.untoggled_font_color
     }
@@ -1938,11 +1943,11 @@ export class Slider extends Window {
 
 export class HTMLText extends Window {
 
-    #_wmhtmltext : PIXI.HTMLText
+    #_wmhtmltext : VAUX.HTMLText
 
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
         super(x, y, w, h, id, title, text)
-        this.#_wmhtmltext = new PIXI.HTMLText("Hello <b>World</b>", {
+        this.#_wmhtmltext = new VAUX.HTMLText("Hello <b>World</b>", {
             fontSize: 14 * this.zoom,
             wordWrap: true,
             breakWords: true,
