@@ -1,6 +1,6 @@
 import { BLOCK } from "../../blocks.js";
-import { createNoise3D } from '../../../vendors/simplex-noise.js';
-import { impl as alea } from '../../../vendors/alea.js';
+import { createNoise3D } from '@vendors/simplex-noise.js';
+import { impl as alea } from '@vendors/alea.js';
 import type { Vector } from "../../helpers.js";
 
 export class WorldClientOreGenerator {

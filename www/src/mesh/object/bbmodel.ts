@@ -1,6 +1,6 @@
 import { IndexedColor, Vector } from '../../helpers.js';
 import GeometryTerrain from '../../geometry_terrain.js';
-import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { Mesh_Object_Base } from './base.js';
 import { Resources } from '../../resources.js';
 import type {TParsedAnimation} from '../../bbmodel/model.js';

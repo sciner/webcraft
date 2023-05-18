@@ -2,7 +2,7 @@ import {  Vector, VectorCollector} from "../../helpers.js";
 import { CLUSTER_PADDING } from "./base.js";
 import { VilageSchema } from "./vilage_schema.js";
 import { BuildingPalettes } from "./building/palette.js";
-import { impl as alea } from '../../../vendors/alea.js';
+import { impl as alea } from '@vendors/alea.js';
 
 // Buildings
 import { building_classes } from "./building/all.js";

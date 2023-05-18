@@ -1,4 +1,4 @@
-import glMatrix from "../vendors/gl-matrix-3.3.min.js";
+import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import { Resources } from "./resources.js";
 import { Color, Helpers, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";

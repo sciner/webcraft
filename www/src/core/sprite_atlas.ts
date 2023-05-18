@@ -1,12 +1,12 @@
-import { PIXI } from "../../tools/gui/pixi.js";
 import { isScalar } from "../helpers.js";
+import * as VAUX from 'vauxcel';
 
 const atlases = new Map()
 
 export class SpriteAtlas {
-    sheet: PIXI.Spritesheet;
+    sheet: VAUX.Spritesheet;
     cache: Map<any, any>;
-    baseTex: PIXI.BaseTexture;
+    baseTex: VAUX.BaseTexture;
     image: HTMLImageElement;
 
     constructor() {
@@ -20,7 +20,7 @@ export class SpriteAtlas {
             const image = new Image()
             image.onload = () => {
                 this.image = image
-                this.baseTex = new PIXI.BaseTexture(this.image);
+                this.baseTex = new VAUX.BaseTexture(this.image);
                 resolve(this)
             }
             image.onerror = (e) => {
@@ -39,24 +39,24 @@ export class SpriteAtlas {
         if(isScalar(image_or_url)) {
             await atlas.fromFile(image_or_url)
         } else {
-            atlas.baseTex = new PIXI.BaseTexture(image_or_url, {
+            atlas.baseTex = new VAUX.BaseTexture(image_or_url, {
                 resourceOptions: { alphaMode: image_or_url instanceof ImageBitmap ? 0 : 1 }
             })
         }
-        atlas.sheet = new PIXI.Spritesheet(atlas.baseTex, map_json);
+        atlas.sheet = new VAUX.Spritesheet(atlas.baseTex, map_json as any);
         await atlas.sheet.parse();
 
         return atlas
 
     }
 
-    async getSprite(x : int, y : int, width : int, height : int, dest_width? : int, dest_height? : int) : PIXI.Texture {
+    getSprite(x : int, y : int, width : int, height : int, dest_width? : int, dest_height? : int) : VAUX.Texture {
         const key = `${x}, ${y}, ${width}, ${height}, ${dest_width}, ${dest_height}`
         let tex = null
         if(this.cache.has(key)) {
             return this.cache.get(key)
         }
-        tex = new PIXI.Texture(this.baseTex, new PIXI.Rectangle(x, y, width, height))
+        tex = new VAUX.Texture(this.baseTex, new VAUX.Rectangle(x, y, width, height))
         this.cache.set(key, tex)
         return tex
     }

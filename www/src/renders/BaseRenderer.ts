@@ -1,5 +1,5 @@
 import {Color, IvanArray, Mth, Vector} from '../helpers.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
+import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import {BatchSystem} from "./batch/BatchSystem.js";
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
 import type GeometryTerrain from '../geometry_terrain.js';

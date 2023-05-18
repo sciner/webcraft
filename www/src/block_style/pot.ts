@@ -1,7 +1,7 @@
 import {DIRECTION, IndexedColor, Vector} from '../helpers.js';
 import {BlockManager, FakeTBlock} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_TX_CNT } from '../constant.js';
 import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';

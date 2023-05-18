@@ -1,6 +1,6 @@
 import { BBModel_Child } from "./child.js";
 import { IndexedColor, StringHelpers, Vector } from "../helpers.js";
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { BBModel_Model } from "./model.js";
 const {vec3} = glMatrix;
 

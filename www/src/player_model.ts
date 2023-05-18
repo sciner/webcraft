@@ -5,7 +5,7 @@ import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
 import { MobModel } from "./mob_model.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { Mesh_Object_Base } from "./mesh/object/base.js";
-import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
 import type { PlayerHands, TAnimState, TSittingState, TSleepState} from "./player.js";
 import type { NetworkPhysicObjectState } from "./network_physic_object.js";

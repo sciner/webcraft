@@ -1,7 +1,7 @@
 import { default as default_style } from '../block_style/default.js';
 import { BBModel_Child } from "./child.js";
 import { IndexedColor, QUAD_FLAGS, Vector } from "../helpers.js";
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { BBModel_Model } from './model.js';
 
 const {mat4} = glMatrix;
@@ -15,9 +15,13 @@ export class BBModel_Cube extends BBModel_Child {
     translate: Vector;
     faces: {};
     faces_palette: any;
+    inflate: float = 0
 
     constructor(model : BBModel_Model, json : any, size : Vector, translate : Vector) {
         super(model, json)
+        if('inflate' in json && json.inflate != 0) {
+            this.inflate = json.inflate
+        }
         this.size = size
         this.translate = translate
         this.setFaces(json.faces)
@@ -70,12 +74,15 @@ export class BBModel_Cube extends BBModel_Child {
             debugger
             throw 'error_bbcube_no_faces'
         }
+        if(!globalThis.asdads) globalThis.asdads=0
+        if(globalThis.asdads++%100==0)console.log(globalThis.asdads)
         default_style.pushPART(vertices, {
             faces:      faces,
             size:       this.size,
             translate:  this.translate,
             lm:         lm,
             pos:        pos,
+            inflate:    this.inflate,
             matrix:     worldMatrix
         }, zeroVec);
     }

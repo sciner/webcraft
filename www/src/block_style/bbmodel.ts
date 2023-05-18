@@ -9,7 +9,7 @@ import { default as cube_style } from '../block_style/cube.js';
 import { default as pot_style } from '../block_style/pot.js';
 import { default as cauldron_style } from '../block_style/cauldron.js';
 import { default as sign_style } from '../block_style/sign.js';
-import { default as glMatrix } from "../../vendors/gl-matrix-3.3.min.js";
+import { default as glMatrix } from "@vendors/gl-matrix-3.3.min.js";
 import { MAX_CHUNK_SQUARE } from '../chunk_const.js';
 import { BLOCK_FLAG } from '../constant.js';
 import type { BBModel_Model } from '../bbmodel/model.js';

@@ -1,7 +1,7 @@
 import { BLOCK, DBItemBlock } from "../../blocks.js";
 import { Schematic } from "../../../../node_server/node_modules/prismarine-schematic/index.js";
 import { promises as fs } from 'fs';
-import { SIX_VECS, Vector, VectorCollector } from "../../helpers.js";
+import { DIRECTION_BIT, SIX_VECS, Vector, VectorCollector } from "../../helpers.js";
 import { RailShape } from "../../block_type/rail_shape.js";
 import * as FLUID from '../../fluid/FluidConst.js';
 
@@ -33,7 +33,8 @@ export class SchematicReader {
             WHEAT:                  'WHEAT_SEEDS',
             COCOA:                  'COCOA_BEANS',
             SIGN:                   'BIRCH_SIGN',
-            DETECTOR_RAIL:          'POWERED_RAIL'
+            DETECTOR_RAIL:          'POWERED_RAIL',
+            SKELETON_SKULL:         'SKULL_DESERT',
         }
     }
 
@@ -231,7 +232,7 @@ export class SchematicReader {
     }
 
     //
-    createBlockFromSchematic(block, b) {
+    createBlockFromSchematic(block, b : IBlockMaterial) {
         const props = block._properties;
         let new_block = new DBItemBlock(b.id)
         if(new_block.id == 0) {
@@ -418,6 +419,15 @@ export class SchematicReader {
                         new_block.rotate.y = 0;
                     }
                 }
+                //
+                if(props.rotation) {
+                    if(b.tags.includes('rotate_x8')) {
+                        new_block.rotate.x = Math.round(props.rotation / 8 * 360) % 360
+                    } else if(b.tags.includes('rotate_x16')) {
+                        new_block.rotate.x = Math.round(props.rotation / 16 * 360) % 360
+                        setExtraData('rotation', props.rotation)
+                    }
+                }
             }
             // trapdoors and doors
             // top|bottom|lower|upper
@@ -520,6 +530,16 @@ export class SchematicReader {
             if('lit' in props) {
                 setExtraData('lit', props.lit);
             }
+            if(b.tags.includes('mushroom_block')) {
+                let t = 0
+                if(props.north) t |= (1 << DIRECTION_BIT.NORTH)
+                if(props.south) t |= (1 << DIRECTION_BIT.SOUTH)
+                if(props.west) t |= (1 << DIRECTION_BIT.WEST)
+                if(props.east) t |= (1 << DIRECTION_BIT.EAST)
+                if(props.up) t |= (1 << DIRECTION_BIT.UP)
+                if(props.down) t |= (1 << DIRECTION_BIT.DOWN)
+                setExtraData('t', t)
+            }
             // bamboo
             if(b.name == 'BAMBOO') {
                 switch(props?.leaves) {
@@ -561,9 +581,9 @@ export class SchematicReader {
     }
 
     parseChestPropsExtraData(props) {
-        const res = { can_destroy: true, slots: {} } as any;
+        const res = { can_destroy: true, slots: {} } as any
         if (props.type) {
-            if(['left', 'right'].includes(res.type)) {
+            if(['left', 'right'].includes(props.type)) {
                 res.type = props.type
             }
         }

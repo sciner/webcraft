@@ -1,4 +1,4 @@
-import {impl as alea} from '../../../vendors/alea.js';
+import {impl as alea} from '@vendors/alea.js';
 import {ClusterPoint} from './base.js';
 import {DIRECTION, Vector, VectorCollector} from "../../helpers.js";
 

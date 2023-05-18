@@ -53,6 +53,7 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
     async run(compiler) {
 
         // Compile bbmodels
+        let total_polygons = 0
         for(let bbmodel of this.conf.bbmodels) {
             const model_json = bbmodel.json
             const id = bbmodel.name
@@ -75,10 +76,12 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
                     }
                 }
             }
+            total_polygons += model_json.polygons
             console.log(`BBModel ... ${id} ${model_json.elements.length} elements (${model_json.polygons} polygons)`)
             delete(model_json.textures);
             // fs.writeFileSync(`${this.options.output_dir}/${id}.json`, JSON.stringify(model_json))
         }
+        console.log(`BBModel ... Total polygons = ${total_polygons}`)
 
         // Make blocks list
         const blocks = []

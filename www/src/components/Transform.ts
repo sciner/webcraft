@@ -1,5 +1,5 @@
 import { Vector } from '../helpers.js';
-import glMatrix from './../../vendors/gl-matrix-3.3.min.js'
+import glMatrix from '@vendors/gl-matrix-3.3.min.js'
 import { Component } from './Component.js';
 
 const {mat4, vec3, quat} = glMatrix;

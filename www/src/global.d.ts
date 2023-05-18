@@ -413,7 +413,7 @@ interface IBlockMaterial {
     invisible_for_cam: boolean
     invisible_for_rain: boolean
     can_take_shadow: boolean
-    is_solid_for_fluid: boolean
+    is_solid_for_fluid: boolean // вода не течёт, н орендеринг может быть
     can_interact_with_hand: boolean
     can_replace_by_tree: boolean
     drop_if_unlinked: boolean

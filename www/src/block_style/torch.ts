@@ -1,4 +1,4 @@
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
 import { AABB } from '../core/AABB.js';
 import { DIRECTION, QUAD_FLAGS, IndexedColor, Vector } from '../helpers.js';
