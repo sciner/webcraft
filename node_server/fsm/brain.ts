@@ -33,8 +33,8 @@ export class FSMBrain {
     to: any;
     resistance_light: boolean;
     pc: PrismarinePlayerControl;
-    under_id: any;
-    legs_id: any;
+    under: any;
+    legs: any;
     in_water: boolean;
     in_fire: boolean;
     in_lava: boolean;
@@ -44,7 +44,6 @@ export class FSMBrain {
     is_fire: boolean;
     is_water: boolean;
     is_lava: boolean;
-    is_gate: boolean = true;
     targets: any;
 
     constructor(mob: Mob) {
@@ -210,21 +209,21 @@ export class FSMBrain {
        // this.is_fire = (alegs.id == bm.FIRE.id || alegs.id == bm.CAMPFIRE.id);
         //this.is_water = ((under.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID)
        // this.is_lava = ((under.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
-        // this.under_id = under.id;
-
+         //this.under_id = under.id;
+         
+        const mob_pos = mob.pos.floored()
         const head = chunk.getBlock(this.getEyePos().floored());
-        const legs = chunk.getBlock(mob.pos.floored());
-        this.legs_id = legs.id;
+        this.legs = chunk.getBlock(mob_pos);
         this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && this.pc.player_state.isInWater;
-        this.in_fire = (legs.id == bm.FIRE.id || legs.id == bm.CAMPFIRE.id);
+        this.in_fire = (this.legs.id == bm.FIRE.id || this.legs.id == bm.CAMPFIRE.id);
         this.in_lava = this.pc.player_state.isInLava;
-        this.in_air = (head.fluid == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
+        this.in_air = (head.fluid == 0 && (this.legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
 
         this.is_water = false
         this.is_abyss = false
         this.is_lava = false
         this.is_fire = false
-
+        this.under = null
         // коллизия со стеной
         this.is_wall = this.pc.player_state.isCollidedHorizontally
         if (!this.is_wall) {
@@ -240,6 +239,11 @@ export class FSMBrain {
                 this.is_water = true
             } else if ((ray.fluidVal & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
                 this.is_lava = true
+            } else if (ray.y == mob_pos.y - 1) {
+                this.under = {
+                    id: ray.block_id,
+                    pos: new Vector(ray.x, ray.y, ray.z)
+                } 
             }
         }
 
@@ -257,7 +261,7 @@ export class FSMBrain {
         }
         // стоит в огне или на свете
         if (this.in_fire || (world.getLight() > 11
-            && (chunk.tblocks.lightData && (legs.lightValue >> 8) === 0)
+            && (chunk.tblocks.lightData && (this.legs.lightValue >> 8) === 0)
             && !this.resistance_light)) {
             this.time_fire = Math.max(8 * MUL_1_SEC, this.time_fire);
         }

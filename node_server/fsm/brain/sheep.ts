@@ -41,7 +41,7 @@ export class Brain extends FSMBrain {
             this.is_sheared = false;
         }
         if (this.is_sheared) {
-            if (this.legs_id == bm.TALL_GRASS.id) {
+            if (this.legs.id == bm.TALL_GRASS.id || this.legs.id == bm.GRASS.id) {
                 const actions = new WorldAction();
                 actions.addBlocks([
                     {
@@ -53,11 +53,11 @@ export class Brain extends FSMBrain {
                 world.actions_queue.add(null, actions); 
                 this.count_grass++;
             } else {
-                if (this.under_id == bm.GRASS_BLOCK.id) {
+                if (this.under && this.under.id == bm.GRASS_BLOCK.id) {
                     const actions = new WorldAction();
                     actions.addBlocks([
                         {
-                            pos: mob.pos.offset(0, -1, 0).floored(), 
+                            pos: this.under.pos, 
                             item: {id : bm.DIRT.id}, 
                             action_id: ServerClient.BLOCK_ACTION_REPLACE
                         }
