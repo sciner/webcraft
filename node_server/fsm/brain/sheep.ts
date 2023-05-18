@@ -57,7 +57,7 @@ export class Brain extends FSMBrain {
                     const actions = new WorldAction();
                     actions.addBlocks([
                         {
-                            pos: this.under.pos, 
+                            pos: this.under.posworld, 
                             item: {id : bm.DIRT.id}, 
                             action_id: ServerClient.BLOCK_ACTION_REPLACE
                         }

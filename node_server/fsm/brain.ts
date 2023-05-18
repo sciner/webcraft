@@ -229,6 +229,34 @@ export class FSMBrain {
         this.is_wall = state.isCollidedHorizontally
         if (!this.is_wall) {
             const forward = mob.pos.clone()
+            forward.addSelf(mob.forward.mulScalar(this.pc.playerHalfWidth)).floored()
+            let height = 0
+            for (let i = 0; i < 5; i++) {
+                const block = chunk.getBlock(forward)
+                forward.y--
+                if (block.id == 0) {
+                    if ((block.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
+                        this.is_water = true
+                        break
+                    } else if ((block.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
+                        this.is_lava = true
+                        break
+                    } else {
+                        height++
+                    }
+                } else if (block.id == bm.FIRE.id || block.id == bm.CAMPFIRE.id) {
+                    this.is_fire = true
+                    break
+                }
+                if (i == 0) {
+                    this.under = block 
+                }
+            }
+            if (height > 3) {
+                this.is_abyss = true
+            }
+
+            /*
             forward.addSelf(mob.forward)
             // если стены нет, то проверяем что под ногами
             const ray = this.world.raycaster.get(forward, Vector.YN, 4, null, false, false, this.mob)
@@ -246,6 +274,7 @@ export class FSMBrain {
                     pos: new Vector(ray.x, ray.y, ray.z)
                 } 
             }
+            */
         }
 
         // стоит в лаве
