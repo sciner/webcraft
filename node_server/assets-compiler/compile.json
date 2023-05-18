@@ -1092,6 +1092,14 @@
             "texture": "block/coarse_dirt.png",
             "material": {
                 "id": "dirt"
+            },
+            "overlay_textures_weight": 96,
+            "texture_overlays": {
+                "1": "block/decals/dirt/1.png",
+                "corner": "block/decals/dirt/corner.png",
+                "3": "block/decals/dirt/3.png",
+                "all": "block/decals/dirt/all.png",
+                "opposite": "block/decals/dirt/opposite.png"
             }
         },
         {
@@ -12813,6 +12821,14 @@
                 "rotate_by_pos_n_6"
             ],
             "texture": "block/stone.png"
+        },
+        {
+            "id": 495,
+            "name": "NETHER_QUARTZ_ORE",
+            "texture": "block/nether_quartz_ore.png",
+            "material": {
+                "id": "quartz"
+            }
         }
     ]
 }

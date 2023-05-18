@@ -575,6 +575,7 @@
         {
             "id": 5,
             "name": "BOOKSHELF",
+            "transparent": true,
             "bb": {
                 "model": "bookshelf"
             }
@@ -1154,8 +1155,8 @@
         },
         {
             "id": 84,
-            "transparent": true,
             "name": "JUKEBOX",
+            "transparent": true,
             "group": "doubleface_transparent",
             "bb": {
                 "model": "jukebox",
