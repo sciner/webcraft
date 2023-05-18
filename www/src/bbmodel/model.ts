@@ -5,7 +5,7 @@ import { BBModel_Group } from "./group.js";
 import { BBModel_Locator } from "./locator.js";
 import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js";
 import type { Renderer } from "../render.js";
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { getEuler } from "../components/Transform.js";
 import { BBMODEL_ATLAS_SIZE } from "../constant.js";
 

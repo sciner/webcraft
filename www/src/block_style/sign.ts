@@ -1,7 +1,7 @@
 import {DIRECTION, AlphabetTexture, Vector, IndexedColor} from '../helpers.js';
 import {BlockManager, FakeTBlock} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import {CubeSym} from "../core/CubeSym.js";
 import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';

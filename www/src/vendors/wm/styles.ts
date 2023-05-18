@@ -1,5 +1,6 @@
 import { MySprite } from "./MySpriteRenderer.js";
 import { Vector } from "../../helpers.js";
+import * as VAUX from 'vauxcel';
 
 export const USE_BITMAP_FONT = false;
 

@@ -29,7 +29,7 @@ import {LineGeometry} from "./geom/line_geometry.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { AABB } from "./core/AABB.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
-import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { World } from "./world.js";
 import type { MobModel } from "./mob_model.js";
 import type { HUD } from "./hud.js";

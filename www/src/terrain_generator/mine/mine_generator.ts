@@ -1,5 +1,5 @@
 import {Vector, VectorCollector, DIRECTION} from '../../helpers.js';
-import { impl as alea } from '../../../vendors/alea.js';
+import { impl as alea } from '@vendors/alea.js';
 import { AABB } from "../../core/AABB.js";
 import { CD_ROT } from "../../core/CubeSym.js";
 import { DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE, TREASURE_SOURCE } from '../../constant.js';

@@ -1,8 +1,8 @@
 import { MAX_CHUNK_SQUARE} from "../chunk_const.js";
 import {BLOCK} from '../blocks.js';
 import {FastRandom, Vector, DIRECTION_BIT, createFastRandom, VectorCollector, SimpleQueue, IndexedColor, ArrayHelpers } from '../helpers.js';
-import noise from '../../vendors/perlin.js';
-import {impl as alea} from '../../vendors/alea.js';
+import noise from '@vendors/perlin.js';
+import {impl as alea} from '@vendors/alea.js';
 import { WorldAction } from "../world_action.js";
 import type { ChunkWorkerChunk } from "../worker/chunk.js";
 import type { TerrainMapCell } from "./terrain_map.js";

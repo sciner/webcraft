@@ -3,7 +3,7 @@ import { MAX_CHUNK_SQUARE} from "../chunk_const.js";
 import { CubeSym } from '../core/CubeSym.js';
 import {AABB} from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style, QuadPlane, TX_SIZE} from './default.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_GRASS_PALETTE, GRASS_COLOR_SHIFT_FACTOR, GRASS_PALETTE_OFFSET } from '../constant.js';
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';

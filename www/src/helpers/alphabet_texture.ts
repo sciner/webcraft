@@ -1,4 +1,4 @@
-import {default as runes} from "../../vendors/runes.js";
+import {default as runes} from "@vendors/runes.js";
 
 export class RuneStrings {
     [key: string]: any;

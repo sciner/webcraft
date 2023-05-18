@@ -1,4 +1,4 @@
-import { impl as alea } from '../../../vendors/alea.js';
+import { impl as alea } from '@vendors/alea.js';
 import { AABB } from '../../core/AABB.js';
 import { ShiftedMatrix, Vector, VectorCardinalTransformer } from "../../helpers.js";
 import { findLowestNonSolidYFromAboveInChunkAABBRelative } from "../../block_helpers.js";

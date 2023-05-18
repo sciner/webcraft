@@ -19,8 +19,15 @@
 
         "baseUrl": "./" ,
         "paths": {
-            "@vaux/*": ["../node_modules/vauxcel/lib"],
-        }
+            "vauxcel": ["./js-lib/vauxcel.mjs"],
+            "@vendors/*": ["./vendors/*"],
+            "pako": ["./js-lib/pako.esm.mjs"]
+        },
+        "plugins": [
+            {
+                "transform": "ts-transform-paths"
+            }
+        ]
     },
     "files": [
         "src/package.json"

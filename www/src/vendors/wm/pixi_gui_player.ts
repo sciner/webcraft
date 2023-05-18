@@ -1,4 +1,6 @@
-export class PixiGuiPlayer extends VAUX.Container {
+import {Container} from "vauxcel";
+
+export class PixiGuiPlayer extends Container {
     _render(pixiRender) {
 
         /**

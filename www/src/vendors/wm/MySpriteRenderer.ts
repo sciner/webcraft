@@ -1,7 +1,5 @@
-/// <reference path="../../../types/vaux.d.ts"/>
-
+import * as VAUX from 'vauxcel';
 globalThis.PIXI = VAUX;
-(globalThis as any).VAUX = VAUX;
 //PIXI.BatchRenderer.defaultMaxTextures = Math.min(PIXI.BatchRenderer.defaultMaxTextures, 16);
 
 const vertex = `#version 300 es

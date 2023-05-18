@@ -1,6 +1,5 @@
-/// <reference path="../../types/vaux.d.ts"/>
-
 import { isScalar } from "../helpers.js";
+import * as VAUX from 'vauxcel';
 
 const atlases = new Map()
 

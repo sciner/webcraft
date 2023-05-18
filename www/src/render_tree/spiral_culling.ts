@@ -1,7 +1,7 @@
 import type {Plane, FrustumProxy} from "../frustum.js";
 import type {SpiralGrid} from "../helpers/spiral_generator.js";
 import {Vector} from "../helpers/vector.js";
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 
 const {mat3, vec3} = glMatrix;
 

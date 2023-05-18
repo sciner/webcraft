@@ -1,5 +1,5 @@
 import {Vector, VectorCollector} from "../../helpers.js";
-import {impl as alea} from '../../../vendors/alea.js';
+import {impl as alea} from '@vendors/alea.js';
 import {ClusterEmpty} from "./empty.js";
 
 import type { ClusterBase } from "./base.js";

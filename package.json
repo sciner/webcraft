@@ -3,11 +3,18 @@
         "watch:www": "tsc -w -p www/tsconfig.json",
         "watch:server": "tsc -w -p node_server/tsconfig.json",
         "build:www": "tsc -p www/tsconfig.json",
-        "types:server": "tsc -p node_server/tsconfig.json"
+        "types:server": "tsc -p node_server/tsconfig.json",
+        "prepare": "ts-patch install -s && copyfiles -f \"node_modules/vauxcel/dist/*.*\" node_modules/pako/dist/pako.esm.mjs www/js-lib"
+    },
+    "dependencies": {
+        "vauxcel": "=0.1.2",
+        "pako": "=2.1.0"
     },
     "devDependencies": {
         "@types/node": "^18.13.0",
-        "typescript": "^5.0.4",
-        "vauxcel": "=0.1.1"
+        "copyfiles": "=2.4.1",
+        "ts-patch": "=3.0.0-beta3",
+        "ts-transform-paths": "=3.0.0",
+        "typescript": "^5.0.4"
     }
 }
