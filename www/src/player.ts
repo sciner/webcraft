@@ -713,7 +713,7 @@ export class Player implements IPlayer {
                 if (cur_mat_id) {
                     const cur_mat = BLOCK.fromId(cur_mat_id)
                     if (cur_mat?.item?.name == 'instrument') {
-                        //this.startArmSwingProgress() // @todo визуальная времянка
+                        this.startArmSwingProgress() // @todo визуальная времянка
                     }
                 }
             }
