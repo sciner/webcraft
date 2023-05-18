@@ -44,7 +44,7 @@ export class FSMBrain {
     is_fire: boolean;
     is_water: boolean;
     is_lava: boolean;
-    is_gate: boolean;
+    is_gate: boolean = true;
     targets: any;
 
     constructor(mob: Mob) {
@@ -193,13 +193,13 @@ export class FSMBrain {
     // контроль жизней и состояния моба
     onLive() {
         const mob = this.mob;
-        const config = mob.config
-        const world = mob.getWorld();
-        const bm = world.block_manager
         const chunk = mob.inChunk
         if (!chunk) {
             return;
         }
+        const config = mob.config
+        const world = mob.getWorld();
+        const bm = world.block_manager
         // @todo старый вариант
         //const forward = mob.pos.add(mob.forward).floored();
        // const ahead = chunk.getBlock(forward.offset(0, 1, 0).floored());
@@ -217,7 +217,7 @@ export class FSMBrain {
         this.legs_id = legs.id;
         this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && this.pc.player_state.isInWater;
         this.in_fire = (legs.id == bm.FIRE.id || legs.id == bm.CAMPFIRE.id);
-        this.in_lava = (legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
+        this.in_lava = this.pc.player_state.isInLava;
         this.in_air = (head.fluid == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
 
         this.is_water = false

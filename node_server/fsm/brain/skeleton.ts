@@ -72,7 +72,7 @@ export class Brain extends FSMBrain {
         // обход препятсвия
         const mob = this.mob;
         mob.extra_data.attack = false
-        if (this.is_wall || this.is_fire || this.is_lava) {
+        if (this.is_wall || this.is_fire || this.is_lava || this.is_abyss) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
             return;
@@ -131,7 +131,7 @@ export class Brain extends FSMBrain {
             return;
         }
         const dist = mob.pos.distance(this.target.state.pos);
-        if (mob.playerCanBeAtacked(this.target) || dist > this.distance_attack || this.is_gate) {
+        if (mob.playerCanBeAtacked(this.target) || dist > this.distance_attack || this.is_wall) {
             this.stack.replaceState(this.doCatch);
             return;
         }
