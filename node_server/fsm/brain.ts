@@ -199,6 +199,7 @@ export class FSMBrain {
         const config = mob.config
         const world = mob.getWorld();
         const bm = world.block_manager
+        const state = this.pc.player_state
         // @todo старый вариант
         //const forward = mob.pos.add(mob.forward).floored();
        // const ahead = chunk.getBlock(forward.offset(0, 1, 0).floored());
@@ -214,9 +215,9 @@ export class FSMBrain {
         const mob_pos = mob.pos.floored()
         const head = chunk.getBlock(this.getEyePos().floored());
         this.legs = chunk.getBlock(mob_pos);
-        this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && this.pc.player_state.isInWater;
+        this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && state.isInWater;
         this.in_fire = (this.legs.id == bm.FIRE.id || this.legs.id == bm.CAMPFIRE.id);
-        this.in_lava = this.pc.player_state.isInLava;
+        this.in_lava = state.isInLava;
         this.in_air = (head.fluid == 0 && (this.legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
 
         this.is_water = false
@@ -225,7 +226,7 @@ export class FSMBrain {
         this.is_fire = false
         this.under = null
         // коллизия со стеной
-        this.is_wall = this.pc.player_state.isCollidedHorizontally
+        this.is_wall = state.isCollidedHorizontally
         if (!this.is_wall) {
             const forward = mob.pos.clone()
             forward.addSelf(mob.forward)
@@ -267,7 +268,6 @@ export class FSMBrain {
         }
         // нехватка воздуха
         if (this.in_water && config.can_asphyxiate) {
-            this.time_fire = 0;
             if (this.timer_water_damage >= MUL_1_SEC) {
                 this.timer_water_damage = 0;
                 this.onDamage(1, EnumDamage.WATER, null);
@@ -276,6 +276,10 @@ export class FSMBrain {
             }
         } else {
             this.timer_water_damage = 0;
+        }
+        // тушение в воде
+        if (state.isInWater) {
+            this.time_fire = 0
         }
         // горение
         if (this.time_fire > 0) {
