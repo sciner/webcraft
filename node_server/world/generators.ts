@@ -1,6 +1,12 @@
 import { Vector } from "@client/helpers.js";
 
 const DEFAULT_OPTIONS = {
+    "auto_generate_mobs": {
+        "title": "Spawn mobs",
+        "default_value": true,
+        "type": "checkbox",
+        "strict_type": "boolean"
+    },
     "keep_inventory_on_dead": {
         "title": "Keep inventory on dead",
         "default_value": true,
@@ -205,12 +211,6 @@ export class WorldGenerators {
             },
             "cluster_size": {"x": 128, "y": 256, "z": 128},
             "options": {
-                "auto_generate_mobs": {
-                    "title": "Spawn mobs",
-                    "default_value": true,
-                    "type": "checkbox",
-                    "strict_type": "boolean"
-                },
                 "generate_bottom_caves_lava": {
                     "title": "Generate lava in bottom caves",
                     "default_value": false,
@@ -229,12 +229,6 @@ export class WorldGenerators {
             },
             "cluster_size": {"x": 256, "y": 200, "z": 256},
             "options": {
-                "auto_generate_mobs": {
-                    "title": "Spawn mobs",
-                    "default_value": true,
-                    "type": "checkbox",
-                    "strict_type": "boolean"
-                },
                 "generate_bottom_caves_lava": {
                     "title": "Generate lava in bottom caves",
                     "default_value": false,
@@ -245,6 +239,7 @@ export class WorldGenerators {
                 "generate_big_caves": {
                     "title": "Generate big caves",
                     "default_value": false,
+                    "deprecated": true,
                     "type": "checkbox",
                     "strict_type": "boolean"
                 },

@@ -33,7 +33,8 @@ export class SchematicReader {
             WHEAT:                  'WHEAT_SEEDS',
             COCOA:                  'COCOA_BEANS',
             SIGN:                   'BIRCH_SIGN',
-            DETECTOR_RAIL:          'POWERED_RAIL'
+            DETECTOR_RAIL:          'POWERED_RAIL',
+            SKELETON_SKULL:         'SKULL_DESERT',
         }
     }
 
@@ -231,7 +232,7 @@ export class SchematicReader {
     }
 
     //
-    createBlockFromSchematic(block, b) {
+    createBlockFromSchematic(block, b : IBlockMaterial) {
         const props = block._properties;
         let new_block = new DBItemBlock(b.id)
         if(new_block.id == 0) {
@@ -416,6 +417,15 @@ export class SchematicReader {
                             new_block.rotate.x = (new_block.rotate.x + 2) % 4;
                         }
                         new_block.rotate.y = 0;
+                    }
+                }
+                //
+                if(props.rotation) {
+                    if(b.tags.includes('rotate_x8')) {
+                        new_block.rotate.x = Math.round(props.rotation / 8 * 360) % 360
+                    } else if(b.tags.includes('rotate_x16')) {
+                        new_block.rotate.x = Math.round(props.rotation / 16 * 360) % 360
+                        setExtraData('rotation', props.rotation)
                     }
                 }
             }

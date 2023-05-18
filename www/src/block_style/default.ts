@@ -146,6 +146,7 @@ export default class {
         const width = part.size.x / TX_SIZE;
         const height = part.size.y / TX_SIZE;
         const depth = part.size.z / TX_SIZE;
+        const inflate = part.inflate ? (part.inflate / TX_SIZE) : 0
 
         // AABB
         // const aabb = new AABB();
@@ -160,7 +161,7 @@ export default class {
             part.pos.x + .5,
             part.pos.y + .5,
             part.pos.z + .5,
-        ).expand(width/2, height/2, depth/2)
+        ).expand(width/2 + inflate, height/2 + inflate, depth/2 + inflate)
         if(part.translate) {
             aabb.translate(part.translate.x/TX_SIZE, part.translate.y/TX_SIZE, part.translate.z/TX_SIZE);
         }
