@@ -1,6 +1,6 @@
 import {CubeSym} from "./CubeSym.js";
 import {IndexedColor, Vector} from '../helpers.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 
 const {mat3, mat4, vec3}      = glMatrix;
 const defaultPivot      = [0.5, 0.5, 0.5];

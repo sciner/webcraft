@@ -1,6 +1,6 @@
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { IndexedColor, Vector } from "../helpers.js";
 import { DEFAULT_TX_CNT } from "../constant.js";
 import type { WorkerWorld } from "../worker/world.js";

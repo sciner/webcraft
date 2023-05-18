@@ -5,7 +5,7 @@ import {CD_ROT, CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT, NO_DESTRUCTABLE_BLOCKS } from "./blocks.js";
 import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
-import {impl as alea} from '../vendors/alea.js';
+import {impl as alea} from '@vendors/alea.js';
 import { RailShape } from "./block_type/rail_shape.js";
 import { WorldPortal } from "./portal.js";
 import {

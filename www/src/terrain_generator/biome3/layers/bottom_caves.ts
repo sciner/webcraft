@@ -7,7 +7,7 @@ import { TerrainMapCell } from "../../terrain_map.js";
 import { TerrainMapManagerBase } from "../terrain/manager_base.js";
 import { Biome3TerrainMap } from "../terrain/map.js";
 import { Biome3LayerBase } from "./base.js";
-import {  createNoise3D } from '../../../../vendors/simplex-noise.js';
+import {  createNoise3D } from '@vendors/simplex-noise.js';
 import { Vector } from "../../../helpers.js";
 import type { BLOCK } from "../../../blocks.js";
 import type { ChunkGrid } from "../../../core/ChunkGrid.js";
@@ -150,7 +150,7 @@ export default class Biome3LayerBottomCaves extends Biome3LayerBase {
         // Generate chunk data
         chunk.timers.start('generate_chunk_data')
         this.generateChunkData(chunk, maps, seed, rnd)
-        
+
         if(is_highest) {
 
             const bm = this.generator.block_manager

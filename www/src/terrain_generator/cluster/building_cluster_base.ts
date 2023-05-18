@@ -1,6 +1,6 @@
 import { DIRECTION, PerformanceTimer, Vector, VectorCollector} from "../../helpers.js";
 import { ClusterBase, ClusterPoint } from "./base.js";
-import { impl as alea } from '../../../vendors/alea.js';
+import { impl as alea } from '@vendors/alea.js';
 import type { BuildingPalettes } from "./building/palette.js";
 import type { ClusterManager } from "./manager.js";
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";

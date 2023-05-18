@@ -1,4 +1,4 @@
-import { gzip, ungzip, inflate, deflate } from '../../vendors/pako.esm.min.mjs';
+import { gzip, ungzip, inflate, deflate } from 'pako';
 import { BLOCK } from '../blocks.js';
 
 const COL_D = String.fromCharCode(8);

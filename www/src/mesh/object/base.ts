@@ -1,6 +1,6 @@
 import { Vector } from '../../helpers.js';
 import GeometryTerrain from '../../geometry_terrain.js';
-import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from '../../render.js';
 import type { WebGLMaterial } from '../../renders/webgl/WebGLMaterial.js';
 

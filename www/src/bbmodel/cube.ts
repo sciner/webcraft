@@ -1,7 +1,7 @@
 import { default as default_style } from '../block_style/default.js';
 import { BBModel_Child } from "./child.js";
 import { IndexedColor, QUAD_FLAGS, Vector } from "../helpers.js";
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { BBModel_Model } from './model.js';
 
 const {mat4} = glMatrix;

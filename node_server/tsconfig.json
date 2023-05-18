@@ -13,7 +13,8 @@
         "baseUrl": "./" ,
         "paths": {
             "@client/*": ["../www/src/*"],
-            "@server/*": ["node_server/*"]
+            "@vendors/*": ["../www/vendors/*"],
+            "@server/*": ["node_server/*"],
         }
     },
     "include": [

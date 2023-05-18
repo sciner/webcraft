@@ -27,7 +27,7 @@ export * from "./helpers/average_clock_timer.js";
 export * from "./helpers/simple_shifted_3d_array.js";
 
 import { CubeSym } from "./core/CubeSym.js";
-import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { Vector } from "./helpers/vector.js";
 import {Color} from "./helpers/color.js";
 import type { World } from "./world.js";
