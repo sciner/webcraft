@@ -36,7 +36,7 @@ export class MainMenu extends BlankWindow {
 
     // onShow
     onShow(args) {
-        this.wmParent.center(this)
+        this.untypedParent.center(this)
         Qubatch.releaseMousePointer()
         super.onShow(args)
     }

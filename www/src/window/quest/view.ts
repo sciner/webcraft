@@ -27,7 +27,7 @@ export class QuestView extends Window {
         this.wheel_scroll = 36 * this.zoom;
         this.style.background.color = '#ffffff22';
         this.style.border.hidden = true;
-        this.wmParent = parent
+        this.untypedParent = parent
 
         this.clip()
 
@@ -43,7 +43,7 @@ export class QuestView extends Window {
         this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.wheel_scroll
         this.scrollY = Helpers.clamp(this.scrollY, min_scroll, 0)
         this.container.y = this.scrollY
-        this.wmParent.scrollbar.value = -this.scrollY
+        this.untypedParent.scrollbar.value = -this.scrollY
     }
 
     updateScroll(val) {
@@ -119,7 +119,7 @@ export class QuestView extends Window {
         ql.refresh()
 
         this.updateScroll(0)
-        this.wmParent.scrollbar.max = this.container.h -this.h
+        this.untypedParent.scrollbar.max = this.container.h -this.h
     }
 
 }
