@@ -254,8 +254,8 @@ export class BorderStyle {
         // Border
         const border = this.#_wmborder = new VAUX.Graphics()
         border.visible = false
-        border.w = window.w
-        border.h = window.h
+        // border.w = window.w
+        // border.h = window.h
         this._redraw()
         window.addChild(border)
 

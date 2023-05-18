@@ -30,7 +30,7 @@ export class HelpSlot extends Label {
         super(x, y, sz, sz, id, null, null)
         this.ct = ct
         this.item = null
-        this.swapChildren(this.children[0], this.children[1])
+        this.swapChildren(this.wmChildren[0], this.wmChildren[1])
         this.hud_atlas = Resources.atlas.get('hud')
         // this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
         this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot'))
@@ -72,7 +72,7 @@ export type TCraftTableSlotContext = BaseInventoryWindow | CreativeInventoryWind
 export class CraftTableSlot extends SimpleBlockSlot {
     [key: string]: any;
 
-    declare parent: TCraftTableSlotContext
+    declare wmParent: TCraftTableSlotContext
     ct: TCraftTableSlotContext
     slot_index: int
 
@@ -185,7 +185,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
             return
         }
         const max_stack_count = BLOCK.getItemMaxStack(dropItem)
-        const oldBagSize = this.parent.inventory.getSize().bagSize
+        const oldBagSize = this.wmParent.inventory.getSize().bagSize
 
         // Если в текущей ячейке что-то есть
         if(targetItem) {
@@ -264,7 +264,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
     useRecipe() {
         // this.recipe can be null in some partially implemented window subclasses
         const recipe_id = this.recipe?.id || null;
-        const used_items_keys = this.parent.getUsedItemsKeysAndDecrement(1);
+        const used_items_keys = this.wmParent.getUsedItemsKeysAndDecrement(1);
         //
         const lastRecipe = this.used_recipes.length && this.used_recipes[this.used_recipes.length - 1];
         if (lastRecipe?.recipe_id === recipe_id &&
@@ -279,8 +279,8 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 count: 1
             });
         }
-        this.parent.checkRecipe();
-        this.parent.fixAndValidateSlots('CraftTableResultSlot useRecipe')
+        this.wmParent.checkRecipe();
+        this.wmParent.fixAndValidateSlots('CraftTableResultSlot useRecipe')
     }
 
     // setupHandlers...
@@ -498,10 +498,10 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             this.ct.fixAndValidateSlots('CraftTableInventorySlot right button')
         } else {
             if(e.shiftKey) {
-                switch(this.parent.id) {
+                switch(this.wmParent.id) {
                     case 'frmCharacterWindow':
                     case 'frmInventory': {
-                        const parent = this.parent as InventoryWindow
+                        const parent = this.wmParent as InventoryWindow
                         const srcList = parent.inventory_slots;
                         const {bagEnd, hotbar, bagSize} = this.getInventory().getSize()
                         // сначала пробуем переместить в слоты брони
@@ -526,22 +526,22 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         if (this.ct.loading) {
                             break; // prevent spreading to the slots that are not ready
                         }
-                        const targetList = e.target.is_chest_slot ? this.parent.inventory_slots : this.parent.getCraftOrChestSlots()
+                        const targetList = e.target.is_chest_slot ? this.wmParent.inventory_slots : this.wmParent.getCraftOrChestSlots()
                         this.appendToList(targetItem, targetList)
                         this.setItem(targetItem, e)
-                        this.parent.lastChange.type = CHEST_CHANGE.SHIFT_SPREAD
+                        this.wmParent.lastChange.type = CHEST_CHANGE.SHIFT_SPREAD
                         this.ct.fixAndValidateSlots('CraftTableInventorySlot CHEST_CHANGE.SHIFT_SPREAD')
                         break
                     }
                     case 'frmCraft': {
-                        let targetList = e.target.is_craft_slot ? this.parent.inventory_slots : this.parent.getCraftOrChestSlots()
+                        let targetList = e.target.is_craft_slot ? this.wmParent.inventory_slots : this.wmParent.getCraftOrChestSlots()
                         this.appendToList(targetItem, targetList)
                         this.setItem(targetItem, e)
                         this.ct.fixAndValidateSlots('CraftTableInventorySlot frmCraft')
                         break
                     }
                     default: {
-                        console.log('this.parent.id', this.parent.id)
+                        console.log('this.parent.id', this.wmParent.id)
                     }
                 }
                 return
@@ -614,7 +614,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         }
         // 2. проход в поисках свободных слотов
         // если это инвентарь - то сначала проходим по инвентарю, а потом по хотабру. Иначе - по порядку
-        const slotsSize = target_list === this.parent.inventory_slots
+        const slotsSize = target_list === this.wmParent.inventory_slots
             ? this.getInventory().getSize()
             : new InventorySize().setFakeContinuous(target_list.length)
         for(const i of slotsSize.backpackHotbarIndices()) {
@@ -642,7 +642,7 @@ export class CraftTableRecipeSlot extends CraftTableInventorySlot {
     setItem(item? : IInventoryItem, update_inventory : boolean = true): boolean {
         const res = super.setItem(item, update_inventory)
         if(update_inventory) {
-            this.parent.checkRecipe()
+            this.wmParent.checkRecipe()
         }
         return res
     }
@@ -651,13 +651,13 @@ export class CraftTableRecipeSlot extends CraftTableInventorySlot {
 
 export class PaperDollSlot extends CraftTableInventorySlot {
 
-    declare parent: BaseCraftWindow
+    declare wmParent: BaseCraftWindow
 
     constructor(x, y, s, id, ct) {
 
         super(x, y, s, s, 'lblSlot' + id, null, null, ct, id)
 
-        this.swapChildren(this.children[0], this.children[1])
+        this.swapChildren(this.wmChildren[0], this.wmChildren[1])
 
         const origOnDrop = this.onDrop.bind(this);
 

@@ -4,6 +4,7 @@
     "compilerOptions": {
         "target": "es2022",
         "module": "esnext",
+        "ignoreDeprecations": "5.0",
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
@@ -15,7 +16,8 @@
             "@client/*": ["../www/src/*"],
             "@vendors/*": ["../www/vendors/*"],
             "@server/*": ["node_server/*"],
-        }
+        },
+        "skipLibCheck": true
     },
     "include": [
         "./**/*"

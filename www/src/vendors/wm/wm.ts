@@ -86,8 +86,6 @@ export class Window extends VAUX.Container {
     [key: string]: any;
 
     declare zoom:           number
-    declare x:              number
-    declare y:              number
     declare z:              number
     #_tooltip:              any = null
     #_bgicon:               any = null
@@ -95,6 +93,8 @@ export class Window extends VAUX.Container {
     style:                  Style
     draggable:              boolean = false
     autofocus:              boolean = false
+    wmParent: any;
+    wmChildren: Array<any>;
 
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
 
@@ -112,14 +112,14 @@ export class Window extends VAUX.Container {
         this.list = {
             values: () => {
                 const resp = []
-                for(let w of this.children) {
+                for(let w of this.wmChildren) {
                     if(w instanceof Window && w.auto_center) {
                         resp.push(w)
                     }
                 }
                 return resp
             },
-            keys: () => this.children.map(c => c.id),
+            keys: () => this.wmChildren.map(c => c.id),
             has(id) {
                 return !!this.get(id)
             },
@@ -130,14 +130,14 @@ export class Window extends VAUX.Container {
                 }
             },
             get: (id) => {
-                for(let w of this.children) {
+                for(let w of this.wmChildren) {
                     if(w.id == id) return w
                 }
                 return null
             },
             clear: () => {
-                while(this.children[0]) {
-                    this.removeChild(this.children[0])
+                while(this.wmChildren[0]) {
+                    this.removeChild(this.wmChildren[0])
                 }
             }
         }
@@ -492,7 +492,7 @@ export class Window extends VAUX.Container {
 
     hasVisibleWindow() {
 
-        for(let w of this.getRoot().children) {
+        for(let w of this.getRoot().wmChildren) {
             if(w && w.id && w.visible && !(w instanceof Label) && w.catchEvents) return true
         }
 
@@ -1077,7 +1077,7 @@ export class Button extends Window {
             // this.text_container.position.set(this.w / 2, this.h / 2)
         }
 
-        this.swapChildren(this.children[0], this.children[1])
+        this.swapChildren(this.wmChildren[0], this.wmChildren[1])
 
         this.style.textAlign.horizontal = 'center';
         this.style.textAlign.vertical = 'middle';
@@ -1479,8 +1479,8 @@ export class WindowManager extends Window {
 
         this.preloadFont();
 
-        this.parent = new VAUX.Container()
-        this.parent.addChild(this)
+        this.wmParent = new VAUX.Container()
+        this.wmParent.addChild(this)
 
         this.rootMouseEnter = (_el) => {}
         this.rootMouseLeave = (_el) => {}
@@ -1504,11 +1504,11 @@ export class WindowManager extends Window {
 
         // // Add pointer and tooltip controls
         this._wmoverlay = new WindowManagerOverlay(0, 0, w, h, '_wmoverlay')
-        this.parent.addChild(this._wmoverlay)
+        this.wmParent.addChild(this._wmoverlay)
 
         this.cariageTimer = setInterval(() => {
             const fc = this._focused_control
-            if(fc && fc instanceof TextEdit && fc.parent.visible) {
+            if(fc && fc instanceof TextEdit && fc.wmParent.visible) {
                 if(fc.draw_cariage) {
                     const vis = ((performance.now() - this._focus_started_at) % (this._cariage_speed * 2)) < this._cariage_speed
                     if(vis) {
@@ -1588,7 +1588,7 @@ export class WindowManager extends Window {
         this.pixiRender.texture.bind(null, 7);
         this.pixiRender.texture.bind(null, 8);
 
-        this.pixiRender.render(this.parent);
+        this.pixiRender.render(this.wmParent);
     }
 
     initRender(qubatchRender) {
@@ -1607,13 +1607,11 @@ export class WindowManager extends Window {
                 view: this.canvas,
                 width: this.canvas.width,
                 height: this.canvas.height,
-                backgroundAlpha: 0,
-                background: 'transparent',
-                transparent: true
+                backgroundAlpha: 0
             })
             const ticker = new VAUX.Ticker();
             ticker.add(() => {
-                this.pixiRender.render(this.parent);
+                this.pixiRender.render(this.wmParent);
             }, VAUX.UPDATE_PRIORITY.LOW)
             ticker.start();
         }
@@ -1793,12 +1791,12 @@ export class ToggleButton extends Button {
 
     //
     toggle() {
-        if(this.parent.__toggledButton) {
-            this.parent.__toggledButton.toggled = false;
-            this.parent.__toggledButton.onMouseLeave();
+        if(this.wmParent.__toggledButton) {
+            this.wmParent.__toggledButton.toggled = false;
+            this.wmParent.__toggledButton.onMouseLeave();
         }
         this.toggled = !this.toggled;
-        this.parent.__toggledButton = this;
+        this.wmParent.__toggledButton = this;
         this.style.background.color = this.toggled ? this.toggled_bgcolor : this.untoggled_bgcolor
         this.style.font.color = this.toggled ? this.toggled_font_color : this.untoggled_font_color
     }

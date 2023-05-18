@@ -43,14 +43,14 @@ export class SpriteAtlas {
                 resourceOptions: { alphaMode: image_or_url instanceof ImageBitmap ? 0 : 1 }
             })
         }
-        atlas.sheet = new VAUX.Spritesheet(atlas.baseTex, map_json);
+        atlas.sheet = new VAUX.Spritesheet(atlas.baseTex, map_json as any);
         await atlas.sheet.parse();
 
         return atlas
 
     }
 
-    async getSprite(x : int, y : int, width : int, height : int, dest_width? : int, dest_height? : int) : VAUX.Texture {
+    getSprite(x : int, y : int, width : int, height : int, dest_width? : int, dest_height? : int) : VAUX.Texture {
         const key = `${x}, ${y}, ${width}, ${height}, ${dest_width}, ${dest_height}`
         let tex = null
         if(this.cache.has(key)) {
