@@ -200,25 +200,49 @@ export class FSMBrain {
         if (!chunk) {
             return;
         }
-        const forward = mob.pos.add(mob.forward).floored();
-        const ahead = chunk.getBlock(forward.offset(0, 1, 0).floored());
-        const alegs = chunk.getBlock(forward);
-        const under = chunk.getBlock(forward.offset(0, -1, 0));
-        const abyss = chunk.getBlock(forward.offset(0, -2, 0));
+        // @todo старый вариант
+        //const forward = mob.pos.add(mob.forward).floored();
+       // const ahead = chunk.getBlock(forward.offset(0, 1, 0).floored());
+        //const alegs = chunk.getBlock(forward);
+        //const under = chunk.getBlock(forward.offset(0, -1, 0));
+        //const abyss = chunk.getBlock(forward.offset(0, -2, 0));
+        //this.is_abyss = under.id == 0 && under.fluid == 0 && abyss.id == 0 && abyss.fluid == 0 && alegs.id == 0 && alegs.fluid == 0;
+       // this.is_fire = (alegs.id == bm.FIRE.id || alegs.id == bm.CAMPFIRE.id);
+        //this.is_water = ((under.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID)
+       // this.is_lava = ((under.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
+        // this.under_id = under.id;
+
         const head = chunk.getBlock(this.getEyePos().floored());
         const legs = chunk.getBlock(mob.pos.floored());
-        this.under_id = under.id;
         this.legs_id = legs.id;
-        this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
+        this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && this.pc.player_state.isInWater;
         this.in_fire = (legs.id == bm.FIRE.id || legs.id == bm.CAMPFIRE.id);
         this.in_lava = (legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
         this.in_air = (head.fluid == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
-        this.is_abyss = under.id == 0 && under.fluid == 0 && abyss.id == 0 && abyss.fluid == 0 && alegs.id == 0 && alegs.fluid == 0;
-        this.is_wall = (ahead?.id != 0 && ahead?.id != -1 && ahead?.material?.style_name != 'planting' && ahead?.material?.style_name != 'chicken_nest') || (alegs?.material?.style_name == 'fence');
-        this.is_fire = (alegs.id == bm.FIRE.id || alegs.id == bm.CAMPFIRE.id);
-        this.is_water = ((under.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && this.time_fire == 0;
-        this.is_lava = ((under.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
-        this.is_gate = ahead.id != bm.AIR.id;
+
+        this.is_water = false
+        this.is_abyss = false
+        this.is_lava = false
+        this.is_fire = false
+
+        // коллизия со стеной
+        this.is_wall = this.pc.player_state.isCollidedHorizontally
+        if (!this.is_wall) {
+            const forward = mob.pos.clone()
+            forward.addSelf(mob.forward)
+            // если стены нет, то проверяем что под ногами
+            const ray = this.world.raycaster.get(forward, Vector.YN, 4, null, false, false, this.mob)
+            if (!ray) {
+                this.is_abyss = true
+            } else if (ray.block_id  == bm.FIRE.id || ray.block_id == bm.CAMPFIRE.id) {
+                this.is_fire = true
+            } else if ((ray.fluidVal & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
+                this.is_water = true
+            } else if ((ray.fluidVal & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
+                this.is_lava = true
+            }
+        }
+
         // стоит в лаве
         if (this.in_lava) {
             if (this.timer_lava_damage <= 0) {
@@ -251,17 +275,15 @@ export class FSMBrain {
         }
         // горение
         if (this.time_fire > 0) {
+            this.time_fire--
             if (this.timer_fire_damage >= MUL_1_SEC) {
                 this.timer_fire_damage = 0;
                 this.onDamage(1, EnumDamage.FIRE, null);
             } else {
                 this.timer_fire_damage++;
             }
-        } else {
-            this.time_fire--;
         }
-        // update extra data
-        this.mob.extra_data.time_fire = this.time_fire;
+        
         // регенерация жизни
         if (this.timer_health >= 10 * MUL_1_SEC) {
             mob.indicators.live = Math.min(mob.indicators.live + 1, this.mob.config.health);
@@ -273,6 +295,10 @@ export class FSMBrain {
         if (this.timer_panic > 0) {
             this.timer_panic--;
         }
+
+        // update extra data
+        this.mob.extra_data.time_fire = this.time_fire > 0;
+
         this.addStat('onLive');
 
         this.onFind();
@@ -377,16 +403,16 @@ export class FSMBrain {
             return;
         }
         // обход препятсвия
-        if (this.is_wall || this.is_fire || this.is_lava || this.is_water) {
+        if (this.is_wall || this.is_fire || this.is_lava || this.is_water || this.is_abyss) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + (Math.random() - Math.random()) * Math.PI / 8;
-            this.stack.replaceState(this.doStand);
-            return;
+           // this.stack.replaceState(this.doStand);
+           // return;
         }
-        if (Math.random() < 0.05) {
-            mob.rotate.z = mob.rotate.z + (Math.random() - Math.random()) * Math.PI / 12;
-            this.stack.replaceState(this.doStand);
-            return;
-        }
+       // if (Math.random() < 0.05) {
+        //    mob.rotate.z = mob.rotate.z + (Math.random() - Math.random()) * Math.PI / 12;
+       //     this.stack.replaceState(this.doStand);
+       //     return;
+       // }
         this.updateControl({
             forward: true,
             jump: false,
