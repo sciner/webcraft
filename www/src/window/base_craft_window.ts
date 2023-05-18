@@ -30,7 +30,7 @@ export class HelpSlot extends Label {
         super(x, y, sz, sz, id, null, null)
         this.ct = ct
         this.item = null
-        this.swapChildren(this.wmChildren[0], this.wmChildren[1])
+        this.swapChildren(this.children[0], this.children[1])
         this.hud_atlas = Resources.atlas.get('hud')
         // this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
         this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot'))
@@ -657,7 +657,7 @@ export class PaperDollSlot extends CraftTableInventorySlot {
 
         super(x, y, s, s, 'lblSlot' + id, null, null, ct, id)
 
-        this.swapChildren(this.wmChildren[0], this.wmChildren[1])
+        this.swapChildren(this.children[0], this.children[1])
 
         const origOnDrop = this.onDrop.bind(this);
 
