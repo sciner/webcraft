@@ -1,5 +1,5 @@
 import { BLOCK, DBItemBlock } from "../../blocks.js";
-import { Schematic } from "../../../../node_server/node_modules/prismarine-schematic/index.js";
+import { Schematic } from "@server/node_modules/prismarine-schematic/index.js";
 import { promises as fs } from 'fs';
 import { DIRECTION_BIT, SIX_VECS, Vector, VectorCollector } from "../../helpers.js";
 import { RailShape } from "../../block_type/rail_shape.js";
@@ -8,7 +8,6 @@ import * as FLUID from '../../fluid/FluidConst.js';
 const facings4 = ['north', 'west', 'south', 'east'];
 const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
 const dripstone_stages = ['tip', 'frustum', 'middle', 'base'];
-
 const NO_IMPORT_BLOCKS = ['AIR', 'NETHER_PORTAL'];
 
 // const {Schematic} = await import("prismarine-schematic" as any)

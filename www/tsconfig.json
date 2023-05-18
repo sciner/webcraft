@@ -20,6 +20,7 @@
         "baseUrl": "./" ,
         "paths": {
             "vauxcel": ["./js-lib/vauxcel.mjs"],
+            "@server/*": ["../node_server/*"],
             "@vendors/*": ["./vendors/*"],
             "pako": ["./js-lib/pako.esm.mjs"]
         },
