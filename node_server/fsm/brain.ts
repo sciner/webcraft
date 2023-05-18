@@ -405,14 +405,14 @@ export class FSMBrain {
         // обход препятсвия
         if (this.is_wall || this.is_fire || this.is_lava || this.is_water || this.is_abyss) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + (Math.random() - Math.random()) * Math.PI / 8;
-           // this.stack.replaceState(this.doStand);
-           // return;
+            this.stack.replaceState(this.doStand);
+            return;
         }
-       // if (Math.random() < 0.05) {
-        //    mob.rotate.z = mob.rotate.z + (Math.random() - Math.random()) * Math.PI / 12;
-       //     this.stack.replaceState(this.doStand);
-       //     return;
-       // }
+        if (Math.random() < 0.05) {
+            mob.rotate.z = mob.rotate.z + (Math.random() - Math.random()) * Math.PI / 12;
+            this.stack.replaceState(this.doStand);
+            return;
+        }
         this.updateControl({
             forward: true,
             jump: false,
