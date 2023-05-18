@@ -94,7 +94,7 @@ export class Window extends VAUX.Container {
     draggable:              boolean = false
     autofocus:              boolean = false
     wmParent: any;
-    wmChildren: Array<any>;
+    // children: Array<any>;
 
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
 
@@ -112,14 +112,14 @@ export class Window extends VAUX.Container {
         this.list = {
             values: () => {
                 const resp = []
-                for(let w of this.wmChildren) {
+                for(let w of this.children) {
                     if(w instanceof Window && w.auto_center) {
                         resp.push(w)
                     }
                 }
                 return resp
             },
-            keys: () => this.wmChildren.map(c => c.id),
+            keys: () => this.children.map((c : any) => c.id),
             has(id) {
                 return !!this.get(id)
             },
@@ -130,14 +130,14 @@ export class Window extends VAUX.Container {
                 }
             },
             get: (id) => {
-                for(let w of this.wmChildren) {
-                    if(w.id == id) return w
+                for(let w of this.children) {
+                    if((w as any).id == id) return w
                 }
                 return null
             },
             clear: () => {
-                while(this.wmChildren[0]) {
-                    this.removeChild(this.wmChildren[0])
+                while(this.children[0]) {
+                    this.removeChild(this.children[0])
                 }
             }
         }
@@ -492,8 +492,9 @@ export class Window extends VAUX.Container {
 
     hasVisibleWindow() {
 
-        for(let w of this.getRoot().wmChildren) {
-            if(w && w.id && w.visible && !(w instanceof Label) && w.catchEvents) return true
+        for(let w of this.getRoot().children) {
+            const wnd = w as any
+            if(wnd && wnd.id && wnd.visible && !(wnd instanceof Label) && wnd.catchEvents) return true
         }
 
         return false
@@ -1077,7 +1078,7 @@ export class Button extends Window {
             // this.text_container.position.set(this.w / 2, this.h / 2)
         }
 
-        this.swapChildren(this.wmChildren[0], this.wmChildren[1])
+        this.swapChildren(this.children[0], this.children[1])
 
         this.style.textAlign.horizontal = 'center';
         this.style.textAlign.vertical = 'middle';

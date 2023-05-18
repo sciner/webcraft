@@ -74,8 +74,6 @@ export class BBModel_Cube extends BBModel_Child {
             debugger
             throw 'error_bbcube_no_faces'
         }
-        if(!globalThis.asdads) globalThis.asdads=0
-        if(globalThis.asdads++%100==0)console.log(globalThis.asdads)
         default_style.pushPART(vertices, {
             faces:      faces,
             size:       this.size,
