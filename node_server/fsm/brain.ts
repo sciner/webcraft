@@ -134,8 +134,7 @@ export class FSMBrain {
                     break;
                 }
             }
-        }
-        */
+        }*/
     }
 
     applyControl(delta : float) {
@@ -213,12 +212,12 @@ export class FSMBrain {
          //this.under_id = under.id;
          
         const mob_pos = mob.pos.floored()
-        const head = chunk.getBlock(this.getEyePos().floored());
-        this.legs = chunk.getBlock(mob_pos);
-        this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && state.isInWater;
-        this.in_fire = (this.legs.id == bm.FIRE.id || this.legs.id == bm.CAMPFIRE.id);
-        this.in_lava = state.isInLava;
-        this.in_air = (head.fluid == 0 && (this.legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
+        const head = chunk.getBlock(this.getEyePos().floored())
+        this.legs = chunk.getBlock(mob_pos)
+        this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && state.isInWater
+        this.in_fire = (this.legs.id == bm.FIRE.id || this.legs.id == bm.CAMPFIRE.id)
+        this.in_lava = state.isInLava
+        this.in_air = (head.fluid == 0 && (this.legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID)
 
         this.is_water = false
         this.is_abyss = false
@@ -320,7 +319,6 @@ export class FSMBrain {
                 this.timer_fire_damage++;
             }
         }
-        
         // регенерация жизни
         if (this.timer_health >= 10 * MUL_1_SEC) {
             mob.indicators.live = Math.min(mob.indicators.live + 1, this.mob.config.health);
@@ -334,31 +332,25 @@ export class FSMBrain {
         }
 
         // update extra data
-        this.mob.extra_data.time_fire = this.time_fire > 0;
+        this.mob.extra_data.in_fire = this.time_fire > 0;
 
-        this.addStat('onLive');
-
-        this.onFind();
+        this.addStat('onLive')
+        this.onFind()
     }
 
     // поиск игроков или мобов
     onFind() {
         if (this.target || !this.targets || this.targets.length == 0 || this.distance_view < 1) {
-            return;
+            return
         }
         const mob = this.mob;
         const world = mob.getWorld();
         const players = world.getPlayersNear(mob.pos, this.distance_view, false);
-        const friends = [];
         for (const player of players) {
-            if (this.targets.includes(player.state.hands.right.id)) {
-                friends.push(player);
+            if (Math.random() > (player.state.pos.distance(mob.pos) / this.distance_view) && this.targets.includes(player.state.hands.right.id)) {
+                this.target = player
+                return
             }
-        }
-        if (friends.length > 0) {
-            const rnd = (Math.random() * friends.length) | 0;
-            const player = friends[rnd];
-            this.target = player;
         }
         this.addStat('onFind');
     }
@@ -401,7 +393,7 @@ export class FSMBrain {
             this.stack.replaceState(this.doFindGround);
             return;
         }
-        if (Math.random() < 0.05 || this.timer_panic > 0) {
+        if (Math.random() < .05 || this.timer_panic > 0) {
             this.stack.replaceState(this.doForward);
             return;
         }
