@@ -206,9 +206,10 @@ export default class style {
                     bm.TEXT.id,
                     {
                         ...tblock.extra_data,
-                        aabb: aabb,
-                        chars: AlphabetTexture.getStringUVs(text),
-                        sign: sign.length > 0 ? AlphabetTexture.getStringUVs(sign.join(' | ')) : null
+                        bb:     !!tblock.material.bb,
+                        aabb:   aabb,
+                        chars:  AlphabetTexture.getStringUVs(text),
+                        sign:   sign.length > 0 ? AlphabetTexture.getStringUVs(sign.join(' | ')) : null
                     },
                     new Vector(x, y, z),
                     tblock.rotate,

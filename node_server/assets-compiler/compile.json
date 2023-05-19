@@ -12832,6 +12832,20 @@
             "material": {
                 "id": "quartz"
             }
+        },
+        {
+            "id": 496,
+            "name": "REDSTONE_LAMP",
+            "material": {
+                "id": "stone"
+            },
+            "light_power": {
+                "r": 253,
+                "g": 200,
+                "b": 80,
+                "a": 255
+            },
+            "texture": "block/redstone_lamp.png"
         }
     ]
 }
