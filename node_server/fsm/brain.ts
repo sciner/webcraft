@@ -349,7 +349,7 @@ export class FSMBrain {
         for (const player of players) {
             if (Math.random() > (player.state.pos.distance(mob.pos) / this.distance_view) && this.targets.includes(player.state.hands.right.id)) {
                 this.target = player
-                return
+                break
             }
         }
         this.addStat('onFind');
