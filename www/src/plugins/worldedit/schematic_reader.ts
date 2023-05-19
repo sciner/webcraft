@@ -91,7 +91,7 @@ export class SchematicReader {
         const ep = new Vector(0, 0, 0);
         let min_y = Infinity;
         const cached_blocks = new Map();
-        await schematic.forEach((block, pos) => {
+        (schematic as any).forEachFast((block, pos) => {
             bpos.copyFrom(pos);
             bpos.z *= -1;
             if(bpos.y < min_y) {

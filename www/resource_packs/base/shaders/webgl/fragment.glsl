@@ -203,7 +203,8 @@ void main() {
         float msdfSize = 100.0;
 
         vec4 msdfColor = vec4(v_color.rgb / 255.0, 1.0);
-        vec4 outlineColor = vec4(1.0 - v_color.rgb / 255.0, 0.8);
+        // vec4 outlineColor = vec4(1.0 - v_color.rgb / 255.0, 0.8);
+        vec4 outlineColor = vec4(0.0, .0, .0, 0.8);
 
         float msdfFactor =  0.5 * length(fwidth(v_texcoord0) * msdfSize);
         float totalThreshold = threshold - outline;

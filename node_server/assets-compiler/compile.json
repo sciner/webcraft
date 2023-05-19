@@ -6090,6 +6090,9 @@
             "material": {
                 "id": "wood"
             },
+            "tags": [
+                "alpha"
+            ],
             "texture": {
                 "id": "alphabet",
                 "side": "0|0"
