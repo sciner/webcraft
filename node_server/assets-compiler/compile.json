@@ -5943,7 +5943,8 @@
                 "sign",
                 "rotate_x16",
                 "no_drop_ao",
-                "rotate_by_pos_n_5"
+                "rotate_by_pos_n_5",
+                "rotate_by_pos_n"
             ],
             "material": {
                 "id": "wood"
