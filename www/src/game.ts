@@ -438,7 +438,7 @@ export class GameClass {
                 }
                 // Windows
                 if(hud.wm.hasVisibleWindow()) {
-                    if(e.down && e.keyCode == KEY.TAB) {
+                    if(!e.down && e.keyCode == KEY.TAB) {
                         if(hud.wm.getWindow('frmInGameMain').visible) {
                             hud.wm.getWindow('frmInGameMain').hide()
                             return true
@@ -622,7 +622,7 @@ export class GameClass {
                     }
                     // Tab (Quests)
                     case KEY.TAB: {
-                        if(e.down) {
+                        if(!e.down) {
                             if(!hud.wm.hasVisibleWindow()) {
                                 hud.wm.getWindow('frmInGameMain').openTab('frmQuests')
                                 return true

@@ -29,6 +29,31 @@ import type { ChunkWorkerChunk } from '../worker/chunk.js';
  * @property {CharUV} uv - original uv
  */
 
+const colorMap = {
+    '0': [0, 0, 0], // 'color:#000000',
+    '1': [0, 0, 170], // 'color:#0000AA',
+    '2': [0, 170, 0], // 'color:#00AA00',
+    '3': [0, 170, 170], // 'color:#00AAAA',
+    '4': [170, 0, 0], // 'color:#AA0000',
+    '5': [170, 0, 170], // 'color:#AA00AA',
+    '6': [255, 170, 0], // 'color:#FFAA00',
+    '7': [255, 255, 255], // 'color:#AAAAAA',
+    '8': [85, 85, 85], // 'color:#555555',
+    '9': [85, 85, 255], // 'color:#5555FF',
+    'a': [85, 255, 85], // 'color:#55FF55',
+    'b': [85, 255, 255], // 'color:#55FFFF',
+    'c': [255, 85, 85], // 'color:#FF5555',
+    'd': [255, 85, 255], // 'color:#FF55FF',
+    'e': [255, 255, 85], // 'color:#FFFF55',
+    'f': [255, 255, 255], // 'color:#FFFFFF',
+    // 'l': 'font-weight:bold',
+    // 'm': 'text-decoration:line-through',
+    // 'n': 'text-decoration:underline',
+    // 'o': 'font-style:italic',
+}
+
+const code_char = '§'
+
 // Табличка
 export default class style {
     [key: string]: any;
@@ -72,9 +97,9 @@ export default class style {
         // compute real width
         for(let char of chars) {
             if (char.char === '\r') {
-                cursorY ++;
-                cursorX = 0;
-                continue;
+                cursorY++
+                cursorX = 0
+                continue
             }
 
             cursorX += char.uv.xadvance;
@@ -88,11 +113,33 @@ export default class style {
         cursorX = 0;
         cursorY = 0;
 
-        for(let char of chars) {
+        const default_color = color
+
+        for(let i = 0; i < chars.length; i++) {
+            const char = chars[i]
+
             if(char.char == "\r") {
                 cursorY ++
                 cursorX = 0;
-                continue;
+                continue
+            } else if(char.char == code_char && i < chars.length - 2) {
+                const next_char = chars[i + 1]
+                switch(next_char.char) {
+                    case 'r': {
+                        color = default_color
+                        i++
+                        break
+                    }
+                    default: {
+                        const _c = colorMap[next_char.char]
+                        if(_c) {
+                            color = _c
+                            i++
+                        }
+                        break
+                    }
+                }
+                continue
             }
 
             const uv = char.uv;
@@ -130,6 +177,8 @@ export default class style {
 
             }
 
+            let flags = QUAD_FLAGS.QUAD_FLAG_SDF
+
             // Push letter vertices
             pushAABB(
                 vertices,
@@ -137,7 +186,7 @@ export default class style {
                 pivot,
                 matrix,
                 {
-                    south:  new AABBSideParams(c, QUAD_FLAGS.QUAD_FLAG_SDF, 1, null, null, false, color)
+                    south:  new AABBSideParams(c, flags, 1, null, null, false, color)
                 },
                 center
             );

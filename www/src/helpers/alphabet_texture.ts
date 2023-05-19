@@ -115,8 +115,10 @@ export class AlphabetTexture {
         const resp = [];
         const def_char = this.chars.get('�');
         for(let char of chars) {
-            const item = this.chars.has(char) ? this.chars.get(char) : def_char;
+            const item = {...this.chars.has(char) ? this.chars.get(char) : def_char}
             if(char == "\r") {
+                item.char = char;
+            } else if(char == '§') {
                 item.char = char;
             }
             resp.push(item);
