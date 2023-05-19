@@ -432,7 +432,7 @@ export class FSMBrain {
             return;
         }
         // обход препятсвия
-        if (this.is_wall || this.is_fire || this.is_lava || this.is_water || this.is_abyss) {
+        if (this.is_wall || this.is_fire || this.is_lava || (this.is_water && this.time_fire == 0) || this.is_abyss) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + (Math.random() - Math.random()) * Math.PI / 8;
             this.stack.replaceState(this.doStand);
             return;
