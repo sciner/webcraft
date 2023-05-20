@@ -130,6 +130,7 @@ export default class style {
                 },
                 new Vector(x, y, z)
             )
+            // TODO: нарисовать вот тут цепи между aabb и ceiling_fixture
         }
 
         // Push vertices
