@@ -1238,7 +1238,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
                 }
             }
             // 
-            new_item.rotate.z = pos.point.y < .5 ? -1 : 1
+            
             // Rotate block one of 8 poses
             if(mat_block.tags.includes('rotate_x8')) {
                 if(new_item.rotate.y != 0) {
