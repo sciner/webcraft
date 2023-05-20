@@ -289,7 +289,7 @@ export default class style {
     //
     static makeAABBSign(tblock, x, y, z) {
 
-        const draw_bottom = tblock.rotate ? (tblock.rotate.y != 0) : true
+        const rotate = tblock.rotate ?? new Vector(0, 0, 0)
 
         const aabb = new AABB(
             x + .5 - CONNECT_X / 2,
