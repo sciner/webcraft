@@ -1042,6 +1042,10 @@ export class DBWorldMigration {
             }
         ]});
 
+        migrations.push({version: 102, queries: [
+            `DELETE from world_modify_chunks;`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

@@ -404,7 +404,7 @@ export class AABBSideParams {
     lm: IndexedColor | null = null;
     axes?: number[][];
     autoUV: boolean = false;
-    rawColor?: null;
+    rawColor?: number[] | null;
     offset?: number[];
 
     constructor(uv : float[] = [0, 0, 0, 0], flag : int = 0, anim : number = 0, lm : IndexedColor | null = null, axes? : number[][], autoUV : boolean = false, rawColor = null, offset = null) {
