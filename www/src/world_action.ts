@@ -1251,6 +1251,15 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
                     new_item.rotate.x = action_player_info.rotate.z / 90;
                 }
             }
+            // Rotate block as sign
+            if(mat_block.tags.includes('rotate_sign')) {
+                if(new_item.rotate.y == 0 && pos.point.y >= .5) {
+                    new_item.rotate.y = -1
+                }
+                if(new_item.rotate.y != 0) {
+                    new_item.rotate.x = action_player_info.rotate.z / 90;
+                }
+            }
             // Auto open edit window if sign
             if(mat_block.style_name == 'sign') {
                 actions.open_window = {

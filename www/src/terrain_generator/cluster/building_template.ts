@@ -798,6 +798,10 @@ export class BuildingTemplate {
 
         const rotx16 = rotx8
 
+        const rot_sign = (block) => {
+            rotx16(block)
+        }
+
         const rot_rails = (block) => {
             const rot_sides = [
                 [5, 2, 4, 3],
@@ -883,6 +887,9 @@ export class BuildingTemplate {
 
             } else if(mat.tags.includes('rotate_x16')) {
                 rotx16(block)
+
+            } else if(mat.tags.includes('rotate_sign')) {
+                rot_sign(block)
 
             } else if(['sign'].includes(mat.style_name)) {
                 rot4(block)

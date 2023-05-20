@@ -424,7 +424,8 @@ export class SchematicReader {
                         new_block.rotate.x = Math.round(props.rotation / 8 * 360) % 360
                     } else if(b.tags.includes('rotate_x16')) {
                         new_block.rotate.x = Math.round(props.rotation / 16 * 360) % 360
-                        setExtraData('rotation', props.rotation)
+                    } else if(b.tags.includes('rotate_sign')) {
+                        new_block.rotate.x = Math.round(props.rotation / 16 * 360) % 360
                     }
                 }
             }
