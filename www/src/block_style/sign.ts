@@ -174,18 +174,32 @@ export default class style {
     static makeAABBSign(tblock, x, y, z) {
 
         const draw_bottom = tblock.rotate ? (tblock.rotate.y != 0) : true
+        const is_bb = !!tblock.material.bb
+
+        const connect_z = is_bb ? 3/32 : CONNECT_Z
 
         const aabb = new AABB(
             x + .5 - CONNECT_X / 2,
             y + .6,
-            z + .5 - CONNECT_Z / 2,
+            z + .5 - connect_z / 2,
             x + .5 + CONNECT_X / 2,
             y + .6 + CONNECT_HEIGHT,
-            z + .5 + CONNECT_Z / 2,
+            z + .5 + connect_z / 2,
         )
 
-        if(!draw_bottom) {
-            aabb.translate(0, -(.2 + aabb.height) / 2, .5 - aabb.depth / 2)
+        
+        if(is_bb) {
+            let tz = 0
+            let ty = -.725/32
+            if(!draw_bottom) {
+                ty += -5/16
+                tz = .5 - aabb.depth / 2
+            }
+            aabb.translate(0, ty, tz)
+        } else {
+            if(!draw_bottom) {
+                aabb.translate(0, -(.2 + aabb.height) / 2, .5 - aabb.depth / 2)
+            }
         }
 
         return aabb

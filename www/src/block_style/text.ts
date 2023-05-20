@@ -221,7 +221,7 @@ export default class style {
 
         if(is_bb) {
             aabb.y_max -= 1 / 32
-            aabb.translate(0, -1/32, 1/20)
+            aabb.translate(0, -1/32, .5/32)
         }
 
         // Each over all text chars
@@ -243,7 +243,7 @@ export default class style {
         const sign = block.extra_data.sign
         if(sign) {
             if(is_bb) {
-                aabb.translate(0, 1/64, -1/60)
+                aabb.translate(0, 0, -.5/32)
             }
             aabb.y_min -= 1/24
             aabb.y_max = aabb.y_min + aabb.height * 0.1
