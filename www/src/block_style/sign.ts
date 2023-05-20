@@ -1,4 +1,4 @@
-import {calcRotateMatrix, DIRECTION, AlphabetTexture, Vector, IndexedColor} from '../helpers.js';
+import {calcRotateMatrix, DIRECTION, AlphabetTexture, Vector, IndexedColor, fromMat3} from '../helpers.js';
 import {BlockManager, FakeTBlock} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
@@ -12,7 +12,7 @@ import { BlockStyleRegInfo, default as default_style } from './default.js';
 const {mat4} = glMatrix;
 
 const CENTER_WIDTH      = 1.9 / 16;
-const CONNECT_X         = 16 / 16;
+const CONNECT_X         = 14 / 16;
 const CONNECT_Z         = 2 / 16;
 const CONNECT_HEIGHT    = 8 / 16;
 const BOTTOM_HEIGHT     = .6;
@@ -99,6 +99,73 @@ export default class style {
         const c_chain = bm.calcTexture(bm.CHAIN.texture, DIRECTION.UP)
         const rotate = block.rotate
         const parts = []
+        if (rotate.y == 1) {
+            parts.push(...[
+                {
+                    "size": {"x": 14, "y": 8, "z": 2},
+                    "translate": {"x": 0, "y": 4, "z": 0},
+                    "faces": {
+                        "up": {"uv": [8, 8],"texture": c_up},
+                        "down": {"uv": [8, 8],"texture": c_up},
+                        "north": {"uv": [8, 8],"texture": c_up},
+                        "south": {"uv": [8, 8],"texture": c_up},
+                        "east": {"uv": [8, 8],"texture": c_up},
+                        "west": {"uv": [8, 8],"texture": c_up}
+                    }
+                },
+                {
+                    "size": {"x": 2, "y": 8, "z": 2},
+                    "translate": {"x": 0, "y": -4, "z": 0},
+                    "faces": {
+                        "up": {"uv": [8, 8],"texture": c_up},
+                        "down": {"uv": [8, 8],"texture": c_up},
+                        "north": {"uv": [8, 8],"texture": c_up},
+                        "south": {"uv": [8, 8],"texture": c_up},
+                        "east": {"uv": [8, 8],"texture": c_up},
+                        "west": {"uv": [8, 8],"texture": c_up}
+                    }
+                }
+            ])
+        }
+        /*if (rotate.y == 0) {
+            if (rotate.z == -1) {
+                parts.push(
+                    {
+                        "size": {"x": 14, "y": 8, "z": 2},
+                        "translate": {"x": 0, "y": 0, "z": 7},
+                        "faces": {
+                            "up": {"uv": [8, 8],"texture": c_up},
+                            "down": {"uv": [8, 8],"texture": c_up},
+                            "north": {"uv": [8, 8],"texture": c_up},
+                            "south": {"uv": [8, 8],"texture": c_up},
+                            "east": {"uv": [8, 8],"texture": c_up},
+                            "west": {"uv": [8, 8],"texture": c_up}
+                        }
+                    }
+                )
+            } else {
+                parts.push(
+                    {
+                        "size": {"x": 14, "y": 8, "z": 2},
+                        "translate": {"x": 0, "y": rotate.y == 1 ? 4 : -2, "z": 0},
+                        "faces": {
+                            "up": {"uv": [8, 8],"texture": c_up},
+                            "down": {"uv": [8, 8],"texture": c_up},
+                            "north": {"uv": [8, 8],"texture": c_up},
+                            "south": {"uv": [8, 8],"texture": c_up},
+                            "east": {"uv": [8, 8],"texture": c_up},
+                            "west": {"uv": [8, 8],"texture": c_up}
+                        }
+                    }
+                )    
+            }
+        }
+        if (rotate.x == 0 || rotate.y == -1) {
+
+        }
+        
+
+
         parts.push(
             {
                 "size": {"x": 2, "y": 8, "z": 14},
@@ -206,7 +273,7 @@ export default class style {
                     }
                 ])
             }
-        }
+        }*/
 
 
 /*
@@ -277,11 +344,12 @@ export default class style {
         matrix = mat4.create()
         // висит на верху, значит разворачиваем к лицу
         if (rotate.y == 0) {
-            mat4.rotateY(matrix, matrix, block.rotate.x * -Math.PI / 2);
+            const angle = rotate.z == 1 ? rotate.x + 1 : rotate.x + 2
+            matrix = fromMat3(new Float32Array(16), CubeSym.matrices[angle % 4])
         } else {
-            mat4.rotateY(matrix, matrix, block.rotate.x * Math.PI / 2  + Math.PI / 2);
+            mat4.rotateY(matrix, matrix, block.rotate.x * Math.PI / 2 + Math.PI)
         }
-        
+
         const pos = new Vector(x, y, z)
         for (const part of parts) {
             default_style.pushPART(vertices, {
@@ -363,6 +431,12 @@ export default class style {
             return [text_block]
         }*/
 
+        const aabb = style.makeAABBSign(block, x, y, z)
+        const text_block = style.makeTextBlock(block, aabb, pivot, matrix, x, y, z)
+        if(text_block) {
+            return [text_block]
+        }
+
         return null;
 
     }
@@ -381,8 +455,12 @@ export default class style {
             z + .5 + CONNECT_Z / 2,
         )
 
-        if(!draw_bottom) {
-            aabb.translate(0, -(.2 + aabb.height) / 2, .5 - aabb.depth / 2)
+        if(tblock.rotate.y == 0) {
+            if (tblock.rotate.z == -1) {
+                aabb.translate(0, -(.2 + aabb.height) / 2, .5 - aabb.depth / 2)
+            } else {
+                aabb.translate(0, -.45, 0)
+            }
         }
 
         return aabb
