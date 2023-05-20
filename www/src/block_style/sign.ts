@@ -54,15 +54,16 @@ export default class style {
         const resp      = [];
         const width     = .5;
         const height    = 1;
+        const rotate    = tblock.rotate
 
-        if (tblock.rotate.y == 0) {
-            if (tblock.rotate.z == -1) {
+        if (rotate && rotate.y == 0) {
+            if (rotate.z == -1) {
                 aabb = new AABB()
                 aabb.set(
                     1/16,  4/16,  0/16,
                     15/16, 12/16, 2/16,
                 )
-                const dir = CubeSym.dirAdd((tblock.rotate.x + 2) % 4, CubeSym.ROT_Y2)
+                const dir = CubeSym.dirAdd((rotate.x + 2) % 4, CubeSym.ROT_Y2)
                 aabb.rotate(dir, new Vector(0.5, 0.5, 0.5))
                 return [aabb]
             }
@@ -71,7 +72,7 @@ export default class style {
                 1/16,  2/16,  7/16,
                 15/16, 10/16, 9/16,
             )
-            const dir = CubeSym.dirAdd((tblock.rotate.x + 1) % 4, CubeSym.ROT_Y2)
+            const dir = CubeSym.dirAdd((rotate.x + 1) % 4, CubeSym.ROT_Y2)
             aabb.rotate(dir, new Vector(0.5, 0.5, 0.5))
             aabb2 = new AABB()
             aabb2.set(
@@ -82,7 +83,7 @@ export default class style {
             return [aabb, aabb2]
         }
         /* Center
-        if(tblock.rotate.y == 0) {
+        if(rotate.y == 0) {
             const mul = 1.01;
             aabb = new AABB();
             aabb.set(
@@ -94,7 +95,7 @@ export default class style {
                 z + .5 + CONNECT_Z*mul/2,
             );
             const dist = -(.5 - aabb.depth / 2);
-            const dir = CubeSym.dirAdd(tblock.rotate.x, CubeSym.ROT_Y2);
+            const dir = CubeSym.dirAdd(rotate.x, CubeSym.ROT_Y2);
             aabb.rotate(dir, aabb.center);
             aabb.translate(cubeSymAxis[dir][0] * dist, -(.2 + aabb.height) / 2, cubeSymAxis[dir][1] * dist);
         }*/
@@ -287,9 +288,9 @@ export default class style {
     }
 
     //
-    static makeAABBSign(tblock, x, y, z) {
+    static makeAABBSign(tblock : TBlock | FakeTBlock, x : int, y : int, z : int) {
 
-        const rotate = tblock.rotate ?? new Vector(0, 0, 0)
+        const rotate = tblock.rotate ?? Vector.ZERO
 
         const aabb = new AABB(
             x + .5 - CONNECT_X / 2,
@@ -300,13 +301,13 @@ export default class style {
             z + .5 + CONNECT_Z / 2,
         )
 
-        if (tblock.rotate.y == 0) {
-            if (tblock.rotate.z == -1) {
+        if (rotate.y == 0) {
+            if (rotate.z == -1) {
                 aabb.translate(0, -(.2 + aabb.height) / 2, .5 - aabb.depth / 2)
             } else {
                 aabb.translate(0, -.45, 0)
             }
-        } else if (tblock.rotate.y == -1) {
+        } else if (rotate.y == -1) {
             aabb.translate(0, -.45, 0)
         }
 
@@ -315,7 +316,7 @@ export default class style {
     }
 
     //
-    static makeTextBlock(tblock, aabb, pivot, matrix, x, y, z) {
+    static makeTextBlock(tblock : TBlock | FakeTBlock, aabb : AABB, pivot, matrix, x : number, y : number, z : number) {
         const bm = style.block_manager
         // Return text block
         if(tblock.extra_data) {
