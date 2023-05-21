@@ -410,7 +410,8 @@ export default class WorldEdit {
         //
         const actions_list = new VectorCollector();
         const createwWorldActions = () => {
-            const resp = new WorldAction(null, null, true, false);
+            const resp = new WorldAction(null, null, true, false)
+            resp.blocks.options.can_ignore_air = true
             return resp;
         };
         //
@@ -915,7 +916,9 @@ export default class WorldEdit {
 
     // schematic commands
     async cmd_schematic(chat, player, cmd, args) {
-        args = chat.parseCMD(args, ['string', 'string', 'string']);
+        // name : string, load|save : string, filename : string, ?read_air : boolean
+        args = chat.parseCMD(args, ['string', 'string', 'string', '?boolean']);
+        const read_air = args.length > 3 && args[3]
         const action = args[1];
         let msg = null;
         //
@@ -926,7 +929,7 @@ export default class WorldEdit {
             case 'load': {
                 const filename = args[2]
                 const user_id = player.session.user_id
-                this.postWorkerMessage(['schem_load', {filename, user_id}])
+                this.postWorkerMessage(['schem_load', {filename, user_id, read_air}])
                 return
                 // let p = performance.now();
                 // const reader = new SchematicReader();

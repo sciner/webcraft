@@ -718,6 +718,10 @@ export class ServerChat {
                 case '?float':
                     value = parseArgFloat(ch)
                     break
+                case 'boolean':
+                case '?boolean':
+                    value = new String(ch).toLowerCase() == 'true'
+                    break
                 case 'x':
                 case '?x':
                     value = parseArgCoord(ch, player?.state.pos.x)

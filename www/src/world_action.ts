@@ -62,6 +62,7 @@ export type TActionBlock = {
 type ActionBlocks = {
     list: TActionBlock[]
     options: {
+        can_ignore_air      : boolean
         ignore_check_air    : boolean
         on_block_set        : boolean
         on_block_set_radius : number
@@ -594,6 +595,7 @@ export class WorldAction {
                 list: [],
                 options: {
                     ignore_check_air: ignore_check_air,
+                    can_ignore_air: false,
                     on_block_set: on_block_set,
                     on_block_set_radius: 1
                 }
