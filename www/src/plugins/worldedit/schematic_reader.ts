@@ -34,6 +34,7 @@ export class SchematicReader {
             SIGN:                   'BIRCH_SIGN',
             DETECTOR_RAIL:          'POWERED_RAIL',
             SKELETON_SKULL:         'SKULL_DESERT',
+            CARROTS:                'CARROT_SEEDS',
         }
     }
 
@@ -242,7 +243,9 @@ export class SchematicReader {
             return new_block;
         }
         if(b.item || b.style_name == 'extruder' || b.style_name == 'text') {
-            return null;
+            if(b.item && !b.tags.includes('can_set_as_block')) {
+                return null
+            }
         }
         if(b.chest) {
             new_block.extra_data = this.parseChestPropsExtraData(props);

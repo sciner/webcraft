@@ -8910,7 +8910,7 @@
         },
         {
             "id": 196,
-            "name": "POTATO",
+            "name": "POTATOES",
             "style": "planting",
             "transparent": true,
             "diagonal": true,
@@ -8923,6 +8923,7 @@
             },
             "tags": [
                 "can_put_into_pot",
+                "can_set_as_block",
                 "agriculture"
             ],
             "food": {
@@ -8932,7 +8933,7 @@
             "seeds": {
                 "result": {
                     "complete": [
-                        {"name": "POTATO", "count": {"min": 1, "max": 3}}
+                        {"name": "POTATOES", "count": {"min": 1, "max": 3}}
                     ]
                 }
             },

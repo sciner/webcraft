@@ -85,6 +85,7 @@ export default class style {
             if(tblock.extra_data?.stage != undefined) {
                 aabb_size = aabb_size.clone()
                 aabb_size.y *= (tblock.extra_data?.stage + 1) / (material.ticking.max_stage + 1)
+                aabb_size.y = Math.min(aabb_size.y, 16)
             }
         }
         

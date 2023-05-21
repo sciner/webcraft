@@ -55,8 +55,8 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         this.items          = items
 
         Object.assign(this, {
-            width: .3,
-            height: .3,
+            width: .1,
+            height: .25,
         })
 
         // draw_style

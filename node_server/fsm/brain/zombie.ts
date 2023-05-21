@@ -186,7 +186,7 @@ export class Brain extends FSMBrain {
             switch (drop) {
                 case 0: items.push({ id: bm.IRON_INGOT.id, count: 1 }); break;
                 case 1: items.push({ id: bm.CARROT.id, count: 1 }); break;
-                case 2: items.push({ id: type_damage != EnumDamage.FIRE ? bm.POTATO.id : bm.BACKED_POTATO.id, count: 1 }); break;
+                case 2: items.push({ id: type_damage != EnumDamage.FIRE ? bm.POTATOES.id : bm.BACKED_POTATO.id, count: 1 }); break;
             }
         }
         if (items.length > 0) {
