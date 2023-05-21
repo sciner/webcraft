@@ -10,6 +10,7 @@ import { WorldAction } from "@client/world_action.js";
 import type {MobControlParams} from "@client/control/player_control.js";
 import type {World} from "@client/world.js";
 import type {ServerWorld} from "../server_world.js";
+import type { ServerChunk } from "server_chunk.js";
 
 const MUL_1_SEC = 20;
 
@@ -192,9 +193,9 @@ export class FSMBrain {
     // контроль жизней и состояния моба
     onLive() {
         const mob = this.mob;
-        const chunk = mob.inChunk
-        if (!chunk) {
-            return;
+        const mob_chunk = mob.inChunk
+        if (!mob_chunk) {
+            return
         }
         const world = mob.getWorld()
         // адреса
@@ -232,11 +233,21 @@ export class FSMBrain {
         this.under = null
         // коллизия со стеной
         this.is_wall = state.isCollidedHorizontally
+        //
+        
+
         if (!this.is_wall) {
             const forward = mob.pos.clone()
             forward.addSelf(mob.forward.mulScalar(this.pc.playerHalfWidth)).floored()
             let height = 0
+            let chunk : ServerChunk = null
+            const _chunk_addr = new Vector()
+            const grid = world.chunkManager.grid
             for (let i = 0; i < 5; i++) {
+                grid.getChunkAddr(forward.x, forward.y, forward.z, _chunk_addr)
+                if(!chunk || !chunk.addr.equal(_chunk_addr)) {
+                    chunk = world.chunkManager.getChunk(_chunk_addr)
+                }
                 const block = chunk.getBlock(forward)
                 if (i == 0) {
                     this.under = block 
@@ -298,7 +309,7 @@ export class FSMBrain {
         }
         // стоит в огне или на свете
         if (this.in_fire || (world.getLight() > 11
-            && (chunk.tblocks.lightData && (this.legs.lightValue >> 8) === 0)
+            && (mob_chunk.tblocks.lightData && (this.legs.lightValue >> 8) === 0)
             && !this.resistance_light)) {
             this.time_fire = Math.max(8 * MUL_1_SEC, this.time_fire);
         }
