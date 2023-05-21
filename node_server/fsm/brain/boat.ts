@@ -7,7 +7,7 @@ export class Brain extends FSMBrain {
 
     constructor(mob) {
         super(mob);
-        //
+        mob.extra_data.play_death_animation = false
         this.stack.pushState(this.doNothing)
     }
 

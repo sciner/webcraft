@@ -56,10 +56,6 @@ export class MobState {
         this.pos = new Vector(pos).roundSelf(3)
         this.rotate = new Vector(rotate).roundSelf(3)
         this.extra_data = ObjectHelpers.deepClone(extra_data)
-        if(this.extra_data?.time_fire !== undefined) {
-            this.extra_data.in_fire = this.extra_data.time_fire > 0
-            delete(this.extra_data.time_fire)
-        }
         this.flags = flags
     }
 

@@ -34,9 +34,13 @@ export class Brain extends FSMBrain {
         const difficulty = world.rules.getValue('difficulty');
         const players = world.getPlayersNear(mob.pos, this.distance_view, true);
         if (players.length > 0 && difficulty != EnumDifficulty.PEACEFUL) {
-            const rnd = (Math.random() * players.length) | 0;
-            const player = players[rnd];
-            this.target = player;
+            for (const player of players) {
+                const m = player.state.sneak ? 1.4 : 1.0
+                if (Math.random() > (mob.pos.distance(player.state.pos) * m / this.distance_view)) {
+                    this.target = player;
+                    break
+                }
+            }
         }
     }
 
@@ -72,7 +76,7 @@ export class Brain extends FSMBrain {
         // обход препятсвия
         const mob = this.mob;
         mob.extra_data.attack = false
-        if (this.is_wall || this.is_fire || this.is_lava) {
+        if (this.is_wall || this.ahead.is_fire || this.ahead.is_lava || this.ahead.is_abyss) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
             return;
@@ -131,7 +135,7 @@ export class Brain extends FSMBrain {
             return;
         }
         const dist = mob.pos.distance(this.target.state.pos);
-        if (mob.playerCanBeAtacked(this.target) || dist > this.distance_attack || this.is_gate) {
+        if (mob.playerCanBeAtacked(this.target) || dist > this.distance_attack || this.is_wall) {
             this.stack.replaceState(this.doCatch);
             return;
         }

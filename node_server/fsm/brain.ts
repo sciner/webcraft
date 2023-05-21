@@ -10,6 +10,7 @@ import { WorldAction } from "@client/world_action.js";
 import type {MobControlParams} from "@client/control/player_control.js";
 import type {World} from "@client/world.js";
 import type {ServerWorld} from "../server_world.js";
+import type { ServerChunk } from "server_chunk.js";
 
 const MUL_1_SEC = 20;
 
@@ -33,8 +34,8 @@ export class FSMBrain {
     to: any;
     resistance_light: boolean;
     pc: PrismarinePlayerControl;
-    under_id: any;
-    legs_id: any;
+    under: any;
+    legs: any;
     in_water: boolean;
     in_fire: boolean;
     in_lava: boolean;
@@ -44,8 +45,8 @@ export class FSMBrain {
     is_fire: boolean;
     is_water: boolean;
     is_lava: boolean;
-    is_gate: boolean;
     targets: any;
+    ahead: any
 
     constructor(mob: Mob) {
         this.mob = mob;
@@ -135,8 +136,7 @@ export class FSMBrain {
                     break;
                 }
             }
-        }
-        */
+        }*/
     }
 
     applyControl(delta : float) {
@@ -193,32 +193,108 @@ export class FSMBrain {
     // контроль жизней и состояния моба
     onLive() {
         const mob = this.mob;
-        const config = mob.config
-        const world = mob.getWorld();
-        const bm = world.block_manager
-        const chunk = mob.inChunk
-        if (!chunk) {
-            return;
+        const mob_chunk = mob.inChunk
+        if (!mob_chunk) {
+            return
         }
-        const forward = mob.pos.add(mob.forward).floored();
-        const ahead = chunk.getBlock(forward.offset(0, 1, 0).floored());
-        const alegs = chunk.getBlock(forward);
-        const under = chunk.getBlock(forward.offset(0, -1, 0));
-        const abyss = chunk.getBlock(forward.offset(0, -2, 0));
-        const head = chunk.getBlock(this.getEyePos().floored());
-        const legs = chunk.getBlock(mob.pos.floored());
-        this.under_id = under.id;
-        this.legs_id = legs.id;
-        this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
-        this.in_fire = (legs.id == bm.FIRE.id || legs.id == bm.CAMPFIRE.id);
-        this.in_lava = (legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
-        this.in_air = (head.fluid == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
-        this.is_abyss = under.id == 0 && under.fluid == 0 && abyss.id == 0 && abyss.fluid == 0 && alegs.id == 0 && alegs.fluid == 0;
-        this.is_wall = (ahead?.id != 0 && ahead?.id != -1 && ahead?.material?.style_name != 'planting' && ahead?.material?.style_name != 'chicken_nest') || (alegs?.material?.style_name == 'fence');
-        this.is_fire = (alegs.id == bm.FIRE.id || alegs.id == bm.CAMPFIRE.id);
-        this.is_water = ((under.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && this.time_fire == 0;
-        this.is_lava = ((under.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
-        this.is_gate = ahead.id != bm.AIR.id;
+        const world = mob.getWorld()
+        // адреса
+        
+        const config = mob.config
+        
+        const bm = world.block_manager
+        const state = this.pc.player_state
+        // @todo старый вариант
+        //const forward = mob.pos.add(mob.forward).floored();
+       // const ahead = chunk.getBlock(forward.offset(0, 1, 0).floored());
+        //const alegs = chunk.getBlock(forward);
+        //const under = chunk.getBlock(forward.offset(0, -1, 0));
+        //const abyss = chunk.getBlock(forward.offset(0, -2, 0));
+        //this.is_abyss = under.id == 0 && under.fluid == 0 && abyss.id == 0 && abyss.fluid == 0 && alegs.id == 0 && alegs.fluid == 0;
+       // this.is_fire = (alegs.id == bm.FIRE.id || alegs.id == bm.CAMPFIRE.id);
+        //this.is_water = ((under.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID)
+       // this.is_lava = ((under.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
+         //this.under_id = under.id;
+         
+        const mob_pos = mob.pos.floored()
+        const head = mob_chunk.getBlock(this.getEyePos().floored())
+        this.legs = mob_chunk.getBlock(mob_pos)
+        this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && state.isInWater
+        this.in_fire = (this.legs.id == bm.FIRE.id || this.legs.id == bm.CAMPFIRE.id)
+        this.in_lava = state.isInLava
+        this.in_air = (head.fluid == 0 && (this.legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID)
+
+        this.ahead = {
+            is_water: false,
+            is_abyss: false,
+            is_lava: false,
+            is_fire: false
+        }
+        this.under = null
+        // коллизия со стеной
+        this.is_wall = state.isCollidedHorizontally
+        //
+        
+
+        if (!this.is_wall) {
+            const forward = mob.pos.clone()
+            forward.addSelf(mob.forward.mulScalar(this.pc.playerHalfWidth)).floored()
+            let height = 0
+            let chunk : ServerChunk = null
+            const _chunk_addr = new Vector()
+            const grid = world.chunkManager.grid
+            for (let i = 0; i < 5; i++) {
+                grid.getChunkAddr(forward.x, forward.y, forward.z, _chunk_addr)
+                if(!chunk || !chunk.addr.equal(_chunk_addr)) {
+                    chunk = world.chunkManager.getChunk(_chunk_addr)
+                }
+                const block = chunk.getBlock(forward)
+                if (i == 0) {
+                    this.under = block 
+                }
+                forward.y--
+                if (block.id == 0) {
+                    if ((block.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
+                        this.ahead.is_water = true
+                        break
+                    } else if ((block.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
+                        this.ahead.is_lava = true
+                        break
+                    } else {
+                        height++
+                    }
+                } else if (block.id == bm.FIRE.id || block.id == bm.CAMPFIRE.id) {
+                    this.ahead.is_fire = true
+                    break
+                } else {
+                    break
+                }
+            }
+            if (height > 3) {
+                this.ahead.is_abyss = true
+            }
+
+            /*
+            forward.addSelf(mob.forward)
+            // если стены нет, то проверяем что под ногами
+            const ray = this.world.raycaster.get(forward, Vector.YN, 4, null, false, false, this.mob)
+            if (!ray) {
+                this.is_abyss = true
+            } else if (ray.block_id  == bm.FIRE.id || ray.block_id == bm.CAMPFIRE.id) {
+                this.is_fire = true
+            } else if ((ray.fluidVal & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
+                this.is_water = true
+            } else if ((ray.fluidVal & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
+                this.is_lava = true
+            } else if (ray.y == mob_pos.y - 1) {
+                this.under = {
+                    id: ray.block_id,
+                    pos: new Vector(ray.x, ray.y, ray.z)
+                } 
+            }
+            */
+        }
+
         // стоит в лаве
         if (this.in_lava) {
             if (this.timer_lava_damage <= 0) {
@@ -233,13 +309,12 @@ export class FSMBrain {
         }
         // стоит в огне или на свете
         if (this.in_fire || (world.getLight() > 11
-            && (chunk.tblocks.lightData && (legs.lightValue >> 8) === 0)
+            && (mob_chunk.tblocks.lightData && (this.legs.lightValue >> 8) === 0)
             && !this.resistance_light)) {
             this.time_fire = Math.max(8 * MUL_1_SEC, this.time_fire);
         }
         // нехватка воздуха
         if (this.in_water && config.can_asphyxiate) {
-            this.time_fire = 0;
             if (this.timer_water_damage >= MUL_1_SEC) {
                 this.timer_water_damage = 0;
                 this.onDamage(1, EnumDamage.WATER, null);
@@ -249,19 +324,20 @@ export class FSMBrain {
         } else {
             this.timer_water_damage = 0;
         }
+        // тушение в воде
+        if (state.isInWater) {
+            this.time_fire = 0
+        }
         // горение
         if (this.time_fire > 0) {
+            this.time_fire--
             if (this.timer_fire_damage >= MUL_1_SEC) {
                 this.timer_fire_damage = 0;
                 this.onDamage(1, EnumDamage.FIRE, null);
             } else {
                 this.timer_fire_damage++;
             }
-        } else {
-            this.time_fire--;
         }
-        // update extra data
-        this.mob.extra_data.time_fire = this.time_fire;
         // регенерация жизни
         if (this.timer_health >= 10 * MUL_1_SEC) {
             mob.indicators.live = Math.min(mob.indicators.live + 1, this.mob.config.health);
@@ -273,29 +349,27 @@ export class FSMBrain {
         if (this.timer_panic > 0) {
             this.timer_panic--;
         }
-        this.addStat('onLive');
 
-        this.onFind();
+        // update extra data
+        this.mob.extra_data.in_fire = this.time_fire > 0;
+
+        this.addStat('onLive')
+        this.onFind()
     }
 
     // поиск игроков или мобов
     onFind() {
         if (this.target || !this.targets || this.targets.length == 0 || this.distance_view < 1) {
-            return;
+            return
         }
         const mob = this.mob;
         const world = mob.getWorld();
         const players = world.getPlayersNear(mob.pos, this.distance_view, false);
-        const friends = [];
         for (const player of players) {
-            if (this.targets.includes(player.state.hands.right.id)) {
-                friends.push(player);
+            if (Math.random() > (player.state.pos.distance(mob.pos) / this.distance_view) && this.targets.includes(player.state.hands.right.id)) {
+                this.target = player
+                break
             }
-        }
-        if (friends.length > 0) {
-            const rnd = (Math.random() * friends.length) | 0;
-            const player = friends[rnd];
-            this.target = player;
         }
         this.addStat('onFind');
     }
@@ -316,7 +390,7 @@ export class FSMBrain {
             return;
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
-        const forward = (dist > 1.5 && !this.is_wall && !this.is_abyss) ? true : false;
+        const forward = (dist > 1.5 && !this.is_wall && !this.ahead.is_abyss) ? true : false;
         this.updateControl({
             forward: forward,
             jump: this.is_water,
@@ -338,7 +412,7 @@ export class FSMBrain {
             this.stack.replaceState(this.doFindGround);
             return;
         }
-        if (Math.random() < 0.05 || this.timer_panic > 0) {
+        if (Math.random() < .05 || this.timer_panic > 0) {
             this.stack.replaceState(this.doForward);
             return;
         }
@@ -377,7 +451,7 @@ export class FSMBrain {
             return;
         }
         // обход препятсвия
-        if (this.is_wall || this.is_fire || this.is_lava || this.is_water) {
+        if (this.is_wall || this.ahead.is_fire || this.ahead.is_lava || (this.ahead.is_water && this.time_fire == 0) || this.ahead.is_abyss) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + (Math.random() - Math.random()) * Math.PI / 8;
             this.stack.replaceState(this.doStand);
             return;
