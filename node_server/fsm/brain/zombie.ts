@@ -87,7 +87,7 @@ export class Brain extends FSMBrain {
         // обход препятсвия
         const mob = this.mob;
         mob.extra_data.attack = false
-        if (this.is_wall || this.is_fire || this.is_lava || this.is_abyss) {
+        if (this.is_wall || this.ahead.is_fire || this.ahead.is_lava || this.ahead.is_abyss) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
             return;

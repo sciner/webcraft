@@ -72,7 +72,7 @@ export class Brain extends FSMBrain {
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
         this.updateControl({
-            forward: !(this.is_abyss || this.is_well),
+            forward: !(this.ahead.is_abyss || this.is_well),
             jump: this.is_water
         });
         this.applyControl(delta);

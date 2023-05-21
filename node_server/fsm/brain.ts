@@ -45,6 +45,7 @@ export class FSMBrain {
     is_water: boolean;
     is_lava: boolean;
     targets: any;
+    ahead: any
 
     constructor(mob: Mob) {
         this.mob = mob;
@@ -219,10 +220,12 @@ export class FSMBrain {
         this.in_lava = state.isInLava
         this.in_air = (head.fluid == 0 && (this.legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID)
 
-        this.is_water = false
-        this.is_abyss = false
-        this.is_lava = false
-        this.is_fire = false
+        this.ahead = {
+            is_water: false,
+            is_abyss: false,
+            is_lava: false,
+            is_fire: false
+        }
         this.under = null
         // коллизия со стеной
         this.is_wall = state.isCollidedHorizontally
@@ -232,27 +235,29 @@ export class FSMBrain {
             let height = 0
             for (let i = 0; i < 5; i++) {
                 const block = chunk.getBlock(forward)
+                if (i == 0) {
+                    this.under = block 
+                }
                 forward.y--
                 if (block.id == 0) {
                     if ((block.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
-                        this.is_water = true
+                        this.ahead.is_water = true
                         break
                     } else if ((block.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
-                        this.is_lava = true
+                        this.ahead.is_lava = true
                         break
                     } else {
                         height++
                     }
                 } else if (block.id == bm.FIRE.id || block.id == bm.CAMPFIRE.id) {
-                    this.is_fire = true
+                    this.ahead.is_fire = true
                     break
-                }
-                if (i == 0) {
-                    this.under = block 
+                } else {
+                    break
                 }
             }
             if (height > 3) {
-                this.is_abyss = true
+                this.ahead.is_abyss = true
             }
 
             /*
@@ -371,7 +376,7 @@ export class FSMBrain {
             return;
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
-        const forward = (dist > 1.5 && !this.is_wall && !this.is_abyss) ? true : false;
+        const forward = (dist > 1.5 && !this.is_wall && !this.ahead.is_abyss) ? true : false;
         this.updateControl({
             forward: forward,
             jump: this.is_water,
@@ -432,7 +437,7 @@ export class FSMBrain {
             return;
         }
         // обход препятсвия
-        if (this.is_wall || this.is_fire || this.is_lava || (this.is_water && this.time_fire == 0) || this.is_abyss) {
+        if (this.is_wall || this.ahead.is_fire || this.ahead.is_lava || (this.ahead.is_water && this.time_fire == 0) || this.ahead.is_abyss) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + (Math.random() - Math.random()) * Math.PI / 8;
             this.stack.replaceState(this.doStand);
             return;
