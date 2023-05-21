@@ -746,7 +746,8 @@ export class ServerWorld implements IWorld {
     }
 
     //
-    async applyActions(server_player : ServerPlayer | undefined, actions : WorldAction) {
+    async applyActions(actor : ServerPlayer | Mob | null, actions : WorldAction) {
+        const server_player = (actor as ServerPlayer)?.session ? (actor as ServerPlayer) : null
         const chunks_packets = new VectorCollector();
         const bm = this.block_manager
         const grid = this.chunkManager.grid
@@ -780,9 +781,6 @@ export class ServerWorld implements IWorld {
         }
         // Decrement instrument
         if (actions.decrement_instrument) {
-            /* Old code: the argumnt actions.decrement_instrument is unused.
-            server_player.inventory.decrement_instrument(actions.decrement_instrument);
-            */
             server_player.inventory.decrement_instrument();
         }
         // increment item
@@ -979,7 +977,7 @@ export class ServerWorld implements IWorld {
                     } else {
                         if (chunk) {
                             // The chunk exists, but not ready yet. Queue the block action until the chunk is loaded.
-                            postponedActions = postponedActions ?? chunk.getOrCreatePendingAction(server_player, actions)
+                            postponedActions = postponedActions ?? chunk.getOrCreatePendingAction(actor, actions)
                             postponedActions.addBlock(params);
                         } else {
                             this.dbActor.addChunklessBlockChange(chunk_addr, params);
