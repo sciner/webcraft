@@ -15,10 +15,6 @@ const MUL_1_SEC = 20;
 
 export class FSMBrain {
 
-    #chunk_addr: Vector = new Vector()
-    #vec_addr: Vector = new Vector()
-    #temp_addr: Vector = new Vector()
-    #chunk: any
     #pos;
     world: ServerWorld
     prevPos: Vector;
@@ -193,22 +189,6 @@ export class FSMBrain {
 
     get distance_view(): int { return this.mob.config.distance_view }
 
-    getBlock(vec: Vector) {
-        if (!vec.equal(this.#vec_addr)) {
-            const world = this.mob.getWorld()
-            const new_chunk_addr = world.chunkManager.grid.getChunkAddr(vec.x, vec.y, vec.z, this.#temp_addr)
-            if (!this.#chunk_addr.equal(new_chunk_addr)) {
-                this.#chunk = world.chunks.get(new_chunk_addr)
-            }
-            this.#chunk_addr = new_chunk_addr.clone()
-        }
-        this.#vec_addr = vec.clone()
-        if (!this.#chunk) {
-            return {id: -1, fluid: -1}
-        }
-        return this.#chunk.getBlock(vec)
-    }
-
     // контроль жизней и состояния моба
     onLive() {
         const mob = this.mob;
@@ -257,7 +237,7 @@ export class FSMBrain {
             forward.addSelf(mob.forward.mulScalar(this.pc.playerHalfWidth)).floored()
             let height = 0
             for (let i = 0; i < 5; i++) {
-                const block = this.getBlock(forward)
+                const block = chunk.getBlock(forward)
                 if (i == 0) {
                     this.under = block 
                 }
