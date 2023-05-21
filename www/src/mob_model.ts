@@ -12,7 +12,6 @@ import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import type {TMobAnimations, TMobProps} from "./mob_manager.js";
 import type { Mesh_Object_Base } from "./mesh/object/base.js";
 import type {ClientDriving} from "./control/driving.js";
-import type { BLOCK } from "./blocks.js";
 import { CD_ROT } from "./core/CubeSym.js";
 
 const MAX_CHESTPLATE_COUNT = 6
@@ -265,7 +264,6 @@ export class MobModel extends NetworkPhysicObject {
         // }
 
         let mx = null
-        const bm : BLOCK = this.world.block_manager
 
         // hide invisible mobs
         if(this.extra_data && 'invisible' in this.extra_data) {

@@ -179,6 +179,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
                 scale *= 1.2
                 base.rotation.set([42.5, 90, 0])
                 base.position[1] += 1.5 / 16
+                base.position[2] -= 3 / 16
             } else {
                 base.rotation.set([0, -30, 0])
             }

@@ -1062,15 +1062,24 @@ export class Renderer {
         renderList.checkFence();
         this.lightUniforms.popOverride();
 
-        if(this._debug_aabb) {
+        if(this._debug_aabb.length > 0) {
             for(let aabb of this._debug_aabb) {
                 this.debugGeom.addBlockGrid({
-                    pos:        new Vector(aabb.x_min, aabb.y_min, aabb.z_min),
+                    pos:        aabb.position,
                     size:       aabb.size,
                     lineWidth:  .15,
                     colorABGR:  0xFFFF0000, // ABGR
                 })
             }
+        }
+
+        if(this.player.pos1pos2) {
+            this.debugGeom.addBlockGrid({
+                pos:        this.player.pos1pos2.position,
+                size:       this.player.pos1pos2.size,
+                lineWidth:  .15,
+                colorABGR:  0xFFFF0000, // ABGR
+            })
         }
 
         const overChunk = player.getOverChunk();
@@ -1311,7 +1320,7 @@ export class Renderer {
         this.defaultShader.bind()
         for(const drop_item of this.world.drop_items.list.values()) {
             drop_item.updatePlayer(this.player, delta)
-            drop_item.draw(this, delta)
+            drop_item.draw(this, delta, this.world.mobs.draw_debug_grid)
         }
     }
 

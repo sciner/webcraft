@@ -12804,6 +12804,7 @@
             "name": "MECHANISM_ASSEMBLER",
             "sound": "madcraft:block.wood",
             "style": "extruder",
+            "diagonal": true,
             "item": {"name": "instrument", "instrument_id": "mechanism_assembler"},
             "material": {
                 "id": "wood"

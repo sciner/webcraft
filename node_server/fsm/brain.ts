@@ -248,6 +248,9 @@ export class FSMBrain {
                 if(!chunk || !chunk.addr.equal(_chunk_addr)) {
                     chunk = world.chunkManager.getChunk(_chunk_addr)
                 }
+                if(!chunk) {
+                    continue
+                }
                 const block = chunk.getBlock(forward)
                 if (i == 0) {
                     this.under = block 

@@ -1552,7 +1552,7 @@ export class BLOCK {
             block.visible_for_ao = BLOCK.visibleForAO(block.id)
             block.light_power_number = BLOCK.getLightPower(block)
             block.interact_water = block.tags.includes('interact_water') || !!block.layering?.slab
-            block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab
+            block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab || !!block.is_leaves
             if(!block.support_style && block.planting) {
                 block.support_style = 'planting'
             }
