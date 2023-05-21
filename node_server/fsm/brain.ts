@@ -217,8 +217,8 @@ export class FSMBrain {
          //this.under_id = under.id;
          
         const mob_pos = mob.pos.floored()
-        const head = world.getBlock(this.getEyePos().floored())
-        this.legs = world.getBlock(mob_pos)
+        const head = mob_chunk.getBlock(this.getEyePos().floored())
+        this.legs = mob_chunk.getBlock(mob_pos)
         this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && state.isInWater
         this.in_fire = (this.legs.id == bm.FIRE.id || this.legs.id == bm.CAMPFIRE.id)
         this.in_lava = state.isInLava
