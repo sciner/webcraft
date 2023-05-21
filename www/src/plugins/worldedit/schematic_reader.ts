@@ -34,6 +34,7 @@ export class SchematicReader {
             SIGN:                   'BIRCH_SIGN',
             DETECTOR_RAIL:          'POWERED_RAIL',
             SKELETON_SKULL:         'SKULL_DESERT',
+            CARROTS:                'CARROT_SEEDS',
         }
     }
 

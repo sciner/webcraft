@@ -7,6 +7,7 @@ import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { World } from '../world.js';
+import { SIGN_POSITION } from '../constant.js';
 
 
 const {mat4} = glMatrix;
@@ -16,6 +17,7 @@ const CONNECT_X         = 16 / 16;
 const CONNECT_Z         = 2 / 16;
 const CONNECT_HEIGHT    = 8 / 16;
 const BOTTOM_HEIGHT     = .6;
+const EMPTY_ARRAY       = []
 
 const cubeSymAxis = [
     [0, -1],
@@ -42,8 +44,22 @@ export default class style {
     // computeAABB
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
+        const rot           = tblock.rotate ?? Vector.ZERO
+        const on_ceil       = rot.y == SIGN_POSITION.CEIL
+        const on_wall_alt   = rot.y == SIGN_POSITION.WALL_ALT
+        const on_floor      = rot.y == SIGN_POSITION.FLOOR
+
+        if(on_wall_alt) {
+            const aabb1 = new AABB(7/16, 0, 0, 9/16, 1, 1)
+            if(for_physic) {
+                aabb1.y_min = 14/16
+            }
+            aabb1.rotate((rot.x + 1) % 4, aabb1.center);
+            return [aabb1]
+        }
+
         if(for_physic) {
-            return [];
+            return EMPTY_ARRAY
         }
 
         let x           = 0;
@@ -91,33 +107,40 @@ export default class style {
     static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
         if(!block || typeof block == 'undefined') {
-            return;
+            return
         }
 
-        const bm = style.block_manager
-        const c = bm.calcMaterialTexture(block.material, DIRECTION.UP)
-        const on_ceil = block.rotate.y == -1
-        const on_floor = block.rotate.y == 1
-        const aabb = style.makeAABBSign(block, x, y, z)
+        const bm            = style.block_manager
+        const c             = bm.calcMaterialTexture(block.material, DIRECTION.UP)
+        const rot           = block.rotate ?? Vector.ZERO
+        const on_ceil       = rot.y == SIGN_POSITION.CEIL
+        const on_wall_alt   = rot.y == SIGN_POSITION.WALL_ALT
+        const on_floor      = rot.y == SIGN_POSITION.FLOOR
+        const aabb          = style.makeAABBSign(block, x, y, z)
 
         if(on_ceil || on_floor) {
             matrix = mat4.create()
             mat4.rotateY(matrix, matrix, ((block.rotate.x - 2) / 4) * (2 * Math.PI))
         } else {
-            matrix = CubeSym.matrices[CubeSym.dirAdd(Math.floor(block.rotate.x), CubeSym.ROT_Y2)]
+            matrix = CubeSym.matrices[CubeSym.dirAdd(Math.floor(rot.x), CubeSym.ROT_Y2)]
         }
 
         if(on_ceil) {
             aabb.expand(-1/16, 0, 0)
             aabb.translate(0, -(aabb.y_min - y), 0)
-            // потолочный крепеж
-            const ceiling_fixture = aabb.clone()
-            ceiling_fixture.y_max = ceiling_fixture.y_min + aabb.depth
-            ceiling_fixture.translate(0, 1 - ceiling_fixture.height, 0)
-            // Push ceiling fixture vertices
+            // TODO: нарисовать вот тут цепи между aabb и верхним блоком
+
+        } else if(on_wall_alt) {
+            const wall_fixture = aabb.clone()
+            aabb.expand(-1/16, 0, 0)
+            aabb.translate(0, -(aabb.y_min - y), 0)
+            // настенный крепеж
+            wall_fixture.y_max = wall_fixture.y_min + aabb.depth
+            wall_fixture.translate(0, 1 - (wall_fixture.y_max % 1), 0)
+            // Push wall fixture vertices
             pushAABB(
                 vertices,
-                ceiling_fixture,
+                wall_fixture,
                 pivot,
                 matrix,
                 {
@@ -130,7 +153,7 @@ export default class style {
                 },
                 new Vector(x, y, z)
             )
-            // TODO: нарисовать вот тут цепи между aabb и ceiling_fixture
+            // TODO: нарисовать вот тут цепи между aabb и wall_fixture
         }
 
         // Push vertices
@@ -191,8 +214,9 @@ export default class style {
     //
     static makeAABBSign(tblock : TBlock | FakeTBlock, x : int, y : int, z : int) {
 
-        const draw_bottom = tblock.rotate ? (tblock.rotate.y != 0) : true
-        const is_bb = !!tblock.material.bb
+        const rot           = tblock.rotate ?? Vector.ZERO
+        const draw_bottom   = rot ? (rot.y != 0) : true
+        const is_bb         = !!tblock.material.bb
 
         const connect_z = is_bb ? 3/32 : CONNECT_Z
 
@@ -242,7 +266,7 @@ export default class style {
                         sign:   sign.length > 0 ? AlphabetTexture.getStringUVs(sign.join(' | ')) : null
                     },
                     new Vector(x, y, z),
-                    tblock.rotate,
+                    tblock.rotate ?? Vector.ZERO,
                     pivot,
                     matrix
                 );
