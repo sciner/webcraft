@@ -7,10 +7,11 @@ import {ITEM_MERGE_RADIUS, IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB} from "./se
 import type { ServerChunk } from "./server_chunk.js";
 import type { WorldTransactionUnderConstruction } from "./db/world/WorldDBActor.js";
 import {InventoryComparator} from "@client/inventory_comparator.js";
-import type {BLOCK} from "@client/blocks.js";
+import {AIR_BLOCK_SIMPLE, BLOCK, DBItemBlock, OK_FOR_PLANT_BLOCK_NAMES} from "@client/blocks.js";
 import type {ServerChunkManager} from "./server_chunk_manager.js";
 import type {ServerWorld} from "./server_world.js";
 import { WorldAction } from "@client/world_action.js";
+import type { TActionBlock } from "@client/world_action.js";
 
 export class ItemWorld {
 
@@ -36,43 +37,58 @@ export class ItemWorld {
      * @param dropItem 
      */
 
-    plantingSapling(dropItem) {
+    plantingSapling(dropItem : DropItem) {
         const PR_RISE = .1
         const b = this.all_drop_items.get(dropItem.entity_id)
+        const bm = this.bm
+        const world = this.world
         for (const item of b.items) {
             if (Math.random() < PR_RISE * item.count) {
-                const block = this.bm.fromId(item.id)
-                if (block.is_sapling) {
-                    const pos = b.pos.offset(0, .2, 0).floored()
-                    const under = this.world.getBlock(pos.offset(0, -1, 0))
-                    const bm = this.bm
-                    if ([bm.SNOW_DIRT.id, bm.DIRT.id, bm.DIRT.id, bm.GRASS_BLOCK.id, bm.GRASS_BLOCK_SLAB.id, bm.FARMLAND.id, bm.FARMLAND_WET.id].includes(under.id)) {
-                        const extra_data = this.bm.calculateExtraData(block.extra_data, pos)
-                        const action = new WorldAction(null, this.world, false, false)
-                        const blocks = [
-                            {
-                                pos: pos,
-                                item: {
-                                    id: block.id,
-                                    extra_data: extra_data
-                                },
-                                action_id: ServerClient.BLOCK_ACTION_REPLACE
-                            }
-                        ]
-                        if (under.id == bm.SNOW_DIRT.id) {
-                            blocks.push(
+                const material = bm.fromId(item.id)
+                // если это саженец
+                if (material.is_sapling) {
+                    const pos = b.pos.offset(0, .2, 0).flooredSelf()
+                    const under = world.getBlock(pos.offset(0, -1, 0))
+                    if (OK_FOR_PLANT_BLOCK_NAMES.includes(under.material.name)) {
+                        // проверяем внутри какого блока лежит саженец (годятся только блок воздуха или травы)
+                        const block = world.getBlock(pos)
+                        if(block.id == AIR_BLOCK_SIMPLE.id || block.material.is_grass) {
+                            const extra_data = bm.calculateExtraData(material.extra_data, pos)
+                            const action = new WorldAction(null, world, false, false)
+                            const blocks : TActionBlock[] = [
                                 {
-                                    pos: pos.offset(0, -1, 0),
+                                    pos: pos,
                                     item: {
-                                        id: bm.DIRT.id,
-                                        extra_data: null
+                                        id: material.id,
+                                        extra_data: extra_data
                                     },
                                     action_id: ServerClient.BLOCK_ACTION_REPLACE
-                                } 
-                            )
+                                }
+                            ]
+                            // если посадили в блок, в котром была высокая трава, то нужно заменить блок верхушки травы на блок воздуха
+                            const has_head = block.material.has_head
+                            if(has_head) {
+                                blocks.push(
+                                    {
+                                        pos: pos.add(has_head.pos),
+                                        item: new DBItemBlock(AIR_BLOCK_SIMPLE.id),
+                                        action_id: ServerClient.BLOCK_ACTION_REPLACE
+                                    } 
+                                )
+                            }
+                            // если посадили саженец на блок снега, то превратить его в блок земли
+                            if (under.id == bm.SNOW_DIRT.id) {
+                                blocks.push(
+                                    {
+                                        pos: under.posworld.clone(),
+                                        item: new DBItemBlock(bm.DIRT.id),
+                                        action_id: ServerClient.BLOCK_ACTION_REPLACE
+                                    } 
+                                )
+                            }
+                            action.addBlocks(blocks)
+                            world.actions_queue.add(null, action)
                         }
-                        action.addBlocks(blocks)
-                        this.world.actions_queue.add(null, action)
                     }
                 }
             }
