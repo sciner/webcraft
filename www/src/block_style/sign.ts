@@ -120,7 +120,11 @@ export default class style {
         const aabb          = style.makeAABBSign(block, x, y, z)
 
         matrix = mat4.create()
-        mat4.rotateY(matrix, matrix, ((block.rotate.x - 2) / 4) * (2 * Math.PI))
+        if(on_ceil || on_floor) {
+            mat4.rotateY(matrix, matrix, ((block.rotate.x - 2) / 4) * (2 * Math.PI))
+        } else {
+            mat4.rotateY(matrix, matrix, -((block.rotate.x - 2) / 4) * (2 * Math.PI))
+        }
 
         if(on_ceil) {
             aabb.expand(-1/16, 0, 0)
