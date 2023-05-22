@@ -103,7 +103,7 @@ export class MobModel extends NetworkPhysicObject {
     renderLast:         boolean
     hasSwimAnim:        boolean
     hasFastSwimAnim:    boolean
-    hasSwimIdle:        boolean
+    hasIdleSwim:        boolean
 
     #health: number = 100
     #timer_demage: number
@@ -134,7 +134,7 @@ export class MobModel extends NetworkPhysicObject {
 
         this.hasSwimAnim        = this._mesh.animations.has('swim')
         this.hasFastSwimAnim    = this._mesh.animations.has('fast_swim')
-        this.hasSwimIdle        = this._mesh.animations.has('swim_idle')
+        this.hasIdleSwim        = this._mesh.animations.has('idle_swim')
     }
 
     /** Мы не можем использовать в этом файле instanceof PlayerModel, т.к. не можем его испортировать из-за циклической зависимости*/
@@ -385,8 +385,8 @@ export class MobModel extends NetworkPhysicObject {
                     anim = 'fast_swim'
                 } else if (this.moving || this.movingY === 1) {
                     anim = 'swim'
-                } else if (this.hasSwimAnim) {
-                    anim = 'swim_idle'
+                } else if (this.hasIdleSwim) {
+                    anim = 'idle_swim'
                 }
                 mesh.setAnimation(anim ?? 'jump')
             } else if (!this.ground && !animations?.noAirborne) { // прыжок или полет (в том числе в жидкости)
