@@ -129,10 +129,15 @@ export default class style {
         if(on_ceil) {
             aabb.expand(-1/16, 0, 0)
             aabb.translate(0, -(aabb.y_min - y), 0)
-            // TODO: нарисовать вот тут цепи между aabb и верхним блоком
-            if (neighbours.UP.id == block.id && (Math.abs(neighbours.UP.rotate.x - rot.x) > 0.01 && Math.abs(neighbours.UP.rotate.x - rot.x) < 1.99)) {
-                style.drawChainTilt(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
+            if (neighbours.UP.material.style_name == 'sign') {
+                const angle = Math.abs(neighbours.UP.rotate.x - rot.x)
+                if ((angle > 0.02 && angle < 1.88) || ( angle > 2.02)) {
+                    style.drawChainTilt(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
+                } else {
+                    style.drawChain(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
+                }
             } else {
+                //console.log(neighbours.UP.material.style_name + ' ' + neighbours.UP.rotate.x  + ' ' + rot.x)
                 style.drawChain(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
             }
         } else if(on_wall_alt) {
@@ -158,7 +163,6 @@ export default class style {
                 },
                 new Vector(x, y, z)
             )
-            // TODO: нарисовать вот тут цепи между aabb и wall_fixture
             style.drawChain(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
         }
 
