@@ -130,7 +130,12 @@ export default class style {
             aabb.expand(-1/16, 0, 0)
             aabb.translate(0, -(aabb.y_min - y), 0)
             // TODO: нарисовать вот тут цепи между aabb и верхним блоком
-            style.drawChain(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
+            const angle = Math.abs(neighbours.UP.rotate.x - rot.x)
+            if (neighbours.UP.id == block.id && (angle > 0.1 && angle < 1.9)) {
+                style.drawChainTilt(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
+            } else {
+                style.drawChain(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
+            }
         } else if(on_wall_alt) {
             const wall_fixture = aabb.clone()
             aabb.expand(-1/16, 0, 0)
@@ -213,7 +218,75 @@ export default class style {
 
     }
 
-    static drawChain(vertices, x, y, z, texture, pivot, matrix, pos) {
+    static drawChainTilt(vertices, x, y, z, texture, pivot, matrix, pos) {
+        const sh_chain = 0.22
+        const big = [texture[0] - TX_CNT / (2 * 10000), texture[1], texture[2], texture[3]]
+        const small = [texture[0] - TX_CNT / 10000, texture[1], texture[2], texture[3]]
+        const aabb = new AABB()
+        aabb.set(
+            x + .4, y, z + .5,
+            x + .6, y + 0.56, z + .5
+        )
+        aabb.translate(sh_chain, 0.4, 0)
+        let m = new mat4.create()
+        mat4.rotateZ(m, matrix, Math.PI / 8)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(big, 0, 0, null, null, true),
+                north: new AABBSideParams(big, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+        aabb.translate(-2 * sh_chain, 0, 0)
+        mat4.rotateZ(m, matrix, -Math.PI / 8)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(big, 0, 0, null, null, true),
+                north: new AABBSideParams(big, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+        // малые звенья слева и права 
+        m = new mat4.create()
+        mat4.rotateY(m, matrix, Math.PI / 2)
+        mat4.rotateX(m, m, -Math.PI / 8)
+        aabb.translate(sh_chain, 0, sh_chain)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(small, 0, 0, null, null, true),
+                north: new AABBSideParams(small, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+        mat4.rotateY(m, matrix, Math.PI / 2)
+        mat4.rotateX(m, m, Math.PI / 8)
+        aabb.translate(0, 0, -2 * sh_chain)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(small, 0, 0, null, null, true),
+                north: new AABBSideParams(small, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+    }
+
+    static drawChain(vertices, x, y, z, texture, pivot, matrix, pos, ) {
         const sh_chain = 3 / 16
         const big = [texture[0] - TX_CNT / (2 * 10000), texture[1], texture[2], texture[3]]
         const small = [texture[0] - TX_CNT / 10000, texture[1], texture[2], texture[3]]
