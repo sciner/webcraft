@@ -1000,6 +1000,8 @@ export class ServerChunk {
                         }
                     } else if (roty == 1) {
                         drop = neighbourPos.y < pos.y;
+                    } else if (roty == -1) {
+                        drop = neighbourPos.y > pos.y;
                     }
                     if(drop) {
                         return createDrop(tblock);
