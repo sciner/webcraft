@@ -101,6 +101,9 @@ export class MobModel extends NetworkPhysicObject {
     is_sheared:         boolean = false
     gui_matrix:         float[]
     renderLast:         boolean
+    hasSwimAnim:        boolean
+    hasFastSwimAnim:    boolean
+    hasSwimIdle:        boolean
 
     #health: number = 100
     #timer_demage: number
@@ -129,6 +132,9 @@ export class MobModel extends NetworkPhysicObject {
             this._mesh.modifiers.selectTextureFromPalette('', this.skin.texture_name)
         }
 
+        this.hasSwimAnim        = this._mesh.animations.has('swim')
+        this.hasFastSwimAnim    = this._mesh.animations.has('fast_swim')
+        this.hasSwimIdle        = this._mesh.animations.has('swim_idle')
     }
 
     /** Мы не можем использовать в этом файле instanceof PlayerModel, т.к. не можем его испортировать из-за циклической зависимости*/
@@ -374,6 +380,15 @@ export class MobModel extends NetworkPhysicObject {
                 mesh.setAnimation('sitting')
             } else if (this?.extra_data?.attack || this.attack) {
                 mesh.setAnimation('attack')
+            } else if (!this.ground && this.inLiquid && this.hasSwimAnim) { // плавание (если есть такая анимация)
+                if (this.hasFastSwimAnim && this.running) {
+                    anim = 'fast_swim'
+                } else if (this.moving || this.movingY === 1) {
+                    anim = 'swim'
+                } else if (this.hasSwimAnim) {
+                    anim = 'swim_idle'
+                }
+                mesh.setAnimation(anim ?? 'jump')
             } else if (!this.ground && !animations?.noAirborne) { // прыжок или полет (в том числе в жидкости)
                 if (animations?.fly) {
                     if (!this.moving) {     // более медленные анимации если полет вниз или на месте
