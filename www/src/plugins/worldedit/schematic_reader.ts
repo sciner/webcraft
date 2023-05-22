@@ -35,6 +35,7 @@ export class SchematicReader {
             DETECTOR_RAIL:          'POWERED_RAIL',
             SKELETON_SKULL:         'SKULL_DESERT',
             CARROTS:                'CARROT_SEEDS',
+            LAVA_CAULDRON:          'CAULDRON',
         }
     }
 
@@ -337,6 +338,13 @@ export class SchematicReader {
             setExtraData('damage', 0);
             if(block.name.startsWith('chipped_')) setExtraData('damage', 1);
             if(block.name.startsWith('damaged_')) setExtraData('damage', 2);
+        }
+        // CAULDRON
+        if(b.name == 'CAULDRON') {
+            setExtraData('lava', block.name == 'lava_cauldron')
+            setExtraData('snow', block.name == 'snow_cauldron')
+            setExtraData('water', block.name == 'water_cauldron')
+            setExtraData('level', 3)
         }
         //
         if(props) {
