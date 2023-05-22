@@ -1202,12 +1202,16 @@ export class TextEdit extends Window {
         super.text = value
     }
 
-    //
-    _changed() {
+    _resetText() : string {
         const text = this.buffer.join('')
         super.text = text
+        return text
         // this.text_container.text = text
-        this.onChange(text)
+    }
+
+    //
+    _changed() {
+        this.onChange(this._resetText())
     }
 
     onChange(text) {
@@ -1542,7 +1546,7 @@ export class WindowManager extends Window {
         if(this._focused_control) {
             const fc =this._focused_control
             if(fc instanceof TextEdit) {
-                fc._changed()
+                fc._resetText()
             }
             fc.onBlur()
         }
