@@ -128,7 +128,7 @@ export type PlayerStateUpdate = PlayerStateDynamicPart & {
     type ?
     dist ?      : number // null means that the player is too far, and it stopped receiving updates
     ground      : boolean
-    inLiquid    : boolean
+    inLiquid ?  : boolean
     running     : boolean
 }
 

@@ -132,9 +132,9 @@ export class MobModel extends NetworkPhysicObject {
             this._mesh.modifiers.selectTextureFromPalette('', this.skin.texture_name)
         }
 
-        this.hasSwimAnim        = this._mesh.animations.has('swim')
-        this.hasFastSwimAnim    = this._mesh.animations.has('fast_swim')
-        this.hasIdleSwim        = this._mesh.animations.has('idle_swim')
+        this.hasSwimAnim        = this._mesh.model.animations.has('swim')
+        this.hasFastSwimAnim    = this._mesh.model.animations.has('fast_swim')
+        this.hasIdleSwim        = this._mesh.model.animations.has('idle_swim')
     }
 
     /** Мы не можем использовать в этом файле instanceof PlayerModel, т.к. не можем его испортировать из-за циклической зависимости*/
