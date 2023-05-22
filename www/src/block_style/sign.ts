@@ -130,7 +130,7 @@ export default class style {
             aabb.expand(-1/16, 0, 0)
             aabb.translate(0, -(aabb.y_min - y), 0)
             // TODO: нарисовать вот тут цепи между aabb и верхним блоком
-            if (neighbours.UP.id == block.id && (Math.abs(neighbours.UP.rotate.x - rot.x) > 0.1 && Math.abs(neighbours.UP.rotate.x - rot.x) < 1.9)) {
+            if (neighbours.UP.id == block.id && (Math.abs(neighbours.UP.rotate.x - rot.x) > 0.01 && Math.abs(neighbours.UP.rotate.x - rot.x) < 1.99)) {
                 style.drawChainTilt(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
             } else {
                 style.drawChain(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
