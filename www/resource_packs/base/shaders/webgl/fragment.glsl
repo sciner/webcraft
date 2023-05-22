@@ -218,7 +218,14 @@ void main() {
 
         color = mix(vec4(0.0), msdfColor, fill);
 
-        color = mix(color, outlineColor, 1. - smoothstep(totalThreshold - msdfFactor, threshold, dist)) * color.a;
+        float outlineFactor = 1. - smoothstep(totalThreshold - msdfFactor, threshold, dist);
+        // outlineFactor = 0.;
+        // if(outlineFactor < .5) {
+        //     outlineFactor = 0.;
+        // } else {
+        //     outlineFactor = 1.;
+        // }
+        color = mix(color, outlineColor, outlineFactor) * color.a;
 
         // discard transparency
         // for smooth edge value should be lower than visible step

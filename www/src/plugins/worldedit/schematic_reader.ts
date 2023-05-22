@@ -342,7 +342,7 @@ export class SchematicReader {
         // CAULDRON
         if(b.name == 'CAULDRON') {
             setExtraData('lava', block.name == 'lava_cauldron')
-            setExtraData('snow', block.name == 'snow_cauldron')
+            setExtraData('snow', block.name == 'powder_snow_cauldron')
             setExtraData('water', block.name == 'water_cauldron')
             setExtraData('level', 3)
         }
