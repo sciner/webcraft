@@ -1,4 +1,4 @@
-import {DIRECTION, AlphabetTexture, Vector, IndexedColor} from '../helpers.js';
+import {DIRECTION, AlphabetTexture, Vector, IndexedColor, TX_CNT} from '../helpers.js';
 import {BlockManager, FakeTBlock} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
@@ -112,24 +112,21 @@ export default class style {
 
         const bm            = style.block_manager
         const c             = bm.calcMaterialTexture(block.material, DIRECTION.UP)
+        const c_chain       = bm.calcTexture(bm.CHAIN.texture, DIRECTION.UP)
         const rot           = block.rotate ?? Vector.ZERO
         const on_ceil       = rot.y == SIGN_POSITION.CEIL
         const on_wall_alt   = rot.y == SIGN_POSITION.WALL_ALT
         const on_floor      = rot.y == SIGN_POSITION.FLOOR
         const aabb          = style.makeAABBSign(block, x, y, z)
 
-        if(on_ceil || on_floor) {
-            matrix = mat4.create()
-            mat4.rotateY(matrix, matrix, ((block.rotate.x - 2) / 4) * (2 * Math.PI))
-        } else {
-            matrix = CubeSym.matrices[CubeSym.dirAdd(Math.floor(rot.x), CubeSym.ROT_Y2)]
-        }
+        matrix = mat4.create()
+        mat4.rotateY(matrix, matrix, ((block.rotate.x - 2) / 4) * (2 * Math.PI))
 
         if(on_ceil) {
             aabb.expand(-1/16, 0, 0)
             aabb.translate(0, -(aabb.y_min - y), 0)
             // TODO: нарисовать вот тут цепи между aabb и верхним блоком
-
+            style.drawChain(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
         } else if(on_wall_alt) {
             const wall_fixture = aabb.clone()
             aabb.expand(-1/16, 0, 0)
@@ -154,6 +151,7 @@ export default class style {
                 new Vector(x, y, z)
             )
             // TODO: нарисовать вот тут цепи между aabb и wall_fixture
+            style.drawChain(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
         }
 
         // Push vertices
@@ -209,6 +207,70 @@ export default class style {
 
         return null;
 
+    }
+
+    static drawChain(vertices, x, y, z, texture, pivot, matrix, pos) {
+        const sh_chain = 3 / 16
+        const big = [texture[0] - TX_CNT / (2 * 10000), texture[1], texture[2], texture[3]]
+        const small = [texture[0] - TX_CNT / 10000, texture[1], texture[2], texture[3]]
+        const aabb = new AABB()
+        aabb.set(
+            x + .4, y, z + .5,
+            x + .6, y + (1 - pos), z + .5
+        )
+        aabb.translate(sh_chain, pos, sh_chain)
+        let m = new mat4.create()
+        mat4.rotateY(m, matrix, Math.PI / 4)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(big, 0, 0, null, null, true),
+                north: new AABBSideParams(big, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+        aabb.translate(-2 * sh_chain, 0, -2 * sh_chain)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(big, 0, 0, null, null, true),
+                north: new AABBSideParams(big, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+        // малые звенья слева и права 
+        m = new mat4.create()
+        mat4.rotateY(m, matrix, -Math.PI / 4)
+        aabb.translate(0, 0, 2 * sh_chain)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(small, 0, 0, null, null, true),
+                north: new AABBSideParams(small, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+        aabb.translate(2 * sh_chain, 0, -2 * sh_chain)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(small, 0, 0, null, null, true),
+                north: new AABBSideParams(small, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
     }
 
     //
