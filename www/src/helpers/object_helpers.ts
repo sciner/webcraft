@@ -48,7 +48,12 @@ export class ObjectHelpers {
             return v;
         }
         if ((<any>v).x != null && v instanceof Vector) {
-            return new Vector(v);
+            const n = v.n
+            v = new Vector(v)
+            if(n) {
+                (v as Vector).n = new Vector(n)
+            }
+            return v
         }
         const res = {};
         for(let key in v) {

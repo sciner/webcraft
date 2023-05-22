@@ -5,6 +5,7 @@ import { DIRECTION } from "./helper_const.js";
 export class Vector implements IVector {
     // static cnt = 0;
     // static traces = new Map();
+    n?: Vector
 
     static XN = new Vector(-1.0, 0.0, 0.0);
     static XP = new Vector(1.0, 0.0, 0.0);
