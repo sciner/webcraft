@@ -260,6 +260,11 @@ interface IBlockMaterial {
     style: string
     style_name: string
     support_style: string
+    /**
+     * Cтиль, используемый для физики. Одинаковый на клиенте и сервере.
+     * Заполняется автоматически, сохраняет оригинальное имя стиля бока (до того, как блок заменяется другим).
+     */
+    physics_style: string
     sham_block_name: string
     same?: IBlockSame
     inventory_style: any
