@@ -248,7 +248,8 @@
         "coral"
     ],
     "random_tickers": [
-        "grass_block"
+        "grass_block",
+        "tina"
     ],
     "before_block_change_listeners": [
         [

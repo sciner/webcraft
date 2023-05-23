@@ -179,7 +179,7 @@ export class Physics {
         // Block ids
         this.soulsandId     = bm.SOUL_SAND.id
         this.honeyblockId   = bm.HONEY_BLOCK?.id ?? BLOCK_NOT_EXISTS // 1.15+
-        for (const block of [bm.COBWEB, bm.SWEET_BERRY_BUSH]) {
+        for (const block of [bm.TINA, bm.COBWEB, bm.SWEET_BERRY_BUSH]) {
             this.cobwebLikePassable[block.id] = block.passable
         }
         this.ladderId       = bm.LADDER.id

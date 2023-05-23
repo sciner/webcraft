@@ -12848,6 +12848,29 @@
                 "a": 255
             },
             "texture": "block/redstone_lamp.png"
+        },
+        {
+            "id": 1107,
+            "name": "TINA",
+            "transparent": true,
+            "height": 0.0625,
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "plant"
+            },
+            "passable": 1,
+            "planting": false,
+            "tags": [
+                "draw_only_down",
+                "set_on_water",
+                "mask_biome",
+                "doubleface",
+                "no_drop_ao",
+                "random_rotate_up"
+            ],
+            "texture": "block/vine.png",
+            "random_ticker": "tina",
+            "composter_chance": 0.65
         }
     ]
 }
