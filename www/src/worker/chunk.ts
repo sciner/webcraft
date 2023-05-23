@@ -395,14 +395,28 @@ export class ChunkWorkerChunk implements IChunk {
         if(x < 0 || y < 0 || z < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
             return;
         }
-        const block        = this.tblocks.get(this.temp_vec);
-        block.id         = orig_type.id;
-        block.power      = power;
-        block.rotate     = rotate;
-        block.entity_id  = entity_id;
-        block.texture    = null;
-        block.extra_data = extra_data;
-        this.emitted_blocks.delete(block.index);
+        const tblock = this.tblocks.get(this.temp_vec);
+        if(tblock.id > 0) {
+            const textra = tblock.extra_data
+            if( !(orig_type.id == tblock.id) ||
+                !(orig_type.entity_id == tblock.entity_id) ||
+                !((textra === extra_data) || (JSON.stringify(textra) == JSON.stringify(extra_data)))) {
+                // block replaced
+                // console.log('block replaced', tblock.material.name, orig_type.id)
+                if(tblock.material.bb?.animated) {
+                    QubatchChunkWorker.postMessage(['remove_bbmesh', {
+                        block_pos: tblock.posworld.clone(),
+                    }])
+                }
+            }
+        }
+        tblock.id         = orig_type.id;
+        tblock.power      = power;
+        tblock.rotate     = rotate;
+        tblock.entity_id  = entity_id;
+        tblock.texture    = null;
+        tblock.extra_data = extra_data;
+        this.emitted_blocks.delete(tblock.index);
     }
 
     // Return block ID

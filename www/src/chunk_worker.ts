@@ -211,9 +211,8 @@ class ChunkWorkerRoot {
                     const chunk = world.chunks.get(addr);
                     if (chunk) {
                         chunk.dataOffset = dataOffset;
-
                         if (!chunk.buildVerticesInProgress) {
-                            world.chunks.buildQueue?.push(chunk);
+                            (world.chunks as any).buildQueue?.push(chunk);
                         }
                     }
                 }

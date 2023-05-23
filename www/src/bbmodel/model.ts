@@ -214,10 +214,33 @@ export class BBModel_Model {
             }
         }
 
-        //
+        // отложенный запуск анимации
+        const loop_delay = animation.loop_delay
+        if(loop_delay) {
+            dt = Math.max(dt - loop_delay, 0)
+        }
+
+        // режим повторяемости анимации
+        switch(animation.loop) {
+            case 'loop': {
+                // do nothing
+                break
+            }
+            case 'hold': {
+                // hold on last frame
+                dt = Math.min(dt, animation.length * .9999)
+                break
+            }
+            case 'once': {
+                if(dt > animation.length) {
+                    mesh.trans_animations = null
+                    return true
+                }
+                break
+            }
+        }
+
         const time = reverse ? animation.length - (dt % animation.length) : (dt % animation.length)
-        const loop_mode = animation.loop;
-        const loop_delay = animation.loop_delay;
 
         //
         const calcKeyFrame = (keyframes, time) => {
@@ -707,6 +730,17 @@ export class BBModel_Model {
         for(let group of this.root.children) {
             group.visibility = except_list.includes(group.name)
         }
+    }
+
+    getHiddenGroupNames() : string[] {
+        const resp = []
+        for(let group of this.root.children) {
+            if(!group.visibility && !group.visibility) {
+                group.visibility = group.orig_visibility
+                resp.push(group.name)
+            }
+        }
+        return resp
     }
 
 }

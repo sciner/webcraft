@@ -59,7 +59,7 @@ export default class style {
 
         // Add animations
         if(active && typeof QubatchChunkWorker != 'undefined') {
-            QubatchChunkWorker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['create_block_emitter', {
                 block_pos:  block.posworld,
                 pos:        [block.posworld.clone().addScalarSelf(.5, .5, .5)],
                 type:       'campfire_flame'

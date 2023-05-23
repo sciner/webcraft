@@ -649,7 +649,7 @@ export default class style {
         // Add animations
         if(typeof QubatchChunkWorker != 'undefined' && block.id == bm.SOUL_SAND.id) {
             if (neighbours.UP?.id == bm.BUBBLE_COLUMN.id) {
-                QubatchChunkWorker.postMessage(['add_animated_block', {
+                QubatchChunkWorker.postMessage(['create_block_emitter', {
                     block_pos: block.posworld,
                     pos: [block.posworld.clone().addScalarSelf(.5, .5, .5)],
                     type: 'bubble_column',
@@ -715,7 +715,7 @@ export default class style {
                 dt: tblock.extra_data?.dt,
                 pos: chunk.coord.clone().addScalarSelf(x, y, z)
             }]);
-            QubatchChunkWorker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['create_block_emitter', {
                 block_pos: tblock.posworld,
                 pos: [tblock.posworld.clone().addScalarSelf(.5, .5, .5)],
                 type: 'music_note'

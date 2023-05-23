@@ -340,6 +340,9 @@ interface IBlockMaterial {
         model:              string | any
         aabb_stylename?:    string
         behavior?:          string
+        animated?:          {
+            name?: string
+        }
         select_texture?:    any
         set_state?:         any
         particles?:         any
@@ -518,4 +521,19 @@ declare type IUpdateBlock = {
     pos: IVector
     item: any
     action_id: int
+}
+
+declare type IBBModelHideLists = {
+    list?: string[],
+    except?: string[]
+}
+
+declare type IAddMeshArgs = {
+    block_pos:          IVector
+    model:              string
+    hide_groups?:       string[]
+    rotate?:            IVector
+    animation_name?:    string
+    extra_data?:        any
+    matrix?:            imat4
 }

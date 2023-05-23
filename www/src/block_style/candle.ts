@@ -136,7 +136,7 @@ export default class style {
 
         // Animated block effects
         if(typeof QubatchChunkWorker != 'undefined') {
-            QubatchChunkWorker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['create_block_emitter', {
                 block_pos: block.posworld,
                 pos: wick_positions,
                 type: 'torch_flame'
