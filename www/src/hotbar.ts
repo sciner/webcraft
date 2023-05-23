@@ -348,7 +348,7 @@ export class Hotbar {
 
         const player  = this.inventory.player;
         const mayGetDamaged = player.game_mode.mayGetDamaged()
-        const visible = !player.game_mode.isSpectator() && hud.isActive()
+        const visible = !player.game_mode.isSpectator() && hud.isActive() && !hud.wm.hasVisibleWindow()
 
         this.inventory_slots_window.visible = visible
         this.bars_base_window.visible = visible && mayGetDamaged
