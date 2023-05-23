@@ -11,7 +11,7 @@ export class Brain extends FSMBrain {
         this.stack.pushState(this.doStand);
         this.targets = [
             BLOCK.CARROT.id,
-            BLOCK.POTATO.id,
+            BLOCK.POTATOES.id,
             BLOCK.BEETROOT.id
         ];
     }

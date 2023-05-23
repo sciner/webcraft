@@ -62,6 +62,7 @@ export type TActionBlock = {
 type ActionBlocks = {
     list: TActionBlock[]
     options: {
+        can_ignore_air      : boolean
         ignore_check_air    : boolean
         on_block_set        : boolean
         on_block_set_radius : number
@@ -594,6 +595,7 @@ export class WorldAction {
                 list: [],
                 options: {
                     ignore_check_air: ignore_check_air,
+                    can_ignore_air: false,
                     on_block_set: on_block_set,
                     on_block_set_radius: 1
                 }
@@ -2384,7 +2386,7 @@ function restrictPlanting(e, world, pos, player, world_block, world_material, ma
     if(mat_block.id == BLOCK.SWEET_BERRY_BUSH.id && [BLOCK.PODZOL.id, BLOCK.COARSE_DIRT.id, BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
         return false
     }
-    if(![BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
+    if(![BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
         return true;
     }
     // Посадить семена можно только на вспаханную землю

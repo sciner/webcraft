@@ -8,7 +8,7 @@ import * as FLUID from '../../fluid/FluidConst.js';
 const facings4 = ['north', 'west', 'south', 'east'];
 const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
 const dripstone_stages = ['tip', 'frustum', 'middle', 'base'];
-const NO_IMPORT_BLOCKS = ['AIR', 'NETHER_PORTAL'];
+const NO_IMPORT_BLOCKS = ['NETHER_PORTAL'];
 
 // const {Schematic} = await import("prismarine-schematic" as any)
 
@@ -35,11 +35,12 @@ export class SchematicReader {
             DETECTOR_RAIL:          'POWERED_RAIL',
             SKELETON_SKULL:         'SKULL_DESERT',
             CARROTS:                'CARROT_SEEDS',
+            LAVA_CAULDRON:          'CAULDRON',
         }
     }
 
     // Read schematic file
-    async read(orig_file_name : string) {
+    async read(orig_file_name : string, read_air : boolean = false) {
 
         orig_file_name += ''
 
@@ -97,6 +98,10 @@ export class SchematicReader {
             bpos.z *= -1;
             if(bpos.y < min_y) {
                 min_y = bpos.y;
+            }
+            if(block.type === AIR_BLOCK.id) {
+                this.blocks.set(bpos, AIR_BLOCK)
+                return
             }
             const name = this.parseBlockName(block);
             if(NO_IMPORT_BLOCKS.includes(name)) {
@@ -181,7 +186,7 @@ export class SchematicReader {
             if (fluidValue) {
                 this.fluids.push(bpos.x, bpos.y, bpos.z, fluidValue);
             }
-        });
+        }, read_air);
         //
         const not_found_blocks_arr = [];
         for(const [name, count] of not_found_blocks.entries()) {
@@ -239,7 +244,9 @@ export class SchematicReader {
             return new_block;
         }
         if(b.item || b.style_name == 'extruder' || b.style_name == 'text') {
-            return null;
+            if(b.item && !b.tags.includes('can_set_as_block')) {
+                return null
+            }
         }
         if(b.chest) {
             new_block.extra_data = this.parseChestPropsExtraData(props);
@@ -331,6 +338,13 @@ export class SchematicReader {
             setExtraData('damage', 0);
             if(block.name.startsWith('chipped_')) setExtraData('damage', 1);
             if(block.name.startsWith('damaged_')) setExtraData('damage', 2);
+        }
+        // CAULDRON
+        if(b.name == 'CAULDRON') {
+            setExtraData('lava', block.name == 'lava_cauldron')
+            setExtraData('snow', block.name == 'powder_snow_cauldron')
+            setExtraData('water', block.name == 'water_cauldron')
+            setExtraData('level', 3)
         }
         //
         if(props) {

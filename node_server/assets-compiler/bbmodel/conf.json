@@ -1935,6 +1935,7 @@
             "name": "ENDER_CHEST",
             "bb": {
                 "model": "ender_chest",
+                "aabb_stylename": "chest",
                 "rotate": {"type": "cardinal_direction"}
             }
         },

@@ -59,6 +59,7 @@ export class ServerClient {
     static CMD_CHEST_CONFIRM            = 47; // player -> server (player change chest content)
     static CMD_CHEST_FORCE_CLOSE        = 108; // server -> player (a server tells the client to close the chest window)
     static CMD_CHEST_CHANGE_PROCESSED   = 123 // s->p: сервер сообщил об окончании операции, которую ждал клиент (успешной или нет - не важно)
+    static CMD_POS1POS2                 = 124 //
 
     //
     static CMD_CHANGE_POS_SPAWN         = 63; // player -> server (request to change spawn point)
@@ -124,7 +125,7 @@ export class ServerClient {
 
     static CMD_BUILDING_SCHEMA_ADD      = 107;
 
-    // NEXT UNUSED COMMAND INDEX        = 123
+    // NEXT UNUSED COMMAND INDEX        = 125
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;

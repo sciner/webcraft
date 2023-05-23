@@ -36,7 +36,7 @@ async function onMessageFunc(e) {
             try {
                 let p = performance.now();
                 const reader = new SchematicReader();
-                const schem = await reader.read(args.filename)
+                const schem = await reader.read(args.filename, args.read_air)
                 if(reader.blocks.size > 0) {
                     p = Math.round((performance.now() - p) * 1000) / 1000000;
                     console.log('schematic version', schem.version);

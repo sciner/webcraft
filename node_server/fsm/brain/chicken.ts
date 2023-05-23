@@ -33,14 +33,11 @@ export class Brain extends FSMBrain {
         if ((performance.now() - this.egg_timer) > LAY_INTERVAL) {
             const mob = this.mob;
             const world = mob.getWorld();
-            const block = world.getBlock(mob.pos.floored());
-            if (!block) {
-                return;
-            }
-            if (block.id == world.block_manager.CHICKEN_NEST.id && block.extra_data.eggs < COUNT_EGGS_IN_NEST) {
+            const bm = world.block_manager
+            if (this.legs.id == bm.CHICKEN_NEST.id && this.legs.extra_data.eggs < COUNT_EGGS_IN_NEST) {
                 this.egg_timer = performance.now();
                 this.nest_timer = performance.now();
-                this.nest = block;
+                this.nest = this.legs;
                 this.stack.replaceState(this.doLay);
                 return;
             }

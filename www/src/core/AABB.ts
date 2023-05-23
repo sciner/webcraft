@@ -52,6 +52,7 @@ export class AABB {
     x_max: number;
     y_max: number;
     z_max: number;
+    private _position?: Vector;
     private _size?: Vector;
     private _center?: Vector;
 
@@ -72,6 +73,12 @@ export class AABB {
         this.y_max = -Infinity;
         this.z_max = -Infinity;
         return this;
+    }
+
+    get position() : Vector {
+        this._position = this._position || new Vector(0, 0, 0 )
+        this._position.set(this.x_min, this.y_min, this.z_min)
+        return this._position
     }
 
     get size() : Vector {

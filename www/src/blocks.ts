@@ -20,6 +20,7 @@ export const BLOCK_DB_PROPS                 = ['power', 'entity_id', 'extra_data
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data']
 export const NO_DESTRUCTABLE_BLOCKS         = ['BEDROCK', 'STILL_WATER']
 export const DIRT_BLOCK_NAMES               = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET']
+export const OK_FOR_PLANT_BLOCK_NAMES       = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET']
 export const LAYERING_MOVE_TO_DOWN_STYLES   = ['grass', 'tall_grass', 'wildflowers']
 
 export const AIR_BLOCK_SIMPLE = Object.freeze({id: 0})
@@ -1551,7 +1552,7 @@ export class BLOCK {
             block.visible_for_ao = BLOCK.visibleForAO(block.id)
             block.light_power_number = BLOCK.getLightPower(block)
             block.interact_water = block.tags.includes('interact_water') || !!block.layering?.slab
-            block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab
+            block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab || !!block.is_leaves
             if(!block.support_style && block.planting) {
                 block.support_style = 'planting'
             }

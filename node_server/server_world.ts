@@ -18,7 +18,7 @@ import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
 import { ArrayHelpers, Vector, VectorCollector, PerformanceTimer, Helpers } from "@client/helpers.js";
 import { AABB } from "@client/core/AABB.js";
-import { BLOCK, DBItemBlock } from "@client/blocks.js";
+import { AIR_BLOCK_SIMPLE, BLOCK, DBItemBlock } from "@client/blocks.js";
 import { ServerClient } from "@client/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
@@ -39,7 +39,7 @@ import type { DBWorld } from "./db/world.js";
 import type { TBlock } from "@client/typed_blocks3.js";
 import type { ServerPlayer } from "./server_player.js";
 import type { Indicators, PlayerConnectData, PlayerSkin } from "@client/player.js";
-import type {TRandomTickerFunction, TTickerFunction} from "./server_chunk.js";
+import type {ServerChunk, TRandomTickerFunction, TTickerFunction} from "./server_chunk.js";
 import type {Physics} from "@client/prismarine-physics/index.js";
 import { ChunkGrid } from "@client/core/ChunkGrid.js";
 import {ServerDrivingManager} from "./control/server_driving_manager.js";
@@ -746,7 +746,8 @@ export class ServerWorld implements IWorld {
     }
 
     //
-    async applyActions(server_player : ServerPlayer | undefined, actions : WorldAction) {
+    async applyActions(actor : ServerPlayer | Mob | null, actions : WorldAction) {
+        const server_player = (actor as ServerPlayer)?.session ? (actor as ServerPlayer) : null
         const chunks_packets = new VectorCollector();
         const bm = this.block_manager
         const grid = this.chunkManager.grid
@@ -780,9 +781,6 @@ export class ServerWorld implements IWorld {
         }
         // Decrement instrument
         if (actions.decrement_instrument) {
-            /* Old code: the argumnt actions.decrement_instrument is unused.
-            server_player.inventory.decrement_instrument(actions.decrement_instrument);
-            */
             server_player.inventory.decrement_instrument();
         }
         // increment item
@@ -839,12 +837,13 @@ export class ServerWorld implements IWorld {
             this.updatedBlocksByListeners.length = 0;
             // trick for worldedit plugin
             const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
+            const can_ignore_air = (actions.blocks.options && 'can_ignore_air' in actions.blocks.options) ? !!actions.blocks.options.can_ignore_air : false;
             const on_block_set = actions.blocks.options && 'on_block_set' in actions.blocks.options ? !!actions.blocks.options.on_block_set : true;
             try {
                 const block_pos_in_chunk = new Vector(Infinity, Infinity, Infinity);
                 const chunk_addr = new Vector(0, 0, 0);
                 const prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
-                let chunk = null;
+                let chunk : ServerChunk = null;
                 let postponedActions = null; // WorldAction containing a subset of actions.blocks, postponed until the current chunk loads
                 const previous_item = {id: 0}
                 let cps = null;
@@ -904,6 +903,9 @@ export class ServerWorld implements IWorld {
                         }
                         const tblock = chunk.tblocks.get(block_pos_in_chunk);
                         let oldId = tblock.id;
+                        if(can_ignore_air && params.item.id == AIR_BLOCK_SIMPLE.id && oldId === 0) {
+                            continue
+                        }
                         previous_item.id = oldId
                         // call block change listeners
                         if (on_block_set) {
@@ -932,7 +934,7 @@ export class ServerWorld implements IWorld {
                         // 5. Store in modify list
                         chunk.addModifiedBlock(block_pos, params.item, oldId);
                         // Mark the block as dirty and remember the change to be saved to DB
-                        chunk.dbActor.markBlockDirty(params, tblock.index);
+                        chunk.dbActor.markBlockDirty(params as any, tblock.index);
 
                         if (on_block_set) {
                             // a.
@@ -975,7 +977,7 @@ export class ServerWorld implements IWorld {
                     } else {
                         if (chunk) {
                             // The chunk exists, but not ready yet. Queue the block action until the chunk is loaded.
-                            postponedActions = postponedActions ?? chunk.getOrCreatePendingAction(server_player, actions)
+                            postponedActions = postponedActions ?? chunk.getOrCreatePendingAction(actor, actions)
                             postponedActions.addBlock(params);
                         } else {
                             this.dbActor.addChunklessBlockChange(chunk_addr, params);
