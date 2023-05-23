@@ -259,9 +259,12 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
     chunk_coord:        Vector
     parsed_animation?:  TParsedAnimation | null
     animation_name_o?:  string | null
+    _hide_lists?:       {list?: [], except?: []}
+
+    private rotation_matrix?: imat4
     private _block_drawer: Mesh_Object_Asteroid
 
-    constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false) {
+    constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false, rotation_matrix?: imat4, hide_lists?: IBBModelHideLists) {
         super(undefined)
 
         this.model = model
@@ -277,6 +280,13 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         }
 
         this.rotation.set(rotate.toArray())
+        if(rotation_matrix) {
+            this.rotation_matrix = rotation_matrix
+            // } else {
+            // const mx = mat4.create();
+            // mat4.rotateY(mx, mx, this.rotation[2])
+            // this.rotation_matrix = mx
+        }
 
         this.render         = render
         this.life           = 1.0;
@@ -291,9 +301,10 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${doubleface ? 'doubleface' : 'regular'}/terrain/${model.json._properties.texture_id}`);
         this.buffer         = new GeometryTerrain(this.vertices)
         this.modifiers      = new MeshObjectModifiers(this)
+        this._hide_lists    = hide_lists
         this.redraw(0.);
 
-        this.setAnimation(animation_name);
+        this.setAnimation(animation_name)
 
     }
 
@@ -315,8 +326,23 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
 
     redraw(delta: float) {
         this.vertices = []
-        const mx = mat4.create();
-        mat4.rotateY(mx, mx, this.rotation[2]);
+        let mx = this.rotation_matrix
+        if(!mx) {
+            mx = mat4.create();
+            mat4.rotateY(mx, mx, this.rotation[2])
+        }
+        //
+        this.model.resetBehaviorChanges()
+        const _hide_lists = this._hide_lists
+        if(_hide_lists) {
+            if(_hide_lists.list) {
+                this.model.hideGroups(_hide_lists.list)
+            }
+            if(_hide_lists.except) {
+                this.model.hideAllExcept(_hide_lists.except)
+            }
+        }
+        //
         this.model.playAnimation(this.parsed_animation, (this.start_time + performance.now()) / 1000, this)
         this.model.draw(this.vertices, vecZero, lm, mx);
         this.buffer.updateInternal(this.vertices);
@@ -360,7 +386,11 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         if(!m) {
             m = mat4.create()
             mat4.copy(m, this.matrix)
-            mat4.rotateY(m, m, this.rotation[2])
+            if(this.rotation_matrix) {
+                mat4.mul(m, m, this.rotation_matrix)
+            } else {
+                mat4.rotateY(m, m, this.rotation[2])
+            }
         }
 
         if(pos) {
@@ -394,11 +424,11 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         this.animation_changed = null
     }
 
-    applyRotate() {
-        this.matrix = mat4.create()
-        const z = this.rotation[2]
-        mat4.rotateZ(this.matrix, this.matrix, z)
-    }
+    // applyRotate() {
+    //     this.matrix = mat4.create()
+    //     const z = this.rotation[2]
+    //     mat4.rotateZ(this.matrix, this.matrix, z)
+    // }
 
     destroy() {
         this.buffer.destroy()

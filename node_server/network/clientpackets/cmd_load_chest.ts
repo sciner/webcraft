@@ -1,6 +1,6 @@
 import { Vector } from "@client/helpers.js";
 import {isBlockRoughlyWithinPickatRange, TChestInfo} from "@client/block_helpers.js";
-import { ServerClient } from "@client/server_client.js";
+import { BLOCK_ACTION, ServerClient } from "@client/server_client.js";
 import { PacketHelpers } from "../../server_helpers.js";
 import { CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD
     } from "@client/constant.js";
@@ -47,12 +47,12 @@ export default class packet_reader {
         }
         //
         const pos = new Vector(packet.data.pos);
-        let chest_tblock: TBlock | null;
+        let tblock: TBlock | null;
         try {
-            chest_tblock = player.world.chests.get(pos, true);
+            tblock = player.world.chests.get(pos, true)
         } catch(e) { // chest is invalid, it's unrecoverable
-            forceClose(true);
-            throw e;
+            forceClose(true)
+            throw e
         }
 
         // remember which chests the player is interacting with
@@ -61,22 +61,24 @@ export default class packet_reader {
             player.currentChests.push(packet.data.otherPos);
         }
 
-        if (!chest_tblock) { // if the chest is not loaded
+        if (!tblock) { // if the chest is not loaded
             if (PacketHelpers.waitInQueue(packet, TTL, MAX_ATTEMPTS)) {
                 return false;
             }
             forceClose(false);
             throw `error_chest_not_found|${pos.x},${pos.y},${pos.z}`;
         } else {
-            const mat = chest_tblock.material
+            const mat = tblock.material
             if (mat.chest) {
                 // TODO: need to change opened state
-                // const world = player.world
-                // const actions = new WorldAction()
-                // actions.addDropItem({pos: chest_tblock.posworld, items: [], force: true})
-                // world.actions_queue.add(null, actions)
+                const world = player.world
+                const actions = new WorldAction()
+                const extra_data = tblock.extra_data || {}
+                extra_data.opened = true
+                actions.addBlocks([{pos: tblock.posworld, item: {id: tblock.id, rotate: tblock.rotate, extra_data}, action_id: BLOCK_ACTION.MODIFY}])
+                world.actions_queue.add(null, actions)
             }
-            const success = await player.world.chests.loadAndSendToPlayers(player, chest_tblock)
+            const success = await player.world.chests.loadAndSendToPlayers(player, tblock)
             if (!success) {
                 forceClose(true)
             }

@@ -59,3 +59,8 @@ declare const worker: any
 
 declare const EMULATED_PING: number
 declare const SERVER_TIME_LAG: number
+
+declare type IBBModelHideLists = {
+    list?: string[],
+    except?: string[]
+}

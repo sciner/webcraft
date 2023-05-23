@@ -250,7 +250,10 @@
             "bb": {
                 "model": "chest",
                 "behavior": "chest",
-                "rotate": {"type": "cardinal_direction"}
+                "rotate": {"type": "cardinal_direction"},
+                "animated": {
+                    "name": "idle"
+                }
             }
         },
         {
