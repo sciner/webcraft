@@ -13,7 +13,7 @@ import {
     FLUID_WATER_ID,
     FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
-import { BLOCK_FLAG, COVER_STYLE_SIDES, DEFAULT_STYLE_NAME, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR } from "./constant.js";
+import { BLOCK_FLAG, COVER_STYLE_SIDES, DEFAULT_STYLE_NAME, SIGN_POSITION, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
 import type { TSittingState, TSleepState} from "./player.js";
@@ -1239,6 +1239,8 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
                     return [actions, pos];
                 }
             }
+            // 
+            
             // Rotate block one of 8 poses
             if(mat_block.tags.includes('rotate_x8')) {
                 if(new_item.rotate.y != 0) {
@@ -1249,6 +1251,40 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
             if(mat_block.tags.includes('rotate_x16')) {
                 if(new_item.rotate.y != 0) {
                     new_item.rotate.x = action_player_info.rotate.z / 90;
+                }
+            }
+            // Rotate block as sign
+            if(mat_block.tags.includes('rotate_sign')) {
+                if(new_item.rotate.y == SIGN_POSITION.WALL && pos.point.y >= .5) {
+                    new_item.rotate.y = SIGN_POSITION.WALL_ALT
+                    let cd = BLOCK.getCardinalDirection(action_player_info.rotate)
+                    if(cd % 2 != new_item.rotate.x % 2) {
+                        new_item.rotate.x = cd
+                    } else {
+                        switch(cd) {
+                            case ROTATE.W: {
+                                if(action_player_info.pos.z > pos.z + .5) cd += 2
+                                break
+                            }
+                            case ROTATE.E: {
+                                if(action_player_info.pos.z < pos.z + .5) cd += 2
+                                break
+                            }
+                            case ROTATE.N: {
+                                if(action_player_info.pos.x > pos.x + .5) cd += 2
+                                break
+                            }
+                            case ROTATE.S: {
+                                if(action_player_info.pos.x < pos.x + .5) cd += 2
+                                break
+                            }
+                        }
+                        cd += 1
+                        new_item.rotate.x = cd % 4
+                    }
+                    
+                } else if(new_item.rotate.y != SIGN_POSITION.WALL) {
+                    new_item.rotate.x = action_player_info.rotate.z / 90
                 }
             }
             // Auto open edit window if sign

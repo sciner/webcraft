@@ -592,15 +592,14 @@ export class ChunkManager {
     // setBlock
     setBlock(x : int, y : int, z : int, block, is_modify, power, rotate, entity_id, extra_data, action_id) {
         // определяем относительные координаты чанка
-        let chunkAddr = this.grid.getChunkAddr(x, y, z);
+        const chunkAddr = this.grid.getChunkAddr(x, y, z)
         // обращаемся к чанку
-        let chunk = this.getChunk(chunkAddr);
-        // если чанк найден
+        const chunk = this.getChunk(chunkAddr)
+        // если чанк не найден
         if(!chunk) {
-            return null;
+            return null
         }
-        let pos = new Vector(x, y, z);
-        let item = {
+        const item = {
             id:         block.id,
             power:      power ? power : 1.0,
             rotate:     rotate,
@@ -608,7 +607,7 @@ export class ChunkManager {
             extra_data: extra_data ? extra_data : null
         };
         // устанавливаем блок
-        return chunk.setBlock(pos.x, pos.y, pos.z, item, false, item.power, item.rotate, item.entity_id, extra_data);
+        return chunk.setBlock(x, y, z, item, false, item.power, item.rotate, item.entity_id, extra_data)
     }
 
     // Set nearby chunks

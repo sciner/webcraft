@@ -346,19 +346,18 @@ export class Chunk {
     }
 
     // setBlock
-    setBlock(x, y, z, item, is_modify, power, rotate, entity_id, extra_data) {
+    setBlock(x : int, y : int, z : int, item : IBlockItem, is_modify : boolean = false, power? : float, rotate? : Vector, entity_id? : string, extra_data? : any) {
         x -= this.coord.x;
         y -= this.coord.y;
         z -= this.coord.z;
         if (x < 0 || y < 0 || z < 0 || x >= this.size.x || y >= this.size.y || z >= this.size.z) {
             return;
         }
-        ;
         // fix rotate
         if (rotate && typeof rotate === 'object') {
             rotate = new Vector(rotate).roundSelf(1);
         } else {
-            rotate = new Vector(0, 0, 0);
+            rotate = Vector.ZERO.clone()
         }
         // fix power
         if (typeof power === 'undefined' || power === null) {
@@ -406,11 +405,11 @@ export class Chunk {
         if (update_vertices) {
             let set_block_list = [];
             set_block_list.push({
-                pos: new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z),
-                type: item,
-                is_modify: is_modify,
-                power: power,
-                rotate: rotate,
+                pos:        new Vector(x, y, z).addSelf(this.coord),
+                type:       item,
+                is_modify:  is_modify,
+                power:      power,
+                rotate:     rotate,
                 extra_data: extra_data
             });
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
