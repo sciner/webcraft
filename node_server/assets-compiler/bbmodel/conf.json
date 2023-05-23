@@ -1142,7 +1142,8 @@
             "name": "BEACON",
             "group": "doubleface",
             "bb": {
-                "model": "beacon"
+                "model": "beacon",
+                "animation_name": "spinning_star"
             }
         },
         {

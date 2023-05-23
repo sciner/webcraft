@@ -132,11 +132,14 @@ export class WorkerWorld {
         const chunk_addr = new Vector(0, 0, 0);
         const pos_world = new Vector(0, 0, 0);
         const grid : ChunkGrid = this.chunkManager.grid
+        let chunk = null
         for(let i = 0; i < args.length; i++) {
             const m = args[i];
             // 1. Get chunk
             grid.getChunkAddr(m.pos.x, m.pos.y, m.pos.z, chunk_addr);
-            const chunk = this.getChunk(chunk_addr);
+            if(!chunk || !chunk.addr.equal(chunk_addr)) {
+                chunk = this.getChunk(chunk_addr);
+            }
             if(chunk) {
                 // 2. Set block
                 if(m.type) {
