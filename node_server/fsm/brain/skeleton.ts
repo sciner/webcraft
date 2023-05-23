@@ -119,7 +119,7 @@ export class Brain extends FSMBrain {
         mob.rotate.z = this.angleTo(this.target.state.pos);
         this.updateControl({
             forward: true, //!(this.is_abyss | this.is_well),
-            jump: this.is_water
+            jump: this.ahead.is_water
         });
         this.applyControl(delta);
         this.sendState();
@@ -182,15 +182,5 @@ export class Brain extends FSMBrain {
 
     }
 
-    onUse() {
-        this.mob.extra_data.skin = 'wither';
-        this.mob.extra_data.armor = {
-            head: 273,
-            body: null,
-            leg: null,
-            boot: null,
-        };
-        return false;
-    }
 
 }
