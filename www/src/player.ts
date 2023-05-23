@@ -128,7 +128,7 @@ export type PlayerStateUpdate = PlayerStateDynamicPart & {
     type ?
     dist ?      : number // null means that the player is too far, and it stopped receiving updates
     ground      : boolean
-    inLiquid ?  : boolean
+    submergedPercent ? : float
     running     : boolean
 }
 
@@ -1259,7 +1259,7 @@ export class Player implements IPlayer {
                 this.state.fire,
                 this.indicators.live,
                 this.onGround,
-                (this.controlManager.current.player_state as PrismarinePlayerState).isInLiquid ?? false
+                (this.controlManager.current.player_state as PrismarinePlayerState).submergedPercent ?? 0
             )
         }
     }

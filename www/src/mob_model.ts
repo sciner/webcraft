@@ -90,7 +90,7 @@ export class MobModel extends NetworkPhysicObject {
     fire?:              boolean = false
     attack?:            false | TAnimState = false
     ground:             boolean = true
-    inLiquid:           boolean = false
+    submergedPercent:   float = 0   // на какую долю погруен в жидкость, от 0 до 1. Это значение неточное, на основе другого AABB! (как в физике)
     running:            boolean = false
     driving?:           ClientDriving | null
     hasUse?:            boolean     // см. TMobConfig.hasUse
@@ -380,9 +380,9 @@ export class MobModel extends NetworkPhysicObject {
                 mesh.setAnimation('sitting')
             } else if (this?.extra_data?.attack || this.attack) {
                 mesh.setAnimation('attack')
-            } else if (!this.ground && this.inLiquid && this.hasSwimAnim) { // плавание (если есть такая анимация)
-                if (this.hasFastSwimAnim && this.running) {
-                    anim = 'fast_swim'
+            } else if (!this.ground && this.submergedPercent === 1 && this.hasSwimAnim) { // плавание (если есть такая анимация)
+                if (this.running) {
+                    anim = this.hasFastSwimAnim ? 'fast_swim' : 'swim*1.5'
                 } else if (this.moving || this.movingY === 1) {
                     anim = 'swim'
                 } else if (this.hasIdleSwim) {
