@@ -101,21 +101,4 @@ export class Brain extends FSMBrain {
         world.actions_queue.add(actor, actions);
     }
 
-    // если использовали предмет
-    onUse(actor, id) {
-        if (!actor || !id){
-            return;
-        }
-
-        const mob = this.mob;
-        const world = mob.getWorld()
-        const bm = world.block_manager
-
-        if (id == bm.WHEAT_SEEDS.id) {
-            console.log('use');
-            return true;
-        }
-        return false;
-    }
-
 }

@@ -40,11 +40,7 @@ export class FSMBrain {
     in_fire: boolean;
     in_lava: boolean;
     in_air: boolean;
-    is_abyss: boolean;
     is_wall: boolean;
-    is_fire: boolean;
-    is_water: boolean;
-    is_lava: boolean;
     targets: any;
     ahead: any
 
@@ -277,25 +273,6 @@ export class FSMBrain {
                 this.ahead.is_abyss = true
             }
 
-            /*
-            forward.addSelf(mob.forward)
-            // если стены нет, то проверяем что под ногами
-            const ray = this.world.raycaster.get(forward, Vector.YN, 4, null, false, false, this.mob)
-            if (!ray) {
-                this.is_abyss = true
-            } else if (ray.block_id  == bm.FIRE.id || ray.block_id == bm.CAMPFIRE.id) {
-                this.is_fire = true
-            } else if ((ray.fluidVal & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
-                this.is_water = true
-            } else if ((ray.fluidVal & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
-                this.is_lava = true
-            } else if (ray.y == mob_pos.y - 1) {
-                this.under = {
-                    id: ray.block_id,
-                    pos: new Vector(ray.x, ray.y, ray.z)
-                } 
-            }
-            */
         }
 
         // стоит в лаве
@@ -396,7 +373,7 @@ export class FSMBrain {
         const forward = (dist > 1.5 && !this.is_wall && !this.ahead.is_abyss) ? true : false;
         this.updateControl({
             forward: forward,
-            jump: this.is_water,
+            jump: this.in_water,
             sneak: false
         });
         this.applyControl(delta);
@@ -502,17 +479,16 @@ export class FSMBrain {
         }
 
         if (this.to) {
-            const dist = mob.pos.distance(this.to);
-            mob.rotate.z = this.angleTo(this.to);
+            const dist = mob.pos.horizontalDistance(this.to)
+            mob.rotate.z = this.angleTo(this.to)
             if (dist < 0.5) {
                 this.stack.replaceState(this.doStand);
                 return;
             }
         }
-
         this.updateControl({
             forward: this.to ? true : false,
-            jump: this.in_water,
+            jump: this.pc.player_state.isInWater,
             sneak: false
         });
         this.applyControl(delta);
@@ -573,7 +549,7 @@ export class FSMBrain {
      * @param actor игрок
      * @param item item
      */
-    onUse(actor : any, item : any) : boolean{
+    onUse(actor : any, item : any) : boolean {
         return false;
     }
 
