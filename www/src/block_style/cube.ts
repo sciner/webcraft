@@ -833,7 +833,7 @@ export default class style {
         _overlay.neightbours[3] = neighbours.NORTH
 
         const sides = [false, false, false, false]
-        let cnt = 0
+        let cnt = 0 // сколько подобных соседей есть вокруг блока (0...4)
 
         cnt += (sides[DIRECTION.WEST] = material.id == neighbours.WEST.id) ? 1 : 0
         cnt += (sides[DIRECTION.SOUTH] = material.id == neighbours.SOUTH.id) ? 1 : 0
@@ -939,7 +939,7 @@ export default class style {
                     pushQ(0, 0, 1.75, 2.25)
                     pushQ(1, 0, 2.25, 2.25)
                 } else if(sides[DIRECTION.WEST] && sides[DIRECTION.SOUTH]) {
-                    pushQ(0, 1, .75, -.25)
+                    pushQ(0, 1, 1.75, -.25)
                     pushQ(1, 1, 2.25, -.25)
                     if(getNeibID(-1, -1) != material.id) {
                         pushQ(0, 0, 1.75, 0.25)
