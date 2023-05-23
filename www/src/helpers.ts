@@ -712,8 +712,8 @@ export class VectorCollectorFlat {
 }
 
 // calc rotate
-export function mat4ToRotate(matrix) : Vector {
-    const out = new Vector(0, 0, 0)
+export function mat4ToRotate(matrix : imat4, out?: Vector) : Vector {
+    out = out || new Vector(0, 0, 0)
     const _quat = quat.create();
     mat4.getRotation(_quat, matrix);
     getEuler(out, _quat)

@@ -1,4 +1,4 @@
-import { calcRotateMatrix, DIRECTION, FastRandom, Helpers, IndexedColor, StringHelpers, Vector } from '../helpers.js';
+import { calcRotateMatrix, DIRECTION, FastRandom, Helpers, IndexedColor, mat4ToRotate, StringHelpers, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import { TBlock } from '../typed_blocks3.js';
@@ -176,25 +176,24 @@ export default class style {
         let draw_bottom_copy = block.hasTag('draw_bottom_copy') && (neighbours?.DOWN && neighbours?.DOWN.material.layering)
         const floors = draw_bottom_copy ? 2 : 1
         for(let i = 0; i < floors; i++) {
-
-            // if(bb.animated) {
-            //     QubatchChunkWorker.postMessage(['create_block_emitter', {
-            //         block_pos:          tblock.posworld.clone().addScalarSelf(0, 1, 0),
-            //         model:              model.name,
-            //         animation_name:     null,
-            //         extra_data:         tblock.extra_data,
-            //         rotate:             mat4ToRotate(matrix)
-            //     }]);
-            //     return
-            // }
-
-            model.draw(vertices, new Vector(x + .5, y - i, z + .5), lm, matrix, (type, pos, args) => {
-                if(typeof QubatchChunkWorker == 'undefined') {
-                    return
-                }
-                const p = new Vector(pos).addScalarSelf(.5, 0, .5)
-                particles.push({pos: p.addSelf(block.posworld), type, args})
-            })
+            if(bb.animated && (typeof QubatchChunkWorker != 'undefined')) {
+                QubatchChunkWorker.postMessage(['add_bbmesh', {
+                    block_pos:          block.posworld.clone(),
+                    model:              model.name,
+                    animation_name:     bb.animated.name,
+                    extra_data:         block.extra_data,
+                    rotate:             mat4ToRotate(matrix)
+                }])
+                return null
+            } else {
+                model.draw(vertices, new Vector(x + .5, y - i, z + .5), lm, matrix, (type : string, pos : Vector, args : any) => {
+                    if(typeof QubatchChunkWorker == 'undefined') {
+                        return
+                    }
+                    const p = new Vector(pos).addScalarSelf(.5, 0, .5)
+                    particles.push({pos: p.addSelf(block.posworld), type, args})
+                })
+            }
         }
         style.addParticles(model, block, matrix, particles)
         if(particles.length > 0) {
@@ -444,19 +443,6 @@ export default class style {
             case 'chest': {
                 const type = tblock.extra_data?.type ?? null
                 const is_big = !!type
-
-                /*
-                if(typeof QubatchChunkWorker != 'undefined') {
-                    QubatchChunkWorker.postMessage(['add_bbmesh', {
-                        block_pos:          tblock.posworld.clone().addScalarSelf(0, 1, 0),
-                        model:              model.name,
-                        animation_name:     null,
-                        extra_data:         tblock.extra_data,
-                        rotate:             mat4ToRotate(matrix)
-                    }]);
-                }
-                */
-
                 if(is_big) {
                     if(type == 'left') {
                         model.hideGroups(['small', 'big'])

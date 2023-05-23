@@ -15,6 +15,7 @@ import {ChunkRenderList} from "./chunk_render_list.js";
 import type { World } from "./world.js";
 import type { ChunkGrid } from "./core/ChunkGrid.js";
 import { AABB } from "./core/AABB.js";
+import type { Renderer } from "render.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
@@ -287,8 +288,15 @@ export class ChunkManager {
                     break;
                 }
                 case 'add_bbmesh': {
-                    // add_animated_block
-                    Qubatch.render.addBBModel(new Vector(args.block_pos).addScalarSelf(.5, 0, .5), args.model, args.rotate, args.animation_name)
+                    const pos = new Vector().copyFrom(args.block_pos)
+                    const key = `block_bbmesh_${pos.toHash()}`;
+                    (Qubatch.render as Renderer).addBBModelForChunk(pos.addScalarSelf(.5, 0, .5), args.model, new Vector().copyFrom(args.rotate), args.animation_name, key, true)
+                    break
+                }
+                case 'remove_bbmesh': {
+                    const pos = new Vector().copyFrom(args.block_pos)
+                    const key = `block_bbmesh_${pos.toHash()}`;
+                    (Qubatch.render as Renderer).meshes.remove(key, Qubatch.render)
                     break
                 }
                 case 'delete_animated_block': {

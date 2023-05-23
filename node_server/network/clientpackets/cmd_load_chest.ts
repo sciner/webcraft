@@ -6,6 +6,7 @@ import { CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_INTERACTION_MARGIN_BLOCKS_SERVER
     } from "@client/constant.js";
 import type { ServerPlayer } from "../../server_player.js";
 import type { TBlock } from "@client/typed_blocks3.js";
+import { WorldAction } from "@client/world_action.js";
 
 const TTL = 3000;
 const MAX_ATTEMPTS = 1000;
@@ -46,9 +47,9 @@ export default class packet_reader {
         }
         //
         const pos = new Vector(packet.data.pos);
-        let chest: TBlock | null;
+        let chest_tblock: TBlock | null;
         try {
-            chest = player.world.chests.get(pos, true);
+            chest_tblock = player.world.chests.get(pos, true);
         } catch(e) { // chest is invalid, it's unrecoverable
             forceClose(true);
             throw e;
@@ -60,14 +61,22 @@ export default class packet_reader {
             player.currentChests.push(packet.data.otherPos);
         }
 
-        if (!chest) { // if the chest is not loaded
+        if (!chest_tblock) { // if the chest is not loaded
             if (PacketHelpers.waitInQueue(packet, TTL, MAX_ATTEMPTS)) {
                 return false;
             }
             forceClose(false);
             throw `error_chest_not_found|${pos.x},${pos.y},${pos.z}`;
         } else {
-            const success = await player.world.chests.loadAndSendToPlayers(player, chest)
+            const mat = chest_tblock.material
+            if (mat.chest) {
+                // TODO: need to change opened state
+                // const world = player.world
+                // const actions = new WorldAction()
+                // actions.addDropItem({pos: chest_tblock.posworld, items: [], force: true})
+                // world.actions_queue.add(null, actions)
+            }
+            const success = await player.world.chests.loadAndSendToPlayers(player, chest_tblock)
             if (!success) {
                 forceClose(true)
             }
