@@ -709,13 +709,6 @@ export class BBModel_Model {
                 group.visibility = false
             }
         }
-        if(!this.hide_lists) {
-            this.hide_lists = {}
-        }
-        if(!this.hide_lists.list) {
-            this.hide_lists.list = []
-        }
-        this.hide_lists.list.push(...names)
     }
 
     resetBehaviorChanges() {
@@ -727,8 +720,6 @@ export class BBModel_Model {
         }
         // 3.
         this.selected_texture_name = null
-        // 4. hidden group names
-        this.hide_lists = null
     }
 
     setState(name : string) {
@@ -739,13 +730,17 @@ export class BBModel_Model {
         for(let group of this.root.children) {
             group.visibility = except_list.includes(group.name)
         }
-        if(!this.hide_lists) {
-            this.hide_lists = {}
+    }
+
+    getHiddenGroupNames() : string[] {
+        const resp = []
+        for(let group of this.root.children) {
+            if(!group.visibility && !group.visibility) {
+                group.visibility = group.orig_visibility
+                resp.push(group.name)
+            }
         }
-        if(!this.hide_lists.except) {
-            this.hide_lists.except = []
-        }
-        this.hide_lists.except.push(...except_list)
+        return resp
     }
 
 }

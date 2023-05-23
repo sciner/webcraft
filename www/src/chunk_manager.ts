@@ -288,9 +288,11 @@ export class ChunkManager {
                     break;
                 }
                 case 'add_bbmesh': {
-                    const pos = new Vector().copyFrom(args.block_pos)
-                    const key = `block_bbmesh_${pos.toHash()}`;
-                    (Qubatch.render as Renderer).addBBModelForChunk(pos.addScalarSelf(.5, 0, .5), args.model, new Vector().copyFrom(args.rotate), args.animation_name, args.hide_lists, key, true, args.matrix)
+                    const a = args as IAddMeshArgs
+                    const pos = new Vector().copyFrom(a.block_pos)
+                    const key = `block_bbmesh_${pos.toHash()}`
+                    const render = Qubatch.render as Renderer
+                    render.addBBModelForChunk(pos.addScalarSelf(.5, 0, .5), a.model, new Vector().copyFrom(a.rotate), a.animation_name, a.hide_groups, key, true, a.matrix)
                     break
                 }
                 case 'remove_bbmesh': {

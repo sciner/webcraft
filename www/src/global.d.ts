@@ -522,3 +522,18 @@ declare type IUpdateBlock = {
     item: any
     action_id: int
 }
+
+declare type IBBModelHideLists = {
+    list?: string[],
+    except?: string[]
+}
+
+declare type IAddMeshArgs = {
+    block_pos:          IVector
+    model:              string
+    hide_groups?:       string[]
+    rotate?:            IVector
+    animation_name?:    string
+    extra_data?:        any
+    matrix?:            imat4
+}

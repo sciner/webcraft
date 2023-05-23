@@ -199,6 +199,12 @@ class MeshObjectModifiers {
         return true
     }
 
+    hideGroups(hide_groups: string[]) {
+        for(let name of hide_groups) {
+            this.hideGroup(name)
+        }
+    }
+
     showGroup(group_name : string) : void {
         for(let list of [this.hide_list, this.mesh.hide_groups]) {
             const index = list.indexOf(group_name)
@@ -245,7 +251,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
     vertices_pushed:    Map<string, boolean> = new Map()
     resource_pack:      BaseResourcePack
     modifiers:          MeshObjectModifiers
-    hide_groups:        string[] = []
+    hide_groups:        string[]
     render:             Renderer
     /** Время в секундах, когда измеился тип анимации. Не учитывает изменения скорости и направления. */
     animation_changed:  float | null = null
@@ -259,12 +265,11 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
     chunk_coord:        Vector
     parsed_animation?:  TParsedAnimation | null
     animation_name_o?:  string | null
-    _hide_lists?:       {list?: [], except?: []}
 
     private rotation_matrix?: imat4
     private _block_drawer: Mesh_Object_Asteroid
 
-    constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false, rotation_matrix?: imat4, hide_lists?: IBBModelHideLists) {
+    constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false, rotation_matrix?: imat4, hide_groups?: string[]) {
         super(undefined)
 
         this.model = model
@@ -301,9 +306,9 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${doubleface ? 'doubleface' : 'regular'}/terrain/${model.json._properties.texture_id}`);
         this.buffer         = new GeometryTerrain(this.vertices)
         this.modifiers      = new MeshObjectModifiers(this)
-        this._hide_lists    = hide_lists
-        this.redraw(0.);
+        this.hide_groups    = hide_groups ?? []
 
+        this.redraw(0.)
         this.setAnimation(animation_name)
 
     }
@@ -333,16 +338,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         }
         //
         this.model.resetBehaviorChanges()
-        const _hide_lists = this._hide_lists
-        if(_hide_lists) {
-            if(_hide_lists.list) {
-                this.model.hideGroups(_hide_lists.list)
-            }
-            if(_hide_lists.except) {
-                this.model.hideAllExcept(_hide_lists.except)
-            }
-        }
-        //
+        this.modifiers.hideGroups(this.hide_groups)
         this.model.playAnimation(this.parsed_animation, (this.start_time + performance.now()) / 1000, this)
         this.model.draw(this.vertices, vecZero, lm, mx);
         this.buffer.updateInternal(this.vertices);

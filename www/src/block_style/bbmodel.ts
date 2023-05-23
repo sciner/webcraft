@@ -178,59 +178,25 @@ export default class style {
         for(let i = 0; i < floors; i++) {
             if(bb.animated && (typeof QubatchChunkWorker != 'undefined')) {
                 let animation_name = 'idle'
-                if(block.material.chest) {
-                    let ed = block.extra_data
-                    let opened = ed.opened
-                    if(ed.opened !== undefined) {
-                        animation_name = opened ? 'open' : 'close'
-                    }
-                }
-                QubatchChunkWorker.postMessage(['add_bbmesh', {
+                // if(block.material.chest) {
+                //     let ed = block.extra_data
+                //     let opened = ed.opened
+                //     if(ed.opened !== undefined) {
+                //         animation_name = opened ? 'open' : 'close'
+                //     }
+                // }
+                const args : IAddMeshArgs = {
                     block_pos:          block.posworld.clone(),
                     model:              model.name,
                     animation_name:     animation_name,
-                    hide_lists:         model.hide_groups,
+                    hide_groups:        model.getHiddenGroupNames(),
                     extra_data:         block.extra_data,
                     matrix:             matrix,
                     rotate:             mat4ToRotate(matrix),
-                }])
+                }
+                QubatchChunkWorker.postMessage(['add_bbmesh', args])
                 return null
             } else {
-
-                // function mat4ToEuler(mat) {
-                //     let data = mat4.clone(mat); // clone matrix to avoid modifying the original
-                    
-                //     let sy = Math.sqrt(data[0] * data[0] +  data[1] * data[1]);
-
-                //     let singular = sy < 1e-6; // If
-
-                //     let x, y, z;
-                //     if (!singular) {
-                //         x = Math.atan2(data[9], data[10]);
-                //         y = Math.atan2(-data[8], sy);
-                //         z = Math.atan2(data[4], data[0]);
-                //     } else {
-                //         x = Math.atan2(-data[6], data[5]);
-                //         y = Math.atan2(-data[8], sy);
-                //         z = 0;
-                //     }
-
-                //     // Convert to degrees
-                //     x = x * (180/Math.PI)
-                //     y = y * (180/Math.PI)
-                //     z = z * (180/Math.PI)
-                    
-                //     return new Vector(x, y, z)
-                // }
-
-                // // const mrot = mat4ToRotate(matrix)
-                // const mrot = mat4ToEuler(matrix)
-                // const mxx = mat4.create()
-                // // mat4.rotateY(mxx, mxx, mrot[2] / 180 * Math.PI)
-                // const q = quat.create()
-                // quat.fromEuler(q, mrot.x, mrot.y, mrot.z, 'zyx')
-                // mat4.fromQuat(mxx, q)
-                // console.log(matrix, mxx)
                 model.draw(vertices, new Vector(x + .5, y - i, z + .5), lm, matrix, (type : string, pos : Vector, args : any) => {
                     if(typeof QubatchChunkWorker == 'undefined') {
                         return

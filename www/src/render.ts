@@ -1203,19 +1203,18 @@ export class Renderer {
      * @param bbname : string
      * @param rotate : Vector
      * @param animation_name : string
+     * @param hide_groups? : string[]
      * @param key : string
      * @param doubleface : boolean
      * @returns string
      */
-    addBBModelForChunk(pos : Vector, bbname : string, rotate : Vector, animation_name : string, hide_lists? : any, key? : string, doubleface : boolean = false, matrix?: imat4) : Mesh_Object_BBModel | null {
+    addBBModelForChunk(pos : Vector, bbname : string, rotate : Vector, animation_name : string, hide_groups? : any, key? : string, doubleface : boolean = false, matrix?: imat4) : Mesh_Object_BBModel | null {
         const model = Resources._bbmodels.get(bbname)
         if(!model) {
             return null
         }
-        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name, doubleface, matrix, hide_lists)
-        bbmodel.setAnimation(animation_name)
+        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name, doubleface, matrix, hide_groups)
         const chunk_addr = this.world.chunkManager.grid.getChunkAddr(pos.x, pos.y, pos.z)
-        // return this.meshes.add(bbmodel, key)
         return this.meshes.addForChunk(chunk_addr, bbmodel, key)
     }
 
