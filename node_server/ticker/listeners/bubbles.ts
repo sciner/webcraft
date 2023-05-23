@@ -1,7 +1,7 @@
 import { Vector } from "@client/helpers.js";
 import { BLOCK } from "@client/blocks.js";
 import { TBlock } from "@client/typed_blocks3.js";
-import { ServerClient } from "@client/server_client.js";
+import { BLOCK_ACTION } from "@client/server_client.js";
 import type { ServerChunk } from "../../server_chunk.js";
 
 export const CAN_SUPPORT_BUBBLES = [88, 415]; // soul_sand, bubble_column
@@ -61,12 +61,12 @@ function manageBubbles(newMaterialBelow, block, newMaterial, firstRun) {
         return shouldHaveBubbles ? {
             pos: block.posworld.clone(),
             item: BLOCK.BUBBLE_COLUMN,
-            action_id: ServerClient.BLOCK_ACTION_CREATE
+            action_id: BLOCK_ACTION.CREATE
         } : {
             pos: block.posworld.clone(),
             item: BLOCK.AIR,
             destroy_block: {id: BLOCK.BUBBLE_COLUMN.id},
-            action_id: ServerClient.BLOCK_ACTION_DESTROY
+            action_id: BLOCK_ACTION.DESTROY
         };
     }
 }

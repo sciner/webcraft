@@ -1,6 +1,5 @@
 import {Vector} from "@client/helpers.js";
-import {BLOCK} from "@client/blocks.js";
-import {ServerClient} from "@client/server_client.js";
+import { BLOCK_ACTION } from "@client/server_client.js";
 import { WorldAction } from "@client/world_action.js";
 import type { TickingBlockManager } from "../server_chunk.js";
 import { MOB_TYPE, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
@@ -48,7 +47,7 @@ export default class Ticker {
             if (auto_generate_mobs) {
                 Ticker.spawnMob(world, params)
             }
-            updated_blocks.push({ pos: pos.clone(), item: { id: bm.AIR.id }, action_id: ServerClient.BLOCK_ACTION_MODIFY });
+            updated_blocks.push({ pos: pos.clone(), item: { id: bm.AIR.id }, action_id: BLOCK_ACTION.MODIFY });
             // Delete completed block from tickings
             this.delete(v.pos)
             return updated_blocks
@@ -118,7 +117,7 @@ export default class Ticker {
             }
             // между попытками создания мобов спаунер ждёт случайно выбранный промежуток времени от 200 до 799
             extra_data.max_ticks = ((Math.random() * 600) | 0) + 200;
-            updated_blocks.push({pos: v.pos.clone(), item: {id: tblock.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+            updated_blocks.push({pos: v.pos.clone(), item: {id: tblock.id, extra_data: extra_data}, action_id: BLOCK_ACTION.MODIFY});
             return updated_blocks;
         }
     }

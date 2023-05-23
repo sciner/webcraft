@@ -1,5 +1,5 @@
 import { Vector } from '@client/helpers.js'
-import { ServerClient } from '@client/server_client.js'
+import { BLOCK_ACTION } from '@client/server_client.js'
 import type { ServerWorld } from 'server_world.js';
 import type { TickingBlockManager } from "../server_chunk.js";
 
@@ -36,7 +36,7 @@ export default class Ticker {
                             notick: true
                         }
                     },
-                    action_id: ServerClient.BLOCK_ACTION_MODIFY
+                    action_id: BLOCK_ACTION.MODIFY
                 }
             ]
         }
@@ -71,7 +71,7 @@ export default class Ticker {
                     item: {
                         id: BLOCK.CHORUS_PLANT.id
                     },
-                    action_id: ServerClient.BLOCK_ACTION_MODIFY
+                    action_id: BLOCK_ACTION.MODIFY
                 },
                 {
                     pos: above,
@@ -81,7 +81,7 @@ export default class Ticker {
                             stage: stage
                         }
                     },
-                    action_id: ServerClient.BLOCK_ACTION_MODIFY
+                    action_id: BLOCK_ACTION.MODIFY
                 }
             ]
         }
@@ -106,7 +106,7 @@ export default class Ticker {
                                 stage: stage + 1
                             }
                         },
-                        action_id: ServerClient.BLOCK_ACTION_MODIFY
+                        action_id: BLOCK_ACTION.MODIFY
                     }
                 )
                 isDead = true
@@ -119,7 +119,7 @@ export default class Ticker {
                     item: {
                         id: BLOCK.CHORUS_PLANT.id
                     },
-                    action_id: ServerClient.BLOCK_ACTION_MODIFY
+                    action_id: BLOCK_ACTION.MODIFY
                 }
             )
         } else {
@@ -132,7 +132,7 @@ export default class Ticker {
                             notick: true
                         }
                     },
-                    action_id: ServerClient.BLOCK_ACTION_MODIFY
+                    action_id: BLOCK_ACTION.MODIFY
                 }
             )
         }

@@ -1,6 +1,6 @@
 import {ActivateMobParams, WorldAction} from "@client/world_action.js";
 import { Vector } from "@client/helpers.js";
-import { ServerClient } from "@client/server_client.js";
+import { BLOCK_ACTION } from "@client/server_client.js";
 import type { ServerWorld } from "../server_world.js";
 import type { ServerChunk } from "../server_chunk.js";
 import type { TickingBlockManager } from "../server_chunk.js";
@@ -49,7 +49,7 @@ export default class Ticker {
                     updated_blocks.push({
                         pos: tblock.posworld.clone(),
                         item: tblock.convertToDBItem(),
-                        action_id: ServerClient.BLOCK_ACTION_MODIFY
+                        action_id: BLOCK_ACTION.MODIFY
                     });
                 }
             }

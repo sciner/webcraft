@@ -2,7 +2,7 @@ import {ChunkManager} from "./chunk_manager.js";
 import {MobManager} from "./mob_manager.js";
 import {DropItemManager} from "./drop_item_manager.js";
 import {PlayerManager} from "./player_manager.js";
-import {ServerClient} from "./server_client.js";
+import {BLOCK_ACTION, ServerClient} from "./server_client.js";
 import { Lang } from "./lang.js";
 import { SimpleQueue, Vector } from "./helpers.js";
 import { ChestHelpers } from "./block_helpers.js";
@@ -361,7 +361,7 @@ export class World implements IWorld {
         if (tblock.id < 0) {
             return null // it's outside the chunk
         }
-        if(action_id == ServerClient.BLOCK_ACTION_DESTROY && tblock.id > 0) {
+        if(action_id == BLOCK_ACTION.DESTROY && tblock.id > 0) {
             const destroy_data = {
                 pos,
                 item: {id: tblock.id} as IBlockItem
@@ -373,16 +373,8 @@ export class World implements IWorld {
             this.onBlockDestroy(destroy_data.pos, destroy_data.item);
         }
         //
-        switch(action_id) {
-            case ServerClient.BLOCK_ACTION_CREATE:
-            case ServerClient.BLOCK_ACTION_REPLACE:
-            case ServerClient.BLOCK_ACTION_MODIFY:
-            case ServerClient.BLOCK_ACTION_DESTROY: {
-                Qubatch.render.meshes.effects.deleteBlockEmitter(pos);
-                this.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, null, item.rotate, null, item.extra_data, action_id);
-                break;
-            }
-        }
+        Qubatch.render.meshes.effects.deleteBlockEmitter(pos);
+        this.chunkManager.setBlock(pos, item)
         return tblock
     }
 
@@ -410,10 +402,7 @@ export class World implements IWorld {
             if(tblock.entity_id) {
                 item.entity_id = tblock.entity_id
             }
-            if(tblock.power !== undefined) {
-                item.power = tblock.power
-            }
-            this.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, item.power, item.rotate, item.entity_id, item.extra_data, ServerClient.BLOCK_ACTION_MODIFY)
+            this.chunkManager.setBlock(pos, item)
             return true
         }
         return false

@@ -1,4 +1,4 @@
-import {ServerClient} from "@client/server_client.js";
+import { BLOCK_ACTION } from "@client/server_client.js";
 import type { TickingBlockManager } from "../server_chunk.js";
 
 const recipes_src = [
@@ -279,7 +279,7 @@ export default class Ticker {
         // если что-то обновилось, то шлём это игрокам
         const updated_blocks = [];
         if(is_update) {
-            updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
+            updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: BLOCK_ACTION.MODIFY});
             world.chests.sendChestToPlayers(tblock, null);
         }
         return updated_blocks;

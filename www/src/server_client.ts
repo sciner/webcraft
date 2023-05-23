@@ -7,6 +7,15 @@ type CmdListener = (INetworkMessage) => void
 type CmdListenersSet = Set<CmdListener>
 type CmdListenersMap = Map<int, CmdListenersSet>
 
+
+// Block actions
+export enum BLOCK_ACTION {
+    CREATE          = 1,
+    DESTROY         = 2,
+    MODIFY          = 3,
+    REPLACE         = 4,
+}
+
 export class ServerClient {
     [key: string]: any;
 
@@ -126,12 +135,6 @@ export class ServerClient {
     static CMD_BUILDING_SCHEMA_ADD      = 107;
 
     // NEXT UNUSED COMMAND INDEX        = 125
-
-    // Block actions
-    static BLOCK_ACTION_CREATE          = 1;
-    static BLOCK_ACTION_DESTROY         = 2;
-    static BLOCK_ACTION_MODIFY          = 3;
-    static BLOCK_ACTION_REPLACE         = 4;
 
     ws                                  : WebSocket
     lastPacketReceivedTime              = Infinity; // set to performance.now() when a packet is received

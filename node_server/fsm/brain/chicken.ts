@@ -1,7 +1,7 @@
 import { FSMBrain } from "../brain.js";
 import { WorldAction } from "@client/world_action.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
-import { ServerClient } from "@client/server_client.js";
+import { BLOCK_ACTION } from "@client/server_client.js";
 
 const TIME_IN_NEST = 12000;
 const LAY_INTERVAL = 100000;
@@ -65,7 +65,7 @@ export class Brain extends FSMBrain {
                             eggs: this.nest.extra_data.eggs + 1
                         }
                     },
-                    action_id: ServerClient.BLOCK_ACTION_MODIFY
+                    action_id: BLOCK_ACTION.MODIFY
                 }]);
                 world.actions_queue.add(null, actions);
                 this.stack.replaceState(this.doForward);

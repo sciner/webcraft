@@ -204,9 +204,11 @@ export class ChunkManager {
         world.server.AddCmdListener([ServerClient.CMD_BLOCK_SET], (cmd) => {
             let pos = cmd.data.pos;
             let item = cmd.data.item;
-            let block = BLOCK.fromId(item.id);
-            let extra_data = cmd.data.item.extra_data ? cmd.data.item.extra_data : null;
-            this.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data, ServerClient.BLOCK_ACTION_REPLACE);
+            // let block = BLOCK.fromId(item.id)
+            if(cmd.data.item.extra_data)  {
+                item.extra_data = cmd.data.item.extra_data
+            }
+            this.setBlock(pos, item)
         });
         world.server.AddCmdListener([ServerClient.CMD_BLOCK_ROLLBACK], (cmd: INetworkMessage<int>) => {
             world.history.rollback(cmd.data)
@@ -590,24 +592,17 @@ export class ChunkManager {
     }
 
     // setBlock
-    setBlock(x : int, y : int, z : int, block, is_modify, power, rotate, entity_id, extra_data, action_id) {
+    setBlock(pos: Vector, item : IBlockItem) {
         // определяем относительные координаты чанка
-        const chunkAddr = this.grid.getChunkAddr(x, y, z)
+        const chunkAddr = this.grid.getChunkAddr(pos.x, pos.y, pos.z)
         // обращаемся к чанку
         const chunk = this.getChunk(chunkAddr)
         // если чанк не найден
         if(!chunk) {
             return null
         }
-        const item = {
-            id:         block.id,
-            power:      power ? power : 1.0,
-            rotate:     rotate,
-            entity_id:  entity_id,
-            extra_data: extra_data ? extra_data : null
-        };
         // устанавливаем блок
-        return chunk.setBlock(x, y, z, item, false, item.power, item.rotate, item.entity_id, extra_data)
+        return chunk.setBlock(pos, item)
     }
 
     // Set nearby chunks

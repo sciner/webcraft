@@ -1,5 +1,5 @@
 import { BLOCK } from '@client/blocks.js'
-import { ServerClient } from '@client/server_client.js'
+import { BLOCK_ACTION } from '@client/server_client.js'
 import { Effect } from '@client/block_type/effect.js'
 import type { ServerWorld } from '../server_world.js';
 import type { ServerChunk } from '../server_chunk.js';
@@ -74,7 +74,7 @@ export default class Ticker {
         // если что-то обновилось, то шлём это игрокам
         if (state.level != level) {
             world.chests.sendChestToPlayers(tblock, null)
-            return [{pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY}]
+            return [{pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: BLOCK_ACTION.MODIFY}]
         }
 
     }

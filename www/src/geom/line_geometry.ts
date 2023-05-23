@@ -1,22 +1,21 @@
 import {Vector} from "../helpers.js";
 import type BaseRenderer from "../renders/BaseRenderer.js";
 
+const MIN_LINES_COUNT = 12
+const STRIDE_FLOATS = 8
+
 export class LineGeometry {
     [key: string]: any;
-    static strideFloats = 8;
 
     constructor() {
         // убрал, для уменьшения объема оперативной памяти
         // this.vertices = vertices;
         this.updateID = 0;
         this.uploadID = -1;
-        this.strideFloats = LineGeometry.strideFloats;
+        this.strideFloats = STRIDE_FLOATS;
         this.stride = this.strideFloats * 4;
 
-        /**
-         * @type {Float32Array}
-         */
-        this.resize(12);
+        this.resize(MIN_LINES_COUNT);
         /**
          *
          * @type {BaseBuffer}
@@ -47,7 +46,7 @@ export class LineGeometry {
         this.defGridWidth = .3;
     }
 
-    resize(cnt) {
+    resize(cnt : int) {
         this.size = cnt;
         const oldData = this.data;
         this.data = new Float32Array(this.strideFloats * cnt);

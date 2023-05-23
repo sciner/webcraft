@@ -1074,12 +1074,13 @@ export class Renderer {
         }
 
         if(this.player.pos1pos2) {
-            this.debugGeom.addBlockGrid({
-                pos:        this.player.pos1pos2.position,
-                size:       this.player.pos1pos2.size,
-                lineWidth:  .15,
-                colorABGR:  0xFFFF0000, // ABGR
-            })
+            this.debugGeom.addAABB(this.player.pos1pos2, {lineWidth: .15, colorABGR: 0xFFFF0000})
+            // this.debugGeom.addBlockGrid({
+            //     pos:        this.player.pos1pos2.position,
+            //     size:       this.player.pos1pos2.size,
+            //     lineWidth:  .15,
+            //     colorABGR:  0xFFFF0000, // ABGR
+            // })
         }
 
         const overChunk = player.getOverChunk();

@@ -1,4 +1,4 @@
-import { ServerClient } from "./server_client.js";
+import { BLOCK_ACTION } from "./server_client.js";
 import { Color, DIRECTION, Vector } from "./helpers.js";
 import { WorldAction } from "./world_action.js";
 import { DEFAULT_STYLE_NAME, PORTAL_SIZE } from "./constant.js";
@@ -153,7 +153,7 @@ export class WorldPortal {
                                 }
                             }
                         }
-                        actions.addBlocks([{pos: b_pos.clone(), item: block, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+                        actions.addBlocks([{pos: b_pos.clone(), item: block, action_id: BLOCK_ACTION.CREATE}]);
                     }
                 }
                 world.actions_queue.add(null, actions);

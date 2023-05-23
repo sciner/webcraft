@@ -1,5 +1,5 @@
 import {Vector} from "@client/helpers.js";
-import {ServerClient} from "@client/server_client.js";
+import { BLOCK_ACTION } from "@client/server_client.js";
 import type { ServerChunk } from "../server_chunk.js";
 import type { ServerWorld } from "../server_world.js";
 import type { TickingBlockManager } from "../server_chunk.js";
@@ -33,7 +33,7 @@ export default class Ticker {
                     new_item.extra_data.stage = stage;
                     const b = world.getBlock(next_pos);
                     if(!b || b.id == 0 || b.material.is_leaves) {
-                        updated_blocks.push({pos: next_pos, item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                        updated_blocks.push({pos: next_pos, item: new_item, action_id: BLOCK_ACTION.CREATE});
                         // игнорировать в этот раз все другие бамбуки на этой позиции без учета вертикальной позиции
                         check_pos.copyFrom(next_pos);
                         check_pos.y = 0;
@@ -46,7 +46,7 @@ export default class Ticker {
                 if(extra_data.stage == 0) {
                     addNextBamboo(v.pos, tblock, 1);
                     tblock.extra_data = null; // .stage = 3;
-                    updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                    updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: BLOCK_ACTION.MODIFY});
                 } else {
                     const over1 = world.getBlock(v.pos.add(Vector.YP));
                     const under1 = world.getBlock(v.pos.add(Vector.YN));
@@ -65,7 +65,7 @@ export default class Ticker {
                                         const new_item = {...tblock.convertToDBItem()};
                                         new_item.extra_data = {...extra_data};
                                         new_item.extra_data = null; // .stage = 3;
-                                        updated_blocks.push({pos: under1.posworld, item: new_item, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                        updated_blocks.push({pos: under1.posworld, item: new_item, action_id: BLOCK_ACTION.MODIFY});
                                     }
                                 }
                             }
@@ -84,12 +84,12 @@ export default class Ticker {
                                             const new_current = {...tblock.convertToDBItem()};
                                             new_current.extra_data = {...extra_data};
                                             new_current.extra_data.stage = 1;
-                                            updated_blocks.push({pos: v.pos.clone(), item: new_current, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                            updated_blocks.push({pos: v.pos.clone(), item: new_current, action_id: BLOCK_ACTION.MODIFY});
                                             // set under to 3
                                             const new_under = {...tblock.convertToDBItem()};
                                             new_under.extra_data = {...new_under.extra_data};
                                             new_under.extra_data = null; // .stage = 3;
-                                            updated_blocks.push({pos: under1.posworld, item: new_under, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                            updated_blocks.push({pos: under1.posworld, item: new_under, action_id: BLOCK_ACTION.MODIFY});
                                         }
                                     } else {
                                         // Limit height
@@ -97,7 +97,7 @@ export default class Ticker {
                                         extra_data.notick = true;
                                         delete(extra_data.pos);
                                         delete(extra_data.max_height);
-                                        updated_blocks.push({pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                        updated_blocks.push({pos: pos, item: tblock.convertToDBItem(), action_id: BLOCK_ACTION.MODIFY});
                                         this.delete(pos);
                                         //
                                         const new_under = {...tblock.convertToDBItem()};
@@ -105,7 +105,7 @@ export default class Ticker {
                                         new_under.extra_data.notick = true;
                                         delete(new_under.extra_data.pos);
                                         delete(new_under.extra_data.max_height);
-                                        updated_blocks.push({pos: under1.posworld, item: new_under, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                        updated_blocks.push({pos: under1.posworld, item: new_under, action_id: BLOCK_ACTION.MODIFY});
                                         this.delete(under1.posworld);
                                         //
                                         const new_over = {...tblock.convertToDBItem()};
@@ -113,7 +113,7 @@ export default class Ticker {
                                         new_over.extra_data.notick = true;
                                         delete(new_over.extra_data.pos);
                                         delete(new_over.extra_data.max_height);
-                                        updated_blocks.push({pos: over1.posworld, item: new_over, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                        updated_blocks.push({pos: over1.posworld, item: new_over, action_id: BLOCK_ACTION.MODIFY});
                                         this.delete(over1.posworld);
                                     }
                                 }

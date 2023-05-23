@@ -1,6 +1,6 @@
 import {MOTION_MOVED, MOTION_JUST_STOPPED, MOTION_STAYED, DropItem} from "./drop_item.js";
 import {CHUNK_STATE} from "@client/chunk_const.js"
-import {ServerClient} from "@client/server_client.js";
+import {BLOCK_ACTION, ServerClient} from "@client/server_client.js";
 import { unixTime } from "@client/helpers.js";
 import {DROP_LIFE_TIME_SECONDS} from "@client/constant.js";
 import {ITEM_MERGE_RADIUS, IMMEDIATELY_DELETE_OLD_DROP_ITEMS_FROM_DB} from "./server_constant.js";
@@ -62,7 +62,7 @@ export class ItemWorld {
                                         id: material.id,
                                         extra_data: extra_data
                                     },
-                                    action_id: ServerClient.BLOCK_ACTION_REPLACE
+                                    action_id: BLOCK_ACTION.REPLACE
                                 }
                             ]
                             // если посадили в блок, в котром была высокая трава, то нужно заменить блок верхушки травы на блок воздуха
@@ -72,7 +72,7 @@ export class ItemWorld {
                                     {
                                         pos: pos.add(has_head.pos),
                                         item: new DBItemBlock(AIR_BLOCK_SIMPLE.id),
-                                        action_id: ServerClient.BLOCK_ACTION_REPLACE
+                                        action_id: BLOCK_ACTION.REPLACE
                                     } 
                                 )
                             }
@@ -82,7 +82,7 @@ export class ItemWorld {
                                     {
                                         pos: under.posworld.clone(),
                                         item: new DBItemBlock(bm.DIRT.id),
-                                        action_id: ServerClient.BLOCK_ACTION_REPLACE
+                                        action_id: BLOCK_ACTION.REPLACE
                                     } 
                                 )
                             }

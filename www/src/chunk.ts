@@ -1,5 +1,5 @@
 import { Vector } from "./helpers.js";
-import {newTypedBlocks} from "./typed_blocks3.js";
+import {newTypedBlocks, TBlock} from "./typed_blocks3.js";
 import type { TypedBlocks3 } from "./typed_blocks3.js";
 import {BLOCK, DBItemBlock, POWER_NO} from "./blocks.js";
 import {AABB} from './core/AABB.js';
@@ -8,9 +8,9 @@ import type BaseRenderer from "./renders/BaseRenderer.js";
 import type { ChunkManager } from "./chunk_manager.js";
 import {BaseGeometryPool} from "./geom/base_geometry_pool.js";
 import {ChunkMesh} from "./chunk_mesh.js";
-import {CHUNK_STATE} from "./chunk_const.js";
 
 let global_uniqId = 0;
+const _inchunk_pos = new Vector(0, 0, 0)
 
 export interface ClientModifyList {
     compressed          : string    // base-64 encoded
@@ -346,74 +346,65 @@ export class Chunk {
     }
 
     // setBlock
-    setBlock(x : int, y : int, z : int, item : IBlockItem, is_modify : boolean = false, power? : float, rotate? : Vector, entity_id? : string, extra_data? : any) {
-        x -= this.coord.x;
-        y -= this.coord.y;
-        z -= this.coord.z;
+    setBlock(pos : Vector, item : IBlockItem) {
+
+        const chunkManager = this.getChunkManager()
+
+        // Check pos
+        let {x, y, z} = pos
+        x -= this.coord.x
+        y -= this.coord.y
+        z -= this.coord.z
         if (x < 0 || y < 0 || z < 0 || x >= this.size.x || y >= this.size.y || z >= this.size.z) {
-            return;
+            return
         }
-        // fix rotate
-        if (rotate && typeof rotate === 'object') {
-            rotate = new Vector(rotate).roundSelf(1);
-        } else {
-            rotate = Vector.ZERO.clone()
-        }
-        // fix power
-        if (typeof power === 'undefined' || power === null) {
-            power = 100;
-        }
-        if (power <= 0) {
-            return;
-        }
-        let update_vertices = true;
-        let chunkManager = this.getChunkManager();
 
-        //
-        if (!is_modify) {
-            let oldLight = 0;
-            let material = BLOCK.BLOCK_BY_ID[item.id];
-            let pos = new Vector(x, y, z);
-            let tblock = this.tblocks.get(pos);
-
-            if (this.chunkManager.use_light) {
-                oldLight = tblock.lightSource;
+        // Fix rotate
+        if(item.rotate && typeof item.rotate === 'object') {
+            if(!(item.rotate instanceof Vector)) {
+                item.rotate = new Vector().copyFrom(item.rotate)
             }
+            (item.rotate as Vector).roundSelf(1)
+        }
 
-            this.tblocks.delete(pos);
+        // Remember old light value
+        _inchunk_pos.set(x, y, z)
+        let oldLight = 0
+        const tblock : TBlock = this.tblocks.get(_inchunk_pos)
+        if (this.chunkManager.use_light) {
+            oldLight = tblock.lightSource
+        }
 
-            tblock.id = material.id;
-            tblock.extra_data = extra_data;
-            tblock.entity_id = entity_id;
-            tblock.power = power;
-            tblock.rotate = rotate;
-            tblock.falling = !!material.gravity;
-            update_vertices = true;
-            if (this.chunkManager.use_light) {
-                const light = tblock.lightSource;
-                if (oldLight !== light) {
-                    chunkManager.postLightWorkerMessage(['setChunkBlock', {
-                        addr: this.addr,
-                        dataId: this.getDataTextureOffset(),
-                        list: [x, y, z, light]
-                    }]);
-                }
+        // Update tblock
+        this.tblocks.delete(_inchunk_pos);
+        tblock.copyPropsFromPOJO(item)
+
+        // Update light
+        if (this.chunkManager.use_light) {
+            const light = tblock.lightSource;
+            if (oldLight !== light) {
+                chunkManager.postLightWorkerMessage(['setChunkBlock', {
+                    addr: this.addr,
+                    dataId: this.getDataTextureOffset(),
+                    list: [x, y, z, light]
+                }]);
             }
-            this.fluid.syncBlockProps(tblock.index, item.id);
         }
-        // Run webworker method
-        if (update_vertices) {
-            let set_block_list = [];
-            set_block_list.push({
-                pos:        new Vector(x, y, z).addSelf(this.coord),
-                type:       item,
-                is_modify:  is_modify,
-                power:      power,
-                rotate:     rotate,
-                extra_data: extra_data
-            });
-            chunkManager.postWorkerMessage(['setBlock', set_block_list]);
-        }
+
+        // Update fluids
+        this.fluid.syncBlockProps(tblock.index, item.id);
+
+        // Update vertices (run webworker method)
+        const set_block_list = [{
+            pos:        pos,
+            type:       item,
+            is_modify:  false,
+            power:      item.power,
+            rotate:     item.rotate,
+            extra_data: item.extra_data
+        }]
+        chunkManager.postWorkerMessage(['setBlock', set_block_list])
+
     }
 
     //

@@ -1,6 +1,6 @@
 import { BLOCK } from "@client/blocks.js";
 import { Helpers, Vector } from "@client/helpers.js";
-import { ServerClient } from "@client/server_client.js";
+import { BLOCK_ACTION } from "@client/server_client.js";
 import { TBlock } from "@client/typed_blocks3.js";
 import type { WorldAction } from "@client/world_action.js";
 import type { ServerWorld } from "server_world.js";
@@ -23,7 +23,7 @@ export default function randomTicker(world: ServerWorld, actions: WorldAction, w
         // const p = tblock.posworld.clone().addScalarSelf(.5, 0, .5);
         // console.log('--', p.toHash().replaceAll(',', ' '), `over: ${over_src_block?.material?.name}`, world_light, isLightOpacity(over_src_block));
         actions.addBlocks([
-            {pos: tblock.posworld.clone(), item: {id: BLOCK.DIRT.id}, action_id: ServerClient.BLOCK_ACTION_REPLACE}
+            {pos: tblock.posworld.clone(), item: {id: BLOCK.DIRT.id}, action_id: BLOCK_ACTION.REPLACE}
         ]);
     } else if (world_light >= 9) {
         // возможность распространеия 3х5х3
@@ -48,7 +48,7 @@ export default function randomTicker(world: ServerWorld, actions: WorldAction, w
                     item.extra_data = extra_data
                 }
                 actions.addBlocks([
-                    {pos: rnd_block.posworld.clone(), item: item, action_id: ServerClient.BLOCK_ACTION_REPLACE}
+                    {pos: rnd_block.posworld.clone(), item: item, action_id: BLOCK_ACTION.REPLACE}
                 ]);
             }
         }
