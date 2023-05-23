@@ -176,6 +176,18 @@ export default class style {
         let draw_bottom_copy = block.hasTag('draw_bottom_copy') && (neighbours?.DOWN && neighbours?.DOWN.material.layering)
         const floors = draw_bottom_copy ? 2 : 1
         for(let i = 0; i < floors; i++) {
+
+            // if(bb.animated) {
+            //     QubatchChunkWorker.postMessage(['create_block_emitter', {
+            //         block_pos:          tblock.posworld.clone().addScalarSelf(0, 1, 0),
+            //         model:              model.name,
+            //         animation_name:     null,
+            //         extra_data:         tblock.extra_data,
+            //         rotate:             mat4ToRotate(matrix)
+            //     }]);
+            //     return
+            // }
+
             model.draw(vertices, new Vector(x + .5, y - i, z + .5), lm, matrix, (type, pos, args) => {
                 if(typeof QubatchChunkWorker == 'undefined') {
                     return
@@ -186,7 +198,7 @@ export default class style {
         }
         style.addParticles(model, block, matrix, particles)
         if(particles.length > 0) {
-            QubatchChunkWorker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['create_block_emitter', {
                 block_pos:  block.posworld,
                 list: particles
             }]);

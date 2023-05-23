@@ -282,11 +282,12 @@ export class ChunkManager {
                     TrackerPlayer.loadAndPlay('/media/disc/' + args.filename, args.pos, args.dt);
                     break;
                 }
-                case 'add_animated_block': {
+                case 'create_block_emitter': {
                     Qubatch.render.meshes.effects.createBlockEmitter(args);
                     break;
                 }
                 case 'add_bbmesh': {
+                    // add_animated_block
                     Qubatch.render.addBBModel(new Vector(args.block_pos).addScalarSelf(.5, 0, .5), args.model, args.rotate, args.animation_name)
                     break
                 }

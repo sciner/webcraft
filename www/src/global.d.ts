@@ -340,6 +340,9 @@ interface IBlockMaterial {
         model:              string | any
         aabb_stylename?:    string
         behavior?:          string
+        animated?:          {
+            name?: string
+        }
         select_texture?:    any
         set_state?:         any
         particles?:         any
