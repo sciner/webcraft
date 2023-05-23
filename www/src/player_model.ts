@@ -23,7 +23,7 @@ const KEY_SLOT_MAP = {
 export class ModelSlot {
     id: int = -1
     item?: Mesh_Object_Block_Drop
-    hideByDriving = false   // true если слот скрыт из-за того, что игрок в вождении, скрывающим предметы
+    hide = false   // true если слот скрыт из-за того, что игрок лежит или в вождении, скрывающим предметы
 
     constructor() {}
 
@@ -106,7 +106,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             return
         }
 
-        const hideByDriving = this.driving?.config.hideHandItem
+        const hide = !!this.sleep || this.driving?.config.hideHandItem
         const block_id = props.id = typeof props.id !== 'number' ? -1 : props.id
         let slot : ModelSlot = this.slots.get(name)
         if(!slot) {
@@ -114,7 +114,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             this.slots.set(name, slot)
         }
 
-        if (block_id == slot.id && slot.item && slot.hideByDriving === hideByDriving) {
+        if (block_id == slot.id && slot.item && slot.hide === hide) {
             return
         }
 
@@ -126,12 +126,12 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
 
         slot.id = block_id
-        slot.hideByDriving = hideByDriving
+        slot.hide = hide
 
         const mesh_modifiers = this._mesh.modifiers
         mesh_modifiers.hideGroup(name)
 
-        if (block_id === -1 || hideByDriving) {
+        if (block_id === -1 || hide) {
             return
         }
 
@@ -362,6 +362,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             this.yaw = rotate.z; // around
             this.pitch = rotate.x; // head rotate
         }
+        const prevSleep = this.sleep // для проверки: если изменился sleep - скрыть/пказать предмет
         this.sneak = sneak;
         //this.moving = moving;
         this.running = running;
@@ -374,7 +375,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.health = health
         //
         const current_right_hand_id = hands.right?.id;
-        if(this.prev_current_id != current_right_hand_id) {
+        if(this.prev_current_id != current_right_hand_id || prevSleep != sleep) {
             this.prev_current_id = current_right_hand_id;
             this.activeSlotsData.right.id = current_right_hand_id;
             this.changeSlots(this.activeSlotsData);
