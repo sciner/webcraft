@@ -249,7 +249,7 @@ export class World implements IWorld {
     }
 
     // Change block extra_data
-    changeBlockExtraData(pos, extra_data) {
+    changeBlockExtraData(pos : IPickatEventPos, extra_data) {
         const e: ICmdPickatData = {
             id: +new Date(),
             pos: pos, // {x: pos.x, y: pos.y, z: pos.z, n: Vector.ZERO, point: Vector.ZERO},
@@ -397,6 +397,26 @@ export class World implements IWorld {
 
     get chunks() {
         return this.chunkManager.chunks;
+    }
+
+    updateLocalBlock(pos: any, extra_data?: any, rotate? : Vector) : boolean {
+        const tblock = this.getBlock(pos)
+        if(tblock.id >= 0) {
+            const item : IBlockItem = {
+                id: tblock.id,
+                extra_data,
+                rotate: tblock.rotate
+            }
+            if(tblock.entity_id) {
+                item.entity_id = tblock.entity_id
+            }
+            if(tblock.power !== undefined) {
+                item.power = tblock.power
+            }
+            this.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, item.power, item.rotate, item.entity_id, item.extra_data, ServerClient.BLOCK_ACTION_MODIFY)
+            return true
+        }
+        return false
     }
 
 }

@@ -1,10 +1,11 @@
-import {Button, Label, TextEdit, Window} from "../ui/wm.js";
+import {Button, TextEdit } from "../ui/wm.js";
 import { INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
 import { Lang } from "../lang.js";
 import { BlankWindow } from "./blank.js";
+import type { World } from "./../world.js";
+import { ServerClient } from "./../server_client.js";
 
 export class EditSignWindow extends BlankWindow {
-    [key: string]: any;
 
     constructor() {
 
@@ -28,6 +29,17 @@ export class EditSignWindow extends BlankWindow {
         txtEdit1.max_chars_per_line = 20
         txtEdit1.style.background.color = '#00000000'
         txtEdit1.setBackground('./media/gui/edit_sign_oak.png', 'stretch')
+        txtEdit1.onChange = (text : string) => {
+            const pos = this.args.pos;
+            const tblock = Qubatch.world.getBlock(pos)
+            if(tblock.material.tags.includes('sign')) {
+                const extra_data = tblock.extra_data || {}
+                const lines = this.txtEdit1.calcPrintLines(this.txtEdit1.buffer.join(''));
+                extra_data.text = lines.join("\r")
+                const world = Qubatch.world as World
+                world.updateLocalBlock(pos, extra_data)
+            }
+        }
         this.add(txtEdit1)
 
         // Ширина / высота слота
@@ -62,7 +74,7 @@ export class EditSignWindow extends BlankWindow {
         const pos = this.args.pos;
         const block = Qubatch.world.getBlock(pos)
         if(block.material.tags.includes('sign')) {
-            let extra_data = block.extra_data || {}
+            const extra_data = block.extra_data || {}
             const lines = this.txtEdit1.calcPrintLines(this.txtEdit1.buffer.join(''));
             extra_data.text = lines.join("\r")
             Qubatch.world.changeBlockExtraData(pos, extra_data)
