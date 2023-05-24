@@ -521,7 +521,7 @@ export class GameClass {
                         } else {
                             if (e.shiftKey) {
                                 this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 16, player.pos.y | 0, (player.pos.z | 0) - 16));
-                                Qubatch.render.addAsteroid(player.pos.add({ x: 0, y: 16, z: 0 }), 5);
+                                // Qubatch.render.addAsteroid(player.pos.add({ x: 0, y: 16, z: 0 }), 5);
                             } else if (kb.keys[e.keyCode]) {
                                 player.changeSpawnpoint();
                             }

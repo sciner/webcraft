@@ -705,8 +705,12 @@ export class BBModel_Model {
 
     hideGroups(names : string[]) {
         for(let group of this.root.children) {
-            if(names.includes(group.name)) {
-                group.visibility = false
+            if(group instanceof BBModel_Group) {
+                // if(names.includes(group.name)) {
+                if(names.some(item => item.toLowerCase() ==
+                group.name.toLowerCase())) {
+                    group.visibility = false
+                }
             }
         }
     }
@@ -728,7 +732,8 @@ export class BBModel_Model {
 
     hideAllExcept(except_list : string[]) {
         for(let group of this.root.children) {
-            group.visibility = except_list.includes(group.name)
+            // group.visibility = except_list.includes(group.name)
+            group.visibility = except_list.some(item => item.toLowerCase() == group.name.toLowerCase())
         }
     }
 

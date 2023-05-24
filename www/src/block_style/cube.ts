@@ -883,7 +883,7 @@ export default class style {
         cnt += (sides[DIRECTION.SOUTH] = checkNeib(0, 0, -1)) ? 1 : 0
         cnt += (sides[DIRECTION.EAST] = checkNeib(1, 0, 0)) ? 1 : 0
 
-        let texture_name = '12'
+        let texture_name = 'up'
         if(material.connected_sides.side) {
             if(for_dir != DIRECTION.UP && for_dir != DIRECTION.DOWN) {
                 texture_name = 'side'

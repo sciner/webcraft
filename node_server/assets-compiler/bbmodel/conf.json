@@ -324,14 +324,18 @@
                 "aabb_stylename": "sign",
                 "set_state": [
                     {"name": "wall", "when": {"rotate.y": 0}},
+                    {"name": "hanging", "when": {"rotate.y": -1, "sign:samerot": true}},
+                    {"name": "hanging2", "when": {"rotate.y": -1, "neighbour.up.material.is_solid": false}},
+                    {"name": "hanging", "when": {"rotate.y": -1, "neighbour.up.material.is_solid": true}},
+                    {"name": "wall2", "when": {"rotate.y": -2}},
                     {"name": "floor"}
                 ],
                 "select_texture": [
                     {"name": "%block_name%"}
                 ],
                 "rotate": [
-                    {"type": "cardinal_direction", "when": {"state": "wall"}},
-                    {"type": "y360", "when": {"state": "floor"}}
+                    {"type": "cardinal_direction", "when": {"state": ["wall", "wall2"]}},
+                    {"type": "y360", "when": {"state": ["floor", "hanging", "hanging2"]}}
                 ]
             }
         },
@@ -339,95 +343,35 @@
             "id": 643,
             "name": "OAK_SIGN",
             "bb": {
-                "model": "sign",
-                "aabb_stylename": "sign",
-                "set_state": [
-                    {"name": "wall", "when": {"rotate.y": 0}},
-                    {"name": "floor"}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ],
-                "rotate": [
-                    {"type": "cardinal_direction", "when": {"state": "wall"}},
-                    {"type": "y360", "when": {"state": "floor"}}
-                ]
+                "extends": "BIRCH_SIGN"
             }
         },
         {
             "id": 644,
             "name": "ACACIA_SIGN",
             "bb": {
-                "model": "sign",
-                "aabb_stylename": "sign",
-                "set_state": [
-                    {"name": "wall", "when": {"rotate.y": 0}},
-                    {"name": "floor"}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ],
-                "rotate": [
-                    {"type": "cardinal_direction", "when": {"state": "wall"}},
-                    {"type": "y360", "when": {"state": "floor"}}
-                ]
+                "extends": "BIRCH_SIGN"
             }
         },
         {
             "id": 645,
             "name": "SPRUCE_SIGN",
             "bb": {
-                "model": "sign",
-                "aabb_stylename": "sign",
-                "set_state": [
-                    {"name": "wall", "when": {"rotate.y": 0}},
-                    {"name": "floor"}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ],
-                "rotate": [
-                    {"type": "cardinal_direction", "when": {"state": "wall"}},
-                    {"type": "y360", "when": {"state": "floor"}}
-                ]
+                "extends": "BIRCH_SIGN"
             }
         },
         {
             "id": 646,
             "name": "DARK_OAK_SIGN",
             "bb": {
-                "model": "sign",
-                "aabb_stylename": "sign",
-                "set_state": [
-                    {"name": "wall", "when": {"rotate.y": 0}},
-                    {"name": "floor"}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ],
-                "rotate": [
-                    {"type": "cardinal_direction", "when": {"state": "wall"}},
-                    {"type": "y360", "when": {"state": "floor"}}
-                ]
+                "extends": "BIRCH_SIGN"
             }
         },
         {
             "id": 647,
             "name": "JUNGLE_SIGN",
             "bb": {
-                "model": "sign",
-                "aabb_stylename": "sign",
-                "set_state": [
-                    {"name": "wall", "when": {"rotate.y": 0}},
-                    {"name": "floor"}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ],
-                "rotate": [
-                    {"type": "cardinal_direction", "when": {"state": "wall"}},
-                    {"type": "y360", "when": {"state": "floor"}}
-                ]
+                "extends": "BIRCH_SIGN"
             }
         },
         {
@@ -446,12 +390,8 @@
             "id": 154,
             "name": "SOUL_LANTERN",
             "bb": {
-                "model": "soul_lantern",
-                "aabb_stylename": "lantern",
-                "set_state": [
-                    {"name": "ceil", "when": {"rotate.y": -1}},
-                    {"name": "floor"}
-                ]
+                "extends": "LANTERN",
+                "model": "soul_lantern"
             }
         },
         {
@@ -648,7 +588,7 @@
                     {"name": "4candles", "when": {"extra_data.candles": 4}}
                 ],
                 "select_texture": [
-                    {"name": "candle"}
+                    {"name": "%block_name%"}
                 ],
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
@@ -659,320 +599,112 @@
             "id": 1532,
             "name": "WHITE_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "white_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1533,
             "name": "ORANGE_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "orange_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1534,
             "name": "MAGENTA_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "magenta_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1535,
             "name": "LIGHT_BLUE_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "light_blue_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1536,
             "name": "YELLOW_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "yellow_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1537,
             "name": "LIME_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "lime_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1538,
             "name": "PINK_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "pink_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1539,
             "name": "GRAY_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "gray_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1540,
             "name": "LIGHT_GRAY_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "light_gray_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1541,
             "name": "CYAN_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "cyan_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1542,
             "name": "PURPLE_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "purple_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1543,
             "name": "BLUE_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "blue_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1544,
             "name": "BROWN_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "brown_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1545,
             "name": "GREEN_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "green_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1546,
             "name": "RED_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "orange_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
             "id": 1547,
             "name": "BLACK_CANDLE",
             "bb": {
-                "model": "candle",
-                "aabb_stylename": "candle",
-                "set_state": [
-                    {"name": "1candle", "when": {"extra_data.candles": null}},
-                    {"name": "2candles", "when": {"extra_data.candles": 2}},
-                    {"name": "3candles", "when": {"extra_data.candles": 3}},
-                    {"name": "4candles", "when": {"extra_data.candles": 4}}
-                ],
-                "select_texture": [
-                    {"name": "black_candle"}
-                ],
-                "rotate": [
-                    {"type": "random", "axes": ["y"]}
-                ]
+                "extends": "CANDLE"
             }
         },
         {
@@ -1028,10 +760,10 @@
                 "aabb_stylename": "door",
                 "set_state": [
                     {"name": "_", "when": {"extra_data.is_head": true}},
-                    {"name": "birch"}
+                    {"name": "%block_name%"}
                 ],
                 "select_texture": [
-                    {"name": "birch"}
+                    {"name": "%block_name%"}
                 ],
                 "rotate": {"type": "cardinal_direction"}
             }
@@ -1040,96 +772,42 @@
             "id": 576,
             "name": "OAK_DOOR",
             "bb": {
-                "model": "door",
-                "aabb_stylename": "door",
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}},
-                    {"name": "oak"}
-                ],
-                "select_texture": [
-                    {"name": "oak"}
-                ],
-                "rotate": {"type": "cardinal_direction"}
+                "extends": "BIRCH_DOOR"
             }
         },
         {
             "id": 578,
             "name": "ACACIA_DOOR",
             "bb": {
-                "model": "door",
-                "aabb_stylename": "door",
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}},
-                    {"name": "acacia"}
-                ],
-                "select_texture": [
-                    {"name": "acacia"}
-                ],
-                "rotate": {"type": "cardinal_direction"}
+                "extends": "BIRCH_DOOR"
             }
         },
         {
             "id": 580,
             "name": "SPRUCE_DOOR",
             "bb": {
-                "model": "door",
-                "aabb_stylename": "door",
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}},
-                    {"name": "spruce"}
-                ],
-                "select_texture": [
-                    {"name": "spruce"}
-                ],
-                "rotate": {"type": "cardinal_direction"}
+                "extends": "BIRCH_DOOR"
             }
         },
         {
             "id": 582,
             "name": "DARK_OAK_DOOR",
             "bb": {
-                "model": "door",
-                "aabb_stylename": "door",
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}},
-                    {"name": "dark_oak"}
-                ],
-                "select_texture": [
-                    {"name": "dark_oak"}
-                ],
-                "rotate": {"type": "cardinal_direction"}
+                "extends": "BIRCH_DOOR"
             }
         },
         {
             "id": 584,
             "name": "JUNGLE_DOOR",
             "bb": {
-                "model": "door",
-                "aabb_stylename": "door",
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}},
-                    {"name": "jungle"}
-                ],
-                "select_texture": [
-                    {"name": "jungle"}
-                ],
-                "rotate": {"type": "cardinal_direction"}
+                "extends": "BIRCH_DOOR"
             }
         },
         {
             "id": 590,
             "name": "IRON_DOOR",
             "bb": {
-                "model": "door",
-                "aabb_stylename": "door",
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}},
-                    {"name": "iron"}
-                ],
-                "select_texture": [
-                    {"name": "iron"}
-                ],
-                "rotate": {"type": "cardinal_direction"}
+                "extends": "BIRCH_DOOR"
             }
         },
         {
@@ -1217,21 +895,7 @@
                 "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
-                "model": "fence_gate",
-                "aabb_stylename": "fence_gate",
-                "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
-                ],
-                "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "BIRCH_FENCE_GATE"
             }
         },
         {
@@ -1241,21 +905,7 @@
                 "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
-                "model": "fence_gate",
-                "aabb_stylename": "fence_gate",
-                "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
-                ],
-                "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "BIRCH_FENCE_GATE"
             }
         },
         {
@@ -1265,21 +915,7 @@
                 "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
-                "model": "fence_gate",
-                "aabb_stylename": "fence_gate",
-                "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
-                ],
-                "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "BIRCH_FENCE_GATE"
             }
         },
         {
@@ -1289,21 +925,7 @@
                 "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
-                "model": "fence_gate",
-                "aabb_stylename": "fence_gate",
-                "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
-                ],
-                "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "BIRCH_FENCE_GATE"
             }
         },
         {
@@ -1313,21 +935,7 @@
                 "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
-                "model": "fence_gate",
-                "aabb_stylename": "fence_gate",
-                "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
-                ],
-                "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "BIRCH_FENCE_GATE"
             }
         },
         {
@@ -1337,21 +945,7 @@
                 "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
-                "model": "fence_gate",
-                "aabb_stylename": "fence_gate",
-                "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
-                ],
-                "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "BIRCH_FENCE_GATE"
             }
         },
         {
@@ -1361,21 +955,7 @@
                 "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
-                "model": "fence_gate",
-                "aabb_stylename": "fence_gate",
-                "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
-                ],
-                "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "BIRCH_FENCE_GATE"
             }
         },
         {
@@ -1385,21 +965,7 @@
                 "move": {"x": 0, "y": -0.15, "z": 0}
             },
             "bb": {
-                "model": "fence_gate",
-                "aabb_stylename": "fence_gate",
-                "rotate": [
-                    {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
-                    {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
-                    {"type": "fixed_cardinal_direction", "value": 1, "when": {"extra_data.facing": ["east"]}},
-                    {"type": "fixed_cardinal_direction", "value": 0, "when": {"extra_data.facing": ["south"]}}
-                ],
-                "set_state": [
-                    {"name": "close", "when": {"extra_data.opened": [false, null]}},
-                    {"name": "open", "when": {"extra_data.opened": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "BIRCH_FENCE_GATE"
             }
         },
         {
@@ -1423,255 +989,105 @@
             "id": 1201,
             "name": "ORANGE_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
             "id": 1202,
             "name": "MAGENTA_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
             "id": 1203,
             "name": "LIGHT_BLUE_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
             "id": 1204,
             "name": "YELLOW_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
             "id": 1205,
             "name": "LIME_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
             "id": 1206,
             "name": "PINK_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
             "id": 1207,
             "name": "GRAY_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
             "id": 1208,
             "name": "LIGHT_GRAY_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
             "id": 1209,
             "name": "CYAN_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
             "id": 1210,
             "name": "PURPLE_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
             "id": 1211,
             "name": "BLUE_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
             "id": 1212,
             "name": "BROWN_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
             "id": 1213,
             "name": "GREEN_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
             "id": 1214,
             "name": "RED_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
             "id": 1215,
             "name": "BLACK_BED",
             "bb": {
-                "model": "bed",
-                "aabb_stylename": "bed",
-                "rotate": {
-                    "type": "cardinal_direction"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%"}
-                ]
+                "extends": "WHITE_BED"
             }
         },
         {
@@ -1696,90 +1112,35 @@
             "id": 301,
             "name": "OAK_CHAIR",
             "bb": {
-                "model": "chair",
-                "aabb_stylename": "chair",
-                "rotate": {
-                    "type": "ydeg"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%", "group": "chair"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
-                ]
+                "extends": "BIRCH_CHAIR"
             }
         },
         {
             "id": 302,
             "name": "ACACIA_CHAIR",
             "bb": {
-                "model": "chair",
-                "aabb_stylename": "chair",
-                "rotate": {
-                    "type": "ydeg"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%", "group": "chair"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
-                ]
+                "extends": "BIRCH_CHAIR"
             }
         },
         {
             "id": 303,
             "name": "SPRUCE_CHAIR",
             "bb": {
-                "model": "chair",
-                "aabb_stylename": "chair",
-                "rotate": {
-                    "type": "ydeg"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%", "group": "chair"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
-                ]
+                "extends": "BIRCH_CHAIR"
             }
         },
         {
             "id": 304,
             "name": "DARK_OAK_CHAIR",
             "bb": {
-                "model": "chair",
-                "aabb_stylename": "chair",
-                "rotate": {
-                    "type": "ydeg"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%", "group": "chair"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
-                ]
+                "extends": "BIRCH_CHAIR"
             }
         },
         {
             "id": 305,
             "name": "JUNGLE_CHAIR",
             "bb": {
-                "model": "chair",
-                "aabb_stylename": "chair",
-                "rotate": {
-                    "type": "ydeg"
-                },
-                "set_state": [
-                    {"name": "_", "when": {"extra_data.is_head": true}}
-                ],
-                "select_texture": [
-                    {"name": "%block_name%", "group": "chair"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
-                ]
+                "extends": "BIRCH_CHAIR"
             }
         },
         {
@@ -1801,105 +1162,49 @@
             "id": 321,
             "name": "OAK_STOOL",
             "bb": {
-                "model": "stool",
-                "aabb_stylename": "stool",
-                "rotate": {
-                    "type": "ydeg"
-                },
-                "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
-                ]
+                "extends": "BIRCH_STOOL"
             }
         },
         {
             "id": 322,
             "name": "ACACIA_STOOL",
             "bb": {
-                "model": "stool",
-                "aabb_stylename": "stool",
-                "rotate": {
-                    "type": "ydeg"
-                },
-                "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
-                ]
+                "extends": "BIRCH_STOOL"
             }
         },
         {
             "id": 323,
             "name": "SPRUCE_STOOL",
             "bb": {
-                "model": "stool",
-                "aabb_stylename": "stool",
-                "rotate": {
-                    "type": "ydeg"
-                },
-                "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
-                ]
+                "extends": "BIRCH_STOOL"
             }
         },
         {
             "id": 324,
             "name": "DARK_OAK_STOOL",
             "bb": {
-                "model": "stool",
-                "aabb_stylename": "stool",
-                "rotate": {
-                    "type": "ydeg"
-                },
-                "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
-                ]
+                "extends": "BIRCH_STOOL"
             }
         },
         {
             "id": 325,
             "name": "JUNGLE_STOOL",
             "bb": {
-                "model": "stool",
-                "aabb_stylename": "stool",
-                "rotate": {
-                    "type": "ydeg"
-                },
-                "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
-                ]
+                "extends": "BIRCH_STOOL"
             }
         },
         {
             "id": 326,
             "name": "CRIMSON_STOOL",
             "bb": {
-                "model": "stool",
-                "aabb_stylename": "stool",
-                "rotate": {
-                    "type": "ydeg"
-                },
-                "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
-                ]
+                "extends": "BIRCH_STOOL"
             }
         },
         {
             "id": 327,
             "name": "WARPED_STOOL",
             "bb": {
-                "model": "stool",
-                "aabb_stylename": "stool",
-                "rotate": {
-                    "type": "ydeg"
-                },
-                "select_texture": [
-                    {"name": "%block_name%", "group": "frame"},
-                    {"name": "%extra_data.upholstery%", "group": "wool", "empty": "%block_name%"}
-                ]
+                "extends": "BIRCH_STOOL"
             }
         },
         {
@@ -2034,7 +1339,7 @@
                     {"type": "random", "axes": ["y"]}
                 ],
                 "set_state": [
-                    {"name": "top", "when": {"neighbour.up": "AIR"}},
+                    {"name": "top", "when": {"neighbour.up.material.name": "AIR"}},
                     {"name": "base"}
                 ]
             },
@@ -2382,6 +1687,7 @@
             "mining_time": 0,
             "passable": 1,
             "sound": "madcraft:block.cloth",
+            "aabb": [4, 0, 4, 12, 8, 12],
             "drop_item": [
                 {
                     "name": "CACTUS",
@@ -2395,7 +1701,6 @@
                 "layering_move_to_down",
                 "no_drop_ao"
             ],
-            "aabb": [4, 0, 4, 12, 8, 12],
             "bb": {
                 "model": "small_cactus",
                 "import_anyway": true,
