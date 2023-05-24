@@ -12853,12 +12853,12 @@
             "id": 1107,
             "name": "TINA",
             "transparent": true,
+            "passable": 1,
             "height": 0.0625,
             "sound": "madcraft:block.grass",
             "material": {
                 "id": "plant"
             },
-            "passable": 1,
             "planting": false,
             "tags": [
                 "draw_only_down",

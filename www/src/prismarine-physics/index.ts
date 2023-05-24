@@ -50,6 +50,9 @@ export class Physics {
     private readonly vineId             : int
     private readonly bubbleColumnId     : int
     private readonly iceIds             : int[]
+    private tinaLikePassable            : float
+    private tinaId                      : int
+
 
     // =================== options from old physics object ====================
 
@@ -175,11 +178,15 @@ export class Physics {
         if (bm.BLUE_ICE) { // 1.13+
             blockSlipperiness[bm.BLUE_ICE.id] = 0.989
         }
+        if (bm.TINA) { 
+            this.tinaLikePassable = bm.TINA.passable
+        }
 
         // Block ids
+        this.tinaId         = bm.TINA.id
         this.soulsandId     = bm.SOUL_SAND.id
         this.honeyblockId   = bm.HONEY_BLOCK?.id ?? BLOCK_NOT_EXISTS // 1.15+
-        for (const block of [bm.TINA, bm.COBWEB, bm.SWEET_BERRY_BUSH]) {
+        for (const block of [bm.COBWEB, bm.SWEET_BERRY_BUSH]) {
             this.cobwebLikePassable[block.id] = block.passable
         }
         this.ladderId       = bm.LADDER.id
@@ -253,6 +260,14 @@ export class Physics {
             vel.y = 0
             vel.z = 0
             entity.isInWeb = false
+        } else if (entity.isInTina) {
+            dx *= entity.passable;
+            dy *= entity.passable;
+            dz *= entity.passable;
+            vel.x = 0
+            vel.y = 0
+            vel.z = 0
+            entity.isInTina = false
         }
 
         let oldVelX = dx
@@ -418,7 +433,7 @@ export class Physics {
         // Finally, apply block collisions (web, soulsand...)
         playerBB.contract(0.001, 0.001, 0.001)
         const cursor = new Vector(0, 0, 0)
-        for (cursor.y = Math.floor(playerBB.y_min); cursor.y <= Math.floor(playerBB.y_max); cursor.y++) {
+        for (cursor.y = playerBB.y_min; cursor.y <= playerBB.y_max; cursor.y += 0.1) {
             for (cursor.z = Math.floor(playerBB.z_min); cursor.z <= Math.floor(playerBB.z_max); cursor.z++) {
                 for (cursor.x = Math.floor(playerBB.x_min); cursor.x <= Math.floor(playerBB.x_max); cursor.x++) {
                     const block = world.getBlock(cursor)
@@ -433,7 +448,11 @@ export class Physics {
                             }
                         }*/
                         const cobwebLikePassable = this.cobwebLikePassable[block.id]
-                        if (cobwebLikePassable != null) {
+                        if (block.id == this.tinaId && (block.position.y + .0625) > playerBB.y_min) {
+                            // блок тины
+                            entity.isInTina = true
+                            entity.passable = this.tinaLikePassable
+                        } else if (cobwebLikePassable != null) {
                             entity.isInWeb = true
                             entity.passable = cobwebLikePassable
                         } else if (block.id === this.bubbleColumnId) {
@@ -861,7 +880,12 @@ export class Physics {
         // Handle inputs
         if (control.jump || entity.jumpQueued) {
             if (entity.jumpTicks > 0) entity.jumpTicks--
-            if (entity.isInWater || entity.isInLava) {
+            if (entity.isInTina) {
+                if (!control.sneak && options.floatSubmergedHeight == null) {
+                    // @fixed Без этого фикса игрок не может выбраться из тины на берег
+                    vel.y += 0.05 // 0.07
+                }
+            } else if (entity.isInWater || entity.isInLava) {
                 if (!control.sneak && options.floatSubmergedHeight == null) {
                     // @fixed Без этого фикса игрок не может выбраться из воды на берег
                     vel.y += 0.09 // 0.04
@@ -1016,6 +1040,7 @@ export class PrismarinePlayerState implements IPlayerControlState {
     /** If isInWater or isInLava, it shows the height of the part of the bounding box that is below the surface */
     submergedHeight?: float
     isInWeb     = false
+    isInTina    = false
     isOnLadder  = false
     isCollidedHorizontally  = false
     isCollidedVertically    = false
