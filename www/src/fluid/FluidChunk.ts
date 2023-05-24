@@ -9,7 +9,7 @@ import {
 } from "./FluidConst.js";
 import {BLOCK} from "../blocks.js";
 import {AABB} from "../core/AABB.js";
-import { gzip, ungzip } from '../../vendors/pako.esm.min.mjs';
+import { gzip, ungzip } from 'pako';
 import { FluidChunkFlowing } from "./FluidChunkFlowing.js";
 import type { DataChunk } from "../core/DataChunk.js";
 

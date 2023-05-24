@@ -1,6 +1,6 @@
 import {CubeSym} from "./CubeSym.js";
 import {IndexedColor, Vector} from '../helpers.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 
 const {mat3, mat4, vec3}      = glMatrix;
 const defaultPivot      = [0.5, 0.5, 0.5];
@@ -52,6 +52,7 @@ export class AABB {
     x_max: number;
     y_max: number;
     z_max: number;
+    private _position?: Vector;
     private _size?: Vector;
     private _center?: Vector;
 
@@ -72,6 +73,12 @@ export class AABB {
         this.y_max = -Infinity;
         this.z_max = -Infinity;
         return this;
+    }
+
+    get position() : Vector {
+        this._position = this._position || new Vector(0, 0, 0 )
+        this._position.set(this.x_min, this.y_min, this.z_min)
+        return this._position
     }
 
     get size() : Vector {
@@ -105,6 +112,10 @@ export class AABB {
         );
 
         return this._center;
+    }
+
+    get volume() : float {
+        return this.width * this.height * this.depth
     }
 
     clone() : AABB {
@@ -400,7 +411,7 @@ export class AABBSideParams {
     lm: IndexedColor | null = null;
     axes?: number[][];
     autoUV: boolean = false;
-    rawColor?: null;
+    rawColor?: number[] | null;
     offset?: number[];
 
     constructor(uv : float[] = [0, 0, 0, 0], flag : int = 0, anim : number = 0, lm : IndexedColor | null = null, axes? : number[][], autoUV : boolean = false, rawColor = null, offset = null) {

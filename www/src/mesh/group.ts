@@ -6,7 +6,7 @@ import type { BaseResourcePack } from '../base_resource_pack.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { Renderer } from '../render.js';
 import type { WebGLMaterial } from '../renders/webgl/WebGLMaterial.js';
-import { GRASS_PALETTE_OFFSET } from '../constant.js';
+import { DEFAULT_GRASS_PALETTE } from '../constant.js';
 
 // Chunk
 export const FakeChunk = {
@@ -100,12 +100,12 @@ export class MeshGroup {
     /**
      * Build vertices
      */
-    buildVertices(tx : number, ty : number, tz : number, force_inventory_style : boolean = false, matrix? : imat4, pivot? : IVector) {
+    buildVertices(tx : number, ty : number, tz : number, force_inventory_style : boolean = false, matrix? : imat4, pivot? : IVector, chunk_size? : Vector) {
         const dirt_color = IndexedColor.GRASS
         const biome = {
             code:           'GRASSLAND',
             color:          '#98a136',
-            grass_palette:  GRASS_PALETTE_OFFSET,
+            grass_palette:  DEFAULT_GRASS_PALETTE,
         };
         const pos = new Vector(0, 0, 0);
         for(let k of this.vc.keys()) {
@@ -142,6 +142,9 @@ export class MeshGroup {
             }
             //
             pos.set(tx + k.x, ty + k.y, tz + k.z);
+            if(chunk_size) {
+                FakeChunk.size.copyFrom(chunk_size)
+            }
             rp.pushVertices(
                 item.block,
                 mesh.vertices,

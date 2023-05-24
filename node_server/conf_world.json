@@ -12,10 +12,10 @@
         },
         "mob/chicken": {
             "physics": {
-                "baseSpeed": 0.5,
-                "playerHeight": 0.9,
-                "stepHeight": 1.5,
-                "playerHalfWidth": 0.45
+                "baseSpeed": 0.25,
+                "playerHeight": 0.65,
+                "stepHeight": 1.25,
+                "playerHalfWidth": 0.2
             },
             "health": 4,
             "distance_view": 6
@@ -123,6 +123,11 @@
                 "unloads": true,
                 "offsets": [ { "x": 0, "y": 0.25, "z": -0.1 } ]
             },
+            "animations": {
+                "fly": "walk",
+                "flyIdle": "walk*0.5",
+                "flyDown": "walk*0.25"
+            },
             "health": 10
         },
         "mob/parrot": {
@@ -161,6 +166,9 @@
                 "maxYawDelta": 1.6,
                 "hideHandItem": true
             },
+            "animations": {
+                "noAirborne": true
+            },
             "drop_on_kill": "OAK_BOAT",
             "timer_panic": 0,
             "damageAddsVelocity": false,
@@ -182,9 +190,10 @@
                     { "x": 0, "y": 0.28, "z": -0.03 }
                 ],
                 "vehicleAnimation": {
-                    "walkBack": "-walk",
-                    "rotateLeft": "-walk",
-                    "rotateRight": "walk",
+                    "walk": "raft_walk",
+                    "walkBack": "-raft_walk",
+                    "rotateLeft": "-raft_walk",
+                    "rotateRight": "raft_walk",
                     "idleNotEmpty": "raft_idle"
                 },
                 "driverAnimation": {
@@ -197,6 +206,9 @@
                 "useAngularSpeed": true,
                 "maxYawDelta": 1.6,
                 "hideHandItem": true
+            },
+            "animations": {
+                "noAirborne": true
             },
             "drop_on_kill": "RAFT",
             "timer_panic": 0,
@@ -318,8 +330,7 @@
         "cmd_modify_indicator_request",
         "cmd_use_item",
         "cmd_play_anim",
-        "cmd_use_weapon",
-        "cmd_mechanism"
+        "cmd_use_weapon"
     ],
     "treasure_chests": [
         {
@@ -466,7 +477,7 @@
                     ]
                 },
                 {
-                    "name": "DIAMOND_SWORD",
+                    "name": "TITANIUM_SWORD",
                     "count": [
                         0,
                         0,

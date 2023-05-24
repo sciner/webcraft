@@ -5,7 +5,7 @@ import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
 import { MobModel } from "./mob_model.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { Mesh_Object_Base } from "./mesh/object/base.js";
-import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
 import type { PlayerHands, TAnimState, TSittingState, TSleepState} from "./player.js";
 import type { NetworkPhysicObjectState } from "./network_physic_object.js";
@@ -66,7 +66,12 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     eat
 
     constructor(props : TMobProps, world : World) {
-        super({type: 'player', skin: null, ...props}, world)
+        super({
+            type:       'player',
+            skin:       null,
+            animations: { reverseBack: true },
+            ...props
+        }, world)
 
         this.height             = PLAYER_HEIGHT
         this.width              = PLAYER_WIDTH
@@ -174,6 +179,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
                 scale *= 1.2
                 base.rotation.set([42.5, 90, 0])
                 base.position[1] += 1.5 / 16
+                base.position[2] -= 3 / 16
             } else {
                 base.rotation.set([0, -30, 0])
             }
@@ -220,8 +226,8 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
     }
 
-    update(render : Renderer, camPos : Vector, delta : float, speed : float) {
-        super.update(render, camPos, delta, speed)
+    update(render : Renderer, camPos : Vector, delta : float) {
+        super.update(render, camPos, delta)
 
         this.updateArmSwingProgress(delta)
 
@@ -348,7 +354,9 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
     setProps(pos: IVector | null, rotate: IVector | null, sneak: boolean, running: boolean,
         hands: PlayerHands, sitting: false | TSittingState,
-        sleep: false | TSleepState, anim : false | TAnimState, attack: false | TAnimState, fire: boolean, health?: number, on_ground: boolean = true): void {
+        sleep: false | TSleepState, anim : false | TAnimState, attack: false | TAnimState, fire: boolean, health?: number,
+        on_ground: boolean = true, inLiquid: boolean = false,
+    ): void {
         if (pos) {
             this.pos = pos
         }
@@ -365,6 +373,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.fire = fire
         this.sleep = sleep
         this.ground = on_ground
+        this.inLiquid = inLiquid
         this.health = health
         //
         const current_right_hand_id = hands.right?.id;
@@ -375,7 +384,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
     }
 
-    draw(render : Renderer, camPos : Vector, delta : float, speed? : float, draw_debug_grid : boolean = false) : boolean {
+    draw(render : Renderer, camPos : Vector, delta : float, draw_debug_grid : boolean = false) : boolean {
         if(this.isAlive == false) {
             return false
         }
@@ -383,9 +392,9 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             this.prev_pos = this.pos.clone();
             return false
         }
-        speed = Helpers.calcSpeed(this.prev_pos, this.pos, delta / 1000);
+        // speed = Helpers.calcSpeed(this.prev_pos, this.pos, delta / 1000);
         this.prev_pos.copyFrom(this.pos);
-        super.draw(render, camPos, delta, speed)
+        super.draw(render, camPos, delta, draw_debug_grid)
         return true
     }
 

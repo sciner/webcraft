@@ -30,6 +30,7 @@ import type { Player, PlayerStateUpdate } from "./player.js";
 import type { HUD } from "./hud.js";
 import {canSwitchFlying} from "./control/player_control.js";
 import { ClipboardHelper } from "./ui/clipboard.js";
+import { TextEdit } from "./ui/wm.js";
 
 // TrackerPlayer
 (globalThis as any).TrackerPlayer = new Tracker_Player();
@@ -88,10 +89,13 @@ export class GameSettings implements TWorldSettings {
     window_size:             float = 100
     show_compass:            boolean = true
     check_delete_item:       boolean = true
+    chat_reverse:            boolean = true
+    chat_time:               float = 7 
 
     //
-    _json_url?: string
-    _resource_packs_url?: string
+    _json_url?:             string
+    _resource_packs_url?:   string
+    only_bbmodel:           boolean
 
     constructor() {
         this.load()
@@ -231,11 +235,21 @@ export class GameClass {
 
     // Set the canvas the renderer uses for some input operations.
     setInputElement(el) {
-        const that = this;
-        const hud = this.hud;
-        const player = this.player;
-        const add_mouse_rotate = new Vector();
-        const controls = that.player.controls;
+        const that = this
+        const hud = this.hud
+        const player = this.player
+        const add_mouse_rotate = new Vector()
+        const controls = that.player.controls
+
+        const esc = () : boolean => {
+            if(hud.frmMainMenu.visible || hud.wm.getWindow('frmInGameMain').visible ) {
+                hud.wm.closeAll()
+                Qubatch.setupMousePointer(false)
+                return true
+            }
+            return false
+        }
+
         const kb = this.kb = new Kb(el, {
             onPaste: (e) => {
                 const clipboardData = e.clipboardData || (window as any).clipboardData;
@@ -298,6 +312,10 @@ export class GameClass {
                     if(player) {
                         if(player.status == PLAYER_STATUS.DEAD) {
                             return false
+                        }
+                        if(player.chat.active) {
+                            player.chat.onScroll(e.deltaY > 0)
+                            return true
                         }
                         if(controls.enabled) {
                             if(!player.controlManager.changeSpectatorSpeed(-e.deltaY)) {
@@ -420,17 +438,23 @@ export class GameClass {
                 }
                 // Windows
                 if(hud.wm.hasVisibleWindow()) {
-                    if(e.down && e.keyCode == KEY.TAB) {
+                    if(!e.down && e.keyCode == KEY.TAB) {
                         if(hud.wm.getWindow('frmInGameMain').visible) {
                             hud.wm.getWindow('frmInGameMain').hide()
                             return true
                         }
                     }
+                    if(!e.down && e.keyCode == KEY.E) {
+                        const fc = hud.wm.getFocusedControl()
+                        if(!fc || !(fc instanceof TextEdit)) {
+                            hud.wm.closeAll()
+                            Qubatch.setupMousePointer(false)
+                            return true
+                        }
+                    }
                     if(e.keyCode == KEY.ESC) {
                         if(!e.down) {
-                            if(hud.frmMainMenu.visible || hud.wm.getWindow('frmInGameMain').visible ) {
-                                hud.wm.closeAll()
-                                Qubatch.setupMousePointer(false)
+                            if(esc()) {
                                 return true
                             }
                         }
@@ -590,15 +614,15 @@ export class GameClass {
                     case KEY.E: {
                         if(!e.down) {
                             if(!hud.wm.hasVisibleWindow()) {
-                                player.inventory.open();
-                                return true;
+                                player.inventory.open()
+                                return true
                             }
                         }
-                        break;
+                        break
                     }
                     // Tab (Quests)
                     case KEY.TAB: {
-                        if(e.down) {
+                        if(!e.down) {
                             if(!hud.wm.hasVisibleWindow()) {
                                 hud.wm.getWindow('frmInGameMain').openTab('frmQuests')
                                 return true

@@ -134,23 +134,21 @@ export class TableSlot extends SimpleBlockSlot {
         if(item) {
             if(item.id) {
                 const block = BLOCK.fromId(item.id)
-                if(block) {
-                    const label = item.extra_data?.label;
-                    resp = label
-                        ? `${label} (${block.title}, #${item.id})`
-                        : `${block.title} (#${item.id})`;
-                    for(const [e, lvl] of Enchantments.ofItem(item)) {
-                        resp += '\r' + e.name + ' ' + StringHelpers.romanize(lvl);
-                    }
-                    if (item.extra_data?.age) {
-                        resp += '\rAnvil uses: ' + item.extra_data?.age;
-                    }
-                    if (block.extra_data?.slot) {
-                        resp += '\r' + Lang['backpack'] + ' (' + Lang['slots'] + ': ' + block.extra_data.slot + ')'
-                    }
-                    if (block.extra_data?.hotbar) {
-                        resp += '\r' + Lang['toolbelt'] + ' (' + Lang['slots'] + ': ' + block.extra_data.hotbar + ')'
-                    }
+                const label = item.extra_data?.label;
+                resp = label
+                    ? `${label} (${block.title}, #${item.id})`
+                    : `${block.title} (#${item.id})`;
+                for(const [e, lvl] of Enchantments.ofItem(item)) {
+                    resp += '\r' + e.name + ' ' + StringHelpers.romanize(lvl);
+                }
+                if (item.extra_data?.age) {
+                    resp += '\rAnvil uses: ' + item.extra_data?.age;
+                }
+                if (block.extra_data?.slot) {
+                    resp += '\r' + Lang['backpack'] + ' (' + Lang['slots'] + ': ' + block.extra_data.slot + ')'
+                }
+                if (block.extra_data?.hotbar) {
+                    resp += '\r' + Lang['toolbelt'] + ' (' + Lang['slots'] + ': ' + block.extra_data.hotbar + ')'
                 }
             }
         }
@@ -308,7 +306,7 @@ export class CraftTableResultSlot extends TableSlot {
     useRecipe() {
         // this.recipe can be null in some partially implemented window subclasses
         const recipe_id = this.recipe?.id || null;
-        const used_items_keys = this.parent.getUsedItemsKeysAndDecrement(1);
+        const used_items_keys = this.untypedParent.getUsedItemsKeysAndDecrement(1);
         //
         const lastRecipe = this.used_recipes.length && this.used_recipes[this.used_recipes.length - 1];
         if (lastRecipe?.recipe_id === recipe_id &&
@@ -323,8 +321,8 @@ export class CraftTableResultSlot extends TableSlot {
                 count: 1
             });
         }
-        this.parent.checkRecipe();
-        this.parent.fixAndValidateSlots('CraftTableResultSlot useRecipe')
+        this.untypedParent.checkRecipe();
+        this.untypedParent.fixAndValidateSlots('CraftTableResultSlot useRecipe')
     }
 
     // setupHandlers...
@@ -591,7 +589,7 @@ export class TableDataSlot extends TableSlot {
                         break
                     }
                     default: {
-                        console.log('this.parent.id', this.parent.id)
+                        console.log('this.parent.id', this.untypedParent.id)
                     }
                 }
                 this.ct.onInventoryChange('TableDataSlot onMouseDown shiftKey')
@@ -660,7 +658,7 @@ export class TableDataSlot extends TableSlot {
         }
         // 2. проход в поисках свободных слотов
         // если это инвентарь - то сначала проходим по инвентарю, а потом по хотабру. Иначе - по порядку
-        const slotsSize = target_list === this.parent.bag_slots
+        const slotsSize = target_list === this.untypedParent.bag_slots
             ? this.getInventory().getSize()
             : new InventorySize().setFake(target_list.length)
         for(const i of slotsSize.backpackHotbarIndices()) {
@@ -677,7 +675,9 @@ export class TableDataSlot extends TableSlot {
 
 export class PaperDollSlot extends TableDataSlot {
 
-    declare parent: BaseCraftWindow
+    get untypedParent(): BaseCraftWindow {
+        return this.parent as any;
+    }
 
 
     //onSetItem = (item : IInventoryItem) => {}

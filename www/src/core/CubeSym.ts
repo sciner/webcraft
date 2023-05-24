@@ -1,4 +1,4 @@
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 
 const {mat3} = glMatrix;
 

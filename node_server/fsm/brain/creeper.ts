@@ -61,7 +61,7 @@ export class Brain extends FSMBrain {
             this.lostTarget();
             return;
         }
-        if (dist < DISTANCE_DETONATION && !this.is_gate) {
+        if (dist < DISTANCE_DETONATION && !this.is_wall) {
             this.detonationTime = performance.now();
             mob.extra_data.detonation_started = true;
             const actions = new WorldAction();
@@ -72,7 +72,7 @@ export class Brain extends FSMBrain {
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
         this.updateControl({
-            forward: !(this.is_abyss || this.is_well),
+            forward: !(this.ahead.is_abyss || this.is_well),
             jump: this.is_water
         });
         this.applyControl(delta);

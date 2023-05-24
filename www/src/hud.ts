@@ -299,6 +299,10 @@ export class HUD {
 
     draw(force : boolean = false) {
 
+        if(!this.isActive()) {
+            return
+        }
+
         this.frmMainMenu.parent.center(this.frmMainMenu)
 
         // Check if need redraw
@@ -328,17 +332,17 @@ export class HUD {
             }
         }
 
+        for(const item of this.items) {
+            for(const e of item) {
+                e.item.drawHUD(this)
+            }
+        }
+
         if(this._active) {
             // Draw game technical info
             this.drawInfo()
             this.drawAverageFPS()
             this.drawCompas(this.wm.w / 2, 20 * this.zoom, 1850/4 * this.zoom, 80/4 * this.zoom)
-        }
-
-        for(const item of this.items) {
-            for(const e of item) {
-                e.item.drawHUD(this)
-            }
         }
 
         // Draw windows

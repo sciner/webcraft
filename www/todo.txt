@@ -7,6 +7,7 @@
 - bee_nest:
 - button:
 - cake:                   Это торт, который можно съесть
+- can_set_as_block:       Может быть установлен в мире как блок (даже если у него есть свойство item)
 - can_put_into_pot:       Может быть установлено в горшок
 - rotate_by_pos_n_5:
 - carpet:

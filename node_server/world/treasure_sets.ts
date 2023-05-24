@@ -27,7 +27,7 @@ export class Treasure_Sets {
                 for(let item of s.items) {
                     if(!item.id) {
                         const b = bm.fromName(item.name)
-                        if(!b) {
+                        if(b.is_dummy) {
                             throw `error_invalid_treasure_item_name|${item.name}`
                         }
                         delete(item.name);

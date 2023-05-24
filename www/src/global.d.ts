@@ -105,6 +105,7 @@ interface TBlocksSettings {
     draw_improved_blocks?:      boolean
     beautiful_leaves?:          boolean
     resource_packs_basedir?:    string
+    only_bbmodel?:              boolean
 }
 
 interface TWorldSettings extends TBlocksSettings {
@@ -266,6 +267,7 @@ interface IBlockMaterial {
     passable: number
     power: number
     can_auto_drop: boolean
+    is_dummy: boolean
     /**
      * @deprecated
      */
@@ -285,6 +287,11 @@ interface IBlockMaterial {
         slab?: boolean
         full_block_name: string
     }
+    flammable?: {
+        catch_chance_modifier: float
+        destroy_chance_modifier: float
+    }
+    compile: any
     redstone: any
     random_ticker: string
     resource_pack: any
@@ -407,7 +414,7 @@ interface IBlockMaterial {
     invisible_for_cam: boolean
     invisible_for_rain: boolean
     can_take_shadow: boolean
-    is_solid_for_fluid: boolean
+    is_solid_for_fluid: boolean // вода не течёт, н орендеринг может быть
     can_interact_with_hand: boolean
     can_replace_by_tree: boolean
     drop_if_unlinked: boolean
@@ -506,4 +513,10 @@ declare type IQuboidInfo = {
     signx:  int
     signy:  int
     signz:  int
+}
+
+declare type IUpdateBlock = {
+    pos: IVector
+    item: any
+    action_id: int
 }

@@ -27,7 +27,7 @@ export * from "./helpers/average_clock_timer.js";
 export * from "./helpers/simple_shifted_3d_array.js";
 
 import { CubeSym } from "./core/CubeSym.js";
-import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { Vector } from "./helpers/vector.js";
 import {Color} from "./helpers/color.js";
 import type { World } from "./world.js";
@@ -74,9 +74,9 @@ export class Helpers {
     }
 
     //
-    angleTo(pos, target) {
-        let angle = Math.atan2(target.x - pos.x, target.z - pos.z);
-        return (angle > 0) ? angle : angle + 2 * Math.PI;
+    static angleTo(pos : Vector, target : Vector) {
+        const angle = Math.atan2(target.x - pos.x, target.z - pos.z)
+        return (angle > 0) ? angle : angle + 2 * Math.PI
     }
 
     // clamp

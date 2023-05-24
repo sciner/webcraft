@@ -38,7 +38,8 @@ export type TDrivingConfig = {
     sound ?         : {tag: string, action: string} | null
 
     vehicleAnimation?: {
-        walkBack?: string
+        walk?: string           // анимация движения перед если на нем кто-то есть (иначе 'walk')
+        walkBack?: string       // анимация движения назад если на нем кто-то есть (иначе 'walk' или '-walk', в зависимости от reverseMovementAnimation)
         rotateLeft?: string     // анимация когда транспорт поворачивается влево на месте
         rotateRight?: string
         idleNotEmpty?: string   // idle анимация транспорта, если на нем кто-то есть. Если никого нет - то просто idle.

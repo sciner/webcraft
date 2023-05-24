@@ -434,6 +434,7 @@
             "name": "DUMMY",
             "spawnable": false,
             "transparent": true,
+            "is_dummy": true,
             "sound": "madcraft:block.stone",
             "material": {
                 "id": "bedrock"
@@ -1091,6 +1092,14 @@
             "texture": "block/coarse_dirt.png",
             "material": {
                 "id": "dirt"
+            },
+            "overlay_textures_weight": 96,
+            "texture_overlays": {
+                "1": "block/decals/dirt/1.png",
+                "corner": "block/decals/dirt/corner.png",
+                "3": "block/decals/dirt/3.png",
+                "all": "block/decals/dirt/all.png",
+                "opposite": "block/decals/dirt/opposite.png"
             }
         },
         {
@@ -1450,7 +1459,7 @@
                 "a": 255
             },
             "material": {
-                "id": "stone"
+                "id": "glowstone"
             },
             "sound": "madcraft:block.stone",
             "texture": "block/glowstone.png",
@@ -5149,28 +5158,6 @@
         },
         {
             "id": 610,
-            "name": "DIAMOND_SWORD",
-            "transparent": true,
-            "max_in_stack": 1,
-            "style": "extruder",
-            "item": {"name": "instrument", "instrument_id": "sword"},
-            "diagonal": true,
-            "power": 1561,
-            "damage": 7,
-            "speed": 1.6,
-            "material": {
-                "id": "diamond"
-            },
-            "texture": {
-                "side": "item/diamond_sword.png"
-            },
-            "tags": [
-                "#combat"
-            ],
-            "light": null
-        },
-        {
-            "id": 1216,
             "name": "TITANIUM_SWORD",
             "transparent": true,
             "max_in_stack": 1,
@@ -6103,6 +6090,9 @@
             "material": {
                 "id": "wood"
             },
+            "tags": [
+                "alpha"
+            ],
             "texture": {
                 "id": "alphabet",
                 "side": "0|0"
@@ -8920,7 +8910,7 @@
         },
         {
             "id": 196,
-            "name": "POTATO",
+            "name": "POTATOES",
             "style": "planting",
             "transparent": true,
             "diagonal": true,
@@ -8933,6 +8923,7 @@
             },
             "tags": [
                 "can_put_into_pot",
+                "can_set_as_block",
                 "agriculture"
             ],
             "food": {
@@ -8942,7 +8933,7 @@
             "seeds": {
                 "result": {
                     "complete": [
-                        {"name": "POTATO", "count": {"min": 1, "max": 3}}
+                        {"name": "POTATOES", "count": {"min": 1, "max": 3}}
                     ]
                 }
             },
@@ -12814,6 +12805,7 @@
             "name": "MECHANISM_ASSEMBLER",
             "sound": "madcraft:block.wood",
             "style": "extruder",
+            "diagonal": true,
             "item": {"name": "instrument", "instrument_id": "mechanism_assembler"},
             "material": {
                 "id": "wood"
@@ -12834,7 +12826,28 @@
                 "rotate_by_pos_n_6"
             ],
             "texture": "block/stone.png"
+        },
+        {
+            "id": 495,
+            "name": "NETHER_QUARTZ_ORE",
+            "texture": "block/nether_quartz_ore.png",
+            "material": {
+                "id": "quartz"
+            }
+        },
+        {
+            "id": 496,
+            "name": "REDSTONE_LAMP",
+            "material": {
+                "id": "stone"
+            },
+            "light_power": {
+                "r": 253,
+                "g": 200,
+                "b": 80,
+                "a": 255
+            },
+            "texture": "block/redstone_lamp.png"
         }
-        
     ]
 }

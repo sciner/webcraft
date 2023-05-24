@@ -1,6 +1,5 @@
-import {PIXI} from '../../../tools/gui/pixi.js';
-
-globalThis.PIXI = PIXI;
+import * as VAUX from 'vauxcel';
+globalThis.PIXI = VAUX;
 //PIXI.BatchRenderer.defaultMaxTextures = Math.min(PIXI.BatchRenderer.defaultMaxTextures, 16);
 
 const vertex = `#version 300 es
@@ -88,7 +87,7 @@ void main() {
 }
 `;
 
-export class MyBatchGeometry extends PIXI.Geometry {
+export class MyBatchGeometry extends VAUX.Geometry {
     [key: string]: any;
 
     static vertexSize = 10;
@@ -96,22 +95,22 @@ export class MyBatchGeometry extends PIXI.Geometry {
     constructor(_static = false) {
         super();
 
-        this._buffer = new PIXI.Buffer(null, _static, false);
+        this._buffer = new VAUX.Buffer(null, _static, false);
 
-        this._indexBuffer = new PIXI.Buffer(null, _static, true);
+        this._indexBuffer = new VAUX.Buffer(null, _static, true);
 
-        this.addAttribute('aVertexPosition', this._buffer, 2, false, PIXI.TYPES.FLOAT)
-            .addAttribute('aSpriteUV', this._buffer, 2, false, PIXI.TYPES.FLOAT)
-            .addAttribute('aTextureRegion', this._buffer, 4, false, PIXI.TYPES.FLOAT)
-            .addAttribute('aTint', this._buffer, 4, true, PIXI.TYPES.UNSIGNED_BYTE)
-            .addAttribute('aMultiField', this._buffer, 1, true, PIXI.TYPES.FLOAT)
+        this.addAttribute('aVertexPosition', this._buffer, 2, false, VAUX.TYPES.FLOAT)
+            .addAttribute('aSpriteUV', this._buffer, 2, false, VAUX.TYPES.FLOAT)
+            .addAttribute('aTextureRegion', this._buffer, 4, false, VAUX.TYPES.FLOAT)
+            .addAttribute('aTint', this._buffer, 4, true, VAUX.TYPES.UNSIGNED_BYTE)
+            .addAttribute('aMultiField', this._buffer, 1, true, VAUX.TYPES.FLOAT)
             .addIndex(this._indexBuffer);
 
         this.vertexSize = 10;
     }
 }
 
-export class MyBatchShaderGenerator extends PIXI.BatchShaderGenerator {
+export class MyBatchShaderGenerator extends VAUX.BatchShaderGenerator {
     constructor(vertexSrc, fragTemplate) {
         super(vertexSrc, fragTemplate);
     }
@@ -144,17 +143,17 @@ export class MyBatchShaderGenerator extends PIXI.BatchShaderGenerator {
     }
 }
 
-export class MySpriteRenderer extends PIXI.BatchRenderer {
+export class MySpriteRenderer extends VAUX.BatchRenderer {
     [key: string]: any;
 
     static extension = {
         name: 'mySprite',
-        type: PIXI.ExtensionType.RendererPlugin,
+        type: VAUX.ExtensionType.RendererPlugin,
     };
 
     constructor(renderer) {
         super(renderer)
-        this.geometryClass = MyBatchGeometry;
+        this.geometryClass = MyBatchGeometry as any;
         this.vertexSize = MyBatchGeometry.vertexSize;
     }
 
@@ -180,7 +179,7 @@ export class MySpriteRenderer extends PIXI.BatchRenderer {
         const alpha = Math.min(element.worldAlpha, 1.0);
         const argb = (alpha < 1.0
             && element._texture.baseTexture.alphaMode)
-            ? PIXI.utils.premultiplyTint(element._tintRGB, alpha)
+            ? VAUX.utils.premultiplyTint(element._tintRGB, alpha)
             : element._tintRGB + (alpha * 255 << 24);
 
         // lets not worry about tint! for now..
@@ -211,7 +210,7 @@ export class MySpriteRenderer extends PIXI.BatchRenderer {
     }
 }
 
-export class MySprite extends PIXI.Sprite {
+export class MySprite extends VAUX.Sprite {
     [key: string]: any;
 
     constructor(texture, scale = 1) {
@@ -228,12 +227,12 @@ export class MySprite extends PIXI.Sprite {
         let textureUp = this._textureID !== texture._updateID;
         super.calculateVertices();
         if (textureUp) {
-            this.uvs = PIXI.Texture.WHITE._uvs.uvsFloat32;
+            this.uvs = VAUX.Texture.WHITE._uvs.uvsFloat32;
         }
     }
 }
 
-export class MyTilemap extends PIXI.Container {
+export class MyTilemap extends VAUX.Container {
     [key: string]: any;
 
     constructor() {
@@ -242,15 +241,15 @@ export class MyTilemap extends PIXI.Container {
         this.points = [];
         this.instances = 0;
 
-        this.textureArray = new PIXI.BatchTextureArray();
+        this.textureArray = new VAUX.BatchTextureArray();
 
         this.initGeom();
         this.capacity = 8;
         this.ensureSize(16);
         this.dataInstances = 0;
         this.shader = null;
-        this.state = PIXI.State.for2d();
-        this.state.blendMode = PIXI.BLEND_MODES.NORMAL;
+        this.state = VAUX.State.for2d();
+        this.state.blendMode = VAUX.BLEND_MODES.NORMAL;
     }
 
     initGeom() {
@@ -272,7 +271,7 @@ export class MyTilemap extends PIXI.Container {
         if (oldData && this.dataInstances > 0) {
             this.data.set(oldData.slice(0, this.dataInstances));
         }
-        this.indexData = PIXI.utils.createIndicesForQuads(this.capacity * 6);
+        this.indexData = VAUX.utils.createIndicesForQuads(this.capacity * 6);
         this.geom._indexBuffer.update(this.indexData);
     }
 
@@ -335,7 +334,7 @@ export class MyTilemap extends PIXI.Container {
 
         const argb = (alpha < 1.0
             && baseTex.alphaMode)
-            ? PIXI.utils.premultiplyTint(_tintRGB, alpha)
+            ? VAUX.utils.premultiplyTint(_tintRGB, alpha)
             : _tintRGB + (alpha * 255 << 24);
 
         //TODO: move textures to separate pass
@@ -348,7 +347,7 @@ export class MyTilemap extends PIXI.Container {
         }
         if (textureId < 0) {
             textureId = textureArray.count;
-            if (textureId >= PIXI.BatchRenderer.defaultMaxTextures) {
+            if (textureId >= VAUX.BatchRenderer.defaultMaxTextures) {
                 return;
             }
             textureArray.elements[textureArray.count++] = baseTex;
@@ -398,7 +397,7 @@ export class MyTilemap extends PIXI.Container {
         }
         renderer.shader.bind(shader);
         renderer.geometry.bind(this.geom);
-        renderer.geometry.draw(PIXI.DRAW_MODES.TRIANGLES, this.instances * 6, 0);
+        renderer.geometry.draw(VAUX.DRAW_MODES.TRIANGLES, this.instances * 6, 0);
     }
 
     destroy(options) {
@@ -407,7 +406,7 @@ export class MyTilemap extends PIXI.Container {
     }
 }
 
-export class MyText extends PIXI.Text {
+export class MyText extends VAUX.Text {
     [key: string]: any;
 
     constructor(text, style, canvas? : any) {
@@ -419,4 +418,4 @@ export class MyText extends PIXI.Text {
 
 MyText.prototype.calculateVertices = MySprite.prototype.calculateVertices;
 
-PIXI.extensions.add(MySpriteRenderer);
+VAUX.extensions.add(MySpriteRenderer);

@@ -2,7 +2,7 @@ import {Vector} from '../../helpers.js';
 import { BLOCK, FakeTBlock } from '../../blocks.js';
 import { NetworkPhysicObject } from '../../network_physic_object.js';
 import { MeshGroup } from '../group.js';
-import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { World } from '../../world.js';
 import type { Renderer } from '../../render.js';
 
@@ -94,7 +94,7 @@ export class Mesh_Object_Asteroid extends NetworkPhysicObject {
         let x = -.5
         let y = 0.
         let z = -.5
-        this.mesh_group.buildVertices(x, y, z, false)
+        this.mesh_group.buildVertices(x, y, z, false, undefined, undefined, world.chunkManager.grid.chunkSize.clone())
 
     }
 

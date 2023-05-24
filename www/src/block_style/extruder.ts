@@ -1,6 +1,6 @@
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import {IndexedColor, DIRECTION, Vector, QUAD_FLAGS} from '../helpers.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
+import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import { BlockStyleRegInfo } from './default.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
@@ -78,7 +78,7 @@ class FakeCloudWorld {
                 for(let x = 0; x < tex_w; x++) {
                     for(let y = 0; y < tex_h; y++) {
                         let index = ((y + tex_y) * tex.width + (x + tex_x)) * 4;
-                        let is_opaque = tex.imageData.data[index + 3] > 10;
+                        let is_opaque = tex.getImageData().data[index + 3] > 10
                         if(is_opaque) {
                             this.blocks[x + 1][y + 1] = 1;
                         }

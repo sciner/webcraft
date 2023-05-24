@@ -69,7 +69,7 @@ export class RecipeSlot extends Window {
             }
         }
         if(this.can_make) {
-            let craft_area_size = this.parent.craft_window.craft_area.size;
+            let craft_area_size = this.untypedParent.craft_window.craft_area.size;
             this.can_make = this.recipe.size.width <= craft_area_size.width &&
                             this.recipe.size.height <= craft_area_size.height;
         }
@@ -96,7 +96,7 @@ export class RecipeWindow extends BlankWindow {
         super(0, 0, 592/2, 342, id, null, null)
         this.w *= this.zoom
         this.h *= this.zoom
-        
+
         this.items_per_page     = 20
         this.index              = -1
         this.recipe_manager     = recipe_manager
@@ -154,7 +154,7 @@ export class RecipeWindow extends BlankWindow {
     assignCraftWindow(w: BaseCraftWindow): void {
         this.craft_window = w;
     }
-    
+
     async addToggleButton() {
 
         const self = this
@@ -190,9 +190,9 @@ export class RecipeWindow extends BlankWindow {
         const h = 25 * this.zoom
 
         // Text editor
-        const txtSearch = new TextEdit(x, sy, w, h, 'txtSearch1', null, 'Type for search')
+        const txtSearch = new TextEdit(x, sy, w, h, 'txtSearch1', null, 'Click for search')
         txtSearch.word_wrap                 = false
-        txtSearch.focused                   = true
+        txtSearch.autofocus                 = false
         txtSearch.max_length                = 100
         txtSearch.max_lines                 = 1
         txtSearch.max_chars_per_line        = 20
@@ -200,7 +200,7 @@ export class RecipeWindow extends BlankWindow {
         txtSearch.style.font.size           = 12
         txtSearch.style.textAlign.vertical  = 'middle'
         this.add(txtSearch);
-        
+
         txtSearch.onChange = (text : string) => {
             this.filter_text = text;
             this.createRecipes();
@@ -292,7 +292,7 @@ export class RecipeWindow extends BlankWindow {
                 this.add(lbl)
             }
         }
-        
+
         const tmp_recipes = [];
         for(const index in list) {
             const recipe = list[index];
@@ -310,7 +310,7 @@ export class RecipeWindow extends BlankWindow {
             }
             tmp_recipes.push(recipe);
         }
-        
+
         this.items_count = tmp_recipes.length;
 
         for(let index = 0; index < tmp_recipes.length; index++) {
@@ -332,7 +332,7 @@ export class RecipeWindow extends BlankWindow {
             lblRecipe.update()
             i++;
         }
-        
+
     }
 
 }

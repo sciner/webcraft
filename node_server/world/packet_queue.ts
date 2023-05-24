@@ -2,6 +2,7 @@ import { Vector } from "@client/helpers.js";
 import { ServerClient } from "@client/server_client.js";
 import { gzip, ungzip, inflate, deflate } from '../../www/vendors/pako.esm.min.mjs';
 import type { ServerWorld } from "../server_world.js";
+import type {MobState} from "../mob.js";
 
 // Queue for packets
 export class WorldPacketQueue {
@@ -42,17 +43,19 @@ export class WorldPacketQueue {
             }
             packets = packets.filter(p => {
                 if (p.name == ServerClient.CMD_MOB_UPDATE) {
+                    const p_data: MobState = p.data
                     if (!mob_update_packet) {
                         mob_update_packet = { name: p.name, data: [min_mob_pos.x, min_mob_pos.y, min_mob_pos.z] }
                     }
                     mob_update_packet.data.push(
-                        p.data.id,
-                        Math.round((p.data.pos.x - min_mob_pos.x) * 1000) / 1000,
-                        Math.round((p.data.pos.y - min_mob_pos.y) * 1000) / 1000,
-                        Math.round((p.data.pos.z - min_mob_pos.z) * 1000) / 1000,
+                        p_data.id,
+                        Math.round((p_data.pos.x - min_mob_pos.x) * 1000) / 1000,
+                        Math.round((p_data.pos.y - min_mob_pos.y) * 1000) / 1000,
+                        Math.round((p_data.pos.z - min_mob_pos.z) * 1000) / 1000,
                         // p.data.rotate.x, p.data.rotate.y,
-                        Math.round((p.data.rotate.z) * 1000) / 1000,
-                        p.data.extra_data
+                        Math.round((p_data.rotate.z) * 1000) / 1000,
+                        p_data.extra_data,
+                        p_data.flags
                     );
                     return false;
                 }

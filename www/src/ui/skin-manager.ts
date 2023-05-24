@@ -15,6 +15,7 @@ export class SkinManager {
         Qubatch: any,
         $apply: any
     };
+    loaded_list: []
 
     constructor($scope : any, $timeout? : Function) {
         this.#controller    = $scope
@@ -45,13 +46,9 @@ export class SkinManager {
             return
         }
         this.reloadSkins(async (list) => {
+            this.loaded_list = list
             if(this.preview.isActive) {
-                const skin_id = this.load()
-                // console.log(skin_id, list)
-                await this.preview.init(list, this.$timeout)
-                this.$timeout(() => {
-                    this.preview.select(skin_id)
-                }, 0, true)
+                this.onShow()
             }
         })
     }
@@ -85,7 +82,16 @@ export class SkinManager {
         });
     }
 
-    onShow(args? : any) {
+    async onShow(args? : any) {
+        const list = this.loaded_list
+        if(list) {
+            const skin_id = this.load()
+            // console.log(skin_id, list)
+            await this.preview.init(list, this.$timeout)
+            this.$timeout(() => {
+                this.preview.select(skin_id)
+            }, 0, true)
+        }
     }
 
     onHide(args? : any) {

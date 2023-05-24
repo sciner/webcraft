@@ -1,4 +1,4 @@
-import { impl as alea } from '../../vendors/alea.js';
+import { impl as alea } from '@vendors/alea.js';
 import { DEFAULT_DIRT_PALETTE } from '../constant.js';
 import type { ChunkGrid } from '../core/ChunkGrid.js';
 import { IndexedColor, Vector, Helpers, VectorCollector } from '../helpers.js';

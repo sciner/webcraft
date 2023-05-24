@@ -2,7 +2,7 @@ import { FakeTBlock } from '../../blocks.js';
 import { Vector, unixTime, Helpers, QUAD_FLAGS } from '../../helpers.js';
 import { NetworkPhysicObject } from '../../network_physic_object.js';
 import { MeshGroup } from '../group.js';
-import glMatrix from "../../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { MAX_DIST_FOR_PICKUP } from '../../constant.js';
 import type { Player } from '../../player.js';
 import type { World } from '../../world.js';
@@ -54,6 +54,11 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         this.block          = new FakeTBlock(block.id)
         this.block_material = this.block.material
         this.items          = items
+
+        Object.assign(this, {
+            width: .1,
+            height: .25,
+        })
 
         // draw_style
         let draw_style = this.block_material?.inventory_style ?? this.block_material.style
@@ -192,7 +197,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     }
 
     // Draw
-    draw(render : Renderer, delta : float) {
+    draw(render : Renderer, delta : float, draw_debug_grid : boolean = false) {
 
         if(this.now_draw || this.isDead()) {
             return false
@@ -257,6 +262,11 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
         // Draw mesh group
         this.drawBuffer(render, this.pos, _matrix_rot)
+
+        // Draw AABB wireframe
+        if(this.aabb && draw_debug_grid) {
+            this.aabb.draw(render, this.pos, delta, true /*this.raycasted*/ );
+        }
 
     }
 

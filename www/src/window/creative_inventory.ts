@@ -20,10 +20,10 @@ class CreativeInventoryCollection extends Window {
 
     //
     constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, cell_size : float, slot_margin: float, parent: Window) {
-        
+
         super(x, y, w, h, id)
 
-        this.parent = parent
+        this.untypedParent = parent
 
         // Ширина / высота слота
         this.cell_size = cell_size
@@ -52,7 +52,7 @@ class CreativeInventoryCollection extends Window {
         this.scrollY = Math.min(this.scrollY, 0)
         this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
         this.container.y = this.scrollY
-        this.parent.scrollbar.value = -this.scrollY
+        this.untypedParent.scrollbar.value = -this.scrollY
         this.updateVisibleSlots()
     }
 
@@ -64,7 +64,7 @@ class CreativeInventoryCollection extends Window {
         this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
         this.scrollY = Math.round(this.scrollY / szm) * szm
         this.container.y = this.scrollY
-        this.updateVisibleSlots() 
+        this.updateVisibleSlots()
     }
 
     updateVisibleSlots() {
@@ -215,7 +215,7 @@ class CreativeInventoryCollection extends Window {
 
             let lblSlot = this.slots[i]
             if(!lblSlot) {
-                lblSlot = this.slots[i] = new TableDataSlot(0, 0, sz, sz, 'lblCollectionSlot' + (i), null, null, this.parent, null)
+                lblSlot = this.slots[i] = new TableDataSlot(0, 0, sz, sz, 'lblCollectionSlot' + (i), null, null, this.parent as any, null)
                 lblSlot.style.border.style = 'inset'
                 lblSlot.style.border.shadow_color = '#00000000'
                 lblSlot.style.border.color = '#00000055'

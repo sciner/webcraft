@@ -5,7 +5,7 @@ import {CD_ROT, CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT, NO_DESTRUCTABLE_BLOCKS } from "./blocks.js";
 import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
-import {impl as alea} from '../vendors/alea.js';
+import {impl as alea} from '@vendors/alea.js';
 import { RailShape } from "./block_type/rail_shape.js";
 import { WorldPortal } from "./portal.js";
 import {
@@ -63,6 +63,7 @@ export type TActionBlock = {
 type ActionBlocks = {
     list: TActionBlock[]
     options: {
+        can_ignore_air      : boolean
         ignore_check_air    : boolean
         on_block_set        : boolean
         on_block_set_radius : number
@@ -364,7 +365,7 @@ export function dropBlock(player : any = null, tblock : TBlock | FakeTBlock, act
         }
     } else if(drop_item) {
         const drop_block = BLOCK.fromName(drop_item?.name);
-        if(drop_block) {
+        if(!drop_block.is_dummy) {
             const chance = drop_item.chance ?? 1;
             if(Math.random() < chance) {
                 let count = drop_item.count;
@@ -402,7 +403,7 @@ export function dropBlock(player : any = null, tblock : TBlock | FakeTBlock, act
                     const count = Helpers.getRandomInt(r.count.min, r.count.max);
                     if(count > 0) {
                         const result_block = BLOCK.fromName(r.name.toUpperCase());
-                        if(!result_block || result_block.id < 0) {
+                        if(result_block.is_dummy) {
                             throw 'error_invalid_result_block|' + r.name;
                         }
                         items.push(makeDropItem(tblock, {id: result_block.id, count: count}));
@@ -438,7 +439,7 @@ class DestroyBlocks {
     }
 
     //
-    add(tblock, pos, no_drop = false) {
+    add(tblock : TBlock, pos, no_drop = false) {
         const cv        = this.cv;
         const world     = this.world;
         const player    = this.player;
@@ -497,25 +498,9 @@ class DestroyBlocks {
             }
         }
         // Удаляем второй блок (кровати, двери, высокая трава и высокие цветы)
-        if(tblock.material.has_head) {
-            const head_pos = new Vector(tblock.material.has_head.pos);
-            const connected_pos = new Vector(pos);
-            if(tblock.rotate && head_pos.z) {
-                let rot = tblock.rotate.x;
-                if(!tblock.extra_data?.is_head) {
-                    rot += 2;
-                }
-                connected_pos.addByCardinalDirectionSelf(head_pos, rot);
-            } else {
-                if(tblock.extra_data?.is_head) {
-                    head_pos.multiplyScalarSelf(-1);
-                }
-                connected_pos.addSelf(head_pos);
-            }
-            const block_connected = world.getBlock(connected_pos);
-            if(block_connected.id == tblock.id) {
-                this.add(block_connected, connected_pos, true);
-            }
+        const head_connected_block = tblock.getHeadBlock(world)
+        if(head_connected_block) {
+            this.add(head_connected_block, head_connected_block.posworld.clone(), true)
         }
         // Destroy chain blocks to down
         if(tblock.material.tags.includes('destroy_to_down')) {
@@ -612,6 +597,7 @@ export class WorldAction {
                 list: [],
                 options: {
                     ignore_check_air: ignore_check_air,
+                    can_ignore_air: false,
                     on_block_set: on_block_set,
                     on_block_set_radius: 1
                 }
@@ -929,6 +915,13 @@ export class WorldAction {
         this.generate_tree.push(params);
     }
 
+    appendMechanismBlocks(qi : IQuboidInfo) {
+        this.mechanism = {
+            action: 'append_blocks',
+            append_blocks: qi,
+        }
+    }
+
 }
 
 function simplifyPos(world : any, pos : IVectorPoint, mat : IBlockMaterial, to_top : boolean, check_opposite : boolean = true) {
@@ -1040,12 +1033,12 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         // Получаем материал выбранного блока в инвентаре
         let mat_block = current_inventory_item ? BLOCK.fromId(current_inventory_item.id) : null;
 
-        if(mat_block && mat_block.item?.emit_on_set) {
+        if(mat_block && !mat_block.is_dummy && mat_block.item?.emit_on_set) {
             // bucket etc.
             mat_block = BLOCK.fromName(mat_block.item.emit_on_set);
         }
 
-        if(mat_block && (mat_block.deprecated || (!world.isBuildingWorld() && (blockFlags[mat_block.id] & BLOCK_FLAG.NOT_CREATABLE)))) {
+        if(mat_block && !mat_block.is_dummy && (mat_block.deprecated || (!world.isBuildingWorld() && (blockFlags[mat_block.id] & BLOCK_FLAG.NOT_CREATABLE)))) {
             console.warn('warning_mat_block.deprecated');
             return [null, pos];
         }
@@ -1573,7 +1566,7 @@ function putInBucket(e, world, pos, player, world_block, world_material, mat_blo
     if(world_material.put_in_bucket) {
         // get filled bucket
         const filled_bucket = BLOCK.fromName(world_material.put_in_bucket);
-        if(filled_bucket) {
+        if(!filled_bucket.is_dummy) {
             const item : IBlockItem = {
                 id: filled_bucket.id,
                 count: 1
@@ -2359,7 +2352,7 @@ function restrictPlanting(e, world, pos, player, world_block, world_material, ma
     if(mat_block.id == BLOCK.SWEET_BERRY_BUSH.id && [BLOCK.PODZOL.id, BLOCK.COARSE_DIRT.id, BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
         return false
     }
-    if(![BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
+    if(![BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
         return true;
     }
     // Посадить семена можно только на вспаханную землю
@@ -2613,7 +2606,7 @@ function useAxe(e, world, pos, player, world_block, world_material, mat_block : 
     }
     if(world_material.tags.includes('log') && world_material.stripped_log) {
         const stripped_block = BLOCK.fromName(world_material.stripped_log);
-        if(stripped_block) {
+        if(!stripped_block.is_dummy) {
             actions.addBlocks([{pos: new Vector(pos), item: {id: stripped_block.id, rotate: world_block.rotate, extra_data: world_block.extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE}]);
             if(mat_block.sound) {
                 actions.addPlaySound({tag: mat_block.sound, action: 'strip', pos: new Vector(pos), except_players: [player.session.user_id]});

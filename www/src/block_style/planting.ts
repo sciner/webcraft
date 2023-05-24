@@ -3,7 +3,7 @@ import { MAX_CHUNK_SQUARE} from "../chunk_const.js";
 import { CubeSym } from '../core/CubeSym.js';
 import {AABB} from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style, QuadPlane, TX_SIZE} from './default.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { DEFAULT_GRASS_PALETTE, GRASS_COLOR_SHIFT_FACTOR, GRASS_PALETTE_OFFSET } from '../constant.js';
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
@@ -85,6 +85,7 @@ export default class style {
             if(tblock.extra_data?.stage != undefined) {
                 aabb_size = aabb_size.clone()
                 aabb_size.y *= (tblock.extra_data?.stage + 1) / (material.ticking.max_stage + 1)
+                aabb_size.y = Math.min(aabb_size.y, 16)
             }
         }
         
@@ -142,7 +143,7 @@ export default class style {
         const is_flower = block.hasTag('flower');
         const is_agriculture = block.hasTag('agriculture');
         const is_grass = material.is_grass;
-        const random_index = (z * chunk.size.x + x) % randoms.length
+        const random_index = ((z * chunk.size.x + x) % randoms.length) | 0
 
         let texture = bm.calcMaterialTexture(material, texture_dir, null, null, block, undefined, randoms.double(random_index))
 

@@ -22,7 +22,7 @@ const REPAIR_BY_MATERIALS = {
     'leather':  { names: ['LEATHER'] },
     'stone':    { names: ['COBBLESTONE',
         // These are not in the game, but can be used in Minecraft
-        'COBBLED_DEEPSLATE', 'BLACKSTONE'] }, 
+        'COBBLED_DEEPSLATE', 'BLACKSTONE'] },
     'iron':     { names: ['IRON_INGOT'] },
     'gold':     { names: ['GOLD_INGOT'] },
     'diamond':  { names: ['DIAMOND'] },
@@ -204,7 +204,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
 
                 outUsedCount[0] = 1;
                 outUsedCount[1] = 1;
-                
+
                 result.count = 1;
                 if (label !== ItemHelpers.LABEL_NO_CHANGE) {
                     ItemHelpers.setLabel(result, label);

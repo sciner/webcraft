@@ -1,6 +1,6 @@
 import { ClusterBuildingBase } from "./building_cluster_base.js";
 import { BuildingTemplate } from "./building_template.js";
-import { impl as alea } from "../../../vendors/alea.js";
+import { impl as alea } from "@vendors/alea.js";
 import { ArrayHelpers, Vector, VectorCollector } from "../../helpers.js";
 import { BuildingBlocks } from "./building/building_blocks.js";
 import { BlockDrawer } from "./block_drawer.js";

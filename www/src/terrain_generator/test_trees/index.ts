@@ -2,7 +2,7 @@ import type { Vector } from '../../helpers.js';
 import { Default_Terrain_Generator, alea, Default_Terrain_Map } from '../default.js';
 import { BLOCK } from '../../blocks.js';
 import { TREES } from '../biome2/biomes.js';
-import { createNoise2D, createNoise3D } from '../../../vendors/simplex-noise.js';
+import { createNoise2D, createNoise3D } from '@vendors/simplex-noise.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
 import { Biomes } from '../biome3/biomes.js';
 

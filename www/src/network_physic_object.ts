@@ -4,6 +4,7 @@ import type { World } from './world.js';
 import type {MobModel} from "./mob_model.js";
 
 const ROTATING_THRESHOLD = 0.001
+const MOVING_THRESHOLD = 0.002
 
 // AABBDrawable
 export class AABBDrawable extends AABB {
@@ -52,6 +53,8 @@ export class NetworkPhysicObject {
      *  - без вождения 1 (направление не важно, не делаем лишних вычислений)
      */
     protected moving    : int = 0
+    /** Последнее перемещение по Y */
+    protected movingDY  : float = 0
     /**
      * Показывает направление изменения угла. Аналог {@link moving}.
      * -1 или 1, если последняя установка yaw изменила значение достаточно сильно, иначе 0.
@@ -84,6 +87,10 @@ export class NetworkPhysicObject {
         this.tracked = false;
     }
 
+    protected get movingY(): int {
+        return (this.movingDY > MOVING_THRESHOLD) ? 1 : (this.movingDY < -MOVING_THRESHOLD) ? -1 : 0
+    }
+
     get pos(): Vector {
         return this._pos;
     }
@@ -108,18 +115,22 @@ export class NetworkPhysicObject {
         this._prevPos.copyFrom(this._pos);
         this._pos.copyFrom(v);
 
-        if (Math.abs(dx) + Math.abs(dz) > 0.002) {
-            // в режиме вождения определить не только наличие движения, но и направление (вперед/назад)
-            if ((this as unknown as MobModel).driving) {
+        if (Math.abs(dx) + Math.abs(dz) > MOVING_THRESHOLD) {
+            // если этому мобу нужно, определить не только наличие движения, но и направление (вперед/назад)
+            const mobModel = this as unknown as MobModel
+            if (mobModel.animations?.reverseBack || mobModel.driving) {
                 const movementYaw = tmpSetPosVec.setScalar(dx, dy, dz).getYaw()
                 const deltaYaw = Mth.radians_to_minus_PI_PI_range(movementYaw - this._yaw)
-                this.moving = Math.abs(deltaYaw) <= Mth.PI_DIV2 ? 1 : -1
+                // this.moving = Math.abs(deltaYaw) <= Mth.PI_DIV2 ? 1 : -1
+                this.moving = Math.abs(deltaYaw) <= Math.PI * 0.625 ? 1 : -1
             } else {
                 this.moving = 1
             }
         } else {
             this.moving = 0
         }
+
+        this.movingDY = dy
     }
 
     get yaw(): float { return this._yaw }

@@ -1,7 +1,7 @@
 import {calcRotateMatrix, DIRECTION, IndexedColor, QUAD_FLAGS, Vector} from '../helpers.js';
 import { BlockManager, DropItemVertices, FakeTBlock } from '../blocks.js';
 import {AABB} from '../core/AABB.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { CD_ROT, CubeSym } from '../core/CubeSym.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';

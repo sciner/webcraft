@@ -100,14 +100,14 @@ export class BiomeDirtLayer {
         const blocks_id : int[] = []
         for(let block_name of blocks) {
             const b = BLOCK.fromName(block_name)
-            if(!b) throw 'error_invalid_block'
+            if(b.is_dummy) throw 'error_invalid_block'
             blocks_id.push(b.id)
         }
         //
         let cap_block_id = 0
         if(cap_block_name) {
             const b = BLOCK.fromName(cap_block_name)
-            if(!b) throw 'error_invalid_cap_block'
+            if(b.is_dummy) throw 'error_invalid_cap_block'
             cap_block_id = b.id
         }
         //
@@ -261,7 +261,7 @@ export class Biome {
             for(let item of block_set) {
                 if(!item.block) {
                     item.block = BLOCK.fromName(item.block_name)
-                    if(!item.block) throw 'invalid_river_bottom_block'
+                    if(item.block.is_dummy) throw 'invalid_river_bottom_block'
                 }
             }
         }
@@ -290,7 +290,7 @@ export class Biome {
         if(blocks) {
             for(let k in blocks) {
                 const block = BLOCK.fromName(blocks[k])
-                if(!block) throw 'invalid_river_bottom_block'
+                if(block.is_dummy) throw 'invalid_river_bottom_block'
                 this.blocks[k] = block
             }
         }
@@ -449,7 +449,7 @@ export class Biomes {
                 if(pack_set.blocks) {
                     for(let b of pack_set.blocks) {
                         const block = b.name ? BLOCK.fromName(b.name) : BLOCK.fromId(b.id)
-                        if(!block) {
+                        if(block.is_dummy) {
                             throw 'error_block_not_defined'
                         }
                         delete(b.name)
@@ -471,7 +471,7 @@ export class Biomes {
                 tree.underwater = !!tree.underwater
                 if(tree.trunk) {
                     const trunk_block = BLOCK.fromId(tree.trunk)
-                    if(!trunk_block) throw 'invalid_trunk_block'
+                    if(trunk_block.is_dummy) throw 'invalid_trunk_block'
                     tree.transparent_trunk = trunk_block.transparent
                 }
             }

@@ -7,7 +7,7 @@ export class Brain extends FSMBrain {
 
     constructor(mob) {
         super(mob);
-        //
+        mob.extra_data.play_death_animation = false
         this.stack.pushState(this.doNothing)
     }
 
@@ -19,7 +19,7 @@ export class Brain extends FSMBrain {
         if(this.mob.config.drop_on_kill) {
             const block_name = this.mob.config.drop_on_kill
             const block = BLOCK.fromName(block_name)
-            if(!block) {
+            if(block.is_dummy) {
                 console.error(`error_invalid_kill_drop_block|${block_name}`)
             }
             actions.addDropItem({

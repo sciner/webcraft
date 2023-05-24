@@ -5,7 +5,7 @@ import { BBModel_Group } from "./group.js";
 import { BBModel_Locator } from "./locator.js";
 import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js";
 import type { Renderer } from "../render.js";
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { getEuler } from "../components/Transform.js";
 import { BBMODEL_ATLAS_SIZE } from "../constant.js";
 
@@ -15,6 +15,13 @@ const EMPTY_ARGS = []
 
 const {quat} = glMatrix
 
+export type TParsedAnimation = {
+    full_name:  string  // полное имя анимации (с параметрами)
+    name:       string  // короткое имя (без параметров) - как в BB модели
+    reverse:    boolean
+    mul:        float
+}
+
 //
 export class BBModel_Model {
     [key: string]: any;
@@ -23,6 +30,7 @@ export class BBModel_Model {
     bone_groups:    Map<string, BBModel_Group> = new Map()
     groups:         Map<string, BBModel_Group> = new Map()
     all_textures?:  Map<string, any> = null
+    animations?:    Map<string, any>
 
     constructor(json) {
         // TODO: need to read from bbmodel texture pack options
@@ -149,7 +157,14 @@ export class BBModel_Model {
         this.root.drawBuffered(render, mesh, pos, lm, matrix, undefined, vertices, emmit_particles_func)
     }
 
-    static parseAnimationName(animation_name : string) : {name: string, reverse: boolean, mul: float} {
+    static parseAnimationName(animation : string | TParsedAnimation) : TParsedAnimation {
+
+        // если это уже объект и его не нужно парсить
+        if ((animation as TParsedAnimation).name) {
+            return animation as TParsedAnimation
+        }
+        const full_name = animation as string
+        let animation_name = full_name
 
         const reverse = animation_name.startsWith('-')
         let mul = 1.
@@ -165,14 +180,14 @@ export class BBModel_Model {
             }
         }
 
-        return {name: animation_name, reverse, mul}
+        return {full_name, name: animation_name, reverse, mul}
 
     }
 
     /**
      * Play animations
      */
-    playAnimation(animation_name : string, dt : float, mesh : Mesh_Object_BBModel = null) : boolean {
+    playAnimation(animation_name : string | TParsedAnimation | null, dt : float, mesh : Mesh_Object_BBModel = null) : boolean {
 
         if(!animation_name) {
             return false
@@ -466,6 +481,7 @@ export class BBModel_Model {
                         if(keyframe.channel === 'position') {
                             dp.divScalarSelf(16);
                             dp.x *= -1
+                            dp.z *= -1
                         } else if (keyframe.channel === 'rotation') {
                             dp.x = -dp.x;
                             dp.y = -dp.y;

@@ -2,7 +2,7 @@ import { IndexedColor, Vector } from "./helpers.js"
 import { Resources } from "./resources.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 
-import glMatrix from "./../vendors/gl-matrix-3.3.min.js"
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
 import type { Player } from "./player.js";
 const { mat4, vec3, quat } = glMatrix;

@@ -60,6 +60,7 @@ export class ServerClient {
     static CMD_CHEST_CONFIRM            = 47; // player -> server (player change chest content)
     static CMD_CHEST_FORCE_CLOSE        = 108; // server -> player (a server tells the client to close the chest window)
     static CMD_CHEST_CHANGE_PROCESSED   = 123 // s->p: сервер сообщил об окончании операции, которую ждал клиент (успешной или нет - не важно)
+    static CMD_POS1POS2                 = 124 //
 
     //
     static CMD_CHANGE_POS_SPAWN         = 63; // player -> server (request to change spawn point)
@@ -76,9 +77,6 @@ export class ServerClient {
 	static CMD_GENERATE_PARTICLE        = 89;
     static CMD_STOP_PLAY_DISC           = 91;
 	static CMD_WORLD_UPDATE_INFO        = 92; // server -> player
-
-    // Others
-    static CMD_MECHANISM                = 123 // player -> server
 
     // Quests
     static CMD_QUEST_GET_ENABLED        = 93

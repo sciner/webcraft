@@ -22,6 +22,7 @@
         {"name": "mob/deer"},
         {"name": "mob/snowball"},
         {"name": "mob/combat_dummy"},
+        {"name": "mob/snow_golem"},
 
         {"name": "mechanism/cogwheel"},
         {"name": "mechanism/windmill_bearing"},
@@ -127,6 +128,7 @@
         {"name": "tool/industrial_pickaxe"},
         {"name": "tool/industrial_shovel"},
         {"name": "tool/industrial_sword"},
+        {"name": "tool/mechanism_assembler"},
 
         {"name": "armor/scrap_armor"}
 
@@ -139,6 +141,7 @@
             "group": "doubleface",
             "bb": {
                 "model": "torch",
+                "aabb_stylename": "torch",
                 "rotate": {"type": "cardinal_direction", "when": {"state": "wall"}},
                 "set_state": [
                     {"name": "wall", "when": {"rotate.y": 0}},
@@ -227,6 +230,7 @@
             "name": "FLOWER_POT",
             "bb": {
                 "model": "pot",
+                "aabb_stylename": "pot",
                 "behavior": "pot"
             }
         },
@@ -314,6 +318,7 @@
             "name": "BIRCH_SIGN",
             "bb": {
                 "model": "sign",
+                "aabb_stylename": "sign",
                 "set_state": [
                     {"name": "wall", "when": {"rotate.y": 0}},
                     {"name": "floor"}
@@ -332,6 +337,7 @@
             "name": "OAK_SIGN",
             "bb": {
                 "model": "sign",
+                "aabb_stylename": "sign",
                 "set_state": [
                     {"name": "wall", "when": {"rotate.y": 0}},
                     {"name": "floor"}
@@ -350,6 +356,7 @@
             "name": "ACACIA_SIGN",
             "bb": {
                 "model": "sign",
+                "aabb_stylename": "sign",
                 "set_state": [
                     {"name": "wall", "when": {"rotate.y": 0}},
                     {"name": "floor"}
@@ -368,6 +375,7 @@
             "name": "SPRUCE_SIGN",
             "bb": {
                 "model": "sign",
+                "aabb_stylename": "sign",
                 "set_state": [
                     {"name": "wall", "when": {"rotate.y": 0}},
                     {"name": "floor"}
@@ -386,6 +394,7 @@
             "name": "DARK_OAK_SIGN",
             "bb": {
                 "model": "sign",
+                "aabb_stylename": "sign",
                 "set_state": [
                     {"name": "wall", "when": {"rotate.y": 0}},
                     {"name": "floor"}
@@ -404,6 +413,7 @@
             "name": "JUNGLE_SIGN",
             "bb": {
                 "model": "sign",
+                "aabb_stylename": "sign",
                 "set_state": [
                     {"name": "wall", "when": {"rotate.y": 0}},
                     {"name": "floor"}
@@ -422,6 +432,7 @@
             "name": "LANTERN",
             "bb": {
                 "model": "lantern",
+                "aabb_stylename": "lantern",
                 "set_state": [
                     {"name": "ceil", "when": {"rotate.y": -1}},
                     {"name": "floor"}
@@ -433,6 +444,7 @@
             "name": "SOUL_LANTERN",
             "bb": {
                 "model": "soul_lantern",
+                "aabb_stylename": "lantern",
                 "set_state": [
                     {"name": "ceil", "when": {"rotate.y": -1}},
                     {"name": "floor"}
@@ -564,6 +576,7 @@
         {
             "id": 5,
             "name": "BOOKSHELF",
+            "transparent": true,
             "bb": {
                 "model": "bookshelf"
             }
@@ -573,6 +586,7 @@
             "name": "DEAD_BUSH",
             "bb": {
                 "model": "dead_bush",
+                "aabb_stylename": "planting",
                 "rotate": [
                     {"type": "random", "axes": ["y"]}
                 ]
@@ -623,6 +637,7 @@
             "name": "CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -642,6 +657,7 @@
             "name": "WHITE_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -661,6 +677,7 @@
             "name": "ORANGE_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -680,6 +697,7 @@
             "name": "MAGENTA_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -699,6 +717,7 @@
             "name": "LIGHT_BLUE_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -718,6 +737,7 @@
             "name": "YELLOW_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -737,6 +757,7 @@
             "name": "LIME_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -756,6 +777,7 @@
             "name": "PINK_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -775,6 +797,7 @@
             "name": "GRAY_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -794,6 +817,7 @@
             "name": "LIGHT_GRAY_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -813,6 +837,7 @@
             "name": "CYAN_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -832,6 +857,7 @@
             "name": "PURPLE_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -851,6 +877,7 @@
             "name": "BLUE_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -870,6 +897,7 @@
             "name": "BROWN_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -889,6 +917,7 @@
             "name": "GREEN_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -908,6 +937,7 @@
             "name": "RED_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -927,6 +957,7 @@
             "name": "BLACK_CANDLE",
             "bb": {
                 "model": "candle",
+                "aabb_stylename": "candle",
                 "set_state": [
                     {"name": "1candle", "when": {"extra_data.candles": null}},
                     {"name": "2candles", "when": {"extra_data.candles": 2}},
@@ -991,6 +1022,7 @@
             "name": "BIRCH_DOOR",
             "bb": {
                 "model": "door",
+                "aabb_stylename": "door",
                 "set_state": [
                     {"name": "_", "when": {"extra_data.is_head": true}},
                     {"name": "birch"}
@@ -1006,6 +1038,7 @@
             "name": "OAK_DOOR",
             "bb": {
                 "model": "door",
+                "aabb_stylename": "door",
                 "set_state": [
                     {"name": "_", "when": {"extra_data.is_head": true}},
                     {"name": "oak"}
@@ -1021,6 +1054,7 @@
             "name": "ACACIA_DOOR",
             "bb": {
                 "model": "door",
+                "aabb_stylename": "door",
                 "set_state": [
                     {"name": "_", "when": {"extra_data.is_head": true}},
                     {"name": "acacia"}
@@ -1036,6 +1070,7 @@
             "name": "SPRUCE_DOOR",
             "bb": {
                 "model": "door",
+                "aabb_stylename": "door",
                 "set_state": [
                     {"name": "_", "when": {"extra_data.is_head": true}},
                     {"name": "spruce"}
@@ -1051,6 +1086,7 @@
             "name": "DARK_OAK_DOOR",
             "bb": {
                 "model": "door",
+                "aabb_stylename": "door",
                 "set_state": [
                     {"name": "_", "when": {"extra_data.is_head": true}},
                     {"name": "dark_oak"}
@@ -1066,6 +1102,7 @@
             "name": "JUNGLE_DOOR",
             "bb": {
                 "model": "door",
+                "aabb_stylename": "door",
                 "set_state": [
                     {"name": "_", "when": {"extra_data.is_head": true}},
                     {"name": "jungle"}
@@ -1081,6 +1118,7 @@
             "name": "IRON_DOOR",
             "bb": {
                 "model": "door",
+                "aabb_stylename": "door",
                 "set_state": [
                     {"name": "_", "when": {"extra_data.is_head": true}},
                     {"name": "iron"}
@@ -1118,8 +1156,8 @@
         },
         {
             "id": 84,
-            "transparent": true,
             "name": "JUKEBOX",
+            "transparent": true,
             "group": "doubleface_transparent",
             "bb": {
                 "model": "jukebox",
@@ -1150,6 +1188,7 @@
             },
             "bb": {
                 "model": "fence_gate",
+                "aabb_stylename": "fence_gate",
                 "rotate": [
                     {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
                     {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
@@ -1173,6 +1212,7 @@
             },
             "bb": {
                 "model": "fence_gate",
+                "aabb_stylename": "fence_gate",
                 "rotate": [
                     {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
                     {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
@@ -1196,6 +1236,7 @@
             },
             "bb": {
                 "model": "fence_gate",
+                "aabb_stylename": "fence_gate",
                 "rotate": [
                     {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
                     {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
@@ -1219,6 +1260,7 @@
             },
             "bb": {
                 "model": "fence_gate",
+                "aabb_stylename": "fence_gate",
                 "rotate": [
                     {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
                     {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
@@ -1242,6 +1284,7 @@
             },
             "bb": {
                 "model": "fence_gate",
+                "aabb_stylename": "fence_gate",
                 "rotate": [
                     {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
                     {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
@@ -1265,6 +1308,7 @@
             },
             "bb": {
                 "model": "fence_gate",
+                "aabb_stylename": "fence_gate",
                 "rotate": [
                     {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
                     {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
@@ -1288,6 +1332,7 @@
             },
             "bb": {
                 "model": "fence_gate",
+                "aabb_stylename": "fence_gate",
                 "rotate": [
                     {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
                     {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
@@ -1311,6 +1356,7 @@
             },
             "bb": {
                 "model": "fence_gate",
+                "aabb_stylename": "fence_gate",
                 "rotate": [
                     {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
                     {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
@@ -1334,6 +1380,7 @@
             },
             "bb": {
                 "model": "fence_gate",
+                "aabb_stylename": "fence_gate",
                 "rotate": [
                     {"type": "fixed_cardinal_direction", "value": 3, "when": {"extra_data.facing": ["west"]}},
                     {"type": "fixed_cardinal_direction", "value": 2, "when": {"extra_data.facing": ["north"]}},
@@ -1354,6 +1401,7 @@
             "name": "WHITE_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1370,6 +1418,7 @@
             "name": "ORANGE_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1386,6 +1435,7 @@
             "name": "MAGENTA_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1402,6 +1452,7 @@
             "name": "LIGHT_BLUE_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1418,6 +1469,7 @@
             "name": "YELLOW_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1434,6 +1486,7 @@
             "name": "LIME_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1450,6 +1503,7 @@
             "name": "PINK_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1466,6 +1520,7 @@
             "name": "GRAY_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1482,6 +1537,7 @@
             "name": "LIGHT_GRAY_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1498,6 +1554,7 @@
             "name": "CYAN_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1514,6 +1571,7 @@
             "name": "PURPLE_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1530,6 +1588,7 @@
             "name": "BLUE_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1546,6 +1605,7 @@
             "name": "BROWN_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1562,6 +1622,7 @@
             "name": "GREEN_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1578,6 +1639,7 @@
             "name": "RED_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1594,6 +1656,7 @@
             "name": "BLACK_BED",
             "bb": {
                 "model": "bed",
+                "aabb_stylename": "bed",
                 "rotate": {
                     "type": "cardinal_direction"
                 },
@@ -1610,6 +1673,7 @@
             "name": "BIRCH_CHAIR",
             "bb": {
                 "model": "chair",
+                "aabb_stylename": "chair",
                 "rotate": {
                     "type": "ydeg"
                 },
@@ -1627,6 +1691,7 @@
             "name": "OAK_CHAIR",
             "bb": {
                 "model": "chair",
+                "aabb_stylename": "chair",
                 "rotate": {
                     "type": "ydeg"
                 },
@@ -1644,6 +1709,7 @@
             "name": "ACACIA_CHAIR",
             "bb": {
                 "model": "chair",
+                "aabb_stylename": "chair",
                 "rotate": {
                     "type": "ydeg"
                 },
@@ -1661,6 +1727,7 @@
             "name": "SPRUCE_CHAIR",
             "bb": {
                 "model": "chair",
+                "aabb_stylename": "chair",
                 "rotate": {
                     "type": "ydeg"
                 },
@@ -1678,6 +1745,7 @@
             "name": "DARK_OAK_CHAIR",
             "bb": {
                 "model": "chair",
+                "aabb_stylename": "chair",
                 "rotate": {
                     "type": "ydeg"
                 },
@@ -1695,6 +1763,7 @@
             "name": "JUNGLE_CHAIR",
             "bb": {
                 "model": "chair",
+                "aabb_stylename": "chair",
                 "rotate": {
                     "type": "ydeg"
                 },
@@ -1712,6 +1781,7 @@
             "name": "BIRCH_STOOL",
             "bb": {
                 "model": "stool",
+                "aabb_stylename": "stool",
                 "rotate": {
                     "type": "ydeg"
                 },
@@ -1726,6 +1796,7 @@
             "name": "OAK_STOOL",
             "bb": {
                 "model": "stool",
+                "aabb_stylename": "stool",
                 "rotate": {
                     "type": "ydeg"
                 },
@@ -1740,6 +1811,7 @@
             "name": "ACACIA_STOOL",
             "bb": {
                 "model": "stool",
+                "aabb_stylename": "stool",
                 "rotate": {
                     "type": "ydeg"
                 },
@@ -1754,6 +1826,7 @@
             "name": "SPRUCE_STOOL",
             "bb": {
                 "model": "stool",
+                "aabb_stylename": "stool",
                 "rotate": {
                     "type": "ydeg"
                 },
@@ -1768,6 +1841,7 @@
             "name": "DARK_OAK_STOOL",
             "bb": {
                 "model": "stool",
+                "aabb_stylename": "stool",
                 "rotate": {
                     "type": "ydeg"
                 },
@@ -1782,6 +1856,7 @@
             "name": "JUNGLE_STOOL",
             "bb": {
                 "model": "stool",
+                "aabb_stylename": "stool",
                 "rotate": {
                     "type": "ydeg"
                 },
@@ -1796,6 +1871,7 @@
             "name": "CRIMSON_STOOL",
             "bb": {
                 "model": "stool",
+                "aabb_stylename": "stool",
                 "rotate": {
                     "type": "ydeg"
                 },
@@ -1810,6 +1886,7 @@
             "name": "WARPED_STOOL",
             "bb": {
                 "model": "stool",
+                "aabb_stylename": "stool",
                 "rotate": {
                     "type": "ydeg"
                 },
@@ -1825,6 +1902,7 @@
             "group": "doubleface",
             "bb": {
                 "model": "cactus",
+                "aabb_stylename": "cactus",
                 "set_state": [
                     {"name": "side_top",
                         "when": {
@@ -1857,6 +1935,7 @@
             "name": "ENDER_CHEST",
             "bb": {
                 "model": "ender_chest",
+                "aabb_stylename": "chest",
                 "rotate": {"type": "cardinal_direction"}
             }
         },
@@ -2328,6 +2407,7 @@
             "transparent": true,
             "mining_time": 0,
             "passable": 1,
+            "can_rotate": true,
             "sound": "madcraft:block.cloth",
             "drop_item": [
                 {
@@ -2339,6 +2419,7 @@
                 }
             ],
             "tags": [
+                "rotate_x16",
                 "layering_move_to_down",
                 "no_drop_ao"
             ],
@@ -2346,7 +2427,10 @@
             "bb": {
                 "model": "skull_desert",
                 "import_anyway": true,
-                "rotate": [
+                "rotate": {
+                    "type": "ydeg"
+                },
+                "_rotate": [
                     {"type": "random", "axes": ["y"]}
                 ]
             }
@@ -2545,7 +2629,7 @@
             }
         },
         {
-            "id": 1216,
+            "id": 610,
             "name": "TITANIUM_SWORD",
             "bb": {
                 "model": "tool/industrial_sword",
@@ -2573,6 +2657,7 @@
             "name": "AMETHYST_CLUSTER",
             "bb": {
                 "model": "amethyst_cluster",
+                "aabb_stylename": "planting",
                 "rotate": {"type": "three"},
                 "set_state": [
                     {"name": "age4"}
@@ -2602,6 +2687,13 @@
                 "select_texture": [
                     {"name": "WINDMILL_BEARING"}
                 ]
+            }
+        },
+        {
+            "id": 493,
+            "name": "MECHANISM_ASSEMBLER",
+            "bb": {
+                "model": "tool/mechanism_assembler"
             }
         }
     ]

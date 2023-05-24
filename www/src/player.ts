@@ -11,7 +11,7 @@ import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {ActionPlayerInfo, doBlockAction, WorldAction} from "./world_action.js";
-import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
+import { MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
 import { Effect } from "./block_type/effect.js";
 import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js";
@@ -22,6 +22,8 @@ import type {ClientDriving} from "./control/driving.js";
 import type {PlayerModel} from "./player_model.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
 import { BBModel_Model } from "./bbmodel/model.js";
+import { AABB } from "./core/AABB.js";
+import type {PrismarinePlayerState} from "./prismarine-physics/index.js";
 
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
@@ -126,6 +128,7 @@ export type PlayerStateUpdate = PlayerStateDynamicPart & {
     type ?
     dist ?      : number // null means that the player is too far, and it stopped receiving updates
     ground      : boolean
+    inLiquid    : boolean
     running     : boolean
 }
 
@@ -266,6 +269,7 @@ export class Player implements IPlayer {
     #old_distance:              number = 0 
     #old_y:                     number = 0
     mechanism_assembler?:       MechanismAssembler
+    pos1pos2:                   AABB
 
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
@@ -299,7 +303,28 @@ export class Player implements IPlayer {
         //
         this.world.server.AddCmdListener([ServerClient.CMD_CONNECTED], (cmd) => {
             cb(this.playerConnectedToWorld(cmd.data), cmd);
-        });
+        })
+        this.world.server.AddCmdListener([ServerClient.CMD_POS1POS2], (cmd) => {
+            const {pos1, pos2} = cmd.data
+            const show = pos1 || pos2
+            if(show) {
+                this.pos1pos2 = new AABB()
+                if(pos2) {
+                    this.pos1pos2.set(
+                        Math.min(pos1.x, pos2.x),
+                        Math.min(pos1.y, pos2.y),
+                        Math.min(pos1.z, pos2.z),
+                        Math.max(pos1.x, pos2.x) + 1,
+                        Math.max(pos1.y, pos2.y) + 1,
+                        Math.max(pos1.z, pos2.z) + 1,
+                    )
+                } else {
+                    this.pos1pos2.set(pos1.x, pos1.y, pos1.z, pos1.x + 1, pos1.y + 1, pos1.z + 1)
+                }
+            } else {
+                this.pos1pos2 = null
+            }
+        })
         //
         this.world.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: world.info.guid}});
     }
@@ -471,7 +496,7 @@ export class Player implements IPlayer {
             const hand_current_item = this.inventory.current_item;
             if(e && e.createBlock && hand_current_item) {
                 const hand_item_mat = this.world.block_manager.fromId(hand_current_item.id);
-                if(hand_item_mat && hand_item_mat.tags.includes('set_on_water')) {
+                if(!hand_item_mat.is_dummy && hand_item_mat.tags.includes('set_on_water')) {
                     if(e.number++ == 0) {
                         e.pos = bPos;
                         const e_orig: ICmdPickatData = ObjectHelpers.deepClone(e);
@@ -806,6 +831,9 @@ export class Player implements IPlayer {
                 }
                 await this.world.applyActions(actions, this);
                 e_orig.actions = {blocks: actions.blocks};
+                if(actions.mechanism) {
+                    e_orig.actions.mechanism = actions.mechanism
+                }
                 e_orig.eye_pos = this.getEyePos();
                 this.controlManager.syncWithWorldActionIfNeeded(e_orig, actions)
                 // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
@@ -1230,7 +1258,8 @@ export class Player implements IPlayer {
                 this.state.attack,
                 this.state.fire,
                 this.indicators.live,
-                this.onGround
+                this.onGround,
+                (this.controlManager.current.player_state as PrismarinePlayerState).isInLiquid ?? false
             )
         }
     }
@@ -1429,7 +1458,10 @@ export class Player implements IPlayer {
             if(model) {
                 const {reverse, mul, name} = BBModel_Model.parseAnimationName(animation_name)
                 const animation = model._mesh.model.animations.get(name)
-                time = animation?.length ?? 1
+                if(!animation) {
+                    return console.error(`error_undefined_animation_name|${animation_name}`)
+                }
+                time = animation ? (animation.loop == 'loop' ? Infinity : (animation.length ?? 1)) : 1
             } else {
                 time = 1
             }

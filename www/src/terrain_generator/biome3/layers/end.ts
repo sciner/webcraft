@@ -1,4 +1,4 @@
-import { impl as alea } from "../../../../vendors/alea.js";
+import { impl as alea } from "@vendors/alea.js";
 import type { BLOCK } from "../../../blocks.js";
 import type { ChunkGrid } from "../../../core/ChunkGrid.js";
 import { Vector } from "../../../helpers.js";

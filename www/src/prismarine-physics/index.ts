@@ -1056,6 +1056,8 @@ export class PrismarinePlayerState implements IPlayerControlState {
         this.depthStrider = 0;
     }
 
+    get isInLiquid(): boolean { return this.isInWater || this.isInLava }
+
     /**
      * Копирует некоторые динамически меняющиеся поля из другого состояния.
      * Не копирует: {@link yaw}, {@link pos} - их нужно обработать отдельно (потому что

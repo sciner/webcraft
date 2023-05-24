@@ -451,6 +451,24 @@
                         </div>
                     </div>
                 </div>
+                <div class="chat">
+                    <h1>{{Lang.chat}}</h1>
+                    <div class="input-group">
+                        <div class="switcher-container" style="margin-top: 1em;">
+                            <input type="checkbox" id="chk-schat-reverse" value="" ng-model="settings.form.chat_reverse" />
+                            <div class="switcher">
+                                <small></small>
+                            </div>
+                            <label for="chk-schat-reverse">{{Lang.chat_reverse}}</label>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <p>{{Lang.chat_time}}: <span>{{settings.form.chat_time}}</span> {{Lang.sec}}</p>
+                        <div class="rangeContainer" style="margin-bottom: 20px;">
+                            <input id="input_chat_time" class="slider" type="range" min="0" max="60" step="1" value="settings.form.chat_time" ng-model="settings.form.chat_time">
+                        </div>
+                    </div>
+                </div>
                 <div class="interface">
                     <h1 style="display: flex; align-items: center; justify-content: space-between;">
                         <span>{{Lang.advanced_settings}}</span>
@@ -537,18 +555,19 @@
                         {{Lang.select_skin}}
                     </h1>
                     <div class="preview-buttons" id="div-skin-preview-buttons">
-                        <button id="slider-prev" class="slider-btn" ng-click="skin.prev()" ng-class="{disabled: skin.preview.index == 0}">
+                        <button id="slider-prev" class="slider-btn animate__animated animate__fadeIn" ng-click="skin.prev()" ng-class="{disabled: skin.preview.index == 0, displaynone: skin.preview.count == 0}">
                             <i class="icon-chevron-left"></i>
                         </button>
-                        <canvas id="bbmodel_preview" width="320" height="500" style="background: #00000000; margin: auto;"></canvas>
-                        <button id="slider-next" class="slider-btn" ng-click="skin.next()" ng-class="{disabled: skin.index == skin.preview.count -1}">
+                        <div ng-if="skin.preview.count == 0" class="skin-loader">{{Lang.loading}}</div>
+                        <canvas id="bbmodel_preview" width="320" height="500" class="animate__animated animate__fadeIn" style="background: #00000000; margin: auto;" ng-class="{displaynone: skin.preview.count == 0}"></canvas>
+                        <button id="slider-next" class="slider-btn animate__animated animate__fadeIn" ng-click="skin.next()" ng-class="{disabled: skin.index == skin.preview.count -1, displaynone: skin.preview.count == 0}">
                             <i class="icon-chevron-right"></i>
                         </button>
                     </div>
-                    <p style="text-align: center;">
+                    <p class="skin-counts" ng-class="{hidden: skin.preview.count == 0}">
                         {{skin.preview.index + 1}} / {{skin.preview.count}}
                     </p>
-                    <div class="save">
+                    <div class="save" ng-class="{displaynone: skin.preview.count == 0}">
                         <button class="primary" ng-click="skin.save()">{{Lang.save}}</button>
                     </div>
                 </div>
@@ -596,7 +615,7 @@
                     <button class="secondary" type='button'>Change password</button>
                 </form> -->
             </div>
-            <div class="content" style="border: none;">
+            <div class="content" style="border: none; padding-top: 0;">
 
                 <!-- Our secure logout page is designed to ensure the privacy and safety of your account information.
                 <p>By logging out, you can confidently close your session,

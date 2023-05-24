@@ -29,6 +29,10 @@ export class TextBox {
 
     }
 
+    set visible(val: boolean) {
+        this.active = val
+    }
+
     /**
      * @param { import("../hud.js").HUD } hud
      * @returns

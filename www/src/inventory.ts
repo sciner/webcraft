@@ -588,7 +588,7 @@ export abstract class Inventory extends InventoryItemsCollection {
         if(src.count < 1) {
             throw 'error_increment_value_less_then_one';
         }
-        if(!this.block_manager.BLOCK_BY_ID[src.id]) {
+        if(this.block_manager.fromId(src.id).is_dummy) {
             throw 'error_invalid_block_id';
         }
         const mat = this.block_manager.convertItemToInventoryItem(src);
@@ -686,7 +686,7 @@ export abstract class Inventory extends InventoryItemsCollection {
     /**
      * Decrements one or multiple items is visible slots by the given total amount,
      * or, if the given amount is not present, decrements by as much as posible.
-     
+
     decrementByItemID(item_id, count, dont_refresh) {
         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
             let item = this.items[i];
@@ -810,7 +810,7 @@ export abstract class Inventory extends InventoryItemsCollection {
 
     // Клонирование материала в инвентарь
     cloneMaterial(pos, allow_create_new) {
-        
+
         const { block_manager, player } = this;
 
         if(!player.game_mode.canBlockClone()) {
@@ -832,7 +832,7 @@ export abstract class Inventory extends InventoryItemsCollection {
             return false;
         }
         while(mat.previous_part && mat.previous_part.id != mat.id) {
-            let b = block_manager.fromId(mat.previous_part.id);
+            const b = block_manager.fromId(mat.previous_part.id);
             mat = {id: b.id, previous_part: b.previous_part} as IBlockMaterial;
         }
         const cloned_block = block_manager.convertItemToInventoryItem(mat);

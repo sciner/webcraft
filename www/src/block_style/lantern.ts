@@ -35,7 +35,7 @@ export default class style {
     // computeAABB
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         let y = 0;
-        const is_bb_model = tblock.material?.bb
+        const is_bb_model = !for_physic && tblock.material?.bb
         if(tblock.rotate.y == -1) {
             if(is_bb_model) {
                 y += 1 - HEIGHT - HEIGHT_INNER - 3/16

@@ -64,7 +64,7 @@ export default class style {
                 }
             },
             {
-                "size": {"x": 12, "y": 10, "z": 12},
+                "size": {"x": 12, "y": 12, "z": 12},
                 "translate": {"x": 0, "y": 2, "z": 0},
                 "faces": {
                     "down": {"uv": [8, 8],"texture": c_inner},

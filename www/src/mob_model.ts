@@ -1,6 +1,6 @@
-import glMatrix from "../vendors/gl-matrix-3.3.min.js";
+import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import { Resources } from "./resources.js";
-import { Color, Vector } from "./helpers.js";
+import { Color, Helpers, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { AABBDrawable, NetworkPhysicObject } from './network_physic_object.js';
 import { MOB_TYPE } from "./constant.js";
@@ -9,10 +9,9 @@ import type { Renderer } from "./render.js";
 import type { World } from "./world.js";
 import type { ArmorState, TAnimState, TSittingState, TSleepState } from "./player.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
-import type { TMobProps } from "./mob_manager.js";
+import type {TMobAnimations, TMobProps} from "./mob_manager.js";
 import type { Mesh_Object_Base } from "./mesh/object/base.js";
 import type {ClientDriving} from "./control/driving.js";
-import type { BLOCK } from "./blocks.js";
 import { CD_ROT } from "./core/CubeSym.js";
 
 const MAX_CHESTPLATE_COUNT = 6
@@ -91,15 +90,20 @@ export class MobModel extends NetworkPhysicObject {
     fire?:              boolean = false
     attack?:            false | TAnimState = false
     ground:             boolean = true
+    inLiquid:           boolean = false
     running:            boolean = false
     driving?:           ClientDriving | null
     hasUse?:            boolean     // см. TMobConfig.hasUse
     supportsDriving?:   boolean
+    animations?:        TMobAnimations
     textures :          Map<string, any> = new Map()
 
     is_sheared:         boolean = false
     gui_matrix:         float[]
     renderLast:         boolean
+    hasSwimAnim:        boolean
+    hasFastSwimAnim:    boolean
+    hasSwimIdle:        boolean
 
     #health: number = 100
     #timer_demage: number
@@ -128,6 +132,9 @@ export class MobModel extends NetworkPhysicObject {
             this._mesh.modifiers.selectTextureFromPalette('', this.skin.texture_name)
         }
 
+        this.hasSwimAnim        = this._mesh.animations.has('swim')
+        this.hasFastSwimAnim    = this._mesh.animations.has('fast_swim')
+        this.hasSwimIdle        = this._mesh.animations.has('swim_idle')
     }
 
     /** Мы не можем использовать в этом файле instanceof PlayerModel, т.к. не можем его испортировать из-за циклической зависимости*/
@@ -236,7 +243,7 @@ export class MobModel extends NetworkPhysicObject {
 
     }
 
-    update(render? : Renderer, camPos? : Vector, delta? : float, speed? : float) {
+    update(render? : Renderer, camPos? : Vector, delta? : float) {
         super.update()
         this.computeLocalPosAndLight(render, delta)
     }
@@ -248,12 +255,12 @@ export class MobModel extends NetworkPhysicObject {
     /**
      * Draw mob model
      */
-    draw(render : Renderer, camPos : Vector, delta : float, speed? : float, draw_debug_grid : boolean = false) : boolean {
+    draw(render : Renderer, camPos : Vector, delta : float, draw_debug_grid : boolean = false) : boolean {
         if(!this.isAlive) {
             return false
         }
 
-        this.update(render, camPos, delta, speed);
+        this.update(render, camPos, delta);
 
         // TODO: need to migrate to bbmodels
         // // ignore_roots
@@ -263,7 +270,6 @@ export class MobModel extends NetworkPhysicObject {
         // }
 
         let mx = null
-        const bm : BLOCK = this.world.block_manager
 
         // hide invisible mobs
         if(this.extra_data && 'invisible' in this.extra_data) {
@@ -349,13 +355,14 @@ export class MobModel extends NetworkPhysicObject {
             mesh.setAnimation('sleep')
         } else {
             mesh.rotation[2] = this.draw_yaw ?? 0
+            const animations = this.animations
             const driving = this.driving
             const vehicleModel = driving?.getVehicleModel()
             const vehicleAnimation = driving?.config.vehicleAnimation
+            let anim: string | null = null
             if (driving && this !== vehicleModel) { // если водитель
                 const srcModel = vehicleModel ?? this   // модель от которой берется moving и rotationSign
                 const driverAnimation = driving.config.driverAnimation
-                let anim: string | null
                 if (srcModel.moving) {
                     if (srcModel.moving === -1) {
                         anim = driverAnimation?.walkBack
@@ -373,26 +380,47 @@ export class MobModel extends NetworkPhysicObject {
                 mesh.setAnimation('sitting')
             } else if (this?.extra_data?.attack || this.attack) {
                 mesh.setAnimation('attack')
-            } else if (!this.ground) {
-                mesh.setAnimation('jump')
-            } else if (this.moving) {
-                if (this.sneak) {
-                    mesh.setAnimation('sneak')
-                } else if (!this.running) {
-                    let anim: string | null = null
-                    if (this === vehicleModel && this.moving === -1) {
-                        anim = vehicleAnimation?.walkBack
-                    }
-                    mesh.setAnimation(anim ?? 'walk')
-                } else {
-                    mesh.setAnimation('run')
+            } else if (!this.ground && this.inLiquid && this.hasSwimAnim) { // плавание (если есть такая анимация)
+                if (this.hasFastSwimAnim && this.running) {
+                    anim = 'fast_swim'
+                } else if (this.moving || this.movingY === 1) {
+                    anim = 'swim'
+                } else if (this.hasSwimAnim) {
+                    anim = 'swim_idle'
                 }
+                mesh.setAnimation(anim ?? 'jump')
+            } else if (!this.ground && !animations?.noAirborne) { // прыжок или полет (в том числе в жидкости)
+                if (animations?.fly) {
+                    if (!this.moving) {     // более медленные анимации если полет вниз или на месте
+                        switch (this.movingY) {
+                            case -1: anim = animations.flyDown;    break
+                            case 0:  anim = animations.flyIdle;    break
+                        }
+                    }
+                    anim ??= this.animations.fly
+                }
+                mesh.setAnimation(anim ?? 'jump')
+            } else if (this.moving) {
+                const reverse = this.moving === -1 && this.animations?.reverseBack
+                if (this.sneak) {
+                    anim = reverse ? '-sneak' : 'sneak'
+                } else if (!this.running) {
+                    if (this === vehicleModel) {
+                        if (this.moving === -1) {
+                            anim = vehicleAnimation?.walkBack
+                        }
+                        anim ??= vehicleAnimation?.walk
+                    }
+                    anim ??= reverse ? '-walk' : 'walk'
+                } else {
+                    anim = reverse ? '-run' : 'run'
+                }
+                mesh.setAnimation(anim)
             } else if (this.sneak) {
                 mesh.setAnimation('sneak_idle')
             } else  if (this.anim) {
                 mesh.setAnimation(this.anim.title)
             } else { // idle
-                let anim: string | null = null
                 if (this === vehicleModel) {
                     if (this.rotationSign === -1) {
                         anim = vehicleAnimation?.rotateLeft
@@ -413,7 +441,7 @@ export class MobModel extends NetworkPhysicObject {
     }
 
     drawInGui(render : Renderer, delta : float) {
-        this.update(render, new Vector(), delta, 0);
+        this.update(render, new Vector(), delta);
         const mesh = this._mesh;
         if (mesh) {
             this.doAnims();
@@ -425,17 +453,12 @@ export class MobModel extends NetworkPhysicObject {
 
     drawInFire(render : Renderer, delta : float) {
         if(this._fire_mesh) {
-            this._fire_mesh.yaw = Math.PI - this.angleTo(this.pos, render.camPos);
+            this._fire_mesh.yaw = Math.PI - Helpers.angleTo(this.pos, render.camPos);
             this._fire_mesh.apos.copyFrom(this.pos);
             this._fire_mesh.draw(render, delta);
         } else {
             this._fire_mesh = new Mesh_Object_MobFire(this, this.world)
         }
-    }
-
-    angleTo(pos : Vector, target : Vector) {
-        const angle = Math.atan2(target.x - pos.x, target.z - pos.z);
-        return (angle > 0) ? angle : angle - 2 * Math.PI;
     }
 
     onUnload() {

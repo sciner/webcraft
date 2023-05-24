@@ -25,6 +25,9 @@ export const CC = Object.freeze([
     Object.freeze({x:  1, y:  0, z:  0, name: 'EAST'}),
 ])
 
+const _head_pos = new Vector()
+const _connected_pos = new Vector()
+
 // BlockNeighbours
 export class BlockNeighbours {
     pcnt: number;
@@ -1266,6 +1269,32 @@ export class TBlock {
             return this.rotate.y != 0
         }
         return false
+    }
+
+    //
+    getHeadBlock(world : IWorld) : TBlock | null {
+        if(!this.material.has_head) {
+            return null
+        }
+        _head_pos.copyFrom(this.material.has_head.pos)
+        _connected_pos.copyFrom(this.posworld)
+        if(this.rotate && _head_pos.z) {
+            let rot = this.rotate.x
+            if(!this.extra_data?.is_head) {
+                rot += 2
+            }
+            _connected_pos.addByCardinalDirectionSelf(_head_pos, rot)
+        } else {
+            if(this.extra_data?.is_head) {
+                _head_pos.multiplyScalarSelf(-1)
+            }
+            _connected_pos.addSelf(_head_pos);
+        }
+        const tb = world.getBlock(_connected_pos)
+        if(tb.id == this.id) {
+            return tb
+        }
+        return null
     }
 
 }

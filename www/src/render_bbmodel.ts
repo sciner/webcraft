@@ -96,12 +96,12 @@ export class RendererBBModel {
 
         const {renderBackend} = this
 
-        if (renderBackend.gl) {
-            if (settings.use_light === LIGHT_TYPE.RTX) {
-                renderBackend.preprocessor.useNormalMap = true
-                renderBackend.globalUniforms.useNormalMap = true
-            }
-        }
+        // if (renderBackend.gl) {
+        //     if (settings.use_light === LIGHT_TYPE.RTX) {
+        //         renderBackend.preprocessor.useNormalMap = true
+        //         renderBackend.globalUniforms.useNormalMap = true
+        //     }
+        // }
 
         // if(!settings || !settings?.disable_env) {
         //     this.env.init(this)
@@ -171,7 +171,7 @@ export class RendererBBModel {
 
         if (this.player.currentInventoryItem) {
             const mat = BLOCK.fromId(this.player.currentInventoryItem.id)
-            if(mat && !mat.is_dynamic_light) {
+            if(!mat.is_dummy && !mat.is_dynamic_light) {
                 const power = mat.light_power_number
                 // and skip all block that have power greater that 0x0f
                 // it not a light source, it store other light data

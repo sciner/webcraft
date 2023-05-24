@@ -1,4 +1,4 @@
-import glMatrix from "../vendors/gl-matrix-3.3.min.js";
+import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import { Vector } from "./helpers.js";
 //import { GlobalUniformGroup } from "./renders/BaseRenderer.js";
 

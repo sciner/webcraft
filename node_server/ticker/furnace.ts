@@ -33,7 +33,7 @@ export default class Ticker {
         const checkNeedFuel = () => {
             if(product_slot && product_slot.count > 0) {
                 const product_mat = BLOCK.fromId(product_slot.id);
-                return product_mat && product_mat.coocked_item && state.fuel_time == 0
+                return !product_mat.is_dummy && product_mat.coocked_item && state.fuel_time == 0
             }
             return false
         }

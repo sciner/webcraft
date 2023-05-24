@@ -45,7 +45,7 @@ export class AnvilWindow extends BaseCraftWindow {
     current_recipe_label?       : string | null
 
     constructor(inventory : PlayerInventory) {
-        
+
         super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmAnvil', null, null, inventory)
         this.w *= this.zoom
         this.h *= this.zoom
@@ -161,6 +161,7 @@ export class AnvilWindow extends BaseCraftWindow {
         if (found) {
             this.current_recipe = found.recipe;
             this.current_recipe_outCount = outCount;
+            // @ts-ignore
             this.current_recipe_label = label;
         }
     }

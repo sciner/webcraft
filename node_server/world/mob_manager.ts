@@ -144,7 +144,7 @@ export class WorldMobManager {
                 this.ticks_stat.add('other')
             } else if(!mob.death_time) {
                 mob.death_time = performance.now();
-            } else if(performance.now() - mob.death_time > DEAD_MOB_TTL) {
+            } else if(performance.now() - mob.death_time > DEAD_MOB_TTL || mob?.extra_data.play_death_animation == false) {
                 this.delete(mob)
                 this.ticks_stat.add('unload')
             }

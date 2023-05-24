@@ -2,7 +2,7 @@ import { BLOCK } from '../../blocks.js';
 import { Vector } from "../../helpers.js";
 import { alea, CANYON } from "../default.js";
 import { DENSITY_AIR_THRESHOLD } from "./terrain/manager_vars.js";
-import { createNoise3D } from '../../../vendors/simplex-noise.js';
+import { createNoise3D } from '@vendors/simplex-noise.js';
 import type { TerrainMapManager3 } from './terrain/manager.js';
 
 export const AQUIFERA_UP_PADDING = 10

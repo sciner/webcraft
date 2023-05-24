@@ -7,27 +7,32 @@ import type { BLOCK, FakeTBlock } from './blocks.js';
 import type { ChunkWorkerChunk } from './worker/chunk.js';
 import type { WebGLMaterial } from './renders/webgl/WebGLMaterial.js';
 import type { ResourcePackManager } from './resource_pack_manager.js';
+import type { GameSettings } from './game.js';
 
 let tmpCanvas;
 
 export class BaseResourcePack {
-    [key: string]: any;
+    BLOCK:       BLOCK
+    manager:     ResourcePackManager
+    id:          string
+    dir:         any
+    textures:    Map<any, any>
+    materials:   Map<any, any>
+    shader:      any
+    fluidShader: any
+    styles_stat: Map<any, any>
+    conf:        any
 
-    BLOCK : BLOCK
-    manager: ResourcePackManager
-
-    constructor(block_manager : BLOCK, location, id) {
-        this.BLOCK = block_manager;
-        this.id = id;
-        this.dir = location;
-        this.textures = new Map();
-        this.materials = new Map();
-
-        this.manager = null;
-        this.shader = null;
-        this.fluidShader = null;
-
-        this.styles_stat = new Map();
+    constructor(block_manager : BLOCK, location, id : string) {
+        this.BLOCK = block_manager
+        this.id = id
+        this.dir = location
+        this.textures = new Map()
+        this.materials = new Map()
+        this.manager = null
+        this.shader = null
+        this.fluidShader = null
+        this.styles_stat = new Map()
     }
 
     killRender() {
@@ -48,12 +53,14 @@ export class BaseResourcePack {
             Helpers.fetchJSON(dir + '/blocks.json', true, 'rp')
         ]).then(async ([conf, blocks]) => {
             this.conf = conf;
-            for(let b of blocks) {
-                const import_blocks = conf.id != 'bbmodel' || draw_improved_blocks || b.bb?.import_anyway
-                if(import_blocks) {
-                    await this.BLOCK.add(this, b)
+            // if(!manager.settings.only_bbmodel) {
+                for(let b of blocks) {
+                    const import_blocks = conf.id != 'bbmodel' || draw_improved_blocks || b.bb?.import_anyway
+                    if(import_blocks) {
+                        await this.BLOCK.add(this, b)
+                    }
                 }
-            }
+            // }
         })
     }
 
@@ -68,7 +75,6 @@ export class BaseResourcePack {
         const conf = this.conf[shaderName];
         if (!conf || conf.extends) {
             const pack = this.manager.list.get(this.conf.shader?.extends || 'base');
-
             if (pack) {
                 pack.initShaders(renderBackend, true);
                 this.shader = pack.shader;
@@ -112,9 +118,13 @@ export class BaseResourcePack {
         }
     }
 
-    async _processTexture (textureInfo, renderBackend, settings) {
+    async _processTexture(textureInfo, renderBackend, settings : GameSettings) {
 
         let image, texture;
+
+        // if(settings.only_bbmodel && !textureInfo.image.includes('bbmodel')) {
+        //     return
+        // }
 
         if('canvas' in textureInfo) {
             const cnv = textureInfo.canvas;
@@ -171,7 +181,7 @@ export class BaseResourcePack {
             return;
 
         } else {
-            let resp = await this._loadTexture(
+            const resp = await this._loadTexture(
                 this.dir + textureInfo.image,
                 settings,
                 renderBackend,
@@ -186,34 +196,39 @@ export class BaseResourcePack {
         textureInfo.height  = image.height;
         textureInfo.texture_n = null;
 
+        textureInfo.getImageData = function() {
+            if(this.imageData) {
+                return this.imageData
+            }
+            const canvas        = tmpCanvas
+            const ctx           = canvas.getContext('2d')
+            canvas.width        = image.width
+            canvas.height       = image.height
+            ctx.drawImage(
+                image, 0, 0,
+                image.width,
+                image.height, 0, 0,
+                image.width, image.height
+            )
+            this.imageData = ctx.getImageData(0, 0, image.width, image.height)
+            canvas.width = canvas.height = 0
+            return this.imageData
+        }
+
         // Get image bytes
-        const canvas        = tmpCanvas;
-        const ctx           = canvas.getContext('2d');
-
-        canvas.width        = image.width;
-        canvas.height       = image.height;
-
-        ctx.drawImage(
-            image, 0, 0,
-            image.width,
-            image.height, 0, 0,
-            image.width, image.height
-        );
-
-        textureInfo.imageData = ctx.getImageData(0, 0, image.width, image.height);
-        textureInfo.getColorAt = function(x, y) {
-            const ax = (x * this.width / 1024.0) | 0;
-            const ay = (y * this.height / 1024.0) | 0;
-            const index = ((ay * this.width) + ax) * 4;
+        textureInfo.getColorAt = function(x : int, y : int) {
+            const imageData = this.getImageData()
+            const ax = (x * this.width / 1024.0) | 0
+            const ay = (y * this.height / 1024.0) | 0
+            const index = ((ay * this.width) + ax) * 4
             return new Color(
-                this.imageData.data[index + 0],
-                this.imageData.data[index + 1],
-                this.imageData.data[index + 2],
-                this.imageData.data[index + 3]
-            );
-        };
+                imageData.data[index + 0],
+                imageData.data[index + 1],
+                imageData.data[index + 2],
+                imageData.data[index + 3]
+            )
 
-        canvas.width = canvas.height = 0;
+        }
 
         if ('image_n' in textureInfo && settings.use_light == LIGHT_TYPE.RTX) {
             const { texture } = await this._loadTexture(

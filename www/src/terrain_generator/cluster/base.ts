@@ -1,5 +1,5 @@
 import { Vector} from "../../helpers.js";
-import {impl as alea} from '../../../vendors/alea.js';
+import {impl as alea} from '@vendors/alea.js';
 
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { Biome3TerrainMap } from "../biome3/terrain/map.js";
