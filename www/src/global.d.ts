@@ -519,3 +519,9 @@ declare type IUpdateBlock = {
     item: any
     action_id: int
 }
+
+declare type IChunkCell = {
+    dirt_color: IColor
+    water_color: IColor
+    biome_id: int
+}

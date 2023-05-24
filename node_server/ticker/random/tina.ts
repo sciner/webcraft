@@ -1,5 +1,4 @@
-import { BLOCK } from "@client/blocks.js";
-import { FLUID_TYPE_MASK, FLUID_WATER_ID, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "@client/fluid/FluidConst.js";
+import { FLUID_TYPE_MASK, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import { Helpers, Vector } from "@client/helpers.js";
 import { BLOCK_ACTION } from "@client/server_client.js";
 import { TBlock } from "@client/typed_blocks3.js";
@@ -10,30 +9,11 @@ const _rnd_pos = new Vector(0, 0, 0);
 const _rnd_pos_up = new Vector(0, 0, 0);
 const tmpTBlockOver = new TBlock()
 const tmpTBlockRnd = new TBlock()
+const _chunk_addr = new Vector()
 
 // True если блок пропускает свет
 function isLightOpacity(tblock: TBlock): boolean {
     return !!tblock?.material?.transmits_light
-}
-
-function getOverChunkBiomeId(world, blockPos) {
-    let _chunk_addr = new Vector()
-    let _chunk = null
-    const pos = blockPos.floored();
-    world.chunkManager.grid.getChunkAddr(pos.x, pos.y, pos.z, _chunk_addr);
-    //console.log(_chunk_addr)
-   // if (!_chunk || !_chunk.addr.equal(_chunk_addr)) {
-        //_chunk = world.chunkManager.getChunk(_chunk_addr)
-        //console.log(_chunk.biomes)
-    //}
-    if (!_chunk?.packedCells) {
-        return false;
-    }
-    const x = pos.x - _chunk_addr.x * _chunk.size.x;
-    const z = pos.z - _chunk_addr.z * _chunk.size.z;
-    const cell_index = z * _chunk.size.x + x;
-    const biome_id = _chunk.packedCells[cell_index * PACKED_CELL_LENGTH + PACKET_CELL_BIOME_ID]
-    return biome_id
 }
 
 // tickerRandomGrassBlock
@@ -42,6 +22,15 @@ export default function randomTicker(world: ServerWorld, actions: WorldAction, w
     if (world_light >= 900) {
         _rnd_pos.copyFrom(tblock.posworld).addScalarSelf(Helpers.getRandomInt(-1, 1), Helpers.getRandomInt(-2, 2), Helpers.getRandomInt(-1, 1) )
         const above = world.getBlock(_rnd_pos, tmpTBlockRnd)
+        const grid = world.chunkManager.grid
+        grid.getChunkAddr(_rnd_pos.x, _rnd_pos.y, _rnd_pos.z, _chunk_addr)
+        const chunk = world.chunkManager.getChunk(_chunk_addr)
+        const cell = chunk?.geCell(_rnd_pos)
+        if(cell) {
+            console.log(cell.biome_id)
+        } else {
+            console.error('chunk not loaded')
+        }
         //console.log(getOverChunkBiomeId(world, _rnd_pos))
         if (above?.id == 0 && above.fluid == 0) {
             const under = world.getBlock(_rnd_pos.offset(0, -1, 0), tmpTBlockRnd)
