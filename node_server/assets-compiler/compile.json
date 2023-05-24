@@ -10354,6 +10354,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_copper"
+            },
+            "extra_data": {
+                "durability": 276,
+                "protection": 0
             }
         },
         {
@@ -10601,6 +10605,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_leather"
+            },
+            "extra_data": {
+                "durability": 55,
+                "protection": 1
             }
         },
         {
@@ -10614,13 +10622,17 @@
                 "id": "copper"
             },
             "armor": {
-                "slot": 39,
+                "slot": 89,
                 "durability": 55,
                 "damage": 1
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_copper"
+            },
+            "extra_data": {
+                "durability": 55,
+                "protection": 1
             }
         },
         {
@@ -10641,6 +10653,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
+            },
+            "extra_data": {
+                "durability": 165,
+                "protection": 2
             }
         },
         {
@@ -10661,6 +10677,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
+            },
+            "extra_data": {
+                "durability": 165,
+                "protection": 2
             }
         },
         {
@@ -10681,6 +10701,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_titanium"
+            },
+            "extra_data": {
+                "durability": 363,
+                "protection": 3
             }
         },
         {
@@ -10701,6 +10725,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_gold"
+            },
+            "extra_data": {
+                "durability": 77,
+                "protection": 2
             }
         },
         {
@@ -10721,6 +10749,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_netherite"
+            },
+            "extra_data": {
+                "durability": 407,
+                "protection": 3
             }
         },
         {
@@ -10741,6 +10773,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_leather"
+            },
+            "extra_data": {
+                "durability": 80,
+                "protection": 3
             }
         },
         {
@@ -10754,13 +10790,17 @@
                 "id": "copper"
             },
             "armor": {
-                "slot": 38,
+                "slot": 88,
                 "durability": 80,
                 "damage": 3
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_copper"
+            },
+            "extra_data": {
+                "durability": 80,
+                "protection": 3
             }
         },
         {
@@ -10781,6 +10821,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
+            },
+            "extra_data": {
+                "durability": 240,
+                "protection": 5
             }
         },
         {
@@ -10801,6 +10845,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
+            },
+            "extra_data": {
+                "durability": 240,
+                "protection": 6
             }
         },
         {
@@ -10821,6 +10869,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_titanium"
+            },
+            "extra_data": {
+                "durability": 528,
+                "protection": 8
             }
         },
         {
@@ -10841,6 +10893,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_gold"
+            },
+            "extra_data": {
+                "durability": 112,
+                "protection": 5
             }
         },
         {
@@ -10861,6 +10917,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_netherite"
+            },
+            "extra_data": {
+                "durability": 592,
+                "protection": 8
             }
         },
         {
@@ -10881,6 +10941,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_leather"
+            },
+            "extra_data": {
+                "durability": 80,
+                "protection": 2
             }
         },
         {
@@ -10901,6 +10965,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_copper"
+            },
+            "extra_data": {
+                "durability": 80,
+                "protection": 2
             }
         },
         {
@@ -10921,6 +10989,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
+            },
+            "extra_data": {
+                "durability": 240,
+                "protection": 4
             }
         },
         {
@@ -10941,6 +11013,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
+            },
+            "extra_data": {
+                "durability": 240,
+                "protection": 5
             }
         },
         {
@@ -10961,6 +11037,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_titanium"
+            },
+            "extra_data": {
+                "durability": 528,
+                "protection": 6
             }
         },
         {
@@ -10981,6 +11061,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_gold"
+            },
+            "extra_data": {
+                "durability": 112,
+                "protection": 3
             }
         },
         {
@@ -11001,6 +11085,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_netherite"
+            },
+            "extra_data": {
+                "durability": 592,
+                "protection": 6
             }
         },
         {
@@ -11021,6 +11109,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_leather"
+            },
+            "extra_data": {
+                "durability": 65,
+                "protection": 1
             }
         },
         {
@@ -11034,13 +11126,17 @@
                 "id": "copper"
             },
             "armor": {
-                "slot": 36,
+                "slot": 86,
                 "durability": 65,
                 "damage": 1
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_copper"
+            },
+            "extra_data": {
+                "durability": 65,
+                "protection": 1
             }
         },
         {
@@ -11061,6 +11157,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
+            },
+            "extra_data": {
+                "durability": 195,
+                "protection": 1
             }
         },
         {
@@ -11081,6 +11181,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
+            },
+            "extra_data": {
+                "durability": 195,
+                "protection": 2
             }
         },
         {
@@ -11101,6 +11205,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_titanium"
+            },
+            "extra_data": {
+                "durability": 429,
+                "protection": 3
             }
         },
         {
@@ -11121,6 +11229,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_gold"
+            },
+            "extra_data": {
+                "durability": 91,
+                "protection": 1
             }
         },
         {
@@ -11141,6 +11253,10 @@
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_netherite"
+            },
+            "extra_data": {
+                "durability": 481,
+                "protection": 3
             }
         },
         {
