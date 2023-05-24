@@ -23,13 +23,19 @@ export interface IRecipeManager<RecipeT = any> {
 /** Describes requirements for an item (e.g. used in recipes) */
 export type TItemNeeds = int[] | int | IInventoryItem
 
+/** Описывает потребность в ресурсе одного типа, например, для рецепта */
+export type TItemNeedsCount = {
+    needs: TItemNeeds
+    count: int
+}
+
 export class InventoryComparator {
 
     static recipeManagers: { [key: string]: (() => Promise<IRecipeManager>) | IRecipeManager } = {
         'crafting':
             async function(): Promise<IRecipeManager> {
                 const rm = new RecipeManager();
-                await rm.load(() => {});
+                await rm.load();
                 return rm;
             },
         'anvil': new AnvilRecipeManager()
@@ -163,7 +169,7 @@ export class InventoryComparator {
                             throw 'error_incorrect_value|count=' +c;
                         }
                         return c;
-                    });
+                    }) as (int | [int, int])
                     // validate and get the used items
                     const used_items: IInventoryItem[] = [];
                     for(const [i, key] of used_recipe.used_items_keys.entries()) {

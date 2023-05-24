@@ -1,19 +1,20 @@
 import { Button, Label, TextEdit, Window, Slider } from "../ui/wm.js";
-import {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
+import {TableDataSlot} from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Enchantments } from "../enchantments.js";
 import { BLOCK_GROUP_TAG, INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, UI_THEME } from "../constant.js";
-import { BlankWindow } from "./blank.js";
 import {Lang} from "../lang.js";
 import type {PlayerInventory} from "../player_inventory.js";
-import type {World} from "../world.js";
 import type {TMouseEvent} from "../vendors/wm/wm.js";
+import {BaseAnyInventoryWindow} from "./base_inventory_window.js";
+import type {TInventoryStateChangeParams} from "../inventory.js";
+import {InventoryComparator} from "../inventory_comparator.js";
 
 let tagsTranslationMap = {};
 
 class CreativeInventoryCollection extends Window {
 
-    slots : CraftTableInventorySlot[] = []
+    slots : TableDataSlot[] = []
     xcnt : int = 0
     ycnt : int = 13
 
@@ -171,7 +172,7 @@ class CreativeInventoryCollection extends Window {
             }
             const dropItem  = drag.getItem() // что перетащили
             let targetItem  = this.getItem() // куда перетащили
-            if(targetItem && dropItem.id == targetItem.id) {
+            if(targetItem && InventoryComparator.itemsEqualExceptCount(dropItem, targetItem)) {
                 targetItem = {...dropItem}
                 // calc count
                 let count = 1
@@ -180,7 +181,7 @@ class CreativeInventoryCollection extends Window {
                     count = max_in_stack
                 }
                 targetItem.count = Math.min(targetItem.count + count, max_in_stack)
-                this.getInventory().setDragItem(this, {...targetItem}, drag, that.w, that.height)
+                this.getInventory().setDragItem(this, {...targetItem})
             } else {
                 this.getInventory().clearDragItem()
             }
@@ -202,7 +203,7 @@ class CreativeInventoryCollection extends Window {
             //
             targetItem = {...targetItem}
             targetItem.count = count
-            this.getInventory().setDragItem(this, targetItem, e.drag, that.w, that.height)
+            this.getInventory().setDragItem(this, targetItem)
             return false
         }
 
@@ -214,7 +215,7 @@ class CreativeInventoryCollection extends Window {
 
             let lblSlot = this.slots[i]
             if(!lblSlot) {
-                lblSlot = this.slots[i] = new CraftTableInventorySlot(0, 0, sz, sz, 'lblCollectionSlot' + (i), null, null, this.parent, null)
+                lblSlot = this.slots[i] = new TableDataSlot(0, 0, sz, sz, 'lblCollectionSlot' + (i), null, null, this.parent, null)
                 lblSlot.style.border.style = 'inset'
                 lblSlot.style.border.shadow_color = '#00000000'
                 lblSlot.style.border.color = '#00000055'
@@ -240,16 +241,13 @@ class CreativeInventoryCollection extends Window {
 }
 
 // CreativeInventoryWindow...
-export class CreativeInventoryWindow extends BlankWindow {
+export class CreativeInventoryWindow extends BaseAnyInventoryWindow {
 
     collection:     CreativeInventoryCollection
-    world:          World
-    inventory:      PlayerInventory
     scrollbar:      Slider
     tagButtons:     Button[] = []
     tagLevels:      number = 0
     selectedTag:    string = ''
-    inventory_slots: CraftTableInventorySlot[]
 
     constructor(inventory: PlayerInventory) {
         super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmCreativeInventory')
@@ -433,60 +431,35 @@ export class CreativeInventoryWindow extends BlankWindow {
         }
     }
 
-    // Обработчик открытия формы
-    onShow(args) {
-        // this.getRoot().center(this);
-        // Qubatch.releaseMousePointer()
-        if(this.inventory_slots) {
-            for(let slot of this.inventory_slots) {
-                if(slot) {
-                    slot.refresh()
-                }
-            }
-        }
-        super.onShow(args)
-    }
-
-    // Обработчик закрытия формы
-    onHide() {
-        this.inventory.sendStateChange({
-            dont_check_equal: true
-        })
-    }
-
     /**
     * Создание слотов для инвентаря
     */
     createInventorySlots() {
-        if(this.inventory_slots) {
-            console.error('createInventorySlots() already created')
-            return
-        }
         const sz = this.cell_size // Ширина / высота слота
         const szm = sz + this.slot_margin // Ширина / высота слота
-        this.inventory_slots = []
         // нижний ряд (видимые на хотбаре)
         const sx          = 16 * this.zoom
         const sy          = this.collection.y + this.collection.h + 10 * this.zoom
         const xcnt        = 9
         const init_x      = (this.w / 2 - sx) - (xcnt * szm) / 2
         for(let i = 0; i < xcnt; i++) {
-            const lblSlot = new CraftTableInventorySlot(init_x + sx + (i % xcnt) * (szm), sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i)
+            const lblSlot = new TableDataSlot(init_x + sx + (i % xcnt) * (szm), sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i)
             this.add(lblSlot)
-            this.inventory_slots.push(lblSlot)
         }
     }
-    
-    getCraftOrChestSlots(): CraftTableSlot[] {
-        return []
-    }
 
-    fixAndValidateSlots(context) {
+    fixAndValidateSlots(context: string): void {
         // Do nothing. It's called by slots and used to validate in other windows.
     }
 
     onDropOutside(e: TMouseEvent): boolean {
         // just clear the drag without creating a drop item
-        return this.inventory.clearDragItem(false) != null
+        return this.getItemDroppedOutside(e) != null
+    }
+
+    sendInventory(params: TInventoryStateChangeParams): void {
+        this.inventory.clearDragItem()
+        params.dont_check_equal = true
+        super.sendInventory(params)
     }
 }

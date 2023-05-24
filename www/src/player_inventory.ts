@@ -1,13 +1,12 @@
 import {RecipeManager} from "./recipes.js";
 import {Inventory, TInventoryState, TInventoryStateChangeParams} from "./inventory.js";
-import {HOTBAR_LENGTH_MAX, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_SLOT_COUNT} from "./constant.js";
+import {INVENTORY_DRAG_SLOT_INDEX, INVENTORY_SLOT_COUNT, PAPERDOLL_END, PAPERDOLL_MIN_INDEX} from "./constant.js";
 import type {WindowManager, Pointer} from "./vendors/wm/wm.js";
-import type {Player} from "./player.js";
 import type {HUD} from "./hud.js";
-import type {InventoryWindow} from "./window/index.js";
-import type {CraftTableSlot} from "./window/base_craft_window.js";
+import type {TableSlot} from "./window/base_craft_window.js";
 import {InventoryComparator} from "./inventory_comparator.js";
-import type {SimpleBlockSlot} from "./vendors/wm/wm.js";
+import {ObjectHelpers} from "./helpers/object_helpers.js";
+import type {Player} from "./player.js";
 
 /**
  * A client version of {@link Inventory}.
@@ -15,11 +14,20 @@ import type {SimpleBlockSlot} from "./vendors/wm/wm.js";
  */
 export class PlayerInventory extends Inventory {
 
+    declare player: Player
     wm: WindowManager
     hud: HUD
-    recipes: RecipeManager
-    private _update_number      = 0
-    private inventory_ui_slots : SimpleBlockSlot[] = []
+    recipes = new RecipeManager()
+    recipesLoadPromise = this.recipes.load()
+    private _update_number  = 0 // используется хотбаром чтобы понять изменился ли инвентарь
+    /** Все слоты, ссылающиеся на инвентарь, во всех окнах (кроме хотабара). */
+    private inventory_ui_slots: TableSlot[] = []
+
+    /**
+     * Копии предметов глубиной 1 (со своим count, но общими полями внтури extra_data),
+     * используемая чтобы обнаружить изменения
+     */
+    private prevItems?: (IInventoryItem | null)[]
 
     constructor(player: Player, state: TInventoryState, hud: HUD) {
         super(player, {current: {index: 0, index2: -1}, items: []});
@@ -27,67 +35,49 @@ export class PlayerInventory extends Inventory {
         for(let i = 0; i < INVENTORY_SLOT_COUNT; i++) {
             this.items.push(null);
         }
-        //
-        this.select(this.current.index);
-        // Recipe manager
-        this.recipes = new RecipeManager(true);
         // Restore slots state
         this.setState(state);
-        // Action on change slot
-        this.onSelect = (item) => {
-            // Вызывается при переключении активного слота в инвентаре
-            player.resetMouseActivity();
-            player.world.server.InventorySelect(this.current);
-
-            // strings
-            const strings = Qubatch.hotbar.strings
-            if(item) {
-                const itemTitle = player.world.block_manager.getBlockTitle(item)
-                strings.updateText(0, itemTitle)
-            } else {
-                strings.setText(0, null)
-            }
-
-            this.hud.refresh();
-        };
+        // не уверен что это нужно - лишние действия, лишняя команда отслывается. Но пусть будет (так было)
+        this.select(this.current.index);
         // Add this for draw on screen
         Qubatch.hotbar.setInventory(this)
     }
+
+    get drag(): Pointer { return this.hud.wm.drag }
 
     get update_number() {
         return this._update_number
     }
 
-    set update_number(value) {
-        this._update_number = value
-        for(let slot of this.inventory_ui_slots) {
-            slot.refresh()
+    addInventorySlot(slot: TableSlot): void {
+        if (!slot.isInventorySlot()) {
+            throw new Error()
         }
-    }
-
-    addInventorySlot(slot: CraftTableSlot): void {
-        if(slot.slot_index === undefined || slot.slot_index === null) return
         this.inventory_ui_slots.push(slot)
     }
 
     select(index: int): void {
         super.select(index)
-        this.update_number++
+        // часть из того, что было раньше в onSelect (дрегая часть перешла в refreshCurrent)
+        this.player.resetMouseActivity();
+        this.player.world.server.InventorySelect(this.current);
+    }
+
+    next(): void {
+        this.select(this.current.index + 1)
+    }
+
+    prev(): void {
+        this.select(this.current.index - 1)
     }
 
     setState(inventory_state: TInventoryState) {
         this.current = inventory_state.current;
         this.items = inventory_state.items;
         this.refresh();
-        // update drag UI if the dragged item changed
         for(const w of this.hud.wm.visibleWindows()) {
-            w.onInventorySetState && w.onInventorySetState();
+            w.onInventoryChange && w.onInventoryChange('setState');
         }
-        this.update_number++
-    }
-
-    get inventory_window(): InventoryWindow {
-        return this.hud.wm.getWindow('frmInventory');
     }
 
     // Open window
@@ -95,123 +85,120 @@ export class PlayerInventory extends Inventory {
         this.hud.wm.getWindow('frmInGameMain').openTab('frmInventory')
     }
 
-    // Refresh
-    refresh(): true {
-        this.player.state.hands.right = this.current_item;
-        if(this.hud) {
-            this.hud.refresh();
-            const frmRecipe = this.player.inventory?.recipes?.frmRecipe || null
-            frmRecipe?.paginator.update();
-        }
-        return true;
-    }
-
     /**
-     * Обновляет UI слоты - чтобы изменения {@link items} стали видны.
+     * Обновляет почти весь UI, зависящий от инвентаря (хотбар, слоты, драг, рецепты, текст в HUD),
+     * чтобы изменения {@link items} и {@link current} стали видны.
      *
-     * Почему это отдельный метод от {@link refresh}: семантика {@link refresh} не определена,
-     * но т.к. раньше он не обновлял слоты, то возможно и не должен. Добавили новый метод,
-     * чтобы не добавить возможно нежелательне эффекты к старому.
+     * Некоторая логика, специфическая для отдельных окон, реализовано не тут, а в самих окнах - см.
+     * {@link BaseAnyInventoryWindow.onInventoryChange}
      */
-    refreshUISlots(): void {
+    refresh(): void {
+        // HUD, выбранный предмет
+
+        this.fixCurrentIndexes()
+
+        this._update_number++ // говорит хотбару что надо обновляться
+
+        const current_item = this.current_item
+        this.player.state.hands.right = current_item
+
+        // имя текущего предмета в хотбаре
+        const strings = this.player.world.game.hotbar.strings
+        if(current_item) {
+            const itemTitle = this.block_manager.getBlockTitle(current_item)
+            strings.updateText(0, itemTitle)
+        } else {
+            strings.setText(0, null)
+        }
+
+        this.hud.refresh()
+
+        // обработать изменения предметов, влияющие на всю игру. Изменения, специфичные для отдельных окон, обрабатываются в них.
+        if (this.prevItems) {
+            for(let i = PAPERDOLL_MIN_INDEX; i < PAPERDOLL_END; i++) {
+                if (!ObjectHelpers.deepEqual(this.items[i], this.prevItems[i])) {
+                    this.player.updateArmor()
+                    break
+                }
+            }
+        }
+        this.prevItems = ObjectHelpers.deepClone(this.items, 2)
+
+        // рецепты на форме рефептов
+        const frmRecipe = this.player.windows?.frmRecipe
+        if (frmRecipe?.visible) {
+            frmRecipe.paginator.update()
+        }
+
+        // слоты на всех формах
+        let visibleSlotsCount = 0
+        const size = this.getSize()
         for(const slot of this.inventory_ui_slots) {
-            slot.refresh()
+            if (slot.ct.visible) {
+                visibleSlotsCount++
+                slot.locked = !size.slotExists(slot.slot_index)
+                slot.setItem(slot.item)
+            }
+        }
+
+        // если видно хотя бы одно окно со слотами, то установть видимый перетаскиваемй предмет
+        if (visibleSlotsCount) {
+            const prevDragItem = this.drag.item
+            const newDragItem = this.items[INVENTORY_DRAG_SLOT_INDEX]
+            if (!ObjectHelpers.deepEqual(prevDragItem, newDragItem)) {
+                this.drag.setItem(newDragItem, null)
+            }
         }
     }
 
-    /**
-     * @param width - unused, TODO remove
-     * @param height - unused, TODO remove
-     */
-    setDragItem(slot: CraftTableSlot, item: IInventoryItem | null, drag: Pointer | null, width?, height?): void {
-        this.items[INVENTORY_DRAG_SLOT_INDEX] = item;
-        drag ??= this.hud.wm.drag
+    /** Устанавливает перетаскиваемый предмет и визуально, и в инвентаре. */
+    setDragItem(slot: TableSlot, item: IInventoryItem | null): void {
+        this.items[INVENTORY_DRAG_SLOT_INDEX] = item
         if(item) {
-            drag.setItem(item, slot)
+            this.drag.setItem(item, slot)
         } else {
             this.clearDragItem()
         }
     }
 
     /**
-     * The same result as in chest_manager.js: applyClientChange()
-     * @return the item, if it hasn't been move to the inventory completely
+     * Очищает перетаскиваемый предмет и визуально, и в инвентаре.
+     * @param move_to_inventory - попробовать переместить в инвентарь, если возможно (реально не используется, можно удалить)
+     * @return прежнее значение этого предмета, если он не был перемещен в инвентарь
      */
     clearDragItem(move_to_inventory : boolean = false): IInventoryItem | null {
-        const drag: Pointer = this.hud.wm.drag
-        let dragItem: IInventoryItem | null = drag.getItem()
+        let dragItem = this.items[INVENTORY_DRAG_SLOT_INDEX]
         if(dragItem && move_to_inventory) {
-            if (this.incrementAndReorganize(dragItem, true)) {
-                dragItem = null
-            }
+            this.moveFromSlots(false, [INVENTORY_DRAG_SLOT_INDEX])
+            dragItem = this.items[INVENTORY_DRAG_SLOT_INDEX]
         }
         this.items[INVENTORY_DRAG_SLOT_INDEX] = null
-        drag.clear()
+        this.drag.clear()
         return dragItem
     }
 
-    moveFromInvalidSlotsIfPossible(): void {
-        let changed = false
-        const items = this.items
-        for(const i of this.getSize().invalidIndices()) {
-            if (items[i] && this.incrementAndReorganize(items[i], true)) {
-                items[i] = null
-                changed = true
-            }
-        }
-        if (changed) {
-            this.refreshUISlots()
-        }
-    }
-
     /**
-     * Если дарг слот пуст, и текущее число слотов сумки больше чем {@link prevBagSize}
-     * (полученного из {@link InventorySize.bagSize}), то отиправляет состояние на сервер.
+     * Отправляет состояние на сервер.
      *
-     * Зачем это:
-     * если мы положили предмет, увеличивший число слотов, то возможно клиент начнет слать серверу
-     * CMD_DROP_ITEM_PICKUP на предметы, которые он теперь может поднять. Но у сервера все еще старый
-     * размер инвентаря и он не может поднять предмет, это приводит к странностям.
-     * Чтобы сразу начать поднимать, нужно отправить состояние.
-     * Сделаем это только если дроп пуст (чтобы не очищать его неожиданно для игрока)
+     * Не вызывать напрямую (кроме как из {@link BaseAnyInventoryWindow}).
+     * Вместо него вызывать {@link BaseAnyInventoryWindow.sendInventory}, который может выполнять
+     * дополнительные лействия (очищать крафт, добавлять список выброшенных и удаленных предметов).
+     *
+     * Пытается из несуществующих слотов в существующие, иначе выбасывает их.
+     * Очищает временные и несуществующие слоты, если {@link TInventoryStateChangeParams.allow_temporary} != true
      */
-    sendStateIfSizeIncreases(prevBagSize: int): void {
-        if (!this.items[INVENTORY_DRAG_SLOT_INDEX] && this.getSize().bagSize > prevBagSize) {
-            this.sendStateChange()
+    sendState(params: TInventoryStateChangeParams = {}): void {
+        if (!params.allow_temporary) {
+            const size = this.getSize()
+            const thrown_items = params.thrown_items ??= []
+            thrown_items.push(...this.moveFromSlots(true, size.invalidAndTemporaryIndices()))
+            this.drag.clear() // потому что refresh() может его не очистить если окно уже закрыто
         }
-    }
-
-    /**
-     * Отправляет состояние на сервер. Пытается пренести предметы из драг слота и несуществующих слотов
-     * в существующие, иначе выбасывает их.
-     */
-    sendStateChange(params: TInventoryStateChangeParams = {}): void {
-        const size = this.getSize()
-        const items = this.items
-        const thrown_items = params.thrown_items ?? []
-
-        const dragItem = this.clearDragItem(true)
-        if (dragItem) {
-            thrown_items.push(dragItem)
-        }
-
-        for(const i of size.invalidIndices()) {
-            const item = items[i]
-            if (item) {
-                // добавить предмет к существующим слотам (пыстым или нет). Возможно, переложить другие предметы чтобы освободить место.
-                this.incrementAndReorganize(item)
-                // если еще осталось - выкинуть
-                if (item.count) {
-                    thrown_items.push(item)
-                }
-                items[i] = null
-            }
-        }
-
         this.player.world.server.InventoryNewState({
             state: this.exportItems(),
             ...params
         })
+        this.refresh() // например, нужно если sendState пеереместил предметы. sendState вызывается редко, refresh не помешает
     }
 
     /**

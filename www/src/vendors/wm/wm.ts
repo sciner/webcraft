@@ -24,12 +24,22 @@ let current_drag_window : Window = null
 
 export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
 
-export type TMouseEvent = {
+/** События перемещение мыши. */
+export type TMouseMoveEvent = {
     shiftKey    : boolean
     button_id   : int
-    drag        : Pointer
     x           : number
     y           : number
+    /** Устанавливается в {@link Window._clarifyMouseEvent} */
+    target ?    : Window
+}
+
+/**
+ * Событие мыши кроме перемеения.
+ * В отличие от перемещения, также гарантированно содержит {@link drag}, поэтому это отдельный тип.
+ */
+export type TMouseEvent = TMouseMoveEvent & {
+    drag        : Pointer
 }
 
 export class Graphics extends PIXI.Graphics {
@@ -94,6 +104,10 @@ export class Window extends PIXI.Container {
     #_wmclip:               any = null
     style:                  Style
     draggable:              boolean = false
+    list: {
+        [key: string]: any;
+        values: () => Window[]
+    }
 
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
 
@@ -258,11 +272,11 @@ export class Window extends PIXI.Container {
         }
     }
 
-    onMouseEnter(_e?) {}
-    onMouseDown(_e?) {}
-    onMouseUp(_e?) {}
-    onMouseMove(_e?) {}
-    onDrop(_e?) {}
+    onMouseEnter(_e?: TMouseEvent) {}
+    onMouseDown(_e?: TMouseEvent) {}
+    onMouseUp(_e?: TMouseEvent) {}
+    onMouseMove(_e?: TMouseMoveEvent) {}
+    onDrop(_e?: TMouseEvent) {}
     onWheel(_e?) {}
     onHide(_e?) {}
 
@@ -542,7 +556,7 @@ export class Window extends PIXI.Container {
      * @param {boolean} ignore_bitmap_font_metrics
      * @returns {PIXI.TextMetrics}
      */
-    getTextMetrics(ignore_bitmap_font_metrics) {
+    getTextMetrics(ignore_bitmap_font_metrics?) {
         const tc = this.text_container;
         if (tc._activePagesMeshData && !ignore_bitmap_font_metrics) {
             // TODO: возвращает неверный размер, если в конце строки пробел
@@ -605,10 +619,11 @@ export class Window extends PIXI.Container {
     }
 
     hide() {
-        const wasVisible = this.visible;
-        this.visible = false;
-        this.resetHover();
-        this.onHide(wasVisible);
+        if (this.visible) {
+            this.visible = false
+            this.onHide()
+        }
+        this.resetHover()
         if(typeof Qubatch !== 'undefined' && Qubatch.hud) {
             Qubatch.hud.prevDrawTime = 0
         }
@@ -641,12 +656,10 @@ export class Window extends PIXI.Container {
     /**
      * По событию мыши на контексте определяет и возвращает точное окно,
      * к которому относится событие, а также создает и возвращает новое событие для него
-     * @param {*} e
-     * @returns {object}
      */
-    _clarifyMouseEvent(e) {
+    _clarifyMouseEvent<T extends TMouseMoveEvent>(e: T): {window: Window | null, event: T | null, visible_windows: Window[]} {
         // список окон отсортированный по Z координате
-        const visible_windows = []
+        const visible_windows: Window[] = []
         if(this.interactiveChildren) {
             for(let window of this.list.values()) {
                 if(window.visible) {
@@ -676,7 +689,7 @@ export class Window extends PIXI.Container {
         return resp
     }
 
-    _drop(e) {
+    _drop(e: TMouseEvent) {
         const {window, event} = this._clarifyMouseEvent(e)
         if(window) {
             return window._drop(event)
@@ -692,7 +705,7 @@ export class Window extends PIXI.Container {
         this.onWheel(e)
     }
 
-    _mousedown(e) {
+    _mousedown(e: TMouseEvent) {
         let {window, event} = this._clarifyMouseEvent(e)
         if(window) {
             if(window.draggable) {
@@ -710,7 +723,7 @@ export class Window extends PIXI.Container {
         this.onMouseDown(e)
     }
 
-    _mouseup(e) {
+    _mouseup(e: TMouseEvent) {
         let window = null
         let event = e
         if(current_drag_window) {
@@ -730,7 +743,7 @@ export class Window extends PIXI.Container {
         this.onMouseUp(e)
     }
 
-    _mousemove(e) {
+    _mousemove(e: TMouseMoveEvent) {
 
         this.hover = true
         this.onMouseMove(e)
@@ -1280,6 +1293,12 @@ export class SimpleBlockSlot extends Window {
     bar_value : Label           = null
     hud_atlas : SpriteAtlas     = null
 
+    /**
+     * Если слот не ссылается на коллекцию предметов (например, инвентарь) - тут хранится значение.
+     * Если слот ссылается на коллекцию, тут хранится неглубокая копия значения, используемая для детекции изменений.
+     */
+    protected _item: IInventoryItem | null = null
+    
     slot_empty  = 'window_slot' // 'slot_empty'
     slot_full   = 'window_slot' // 'slot_full'
     slot_locked = 'window_slot_locked' // 'slot_full'
@@ -1310,8 +1329,6 @@ export class SimpleBlockSlot extends Window {
         // this.swapChildren(this._wmicon, this._wmbgimage)
         this.swapChildren(this._wmicon, this.text_container)
 
-        this.item = null
-
     }
 
     initAndReturnAtlas() {
@@ -1331,14 +1348,22 @@ export class SimpleBlockSlot extends Window {
         return this.hud_atlas
     }
 
-    getItem() {
+    get item(): IInventoryItem | null {
+        return this._item
+    }
+
+    set item(item: IInventoryItem | null) {
+        this.setItem(item)
+    }
+
+    /** @deprecated, лучше использовать {@link item} */
+    getItem(): IInventoryItem | null {
         return this.item
     }
 
-    setItem(item : any, slot? : any): boolean {
-        this.item = item
-        this.slot = slot
-        return this.refresh()
+    setItem(item: IInventoryItem | null): void {
+        this._item = item
+        this.refresh()
     }
 
     clear() {
@@ -1347,15 +1372,14 @@ export class SimpleBlockSlot extends Window {
 
     /**
      * Redraw
-     * @returns {boolean}
      */
-    refresh() {
+    refresh(): void {
 
         const hud_atlas = this.initAndReturnAtlas()
 
         if(!hud_atlas) {
             console.error('error_atlas_not_found')
-            return false
+            return
         }
 
         const item = this.getItem()
@@ -1370,7 +1394,7 @@ export class SimpleBlockSlot extends Window {
             this.bar.visible = false
             this.text = null
             this.setBackground( this.slot_locked == 'none' ? null : hud_atlas.getSpriteFromMap(this.slot_locked))
-            return true
+            return
         }
 
         // draw count && instrument livebar
@@ -1408,9 +1432,6 @@ export class SimpleBlockSlot extends Window {
         }
 
         this.text = label
-
-        return true
-
     }
 
     set locked(val: boolean) {
@@ -1428,9 +1449,18 @@ export class SimpleBlockSlot extends Window {
 //
 export class Pointer extends SimpleBlockSlot {
 
+    // последний слот, из которого был взят предмет
+    slot?: SimpleBlockSlot
+
     constructor() {
         super(0, 0, 40 * UI_ZOOM, 40 * UI_ZOOM, '_wmpointer', null, null)
         this._wmbgimage.alpha = 0
+    }
+
+    setItem(item : IInventoryItem, slot? : SimpleBlockSlot | null): void {
+        this._item = item
+        this.slot = slot
+        this.refresh()
     }
 
 }
@@ -1609,7 +1639,7 @@ export class WindowManager extends Window {
 
         switch(e.type) {
             case 'mousemove': {
-                const evt = {
+                const evt: TMouseMoveEvent = {
                     shiftKey:   e.shiftKey,
                     button_id:  e.button_id,
                     x:          e.offsetX - this.x,
@@ -1636,7 +1666,7 @@ export class WindowManager extends Window {
                 break
             }
             case 'mousedown': {
-                const evt = {
+                const evt: TMouseEvent = {
                     shiftKey:   e.shiftKey,
                     button_id:  e.button_id,
                     drag:       this.drag,
@@ -1652,7 +1682,7 @@ export class WindowManager extends Window {
                 break
             }
             case 'mouseup': {
-                const evt = {
+                const evt: TMouseEvent = {
                     shiftKey:   e.shiftKey,
                     button_id:  e.button_id,
                     drag:       this.drag,
@@ -1762,9 +1792,9 @@ export class ToggleButton extends Button {
         this.style.font.color = this.toggled ? this.toggled_font_color : this.untoggled_font_color
     }
 
-    onMouseDown(e) {
-        super.onMouseDown()
-        this.toggled = (this.toggled) ? false : true
+    onMouseDown(e: TMouseEvent) {
+        super.onMouseDown(e)
+        this.toggled = !this.toggled
         this.style.background.color = this.toggled ? this.toggled_bgcolor : this.untoggled_bgcolor
         this.style.font.color = this.toggled ? this.toggled_font_color : this.untoggled_font_color
     }
@@ -1861,7 +1891,7 @@ export class Slider extends Window {
         }
     }
 
-    onMouseDown(event) {
+    onMouseDown(event: TMouseEvent) {
         this.grab = true
         const x = event.x
         const y = event.y
@@ -1894,11 +1924,11 @@ export class Slider extends Window {
         this.onScroll(this._value)
     }
 
-    onMouseUp(e) {
+    onMouseUp(e: TMouseEvent) {
         this.grab = false
     }
 
-    onMouseMove(event) {
+    onMouseMove(event: TMouseMoveEvent) {
         if (this.grab) {
             const thumb = this.wScrollThumb
             if(this.horizontal) {

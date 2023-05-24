@@ -40,6 +40,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     block_material:         IBlockMaterial      // Материал 0-го (видимого) предмета/блока
     minPickupTime:          number  // unixTime - минимальное время, когда мой игрок может его поднять
     deathTime:              number  // unixTime
+    pickedByMe              = false // если true, то предмет уже успешно поднят этим игроков
 
     constructor(world : World, gl, entity_id : string, items : (IInventoryItem | IBlockItem)[], pos : Vector, matrix?: float[], pivot? : Vector, use_cache : boolean = false) {
 
@@ -154,7 +155,8 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         const target_pos = tmpTargetPos.copyFrom(player.lerpPos).addScalarSelf(0, .85, 0)
         const dist = this.pos.distance(target_pos)
 
-        const canPickup = player.game_mode.canPickupItems() &&
+        const canPickup = this.pickedByMe ||
+            player.game_mode.canPickupItems() &&
             dist < MAX_DIST_FOR_PICKUP &&           // это отсеит большинство предметов - проверим в начале
             unixTime() > this.minPickupTime &&      // мин. время для этого игрока (с учетом задержки для своих предметов)
             performance.now() - this.create_time > MAX_FLY_TIME &&

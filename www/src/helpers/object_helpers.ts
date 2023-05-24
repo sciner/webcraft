@@ -67,12 +67,21 @@ export class ObjectHelpers {
      * Maybe add support for Map, Set, primitive arrays.
      */
     static deepEqual(a: any, b: any): boolean {
-        if (a == null || b == null || typeof a !== 'object' || typeof b !== 'object') {
-            return a === b;
+        if (a === b) { // первая проверка - хороша как для примитивов, так и для неглдубоко клонированных объектов
+            return true
         }
-        return Array.isArray(a)
+        if (a == null || b == null) {
+            return false
+        }
+        if (typeof a !== 'object' || typeof b !== 'object') {
+            // Мы уже знаем что (a === b) неверно, т.е. примитивные значения не равны.
+            // Специальный случай: если оба NaN, то (NaN === NaN) неверно, но мы хотим вернуть в этом случае true.
+            // В остальных случаях - false.
+            return Number.isNaN(a) && Number.isNaN(b)
+        }
+        return a.length != null && Array.isArray(a)
             ? Array.isArray(b) && this.deepEqualArray(a, b)
-            : this.deepEqualObject(a, b);
+            : (b.length == null || !Array.isArray(b)) && this.deepEqualObject(a, b)
     }
 
     static deepEqualArray(a: AnyArray, b: AnyArray): boolean {

@@ -1,9 +1,10 @@
 import { Vector } from "../helpers.js";
 import { Lang } from "../lang.js";
-import { BaseChestWindow } from "./base_chest_window.js";
+import {BaseChestWindow, TChestWindowSlotInfo} from "./base_chest_window.js";
 import { Icon } from "../ui/wm.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH } from "../constant.js";
+import type {TCmdChestContent} from "../chest.js";
 
 export class FurnaceWindow extends BaseChestWindow {
 
@@ -38,7 +39,7 @@ export class FurnaceWindow extends BaseChestWindow {
     }
 
     //
-    prepareSlots() {
+    prepareSlots(): TChestWindowSlotInfo[] {
         const resp = [];
         resp.push({pos: new Vector(108, 31, 0).multiplyScalarSelf(this.zoom)});
         resp.push({pos: new Vector(108, 104, 0).multiplyScalarSelf(this.zoom)});
@@ -47,7 +48,7 @@ export class FurnaceWindow extends BaseChestWindow {
     }
 
     // Пришло содержимое сундука от сервера
-    setData(chest : any) {
+    protected setData(chest: TCmdChestContent): void {
         super.setData(chest)
         if (this.state) {
             const fuel_percent = this.state.fuel_time / this.state.max_time

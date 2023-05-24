@@ -284,12 +284,26 @@ export class Recipe {
 }
 
 export class RecipeManager implements IRecipeManager<Recipe> {
-    [key: string]: any;
-    bm: BLOCK
+    bm: typeof BLOCK
 
-    constructor(force_load: boolean | null = false) {
+
+    //all
+
+
+    crafting_shaped : {
+        list        : Recipe[]
+        grouped     : Recipe[]
+        map         : Map<string, Recipe>
+        searchRecipe: Function
+    }
+
+    constructor() {
         this.bm = BLOCK
-        this.all = [];
+
+
+        //this.all = [];
+
+
         this.crafting_shaped = {
             list: [],
             grouped: [],
@@ -306,18 +320,6 @@ export class RecipeManager implements IRecipeManager<Recipe> {
                 }
                 return null;
             }
-        }
-        const that = this
-        if(force_load) {
-            this.load(async () => {
-                if(!Qubatch.is_server) {
-                    await import("./window/index.js").then((module) => {
-                        // Recipe window
-                        Qubatch.hud.wm.add(that.frmRecipe = new module.RecipeWindow(that))
-                        Qubatch.hud.wm.add(that.frmInventoryRecipe = new module.InventoryRecipeWindow(that))
-                    });
-                }
-            });
         }
     }
 
@@ -438,7 +440,7 @@ export class RecipeManager implements IRecipeManager<Recipe> {
     }
 
     // Load
-    async load(callback) {
+    async load() {
         const that = this;
         const recipes = await Resources.loadRecipes();
         const ids = new Map();
@@ -525,7 +527,6 @@ export class RecipeManager implements IRecipeManager<Recipe> {
         }
         //
         this.group();
-        callback();
     }
 
     addOrePieces(recipes) {

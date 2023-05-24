@@ -1,5 +1,5 @@
 import { Label, Window } from "../ui/wm.js";
-import { BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
+import { BaseCraftWindow } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
 import { BAG_LINE_COUNT, UI_THEME } from "../constant.js";
 import type { InventoryRecipeWindow } from "./inventory_recipe.js";
@@ -8,6 +8,7 @@ import type { InGameMain } from "./ingamemain.js";
 import { Resources } from "../resources.js";
 import type { SpriteAtlas } from "../core/sprite_atlas.js";
 import type {RecipeManager} from "../recipes.js";
+import type {TInventoryStateChangeParams} from "../inventory.js";
 
 export class InventoryWindow extends BaseCraftWindow {
 
@@ -16,9 +17,6 @@ export class InventoryWindow extends BaseCraftWindow {
 
     slot_empty = 'slot_empty'
     slot_full = 'slot_full'
-    slot_margin : float
-    slots_x : float
-    slots_y : float
     hud_atlas : SpriteAtlas
 
     constructor(inventory: PlayerInventory, recipes: RecipeManager) {
@@ -34,8 +32,7 @@ export class InventoryWindow extends BaseCraftWindow {
         this.slots_x       = UI_THEME.window_padding * this.zoom
         this.slots_y       = 62 * this.zoom;
 
-        // Craft area
-        this.area = {
+        this.craft_area = {
             size: {
                 width: 2,
                 height: 2
@@ -57,7 +54,7 @@ export class InventoryWindow extends BaseCraftWindow {
         this.addHelpSlots(sx, sy, sz, szm)
 
         // Создание слотов для крафта
-        this.createCraft(sx, sy, sz, szm)
+        this.createCraft(sx, sy, sz, szm, 2, 2)
 
         // Calc backpack slots width
         const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * BAG_LINE_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
@@ -92,16 +89,13 @@ export class InventoryWindow extends BaseCraftWindow {
 
         // слот для удаления преметов
         this.createDeleteSlot(this.cell_size)
-
-        // обновить gui
-        this.refresh()
     }
 
     // Обработчик открытия формы
     onShow(args) {
 
         if(!this.frmInventoryRecipe) {
-            const form = this.inventory.player.inventory.recipes.frmInventoryRecipe
+            const form = this.inventory.player.windows.frmInventoryRecipe
             form.style.background.image = null
             form.parent.delete(form.id)
             form.x = UI_THEME.window_padding * this.zoom
@@ -118,52 +112,9 @@ export class InventoryWindow extends BaseCraftWindow {
 
     }
 
-    // Обработчик закрытия формы
-    onHide() {
-        this.inventory.sendStateChange({
-            used_recipes: this.lblResultSlot.getUsedRecipes(),
-            thrown_items: this.clearCraft()
-        })
-    }
-
-    /**
-     * Создание слотов для крафта
-     */
-    createCraft(sx : float, sy : float, sz : float, szm : float) {
-
-        if(this.craft) {
-            console.error('error_inventory_craft_slots_already_created')
-            return
-        }
-
-        const xcnt = 2
-
-        this.craft = {
-            slots: [null, null, null, null]
-        }
-
-        for(let i = 0; i < this.craft.slots.length; i++) {
-            const x = sx + (i % xcnt) * szm
-            const y = sy + Math.floor(i / xcnt) * szm
-            const lblSlot = new CraftTableRecipeSlot(x, y, sz, sz, 'lblCraftRecipeSlot' + i, null, null, this, null)
-            this.craft.slots[i] = lblSlot
-            this.add(lblSlot)
-        }
-
-        const locked_slots = [
-            // {x: sx - szm, y: sy},
-            // {x: sx - szm, y: sy + szm},
-            // {x: sx + szm * 2, y: sy},
-            // {x: sx + szm * 2, y: sy + szm},
-        ]
-
-        for(let i = 0; i < locked_slots.length; i++) {
-            const ls = locked_slots[i]
-            const lbl = new Label(ls.x, ls.y, sz, sz, `lblLocked_${i}`)
-            lbl.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
-            this.add(lbl)
-        }
-
+    sendInventory(params: TInventoryStateChangeParams): void {
+        params.used_recipes = this.lblResultSlot.getUsedRecipes()
+        super.sendInventory(params)
     }
 
 }

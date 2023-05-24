@@ -299,11 +299,12 @@ export class DBWorld {
         )
         if(row) {
 
-            // Это не полный фикс инвентаря. Вторая часть фикса при загрзке - см. moveOrDropFromInvalidOrTemporarySlots
+            // Это не полный фикс инвентаря. Вторая часть фикса при загрзке - см. ServerPlayerInventory.fixTemporarySlots
             const fixInventory = (inventory) => {
                 if(inventory.items.length < INVENTORY_SLOT_COUNT) {
                     inventory.items.push(...new Array(INVENTORY_SLOT_COUNT - inventory.items.length).fill(null));
                 }
+                inventory.items.length = INVENTORY_SLOT_COUNT // обрезать длину если слишком велика
                 // fix list of items
                 for(let i in inventory.items) {
                     const item = inventory.items[i]

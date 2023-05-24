@@ -3,7 +3,7 @@ import { Resources } from "./resources.js";
 // import { PlayerInventory } from "./player_inventory.js";
 
 import { Effect } from "./block_type/effect.js";
-import { CraftTableInventorySlot } from "./window/base_craft_window.js";
+import { TableDataSlot } from "./window/base_craft_window.js";
 import { BAG_LINE_COUNT, HOTBAR_LENGTH_MAX, PAPERDOLL_BOOTS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, PAPERDOLL_LEGGINGS } from "./constant.js";
 import type { SpriteAtlas } from "./core/sprite_atlas.js";
 import type { HUD } from "./hud.js";
@@ -33,7 +33,7 @@ class Strings {
     }
 
     // set new text
-    setText(index, text, max_time) {
+    setText(index, text, max_time?) {
         this.strings[index].text = text;
         if(text) {
             this.strings[index].set_time = performance.now();
@@ -43,7 +43,7 @@ class Strings {
     }
 
     // set text if not same with previous
-    updateText(index, text, max_time) {
+    updateText(index, text, max_time?) {
         if(this.strings[index].text == text) {
             return false;
         }
@@ -100,6 +100,7 @@ export class Hotbar {
     sprite_zoom:                float
     bars:                       Dict<Label> = {}
     strings:                    Strings
+    inventory_update_number:    number
 
     constructor(hud : HUD) {
 
@@ -278,7 +279,7 @@ export class Hotbar {
         inventory_slots_window.slots = []
 
         for(let i = 0; i < HOTBAR_LENGTH_MAX; i++) {
-            const lblSlot = new CraftTableInventorySlot(i * (sz * SLOT_MARGIN_PERCENT), 0, sz, sz, `lblSlot${i}`, null, null, this, i)
+            const lblSlot = new TableDataSlot(i * (sz * SLOT_MARGIN_PERCENT), 0, sz, sz, `lblSlot${i}`, null, null, this, i)
             lblSlot.slot_empty  = 'slot_empty'
             lblSlot.slot_full   = 'slot_full'
             lblSlot.slot_locked = 'none'
@@ -348,7 +349,7 @@ export class Hotbar {
 
         const player  = this.inventory.player;
         const mayGetDamaged = player.game_mode.mayGetDamaged()
-        const visible = !player.game_mode.isSpectator() && hud.isActive()
+        const visible = !player.game_mode.isSpectator() && hud.active
 
         this.inventory_slots_window.visible = visible
         this.bars_base_window.visible = visible && mayGetDamaged
@@ -368,8 +369,8 @@ export class Hotbar {
         if(this.inventory_update_number != this.inventory.update_number) {
             this.inventory_update_number = this.inventory.update_number
             for(let i = 0; i < this.inventory_slots_window.slots.length; i++) {
-                const w = this.inventory_slots_window.slots[i]
-                w.setItem(w.getItem(), false)
+                const w: TableDataSlot = this.inventory_slots_window.slots[i]
+                w.refresh()
             }
         }
 
@@ -512,6 +513,10 @@ export class Hotbar {
             this.tilemap.drawImage(sprite, x + paddingx, y + paddingy)
             pos += margin + bg.width
         }
+    }
+
+    onInventoryChange(context?: string): void {
+        // ничего - для совместимости с другими окнами, содержащими слоты
     }
 
 }

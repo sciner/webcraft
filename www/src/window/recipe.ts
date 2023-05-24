@@ -8,12 +8,14 @@ import { Resources } from "../resources.js";
 import { UI_THEME } from "../constant.js";
 import { Lang } from "../lang.js";
 import type { SpriteAtlas } from "../core/sprite_atlas.js";
+import type {BaseCraftWindow} from "./base_craft_window.js";
 
 export class RecipeSlot extends Window {
 
     hud_atlas : SpriteAtlas
+    declare ct? : RecipeWindow
 
-    constructor(x : int, y : int, w : int, h : int, id : string, title : string | null, text : string | null, recipe : any, block : any, ct? : Window) {
+    constructor(x : int, y : int, w : int, h : int, id : string, title : string | null, text : string | null, recipe : any, block : any, ct : RecipeWindow) {
 
         super(x, y, w, h, id, title, text)
 
@@ -49,12 +51,13 @@ export class RecipeSlot extends Window {
                 break
             }
         }
+        ct.craft_window.onInventoryChange('autoRecipe')
     }
 
     canMake(recipe) {
         // TODO: Mayby need to replace Qubatch.player.inventory to this.ct?
         return Qubatch.player.inventory.hasResources(recipe.need_resources,
-            this.ct.craft_window.getCraftSlotItemsArray()).missing.length == 0
+            this.ct.craft_window.craft.slots.length).missing.length == 0
     }
 
     update() {
@@ -66,7 +69,7 @@ export class RecipeSlot extends Window {
             }
         }
         if(this.can_make) {
-            let craft_area_size = this.parent.craft_window.area.size;
+            let craft_area_size = this.parent.craft_window.craft_area.size;
             this.can_make = this.recipe.size.width <= craft_area_size.width &&
                             this.recipe.size.height <= craft_area_size.height;
         }
@@ -86,6 +89,7 @@ export class RecipeWindow extends BlankWindow {
     cell_size : float
     slots_x : float
     slots_y : float
+    craft_window? : BaseCraftWindow
 
     constructor(recipe_manager : RecipeManager, id : string = 'frmRecipe') {
 
@@ -147,7 +151,7 @@ export class RecipeWindow extends BlankWindow {
     }
 
     // Запоминаем какое окно вызвало окно рецептов
-    assignCraftWindow(w) {
+    assignCraftWindow(w: BaseCraftWindow): void {
         this.craft_window = w;
     }
     
@@ -244,8 +248,6 @@ export class RecipeWindow extends BlankWindow {
             return
         }
 
-        this.craft_window.setHelperSlots(null)
-
         if(this.recipes) {
             for(let i = this.recipes.length - 1; i >= 0; i--) {
                 this.removeChild(this.recipes[i])
@@ -256,7 +258,7 @@ export class RecipeWindow extends BlankWindow {
             for(const recipe of [recipes, ...recipes.subrecipes]) {
                 // TODO: Mayby need to replace Qubatch.player.inventory to ct?
                 if(Qubatch.player.inventory.hasResources(recipe.need_resources,
-                    this.craft_window.getCraftSlotItemsArray()).missing.length == 0
+                    this.craft_window.craft.slots.length).missing.length == 0
                 ) {
                     return true
                 }
@@ -274,7 +276,7 @@ export class RecipeWindow extends BlankWindow {
         const list          = this.recipe_manager.crafting_shaped.grouped;
         const min_index     = this.paginator.page * this.items_per_page;
         const max_index     = min_index + this.items_per_page;
-        const size          = this.craft_window.area.size.width;
+        const size          = this.craft_window.craft_area.size.width;
         const filter_text   = (this.filter_text) ? this.filter_text.toUpperCase().replaceAll('_', ' ').replace(/\s\s+/g, ' ') : null;
 
         this.recipes        = []

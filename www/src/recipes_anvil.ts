@@ -32,12 +32,17 @@ const REPAIR_BY_MATERIALS = {
 export type TUsedAnvilRecipe = {
     recipe_id       : string
     used_items_keys : string[]
-    count           : int[]
-    label           : string | null | false // if (label === false), it's not being changed
+    count           : [int, int]
+    /**
+     * Имя, кторое возможно будет установлено предмету. Специальные значения:
+     * - null - удалить имя
+     * - {@link ItemHelpers.LABEL_NO_CHANGE} - не менятяь
+     */
+    label           : string | null
 }
 
 type TAnvilGetResultFn = (first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-                label: string | null | false, outUsedCount: [int, int]) => IInventoryItem | null
+                label: string | null, outUsedCount: [int, int]) => IInventoryItem | null
 
 export type TAnvilRecipe = {
     id: string
@@ -50,9 +55,9 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
     constructor() {
         this.addRecipe('rename',
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-                     label: string | null | false, outUsedCount: [int, int]): IInventoryItem | null
+                     label: string | null, outUsedCount: [int, int]): IInventoryItem | null
             {
-                if (first_item == null || second_item != null || label === false) {
+                if (first_item == null || second_item != null || label === ItemHelpers.LABEL_NO_CHANGE) {
                     return null;
                 }
                 if (label !== null) {
@@ -71,7 +76,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
 
         this.addRecipe('repair', // repair by ingredients; repair by combining is 'combine'
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-                     label: string | null | false, outUsedCount: [int, int]): IInventoryItem | null
+                     label: string | null, outUsedCount: [int, int]): IInventoryItem | null
             {
                 if (first_item == null || second_item == null) {
                     return null;
@@ -82,7 +87,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                 if (!power || !maxPower || power >= maxPower) {
                     return null;
                 }
-                if (label !== false && label !== null) {
+                if (label !== ItemHelpers.LABEL_NO_CHANGE && label !== null) {
                     label = ItemHelpers.validateAndPreprocessLabel(label);
                 }
                 // find the expected repair ingredients
@@ -119,7 +124,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                 const result = ObjectHelpers.deepClone(first_item);
                 result.count = 1;
                 result.power = Math.min(maxPower, power + powerIncrement);
-                if (label !== false) {
+                if (label !== ItemHelpers.LABEL_NO_CHANGE) {
                     ItemHelpers.setLabel(result, label);
                 }
                 ItemHelpers.incrementExtraDataField(result, 'age', 1);
@@ -130,7 +135,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
         // combines an item with the same item or a book, merges enchantments
         this.addRecipe('combine',
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-                     label: string | null | false, outUsedCount: [int, int]): IInventoryItem | null
+                     label: string | null, outUsedCount: [int, int]): IInventoryItem | null
             {
                 if (first_item == null || second_item == null) {
                     return null;
@@ -140,7 +145,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                 if (second_item.id !== BLOCK.ENCHANTED_BOOK.id && second_item.id !== first_item.id) {
                     return null;
                 }
-                if (label !== false && label !== null) {
+                if (label !== ItemHelpers.LABEL_NO_CHANGE && label !== null) {
                     label = ItemHelpers.validateAndPreprocessLabel(label);
                 }
                 const result = ObjectHelpers.deepClone(first_item);
@@ -201,7 +206,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                 outUsedCount[1] = 1;
                 
                 result.count = 1;
-                if (label !== false) {
+                if (label !== ItemHelpers.LABEL_NO_CHANGE) {
                     ItemHelpers.setLabel(result, label);
                 }
                 ItemHelpers.incrementExtraDataField(result, 'age', 1);
@@ -226,7 +231,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
      * arguments, and the resulting item. If no recipe is applicable, returns null.
      */
     findRecipeAndResult(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-        label: string | null | false, outUsedCount: [int, int]
+        label: string | null, outUsedCount: [int, int]
     ): { recipe: TAnvilRecipe, result: IInventoryItem } | null {
         for(const recipe of this.recipes.values()) {
             try {

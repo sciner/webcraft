@@ -1,9 +1,10 @@
 import { CD_ROT } from "@client/core/CubeSym.js";
 import { Vector } from "@client/helpers.js";
 import { InventoryComparator } from "@client/inventory_comparator.js";
-import { ServerClient } from "@client/server_client.js";
 import { TBlock } from "@client/typed_blocks3.js";
 import type { TickingBlockManager } from "../server_chunk.js";
+import type {ServerWorld} from "../server_world.js";
+import type {ServerChunk} from "../server_chunk.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({ length: 6 }, _ => new TBlock(null, new Vector(0, 0, 0)))
@@ -13,7 +14,7 @@ export default class Ticker {
     static type = 'hopper'
 
     //
-    static func(this: TickingBlockManager, tick_number, world, chunk, v) {
+    static func(this: TickingBlockManager, tick_number: int, world: ServerWorld, chunk: ServerChunk, v) {
         if ((tick_number % 8) != 0) {
             return
         }
@@ -21,7 +22,6 @@ export default class Ticker {
         const tblock = v.tblock
         const neighbours = tblock.getNeighbours(world, BLOCK_CACHE)
         const cd = tblock.getCardinalDirection()
-        const updated = []
 
         const isFullHopper = (item) => {
             const max_stack = bm.getItemMaxStack(item)
@@ -37,14 +37,12 @@ export default class Ticker {
             const max_stack = bm.getItemMaxStack(item)
             if (InventoryComparator.itemsEqualExceptCount(block?.extra_data?.slots[i], item) && block.extra_data.slots[i].count < max_stack) {
                 block.extra_data.slots[i].count++
-                updated.push({ pos: block.posworld, item: block.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
-                world.chests.sendChestToPlayers(block, null)
+                world.saveSendExtraData(block)
                 return true
             }
             if (!block.extra_data.slots[i]) {
                 block.extra_data.slots[i] = { id: item.id, count: 1 }
-                updated.push({ pos: block.posworld, item: block.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
-                world.chests.sendChestToPlayers(block, null)
+                world.saveSendExtraData(block)
                 return true
             }
             return false
@@ -56,16 +54,14 @@ export default class Ticker {
             for (let i = 0; i < count; i++) {
                 if (InventoryComparator.itemsEqualExceptCount(block?.extra_data?.slots[i], item) && block.extra_data.slots[i].count < max_stack) {
                     block.extra_data.slots[i].count++
-                    updated.push({ pos: block.posworld, item: block.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
-                    world.chests.sendChestToPlayers(block, null)
+                    world.saveSendExtraData(block)
                     return true
                 }
             }
             for (let i = 0; i < count; i++) {
                 if (!block.extra_data.slots[i]) {
                     block.extra_data.slots[i] = {id: item.id, count: 1}
-                    updated.push({ pos: block.posworld, item: block.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
-                    world.chests.sendChestToPlayers(block, null)
+                    world.saveSendExtraData(block)
                     return true
                 }
             }
@@ -166,10 +162,9 @@ export default class Ticker {
                 tblock.extra_data.slots[i].count--
                 if (tblock.extra_data.slots[i].count <= 0) {
                     delete(tblock.extra_data.slots[i])
-                } 
-                updated.push({ pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY })
-                world.chests.sendChestToPlayers(tblock, null)
-                return updated
+                }
+                world.saveSendExtraData(tblock)
+                return null
             }
         }
 
@@ -180,8 +175,8 @@ export default class Ticker {
                 if (neighbours.UP.extra_data.slots[2].count <= 0) {
                     delete (neighbours.UP.extra_data.slots[2])
                 }
-                world.chests.sendChestToPlayers(neighbours.UP, null)
-                return updated
+                world.saveSendExtraData(neighbours.UP)
+                return null
             }
         }
 
@@ -193,13 +188,12 @@ export default class Ticker {
                     if (neighbours.UP.extra_data.slots[i].count <= 0) {
                         delete(neighbours.UP.extra_data.slots[i])
                     }
-                    world.chests.sendChestToPlayers(neighbours.UP, null)
-                    return updated
+                    world.saveSendExtraData(neighbours.UP)
                 }
             }
         }
 
-        return updated
+        return null
     }
 
 }
