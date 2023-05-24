@@ -239,8 +239,8 @@ export abstract class Inventory {
         if(!Array.isArray(items)) {
             throw 'error_items_must_be_array';
         }
-        if(items.length != this.count) {
-            throw 'error_items_invalid_count|' + `${items.length} != ${this.count}`;
+        if(items.length != this.items.length) {
+            throw 'error_items_invalid_count|' + `${items.length} != ${this.items.length}`;
         }
         const new_items = [];
         for(let i in items) {
