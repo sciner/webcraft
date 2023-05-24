@@ -1,6 +1,6 @@
 import { ArrayHelpers, ObjectHelpers, Vector } from "../helpers.js";
 import {Button, Label} from "../ui/wm.js";
-import {TableDataSlot, TableSlot} from "./base_craft_window.js";
+import {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
 import {BAG_LINE_COUNT, CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_LINE_COUNT, DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MAX_DIRTY_INVENTORY_DURATION, UI_THEME} from "../constant.js";
 import {ChestHelpers, isBlockRoughlyWithinPickatRange, TChestInfo} from "../block_helpers.js"
@@ -22,7 +22,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
 
     /** Слоты сундука, или объединение двух сундуков */
     chest: {
-        slots: TableDataSlot[]
+        slots: CraftTableInventorySlot[]
         collection: ItemsCollection
     }
 
@@ -214,8 +214,8 @@ export class BaseChestWindow extends BaseInventoryWindow {
         const self = this
 
         // Remembers two affected slots before a user action is executed.
-        function updateLastChangeSlots(craftSlot: TableDataSlot) {
-            const lastChange = craftSlot.parent.lastChange;
+        function updateLastChangeSlots(craftSlot: CraftTableInventorySlot) {
+            const lastChange = craftSlot.ct.lastChange;
             lastChange.type = CHEST_CHANGE.SLOTS;
             lastChange.slotIndex = craftSlot.slot_index
             lastChange.slotInChest = craftSlot.slot_source != null
@@ -483,7 +483,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
                 disableIfLoading: true,
                 onMouseEnterBackgroundColor: '#ffffff33'
             };
-            const lblSlot = new TableDataSlot(info.pos.x, info.pos.y, info.size ?? sz, info.size ?? sz,
+            const lblSlot = new CraftTableInventorySlot(info.pos.x, info.pos.y, info.size ?? sz, info.size ?? sz,
                 `lblCraftChestSlot${i}`, null, null, this, i, items, options)
             this.chest.slots.push(lblSlot)
             this.chest.collection.items.push(null)
@@ -491,7 +491,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
         }
     }
 
-    getCraftOrChestSlots(): TableSlot[] {
+    getCraftOrChestSlots(): CraftTableSlot[] {
         return this.chest.slots;
     }
 

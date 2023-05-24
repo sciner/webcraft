@@ -3,7 +3,7 @@ import {Inventory, TInventoryState, TInventoryStateChangeParams} from "./invento
 import {INVENTORY_DRAG_SLOT_INDEX, INVENTORY_SLOT_COUNT, PAPERDOLL_END, PAPERDOLL_MIN_INDEX} from "./constant.js";
 import type {WindowManager, Pointer} from "./vendors/wm/wm.js";
 import type {HUD} from "./hud.js";
-import type {TableSlot} from "./window/base_craft_window.js";
+import type {CraftTableSlot} from "./window/base_craft_window.js";
 import {InventoryComparator} from "./inventory_comparator.js";
 import {ObjectHelpers} from "./helpers/object_helpers.js";
 import type {Player} from "./player.js";
@@ -21,7 +21,7 @@ export class PlayerInventory extends Inventory {
     recipesLoadPromise = this.recipes.load()
     private _update_number  = 0 // используется хотбаром чтобы понять изменился ли инвентарь
     /** Все слоты, ссылающиеся на инвентарь, во всех окнах (кроме хотабара). */
-    private inventory_ui_slots: TableSlot[] = []
+    private inventory_ui_slots: CraftTableSlot[] = []
 
     /**
      * Копии предметов глубиной 1 (со своим count, но общими полями внтури extra_data),
@@ -49,7 +49,7 @@ export class PlayerInventory extends Inventory {
         return this._update_number
     }
 
-    addInventorySlot(slot: TableSlot): void {
+    addInventorySlot(slot: CraftTableSlot): void {
         if (!slot.isInventorySlot()) {
             throw new Error()
         }
@@ -152,7 +152,7 @@ export class PlayerInventory extends Inventory {
     }
 
     /** Устанавливает перетаскиваемый предмет и визуально, и в инвентаре. */
-    setDragItem(slot: TableSlot, item: IInventoryItem | null): void {
+    setDragItem(slot: CraftTableSlot, item: IInventoryItem | null): void {
         this.items[INVENTORY_DRAG_SLOT_INDEX] = item
         if(item) {
             this.drag.setItem(item, slot)
@@ -206,18 +206,16 @@ export class PlayerInventory extends Inventory {
      *   см. обработчик {@link ServerClient.CMD_DROP_ITEM_PICKUP}
      */
     canPickup(items: (IInventoryItem | IBlockItem)[]) : boolean {
-        const hasDrag = this.items[INVENTORY_DRAG_SLOT_INDEX] != null
+        // если открыто любое окно инвентаря - не поднимать. Иначе сложная обработка ситуаций с появлением/исчезновением места
+        for(const window of this.player.world.game.hud.wm.visibleWindows()) {
+            if (window.inventory_slots) { // если это любое окно инвентаря
+                return false
+            }
+        }
+
         for (const item of items) {
             const max_stack = this.block_manager.getItemMaxStack(item)
             let count = item.count
-
-            // Допустим, инвентарь был полон, а мы только что взяли из него предмет и держим его мышью.
-            // Место осободилось, но сервер об этом не знает, и если мы поднимем с земли, может быть некуда
-            // деть драг слот. Чтобы этого избежать, проверяем что есть дополнительный свободный стек.
-            if (hasDrag) {
-                count += max_stack
-            }
-
             for (const i of this.getSize().bagIndices()) {
                 const exItem = this.items[i]
                 if (!exItem) {

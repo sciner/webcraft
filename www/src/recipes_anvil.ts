@@ -32,7 +32,7 @@ const REPAIR_BY_MATERIALS = {
 export type TUsedAnvilRecipe = {
     recipe_id       : string
     used_items_keys : string[]
-    count           : [int, int]
+    count           : int[]     // 1 или 2 элемента
     /**
      * Имя, кторое возможно будет установлено предмету. Специальные значения:
      * - null - удалить имя
@@ -42,7 +42,7 @@ export type TUsedAnvilRecipe = {
 }
 
 type TAnvilGetResultFn = (first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-                label: string | null, outUsedCount: [int, int]) => IInventoryItem | null
+                label: string | null, outUsedCount: int[]) => IInventoryItem | null
 
 export type TAnvilRecipe = {
     id: string
@@ -55,7 +55,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
     constructor() {
         this.addRecipe('rename',
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-                     label: string | null, outUsedCount: [int, int]): IInventoryItem | null
+                     label: string | null, outUsedCount: int[]): IInventoryItem | null
             {
                 if (first_item == null || second_item != null || label === ItemHelpers.LABEL_NO_CHANGE) {
                     return null;
@@ -76,7 +76,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
 
         this.addRecipe('repair', // repair by ingredients; repair by combining is 'combine'
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-                     label: string | null, outUsedCount: [int, int]): IInventoryItem | null
+                     label: string | null, outUsedCount: int[]): IInventoryItem | null
             {
                 if (first_item == null || second_item == null) {
                     return null;
@@ -135,7 +135,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
         // combines an item with the same item or a book, merges enchantments
         this.addRecipe('combine',
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-                     label: string | null, outUsedCount: [int, int]): IInventoryItem | null
+                     label: string | null, outUsedCount: int[]): IInventoryItem | null
             {
                 if (first_item == null || second_item == null) {
                     return null;
@@ -231,7 +231,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
      * arguments, and the resulting item. If no recipe is applicable, returns null.
      */
     findRecipeAndResult(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-        label: string | null, outUsedCount: [int, int]
+        label: string | null, outUsedCount: int[],
     ): { recipe: TAnvilRecipe, result: IInventoryItem } | null {
         for(const recipe of this.recipes.values()) {
             try {
@@ -250,7 +250,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
      * @throws if it's impossible
      */
     applyUsedRecipe(used_recipe: TUsedAnvilRecipe, recipe: TAnvilRecipe, used_items: IInventoryItem[]): IInventoryItem {
-        const outUsedCount: [int, int] = [0, 0];
+        const outUsedCount: int[] = [0]
         const result = recipe.getResult(used_items[0], used_items[1], used_recipe.label, outUsedCount);
         if (outUsedCount[0] != used_items[0]?.count || outUsedCount[1] != used_items[1]?.count) {
             throw 'error_recipe_does_not_match_used_items_count';

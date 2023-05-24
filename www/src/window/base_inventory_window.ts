@@ -5,7 +5,7 @@ import type {PlayerInventory} from "../player_inventory.js";
 import type {Pointer, TMouseEvent} from "../vendors/wm/wm.js";
 import type {World} from "../world.js";
 import type {ServerClient} from "../server_client.js";
-import {TableDataSlot, TableSlot} from "./base_craft_window.js";
+import {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
 import {Button, Label, Window} from "../ui/wm.js";
 import {Resources} from "../resources.js";
 import type {TInventoryStateChangeParams} from "../inventory.js";
@@ -19,17 +19,17 @@ export abstract class BaseAnyInventoryWindow extends BlankWindow {
 
     world           : World
     inventory       : PlayerInventory
-    inventory_slots : TableDataSlot[] = [] // Все слоты инвентаря в данном окне
-    bag_slots       : TableDataSlot[] = [] // Подмножество слотов хотбара и рюкзака
+    inventory_slots : CraftTableInventorySlot[] = [] // Все слоты инвентаря в данном окне (включая крафт!)
+    bag_slots       : CraftTableInventorySlot[] = [] // Подмножество слотов хотбара и рюкзака
 
     cell_size       : number
     slot_margin     : number
     slots_x         : number
     slots_y         : number
 
-    add(w : Window): void {
-        super.add(w)
-        if (w instanceof TableDataSlot && w.isInventorySlot()) {
+    add(w : Window) {
+        const res = super.add(w)
+        if (w instanceof CraftTableInventorySlot && w.isInventorySlot()) {
             if (this.inventory_slots.find(it => it.slot_index === w.slot_index)) {
                 throw `inventory slot already created ${w.slot_index}`
             }
@@ -38,6 +38,7 @@ export abstract class BaseAnyInventoryWindow extends BlankWindow {
                 this.bag_slots.push(w)
             }
         }
+        return res
     }
 
     /** Убирает из drag слота и возвращает предмет, выброшенный за пределы окна. */
@@ -68,7 +69,7 @@ export abstract class BaseAnyInventoryWindow extends BlankWindow {
     abstract onDropOutside(e: TMouseEvent): boolean
 
     /** @return craft or chest slots (i.e. any slots except inventory), if they exist */
-    getCraftOrChestSlots(): TableSlot[] {
+    getCraftOrChestSlots(): CraftTableSlot[] {
         return ArrayHelpers.EMPTY   // override in subclasses
     }
 
@@ -210,7 +211,7 @@ export abstract class BaseInventoryWindow extends BaseAnyInventoryWindow {
 
         //
         const createSlot = (x : float, y : float) => {
-            const lblSlot = new TableDataSlot(x, y, sz, sz,
+            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz,
                 `lblSlot${index}`, null, null, this,
                 index)
             this.add(lblSlot);

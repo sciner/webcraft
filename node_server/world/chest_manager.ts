@@ -521,7 +521,7 @@ export class WorldChestManager {
             return resultFlags;
         }
 
-        // Должно давать такой же резулльтат, как TableDataSlot.appendToList
+        // Должно давать такой же резулльтат, как CraftTableInventorySlot.appendToList
         if (change.type === CHEST_CHANGE.SHIFT_SPREAD) {
             if (!prevCliSlot) {
                 return 0; // incorrect change

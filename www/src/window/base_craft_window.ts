@@ -71,19 +71,15 @@ export class HelpSlot extends Label {
 
 }
 
-export type TTableSlotContext = BaseAnyInventoryWindow | Hotbar
+export type TCraftTableSlotContext = BaseAnyInventoryWindow | Hotbar
 
 /**
  * Базовый класс для почти любого слота в игре, кроме {@link Pointer}.
- *
- * Ранее назывался CraftTableSlot - но это название путает, т.к. в большинстве случаев не имеет отношения к крафту.
- *
- * Смысл имени: "табличный слот", т.е. слот из какой-то таблицы слотов (на форме).
+ * Несмотря на Craft в имени, не имеет прямого отношения к крафту.
  */
-export class TableSlot extends SimpleBlockSlot {
+export class CraftTableSlot extends SimpleBlockSlot {
 
-    declare parent: TTableSlotContext
-    ct: TTableSlotContext
+    ct: TCraftTableSlotContext
 
     /**
      * Индекс этго слота в {@link slot_source}.
@@ -101,7 +97,7 @@ export class TableSlot extends SimpleBlockSlot {
      *  Имеет значение тоолько если {@link slot_index} задан. По умолчанию - инвентарь.
      */
     constructor(x: float, y: float, w: float, h: float,
-                id: string, title: string, text: string, ct: TTableSlotContext,
+                id: string, title: string, text: string, ct: TCraftTableSlotContext,
                 slot_index?: int | null, slot_source?: (IInventoryItem | null)[] | null
     ) {
         super(x, y, w, h, id, null, '')
@@ -277,13 +273,13 @@ export class TableSlot extends SimpleBlockSlot {
         drag.setItem(dropItem)
         player.inventory.items[INVENTORY_DRAG_SLOT_INDEX] = dropItem
 
-        this.ct.fixAndValidateSlots('TableSlot dropIncrementOrSwap')
+        this.ct.fixAndValidateSlots('CraftTableSlot dropIncrementOrSwap')
     }
 
 }
 
 //
-export class CraftTableResultSlot extends TableSlot {
+export class CraftTableResultSlot extends CraftTableSlot {
 
     slot_empty      = 'window_slot_locked'
     used_recipes    : TUsedCraftingRecipe[] = []
@@ -392,19 +388,17 @@ export class CraftTableResultSlot extends TableSlot {
 
 /**
  * Любой слот, ссыоающийся на реальные данные (в инвентаре или сундуке).
+ * Несмотря на слова Craft и Inventory в названии, не обзательно относится к крафту или инвентарю.
  *
- * Ранее назывался CraftTableInventorySlot, но это название запутывает, т.к. этот слот может
- * не иметь отношения ни к крафту (просто в инвентаре), ни к инвентарю (слот сундука).
- *
- * Другие подклассы {@link TableSlot} не содержат реальных предметов.
+ * Другие подклассы {@link CraftTableSlot} не содержат реальных предметов.
  */
-export class TableDataSlot extends TableSlot {
+export class CraftTableInventorySlot extends CraftTableSlot {
 
     prev_mousedown_time = -Infinity
     prev_mousedown_button: int
 
     constructor(x : float, y : float, w : float, h : float,
-                id : string, title : string, text : string, ct : TTableSlotContext,
+                id : string, title : string, text : string, ct : TCraftTableSlotContext,
                 slot_index : int, slot_source?: (IInventoryItem | null)[] | null, options: Dict | null = null
     ) {
 
@@ -446,7 +440,7 @@ export class TableDataSlot extends TableSlot {
                         let need_count = max_stack_count - dropItem.count
                         const list: {chest: int, index: int, item: IInventoryItem}[] = [];
                         // проверить крафт слоты или слоты сундука
-                        const craftSlots: TableSlot[] = this.parent.getCraftOrChestSlots()
+                        const craftSlots: CraftTableSlot[] = this.parent.getCraftOrChestSlots()
                         for(let i = 0; i < craftSlots.length; i++) {
                             const item = craftSlots[i]?.item
                             if (InventoryComparator.itemsEqualExceptCount(item, dropItem)) {
@@ -491,13 +485,13 @@ export class TableDataSlot extends TableSlot {
                                 this.parent.lastChange.type = CHEST_CHANGE.MERGE_SMALL_STACKS;
                             }
                         }
-                        this.ct.onInventoryChange('TableDataSlot onDrop doubleClick')
+                        this.ct.onInventoryChange('CraftTableInventorySlot onDrop doubleClick')
                         return
                     }
                 }
 
                 this.dropIncrementOrSwap(e)
-                this.ct.onInventoryChange('TableDataSlot onDrop')
+                this.ct.onInventoryChange('CraftTableInventorySlot onDrop')
             }
 
         }
@@ -545,11 +539,11 @@ export class TableDataSlot extends TableSlot {
             dragItem.count = split_count;
             targetItem.count -= split_count;
             this.setItem(targetItem);
-            this.ct.fixAndValidateSlots('TableDataSlot right button')
+            this.ct.fixAndValidateSlots('CraftTableInventorySlot right button')
         } else {
             if(e.shiftKey) {
                 const parent = this.parent as BaseCraftWindow
-                switch(this.parent.id) {
+                switch(parent.id) {
                     case 'frmCharacterWindow':
                     case 'frmInventory': {
                         const {bagEnd, hotbar} = this.getInventory().getSize()
@@ -562,7 +556,7 @@ export class TableDataSlot extends TableSlot {
                             this.appendToList(targetItem, targetList)
                         }
                         this.setItem(targetItem)
-                        this.ct.fixAndValidateSlots('TableDataSlot shiftKey frmInventory')
+                        this.ct.fixAndValidateSlots('CraftTableInventorySlot shiftKey frmInventory')
                         break;
                     }
                     case 'frmAnvil':
@@ -585,14 +579,14 @@ export class TableDataSlot extends TableSlot {
                         if (parent.lastChange) { // для сундуков - запомнить этот тип изменения
                             parent.lastChange.type = CHEST_CHANGE.SHIFT_SPREAD
                         }
-                        this.ct.fixAndValidateSlots('TableDataSlot CHEST_CHANGE.SHIFT_SPREAD')
+                        this.ct.fixAndValidateSlots('CraftTableInventorySlot CHEST_CHANGE.SHIFT_SPREAD')
                         break
                     }
                     default: {
                         console.log('this.parent.id', this.untypedParent.id)
                     }
                 }
-                this.ct.onInventoryChange('TableDataSlot onMouseDown shiftKey')
+                this.ct.onInventoryChange('CraftTableInventorySlot onMouseDown shiftKey')
                 return
             }
             dragItem = targetItem
@@ -601,7 +595,7 @@ export class TableDataSlot extends TableSlot {
         this.getInventory().setDragItem(this, dragItem)
         this.prev_mousedown_time = performance.now()
         this.prev_mousedown_button = e.button_id
-        this.ct.onInventoryChange('TableDataSlot onMouseDown')
+        this.ct.onInventoryChange('CraftTableInventorySlot onMouseDown')
     }
 
     get readonly() {
@@ -613,7 +607,7 @@ export class TableDataSlot extends TableSlot {
      * @param srcItem Исходный слот для перемещения
      * @param target_list Итоговый список слотов, куда нужно переместить исходный слот
      */
-    appendToSpecialList(srcItem: IInventoryItem, target_list: TableDataSlot[]): boolean {
+    appendToSpecialList(srcItem: IInventoryItem, target_list: CraftTableInventorySlot[]): boolean {
         const srcBlock = BLOCK.fromId(srcItem.id)
         // 0. Поиск специализированных слотов брони
         for(let slot of target_list) {
@@ -635,7 +629,7 @@ export class TableDataSlot extends TableSlot {
      * @param {*} srcItem Исходный слот для перемещения
      * @param {*} target_list Итоговый  список слотов, куда нужно переместить исходный слот
      */
-    appendToList(srcItem: IInventoryItem, target_list: TableSlot[]) {
+    appendToList(srcItem: IInventoryItem, target_list: CraftTableSlot[]) {
         if (srcItem.count === 0) {
             return
         }
@@ -673,7 +667,7 @@ export class TableDataSlot extends TableSlot {
 
 }
 
-export class PaperDollSlot extends TableDataSlot {
+export class PaperDollSlot extends CraftTableInventorySlot {
 
     get untypedParent(): BaseCraftWindow {
         return this.parent as any;
@@ -735,13 +729,7 @@ export class PaperDollSlot extends TableDataSlot {
             inventory.moveFromSlots(false, inventory.getSize().invalidIndices())
         }
 
-        /* Отправить изменениие на сервер по двум причинам:
-        1. Обновить броню.
-        2. Только для пояса и рюкзака: если мы положили предмет, увеличивший число слотов, то возможно
-          клиент начнет слать серверу CMD_DROP_ITEM_PICKUP на предметы, которые он теперь может поднять.
-          Но у сервера все еще старый размер инвентаря и он не может поднять предмет, это приводит к странностям.
-          Чтобы сразу начать поднимать, нужно отправить состояние.
-        */
+        // Отправить изменениие на сервер чтобы обновить броню
         this.ct.sendInventory({ allow_temporary: true })
     }
 
@@ -758,7 +746,7 @@ export class PaperDollSlot extends TableDataSlot {
 export class BaseCraftWindow extends BaseInventoryWindow {
 
     lblResultSlot ? : CraftTableResultSlot | AnvilResultSlot
-    craft ?         : { slots: TableSlot[] }
+    craft ?         : { slots: CraftTableSlot[] }
     craft_area?: {
         size: {
             width: int
@@ -785,7 +773,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
         for(let i = 0; i < this.craft.slots.length; i++) {
             const x = x0 + (i % countX) * step
             const y = y0 + Math.floor(i / countX) * step
-            const lblSlot = new TableDataSlot(x, y, size, size,
+            const lblSlot = new CraftTableInventorySlot(x, y, size, size,
                 'lblCraftRecipeSlot' + i, null, null, this,
                 INVENTORY_CRAFT_INDEX_MIN + i, null, options)
             this.craft.slots[i] = lblSlot
@@ -811,7 +799,7 @@ export class BaseCraftWindow extends BaseInventoryWindow {
 
     }
 
-    getCraftOrChestSlots(): TableSlot[] {
+    getCraftOrChestSlots(): CraftTableSlot[] {
         return this.craft?.slots ?? []
     }
 

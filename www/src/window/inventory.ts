@@ -97,7 +97,7 @@ export class InventoryWindow extends BaseCraftWindow {
         if(!this.frmInventoryRecipe) {
             const form = this.inventory.player.windows.frmInventoryRecipe
             form.style.background.image = null
-            form.parent.delete(form.id)
+            form.untypedParent.delete(form.id)
             form.x = UI_THEME.window_padding * this.zoom
             form.y = 95 * this.zoom
             this.frmInventoryRecipe = form

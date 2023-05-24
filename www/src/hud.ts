@@ -219,7 +219,7 @@ export class HUD {
     [key: string]: any;
 
     FPS = new FPSCounter()
-    private _active:        boolean = true
+    active:                 boolean = true
     draw_info:              boolean = DRAW_HUD_INFO_DEFAULT
     draw_block_info:        boolean = !isMobileBrowser()
     wm:                     WindowManager
@@ -270,7 +270,7 @@ export class HUD {
     }
 
     isDrawingBlockInfo() {
-        return this._active && this.draw_info && this.draw_block_info;
+        return this.active && this.draw_info && this.draw_block_info;
     }
 
     get zoom() : float {
@@ -291,11 +291,14 @@ export class HUD {
 
     //
     toggleActive() : void {
-        this._active = !this._active;
+        this.active = !this.active;
         this.refresh();
     }
 
-    get active(): boolean { return this._active }
+    //
+    isActive(): boolean {
+        return this.active
+    }
 
     draw(force : boolean = false) {
 
@@ -338,12 +341,10 @@ export class HUD {
             }
         }
 
-        if(this._active) {
-            // Draw game technical info
-            this.drawInfo()
-            this.drawAverageFPS()
-            this.drawCompas(this.wm.w / 2, 20 * this.zoom, 1850/4 * this.zoom, 80/4 * this.zoom)
-        }
+        // Draw game technical info
+        this.drawInfo()
+        this.drawAverageFPS()
+        this.drawCompas(this.wm.w / 2, 20 * this.zoom, 1850/4 * this.zoom, 80/4 * this.zoom)
 
         // Draw windows
         if(this.wm.hasVisibleWindow()) {
@@ -402,7 +403,7 @@ export class HUD {
 
         this.text = '';
 
-        if (!this._active) { // если HUD не виден - не вычисялть этот огромный текст
+        if (!this.active) { // если HUD не виден - не вычисялть этот огромный текст
             return false
         }
 

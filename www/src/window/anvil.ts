@@ -2,7 +2,7 @@ import { ItemHelpers } from "../block_helpers.js";
 import { Label, TextEdit } from "../ui/wm.js";
 import {BAG_LINE_COUNT, INVENTORY_CRAFT_INDEX_MIN, ITEM_LABEL_MAX_LENGTH, UI_THEME} from "../constant.js";
 import {AnvilRecipeManager, TAnvilRecipe, TUsedAnvilRecipe} from "../recipes_anvil.js";
-import {TableSlot, BaseCraftWindow, TableDataSlot} from "./base_craft_window.js";
+import {CraftTableSlot, BaseCraftWindow, CraftTableInventorySlot} from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
 import type { PlayerInventory } from "../player_inventory.js";
@@ -10,7 +10,7 @@ import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH } from "../constant.js";
 import type {TInventoryStateChangeParams} from "../inventory.js";
 import type {TMouseEvent} from "../vendors/wm/wm.js";
 
-export class AnvilResultSlot extends TableSlot {
+export class AnvilResultSlot extends CraftTableSlot {
 
     declare ct: AnvilWindow
 
@@ -35,9 +35,9 @@ export class AnvilResultSlot extends TableSlot {
 export class AnvilWindow extends BaseCraftWindow {
 
     lbl_edit                    : TextEdit
-    first_slot                  : TableDataSlot
-    second_slot                 : TableDataSlot
-    oldFirstSlotLabel ?         : string // старая метка предмета из 1-го слота
+    first_slot                  : CraftTableInventorySlot
+    second_slot                 : CraftTableInventorySlot
+    oldFirstSlotLabel ?         : string | null // старая метка предмета из 1-го слота
     recipes                     = new AnvilRecipeManager()
     used_recipes                : TUsedAnvilRecipe[] = []
     current_recipe              : TAnvilRecipe | null = null
@@ -114,8 +114,8 @@ export class AnvilWindow extends BaseCraftWindow {
 
     private createAnvilCraft(cell_size: number) {
         const y = 91 + 27.5
-        this.first_slot = new TableDataSlot(52 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilFirstSlot', null, null, this, INVENTORY_CRAFT_INDEX_MIN);
-        this.second_slot = new TableDataSlot(158 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilSecondSlot', null, null, this, INVENTORY_CRAFT_INDEX_MIN + 1);
+        this.first_slot = new CraftTableInventorySlot(52 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilFirstSlot', null, null, this, INVENTORY_CRAFT_INDEX_MIN);
+        this.second_slot = new CraftTableInventorySlot(158 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilSecondSlot', null, null, this, INVENTORY_CRAFT_INDEX_MIN + 1);
         this.lblResultSlot = new AnvilResultSlot(266 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilResultSlot', null, null, this, null);
         this.add(this.first_slot);
         this.add(this.second_slot);
@@ -138,6 +138,7 @@ export class AnvilWindow extends BaseCraftWindow {
     updateResult() {
         const first_item = this.first_slot.getItem()
         if(!first_item) {
+            this.oldFirstSlotLabel = null
             if(this.lbl_edit.text != '') {
                 this.lbl_edit.text = ''
             }

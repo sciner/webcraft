@@ -96,7 +96,7 @@ export class CraftTable extends BaseCraftWindow {
         if(!this.frmRecipe) {
             const form = this.inventory.player.windows.frmRecipe
             form.style.background.image = null
-            form.parent.delete(form.id)
+            form.untypedParent.delete(form.id)
             form.x = UI_THEME.window_padding * this.zoom
             form.y = (140 + SHIFT_Y) * this.zoom
             this.frmRecipe = form

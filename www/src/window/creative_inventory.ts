@@ -1,5 +1,5 @@
 import { Button, Label, TextEdit, Window, Slider } from "../ui/wm.js";
-import {TableDataSlot} from "./base_craft_window.js";
+import {CraftTableInventorySlot} from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Enchantments } from "../enchantments.js";
 import { BLOCK_GROUP_TAG, INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, UI_THEME } from "../constant.js";
@@ -14,7 +14,7 @@ let tagsTranslationMap = {};
 
 class CreativeInventoryCollection extends Window {
 
-    slots : TableDataSlot[] = []
+    slots : CraftTableInventorySlot[] = []
     xcnt : int = 0
     ycnt : int = 13
 
@@ -215,7 +215,7 @@ class CreativeInventoryCollection extends Window {
 
             let lblSlot = this.slots[i]
             if(!lblSlot) {
-                lblSlot = this.slots[i] = new TableDataSlot(0, 0, sz, sz, 'lblCollectionSlot' + (i), null, null, this.parent as any, null)
+                lblSlot = this.slots[i] = new CraftTableInventorySlot(0, 0, sz, sz, 'lblCollectionSlot' + (i), null, null, this.parent as any, null)
                 lblSlot.style.border.style = 'inset'
                 lblSlot.style.border.shadow_color = '#00000000'
                 lblSlot.style.border.color = '#00000055'
@@ -443,7 +443,7 @@ export class CreativeInventoryWindow extends BaseAnyInventoryWindow {
         const xcnt        = 9
         const init_x      = (this.w / 2 - sx) - (xcnt * szm) / 2
         for(let i = 0; i < xcnt; i++) {
-            const lblSlot = new TableDataSlot(init_x + sx + (i % xcnt) * (szm), sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i)
+            const lblSlot = new CraftTableInventorySlot(init_x + sx + (i % xcnt) * (szm), sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i)
             this.add(lblSlot)
         }
     }
