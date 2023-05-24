@@ -121,7 +121,7 @@ export default class style {
 
         // flame animations
         if(typeof QubatchChunkWorker != 'undefined' && block.id == 50) {
-            QubatchChunkWorker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['create_block_emitter', {
                 block_pos:  block.posworld,
                 pos:        [torch_pos.addScalarSelf(.5, .5, .5)],
                 type:       'torch_flame'

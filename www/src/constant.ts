@@ -534,3 +534,10 @@ export enum PLAYER_STATUS {
     ALIVE           = 3,
     DELETED         = 4
 }
+
+export enum SIGN_POSITION {
+    WALL        = 0,
+    FLOOR       = 1,
+    CEIL        = -1,
+    WALL_ALT    = -2,
+}

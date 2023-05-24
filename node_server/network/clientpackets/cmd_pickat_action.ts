@@ -1,4 +1,4 @@
-import { ServerClient } from "@client/server_client.js";
+import { BLOCK_ACTION, ServerClient } from "@client/server_client.js";
 import { ActionPlayerInfo, doBlockAction } from "@client/world_action.js";
 import { Vector, VectorCollector } from "@client/helpers.js";
 import { MOUSE } from "@client/constant.js";
@@ -69,7 +69,7 @@ export default class packet_reader {
                         {
                             name: ServerClient.CMD_BLOCK_SET,
                             data: {
-                                action_id: ServerClient.BLOCK_ACTION_CREATE,
+                                action_id: BLOCK_ACTION.CREATE,
                                 pos,
                                 item: block.clonePOJO()
                             }
@@ -127,7 +127,7 @@ export default class packet_reader {
                         packets.push({
                             name: ServerClient.CMD_BLOCK_SET,
                             data: {
-                                action_id: ServerClient.BLOCK_ACTION_CREATE,
+                                action_id: BLOCK_ACTION.CREATE,
                                 pos,
                                 item
                             }

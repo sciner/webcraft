@@ -342,7 +342,7 @@ export class SchematicReader {
         // CAULDRON
         if(b.name == 'CAULDRON') {
             setExtraData('lava', block.name == 'lava_cauldron')
-            setExtraData('snow', block.name == 'snow_cauldron')
+            setExtraData('snow', block.name == 'powder_snow_cauldron')
             setExtraData('water', block.name == 'water_cauldron')
             setExtraData('level', 3)
         }
@@ -439,7 +439,8 @@ export class SchematicReader {
                         new_block.rotate.x = Math.round(props.rotation / 8 * 360) % 360
                     } else if(b.tags.includes('rotate_x16')) {
                         new_block.rotate.x = Math.round(props.rotation / 16 * 360) % 360
-                        setExtraData('rotation', props.rotation)
+                    } else if(b.tags.includes('rotate_sign')) {
+                        new_block.rotate.x = Math.round(props.rotation / 16 * 360) % 360
                     }
                 }
             }

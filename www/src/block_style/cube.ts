@@ -3,7 +3,7 @@
 import {DIRECTION, IndexedColor, QUAD_FLAGS, Vector, calcRotateMatrix, TX_CNT, FastRandom} from '../helpers.js';
 import { MAX_CHUNK_SQUARE} from "../chunk_const.js";
 import {CubeSym} from "../core/CubeSym.js";
-import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
+import { AABB, AABBSideParams, PLANES, pushAABB } from '../core/AABB.js';
 import { BlockStyleRegInfo, default as default_style, QuadPlane, TCalcSideParamsResult } from './default.js';
 import { BLOCK_FLAG, GRASS_PALETTE_OFFSET, LEAVES_TYPE } from '../constant.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
@@ -11,6 +11,7 @@ import { BLOCK, BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { World } from '../world.js';
+import {dxdydzIndex} from "../core/ChunkGrid.js";
 
 const {mat4} = glMatrix;
 
@@ -87,6 +88,14 @@ const UP_AXES = [
     [[0, -1, 0], [1, 0, 0]],
     [[1, 0, 0], [0, 1, 0]],
 ];
+
+const CONNECTED_SIDE_PARAMS = {}
+CONNECTED_SIDE_PARAMS[DIRECTION.NORTH]  = {axes: [[0, 0, -1], [-1, 0, 0]], u_mul: 1, v_mul: -1,  getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(x, z, y), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(x, z, y)}
+CONNECTED_SIDE_PARAMS[DIRECTION.WEST]   = {axes: PLANES.west.axes, u_mul: -1, v_mul: -1,         getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(y, x, z), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(0, x, z)}
+CONNECTED_SIDE_PARAMS[DIRECTION.SOUTH]  = {axes: [[0, 0, -1], [1, 0, 0]], u_mul: 1, v_mul: 1,    getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(x, z, y), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(x, z, 0)}
+CONNECTED_SIDE_PARAMS[DIRECTION.EAST]   = {axes: PLANES.east.axes, u_mul: -1, v_mul: 1,          getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(y, x, z), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(y, x, z)}
+CONNECTED_SIDE_PARAMS[DIRECTION.UP]     = {axes: [[0, -1, 0], [1, 0, 0]], u_mul: 1, v_mul: 1,    getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(x, y, z), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(x, y, z)}
+CONNECTED_SIDE_PARAMS[DIRECTION.DOWN]   = {axes: [[0, 1, 0], [1, 0, 0]], u_mul: -1, v_mul: 1,    getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(x, y, z), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(x, y - 1, z)}
 
 // Used for grass pseudo-random rotation
 const randoms = new FastRandom('random_dirt_rotations', MAX_CHUNK_SQUARE, 100, true)
@@ -335,7 +344,7 @@ export default class style {
     }
 
     static makeLeaves(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
-        
+
         const bm                    = style.block_manager
         const material              = block.material;
         const leaves_tex = bm.calcTexture(material.texture, 'round');
@@ -430,10 +439,10 @@ export default class style {
 
         let DIRECTION_UP            = DIRECTION.UP
         let DIRECTION_DOWN          = DIRECTION.DOWN
-        let DIRECTION_BACK          = DIRECTION.BACK
-        let DIRECTION_RIGHT         = DIRECTION.RIGHT
-        let DIRECTION_FORWARD       = DIRECTION.FORWARD
-        let DIRECTION_LEFT          = DIRECTION.LEFT
+        let DIRECTION_SOUTH         = DIRECTION.SOUTH
+        let DIRECTION_EAST          = DIRECTION.EAST
+        let DIRECTION_NORTH         = DIRECTION.NORTH
+        let DIRECTION_WEST          = DIRECTION.WEST
 
         if(material.is_simple_qube) {
 
@@ -495,10 +504,10 @@ export default class style {
 
                 if(rotate.x != 0 || rotate.y != 1 || rotate.z != 0) {
                     matrix = calcRotateMatrix(material, rotate, cardinal_direction, matrix);
-                    DIRECTION_BACK          = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
-                    DIRECTION_RIGHT         = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
-                    DIRECTION_FORWARD       = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
-                    DIRECTION_LEFT          = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
+                    DIRECTION_SOUTH     = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.SOUTH)
+                    DIRECTION_EAST      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.EAST)
+                    DIRECTION_NORTH     = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.NORTH)
+                    DIRECTION_WEST      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.WEST)
                     //
                     if (
                         CubeSym.matrices[cardinal_direction][4] <= 0 ||
@@ -511,10 +520,10 @@ export default class style {
                         canDrawNORTH = true;
                         canDrawWEST = true;
                         canDrawEAST = true;
-                        DIRECTION_BACK = DIRECTION.BACK;
-                        DIRECTION_RIGHT = DIRECTION.RIGHT;
-                        DIRECTION_FORWARD = DIRECTION.FORWARD;
-                        DIRECTION_LEFT = DIRECTION.LEFT;
+                        DIRECTION_SOUTH = DIRECTION.SOUTH;
+                        DIRECTION_EAST = DIRECTION.EAST;
+                        DIRECTION_NORTH = DIRECTION.NORTH;
+                        DIRECTION_WEST = DIRECTION.WEST;
                     }
                 }
             }
@@ -538,11 +547,11 @@ export default class style {
                 }
             }
             if(replace_all_sides_texture_with_down) {
-                DIRECTION_UP        = DIRECTION.DOWN
-                DIRECTION_BACK      = DIRECTION.DOWN
-                DIRECTION_RIGHT     = DIRECTION.DOWN
-                DIRECTION_FORWARD   = DIRECTION.DOWN
-                DIRECTION_LEFT      = DIRECTION.DOWN
+                DIRECTION_UP      = DIRECTION.DOWN
+                DIRECTION_SOUTH   = DIRECTION.DOWN
+                DIRECTION_EAST    = DIRECTION.DOWN
+                DIRECTION_NORTH   = DIRECTION.DOWN
+                DIRECTION_WEST    = DIRECTION.DOWN
                 flags = 0
                 sideFlags = 0
                 upFlags = 0
@@ -583,7 +592,7 @@ export default class style {
             const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'up', DIRECTION_UP, null, null);
             // connected_sides
             if(material.connected_sides) {
-                style.pushConnectedSides(bm, vertices, x, y, z, material, neighbours, t, lm, f, neibIDs)
+                style.pushConnectedSides(bm, vertices, x, y, z, material, neighbours, t, lm, f, neibIDs, DIRECTION_UP)
             } else {
                 sides.up = _sides.up.set(t, f, anim_frames, lm, axes_up, autoUV)
             }
@@ -625,23 +634,44 @@ export default class style {
         }
         if(canDrawDOWN) {
             const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'down', DIRECTION_DOWN, null, null);
-            sides.down = _sides.down.set(t, f, anim_frames, lm, axes_down, true);
+            if(material.connected_sides) {
+                style.pushConnectedSides(bm, vertices, x, y, z, material, neighbours, t, lm, f, neibIDs, DIRECTION_DOWN)
+            } else {
+                sides.down = _sides.down.set(t, f, anim_frames, lm, axes_down, true);
+            }
         }
         if(canDrawSOUTH) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'south', DIRECTION_BACK, width, height);
-            sides.south = _sides.south.set(t, f, anim_frames, lm, null, false);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'south', DIRECTION_SOUTH, width, height);
+            // connected_sides
+            if(material.connected_sides) {
+                style.pushConnectedSides(bm, vertices, x, y, z, material, neighbours, t, lm, f, neibIDs, DIRECTION_SOUTH)
+            } else {
+                sides.south = _sides.south.set(t, f, anim_frames, lm, null, false);
+            }
         }
         if(canDrawNORTH) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'north', DIRECTION_FORWARD, width, height);
-            sides.north = _sides.north.set(t, f, anim_frames, lm, null, false);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'north', DIRECTION_NORTH, width, height);
+            if(material.connected_sides) {
+                style.pushConnectedSides(bm, vertices, x, y, z, material, neighbours, t, lm, f, neibIDs, DIRECTION_NORTH)
+            } else {
+                sides.north = _sides.north.set(t, f, anim_frames, lm, null, false)
+            }
         }
         if(canDrawWEST) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'west', DIRECTION_LEFT, width, height);
-            sides.west = _sides.west.set(t,  f, anim_frames, lm, null, false);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'west', DIRECTION_WEST, width, height);
+            if(material.connected_sides) {
+                style.pushConnectedSides(bm, vertices, x, y, z, material, neighbours, t, lm, f, neibIDs, DIRECTION_WEST)
+            } else {
+                sides.west = _sides.west.set(t,  f, anim_frames, lm, null, false);
+            }
         }
         if(canDrawEAST) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'east', DIRECTION_RIGHT, width, height);
-            sides.east = _sides.east.set(t, f, anim_frames, lm, null, false);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'east', DIRECTION_EAST, width, height);
+            if(material.connected_sides) {
+                style.pushConnectedSides(bm, vertices, x, y, z, material, neighbours, t, lm, f, neibIDs, DIRECTION_EAST)
+            } else {
+                sides.east = _sides.east.set(t, f, anim_frames, lm, null, false);
+            }
         }
 
         pushAABB(vertices, _aabb, pivot, matrix, sides, _center.set(x, y, z));
@@ -649,7 +679,7 @@ export default class style {
         // Add animations
         if(typeof QubatchChunkWorker != 'undefined' && block.id == bm.SOUL_SAND.id) {
             if (neighbours.UP?.id == bm.BUBBLE_COLUMN.id) {
-                QubatchChunkWorker.postMessage(['add_animated_block', {
+                QubatchChunkWorker.postMessage(['create_block_emitter', {
                     block_pos: block.posworld,
                     pos: [block.posworld.clone().addScalarSelf(.5, .5, .5)],
                     type: 'bubble_column',
@@ -715,7 +745,7 @@ export default class style {
                 dt: tblock.extra_data?.dt,
                 pos: chunk.coord.clone().addScalarSelf(x, y, z)
             }]);
-            QubatchChunkWorker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['create_block_emitter', {
                 block_pos: tblock.posworld,
                 pos: [tblock.posworld.clone().addScalarSelf(.5, .5, .5)],
                 type: 'music_note'
@@ -822,38 +852,38 @@ export default class style {
             _overlay.materials.clear()
 
         }
-    
-    }
-    
-    static pushConnectedSides(bm : BLOCK, vertices : float[], x : float, y : float, z : float, material : IBlockMaterial, neighbours, t : float[], lm : IndexedColor, flags : int, neibIDs : int[]) {
 
-        _overlay.neightbours[0] = neighbours.WEST
-        _overlay.neightbours[1] = neighbours.SOUTH
-        _overlay.neightbours[2] = neighbours.EAST
-        _overlay.neightbours[3] = neighbours.NORTH
+    }
+
+    static pushConnectedSides(bm : BLOCK, vertices : float[], x : float, y : float, z : float, material : IBlockMaterial, neighbours, t : float[], lm : IndexedColor, flags : int, neibIDs : int[], for_dir : DIRECTION) {
+
+        // quad axes
+        const {axes, u_mul, v_mul, getNeighbourIndex, fixCoord} = CONNECTED_SIDE_PARAMS[for_dir]
+
+        const getNeibID = (dx : int, dy: int, dz : int) => neibIDs[getNeighbourIndex(dx, dy, dz, (dx : int, dy : int, dz : int) => dxdydzIndex[dx + dz * 3 + dy * 9 + 13])]
 
         const sides = [false, false, false, false]
-        let cnt = 0
+        let cnt = 0 // сколько подобных соседей есть вокруг блока (0...4)
 
-        cnt += (sides[DIRECTION.WEST] = material.id == neighbours.WEST.id) ? 1 : 0
-        cnt += (sides[DIRECTION.SOUTH] = material.id == neighbours.SOUTH.id) ? 1 : 0
-        cnt += (sides[DIRECTION.EAST] = material.id == neighbours.EAST.id) ? 1 : 0
-        cnt += (sides[DIRECTION.NORTH] = material.id == neighbours.NORTH.id) ? 1 : 0
+        cnt += (sides[DIRECTION.WEST] = material.id == getNeibID(-1, 0, 0)) ? 1 : 0
+        cnt += (sides[DIRECTION.SOUTH] = material.id == getNeibID(0, 0, -1)) ? 1 : 0
+        cnt += (sides[DIRECTION.EAST] = material.id == getNeibID(1, 0, 0)) ? 1 : 0
+        cnt += (sides[DIRECTION.NORTH] = material.id ==  getNeibID(0, 0, 1)) ? 1 : 0
 
         const pp = lm.pack()
-        const axes_up = UP_AXES[2]
-        const axes_up_quad = [
+        const quad_axes = [
             [
-                axes_up[0][0]/2,
-                axes_up[0][1]/2,
-                axes_up[0][2]/2,
+                axes[0][0] / 2,
+                axes[0][1] / 2,
+                axes[0][2] / 2,
             ],
             [
-                axes_up[1][0]/2,
-                axes_up[1][1]/2,
-                axes_up[1][2]/2,
+                axes[1][0] / 2,
+                axes[1][1] / 2,
+                axes[1][2] / 2,
             ]
         ]
+
         const t12 = bm.calcMaterialTexture(material, DIRECTION.UP, 1, 1, undefined, undefined, undefined, '12')
         t12[0] -= 1 / 64
         t12[1] -= 1 / 64
@@ -861,18 +891,12 @@ export default class style {
         t12[3] /= 3
 
         const pushQ = (xx : float, zz : float, sx : float, sz : float) => {
+            let yy = 1
             xx = xx * .5 + .25
             zz = zz * .5 + .25
             sx /= 64
             sz /= 64
-            vertices.push(x + xx, z + zz, y + 1, ...axes_up_quad[0], ...axes_up_quad[1], t12[0]+sz, t12[1]+sx, t12[2]/2, t12[3]/2, pp, flags)
-        }
-
-        const getNeibID = (dx : int, dz : int) => {
-            const index = 10 + (1 - dx) / 2 + (1 - dz)
-            const id = neibIDs[index]
-            // console.log(index, id)
-            return id
+            fixCoord(xx, yy, zz, (xx : int, yy : int, zz : int) => vertices.push(x + xx, z + zz, y + yy, ...quad_axes[0], ...quad_axes[1], t12[0]+sz, t12[1]+sx, t12[2]/2 * u_mul, t12[3]/2 * v_mul, pp, flags))
         }
 
         if(cnt == 0) {
@@ -883,22 +907,22 @@ export default class style {
 
         } else if(cnt == 4) {
             // 0
-            if(getNeibID(-1, 1) != material.id) {
+            if(getNeibID(-1, 0, 1) != material.id) {
                 pushQ(0, 1, 1.75, 1.75)
             } else {
                 pushQ(0, 1, .75, .75)
             }
-            if(getNeibID(1, 1) != material.id) {
+            if(getNeibID(1, 0, 1) != material.id) {
                 pushQ(1, 1, 0.25, 1.75)
             } else {
                 pushQ(1, 1, 1.25, .75)
             }
-            if(getNeibID(-1, -1) != material.id) {
+            if(getNeibID(-1, 0, -1) != material.id) {
                 pushQ(0, 0, 1.75, .25)
             } else {
                 pushQ(0, 0, .75, 1.25)
             }
-            if(getNeibID(1, -1) != material.id) {
+            if(getNeibID(1, 0, -1) != material.id) {
                 pushQ(1, 0, .25, .25)
             } else {
                 pushQ(1, 0, 1.25, 1.25)
@@ -922,7 +946,7 @@ export default class style {
             } else {
                 if(sides[DIRECTION.EAST] && sides[DIRECTION.NORTH]) {
                     pushQ(0, 1, -.25, 1.75)
-                    if(getNeibID(1, 1) != material.id) {
+                    if(getNeibID(1, 0, 1) != material.id) {
                         pushQ(1, 1, .25, 1.75)
                     } else {
                         pushQ(1, 1, .25, .75)
@@ -930,7 +954,7 @@ export default class style {
                     pushQ(0, 0, -.25, 2.25)
                     pushQ(1, 0, .25, 2.25)
                 } else if(sides[DIRECTION.WEST] && sides[DIRECTION.NORTH]) {
-                    if(getNeibID(-1, 1) != material.id) {
+                    if(getNeibID(-1, 0, 1) != material.id) {
                         pushQ(0, 1, 1.75, 1.75)
                     } else {
                         pushQ(0, 1, .75, .75)
@@ -939,9 +963,9 @@ export default class style {
                     pushQ(0, 0, 1.75, 2.25)
                     pushQ(1, 0, 2.25, 2.25)
                 } else if(sides[DIRECTION.WEST] && sides[DIRECTION.SOUTH]) {
-                    pushQ(0, 1, .75, -.25)
+                    pushQ(0, 1, 1.75, -.25)
                     pushQ(1, 1, 2.25, -.25)
-                    if(getNeibID(-1, -1) != material.id) {
+                    if(getNeibID(-1, 0, -1) != material.id) {
                         pushQ(0, 0, 1.75, 0.25)
                     } else {
                         pushQ(0, 0, 0.75, 1.25)
@@ -951,7 +975,7 @@ export default class style {
                     pushQ(0, 1, -.25, -.25)
                     pushQ(1, 1, .25, -.25)
                     pushQ(0, 0, -.25, .25)
-                    if(getNeibID(1, -1) != material.id) {
+                    if(getNeibID(1, 0, -1) != material.id) {
                         pushQ(1, 0, .25, .25)
                     } else {
                         pushQ(1, 0, 1.25, 1.25)
@@ -987,23 +1011,23 @@ export default class style {
                 pushQ(0, 1, .75, -.25)
                 pushQ(1, 1, 1.25, -.25)
                 //
-                if(getNeibID(-1, -1) != material.id) {
+                if(getNeibID(-1, 0, -1) != material.id) {
                     pushQ(0, 0, 1.75, 0.25)
                 } else {
                     pushQ(0, 0, .75, .25)
                 }
-                if(getNeibID(1, -1) != material.id) {
+                if(getNeibID(1, 0, -1) != material.id) {
                     pushQ(1, 0, .25, 0.25)
                 } else {
                     pushQ(1, 0, 1.25, .25)
                 }
             } else if(!sides[DIRECTION.SOUTH]) {
-                if(getNeibID(-1, 1) != material.id) {
+                if(getNeibID(-1, 0, 1) != material.id) {
                     pushQ(0, 1, 1.75, 1.75)
                 } else {
                     pushQ(0, 1, .75, 1.75)
                 }
-                if(getNeibID(1, 1) != material.id) {
+                if(getNeibID(1, 0, 1) != material.id) {
                     pushQ(1, 1, .25, 1.75)
                 } else {
                     pushQ(1, 1, 1.25, 1.75)
@@ -1012,30 +1036,30 @@ export default class style {
                 pushQ(1, 0, 1.25, 2.25)
             } else if(!sides[DIRECTION.EAST]) {
                 //
-                if(getNeibID(-1, 1) != material.id) {
+                if(getNeibID(-1, 0, 1) != material.id) {
                     pushQ(0, 1, 1.75, 1.75)
                 } else {
                     pushQ(0, 1, 1.75, 0.75)
                 }
-                if(getNeibID(-1, -1) != material.id) {
+                if(getNeibID(-1, 0, -1) != material.id) {
                     pushQ(0, 0, 1.75, 0.25)
                 } else {
                     pushQ(0, 0, 1.75, 1.25)
                 }
-                // 
+                //
                 pushQ(1, 1, 2.25, 0.75)
-                // 
+                //
                 pushQ(1, 0, 2.25, 1.25)
             } else if(!sides[DIRECTION.WEST]) {
                 pushQ(0, 1, -.25, .75)
-                if(getNeibID(1, 1) != material.id) {
+                if(getNeibID(1, 0, 1) != material.id) {
                     pushQ(1, 1, .25, 1.75)
                 } else {
                     pushQ(1, 1, 1.25, .75)
                 }
                 pushQ(0, 0, -.25, 1.25)
-                // 
-                if(getNeibID(1, -1) != material.id) {
+                //
+                if(getNeibID(1, 0, -1) != material.id) {
                     pushQ(1, 0, .25, .25)
                 } else {
                     pushQ(1, 0, 1.25, 1.25)

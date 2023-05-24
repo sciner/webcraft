@@ -1,5 +1,5 @@
 import { unixTime, Vector, VectorCollector } from "./helpers.js"
-import { ServerClient } from "./server_client.js"
+import { BLOCK_ACTION } from "./server_client.js"
 import type { World } from "./world.js"
 
 /**
@@ -103,7 +103,7 @@ export class WorldHistory {
         }
 
         // revert the block to its snapshot
-        const block = this.world.setBlockDirect(pos, snapshot.block, ServerClient.BLOCK_ACTION_REPLACE)
+        const block = this.world.setBlockDirect(pos, snapshot.block, BLOCK_ACTION.REPLACE)
         if (block) { // if the block existed
             block.fluid = snapshot.fluid
         }

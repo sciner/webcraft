@@ -19,7 +19,7 @@ import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 import { ArrayHelpers, Vector, VectorCollector, PerformanceTimer, Helpers } from "@client/helpers.js";
 import { AABB } from "@client/core/AABB.js";
 import { AIR_BLOCK_SIMPLE, BLOCK, DBItemBlock } from "@client/blocks.js";
-import { ServerClient } from "@client/server_client.js";
+import { BLOCK_ACTION, ServerClient } from "@client/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
 import { DEFAULT_MOB_TEXTURE_NAME, GAME_DAY_SECONDS, GAME_ONE_SECOND, MOB_TYPE, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
@@ -892,7 +892,7 @@ export class ServerWorld implements IWorld {
                         });
                         // 0. Play particle animation on clients
                         if (!ignore_check_air) {
-                            if (params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
+                            if (params.action_id == BLOCK_ACTION.DESTROY) {
                                 if (params.destroy_block.id > 0) {
                                     const except_players = [];
                                     if(server_player) except_players.push(server_player)
@@ -948,7 +948,7 @@ export class ServerWorld implements IWorld {
                             // a.
                             chunk.onBlockSet(block_pos.clone(), params.item, previous_item);
                             // b. check destroy block near uncertain stones
-                            if (params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
+                            if (params.action_id == BLOCK_ACTION.DESTROY) {
                                 // Check uncertain stones
                                 chunk.checkDestroyNearUncertainStones(block_pos.clone(), params.item, previous_item, actions.blocks.options.on_block_set_radius)
                             }
@@ -968,13 +968,13 @@ export class ServerWorld implements IWorld {
                         }
                         // 6. Trigger player
                         if (server_player) {
-                            if (params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
+                            if (params.action_id == BLOCK_ACTION.DESTROY) {
                                 PlayerEvent.trigger({
                                     type: PlayerEvent.DESTROY_BLOCK,
                                     player: server_player,
                                     data: { pos: params.pos, block: params.destroy_block }
                                 });
-                            } else if (params.action_id == ServerClient.BLOCK_ACTION_CREATE) {
+                            } else if (params.action_id == BLOCK_ACTION.CREATE) {
                                 PlayerEvent.trigger({
                                     type: PlayerEvent.SET_BLOCK,
                                     player: server_player,

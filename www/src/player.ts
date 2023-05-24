@@ -304,21 +304,17 @@ export class Player implements IPlayer {
         })
         this.world.server.AddCmdListener([ServerClient.CMD_POS1POS2], (cmd) => {
             const {pos1, pos2} = cmd.data
-            const show = pos1 || pos2
+            const show = pos1 && pos2
             if(show) {
                 this.pos1pos2 = new AABB()
-                if(pos2) {
-                    this.pos1pos2.set(
-                        Math.min(pos1.x, pos2.x),
-                        Math.min(pos1.y, pos2.y),
-                        Math.min(pos1.z, pos2.z),
-                        Math.max(pos1.x, pos2.x) + 1,
-                        Math.max(pos1.y, pos2.y) + 1,
-                        Math.max(pos1.z, pos2.z) + 1,
-                    )
-                } else {
-                    this.pos1pos2.set(pos1.x, pos1.y, pos1.z, pos1.x + 1, pos1.y + 1, pos1.z + 1)
-                }
+                this.pos1pos2.set(
+                    Math.min(pos1.x, pos2.x),
+                    Math.min(pos1.y, pos2.y),
+                    Math.min(pos1.z, pos2.z),
+                    Math.max(pos1.x, pos2.x) + 1,
+                    Math.max(pos1.y, pos2.y) + 1,
+                    Math.max(pos1.z, pos2.z) + 1,
+                )
             } else {
                 this.pos1pos2 = null
             }

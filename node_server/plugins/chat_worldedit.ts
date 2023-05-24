@@ -1,6 +1,6 @@
 import { Vector, VectorCollector } from "@client/helpers.js";
 import {WorldAction} from "@client/world_action.js";
-import { ServerClient } from "@client/server_client.js";
+import { BLOCK_ACTION, ServerClient } from "@client/server_client.js";
 import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "@client/fluid/FluidConst.js";
 import { WorldEditBuilding } from "@client/plugins/worldedit/building.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
@@ -190,7 +190,13 @@ export default class WorldEdit {
     }
 
     updatePos1Pos2(chat, player) {
-        const {pos1, pos2} = player
+        let {pos1, pos2} = player
+        if(pos1 && !pos2) {
+            player.pos2 = pos2 = pos1.clone()
+        }
+        if(pos2 && !pos1) {
+            player.pos1 = pos1 = pos2.clone()
+        }
         const packets = [{
             name: ServerClient.CMD_POS1POS2,
             data: {pos1, pos2}
@@ -409,7 +415,7 @@ export default class WorldEdit {
         //
         const data = copy_data ?? player._world_edit_copy;
         const chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
-        const action_id = ServerClient.BLOCK_ACTION_CREATE;
+        const action_id = BLOCK_ACTION.CREATE;
         let chunk_addr = null;
         let actions = null;
         //
@@ -525,7 +531,7 @@ export default class WorldEdit {
                                 {
                                     pos: bpos.clone(), 
                                     item: item_air, 
-                                    action_id: ServerClient.BLOCK_ACTION_CREATE
+                                    action_id: BLOCK_ACTION.CREATE
                                 }
                             ])
                         }
@@ -590,7 +596,7 @@ export default class WorldEdit {
                             {
                                 pos: bpos.clone(), 
                                 item: new_item, 
-                                action_id: ServerClient.BLOCK_ACTION_CREATE
+                                action_id: BLOCK_ACTION.CREATE
                             }
                         ])
                         affected_count++
@@ -673,7 +679,7 @@ export default class WorldEdit {
                                     {
                                         pos: bpos.clone(), 
                                         item: item_air, 
-                                        action_id: ServerClient.BLOCK_ACTION_CREATE
+                                        action_id: BLOCK_ACTION.CREATE
                                     }
                                 ])
                             } else {
@@ -682,7 +688,7 @@ export default class WorldEdit {
                                         {
                                             pos: bpos.clone(), 
                                             item: new_item, 
-                                            action_id: ServerClient.BLOCK_ACTION_CREATE
+                                            action_id: BLOCK_ACTION.CREATE
                                         }
                                     ])
                                 }
@@ -799,7 +805,7 @@ export default class WorldEdit {
                     const fluidId = isFluidId(item.id);
                     if (fluidId) {
                         actions.addFluids([bpos.x, bpos.y, bpos.z, fluidId])
-                        actions.addBlocks([{pos: bpos.clone(), item: item_air, action_id: ServerClient.BLOCK_ACTION_CREATE}])
+                        actions.addBlocks([{pos: bpos.clone(), item: item_air, action_id: BLOCK_ACTION.CREATE}])
                     } else {
                         // need to clear old water values
                         if(old_block) {
@@ -808,7 +814,7 @@ export default class WorldEdit {
                                 actions.addFluids([bpos.x, bpos.y, bpos.z, 0])
                             }
                         }
-                        actions.addBlocks([{pos: bpos.clone(), item, action_id: ServerClient.BLOCK_ACTION_CREATE}])
+                        actions.addBlocks([{pos: bpos.clone(), item, action_id: BLOCK_ACTION.CREATE}])
                     }
                 }
             }

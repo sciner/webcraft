@@ -21,7 +21,7 @@ import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {BLEND_MODES, GlobalUniformGroup, LightUniformGroup} from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
-import { DEFAULT_CLOUD_HEIGHT, LIGHT_TYPE, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
+import { DEFAULT_CLOUD_HEIGHT, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { PACKED_CELL_LENGTH, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_WATER_COLOR_R } from "./fluid/FluidConst.js";
@@ -1074,12 +1074,13 @@ export class Renderer {
         }
 
         if(this.player.pos1pos2) {
-            this.debugGeom.addBlockGrid({
-                pos:        this.player.pos1pos2.position,
-                size:       this.player.pos1pos2.size,
-                lineWidth:  .15,
-                colorABGR:  0xFFFF0000, // ABGR
-            })
+            this.debugGeom.addAABB(this.player.pos1pos2, {lineWidth: .15, colorABGR: 0xFFFF0000})
+            // this.debugGeom.addBlockGrid({
+            //     pos:        this.player.pos1pos2.position,
+            //     size:       this.player.pos1pos2.size,
+            //     lineWidth:  .15,
+            //     colorABGR:  0xFFFF0000, // ABGR
+            // })
         }
 
         const overChunk = player.getOverChunk();
@@ -1196,10 +1197,41 @@ export class Renderer {
         this.meshes.add(new Mesh_Object_Asteroid(this.world, this, pos, rad));
     }
 
-    addBBModel(pos : Vector, bbname : string, rotate : Vector, animation_name : string, key : string, doubleface : boolean = false) {
+    /**
+     * Create mesh object and retrn it or null if unrecognize bbname
+     * @param pos : Vector
+     * @param bbname : string
+     * @param rotate : Vector
+     * @param animation_name : string
+     * @param hide_groups? : string[]
+     * @param key : string
+     * @param doubleface : boolean
+     * @returns string
+     */
+    addBBModelForChunk(pos : Vector, bbname : string, rotate : Vector, animation_name : string, hide_groups? : any, key? : string, doubleface : boolean = false, matrix?: imat4) : Mesh_Object_BBModel | null {
         const model = Resources._bbmodels.get(bbname)
         if(!model) {
-            return false
+            return null
+        }
+        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name, doubleface, matrix, hide_groups)
+        const chunk_addr = this.world.chunkManager.grid.getChunkAddr(pos.x, pos.y, pos.z)
+        return this.meshes.addForChunk(chunk_addr, bbmodel, key)
+    }
+
+    /**
+     * Create mesh object and retrn it or null if unrecognize bbname
+     * @param pos : Vector
+     * @param bbname : string
+     * @param rotate : Vector
+     * @param animation_name : string
+     * @param key : string
+     * @param doubleface : boolean
+     * @returns string
+     */
+    addBBModel(pos : Vector, bbname : string, rotate : Vector, animation_name : string, key? : string, doubleface : boolean = false) : Mesh_Object_BBModel | null {
+        const model = Resources._bbmodels.get(bbname)
+        if(!model) {
+            return null
         }
         const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name, doubleface)
         bbmodel.setAnimation(animation_name)

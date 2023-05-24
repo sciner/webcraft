@@ -1,4 +1,4 @@
-import {ServerClient} from "@client/server_client.js";
+import {BLOCK_ACTION, ServerClient} from "@client/server_client.js";
 import {ArrayHelpers, ArrayOrScalar, DIRECTION, Vector} from "@client/helpers.js";
 import {WorldAction} from "@client/world_action.js";
 import { Weather } from "@client/block_type/weather.js";
@@ -632,7 +632,7 @@ export class ServerChat {
                 }
                 const actions = new WorldAction(null, this.world, false, false);
                 const item = {id: bm.STONE.id};
-                const action_id = ServerClient.BLOCK_ACTION_CREATE;
+                const action_id = BLOCK_ACTION.CREATE;
                 pos.x += 1 * ax;
                 pos.z += 1 * az;
                 for(let i = 0; i < 20; i++) {

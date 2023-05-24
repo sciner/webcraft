@@ -1,4 +1,4 @@
-import { ServerClient } from '@client/server_client.js';
+import { BLOCK_ACTION } from '@client/server_client.js';
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import type { TickingBlockManager } from "../server_chunk.js";
 import type { ServerWorld } from 'server_world.js';
@@ -46,7 +46,7 @@ export default class Ticker {
                             lava: lava
                         }
                     },
-                    action_id: ServerClient.BLOCK_ACTION_MODIFY
+                    action_id: BLOCK_ACTION.MODIFY
                 })
             }
             const air = world.getBlock(pos.offset(0,  -stalactite - 1, 0))
@@ -61,7 +61,7 @@ export default class Ticker {
                             lava: false
                         }
                     },
-                    action_id: ServerClient.BLOCK_ACTION_CREATE
+                    action_id: BLOCK_ACTION.CREATE
                 });
             }
             // высота сталагмита
@@ -89,7 +89,7 @@ export default class Ticker {
                                         snow: false
                                     }
                                 },
-                                action_id: ServerClient.BLOCK_ACTION_MODIFY
+                                action_id: BLOCK_ACTION.MODIFY
                             })
                         }
                     }
@@ -102,7 +102,7 @@ export default class Ticker {
                                     up: false
                                 }
                             },
-                            action_id: ServerClient.BLOCK_ACTION_CREATE
+                            action_id: BLOCK_ACTION.CREATE
                         })
                     }
                 }

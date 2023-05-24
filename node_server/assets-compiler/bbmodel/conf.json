@@ -250,7 +250,10 @@
             "bb": {
                 "model": "chest",
                 "behavior": "chest",
-                "rotate": {"type": "cardinal_direction"}
+                "rotate": {"type": "cardinal_direction"},
+                "animated": {
+                    "name": "idle"
+                }
             }
         },
         {
@@ -1142,7 +1145,10 @@
             "name": "BEACON",
             "group": "doubleface",
             "bb": {
-                "model": "beacon"
+                "model": "beacon",
+                "animated": {
+                    "name": "idle"
+                }
             }
         },
         {
@@ -1936,7 +1942,10 @@
             "bb": {
                 "model": "ender_chest",
                 "aabb_stylename": "chest",
-                "rotate": {"type": "cardinal_direction"}
+                "rotate": {"type": "cardinal_direction"},
+                "animated": {
+                    "name": "idle"
+                }
             }
         },
         {

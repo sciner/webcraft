@@ -5941,7 +5941,7 @@
             },
             "tags": [
                 "sign",
-                "rotate_x16",
+                "rotate_sign",
                 "no_drop_ao",
                 "rotate_by_pos_n_5"
             ],
@@ -5966,7 +5966,7 @@
             },
             "tags": [
                 "sign",
-                "rotate_x16",
+                "rotate_sign",
                 "no_drop_ao",
                 "rotate_by_pos_n_5"
             ],
@@ -5991,7 +5991,7 @@
             },
             "tags": [
                 "sign",
-                "rotate_x16",
+                "rotate_sign",
                 "no_drop_ao",
                 "rotate_by_pos_n_5"
             ],
@@ -6016,7 +6016,7 @@
             },
             "tags": [
                 "sign",
-                "rotate_x16",
+                "rotate_sign",
                 "no_drop_ao",
                 "rotate_by_pos_n_5"
             ],
@@ -6041,7 +6041,7 @@
             },
             "tags": [
                 "sign",
-                "rotate_x16",
+                "rotate_sign",
                 "no_drop_ao",
                 "rotate_by_pos_n_5"
             ],
@@ -6066,7 +6066,7 @@
             },
             "tags": [
                 "sign",
-                "rotate_x16",
+                "rotate_sign",
                 "no_drop_ao",
                 "rotate_by_pos_n_5"
             ],

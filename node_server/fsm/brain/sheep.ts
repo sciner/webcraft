@@ -1,7 +1,7 @@
 import { FSMBrain } from "../brain.js";
 import { WorldAction } from "@client/world_action.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
-import { ServerClient } from "@client/server_client.js";
+import { BLOCK_ACTION } from "@client/server_client.js";
 
 export class Brain extends FSMBrain {
     count_grass: number;
@@ -47,7 +47,7 @@ export class Brain extends FSMBrain {
                     {
                         pos: mob.pos.floored(), 
                         item: {id : bm.AIR.id}, 
-                        action_id: ServerClient.BLOCK_ACTION_REPLACE
+                        action_id: BLOCK_ACTION.REPLACE
                     }
                 ]);
                 world.actions_queue.add(null, actions); 
@@ -59,7 +59,7 @@ export class Brain extends FSMBrain {
                         {
                             pos: this.under.posworld, 
                             item: {id : bm.DIRT.id}, 
-                            action_id: ServerClient.BLOCK_ACTION_REPLACE
+                            action_id: BLOCK_ACTION.REPLACE
                         }
                     ]);
                     world.actions_queue.add(null, actions); 

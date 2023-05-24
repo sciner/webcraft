@@ -80,7 +80,7 @@ export default class style {
             if (extra_data.up) {
                 planes.push(..._cache_planes.up);
                 if(typeof QubatchChunkWorker != 'undefined') {
-                    QubatchChunkWorker.postMessage(['add_animated_block', {
+                    QubatchChunkWorker.postMessage(['create_block_emitter', {
                         block_pos: block.posworld,
                         pos: [block.posworld.clone().addScalarSelf(.5, .5, .5)],
                         type: 'campfire_flame'

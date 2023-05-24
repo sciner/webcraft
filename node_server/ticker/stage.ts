@@ -1,5 +1,5 @@
 import { Vector } from '@client/helpers.js';
-import { ServerClient } from '@client/server_client.js';
+import { BLOCK_ACTION } from '@client/server_client.js';
 import { WorldAction } from '@client/world_action.js';
 import { FLUID_TYPE_MASK, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import type { TickingBlockManager } from "../server_chunk.js";
@@ -68,7 +68,7 @@ export default class Ticker {
                 }
             }
             if (block && block.id == BLOCK.AIR.id && (block.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
-                return [{pos: pos.offset(0, stage, 0), item: {id: tblock.id, extra_data: {notick: true} }, action_id: ServerClient.BLOCK_ACTION_CREATE}];
+                return [{pos: pos.offset(0, stage, 0), item: {id: tblock.id, extra_data: {notick: true} }, action_id: BLOCK_ACTION.CREATE}];
             }
         } else if (tblock.id == BLOCK.SUGAR_CANE.id || tblock.id == BLOCK.CACTUS.id) { // Эти блоки растут вверх, копируя основание. При срубании, рост продолжен
             // проверяем срубили ли кусок
@@ -80,17 +80,17 @@ export default class Ticker {
             }
             const block = world.getBlock(pos.offset(0, stage, 0));
             if (block?.id == BLOCK.AIR.id) {
-                return [{pos: pos.offset(0, stage, 0), item: {id: tblock.id, extra_data: {notick: true} }, action_id: ServerClient.BLOCK_ACTION_CREATE}];
+                return [{pos: pos.offset(0, stage, 0), item: {id: tblock.id, extra_data: {notick: true} }, action_id: BLOCK_ACTION.CREATE}];
             }
         } else if (tblock.id == BLOCK.MELON_SEEDS.id || tblock.id == BLOCK.PUMPKIN_SEEDS.id) { // Эти блоки растут как семена в области одного блока, но по истечению роста дают плоды
             if (extra_data.stage == ticking.max_stage) {
                 const side = getFreePosition(world, pos);
                 if (side && is_tick) {
                     const item = (tblock.id == BLOCK.MELON_SEEDS.id ) ? BLOCK.MELON.id : BLOCK.PUMPKIN.id;
-                    return [{pos: pos.add(side), item: {id: item}, action_id: ServerClient.BLOCK_ACTION_CREATE}];
+                    return [{pos: pos.add(side), item: {id: item}, action_id: BLOCK_ACTION.CREATE}];
                 }
             } else {
-                return [{pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY}];
+                return [{pos: pos, item: tblock.convertToDBItem(), action_id: BLOCK_ACTION.MODIFY}];
             }
         } else if (tblock.material.tags.includes('sapling')) { // Это саженцы, по окончанию роста они превращются в деревья
             if (extra_data.stage == ticking.max_stage) {
@@ -103,13 +103,13 @@ export default class Ticker {
                 world.actions_queue.add(null, actions);
                 return;
             }
-            return [{pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY}];
+            return [{pos: pos, item: tblock.convertToDBItem(), action_id: BLOCK_ACTION.MODIFY}];
         } else { // Эти блоки растут как семена в области одного блока. По истечению роста, действий больше нет
             if (extra_data.stage == ticking.max_stage) {
                 extra_data.notick = true;
                 tblock.extra_data.complete = true;
             }
-            return [{pos: pos, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY}];
+            return [{pos: pos, item: tblock.convertToDBItem(), action_id: BLOCK_ACTION.MODIFY}];
         }
     }
 
