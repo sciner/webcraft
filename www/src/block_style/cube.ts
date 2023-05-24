@@ -89,13 +89,15 @@ const UP_AXES = [
     [[1, 0, 0], [0, 1, 0]],
 ];
 
+// Connected sides
+const _connected_sides = [false, false, false, false]
 const CONNECTED_SIDE_PARAMS = {}
-CONNECTED_SIDE_PARAMS[DIRECTION.NORTH]  = {axes: [[0, 0, -1], [-1, 0, 0]], u_mul: 1, v_mul: -1,  getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(x, z, y), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(x, z, y)}
-CONNECTED_SIDE_PARAMS[DIRECTION.WEST]   = {axes: PLANES.west.axes, u_mul: -1, v_mul: -1,         getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(y, x, z), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(0, x, z)}
-CONNECTED_SIDE_PARAMS[DIRECTION.SOUTH]  = {axes: [[0, 0, -1], [1, 0, 0]], u_mul: 1, v_mul: 1,    getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(x, z, y), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(x, z, 0)}
-CONNECTED_SIDE_PARAMS[DIRECTION.EAST]   = {axes: PLANES.east.axes, u_mul: -1, v_mul: 1,          getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(y, x, z), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(y, x, z)}
-CONNECTED_SIDE_PARAMS[DIRECTION.UP]     = {axes: [[0, -1, 0], [1, 0, 0]], u_mul: 1, v_mul: 1,    getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(x, y, z), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(x, y, z)}
-CONNECTED_SIDE_PARAMS[DIRECTION.DOWN]   = {axes: [[0, 1, 0], [1, 0, 0]], u_mul: -1, v_mul: 1,    getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(x, y, z), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(x, y - 1, z)}
+CONNECTED_SIDE_PARAMS[DIRECTION.NORTH]  = {axes: [[0, 0, -1/2], [-1/2, 0, 0]], u_mul: 1, v_mul: -1, getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(x, z, y), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(x, z, y)}
+CONNECTED_SIDE_PARAMS[DIRECTION.WEST]   = {axes: [[0, 1/2, 0], [0, 0, -1/2]], u_mul: -1, v_mul: -1, getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(y, x, z), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(0, x, z)}
+CONNECTED_SIDE_PARAMS[DIRECTION.SOUTH]  = {axes: [[0, 0, -1/2], [1/2, 0, 0]], u_mul: 1, v_mul: 1,   getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(x, z, y), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(x, z, 0)}
+CONNECTED_SIDE_PARAMS[DIRECTION.EAST]   = {axes: [[0, 1/2, 0], [0, 0, 1/2]], u_mul: -1, v_mul: 1,   getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(y, x, z), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(y, x, z)}
+CONNECTED_SIDE_PARAMS[DIRECTION.UP]     = {axes: [[0, -1/2, 0], [1/2, 0, 0]], u_mul: 1, v_mul: 1,   getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(x, y, z), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(x, y, z)}
+CONNECTED_SIDE_PARAMS[DIRECTION.DOWN]   = {axes: [[0, 1/2, 0], [1/2, 0, 0]], u_mul: -1, v_mul: 1,   getNeighbourIndex: (x : int, y : int, z : int, cb : Function) => cb(x, y, z), fixCoord: (x: number, y: number, z: number, cb : Function) => cb(x, y - 1, z)}
 
 // Used for grass pseudo-random rotation
 const randoms = new FastRandom('random_dirt_rotations', MAX_CHUNK_SQUARE, 100, true)
@@ -592,50 +594,21 @@ export default class style {
             const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'up', DIRECTION_UP, null, null);
             // connected_sides
             if(material.connected_sides) {
-                style.pushConnectedSides(bm, vertices, x, y, z, material, neighbours, t, lm, f, neibIDs, DIRECTION_UP)
+                style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_UP)
             } else {
                 sides.up = _sides.up.set(t, f, anim_frames, lm, axes_up, autoUV)
             }
             // overlay textures
             if(chunk?.chunkManager?.world?.settings?.overlay_textures) {
                 emmited_blocks = []
-                style.pushOverlayTextures(material, emmited_blocks, bm, chunk, x, y, z, neighbours, dirt_color, matrix, pivot)
-
-                if(material.name == 'GRASS_BLOCK' || material.name == 'GRASS_BLOCK_SLAB') {
-                    if(!_grass_block_edge_tex) {
-                        _grass_block_edge_tex = bm.calcMaterialTexture(bm.GRASS_BLOCK, DIRECTION.UP, 1, 1, undefined, undefined, undefined, '1')
-                    }
-                    const c = _grass_block_edge_tex
-                    const d1 = 1
-                    const dm1 = -1
-                    const pp = lm.pack()
-                    const h2 = height == 1 ? .5 : 0
-                    const fo = f // | QUAD_FLAGS.NORMAL_UP
-                    // const overlay_vertices : float[] = []
-                    // north
-                    if(neighbours.NORTH.material.transparent) {
-                        vertices.push(x + .5, z + 1.25, y + h2, 1, 0, 0, 0, .5, dm1, c[0], c[1], c[2], c[3], pp, fo)
-                    }
-                    // south
-                    if(neighbours.SOUTH.material.transparent) {
-                        vertices.push(x + .5, z - .25, y + h2, 1, 0, 0, 0, .5, d1, c[0], c[1], c[2], -c[3], pp, fo)
-                    }
-                    // west
-                    if(neighbours.WEST.material.transparent) {
-                        vertices.push(x - .25, z + .5, y + h2, 0, 1, 0, -.5, 0, dm1, c[0], c[1], c[2], c[3], pp, fo)
-                    }
-                    // east
-                    if(neighbours.EAST.material.transparent) {
-                        vertices.push(x + 1.25, z + .5, y + h2, 0, 1, 0, -.5, 0, d1, c[0], c[1], c[2], -c[3], pp, fo)
-                    }
-                    // emmited_blocks.push(new FakeVertices(OVERLAY_TEXTURE_MATERIAL_KEYS_DOUBLEFACE[0], overlay_vertices))
-                }
+                style.pushOverlayTextures(material, bm, x, y, z, neighbours, emmited_blocks, chunk, dirt_color, matrix, pivot)
+                style.pushEdgeTextures(material, bm, x, y, z, neighbours, vertices, lm, f, height)
             }
         }
         if(canDrawDOWN) {
             const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'down', DIRECTION_DOWN, null, null);
             if(material.connected_sides) {
-                style.pushConnectedSides(bm, vertices, x, y, z, material, neighbours, t, lm, f, neibIDs, DIRECTION_DOWN)
+                style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_DOWN)
             } else {
                 sides.down = _sides.down.set(t, f, anim_frames, lm, axes_down, true);
             }
@@ -644,7 +617,7 @@ export default class style {
             const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'south', DIRECTION_SOUTH, width, height);
             // connected_sides
             if(material.connected_sides) {
-                style.pushConnectedSides(bm, vertices, x, y, z, material, neighbours, t, lm, f, neibIDs, DIRECTION_SOUTH)
+                style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_SOUTH)
             } else {
                 sides.south = _sides.south.set(t, f, anim_frames, lm, null, false);
             }
@@ -652,7 +625,7 @@ export default class style {
         if(canDrawNORTH) {
             const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'north', DIRECTION_NORTH, width, height);
             if(material.connected_sides) {
-                style.pushConnectedSides(bm, vertices, x, y, z, material, neighbours, t, lm, f, neibIDs, DIRECTION_NORTH)
+                style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_NORTH)
             } else {
                 sides.north = _sides.north.set(t, f, anim_frames, lm, null, false)
             }
@@ -660,7 +633,7 @@ export default class style {
         if(canDrawWEST) {
             const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'west', DIRECTION_WEST, width, height);
             if(material.connected_sides) {
-                style.pushConnectedSides(bm, vertices, x, y, z, material, neighbours, t, lm, f, neibIDs, DIRECTION_WEST)
+                style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_WEST)
             } else {
                 sides.west = _sides.west.set(t,  f, anim_frames, lm, null, false);
             }
@@ -668,7 +641,7 @@ export default class style {
         if(canDrawEAST) {
             const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'east', DIRECTION_EAST, width, height);
             if(material.connected_sides) {
-                style.pushConnectedSides(bm, vertices, x, y, z, material, neighbours, t, lm, f, neibIDs, DIRECTION_EAST)
+                style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_EAST)
             } else {
                 sides.east = _sides.east.set(t, f, anim_frames, lm, null, false);
             }
@@ -754,7 +727,7 @@ export default class style {
         return true
     }
 
-    static pushOverlayTextures(center_material : IBlockMaterial, emmited_blocks: any[], bm : BLOCK, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, dirt_color? : IndexedColor, matrix? : imat4, pivot? : number[] | IVector) {
+    static pushOverlayTextures(center_material : IBlockMaterial, bm : BLOCK, x : number, y : number, z : number, neighbours, emmited_blocks: any[], chunk : ChunkWorkerChunk, dirt_color? : IndexedColor, matrix? : imat4, pivot? : number[] | IVector) {
 
         _overlay.neightbours[0] = neighbours.WEST
         _overlay.neightbours[1] = neighbours.SOUTH
@@ -854,37 +827,62 @@ export default class style {
         }
 
     }
+    
+    static pushEdgeTextures(material : IBlockMaterial, bm : BLOCK, x : float, y : float, z : float, neighbours, vertices : float[], lm : IndexedColor, flags : int, height : float) {
+        if(material.name != 'GRASS_BLOCK' && material.name != 'GRASS_BLOCK_SLAB') {
+            return
+        }
+        if(!_grass_block_edge_tex) {
+            _grass_block_edge_tex = bm.calcMaterialTexture(bm.GRASS_BLOCK, DIRECTION.UP, 1, 1, undefined, undefined, undefined, '1')
+        }
+        const c = _grass_block_edge_tex
+        const d1 = 1
+        const dm1 = -1
+        const pp = lm.pack()
+        const h2 = height == 1 ? .5 : 0
+        const fo = flags // | QUAD_FLAGS.NORMAL_UP
+        // north
+        if(neighbours.NORTH.material.transparent) {
+            vertices.push(x + .5, z + 1.25, y + h2, 1, 0, 0, 0, .5, dm1, c[0], c[1], c[2], c[3], pp, fo)
+        }
+        // south
+        if(neighbours.SOUTH.material.transparent) {
+            vertices.push(x + .5, z - .25, y + h2, 1, 0, 0, 0, .5, d1, c[0], c[1], c[2], -c[3], pp, fo)
+        }
+        // west
+        if(neighbours.WEST.material.transparent) {
+            vertices.push(x - .25, z + .5, y + h2, 0, 1, 0, -.5, 0, dm1, c[0], c[1], c[2], c[3], pp, fo)
+        }
+        // east
+        if(neighbours.EAST.material.transparent) {
+            vertices.push(x + 1.25, z + .5, y + h2, 0, 1, 0, -.5, 0, d1, c[0], c[1], c[2], -c[3], pp, fo)
+        }
+        // emmited_blocks.push(new FakeVertices(OVERLAY_TEXTURE_MATERIAL_KEYS_DOUBLEFACE[0], overlay_vertices))
+    }
 
-    static pushConnectedSides(bm : BLOCK, vertices : float[], x : float, y : float, z : float, material : IBlockMaterial, neighbours, t : float[], lm : IndexedColor, flags : int, neibIDs : int[], for_dir : DIRECTION) {
+    //
+    static pushConnectedSides(material : IBlockMaterial, bm : BLOCK, x : float, y : float, z : float, neighbours : any, vertices : float[], t : float[], lm : IndexedColor, flags : int, neibIDs : int[], for_dir : DIRECTION) {
 
-        // quad axes
+        const pp = lm.pack()
         const {axes, u_mul, v_mul, getNeighbourIndex, fixCoord} = CONNECTED_SIDE_PARAMS[for_dir]
-
         const getNeibID = (dx : int, dy: int, dz : int) => neibIDs[getNeighbourIndex(dx, dy, dz, (dx : int, dy : int, dz : int) => dxdydzIndex[dx + dz * 3 + dy * 9 + 13])]
 
-        const sides = [false, false, false, false]
-        let cnt = 0 // сколько подобных соседей есть вокруг блока (0...4)
-
+        // Подсчёт, сколько подобных соседей есть вокруг блока (0...4)
+        const sides = _connected_sides
+        let cnt = 0
+        cnt += (sides[DIRECTION.NORTH] = material.id ==  getNeibID(0, 0, 1)) ? 1 : 0
         cnt += (sides[DIRECTION.WEST] = material.id == getNeibID(-1, 0, 0)) ? 1 : 0
         cnt += (sides[DIRECTION.SOUTH] = material.id == getNeibID(0, 0, -1)) ? 1 : 0
         cnt += (sides[DIRECTION.EAST] = material.id == getNeibID(1, 0, 0)) ? 1 : 0
-        cnt += (sides[DIRECTION.NORTH] = material.id ==  getNeibID(0, 0, 1)) ? 1 : 0
 
-        const pp = lm.pack()
-        const quad_axes = [
-            [
-                axes[0][0] / 2,
-                axes[0][1] / 2,
-                axes[0][2] / 2,
-            ],
-            [
-                axes[1][0] / 2,
-                axes[1][1] / 2,
-                axes[1][2] / 2,
-            ]
-        ]
+        let texture_name = '12'
+        if(material.connected_sides.side) {
+            if(for_dir != DIRECTION.UP && for_dir != DIRECTION.DOWN) {
+                texture_name = 'side'
+            }
+        }
 
-        const t12 = bm.calcMaterialTexture(material, DIRECTION.UP, 1, 1, undefined, undefined, undefined, '12')
+        const t12 = bm.calcMaterialTexture(material, DIRECTION.UP, 1, 1, undefined, undefined, undefined, texture_name)
         t12[0] -= 1 / 64
         t12[1] -= 1 / 64
         t12[2] /= 3
@@ -896,7 +894,7 @@ export default class style {
             zz = zz * .5 + .25
             sx /= 64
             sz /= 64
-            fixCoord(xx, yy, zz, (xx : int, yy : int, zz : int) => vertices.push(x + xx, z + zz, y + yy, ...quad_axes[0], ...quad_axes[1], t12[0]+sz, t12[1]+sx, t12[2]/2 * u_mul, t12[3]/2 * v_mul, pp, flags))
+            fixCoord(xx, yy, zz, (xx : int, yy : int, zz : int) => vertices.push(x + xx, z + zz, y + yy, ...axes[0], ...axes[1], t12[0]+sz, t12[1]+sx, t12[2]/2 * u_mul, t12[3]/2 * v_mul, pp, flags))
         }
 
         if(cnt == 0) {

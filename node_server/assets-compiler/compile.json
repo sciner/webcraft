@@ -12661,7 +12661,8 @@
                 "do_not_remove_this_tag"
             ],
             "connected_sides": {
-                "12": "block/decals/reinforced_concrete/12.png"
+                "12": "block/decals/reinforced_concrete/12.png",
+                "side": "block/decals/reinforced_concrete/side.png"
             }
         },
         {
