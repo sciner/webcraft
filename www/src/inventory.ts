@@ -576,7 +576,7 @@ export abstract class Inventory extends InventoryItemsCollection {
      * @returns true если что-то изменилось
      * @throws если src некорректно
      */
-    increment(src: IInventoryItem, no_update_if_remains?: boolean): boolean {
+    increment(src: IInventoryItem, no_update_if_remains?: boolean, updateSrcCount?: boolean): boolean {
         if(!src.id) {
             throw 'error_empty_block_id';
         }
@@ -598,6 +598,9 @@ export abstract class Inventory extends InventoryItemsCollection {
         const changed = this.simpleIncrement(mat, no_update_if_remains)
 
         if (changed) {
+            if (updateSrcCount) {
+                src.count = mat.count
+            }
             if ((this.current_item != null) !== (oldCurrentItem != null)) {
                 this.select(this.current.index, true) // вызывает внутри refresh
             } else {

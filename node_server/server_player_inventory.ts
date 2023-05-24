@@ -142,7 +142,7 @@ export class ServerPlayerInventory extends Inventory {
         return false
     }
 
-    private createDropItem(items: IInventoryItem[], throwVelocity?: float, yaw?: float): void {
+    createDropItem(items: IInventoryItem[], throwVelocity?: float, yaw?: float): void {
         const player = this.player
         yaw ??= player.state.rotate.z
         const pos = player.state.pos.clone()

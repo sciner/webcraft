@@ -10,7 +10,7 @@ import {ServerPlayer} from "../server_player.js"
 export class Quest {
 
     #quest_player;
-    #player;
+    #player: ServerPlayer
     #next_quests;
     #dirtyFlags : int;
     id: int;
@@ -135,9 +135,13 @@ export class Quest {
             //
             const block = BLOCK.fromId(reward_item.id)
             if(!block.is_dummy) {
-                server_player.inventory.increment(reward_item);
+                server_player.inventory.increment(reward_item, false, true);
+                // если не все поместилось - бросить на землю
+                if (reward_item.count) {
+                    server_player.inventory.createDropItem([reward_item])
+                }
                 // отправить сообщение
-                this.#quest_player.sendMessage(`You have got reward ${block.name}x${reward_item.count}`);
+                this.#quest_player.sendMessage(`You have got reward ${block.name}x${reward.cnt}`);
             }
         }
         this.markDirty();
