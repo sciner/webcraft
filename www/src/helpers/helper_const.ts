@@ -48,8 +48,8 @@ export enum QUAD_FLAGS {
 
 // Direction enumeration
 export enum DIRECTION {
-    UP        = CubeSym.ROT_X,
-    DOWN      = CubeSym.ROT_X3,
+    UP        = CubeSym.ROT_X, // 7
+    DOWN      = CubeSym.ROT_X3, // 9
     LEFT      = CubeSym.ROT_Y,
     RIGHT     = CubeSym.ROT_Y3,
     FORWARD   = CubeSym.ID,
