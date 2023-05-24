@@ -867,13 +867,21 @@ export default class style {
         const {axes, u_mul, v_mul, getNeighbourIndex, fixCoord} = CONNECTED_SIDE_PARAMS[for_dir]
         const getNeibID = (dx : int, dy: int, dz : int) => neibIDs[getNeighbourIndex(dx, dy, dz, (dx : int, dy : int, dz : int) => dxdydzIndex[dx + dz * 3 + dy * 9 + 13])]
 
+        const checkNeib = (x : int, y : int, z : int) : boolean => {
+            let resp = material.id == getNeibID(x, y, z)
+            // TODO: доделать, чтобы на внутренних углах тоже были краевые текстуры
+            // if(for_dir == DIRECTION.UP) resp = resp && (getNeibID(x, y + 1, z) === 0)
+            // if(for_dir == DIRECTION.SOUTH) resp = resp && (getNeibID(x - 1, y, z) === 0)
+            return resp
+        }
+
         // Подсчёт, сколько подобных соседей есть вокруг блока (0...4)
         const sides = _connected_sides
         let cnt = 0
-        cnt += (sides[DIRECTION.NORTH] = material.id ==  getNeibID(0, 0, 1)) ? 1 : 0
-        cnt += (sides[DIRECTION.WEST] = material.id == getNeibID(-1, 0, 0)) ? 1 : 0
-        cnt += (sides[DIRECTION.SOUTH] = material.id == getNeibID(0, 0, -1)) ? 1 : 0
-        cnt += (sides[DIRECTION.EAST] = material.id == getNeibID(1, 0, 0)) ? 1 : 0
+        cnt += (sides[DIRECTION.NORTH] = checkNeib(0, 0, 1)) ? 1 : 0
+        cnt += (sides[DIRECTION.WEST] = checkNeib(-1, 0, 0)) ? 1 : 0
+        cnt += (sides[DIRECTION.SOUTH] = checkNeib(0, 0, -1)) ? 1 : 0
+        cnt += (sides[DIRECTION.EAST] = checkNeib(1, 0, 0)) ? 1 : 0
 
         let texture_name = '12'
         if(material.connected_sides.side) {
@@ -905,22 +913,22 @@ export default class style {
 
         } else if(cnt == 4) {
             // 0
-            if(getNeibID(-1, 0, 1) != material.id) {
+            if(!checkNeib(-1, 0, 1)) {
                 pushQ(0, 1, 1.75, 1.75)
             } else {
                 pushQ(0, 1, .75, .75)
             }
-            if(getNeibID(1, 0, 1) != material.id) {
+            if(!checkNeib(1, 0, 1)) {
                 pushQ(1, 1, 0.25, 1.75)
             } else {
                 pushQ(1, 1, 1.25, .75)
             }
-            if(getNeibID(-1, 0, -1) != material.id) {
+            if(!checkNeib(-1, 0, -1)) {
                 pushQ(0, 0, 1.75, .25)
             } else {
                 pushQ(0, 0, .75, 1.25)
             }
-            if(getNeibID(1, 0, -1) != material.id) {
+            if(!checkNeib(1, 0, -1)) {
                 pushQ(1, 0, .25, .25)
             } else {
                 pushQ(1, 0, 1.25, 1.25)
@@ -944,7 +952,7 @@ export default class style {
             } else {
                 if(sides[DIRECTION.EAST] && sides[DIRECTION.NORTH]) {
                     pushQ(0, 1, -.25, 1.75)
-                    if(getNeibID(1, 0, 1) != material.id) {
+                    if(!checkNeib(1, 0, 1)) {
                         pushQ(1, 1, .25, 1.75)
                     } else {
                         pushQ(1, 1, .25, .75)
@@ -952,7 +960,7 @@ export default class style {
                     pushQ(0, 0, -.25, 2.25)
                     pushQ(1, 0, .25, 2.25)
                 } else if(sides[DIRECTION.WEST] && sides[DIRECTION.NORTH]) {
-                    if(getNeibID(-1, 0, 1) != material.id) {
+                    if(!checkNeib(-1, 0, 1)) {
                         pushQ(0, 1, 1.75, 1.75)
                     } else {
                         pushQ(0, 1, .75, .75)
@@ -963,7 +971,7 @@ export default class style {
                 } else if(sides[DIRECTION.WEST] && sides[DIRECTION.SOUTH]) {
                     pushQ(0, 1, 1.75, -.25)
                     pushQ(1, 1, 2.25, -.25)
-                    if(getNeibID(-1, 0, -1) != material.id) {
+                    if(!checkNeib(-1, 0, -1)) {
                         pushQ(0, 0, 1.75, 0.25)
                     } else {
                         pushQ(0, 0, 0.75, 1.25)
@@ -973,7 +981,7 @@ export default class style {
                     pushQ(0, 1, -.25, -.25)
                     pushQ(1, 1, .25, -.25)
                     pushQ(0, 0, -.25, .25)
-                    if(getNeibID(1, 0, -1) != material.id) {
+                    if(!checkNeib(1, 0, -1)) {
                         pushQ(1, 0, .25, .25)
                     } else {
                         pushQ(1, 0, 1.25, 1.25)
@@ -1009,23 +1017,23 @@ export default class style {
                 pushQ(0, 1, .75, -.25)
                 pushQ(1, 1, 1.25, -.25)
                 //
-                if(getNeibID(-1, 0, -1) != material.id) {
+                if(!checkNeib(-1, 0, -1)) {
                     pushQ(0, 0, 1.75, 0.25)
                 } else {
                     pushQ(0, 0, .75, .25)
                 }
-                if(getNeibID(1, 0, -1) != material.id) {
+                if(!checkNeib(1, 0, -1)) {
                     pushQ(1, 0, .25, 0.25)
                 } else {
                     pushQ(1, 0, 1.25, .25)
                 }
             } else if(!sides[DIRECTION.SOUTH]) {
-                if(getNeibID(-1, 0, 1) != material.id) {
+                if(!checkNeib(-1, 0, 1)) {
                     pushQ(0, 1, 1.75, 1.75)
                 } else {
                     pushQ(0, 1, .75, 1.75)
                 }
-                if(getNeibID(1, 0, 1) != material.id) {
+                if(!checkNeib(1, 0, 1)) {
                     pushQ(1, 1, .25, 1.75)
                 } else {
                     pushQ(1, 1, 1.25, 1.75)
@@ -1034,12 +1042,12 @@ export default class style {
                 pushQ(1, 0, 1.25, 2.25)
             } else if(!sides[DIRECTION.EAST]) {
                 //
-                if(getNeibID(-1, 0, 1) != material.id) {
+                if(!checkNeib(-1, 0, 1)) {
                     pushQ(0, 1, 1.75, 1.75)
                 } else {
                     pushQ(0, 1, 1.75, 0.75)
                 }
-                if(getNeibID(-1, 0, -1) != material.id) {
+                if(!checkNeib(-1, 0, -1)) {
                     pushQ(0, 0, 1.75, 0.25)
                 } else {
                     pushQ(0, 0, 1.75, 1.25)
@@ -1050,14 +1058,14 @@ export default class style {
                 pushQ(1, 0, 2.25, 1.25)
             } else if(!sides[DIRECTION.WEST]) {
                 pushQ(0, 1, -.25, .75)
-                if(getNeibID(1, 0, 1) != material.id) {
+                if(!checkNeib(1, 0, 1)) {
                     pushQ(1, 1, .25, 1.75)
                 } else {
                     pushQ(1, 1, 1.25, .75)
                 }
                 pushQ(0, 0, -.25, 1.25)
                 //
-                if(getNeibID(1, 0, -1) != material.id) {
+                if(!checkNeib(1, 0, -1)) {
                     pushQ(1, 0, .25, .25)
                 } else {
                     pushQ(1, 0, 1.25, 1.25)
