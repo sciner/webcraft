@@ -511,7 +511,6 @@ export class ServerPlayer extends Player {
             armor:    this.inventory.exportArmorState(),
             health:   state.indicators.live,
             ground:   control.onGround,
-            inLiquid: control.isInLiquid,
             running:  control.control.sprint
         }
     }
