@@ -47,6 +47,11 @@ class PlayerModelSharedProps implements IPlayerSharedProps {
 
 export class PlayerModel extends MobModel implements IPlayerOrModel {
     sharedProps:        PlayerModelSharedProps
+    /**
+     * Расстояние до игрока на сервере.
+     * null передается когда игрок оказывается слишком далеко, после чего апдейты перестают приходить.
+     * При создании игрока (и возможно в некоторых других ситуациях) - undefined.
+     */
     distance:           number | null
     textCanvas:         HTMLCanvasElement
     textContext:        any
@@ -239,7 +244,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
         nametag.visible = !this.sneak && !this.hide_nametag
 
-        if(!nametag.visible || this.distance == null) {
+        if(!nametag.visible) {
             return
         }
 
