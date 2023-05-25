@@ -607,6 +607,10 @@ export class Physics {
                     horizontalInertia += (0.546 - horizontalInertia) * strider / 3
                     acceleration += (0.7 - acceleration) * strider / 3
                 }
+                // Сделать скорость при беге (быстром плавании) чуть больше. Это не как в майне - просто чтобы был хоть какой-то эффект
+                if (entity.control.sprint) {
+                    acceleration *= this.sprintSpeed
+                }
 
                 if (entity.dolphinsGrace > 0) horizontalInertia = 0.96
             }
@@ -845,6 +849,8 @@ export class Physics {
             entity.isInWater = liquidInBB.waterBlocks.length != 0
             entity.isInLava = liquidInBB.lavaBlocks.length != 0
             entity.submergedHeight = liquidInBB.submergedHeight
+            // Из-за манипуляций с AABB, значение submergedHeight неточное. waterBB имеет наименьщею высоту.
+            entity._submergedPercent = Math.min(1, liquidInBB.submergedHeight / waterBB.height)
         } else {
             entity.isInWater = entity.isInLava = false
         }
@@ -1015,6 +1021,11 @@ export class PrismarinePlayerState implements IPlayerControlState {
     sneak       = false
     /** If isInWater or isInLava, it shows the height of the part of the bounding box that is below the surface */
     submergedHeight?: float
+    /**
+     * Часть от целого, погруженная в жидкость (важно: не от полной высоты объекта, а от фиктивного "сжатого" AABB)
+     * Если не в жидкости - не определено. В АПИ использовать {@link submergedPercent}
+     */
+    _submergedPercent?: float
     isInWeb     = false
     isOnLadder  = false
     isCollidedHorizontally  = false
@@ -1057,6 +1068,10 @@ export class PrismarinePlayerState implements IPlayerControlState {
     }
 
     get isInLiquid(): boolean { return this.isInWater || this.isInLava }
+
+    get submergedPercent(): float {
+        return this.isInWater || this.isInLava ? this._submergedPercent : 0
+    }
 
     /**
      * Копирует некоторые динамически меняющиеся поля из другого состояния.
