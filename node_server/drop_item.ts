@@ -74,7 +74,7 @@ export class DropItem {
         //
         const pcOptions: TPrismarineOptions = {
             baseSpeed: 1,
-            playerHeight: 0.25,
+            playerHeight: 0.37, // подобнрано чтобы нормально смотрелись в воде
             stepHeight: .65,
             defaultSlipperiness: 0.75,
             playerHalfWidth: .05
