@@ -155,6 +155,8 @@ export class TextBox {
         if(this.buffer.length > 0) {
             if(this.carriage == this.buffer.length) {
                 this.buffer.pop();
+            } else if(this.carriage == 0) {
+                return
             } else {
                 this.buffer.splice(this.carriage - 1, 1);
             }

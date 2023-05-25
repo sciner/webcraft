@@ -333,8 +333,10 @@ export class CreativeInventoryWindow extends BlankWindow {
         txtSearch.max_length             = 100
         txtSearch.max_lines              = 1
         txtSearch.max_chars_per_line     = 20
+        txtSearch.placeholder            = Lang.placeholder_click_for_search
 
         // style
+        txtSearch.style.font.size           = 12
         txtSearch.style.border.hidden       = false
         txtSearch.style.padding.left        = 5 * this.zoom
         txtSearch.style.textAlign.vertical  = 'middle'

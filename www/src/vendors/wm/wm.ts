@@ -551,10 +551,9 @@ export class Window extends VAUX.Container {
 
     /**
      * Return current text metrics
-     * @param {boolean} ignore_bitmap_font_metrics
      * @returns {VAUX.TextMetrics}
      */
-    getTextMetrics(ignore_bitmap_font_metrics) {
+    getTextMetrics(ignore_bitmap_font_metrics : boolean = false) {
         const tc = this.text_container;
         if (tc._activePagesMeshData && !ignore_bitmap_font_metrics) {
             // TODO: возвращает неверный размер, если в конце строки пробел
@@ -720,6 +719,8 @@ export class Window extends VAUX.Container {
         if(this instanceof Button) {
             this.onMouseLeave()
         }
+        // debug ;)
+        // console.log(this)
         this.onMouseDown(e)
     }
 
@@ -1125,6 +1126,8 @@ export class Label extends Window {
 // TextEdit
 export class TextEdit extends Window {
 
+    _placeholder : string | null = null
+
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
 
         super(x, y, w, h, id, title, text)
@@ -1132,8 +1135,7 @@ export class TextEdit extends Window {
         this.max_length             = 0;
         this.max_lines              = 1;
         this.max_chars_per_line     = 0;
-        this.draw_cariage           = true
-
+        this.draw_cariage           = false
         this.interactiveChildren    = false
 
         // Styles
@@ -1142,12 +1144,20 @@ export class TextEdit extends Window {
         this.style.border.style = 'inset'
         this.style.font.size = 19
         this.style.font.family = 'Ubuntu'
-        // this.style.padding = {
-        //     left: 5,
-        //     right: 5,
-        //     top: 5,
-        //     bottom: 5
-        // }
+
+        const tm = this.getTextMetrics()
+        this.lineHeight = tm.lineHeight
+
+        // create cariage
+        this.lbl_cariage = new Label(0, 0, 0, 0, 'lbl_cariage')
+        this.lbl_cariage.style.font.family = 'Ubuntu'
+        this.lbl_cariage.style.font.size = 19
+        this.lbl_cariage.style.font.color = '#ffffffff'
+        this.lbl_cariage.w = 10 * this.zoom
+        this.lbl_cariage.h = 2 * this.zoom
+        this.lbl_cariage.style.background.color = '#ffffffff'
+        this.lbl_cariage.visible = false
+        this.add(this.lbl_cariage)
 
         this.text_container.x = 5 * this.zoom
 
@@ -1156,37 +1166,81 @@ export class TextEdit extends Window {
         this.autofocus = true
         this.buffer = []
 
-        // Backspace pressed
-        this.backspace = () => {
-            if(!this.focused) {
-                return;
-            }
-            if(this.buffer.length > 0) {
-                this.buffer.pop()
-                this._changed()
-            }
-        }
+        this.resetCarriage()
 
     }
 
-    typeChar(e, charCode, ch) {
+    // Reset carriage
+    resetCarriage() {
+        this.carriage = this.buffer.length;
+        this.moveCarriage(0)
+    }
+
+    // Move carriage
+    moveCarriage(cnt : int) {
+        this.carriage += cnt;
+        this.carriage = Math.min(Math.max(this.carriage, 0), this.buffer.length);
+        //
+        // console.log(this.carriage)
+        const text = this.buffer.join('')
+        const lines = text.split('\r')
+        const line_index = (text.substring(0, this.carriage).match(/\r/g) || []).length
+        if(this.lbl_cariage) {
+            const padding = 5
+            let x = 0
+            for(let i = 0; i < this.carriage; i++) {
+                const char = this.buffer[i]
+                x++
+                if(char == '\r') x = 0
+            }
+            const current_line = lines[line_index].substring(0, x)
+            const y = ((line_index + 1) * this.lineHeight)
+            const ctm = VAUX.TextMetrics.measureText(current_line, this.style.font._font_style)
+            const current_char = this.buffer[this.carriage] ?? ''
+            x = ctm.width
+            let w = 10 * this.zoom
+            if(current_char == '\r' || current_char == '') {
+            } else {
+                const ctm_current_char = VAUX.TextMetrics.measureText(current_char, this.style.font._font_style)
+                w = ctm_current_char.width
+            }
+            this.lbl_cariage.w = w
+            this.lbl_cariage.transform.position.set(x + padding + 3.5 * this.zoom, y)
+        }
+    }
+
+    // Backspace pressed
+    backspace() {
         if(!this.focused) {
             return;
         }
-        if(charCode == 13 && this.max_lines < 2) {
-            return false
-        }
-        if(this.buffer.length < this.max_length || this.max_length == 0) {
-            if(this.max_lines > 1) {
-                const ot = this.buffer.join('') + ch;
-                const lines = this.calcPrintLines(ot);
-                if(lines.length > this.max_lines) {
-                    return
-                }
+        if(this.buffer.length > 0) {
+            if(this.carriage == this.buffer.length) {
+                this.buffer.pop();
+            } else if(this.carriage == 0) {
+                return
+            } else {
+                this.buffer.splice(this.carriage - 1, 1);
             }
-            this.buffer.push(ch);
-            this._changed();
+            this._changed()
+            this.moveCarriage(-1);
         }
+    }
+
+    onKeyDel() {
+        if(this.carriage < this.buffer.length) {
+            this.buffer.splice(this.carriage, 1);
+            this._changed()
+            this.moveCarriage(0);
+        }
+    }
+
+    onKeyHome() {
+        this.moveCarriage(-this.buffer.length);
+    }
+
+    onKeyEnd() {
+        this.moveCarriage(this.buffer.length);
     }
 
     get text() : string {
@@ -1196,6 +1250,7 @@ export class TextEdit extends Window {
     set text(value : string) {
         this.buffer = RuneStrings.toArray(value || '')
         this._changed()
+        this.resetCarriage()
     }
 
     setIndirectText(value : string) {
@@ -1206,11 +1261,14 @@ export class TextEdit extends Window {
         const text = this.buffer.join('')
         super.text = text
         return text
-        // this.text_container.text = text
     }
 
     //
     _changed() {
+        const is_empty = this.buffer.length == 0
+        if(this.text_container) {
+            this.text_container.alpha = is_empty ? .5 : 1
+        }
         this.onChange(this._resetText())
     }
 
@@ -1218,30 +1276,76 @@ export class TextEdit extends Window {
         // do nothing
     }
 
-    paste(str) {
-        for(let i in str) {
-            this.typeChar(null, str.charCodeAt(i), str[i]);
+    paste(text : string) {
+        if(!this.active) {
+            return false
+        }
+        text = text.trim()
+        let chars = text.split('')
+        if(chars.length > 0) {
+            if(this.carriage < this.buffer.length) {
+                this.buffer.splice(this.carriage, 0, ...chars)
+            } else {
+                this.buffer.push(...chars)
+            }
+            this.moveCarriage(chars.length)
+        }
+    }
+
+    typeChar(e : any, charCode : int, ch : string) {
+        if(!this.focused) {
+            return;
+        }
+        if(charCode == KEY.ENTER && this.max_lines < 2) {
+            return false
+        }
+        if(this.buffer.length < this.max_length || this.max_length == 0) {
+            if(this.max_lines > 1) {
+                const ot = this.buffer.join('') + ch;
+                const lines = this.calcPrintLines(ot);
+                if(lines.length > this.max_lines) {
+                    return
+                }
+            }
+            if(this.carriage < this.buffer.length) {
+                this.buffer.splice(this.carriage, 0, ch);
+            } else {
+                this.buffer.push(ch);
+            }
+            this._changed();
+            this.moveCarriage(1);
         }
     }
 
     // Hook for keyboard input
-    onKeyEvent(e) {
-        const {keyCode, down, first} = e;
-        switch(keyCode) {
-            case KEY.ENTER: {
-                if(down) {
-                    if(this.max_lines > 1) {
-                        this.buffer.push(String.fromCharCode(13));
-                        this._changed()
-                    }
-                }
-                return true
-            }
-            case KEY.BACKSPACE: {
-                if(down) {
+    onKeyEvent(e : any) {
+        const {keyCode, down, first} = e
+        if(down) {
+            switch(keyCode) {
+                case KEY.BACKSPACE: {
                     this.backspace()
+                    return true
                 }
-                return true
+                case KEY.DEL: {
+                    this.onKeyDel()
+                    return true
+                }
+                case KEY.HOME: {
+                    this.onKeyHome()
+                    return true
+                }
+                case KEY.END: {
+                    this.onKeyEnd()
+                    return true
+                }
+                case KEY.ARROW_LEFT: {
+                    this.moveCarriage(-1)
+                    return true
+                }
+                case KEY.ARROW_RIGHT: {
+                    this.moveCarriage(1)
+                    return true
+                }
             }
         }
         return false
@@ -1253,12 +1357,41 @@ export class TextEdit extends Window {
         }
     }
 
+    onCarriageBlink(visible : boolean) {
+        this.lbl_cariage.visible = visible
+    }
+
     onFocus() {
         this.style.border.hidden = false
+        this.updatePlaceholder()
     }
 
     onBlur() {
         this.style.border.hidden = true
+        this.onCarriageBlink(false)
+        this.updatePlaceholder()
+    }
+
+    get placeholder() : string | null {
+        return this._placeholder
+    }
+
+    set placeholder(value : string | null) {
+        this._placeholder = value ?? null
+        this.updatePlaceholder()
+    }
+
+    private updatePlaceholder() {
+        const focused = this.getRoot().getFocusedControl() === this
+        const is_empty = this.buffer.length == 0
+        this.text_container.alpha = is_empty ? .5 : 1
+        if(is_empty) {
+            if(focused) {
+                this.setIndirectText('')
+            } else if(this._placeholder) {
+                this.setIndirectText(this._placeholder)
+            }
+        }
     }
 
 }
@@ -1520,8 +1653,11 @@ export class WindowManager extends Window {
         this.cariageTimer = setInterval(() => {
             const fc = this._focused_control
             if(fc && fc instanceof TextEdit && fc.untypedParent.visible) {
+                const vis = ((performance.now() - this._focus_started_at) % (this._cariage_speed * 2)) < this._cariage_speed
+                if(fc.onCarriageBlink) {
+                    fc.onCarriageBlink(vis)
+                }
                 if(fc.draw_cariage) {
-                    const vis = ((performance.now() - this._focus_started_at) % (this._cariage_speed * 2)) < this._cariage_speed
                     if(vis) {
                         fc.setIndirectText(fc.text + '_')
                     } else {
@@ -1544,10 +1680,11 @@ export class WindowManager extends Window {
 
     setFocusedControl(window? : Window) {
         if(this._focused_control) {
-            const fc =this._focused_control
+            const fc = this._focused_control
             if(fc instanceof TextEdit) {
                 fc._resetText()
             }
+            this._focused_control = null
             fc.onBlur()
         }
         this._focused_control = window
