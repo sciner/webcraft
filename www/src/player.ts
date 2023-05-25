@@ -23,6 +23,7 @@ import type {PlayerModel} from "./player_model.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
 import { BBModel_Model } from "./bbmodel/model.js";
 import { AABB } from "./core/AABB.js";
+import type {PrismarinePlayerState} from "./prismarine-physics/index.js";
 
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
@@ -127,6 +128,7 @@ export type PlayerStateUpdate = PlayerStateDynamicPart & {
     type ?
     dist ?      : number // null means that the player is too far, and it stopped receiving updates
     ground      : boolean
+    submergedPercent ? : float
     running     : boolean
 }
 
@@ -1252,7 +1254,8 @@ export class Player implements IPlayer {
                 this.state.attack,
                 this.state.fire,
                 this.indicators.live,
-                this.onGround
+                this.onGround,
+                (this.controlManager.current.player_state as PrismarinePlayerState).submergedPercent ?? 0
             )
         }
     }

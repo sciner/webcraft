@@ -12,6 +12,7 @@ import type { Player } from "./player.js";
 import type { Renderer } from "./render.js";
 import type { ChunkManager } from "./chunk_manager.js";
 import type { World } from "./world.js";
+import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID } from "./fluid/FluidConst.js";
 
 declare type ICompasMark = {
     angle: number,
@@ -525,7 +526,13 @@ export class HUD {
                     this.block_text += '\nextra_data: {' + s + '\n}';
                 }
                 if (desc.fluid) { // maybe unpack it
-                    this.block_text += '\nfluid: ' + desc.fluid;
+                    this.block_text += '\nFluid: ' + desc.fluid;
+                    if ((desc.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
+                        this.block_text += ' water';
+                    }
+                    if ((desc.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
+                        this.block_text += ' lava';
+                    }
                 }
             }
         }

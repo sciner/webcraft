@@ -178,7 +178,7 @@ export class RecipeWindow extends BlankWindow {
 
     }
 
-    // Paginator buttons
+    // Paginator buttons and search textedit
     addPaginatorButtons() {
 
         const ct = this
@@ -190,12 +190,13 @@ export class RecipeWindow extends BlankWindow {
         const h = 25 * this.zoom
 
         // Text editor
-        const txtSearch = new TextEdit(x, sy, w, h, 'txtSearch1', null, 'Click for search')
+        const txtSearch = new TextEdit(x, sy, w, h, 'txtSearch1', null, '')
         txtSearch.word_wrap                 = false
         txtSearch.autofocus                 = false
         txtSearch.max_length                = 100
         txtSearch.max_lines                 = 1
         txtSearch.max_chars_per_line        = 20
+        txtSearch.placeholder               = Lang.placeholder_click_for_search
         txtSearch.style.padding.left        = 5 * this.zoom
         txtSearch.style.font.size           = 12
         txtSearch.style.textAlign.vertical  = 'middle'

@@ -175,6 +175,7 @@ class Block_Material implements IBlockMiningMaterial {
 
     id: string
     mining: any
+    float?: boolean // если true, то не тонет в воде
 
     static materials = {
         data: null,

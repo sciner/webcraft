@@ -85,6 +85,7 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
         player.sleep = data.sleep
         player.anim = data.anim
         player.sitting = data.sitting
+        player.submergedPercent = data.submergedPercent
         player.ground = data.ground
         player.running = data.running
         player.attack = data.attack

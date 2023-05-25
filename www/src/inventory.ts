@@ -921,7 +921,7 @@ export abstract class Inventory extends InventoryItemsCollection {
         for(const slot_index of [PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET]) {
             if(this.items[slot_index]) {
                 const item = this.block_manager.fromId(this.items[slot_index].id);
-                resp += item.armor?.damage ?? 0;
+                resp += item?.extra_data?.protection ?? 0;
             }
         }
         return resp

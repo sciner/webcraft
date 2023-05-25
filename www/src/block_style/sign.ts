@@ -103,6 +103,22 @@ export default class style {
 
     }
 
+    static same_rot_with_up_neighbour(tblock : TBlock | FakeTBlock, neighbour : TBlock) : boolean {
+        const rot = tblock.rotate ?? Vector.ZERO
+        const on_ceil = rot.y == SIGN_POSITION.CEIL
+        if(on_ceil) {
+            if(neighbour.material.style_name == 'sign') {
+                const angle = Math.abs(neighbour.rotate.x - rot.x)
+                if ((angle > 0.02 && angle < 1.88) || ( angle > 2.02)) {
+                    return false
+                } else {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
     // Build function
     static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
@@ -127,26 +143,21 @@ export default class style {
         }
 
         if(on_ceil) {
-            aabb.expand(-1/16, 0, 0)
-            aabb.translate(0, -(aabb.y_min - y), 0)
             if (neighbours.UP.material.style_name == 'sign') {
-                const angle = Math.abs(neighbours.UP.rotate.x - rot.x)
-                if ((angle > 0.02 && angle < 1.88) || ( angle > 2.02)) {
-                    style.drawChainTilt(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
-                } else {
+                if(style.same_rot_with_up_neighbour(block, neighbours.UP)) {
                     style.drawChain(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
+                } else {
+                    style.drawChainTilt(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
                 }
             } else {
                 //console.log(neighbours.UP.material.style_name + ' ' + neighbours.UP.rotate.x  + ' ' + rot.x)
                 style.drawChain(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
             }
         } else if(on_wall_alt) {
-            const wall_fixture = aabb.clone()
-            aabb.expand(-1/16, 0, 0)
-            aabb.translate(0, -(aabb.y_min - y), 0)
             // настенный крепеж
-            wall_fixture.y_max = wall_fixture.y_min + aabb.depth
+            const wall_fixture = aabb.clone()
             wall_fixture.translate(0, 1 - (wall_fixture.y_max % 1), 0)
+            wall_fixture.y_min = wall_fixture.y_max - wall_fixture.depth
             // Push wall fixture vertices
             pushAABB(
                 vertices,
@@ -359,6 +370,9 @@ export default class style {
         const rot           = tblock.rotate ?? Vector.ZERO
         const draw_bottom   = rot ? (rot.y != 0) : true
         const is_bb         = !!tblock.material.bb
+        const on_ceil       = rot.y == SIGN_POSITION.CEIL
+        const on_wall_alt   = rot.y == SIGN_POSITION.WALL_ALT
+        const on_floor      = rot.y == SIGN_POSITION.FLOOR
 
         const connect_z = is_bb ? 3/32 : CONNECT_Z
 
@@ -371,7 +385,6 @@ export default class style {
             z + .5 + connect_z / 2,
         )
 
-        
         if(is_bb) {
             let tz = 0
             let ty = -.725/32
@@ -383,6 +396,20 @@ export default class style {
         } else {
             if(!draw_bottom) {
                 aabb.translate(0, -(.2 + aabb.height) / 2, .5 - aabb.depth / 2)
+            }
+        }
+
+        if(on_ceil) {
+            aabb.expand(-1/16, 0, 0)
+            aabb.translate(0, -(aabb.y_min - y), 0)
+        } else if(on_wall_alt) {
+            aabb.expand(-1/16, 0, 0)
+            aabb.translate(0, -(aabb.y_min - y), 0)
+        }
+        
+        if(is_bb) {
+            if(on_wall_alt || on_ceil) {
+                aabb.translate(0, .55/32, 0)
             }
         }
 

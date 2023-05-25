@@ -325,8 +325,6 @@ export default class style {
                 mat4.copy(m, matrix)
                 mat4.rotateY(m, m, Math.PI)
                 const aabb = sign_style.makeAABBSign(tblock, x, y, z)
-                const e = 0 // -1/30
-                aabb.expand(e, e, e)
                 const fblock = sign_style.makeTextBlock(tblock, aabb, pivot, m, x, y, z)
                 if(fblock) {
                     emmited_blocks.push(fblock)
@@ -590,7 +588,7 @@ export default class style {
             const condition_value = when[k]
             switch(k) {
                 case 'state': {
-                    if(model.state !== condition_value) {
+                    if(Array.isArray(condition_value) ? !condition_value.includes(model.state) : (model.state !== condition_value)) {
                         return false
                     }
                     break
@@ -601,16 +599,28 @@ export default class style {
                     }
                     break
                 }
+                case 'sign:samerot': {
+                    if(sign_style.same_rot_with_up_neighbour(tblock, neighbours.UP) != condition_value) {
+                        return false
+                    }
+                    break
+                }
                 default: {
                     if(k.startsWith('neighbour.')) {
-                        // Example: "when": {"neighbour.up": "AIR"}
-                        const nname = k.substring(10).toUpperCase()
+                        const temp = k.split('.')
+                        // Examples: "when": {"neighbour.up.material.name": "AIR"}
+                        //           "when": {"neighbour.up.material.is_solid": true}
+                        if(temp.length != 4) {
+                            return false
+                        }
+                        const nname = temp[1].toUpperCase()
                         const n = neighbours[nname]
                         if(!n) {
                             return false
                         }
+                        const property_name = temp[3]
                         const nmat = n.material
-                        if(!nmat || n.material.name != when[k]) {
+                        if(!nmat || n.material[property_name] != when[k]) {
                             return false
                         }
                     } else if(k.startsWith('extra_data.')) {
