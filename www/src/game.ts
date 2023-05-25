@@ -742,13 +742,7 @@ export class GameClass {
         const isFreeCam = player.controlManager.isFreeCam
 
         if(!this.hud.splash.loading) {
-            if(!isFreeCam) {
-                player.update(Math.min(delta, MAX_FPS_DELTA_PROCESSED));
-            } else {
-                // Updating the control is needed for the server.
-                // It doesn't do everything correctly in the freecam mode (it never did). Maybe fix it.
-                player.updateControl()
-            }
+            player.update(Math.min(delta, MAX_FPS_DELTA_PROCESSED))
         } else {
             player.lastUpdate = null;
         }

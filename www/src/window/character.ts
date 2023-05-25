@@ -1,25 +1,26 @@
-import { Label } from "../ui/wm.js";
-import { BaseCraftWindow, PaperDollSlot } from "./base_craft_window.js";
+import {Button, Label} from "../ui/wm.js";
+import { PaperDollSlot } from "./base_craft_window.js";
 import { Lang } from "../lang.js";
-import { BAG_LINE_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_BOOTS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, PAPERDOLL_LEGGINGS, PAPERDOLL_TOOLBELT, UI_THEME } from "../constant.js";
-import type { InventoryRecipeWindow } from "./inventory_recipe.js";
+import {BAG_LINE_COUNT, PAPERDOLL_BACKPACK, PAPERDOLL_BOOTS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, PAPERDOLL_LEGGINGS, PAPERDOLL_TOOLBELT, UI_THEME} from "../constant.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import type { InGameMain } from "./ingamemain.js";
 import type { Player } from "../player.js";
 import { Resources } from "../resources.js";
 import {PixiGuiPlayer} from "../vendors/wm/pixi_gui_player.js";
+import {BaseInventoryWindow} from "./base_inventory_window.js";
 
 // const PLAYER_BOX_WIDTH = 409 / 2;
 // const PLAYER_BOX_HEIGHT = 620 / 4;
 
-export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
+export class CharacterWindow extends BaseInventoryWindow { // BlankWindow {
 
-    frmInventoryRecipe : InventoryRecipeWindow
     paperdoll : PaperDollSlot[] = []
     player : Player
 
     slot_empty = 'slot_empty'
     slot_full = 'slot_full'
+    protected btnSort?: Button
+    protected lblPlayerBox: Label
 
     constructor(player : Player, inventory : PlayerInventory) {
 
@@ -31,15 +32,6 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         this.h *= this.zoom
 
         this.player = player
-
-        // Craft area
-        this.area = {
-            size: {
-                width: 2,
-                height: 2
-            }
-        };
-
     }
 
     initControls(parent : InGameMain) {
@@ -68,9 +60,9 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         }
 
         // кнопка сортировки
-        this.createButtonSort(true, 0, () => {
-            this.autoSortItems()
-            this.refresh()
+        this.btnSort = this.createButtonSort(true, 0, () => {
+            this.inventory.autoSortInventory()
+            this.onInventoryChange('autoSortInventory')
         })
         
         // слот для удаления преметов
@@ -83,17 +75,6 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         this.addPlayerBox()
 
         this.createRightPaperDoll(this.cell_size)
-
-        // обновить gui
-        this.refresh()
-
-        for(const slot of this.paperdoll) {
-            slot.onSetItem = () => {
-                this.player.getModel().updateArmor()
-                this.refresh()
-            }
-        }
-
     }
 
     // Обработчик открытия формы
@@ -109,7 +90,7 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         // Update player mob model
         this.inventory.player.updateArmor()
 
-        this.inventory.sendStateChange()
+        this.sendInventory({})
     }
 
     async previewSkin() {
@@ -199,6 +180,20 @@ export class CharacterWindow extends BaseCraftWindow { // BlankWindow {
         const lblSlotFakeTwo = new Label(x, getY(), sz, sz, 'fake_labl_slot_two')
         lblSlotFakeTwo.setBackground(this.hud_atlas.getSpriteFromMap('window_slot_locked'))
         ct.add(lblSlotFakeTwo)
+    }
+
+    onInventoryChange(context?: string): void {
+
+        super.onInventoryChange(context)
+
+        // Проверить, возможно ли сортировать инвентарь
+        // Если перетаскивается предмет - не проверять, чтобы было меньше мигаений кнопки попусту
+        // (мы все равно не можем нажать в этот момент)
+        if (this.btnSort && this.inventory.drag.item == null) {
+            const copy = this.inventory.clone()
+            copy.autoSortInventory()
+            this.btnSort.visible = !this.inventory.equal(copy)
+        }
     }
 
 }

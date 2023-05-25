@@ -26,6 +26,7 @@ import {ServerPlayerControlManager} from "./control/server_player_control_manage
 import type {ServerDriving} from "./control/server_driving.js";
 import { ServerPlayerCombat } from "player/combat.js";
 import type {TChestSlots} from "@client/block_helpers.js";
+import type {PrismarinePlayerState} from "@client/prismarine-physics/index.js";
 
 export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
     time?: number;
@@ -494,7 +495,8 @@ export class ServerPlayer extends Player {
     //
     exportStateUpdate(): PlayerStateUpdate {
         const state = this.state
-        const control = this.controlManager.prismarine.player_state
+        const control = this.controlManager.current.player_state
+        const prismarine = control as PrismarinePlayerState
         return {
             id:       this.session.user_id,
             username: this.session.username,
@@ -511,7 +513,8 @@ export class ServerPlayer extends Player {
             armor:    this.inventory.exportArmorState(),
             health:   state.indicators.live,
             ground:   control.onGround,
-            running:  control.control.sprint
+            submergedPercent: Mth.round(prismarine?.submergedPercent ?? 0, 2),
+            running:  prismarine?.control?.sprint ?? false
         }
     }
 

@@ -208,6 +208,7 @@ interface IBlockMiningMaterial {
         time: number
         instruments: string[]
     }
+    float?: boolean // если true, то не тонет в воде
     getMiningTime(instrument : object | any, force : boolean) : float
 }
 
@@ -375,6 +376,7 @@ interface IBlockMaterial {
         time: int,
         level: int
     }[]
+    piece_of?: string // если задано, то этот блок - кусочек другого блока (shard, nugget, и т.п.)
     // boolean values
     spawnable: boolean
     planting: boolean

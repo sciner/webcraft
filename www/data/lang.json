@@ -246,6 +246,7 @@
         "error_undefined_animation_name": {"en": "Undefined animation `%0`", "ru": "Неизвестная анимация `%0`", "fr": "Animation indéfinie `%0`", "es": "Animación indefinida `%0`", "man": "未定义的动画`%0`"},
         "sec": {"en": "sec", "ru": "сек", "fr": "sec", "es": "seg", "man": "秒", "kk": "сек"},
         "protection": {"en": "Protection", "ru": "Защита", "fr": "", "es": "", "man": "", "kk": ""},
-        "durability": {"en": "Durability", "ru": "Прочность", "fr": "", "es": "", "man": "", "kk": ""}
+        "durability": {"en": "Durability", "ru": "Прочность", "fr": "", "es": "", "man": "", "kk": ""},
+        "placeholder_click_for_search": {"en": "Click for search", "ru": "Введите текст для поиска", "fr": "", "es": "", "man": "", "kk": ""}
     }
 }

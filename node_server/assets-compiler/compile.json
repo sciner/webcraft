@@ -1753,7 +1753,7 @@
             "id": 14,
             "name": "GOLD_ORE",
             "sound": "madcraft:block.stone",
-            "coocked_item": {"name": "GOLD_ORE", "count": 1},
+            "coocked_item": {"name": "GOLD_INGOT", "count": 1},
             "drop_item": [
                 {
                     "name": "RAW_GOLD",

@@ -1,5 +1,5 @@
 import { Label, Window } from "../ui/wm.js";
-import { BaseCraftWindow, CraftTableRecipeSlot } from "./base_craft_window.js";
+import { BaseCraftWindow } from "./base_craft_window.js";
 import { BAG_LINE_COUNT, INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
 import type { SpriteAtlas } from "../core/sprite_atlas.js";
 import { Lang } from "../lang.js";
@@ -7,6 +7,7 @@ import type {PlayerInventory} from "../player_inventory.js";
 import type { RecipeManager } from "../recipes.js";
 import type { RecipeWindow } from "./recipe.js";
 import { Resources } from "../resources.js";
+import type {TInventoryStateChangeParams} from "../inventory.js";
 
 const SHIFT_Y = 15
 
@@ -15,6 +16,7 @@ export class CraftTable extends BaseCraftWindow {
 
     frmRecipe : RecipeWindow
     hud_atlas : SpriteAtlas
+    recipes : RecipeManager
 
     constructor(inventory : PlayerInventory, recipes : RecipeManager) {
 
@@ -27,8 +29,7 @@ export class CraftTable extends BaseCraftWindow {
         this.hud_atlas = Resources.atlas.get('hud')
         this.recipes = recipes
 
-        // Craft area
-        this.area = {
+        this.craft_area = {
             size: {
                 width: 3,
                 height: 3
@@ -46,14 +47,14 @@ export class CraftTable extends BaseCraftWindow {
 
         const sz            = this.cell_size
         const szm           = sz + UI_THEME.slot_margin * this.zoom
-        const sx            = UI_THEME.window_padding * this.zoom * 3.5 + szm
+        const sx            = UI_THEME.window_padding * this.zoom * 3.5
         const sy            = (34 + SHIFT_Y) * this.zoom
 
         // слоты (лабел) для подсказок
         this.addHelpSlots(sx, sy, sz, szm)
 
         // Создание слотов для крафта
-        this.createCraft(sx - szm, sy, sz, szm)
+        this.createCraft(sx, sy, sz, szm, 3, 3)
 
         // Calc backpack slots width
         const slots_width = (((this.cell_size / this.zoom) + UI_THEME.slot_margin) * BAG_LINE_COUNT) - UI_THEME.slot_margin + UI_THEME.window_padding
@@ -93,9 +94,9 @@ export class CraftTable extends BaseCraftWindow {
     onShow(args : any) {
 
         if(!this.frmRecipe) {
-            const form = this.inventory.player.inventory.recipes.frmRecipe
+            const form = this.inventory.player.windows.frmRecipe
             form.style.background.image = null
-            form.parent.delete(form.id)
+            form.untypedParent.delete(form.id)
             form.x = UI_THEME.window_padding * this.zoom
             form.y = (140 + SHIFT_Y) * this.zoom
             this.frmRecipe = form
@@ -107,50 +108,19 @@ export class CraftTable extends BaseCraftWindow {
         this.frmRecipe.show()
 
         // this.inventory.player.inventory.recipes.frmRecipe.visible = false
-        Qubatch.releaseMousePointer()
         this.setHelperSlots(null)
         super.onShow(args)
 
     }
 
-    // Обработчик закрытия формы
-    onHide() {
-        this.inventory.sendStateChange({
-            thrown_items: this.clearCraft(),
-            used_recipes: this.lblResultSlot.getUsedRecipes()
-        })
-        super.onHide()
+    sendInventory(params: TInventoryStateChangeParams): void {
+        params.used_recipes = this.lblResultSlot.getUsedRecipes()
+        super.sendInventory(params)
     }
 
-    /**
-    * Создание слотов для крафта
-    */
-    createCraft(sx : float, sy : float, sz : float, szm : float) {
-
-        const ct = this
-
-        if(this.craft) {
-            console.error('error_inventory_craft_slots_already_created')
-            return
-        }
-
-        const xcnt = 3
-
-        this.craft = {
-            slots: [null, null, null, null, null, null, null, null, null]
-        }
-
-        for(let i = 0; i < ct.craft.slots.length; i++) {
-            const x = sx + (i % xcnt) * szm
-            const y = sy + Math.floor(i / xcnt) * szm
-            const options = {
-                onMouseEnterBackroundColor: '#ffffff33'
-            }
-            let lblSlot = new CraftTableRecipeSlot(x, y, sz, sz, 'lblCraftRecipeSlot' + i, null, '' + i, this, null, options)
-            lblSlot.is_craft_slot = true
-            ct.add(this.craft.slots[i] = lblSlot)
-        }
-
+    onInventoryChange(context?: string): void {
+        this.checkRecipe()
+        super.onInventoryChange(context)
     }
 
 }
