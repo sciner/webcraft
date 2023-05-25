@@ -145,17 +145,22 @@ export abstract class BaseInventoryWindow extends BaseAnyInventoryWindow {
 
     /** Создает кнопку сортировки с указанным обработчиком */
     protected createButtonSort(alignRight: boolean, dy: number, onMouseDown: () => void): Button {
-        const size = 18 * this.zoom
+        const fontScale = 0.75
+        const title = Lang['sort']
+        const width = (title.length + 1.5) * 8 * this.zoom * fontScale
+        const height = 18 * this.zoom
         const x = alignRight
-            ? this.w - size - UI_THEME.window_padding * this.zoom
+            ? this.w - width - UI_THEME.window_padding * this.zoom
             : UI_THEME.window_padding * this.zoom
         const y = (dy + UI_THEME.window_padding) * this.zoom
-        const hud_atlas = Resources.atlas.get('hud')
-        // кнопка сортировки
-        const btnSort = new Button(x, y, size, size, 'btnSort')
-        btnSort.setIcon(hud_atlas.getSpriteFromMap('sort'), 'centerstretch', .9)
+        const btnSort = new Button(x, y, width, height, 'btnSort', title)
         btnSort.z = 1
-        btnSort.onMouseDown = onMouseDown
+        btnSort.style.font.size = UI_THEME.button.font.size * fontScale
+        btnSort.onMouseDown = () => {
+            if (btnSort.enabled) {
+                onMouseDown()
+            }
+        }
         this.add(btnSort)
         return btnSort
     }

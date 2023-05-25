@@ -156,10 +156,15 @@ export const UI_THEME = {
     button: {
         font: {
             size: 14,
-            color: '#ffffff'
+            color: '#ffffff',
+            disabled_color: '#ffffff88'
         },
         background: {
-            color: '#5bc4da44'
+            color: '#5bc4da44',
+            disabled_color: '#5bc4da22'
+        },
+        border: {
+            disabled_color: '#5bc4da55'
         }
     },
     // chat
