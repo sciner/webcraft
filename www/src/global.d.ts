@@ -266,6 +266,7 @@ interface IBlockMaterial {
     group: string
     passable: number
     power: number
+    protection: number
     can_auto_drop: boolean
     is_dummy: boolean
     /**

@@ -112,11 +112,11 @@ export class CraftTableSlot extends SimpleBlockSlot {
                 if (block.extra_data?.hotbar) {
                     resp += '\r' + Lang['slots'] + ': ' + block.extra_data.hotbar
                 }
-                if (block.extra_data?.protection) {
-                    resp += '\r' + Lang['protection'] + ': ' + block.extra_data.protection
+                if (block?.protection) {
+                    resp += '\r' + Lang['protection'] + ': ' + block.protection
                 }
-                if (block.extra_data?.durability) {
-                    resp += '\r' + Lang['durability'] + ': ' + block.extra_data.durability
+                if (block?.power && item?.power) {
+                    resp += '\r' + Lang['durability'] + ': ' + Math.round(item.power * 1000 / block.power) / 10 + '%'
                 }
             }
         }

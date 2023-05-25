@@ -764,20 +764,22 @@ export abstract class Inventory {
         for(const slot_index of [PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET]) {
             if(this.items[slot_index]) {
                 const item = this.block_manager.fromId(this.items[slot_index].id);
-                resp += item?.extra_data?.protection ?? 0;
+                resp += item?.protection ?? 0;
             }
         }
         return resp
     }
 
     /**
-     * Возвращает прочность надетого премета
+     * Возвращает прочность надетого премета в процентах
      */
     getArmorPower(slot_index : int) : int {
-        if (this.items[slot_index]) {
-            return 90
+        if (!this.items[slot_index]) {
+            return 0
         }
-        return 0
+        const item = this.items[slot_index]
+        const block = BLOCK.fromId(item.id)
+        return Math.round(item.power * 100 / block.power)
     }
 
     /**
