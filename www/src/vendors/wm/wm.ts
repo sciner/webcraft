@@ -500,7 +500,7 @@ export class Window extends VAUX.Container {
 
         for(let w of this.getRoot().children) {
             const wnd = w as any
-            if(wnd && wnd.id && wnd.visible && !(wnd instanceof Label) && wnd.catchEvents) return true
+            if(wnd && wnd.id && wnd.visible && !(wnd instanceof Label) && wnd.catchEvents) return wnd
         }
 
         return false
