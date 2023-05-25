@@ -208,6 +208,7 @@ interface IBlockMiningMaterial {
         time: number
         instruments: string[]
     }
+    float?: boolean // если true, то не тонет в воде
     getMiningTime(instrument : object | any, force : boolean) : float
 }
 

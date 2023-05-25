@@ -72,13 +72,19 @@ export class DropItem {
         // Сохраним drop item в глобальном хранилище, чтобы не пришлось искать по всем чанкам
         world.all_drop_items.set(this.entity_id, this);
         //
-        this.#pc = this.createPlayerControl({
+        const pcOptions: TPrismarineOptions = {
             baseSpeed: 1,
             playerHeight: 0.25,
             stepHeight: .65,
             defaultSlipperiness: 0.75,
             playerHalfWidth: .05
-        });
+        }
+        // плавает ли - на основе материала 0-го предмета (который рисуется)
+        const mat = world.block_manager.fromId(this.items[0]?.id).material
+        if (mat.float) {
+            pcOptions.floatSubmergedHeight = pcOptions.playerHeight * 0.99
+        }
+        this.#pc = this.createPlayerControl(pcOptions)
         this.motion = MOTION_MOVED;
         //
         this.load_time = performance.now();
