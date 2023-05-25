@@ -13,6 +13,7 @@ const SWAMP_ID = 6
 // tickerRandomGrassBlock
 export default function randomTicker(world: ServerWorld, actions: WorldAction, world_light: int, tblock: TBlock): void {
 
+    _rnd_pos.copyFrom(tblock.posworld).addScalarSelf(Helpers.getRandomInt(-1, 1), Helpers.getRandomInt(-2, 2), Helpers.getRandomInt(-1, 1) )
     const grid = world.chunkManager.grid
     grid.getChunkAddr(tblock.posworld.x, tblock.posworld.y, tblock.posworld.z, _chunk_addr)
     const chunk = world.chunkManager.getChunk(_chunk_addr)
@@ -27,7 +28,6 @@ export default function randomTicker(world: ServerWorld, actions: WorldAction, w
         return
     }
     if (world_light >= 9) {
-        _rnd_pos.copyFrom(tblock.posworld).addScalarSelf(Helpers.getRandomInt(-1, 1), Helpers.getRandomInt(-2, 2), Helpers.getRandomInt(-1, 1) )
         const above = world.getBlock(_rnd_pos, tmpTBlockRnd)
         if (above?.id == 0 && above.fluid == 0) {
             const under = world.getBlock(_rnd_pos.offset(0, -1, 0), tmpTBlockRnd)
