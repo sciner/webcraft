@@ -348,7 +348,14 @@ export class Hotbar {
 
         const player  = this.inventory.player;
         const mayGetDamaged = player.game_mode.mayGetDamaged()
-        const visible = !player.game_mode.isSpectator() && hud.isActive() && !hud.wm.hasVisibleWindow()
+        const visible_window = hud.wm.hasVisibleWindow()
+        const visible = !player.game_mode.isSpectator() && hud.isActive() && (visible_window?.id != 'frmInGameMain')
+
+        // const alpha = visible_window ? .75 : 1
+        // this.inventory_slots_window.alpha = alpha
+        // this.bars_base_window.alpha = alpha
+        // this.armor_base_window.alpha = alpha
+        // this.oxygen_bar.alpha = alpha
 
         this.inventory_slots_window.visible = visible
         this.bars_base_window.visible = visible && mayGetDamaged
