@@ -452,7 +452,8 @@ export class CompileData {
                 "material": {"id": "glass"},
                 "transparent": true,
                 "tags": [
-                    BLOCK_GROUP_TAG.BLOCK
+                    BLOCK_GROUP_TAG.BLOCK,
+                    "is_solid_for_fluid"
                 ],
                 "sound": "madcraft:block.glass",
                 "texture": `block/${color}_stained_glass.png`
