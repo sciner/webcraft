@@ -47,7 +47,12 @@ class PlayerModelSharedProps implements IPlayerSharedProps {
 
 export class PlayerModel extends MobModel implements IPlayerOrModel {
     sharedProps:        PlayerModelSharedProps
-    distance:           number | null = null   // null передается когда игрок слишком далеко, после чего апдейты перестают приходить
+    /**
+     * Расстояние до игрока на сервере.
+     * null передается когда игрок оказывается слишком далеко, после чего апдейты перестают приходить.
+     * При создании игрока (и возможно в некоторых других ситуациях) - undefined.
+     */
+    distance:           number | null
     textCanvas:         HTMLCanvasElement
     textContext:        any
     slots:              Map<string, ModelSlot> = new Map()

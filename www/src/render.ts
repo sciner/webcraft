@@ -1281,7 +1281,7 @@ export class Renderer {
         let shader_binded = false
         for(const player_model of this.world.players.values()) {
             // this.camPos.distance
-            if(player_model.distance !== null || player_model.itsMe()) {
+            if(player_model.distance != null || player_model.itsMe()) {
                 if(player_model.itsMe()) {
                     this.lastDeltaForMeGui = 0
                     if(this.camera_mode == CAMERA_MODE.SHOOTER || this.player.game_mode.isSpectator()) {
