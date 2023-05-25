@@ -14,7 +14,7 @@ export default class packet_reader {
 
     // Apply new inventory state
     static async read(player, packet) {
-        player.inventory.newState(packet.data);
+        await player.inventory.newState(packet.data);
         return true;
     }
 

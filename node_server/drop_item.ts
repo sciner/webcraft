@@ -317,8 +317,8 @@ export class DropItem {
                         name: ServerClient.CMD_DROP_ITEM_DELETED,
                         data: [this.entity_id]
                     }];
-                    this.inChunk.sendAll(packetsA, []);
-                    world.chests.sendChestToPlayers(block, null)
+                    this.inChunk.sendAll(packetsA)
+                    world.saveSendExtraData(block)
                 }
                 break
             }

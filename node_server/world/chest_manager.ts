@@ -1,15 +1,17 @@
-import {isBlockRoughlyWithinPickatRange, TChestSlots} from "@client/block_helpers.js";
+import {ChestHelpers, isBlockRoughlyWithinPickatRange, TChestSlots} from "@client/block_helpers.js";
 import { ServerClient } from "@client/server_client.js";
 import { BLOCK } from "@client/blocks.js";
 import { InventoryComparator } from "@client/inventory_comparator.js";
 import {CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_INTERACTION_MARGIN_BLOCKS_SERVER_ADD, DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX} from "@client/constant.js";
-import {CHEST_CHANGE, Inventory, InventorySize, TChestChange, TChestConfirmData} from "@client/inventory.js";
+import {Inventory, InventorySize, ItemsCollection} from "@client/inventory.js";
 import { Treasure_Sets } from "./treasure_sets.js";
 import type { TBlock } from "@client/typed_blocks3.js";
 import type { Vector } from "@client/helpers.js";
 import {ArrayHelpers, ObjectHelpers} from "@client/helpers.js";
 import type { ServerWorld } from "../server_world.js";
 import type { ServerPlayer } from "../server_player.js";
+import {CHEST_CHANGE, TChestChange, TChestConfirmData, TCmdChestContent} from "@client/chest.js";
+import type {ServerChunk} from "../server_chunk.js";
 
 const CHANGE_RESULT_FLAG_CHEST = 1;
 const CHANGE_RESULT_FLAG_SECOND_CHEST = 2;
@@ -86,11 +88,13 @@ export class WorldChestManager {
         }
 
         function onBeforeExit(): void {
-            // если клиент ждет ответа - ответить
-            if (change.type === CHEST_CHANGE.SORT) {
+            if (params.requestId != null) { // если клиент ждет ответа - ответить (даже если данные сундука не были высланы)
                 player.sendPackets([{
                     name: ServerClient.CMD_CHEST_CHANGE_PROCESSED,
-                    data: params.chestSessionId
+                    data: {
+                        chestSessionId: params.chestSessionId,
+                        requestId:      params.requestId
+                    }
                 }])
             }
         }
@@ -191,7 +195,7 @@ export class WorldChestManager {
         }
 
         if (forceClose || error) {
-            player.inventory.moveOrDropFromInvalidOrTemporarySlots(false);
+            player.inventory.fixTemporarySlots();
             player.inventory.refresh(true);
             if (forceClose) {
                 player.currentChests = null;
@@ -275,6 +279,12 @@ export class WorldChestManager {
 
         const clientChestResultMatches = InventoryComparator.listsExactEqual(srvCombinedChestSlots, cliCombinedChestSlots)
 
+        // Игрок, которому не шлются изменения.
+        // Если сундук публичный - надо послать и своему игроку, чтобы переписать возможные более ранние апдейты от тикеров
+        const exceptPlayer = ChestHelpers.isPublic(tblock.material) ? null : player
+        let firstSentToPlayer = false
+        let secondSentToPlayer = false
+        // сохранить и разослать игрокам изменения
         if (changeApplied & CHANGE_RESULT_FLAG_CHEST) {
             if (secondPos) {
                 // uncombine 1st chest
@@ -286,15 +296,14 @@ export class WorldChestManager {
                     }
                 }
             }
-            // Save to DB
+            // Сохранить в БД и послать остальным (и возможно этому) игроку
             if (is_ender_chest) {
                 player.setEnderChest(chest);
             } else {
                 // Notify the other players about the chest change
-                this.sendChestToPlayers(tblock, [player.session.user_id]);
-
-                this.world.onBlockExtraDataModified(tblock, pos);
+                this.world.saveSendExtraData(tblock, exceptPlayer)
             }
+            firstSentToPlayer = !exceptPlayer
         }
         if (changeApplied & CHANGE_RESULT_FLAG_SECOND_CHEST) {
             // uncombine 2nd chest
@@ -305,17 +314,19 @@ export class WorldChestManager {
                     secondChest.slots[i] = item;
                 }
             }
-            // Notify the other players about the chest change
-            this.sendChestToPlayers(secondTblock, [player.session.user_id]);
-
-            this.world.onBlockExtraDataModified(secondTblock, secondPos);
+            // Сохранить в БД и послать остальным (и возможно этому) игроку
+            this.world.saveSendExtraData(secondTblock, exceptPlayer)
+            secondSentToPlayer = !exceptPlayer
         }
+
         // После того, как изменения применены к сундукам в мире (это имеет значения для парных сундуков)
-        // послать их клиенту, если результат отличается
+        // послать их клиенту, если результат отличается, и ему еще не высылали
         if (!clientChestResultMatches) {
-            this.sendContentToPlayers([player], tblock)
+            if (!firstSentToPlayer) {
+                this.sendContentToPlayers([player], tblock)
+            }
             // Send both chests, even if only one differs. It's rare and doesn't matter.
-            if (secondTblock) {
+            if (secondTblock && !secondSentToPlayer) {
                 this.sendContentToPlayers([player], secondTblock)
             }
         }
@@ -379,7 +390,7 @@ export class WorldChestManager {
             let size = new InventorySize()
             if (targetIsChest) {
                 list = srvChest
-                size.setFakeContinuous(inputChestSlotsCount)
+                size.setFake(inputChestSlotsCount)
             } else {
                 list = srvInv
                 size.calc(srvInv, that.world.block_manager)
@@ -417,7 +428,8 @@ export class WorldChestManager {
         if (change.type === CHEST_CHANGE.SORT) {
             const chestArr = ObjectHelpers.toArray(srvChest)
             const chestArrCopy = ObjectHelpers.deepClone(chestArr, 2) // клонируем на глубину 2 чтобы сохранить количество
-            Inventory.autoSort(chestArr, 0, chestArr.length, this.world.block_manager)
+            const itemsCollection = new ItemsCollection(chestArr, this.world.block_manager)
+            itemsCollection.autoSort(0, chestArr.length)
             // найти какие из сукндуков изменились
             for(let i = 0; i < chestArr.length; i++) {
                 if (!InventoryComparator.itemsEqual(chestArr[i], chestArrCopy[i])) {
@@ -598,11 +610,10 @@ export class WorldChestManager {
     }
 
     /**
-     * Послылает данные сундука игрокам.
-     * Не проверяет что это сундук.
+     * Послылает данные блока игрокам. Особо обрабатывает сундуки.
      * Если это ENDER CHEST, то считает что он уже загружен этими игроками (иначе эта функция не должна была вызываться).
      */
-    private sendContentToPlayers(players: ServerPlayer[], tblock: TBlock): void {
+    sendContentToPlayers(players: ServerPlayer[], tblock: TBlock): void {
         if(!tblock || tblock.id < 0 || players.length === 0) {
             return
         }
@@ -612,7 +623,7 @@ export class WorldChestManager {
                 if (!player.ender_chest) {
                     continue
                 }
-                const chest = {
+                const chest: TCmdChestContent = {
                     pos:            tblock.posworld,
                     slots:          player.ender_chest.slots,
                     state:          tblock.extra_data.state
@@ -622,14 +633,15 @@ export class WorldChestManager {
                     data: chest
                 }])
             }
-        } else if (mat.chest.private) {
-            if(!tblock.extra_data || !tblock.extra_data.slots) {
+        } else if (mat.chest?.private) {
+            const extra_data = tblock.extra_data
+            if(!extra_data || !extra_data.slots) {
                 return
             }
-            const chest = {
+            const chest: TCmdChestContent = {
                 pos:    tblock.posworld,
-                slots:  tblock.extra_data.slots,
-                state:  tblock.extra_data.state
+                slots:  extra_data.slots,
+                state:  extra_data.state
             }
             const packets = [{
                 name: ServerClient.CMD_CHEST_CONTENT,
@@ -669,18 +681,19 @@ export class WorldChestManager {
     }
 
     /**
-     * Находит всех игроков, которым нужно слать содержимое указанного сундука, за исключением
-     * перечисленных в {@link except_player_ids}
+     * Находит всех игроков, которым нужно слать содержимое указанного блока (сундука или обычного),
+     * за исключением {@link except_player}.
      */
-    private findPlayers(tblock: TBlock, except_player_ids: int[] | null = null): ServerPlayer[] {
+    findPlayers(tblock: TBlock, except_player?: ServerPlayer): ServerPlayer[] {
         const players = []
-        const chunk = tblock.chunk
+        const chunk: ServerChunk = tblock.chunk
         const pos = tblock.posworld
+        const isPrivate = tblock.material.chest?.private
         for(let p of chunk.connections.values()) {
-            if (except_player_ids?.includes(p.session.user_id)) {
+            if (p === except_player) {
                 continue
             }
-            if (tblock.material.chest.private) {
+            if (isPrivate) {
                 if (!p.currentChests) {
                     continue
                 }
@@ -701,18 +714,13 @@ export class WorldChestManager {
         return players
     }
 
-    sendChestToPlayers(tblock: TBlock, except_player_ids: int[] | null = null): void {
-        const players = this.findPlayers(tblock, except_player_ids)
-        this.sendContentToPlayers(players, tblock);
-    }
-
     // Generate chest
-    generateChest(tblock: TBlock, pos: IVector): void {
+    private generateChest(tblock: TBlock, pos: IVector): void {
         const extra_data = tblock.extra_data
         extra_data.can_destroy = false
         extra_data.slots = this.treasure_sets.generateSlots(pos, extra_data.params.source, DEFAULT_CHEST_SLOT_COUNT)
         delete extra_data.generate
-        this.world.onBlockExtraDataModified(tblock, pos)
+        this.world.saveSendExtraData(tblock)
     }
 
 }

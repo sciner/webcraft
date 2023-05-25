@@ -7,9 +7,6 @@ import { BaseChestWindow } from "./base_chest_window.js";
 
 export class HopperWindow extends BaseChestWindow {
 
-    cell_size : float
-    slot_margin : float
-
     constructor(inventory : PlayerInventory) {
 
         super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmHopper', null, null, inventory, {

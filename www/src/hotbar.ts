@@ -33,7 +33,7 @@ class Strings {
     }
 
     // set new text
-    setText(index, text, max_time) {
+    setText(index, text, max_time?) {
         this.strings[index].text = text;
         if(text) {
             this.strings[index].set_time = performance.now();
@@ -43,7 +43,7 @@ class Strings {
     }
 
     // set text if not same with previous
-    updateText(index, text, max_time) {
+    updateText(index, text, max_time?) {
         if(this.strings[index].text == text) {
             return false;
         }
@@ -100,6 +100,7 @@ export class Hotbar {
     sprite_zoom:                float
     bars:                       Dict<Label> = {}
     strings:                    Strings
+    inventory_update_number:    number
 
     constructor(hud : HUD) {
 
@@ -375,8 +376,8 @@ export class Hotbar {
         if(this.inventory_update_number != this.inventory.update_number) {
             this.inventory_update_number = this.inventory.update_number
             for(let i = 0; i < this.inventory_slots_window.slots.length; i++) {
-                const w = this.inventory_slots_window.slots[i]
-                w.setItem(w.getItem(), false)
+                const w: CraftTableInventorySlot = this.inventory_slots_window.slots[i]
+                w.refresh()
             }
         }
 
@@ -519,6 +520,10 @@ export class Hotbar {
             this.tilemap.drawImage(sprite, x + paddingx, y + paddingy)
             pos += margin + bg.width
         }
+    }
+
+    onInventoryChange(context?: string): void {
+        // ничего - для совместимости с другими окнами, содержащими слоты
     }
 
 }

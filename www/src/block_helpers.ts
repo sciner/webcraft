@@ -5,6 +5,7 @@ import type {TBlock} from "./typed_blocks3.js";
 
 export type TChestInfo = {
     pos         : Vector
+    window ?    : string // имя окна, которое должно открыться для этого сундука
     block_id    : int
     extra_data  : Dict
     chestSessionId ? : number
@@ -17,6 +18,11 @@ export type TChestSlots = {
 }
 
 export class ChestHelpers {
+
+    /** @returns true если сундук из этого материала хранит данные в публичных слотах */
+    static isPublic(material: IBlockMaterial): boolean {
+        return !material.chest?.private && material.name !== 'ENDER_CHEST'
+    }
 
     // If block is a half-chest, it returns the expected position of the other half.
     // Otherwise it returns null.
@@ -102,15 +108,20 @@ export function isBlockRoughlyWithinPickatRange(player, margin, pos, pos2 = null
 }
 
 export class ItemHelpers {
-    [key: string]: any;
+
+    /**
+     * Если эта строка передается в {@link setLabel}, ничего не происходит.
+     * Ее нельзя ввести случайно, но даже если игрок ее специально введет, это ничего не поломает.
+     */
+    static LABEL_NO_CHANGE = 'no\u0000change'
 
     /**
      * Validates and possibly changes (possibly to null) a label entered by a user.
-     * @return {?String} a valid value for label that can be passed to {@link setLabel}
+     * @return a valid value for label that can be passed to {@link setLabel}
      * @throws if the string can't be used as label
      * @todo better validation
      */
-    static validateAndPreprocessLabel(label) {
+    static validateAndPreprocessLabel(label: string): string | null {
         // validate the label (it's for the server; the client validates before that)
         if (typeof label !== 'string' ||
             label.length > ITEM_LABEL_MAX_LENGTH
@@ -121,15 +132,17 @@ export class ItemHelpers {
         return label !== '' ? label : null;
     }
 
-    static getLabel(item) : string {
+    static getLabel(item: IInventoryItem): string {
         return item.extra_data?.label ?? BLOCK.fromId(item.id).title;
     }
 
-    static setLabel(item, label) {
-        this.setExtraDataField(item, 'label', label);
+    static setLabel(item: IInventoryItem, label: string | null): void {
+        if (label !== this.LABEL_NO_CHANGE) {
+            this.setExtraDataField(item, 'label', label);
+        }
     }
 
-    static setExtraDataField(item, fieldName, value) {
+    static setExtraDataField(item: IInventoryItem, fieldName: string, value: any): void {
         if (value != null) {
             item.extra_data = item.extra_data ?? {};
             item.extra_data[fieldName] = value;
@@ -138,7 +151,7 @@ export class ItemHelpers {
         }
     }
 
-    static deleteExtraDataField(item, fieldName) {
+    static deleteExtraDataField(item: IInventoryItem, fieldName: string): void {
         if (item.extra_data) {
             delete item.extra_data[fieldName];
             if (ObjectHelpers.isEmpty(item.extra_data)) {

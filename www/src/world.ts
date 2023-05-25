@@ -5,7 +5,7 @@ import {PlayerManager} from "./player_manager.js";
 import {BLOCK_ACTION, ServerClient} from "./server_client.js";
 import { Lang } from "./lang.js";
 import { SimpleQueue, Vector } from "./helpers.js";
-import { ChestHelpers } from "./block_helpers.js";
+import {ChestHelpers, TChestInfo} from "./block_helpers.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { MOUSE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
 import type { BLOCK } from "./blocks";
@@ -297,7 +297,7 @@ export class World implements IWorld {
             player.stopAllActivity();
             var info = actions.load_chest
             var window = info.window;
-            var secondInfo = null;
+            var secondInfo: TChestInfo | null = null;
             if (window === 'frmChest') {
                 secondInfo = ChestHelpers.getSecondHalf(this, info.pos);
                 if (secondInfo) {

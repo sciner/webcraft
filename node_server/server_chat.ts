@@ -245,6 +245,7 @@ export class ServerChat {
                         '  /netstat (in|out|all) [off|count|size|reset]',
                         '  /astat [recent]',
                         '/shutdown [gentle|force]',
+                        '/resetinventory [username]',
                         ServerChat.XYZ_HELP
                     ]
                 } else {
@@ -320,6 +321,20 @@ export class ServerChat {
                 if (!res) {
                     this.sendSystemChatMessageToSelectedPlayers('!langThe game is already in the process of shutting down.', player)
                 }
+                break
+            }
+            case '/resetinventory': {
+                checkIsAdmin()
+                let target = player
+                if (args[1]) {
+                    target = this.world.players.getByName(args[1])
+                    if (target == null) {
+                        this.sendSystemChatMessageToSelectedPlayers(`!langPlayer not found: ${args[1]}`, player)
+                        return
+                    }
+                }
+                target.inventory.items = this.world.db.getDefaultInventory().items
+                target.inventory.refresh(true)
                 break
             }
             case '/tp':

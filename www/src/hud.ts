@@ -220,17 +220,19 @@ export class HUD {
     [key: string]: any;
 
     FPS = new FPSCounter()
-    active : boolean = true
+    active:                 boolean = true
+    draw_info:              boolean = DRAW_HUD_INFO_DEFAULT
+    draw_block_info:        boolean = !isMobileBrowser()
+    wm:                     WindowManager
+    text:                   string | null = null
+    need_refresh?:          boolean
 
     constructor(canvas) {
 
         this.canvas = canvas
 
-        this.draw_info                  = DRAW_HUD_INFO_DEFAULT
-        this.draw_block_info            = !isMobileBrowser()
         this.texture                    = null
         this.buffer                     = null
-        this.text                       = null
         this.block_text                 = null
         this.items                      = []
         this.prevInfo                   = null
@@ -295,8 +297,8 @@ export class HUD {
     }
 
     //
-    isActive() : boolean {
-        return this.active;
+    isActive(): boolean {
+        return this.active
     }
 
     draw(force : boolean = false) {
@@ -339,7 +341,7 @@ export class HUD {
                 e.item.drawHUD(this)
             }
         }
-        
+
         // Draw game technical info
         this.drawInfo()
         this.drawAverageFPS()
@@ -387,7 +389,7 @@ export class HUD {
 
         // If render not inited
         if(!Qubatch.render || !Qubatch.world || !Qubatch.player) {
-            return;
+            return false;
         }
 
         const game              : GameClass     = Qubatch
@@ -401,6 +403,11 @@ export class HUD {
         const splash            : Splash        = this.splash
 
         this.text = '';
+
+        if (!this.active) { // если HUD не виден - не вычисялть этот огромный текст
+            return false
+        }
+
         if(render.renderBackend.kind != 'webgl') {
             this.text = 'Render: ' + render.renderBackend.kind + '\n';
         }

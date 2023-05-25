@@ -1,4 +1,3 @@
-import { BLOCK_ACTION } from "@client/server_client.js";
 import type { TickingBlockManager } from "../server_chunk.js";
 
 const recipes_src = [
@@ -277,12 +276,10 @@ export default class Ticker {
 
         state.result_percent = (state.result_ticks % max_ticks) / max_ticks;
         // если что-то обновилось, то шлём это игрокам
-        const updated_blocks = [];
         if(is_update) {
-            updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: BLOCK_ACTION.MODIFY});
-            world.chests.sendChestToPlayers(tblock, null);
+            world.saveSendExtraData(tblock)
         }
-        return updated_blocks;
+        return null
     }
 
 }

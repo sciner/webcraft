@@ -52,6 +52,13 @@ export class DropItemManager {
                     }
                     break;
                 }
+                case ServerClient.CMD_DROP_ITEM_PICKED: {
+                    const drop_item = this.list.get(cmd.data)
+                    if (drop_item) {
+                        drop_item.pickedByMe = true
+                    }
+                    break
+                }
                 case ServerClient.CMD_DROP_ITEM_DELETED: {
                     for(let drop_item_id of cmd.data) {
                         this.delete(drop_item_id);
