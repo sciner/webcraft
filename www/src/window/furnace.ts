@@ -5,6 +5,7 @@ import { Icon } from "../ui/wm.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH } from "../constant.js";
 import type {TCmdChestContent} from "../chest.js";
+import {SpriteAtlas} from "../core/sprite_atlas.js";
 
 export class FurnaceWindow extends BaseChestWindow {
 
@@ -12,6 +13,9 @@ export class FurnaceWindow extends BaseChestWindow {
     icon_fire : Icon
 
     constructor(inventory : PlayerInventory) {
+
+        const w = 420
+        const h = 400
 
         super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmFurnace', null, null, inventory, {
             title: Lang.furnace,
@@ -29,12 +33,12 @@ export class FurnaceWindow extends BaseChestWindow {
         this.add(this.icon_fire)
 
         // Create sprite atlas
-       /* this.atlas = new SpriteAtlas()
+        this.atlas = new SpriteAtlas()
         this.atlas.fromFile('./media/gui/form-furnace.png').then(async (atlas : SpriteAtlas) => {
             this.setBackground(await atlas.getSprite(0, 0, w * 2, h * 2), 'none', this.zoom / 2.0)
             this.icon_arrow.setBackground(await this.atlas.getSprite(840, 56, 96, 68), 'none', this.zoom / 2.0 )
             this.icon_fire.setBackground(await this.atlas.getSprite(840, 0, 58, 56), 'none', this.zoom / 2.0 )
-        })*/
+        })
         
     }
 
