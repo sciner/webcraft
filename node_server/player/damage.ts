@@ -267,7 +267,11 @@ export class ServerPlayerDamage {
         const res_lvl = effects.getEffectLevel(Effect.RESISTANCE)
         damage -= damage * res_lvl * 0.2
         // армор
-        damage = Math.round((damage * (32 - this.player.inventory.getArmorLevel())) / 32)
+        const armor_level = this.player.inventory.getArmorLevel()
+        if (armor_level > 0 && damage > 0) {
+            this.player.inventory.setArmorDecrement()
+        }
+        damage = Math.round((damage * (32 - armor_level)) / 32)
         if (damage > 0) {
             if (this.actor && [EnumDamage.CRIT, EnumDamage.SNOWBALL].includes(this.type_damage)) {
                 const pos = this.actor?.state?.pos ? this.actor.state.pos : this.actor.pos

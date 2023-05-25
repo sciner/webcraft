@@ -625,6 +625,22 @@ export abstract class Inventory extends InventoryItemsCollection {
         }
     }
 
+    /** 
+     * Decrements the power of. 
+     * */
+    decrement_armor(slot: number): void {
+        if (!this.items[slot]?.power || this.player.game_mode.isCreative()) {
+            return
+        }
+        const item = this.items[slot]
+        const block = this.block_manager.fromId(item.id)
+        if (!block?.power || block.item.name != 'armor') {
+            return
+        }
+        this.items[slot].power = Math.max(this.items[slot].power - 1, 0)
+        this.refresh(true)
+    }
+
     /**
      * Decrements the current item.
      * @param {null} decrement_item - not processed, must be null
@@ -920,8 +936,8 @@ export abstract class Inventory extends InventoryItemsCollection {
         let resp = 0;
         for(const slot_index of [PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET]) {
             if(this.items[slot_index]) {
-                const item = this.block_manager.fromId(this.items[slot_index].id);
-                resp += item?.protection ?? 0;
+                const item = this.block_manager.fromId(this.items[slot_index].id)
+                resp += (item?.protection && this.items[slot_index]?.power) ? item.protection : 0
             }
         }
         return resp
@@ -937,6 +953,21 @@ export abstract class Inventory extends InventoryItemsCollection {
         const item = this.items[slot_index]
         const block = BLOCK.fromId(item.id)
         return Math.round(item.power * 100 / block.power)
+    }
+
+    /** 
+     * Уменьшаем прочность элемента
+     * 
+     */
+    setArmorDecrement() {
+        const list = []
+        for(const slot_index of [PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET]) {
+            if(this.items[slot_index]?.power) {
+                list.push(slot_index)
+            }
+        }
+        const rnd = Math.random() * list.length | 0
+        this.decrement_armor(list[rnd])
     }
 
     /**
