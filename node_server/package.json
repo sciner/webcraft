@@ -21,7 +21,7 @@
     "express-less": "^0.1.0",
     "mkdirp": "^1.0.4",
     "nodemon": "^2.0.20",
-    "prismarine-schematic": "github:sciner/prismarine-schematic#master",
+    "madcraft-schematic-reader": "^1.2.3",
     "semver": "^7.3.7",
     "simplex-noise": "^3.0.1",
     "skia-canvas": "^0.9.30",

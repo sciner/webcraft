@@ -1,5 +1,5 @@
 import { BLOCK, DBItemBlock } from "../../blocks.js";
-import { Schematic } from "@server/node_modules/prismarine-schematic/index.js";
+import { Schematic } from "@server/node_modules/madcraft-schematic-reader/index.js";
 import { promises as fs } from 'fs';
 import { DIRECTION_BIT, SIX_VECS, Vector, VectorCollector } from "../../helpers.js";
 import { RailShape } from "../../block_type/rail_shape.js";
