@@ -408,7 +408,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
                 start: this.animation_changed
             }
             this.prev_animations = new Map()
-            this.animation_changed = performance.now() / 1000
+            this.animation_changed = null
             this.start_time = performance.now()
             // if(this.model.name == 'mob/humanoid') {
             //     console.log('anim changed', this.animation_name)
@@ -417,7 +417,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
 
         this.model.playAnimation(this.animation_name, (performance.now() - this.start_time) / 1000, this)
         this.model.drawBuffered(render, this, this.apos, lm, m)
-        this.animation_changed = null
+
     }
 
     // applyRotate() {
