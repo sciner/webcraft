@@ -480,7 +480,7 @@ export class SchematicReader {
             // trapdoors and doors
             // top|bottom|lower|upper
             if(b.tags.includes('door')) {
-                console.log(props)
+                // console.log(props)
             }
             if('half' in props) {
                 switch(props.half) {
