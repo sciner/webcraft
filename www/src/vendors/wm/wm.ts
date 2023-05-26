@@ -1159,7 +1159,7 @@ export class TextEdit extends Window {
         this.style.font.family = 'Ubuntu'
 
         const tm = this.getTextMetrics()
-        this.lineHeight = tm.lineHeight
+        this.lineHeight = (tm as any).lineHeight
 
         // create cariage
         this.lbl_cariage = new Label(0, 0, 0, 0, 'lbl_cariage')

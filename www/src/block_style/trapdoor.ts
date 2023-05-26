@@ -27,8 +27,8 @@ export default class style {
         const bm = style.block_manager
         const shapes = []
         const cardinal_direction = tblock.getCardinalDirection()
-        const opened = bm.isOpened(tblock)
-        const on_ceil = bm.isOnCeil(tblock)
+        const opened = bm.isOpened(tblock as TBlock)
+        const on_ceil = bm.isOnCeil(tblock as TBlock)
         const sz = 3 / 16 // 15.9;
         if(opened) {
             shapes.push(new AABB(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, Vector.SHAPE_PIVOT))

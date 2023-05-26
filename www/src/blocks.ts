@@ -116,18 +116,27 @@ export class FakeVertices {
 
 //
 export class FakeTBlock {
-    [key: string]: any;
+    id:             int
+    extra_data:     any
+    pos?:           Vector
+    rotate?:        Vector
+    pivot?:         Vector
+    matrix?:        imat4
+    tags?:          string[]
+    biome?:         any
+    dirt_color?:    IndexedColor
+    tb?:            any
 
-    constructor(id : int, extra_data? : any, pos?, rotate?, pivot?, matrix?, tags?, biome?, dirt_color? : IndexedColor) {
-        this.id = id;
-        this.extra_data = extra_data;
-        this.pos = pos;
-        this.rotate = rotate;
-        this.pivot = pivot;
-        this.matrix = matrix;
-        this.tags = tags;
-        this.biome = biome;
-        this.dirt_color = dirt_color;
+    constructor(id : int, extra_data? : any, pos? : Vector, rotate? : Vector, pivot?, matrix? : imat4, tags? : string[], biome? : any, dirt_color? : IndexedColor) {
+        this.id         = id
+        this.extra_data = extra_data
+        this.pos        = pos
+        this.rotate     = rotate
+        this.pivot      = pivot
+        this.matrix     = matrix
+        this.tags       = tags
+        this.biome      = biome
+        this.dirt_color = dirt_color
     }
 
     getCardinalDirection() : int {
@@ -484,7 +493,7 @@ export class BLOCK {
     }
 
     // Return new simplified item
-    static convertItemToInventoryItem(item, b?, no_copy_extra_data : boolean = false) : IInventoryItem {
+    static convertItemToInventoryItem(item? : DBItemBlock, b?, no_copy_extra_data : boolean = false) : IInventoryItem {
         if(!item || !('id' in item) || item.id < 0) {
             return null;
         }
@@ -523,7 +532,7 @@ export class BLOCK {
     }
 
     // Call before setBlock
-    static makeExtraData(block, pos : IVectorPoint, orientation : IVector, world) {
+    static makeExtraData(block : IBlockMaterial, pos : IVectorPoint, orientation : IVector, world) {
         block = BLOCK.BLOCK_BY_ID[block.id];
         const is_trapdoor = block.tags.includes('trapdoor');
         const is_stairs = block.tags.includes('stairs');
@@ -611,7 +620,7 @@ export class BLOCK {
     }
 
     // Execute calculated extra_data fields
-    static calculateExtraData(extra_data, pos : IVector) {
+    static calculateExtraData(extra_data : any, pos : IVector) {
         if('calculated' in extra_data) {
             const calculated = extra_data.calculated;
             delete(extra_data.calculated);
@@ -737,16 +746,12 @@ export class BLOCK {
     }
 
     //
-    static getBlockStyleGroup(block) : string {
+    static getBlockStyleGroup(block : IBlockMaterial) : string {
         let group = 'regular';
-        if('group' in block) return block.group;
+        if(block.group) return block.group
         // make vertices array
         if (block.is_fluid) {
-            if (block.is_water) {
-                group = 'doubleface_transparent';
-            } else {
-                group = 'doubleface';
-            }
+            group = block.is_water ? 'doubleface_transparent' : 'doubleface'
         } else if((block.tags.includes('alpha')) || ['thin'].includes(block.style_name)) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
@@ -774,7 +779,7 @@ export class BLOCK {
     }
 
     // parse block transparent
-    static parseBlockTransparent(block) : boolean {
+    static parseBlockTransparent(block : IBlockMaterial) : boolean {
         let transparent = block.hasOwnProperty('transparent') && !!block.transparent;
         if(block.style_name && block.style_name == 'stairs') {
             transparent = true;
@@ -810,10 +815,9 @@ export class BLOCK {
     }
 
     /**
-     * @param {int} block_id
-     * @returns {number} non-zero if it's solid, 0 otherwise
+     * @returns non-zero if it's solid, 0 otherwise
      */
-    static isSolidID(block_id: number): number {
+    static isSolidID(block_id: int): number {
         if(block_id <= 0) return 0 // I'm not sure if this check makes it fatser or slower
         return this.flags[block_id] & BLOCK_FLAG.SOLID
     }
@@ -1129,7 +1133,7 @@ export class BLOCK {
         return resp
     }
 
-    static invisibleForCam(block) : boolean {
+    static invisibleForCam(block : IBlockMaterial) : boolean {
         return  block.is_portal ||
                 (block.passable > 0) ||
                 (block.material.id == 'plant' && (block.style_name == 'planting' || block.planting)) ||
@@ -1138,18 +1142,18 @@ export class BLOCK {
     }
 
     // Return true if block can intaract with hand
-    static canInteractWithHand(block) {
+    static canInteractWithHand(block : IBlockMaterial) : boolean {
         return block.tags.includes('door') ||
             block.tags.includes('trapdoor') ||
             block.tags.includes('pot') ||
             block.is_button ||
             block.is_jukebox ||
-            block.window ||
+            !!block.window ||
             ['stool', 'chair'].includes(block.style_name);
     }
 
     // Make material key
-    static makeBlockMaterialKey(resource_pack, material) {
+    static makeBlockMaterialKey(resource_pack : BaseResourcePack, material : IBlockMaterial) {
         let mat_group = material.group;
         let texture_id = 'default';
         let mat_shader = 'terrain';
@@ -1160,29 +1164,29 @@ export class BLOCK {
     }
 
     //
-    static canTakeShadow(mat) {
-        if(mat.id < 1 || !mat) {
+    static canTakeShadow(block : IBlockMaterial) {
+        if(block.id < 1 || !block) {
             return false;
         }
-        const is_layering = mat.is_layering
-        const is_bed = mat.style_name == 'bed'
-        const is_dirt = mat.tags.includes('dirt')
-        if(mat?.transparent && !is_layering && !is_bed && !is_dirt) {
+        const is_layering = block.is_layering
+        const is_bed = block.style_name == 'bed'
+        const is_dirt = block.tags.includes('dirt')
+        if(block?.transparent && !is_layering && !is_bed && !is_dirt) {
             return false;
         }
         return true;
     }
 
     // Return tx_cnt from resource pack texture
-    static calcTxCnt(material) {
+    static calcTxCnt(block : IBlockMaterial) {
         let tx_cnt = TX_CNT;
-        if (typeof material.texture === 'object' && 'id' in material.texture) {
-            let tex = material.resource_pack.conf.textures[material.texture.id];
+        if (typeof block.texture === 'object' && 'id' in block.texture) {
+            let tex = block.resource_pack.conf.textures[block.texture.id];
             if(tex && 'tx_cnt' in tex) {
                 tx_cnt = tex.tx_cnt;
             }
         } else {
-            let tex = material.resource_pack.conf.textures['default'];
+            let tex = block.resource_pack.conf.textures['default'];
             if(tex && 'tx_cnt' in tex) {
                 tx_cnt = tex.tx_cnt;
             }
@@ -1201,10 +1205,10 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
-    static calcMaterialTexture(material, dir : int | string, width? : int, height ? : int, block? : any, force_tex? : any, random_double? : float, overlay_name?: string) : tupleFloat4 {
+    static calcMaterialTexture(material : IBlockMaterial, dir : int | string, width? : int, height ? : int, block? : any, force_tex? : any, random_double? : float, overlay_name?: string) : tupleFloat4 {
 
-        let mat_texture = material?.texture
-        if(material?.texture_variants && (random_double != undefined)) {
+        let mat_texture = material.texture
+        if(material.texture_variants && (random_double != undefined)) {
             mat_texture = material.texture_variants[Math.floor(material.texture_variants.length * random_double)]
         }
         if(overlay_name && material?.texture_overlays) {
@@ -1355,8 +1359,8 @@ export class BLOCK {
     }
 
     //
-    static registerStyle(style) {
-        const reg_info = style.getRegInfo(BLOCK);
+    static registerStyle(style : any) {
+        const reg_info = style.getRegInfo(BLOCK)
         for(let style of reg_info.styles) {
             BLOCK.styles.set(style, reg_info);
         }
@@ -1386,48 +1390,47 @@ export class BLOCK {
         return ROTATE.S; // was E
     }
 
-    static isOnCeil(block) : boolean {
+    static isOnCeil(block : TBlock) : boolean {
         return block.extra_data && block.extra_data?.point?.y >= .5; // на верхней части блока (перевернутая ступенька, слэб)
     }
 
-    static isOpened(block) : boolean {
+    static isOpened(block : TBlock) : boolean {
         return !!(block.extra_data && block.extra_data.opened);
     }
 
-    static canFenceConnect(block) : boolean {
-        const style = block.material.bb?.model?.name || block.material.style_name
+    static canFenceConnect(block : TBlock) : boolean {
         return block.id > 0 &&
             (
                 !block.material.transparent ||
                 block.material.is_simple_qube ||
                 block.material.is_solid ||
-                ['fence', 'fence_gate', 'wall', 'pane'].includes(style)
+                ['fence', 'fence_gate', 'wall', 'pane'].includes(block.material.style_name)
             ) && (
                 block.material.material.id != 'leaves'
-            );
+            )
     }
 
-    static canWallConnect(block) : boolean {
+    static canWallConnect(block : TBlock) : boolean {
         return block.id > 0 &&
             (
                 !block.material.transparent ||
                 block.material.is_simple_qube ||
                 block.material.is_solid ||
-                ['wall', 'pane', 'fence'].includes(block.material.bb?.behavior ?? block.material.style_name)
+                ['wall', 'pane', 'fence'].includes(block.material.style_name)
             ) && (
                 block.material.material.id != 'leaves'
-            );
+            )
     }
 
-    static canPaneConnect(block) : boolean {
+    static canPaneConnect(block : TBlock) : boolean {
         return this.canWallConnect(block);
     };
 
-    static canRedstoneDustConnect(block) {
+    static canRedstoneDustConnect(block : TBlock) {
         return block.id > 0 && (block.material && 'redstone' in block.material);
     }
 
-    static autoNeighbs(chunkManager, pos, cardinal_direction, neighbours) {
+    static autoNeighbs(chunkManager, pos : Vector, cardinal_direction : int, neighbours : {}) {
         const mat = CubeSym.matrices[cardinal_direction];
         if (!neighbours) {
             return {
