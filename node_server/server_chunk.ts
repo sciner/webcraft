@@ -1450,18 +1450,18 @@ export class ServerChunk {
     //
     geCell(global_xz : Vector) : IChunkCell | null {
         const pc = this.packedCells
-        if(!pc) return
-        const chunk = this
-        const CHUNK_SIZE_X = this.size.x
-        const CHUNK_SIZE_Z = this.size.z
-        const x = global_xz.x - this.addr.x * CHUNK_SIZE_X
-        const z = global_xz.z - this.addr.z * CHUNK_SIZE_Z
-        const cell_index = z * CHUNK_SIZE_X + x
+        if(!pc) return null
+        const x = global_xz.x - this.coord.x
+        const z = global_xz.z - this.coord.z
+        if(x < 0 || z < 0 || x >= this.size.x || z >= this.size.z) {
+            throw 'error_invalid_coord'
+        }
+        const cell_index = z * this.size.x + x
         const i = cell_index * PACKED_CELL_LENGTH
         return {
-            dirt_color: new IndexedColor(pc[i + PACKET_CELL_DIRT_COLOR_R], pc[i + PACKET_CELL_DIRT_COLOR_G], 0),
-            water_color: new IndexedColor(pc[i + PACKET_CELL_WATER_COLOR_R], pc[i + PACKET_CELL_WATER_COLOR_G], 0),
-            biome_id: pc[i + PACKET_CELL_BIOME_ID] | 0,
+            dirt_color:     new IndexedColor(pc[i + PACKET_CELL_DIRT_COLOR_R], pc[i + PACKET_CELL_DIRT_COLOR_G], 0),
+            water_color:    new IndexedColor(pc[i + PACKET_CELL_WATER_COLOR_R], pc[i + PACKET_CELL_WATER_COLOR_G], 0),
+            biome_id:       pc[i + PACKET_CELL_BIOME_ID] | 0,
         } as IChunkCell
     }
 
