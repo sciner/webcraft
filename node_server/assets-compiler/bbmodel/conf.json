@@ -2009,6 +2009,19 @@
             "bb": {
                 "model": "tool/mechanism_assembler"
             }
+        },
+        {
+            "id": 285,
+            "name": "GOLDEN_CHESTPLATE",
+            "bb": {
+                "model": "armor/scrap_armor",
+                "set_state": [
+                    {"name": "preview/preview_chestplate"}
+                ],
+                "select_texture": [
+                    {"name": "scrap_armor_gold"}
+                ]
+            }
         }
     ]
 }

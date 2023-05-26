@@ -498,7 +498,7 @@ export class Physics {
         const block = this.world.getBlock(_pos, _ladder_check_tblock)
         let resp = this.isLadder(block)
         // if block is opened trapdoor
-        if(!resp && block?.tblock && block.tblock.material.tags.includes('trapdoor') && block.tblock.extra_data?.opened) {
+        if(!resp && block?.tblock?.material && block.tblock.material.tags.includes('trapdoor') && block.tblock.extra_data?.opened) {
             // check under block
             _pos.y--
             resp = this.isLadder(this.world.getBlock(_pos))

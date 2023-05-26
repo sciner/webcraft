@@ -8,6 +8,7 @@ import type { Renderer } from "../render.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { getEuler } from "../components/Transform.js";
 import { BBMODEL_ATLAS_SIZE } from "../constant.js";
+import type { BBModel_Child } from "./child.js";
 
 const VEC_2 = new Vector(2, 2, 2)
 const FIX_POS = new Vector(-8, -8, 8)
@@ -530,9 +531,8 @@ export class BBModel_Model {
 
     /**
      * Add new group into parent group
-     * @param {BBModel_Child} child
      */
-    addChildToCurrentGroup(child) {
+    addChildToCurrentGroup(child : BBModel_Child) {
         if(this._group_stack.length > 0) {
             const parent = this._group_stack[this._group_stack.length - 1];
             parent.addChild(child);
@@ -730,9 +730,26 @@ export class BBModel_Model {
     }
 
     hideAllExcept(except_list : string[]) {
+        let found_count = 0
         for(let group of this.root.children) {
-            // group.visibility = except_list.includes(group.name)
-            group.visibility = except_list.some(item => item.toLowerCase() == group.name.toLowerCase())
+            if(group.visibility = except_list.some(item => item.toLowerCase() == group.name.toLowerCase())) {
+                found_count++
+            }
+        }
+        if(found_count < except_list.length) {
+            for(let path of except_list) {
+                if(path.includes('/')) {
+                    path = path.toLowerCase()
+                    for(let group of this.groups.values()) {
+                        if(group.path == path) {
+                            while(group instanceof BBModel_Group) {
+                                group.visibility = true
+                                group = group.parent
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

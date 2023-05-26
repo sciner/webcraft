@@ -18,7 +18,6 @@ export class BBModel_Group extends BBModel_Child {
     _mx:                imat4 = mat4.create()
     update:             boolean = true
     children:           any[] = []
-    name:               string
     rot_orig:           Vector
     axe:                Mesh_Object_BBModel
     animation_changed: boolean;

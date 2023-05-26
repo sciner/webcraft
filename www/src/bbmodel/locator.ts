@@ -12,7 +12,6 @@ export class BBModel_Locator extends BBModel_Child {
     size: Vector
     translate: Vector
     element: any
-    name: string
 
     constructor(model : BBModel_Model, json : any, size : Vector, translate : Vector) {
         super(model, json)
