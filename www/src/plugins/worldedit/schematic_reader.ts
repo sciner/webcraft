@@ -36,6 +36,39 @@ export class SchematicReader {
             SKELETON_SKULL:         'SKULL_DESERT',
             CARROTS:                'CARROT_SEEDS',
             LAVA_CAULDRON:          'CAULDRON',
+            // Old version block names
+            GRASS_PATH:             'DIRT_PATH',
+            STONEBRICK:             'STONE_BRICKS',
+            WATERLILY:              'LILY_PAD',
+            SAPLING:                'OAK_SAPLING',
+            LEAVES:                 'OAK_LEAVES',
+            RED_FLOWER:             'RED_TULIP',
+            POTATO:                 'POTATOES',
+            QUARTZ:                 'QUARTZ_BLOCK',
+            MAGMA:                  'MAGMA_BLOCK',
+            DIAMOND_SHOVEL:         'TITANIUM_SHOVEL',
+            DIAMOND_SWORD:          'TITANIUM_SWORD',
+            DIAMOND_AXE:            'TITANIUM_AXE',
+            DIAMOND_PICKAXE:        'TITANIUM_PICKAXE',
+            WOOL:                   'WHITE_WOOL',
+            LOG:                    'OAK_LOG',
+            LOG2:                   'BIRCH_LOG',
+            PLANKS:                 'OAK_PLANKS',
+            WOODEN_SLAB:            'OAK_SLAB',
+            BANNER:                 'WHITE_BANNER',
+            BRICK_BLOCK:            'BRICKS',
+            POTION:                 'WATER_BOTTLE',
+            BOOK:                   'ENCHANTED_BOOK',
+            WOODEN_BUTTON:          'OAK_BUTTON',
+            FENCE:                  'OAK_FENCE',
+            TRAPDOOR:               'OAK_TRAPDOOR',
+            WOODEN_DOOR:            'OAK_DOOR',
+            WOODEN_PRESSURE_PLATE:  'OAK_PRESSURE_PLATE',
+            DYE:                    'WHITE_DYE',
+            DOUBLE_PLANT:           'PEONY',
+            TALLGRASS:              'TALL_GRASS',
+            YELLOW_FLOWER:          'DANDELION',
+            CARVED_PUMPKIN:         'LIT_PUMPKIN',
         }
     }
 
@@ -446,6 +479,9 @@ export class SchematicReader {
             }
             // trapdoors and doors
             // top|bottom|lower|upper
+            if(b.tags.includes('door')) {
+                console.log(props)
+            }
             if('half' in props) {
                 switch(props.half) {
                     case 'top': {
@@ -616,7 +652,13 @@ export class SchematicReader {
             if(chest_item_name) {
                 const slot_index = item.Slot;
                 chest_item_name = chest_item_name.toUpperCase();
-                const chest_item_block = BLOCK.fromName(chest_item_name);
+                let chest_item_block = BLOCK[chest_item_name]
+                if(!chest_item_block) {
+                    if(chest_item_name in this.replaced_names) {
+                        chest_item_name = this.replaced_names[chest_item_name]
+                    }
+                    chest_item_block = BLOCK.fromName(chest_item_name)
+                }
                 if(!chest_item_block.is_dummy) {
                     const count = item.Count;
                     if(count > 0) {

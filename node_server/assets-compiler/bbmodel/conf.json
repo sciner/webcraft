@@ -113,6 +113,7 @@
         {"name": "titanium_ore"},
         {"name": "poor_titanium_ore"},
         {"name": "amethyst_cluster"},
+        {"name": "brewing_stand"},
 
         {"name": "tool/primitive_axe"},
         {"name": "tool/sunglasses"},
@@ -2008,6 +2009,13 @@
             "name": "MECHANISM_ASSEMBLER",
             "bb": {
                 "model": "tool/mechanism_assembler"
+            }
+        },
+        {
+            "id": 117,
+            "name": "BREWING_STAND",
+            "bb": {
+                "model": "brewing_stand"
             }
         },
         {
