@@ -530,13 +530,13 @@ export class BaseChestWindow extends BaseInventoryWindow {
         // Если перетаскивается предмет - не проверять, чтобы было меньше мигаений кнопки попусту
         // (мы все равно не можем нажать в этот момент)
         if (this.loading) {
-            this.btnSortChest.visible = false
+            this.btnSortChest.enabled = false
             return
         }
         if (this.btnSortChest && this.inventory.drag.item == null) {
             const copy = this.chest.collection.clone()
             copy.autoSort()
-            this.btnSortChest.visible = !this.chest.collection.equal(copy)
+            this.btnSortChest.enabled = !this.chest.collection.equal(copy)
         }
         // обновить слоты сундука
         for(const slot of this.chest.slots) {

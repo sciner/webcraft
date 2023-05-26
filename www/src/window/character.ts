@@ -192,7 +192,7 @@ export class CharacterWindow extends BaseInventoryWindow { // BlankWindow {
         if (this.btnSort && this.inventory.drag.item == null) {
             const copy = this.inventory.clone()
             copy.autoSortInventory()
-            this.btnSort.visible = !this.inventory.equal(copy)
+            this.btnSort.enabled = !this.inventory.equal(copy)
         }
     }
 
