@@ -559,9 +559,12 @@ export default class style {
                 const rv = randoms.double(z * chunk.size.x + x + y * chunk.size.y) | 0
                 if(block.id == bm.LILY_PAD.id || block.id == bm.GREEN_ALGAE.id) {
                     axes_down = UP_AXES[rv % 4];
-                    flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX | QUAD_FLAGS.MASK_BIOME;
+                    flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX
                 } else {
                     axes_up = UP_AXES[rv % 4];
+                }
+                if(material.tags.includes('mask_biome')) {
+                    flags |= QUAD_FLAGS.MASK_BIOME
                 }
                 autoUV = false;
             }

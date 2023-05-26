@@ -12863,12 +12863,11 @@
             "tags": [
                 "draw_only_down",
                 "set_on_water",
-                "mask_biome",
                 "doubleface",
                 "no_drop_ao",
                 "random_rotate_up"
             ],
-            "texture": "block/vine.png",
+            "texture": "block/green_algae.png",
             "random_ticker": "algae",
             "composter_chance": 0.65
         }
