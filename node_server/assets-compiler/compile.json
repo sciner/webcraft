@@ -12851,7 +12851,7 @@
         },
         {
             "id": 1107,
-            "name": "TINA",
+            "name": "GREEN_ALGAE",
             "transparent": true,
             "passable": 1,
             "height": 0.0625,
@@ -12869,7 +12869,7 @@
                 "random_rotate_up"
             ],
             "texture": "block/vine.png",
-            "random_ticker": "tina",
+            "random_ticker": "algae",
             "composter_chance": 0.65
         }
     ]

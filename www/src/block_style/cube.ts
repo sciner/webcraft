@@ -557,7 +557,7 @@ export default class style {
             // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
             if(material.random_rotate_up) {
                 const rv = randoms.double(z * chunk.size.x + x + y * chunk.size.y) | 0
-                if(block.id == bm.LILY_PAD.id) {
+                if(block.id == bm.LILY_PAD.id || block.id == bm.GREEN_ALGAE.id) {
                     axes_down = UP_AXES[rv % 4];
                     flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX | QUAD_FLAGS.MASK_BIOME;
                 } else {

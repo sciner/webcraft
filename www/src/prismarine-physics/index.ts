@@ -179,11 +179,11 @@ export class Physics {
             blockSlipperiness[bm.BLUE_ICE.id] = 0.989
         }
         if (bm.TINA) { 
-            this.tinaLikePassable = bm.TINA.passable
+            this.tinaLikePassable = bm.GREEN_ALGAE.passable
         }
 
         // Block ids
-        this.tinaId         = bm.TINA.id
+        this.tinaId         = bm.GREEN_ALGAE.id
         this.soulsandId     = bm.SOUL_SAND.id
         this.honeyblockId   = bm.HONEY_BLOCK?.id ?? BLOCK_NOT_EXISTS // 1.15+
         for (const block of [bm.COBWEB, bm.SWEET_BERRY_BUSH]) {

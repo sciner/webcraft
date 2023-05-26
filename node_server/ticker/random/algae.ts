@@ -11,14 +11,14 @@ const tmpTBlockRnd = new TBlock()
 const _chunk_addr = new Vector()
 const SWAMP_ID = 6
 
-// tickerRandomTinaBlock
+// tickerRandomAlgaeBlock
 export default function randomTicker(world: ServerWorld, actions: WorldAction, world_light: int, tblock: TBlock): void {
 
     _rnd_pos.copyFrom(tblock.posworld).addScalarSelf(Helpers.getRandomInt(-1, 1), 0, Helpers.getRandomInt(-1, 1) )
     const grid = world.chunkManager.grid
     grid.getChunkAddr(tblock.posworld.x, tblock.posworld.y, tblock.posworld.z, _chunk_addr)
     const chunk = world.chunkManager.getChunk(_chunk_addr)
-    const cell = chunk?.geCell(_rnd_pos)
+    const cell = chunk?.geCell(tblock.posworld)
     if (!cell) {
         return
     }
@@ -35,7 +35,7 @@ export default function randomTicker(world: ServerWorld, actions: WorldAction, w
             if (under?.id == 0 && (under.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
                 // находим глубину
                 const pos = _rnd_pos.clone()
-                for (let i = 0; i < 3; i++) {
+                for (let i = 0; i < 2; i++) {
                     pos.y--
                     const block = world.getBlock(pos, tmpTBlockRnd)
                     if (block.id != 0 ) {
