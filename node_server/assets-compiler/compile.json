@@ -68,7 +68,7 @@
                 "id": "water"
             },
             "texture": {
-                "side": "block/lava_still.png"
+                "side": "block/water_still.png"
             }
         },
         {
@@ -79,7 +79,7 @@
                 "id": "water"
             },
             "texture": {
-                "side": "block/water_still.png"
+                "side": "block/lava_still.png"
             }
         },
         {

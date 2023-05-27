@@ -114,6 +114,7 @@
         {"name": "poor_titanium_ore"},
         {"name": "amethyst_cluster"},
         {"name": "brewing_stand"},
+        {"name": "pointed_dripstone"},
 
         {"name": "tool/primitive_axe"},
         {"name": "tool/sunglasses"},
@@ -2029,6 +2030,13 @@
                 "select_texture": [
                     {"name": "scrap_armor_gold"}
                 ]
+            }
+        },
+        {
+            "id": 593,
+            "name": "POINTED_DRIPSTONE",
+            "bb": {
+                "model": "pointed_dripstone"
             }
         }
     ]
