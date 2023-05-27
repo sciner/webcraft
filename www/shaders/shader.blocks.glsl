@@ -920,7 +920,7 @@ v_axisV *= sign(a_uvSize.y);
         vec3 cam_period2 = getCamPeriod();
         vec3 pos = vec3(v_world_pos.xy + cam_period2.xy, 0.);
         // pixelate
-        pos = round(pos / (1./32.)) * (1./32.);
+        // pos = round(pos / (1./32.)) * (1./32.);
         color.rgb += rainDrops(pos * 2.).rgb * u_rain_strength * clamp((daySample * 15.0 - 13.0) * 2.0, 0.0, 1.0);
     }
 #endif
