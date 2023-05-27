@@ -280,6 +280,7 @@ void main() {
 
     if(!checkFlag(FLAG_NO_CAN_TAKE_LIGHT)) {
         vec4 centerSample;
+        float daySample;
         #include<local_light_pass>
         #include<ao_light_pass>
         if(!checkFlag(FLAG_NO_CAN_TAKE_AO)) {
