@@ -51,7 +51,10 @@ export class BBModel_Cube extends BBModel_Child {
                             flag_name = flag_name.sub(0, i)
                         }
                         flag_name = `FLAG_${flag_name.toUpperCase()}`
-                        console.log(flag_name, QUAD_FLAGS[flag_name])
+                        const f = QUAD_FLAGS[flag_name]
+                        if(f != undefined) {
+                            flag |= parseInt(f)
+                        }
                     }
                 }
             }
