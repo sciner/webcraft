@@ -412,6 +412,7 @@ interface IBlockMaterial {
     is_flower: boolean
     is_battery: boolean
     is_log: boolean
+    always_waterlogged: boolean
     // boolean values that are automatically calculated by BLOCK, not from JSON
     has_window: boolean
     is_jukebox: boolean
