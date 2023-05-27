@@ -125,7 +125,7 @@ export default class style {
             const mat = bm[extra_data.upholstery.toUpperCase()];
             const upholstery = bm.calcTexture(mat.texture, DIRECTION.UP);
             const color = new IndexedColor(mat.mask_color.r, mat.mask_color.g, 0);
-            const flag = QUAD_FLAGS.MASK_BIOME;
+            const flag = QUAD_FLAGS.FLAG_MASK_BIOME;
             const wools = [];
             wools.push(...[
                 // сиденье обивка

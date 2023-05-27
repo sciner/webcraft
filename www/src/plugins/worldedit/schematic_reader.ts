@@ -171,10 +171,6 @@ export class SchematicReader {
                 new_block = st.new_block
                 fluidValue = st.fluidValue
                 if(st.read_entity_props) {
-                    if(!globalThis.lskdfjksdhjf) {
-                        globalThis.lskdfjksdhjf = 0
-                    }
-                    console.log(++globalThis.lskdfjksdhjf)
                     new_block = this.createBlockFromSchematic(block, st.b, schematic, BlockEntities, pos, st.read_entity_props)
                 }
             } else {

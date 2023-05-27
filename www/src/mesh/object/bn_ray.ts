@@ -29,7 +29,7 @@ export class Mesh_Object_BeaconRay {
         const material      = BLOCK.fromName('BEACON');
         const texture       = material.texture;
         const beacon_beam   = BLOCK.calcTexture(texture, DIRECTION.EAST);
-        const flags         = QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.NO_FOG;
+        const flags         = QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_NO_FOG;
         const lm            = IndexedColor.WHITE;
 
         this.gl_material = material.resource_pack.getMaterial(material.material_key);

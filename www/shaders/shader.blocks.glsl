@@ -16,16 +16,16 @@
     #define CHUNK_SIZE vec3(18.0, 18.0, 84.0)
 
     // bit shifts
-    #define NORMAL_UP                   0
-    #define MASK_BIOME                  1
-    #define NO_AO                       2
-    #define NO_FOG                      3
+    #define FLAG_NORMAL_UP                   0
+    #define FLAG_MASK_BIOME                  1
+    #define FLAG_NO_AO                       2
+    #define FLAG_NO_FOG                      3
     #define FLAG_ANIMATED               5
     #define FLAG_TEXTURE_SCROLL         6
-    #define NO_CAN_TAKE_AO              7
-    #define QUAD_FLAG_OPACITY           8
-    #define QUAD_FLAG_SDF               9
-    #define NO_CAN_TAKE_LIGHT           10
+    #define FLAG_NO_CAN_TAKE_AO              7
+    #define FLAG_QUAD_OPACITY           8
+    #define FLAG_QUAD_SDF               9
+    #define FLAG_NO_CAN_TAKE_LIGHT           10
     #define FLAG_MULTIPLY_COLOR         11
     #define FLAG_LEAVES                 12
     #define FLAG_ENCHANTED_ANIMATION    13
@@ -35,8 +35,8 @@
     #define FLAG_FLUID_ERASE            17
     #define DELIMITER_VERTEX     ((1 << 18) - 1)
     #define FLAG_WAVES_VERTEX           18
-    #define LOOK_AT_CAMERA              19
-    #define LOOK_AT_CAMERA_HOR          20
+    #define FLAG_LOOK_AT_CAMERA              19
+    #define FLAG_LOOK_AT_CAMERA_HOR          20
     #define FLAG_TRIANGLE               21
     #define FLAG_MIR2_TEX               22
 
@@ -397,7 +397,7 @@
     // Calc fog amount
     float fogDistance = length(v_world_pos.xyz);
     float fogFactorDiv = 1.0;
-    if (checkFlag(NO_FOG)) {
+    if (checkFlag(FLAG_NO_FOG)) {
         fogFactorDiv = 15.0;
     }
     float refBlockDist = u_chunkBlockDist * fogFactorDiv;
@@ -428,7 +428,7 @@
 #endif
 
 #ifdef terrain_read_flags_frag
-    v_lightMode = 1.0 - float((v_flags >> NO_AO) & 1);
+    v_lightMode = 1.0 - float((v_flags >> FLAG_NO_AO) & 1);
 #endif
 
 #ifdef sun_light_pass
@@ -479,7 +479,7 @@
         chunkData1.y = (chunkIntData >> 9) & 0x1ff;
         chunkData1.z = (chunkIntData >> 18) & 0x1ff;
         chunkData1.w = (chunkIntData >> 27) & 0xf;
-        v_flags = v_flags | (1 << NO_AO);
+        v_flags = v_flags | (1 << FLAG_NO_AO);
     } else {
         int size = textureSize(u_chunkDataSampler, 0).x;
         int chunkId = int(a_chunkId);

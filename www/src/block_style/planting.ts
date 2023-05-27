@@ -148,7 +148,7 @@ export default class style {
         let texture = bm.calcMaterialTexture(material, texture_dir, null, null, block, undefined, randoms.double(random_index))
 
         let dx = 0, dy = 0, dz = 0;
-        let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP
+        let flag = QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_NORMAL_UP
 
         style.lm.copyFrom(IndexedColor.WHITE);
         style.lm.b = bm.getAnimations(material, 'up');
@@ -203,7 +203,7 @@ export default class style {
             style.lm.r = style.lm.r - DEFAULT_GRASS_PALETTE.x + palette.x
             style.lm.g = style.lm.g - DEFAULT_GRASS_PALETTE.y + palette.y
             IndexedColor.clampPalette(style.lm, palette)
-            flag |= QUAD_FLAGS.MASK_BIOME;
+            flag |= QUAD_FLAGS.FLAG_MASK_BIOME;
         }
 
         // Planes
@@ -213,7 +213,7 @@ export default class style {
         // Sunflower
         if (material.name == 'SUNFLOWER') {
             dy = 0;
-            flag = flag | QUAD_FLAGS.NO_CAN_TAKE_AO;
+            flag = flag | QUAD_FLAGS.FLAG_NO_CAN_TAKE_AO;
             if (block.extra_data?.is_head) {
                 planes = SUNFLOWER_PLANES;
             } else {

@@ -105,7 +105,7 @@ export default class style {
                 const dir = blockFluid.UP;
                 const anim_frames = bm.getAnimations(blockFluid, side);
                 let lm = IndexedColor.WHITE.clone();
-                let flags = QUAD_FLAGS.NO_AO;
+                let flags = QUAD_FLAGS.FLAG_NO_AO;
                 if(blockFluid.tags.indexOf('multiply_color') >= 0) {
                     lm.copyFrom(blockFluid.multiply_color);
                     flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;

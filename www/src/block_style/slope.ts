@@ -51,7 +51,7 @@ export default class style {
         const cd                = block.getCardinalDirection();
         const on_ceil           = style.isOnCeil(block);
         const anim_frames       = 0;
-        const flag              = 0; // QUAD_FLAGS.NO_CAN_TAKE_AO;
+        const flag              = 0; // QUAD_FLAGS.FLAG_NO_CAN_TAKE_AO;
 
         _center.set(x, y, z)
 

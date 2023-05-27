@@ -157,7 +157,7 @@ void main() {
         #include<caustic_pass_onwater>
         #include<raindrops_onwater>
 
-        if(!checkFlag(NO_CAN_TAKE_LIGHT)) {
+        if(!checkFlag(FLAG_NO_CAN_TAKE_LIGHT)) {
             #include<local_light_pass>
             #include<ao_light_pass>
             #include<shoreline>

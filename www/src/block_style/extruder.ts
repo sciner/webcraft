@@ -184,11 +184,11 @@ export default class style {
 
         let lm = IndexedColor.WHITE;
         let fz = -0.5 - 0.5 / SCALE_FACTOR;
-        let flags = QUAD_FLAGS.NO_AO;
+        let flags = QUAD_FLAGS.FLAG_NO_AO;
 
         if(block.hasTag('mask_biome')) {
             lm = dirt_color;
-            flags = QUAD_FLAGS.MASK_BIOME;
+            flags = QUAD_FLAGS.FLAG_MASK_BIOME;
         } else if(block.hasTag('mask_color') && material.mask_color) {
             lm = material.mask_color as IndexedColor;
             flags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
