@@ -2036,7 +2036,11 @@
             "id": 593,
             "name": "POINTED_DRIPSTONE",
             "bb": {
-                "model": "pointed_dripstone"
+                "model": "pointed_dripstone",
+                "set_state": [
+                    {"name": "middle", "when": {"neighbour.up.material.name": "POINTED_DRIPSTONE"}},
+                    {"name": "tip"}
+                ]
             }
         }
     ]
