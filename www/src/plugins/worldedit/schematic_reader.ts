@@ -11,12 +11,12 @@ const dripstone_stages = ['tip', 'frustum', 'middle', 'base'];
 const NO_IMPORT_BLOCKS = ['NETHER_PORTAL'];
 
 declare type IMCBlock = {
-    type:        int
-    name:        string
-    _properties: any
-    entities:    any
-    signText:    any
-    on_wall:     any
+    type:              int
+    name:              string
+    _properties:       any
+    entities:          any
+    signText:          any
+    on_wall:           any
 }
 
 declare type IParseBlockResult = {
@@ -24,12 +24,20 @@ declare type IParseBlockResult = {
     name? : string
 }
 
+declare type IStateBlock = {
+    new_block:          IMCBlock,
+    fluidValue:         int,
+    b:                  IBlockMaterial,
+    read_entity_props:  boolean,
+}
+
 // const {Schematic} = await import("prismarine-schematic" as any)
 
 // SchematicReader...
 export class SchematicReader {
-    blocks: VectorCollector;
-    fluids: any[];
+    blocks: VectorCollector
+    fluids: any[]
+    entity_pos: Vector
     replaced_names: {
         [key: string]: string
     };
@@ -37,6 +45,8 @@ export class SchematicReader {
     constructor() {
         this.blocks = new VectorCollector();
         this.fluids = [];
+
+        this.entity_pos = new Vector(0, 0, 0)
         this.replaced_names = {
             BARRIER:                'AIR',
             CAVE_AIR:               'AIR',
@@ -116,7 +126,7 @@ export class SchematicReader {
         }
 
         // read schematic
-        const schematic = await Schematic.read(await fs.readFile(file_name));
+        const schematic : Schematic = await Schematic.read(await fs.readFile(file_name))
 
         // Prepare BlockEntities for fast search
         const BlockEntities = new VectorCollector();
@@ -138,12 +148,11 @@ export class SchematicReader {
         const STILL_WATER_BLOCK = {id: BLOCK.fromName('STILL_WATER').id};
         const STILL_LAVA_BLOCK = {id: BLOCK.fromName('STILL_LAVA').id};
         // each all blocks
-        const ep = new Vector(0, 0, 0);
         const eb_pos = new Vector(0, 0, 0)
         let min_y = Infinity;
         const cached_blocks = new Map();
         const result : IParseBlockResult = {b: null, name: null};
-        const states = new Map();
+        const states : Map<int, IStateBlock> = new Map();
         (schematic as any).forEachFast((block : IMCBlock, pos, stateId : int) => {
             bpos.copyFrom(pos)
             bpos.z *= -1;
@@ -156,10 +165,18 @@ export class SchematicReader {
             }
             let new_block = null
             let fluidValue = 0
+            let read_entity_props = false
             const st = states.get(stateId)
             if(st) {
                 new_block = st.new_block
                 fluidValue = st.fluidValue
+                if(st.read_entity_props) {
+                    if(!globalThis.lskdfjksdhjf) {
+                        globalThis.lskdfjksdhjf = 0
+                    }
+                    console.log(++globalThis.lskdfjksdhjf)
+                    new_block = this.createBlockFromSchematic(block, st.b, schematic, BlockEntities, pos, st.read_entity_props)
+                }
             } else {
                 const {name, b} = this.parseBlockName(block, result)
                 if(b && NO_IMPORT_BLOCKS.includes(name)) {
@@ -168,27 +185,22 @@ export class SchematicReader {
                 if(b) {
                     // speed optimization
                     if(b.is_simple_qube) {
-                        new_block = cached_blocks.get(b.id);
+                        new_block = cached_blocks.get(b.id)
                     }
                     if(!new_block) {
                         // read entity props
-                        let readEntityProps = false;
                         if(b.chest) {
-                            readEntityProps = true;
+                            read_entity_props = true
                         } else if(b.is_sign) {
-                            readEntityProps = true;
+                            read_entity_props = true
                         } else if(b.name == 'ITEM_FRAME') {
-                            readEntityProps = true;
+                            read_entity_props = true
                         } else if(b.name == 'LECTERN') {
-                            readEntityProps = true;
+                            read_entity_props = true
                         } else if(b.is_banner) {
-                            readEntityProps = true;
+                            read_entity_props = true
                         }
-                        if(readEntityProps) {
-                            ep.copyFrom(pos).subSelf(schematic.offset);
-                            block.entities = BlockEntities.get(ep);
-                        }
-                        new_block = this.createBlockFromSchematic(block, b)
+                        new_block = this.createBlockFromSchematic(block, b, schematic, BlockEntities, pos, read_entity_props)
                         if(!new_block) {
                             return
                         }
@@ -240,16 +252,14 @@ export class SchematicReader {
                         new_block = AIR_BLOCK;
                     }
                 }
-                states.set(stateId, {fluidValue, new_block})
+                states.set(stateId, {fluidValue, new_block, b, read_entity_props})
             }
             this.blocks.set(bpos, new_block)
             // Некоторые блоки могут создавать другие блоки (двери, высокие растения и прочее)
             if(new_block.emmit_blocks) {
                 for(const eb of new_block.emmit_blocks) {
                     this.blocks.set(eb_pos.copyFrom(bpos).addSelf(eb.move), eb)
-                    // delete(eb.move)
                 }
-                // delete(new_block.emmit_blocks)
             }
             if (fluidValue) {
                 this.fluids.push(bpos.x, bpos.y, bpos.z, fluidValue);
@@ -310,11 +320,15 @@ export class SchematicReader {
     }
 
     //
-    createBlockFromSchematic(block : IMCBlock, b : IBlockMaterial) : DBItemBlock | null {
+    createBlockFromSchematic(block : IMCBlock, b : IBlockMaterial, schematic : Schematic, BlockEntities : VectorCollector, pos : Vector, read_entity_props : boolean) : DBItemBlock | null {
         const props = block._properties;
         let new_block = new DBItemBlock(b.id)
         if(new_block.id == 0) {
             return new_block;
+        }
+        if(read_entity_props) {
+            this.entity_pos.copyFrom(pos).subSelf(schematic.offset)
+            block.entities = BlockEntities.get(this.entity_pos)
         }
         if(b.item || b.style_name == 'extruder' || b.style_name == 'text') {
             if(b.item && !b.tags.includes('can_set_as_block')) {
