@@ -39,7 +39,7 @@ export default class style {
             {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, Math.PI / 4, 0]},
             {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -Math.PI / 4, 0]}
         ]);
-        const flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.FLAG_ANIMATED;
+        const flag = QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_ANIMATED;
         const pos = new Vector(x, y, z);
         const lm = IndexedColor.WHITE;
         lm.b = bm.getAnimations(material, (neighbours.UP.id == block.id) ? "west" : "up");

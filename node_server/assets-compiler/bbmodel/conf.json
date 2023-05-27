@@ -2014,6 +2014,7 @@
         {
             "id": 117,
             "name": "BREWING_STAND",
+            "aabb": [5, 0, 5, 11, 16, 11],
             "bb": {
                 "model": "brewing_stand"
             }

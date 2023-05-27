@@ -18,8 +18,8 @@ export class WebGLFluidShader extends WebGLTerrainShader {
 
         //TODO: make this specific to resourcepack (material)
         this.fluidFlags = new Int32Array([
-            QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.FLAG_MULTIPLY_COLOR | QUAD_FLAGS.NO_AO,
-            QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.NO_CAN_TAKE_LIGHT,
+            QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.FLAG_MULTIPLY_COLOR | QUAD_FLAGS.FLAG_NO_AO,
+            QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT,
         ]);
         const atlas_size = DEFAULT_ATLAS_SIZE * 1.;
         this.fluidUV = new Float32Array([

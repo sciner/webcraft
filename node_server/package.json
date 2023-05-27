@@ -20,7 +20,7 @@
     "express-fileupload": "^1.4.0",
     "express-less": "^0.1.0",
     "lodash": "^4.17.21",
-    "madcraft-schematic-reader": "^1.2.3",
+    "madcraft-schematic-reader": "^1.2.4",
     "mkdirp": "^1.0.4",
     "nodemon": "^2.0.20",
     "semver": "^7.3.7",

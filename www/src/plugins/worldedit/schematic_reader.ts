@@ -11,19 +11,33 @@ const dripstone_stages = ['tip', 'frustum', 'middle', 'base'];
 const NO_IMPORT_BLOCKS = ['NETHER_PORTAL'];
 
 declare type IMCBlock = {
-    name:        string
-    _properties: any
-    entities:    any
-    signText:    any
-    on_wall:     any
+    type:              int
+    name:              string
+    _properties:       any
+    entities:          any
+    signText:          any
+    on_wall:           any
+}
+
+declare type IParseBlockResult = {
+    b? : IBlockMaterial,
+    name? : string
+}
+
+declare type IStateBlock = {
+    new_block:          IMCBlock,
+    fluidValue:         int,
+    b:                  IBlockMaterial,
+    read_entity_props:  boolean,
 }
 
 // const {Schematic} = await import("prismarine-schematic" as any)
 
 // SchematicReader...
 export class SchematicReader {
-    blocks: VectorCollector;
-    fluids: any[];
+    blocks: VectorCollector
+    fluids: any[]
+    entity_pos: Vector
     replaced_names: {
         [key: string]: string
     };
@@ -31,6 +45,8 @@ export class SchematicReader {
     constructor() {
         this.blocks = new VectorCollector();
         this.fluids = [];
+
+        this.entity_pos = new Vector(0, 0, 0)
         this.replaced_names = {
             BARRIER:                'AIR',
             CAVE_AIR:               'AIR',
@@ -110,7 +126,7 @@ export class SchematicReader {
         }
 
         // read schematic
-        const schematic = await Schematic.read(await fs.readFile(file_name));
+        const schematic : Schematic = await Schematic.read(await fs.readFile(file_name))
 
         // Prepare BlockEntities for fast search
         const BlockEntities = new VectorCollector();
@@ -132,12 +148,13 @@ export class SchematicReader {
         const STILL_WATER_BLOCK = {id: BLOCK.fromName('STILL_WATER').id};
         const STILL_LAVA_BLOCK = {id: BLOCK.fromName('STILL_LAVA').id};
         // each all blocks
-        const ep = new Vector(0, 0, 0);
         const eb_pos = new Vector(0, 0, 0)
         let min_y = Infinity;
         const cached_blocks = new Map();
-        (schematic as any).forEachFast((block, pos) => {
-            bpos.copyFrom(pos);
+        const result : IParseBlockResult = {b: null, name: null};
+        const states : Map<int, IStateBlock> = new Map();
+        (schematic as any).forEachFast((block : IMCBlock, pos, stateId : int) => {
+            bpos.copyFrom(pos)
             bpos.z *= -1;
             if(bpos.y < min_y) {
                 min_y = bpos.y;
@@ -146,97 +163,100 @@ export class SchematicReader {
                 this.blocks.set(bpos, AIR_BLOCK)
                 return
             }
-            const name = this.parseBlockName(block);
-            if(NO_IMPORT_BLOCKS.includes(name)) {
-                return;
-            }
-            const b = BLOCK[name];
             let new_block = null
-            if(b) {
-                // speed optimization
-                if(b.is_simple_qube) {
-                    new_block = cached_blocks.get(b.id);
-                }
-                if(!new_block) {
-                    // read entity props
-                    let readEntityProps = false;
-                    if(b.chest) {
-                        readEntityProps = true;
-                    } else if(b.is_sign) {
-                        readEntityProps = true;
-                    } else if(b.name == 'ITEM_FRAME') {
-                        readEntityProps = true;
-                    } else if(b.name == 'LECTERN') {
-                        readEntityProps = true;
-                    } else if(b.is_banner) {
-                        readEntityProps = true;
-                    }
-                    if(readEntityProps) {
-                        ep.copyFrom(pos).subSelf(schematic.offset);
-                        block.entities = BlockEntities.get(ep);
-                    }
-                    new_block = this.createBlockFromSchematic(block, b)
-                    if(!new_block) {
-                        return
-                    }
-                    if(b.is_simple_qube) {
-                        cached_blocks.set(b.id, new_block);
-                    }
+            let fluidValue = 0
+            let read_entity_props = false
+            const st = states.get(stateId)
+            if(st) {
+                new_block = st.new_block
+                fluidValue = st.fluidValue
+                if(st.read_entity_props) {
+                    new_block = this.createBlockFromSchematic(block, st.b, schematic, BlockEntities, pos, st.read_entity_props)
                 }
             } else {
-                if(name.indexOf('POTTED_') === 0) {
-                    // POTTED_PINK_TULIP - ALLIUM
-                    // POTTED_WITHER_ROSE - LILY OF THE VALEY
-                    const in_pot_block_name = name.substring(7);
-                    const in_pot_block = BLOCK.fromName(in_pot_block_name);
-                    if(in_pot_block && in_pot_block.id > 0) {
-                        new_block = new DBItemBlock(FLOWER_POT_BLOCK_ID, {item: new DBItemBlock(in_pot_block.id)})
+                const {name, b} = this.parseBlockName(block, result)
+                if(b && NO_IMPORT_BLOCKS.includes(name)) {
+                    return
+                }
+                if(b) {
+                    // speed optimization
+                    if(b.is_simple_qube) {
+                        new_block = cached_blocks.get(b.id)
                     }
-                } else if(name.indexOf('INFESTED_') === 0) {
-                    // e.g. INFESTED_STONE_BRICKS
-                    const name2 = name.substring(9);
-                    const b2 = BLOCK.fromName(name2);
-                    if(!b2.is_dummy) {
-                        new_block = new DBItemBlock(b2.id, {infested: true})
+                    if(!new_block) {
+                        // read entity props
+                        if(b.chest) {
+                            read_entity_props = true
+                        } else if(b.is_sign) {
+                            read_entity_props = true
+                        } else if(b.name == 'ITEM_FRAME') {
+                            read_entity_props = true
+                        } else if(b.name == 'LECTERN') {
+                            read_entity_props = true
+                        } else if(b.is_banner) {
+                            read_entity_props = true
+                        }
+                        new_block = this.createBlockFromSchematic(block, b, schematic, BlockEntities, pos, read_entity_props)
+                        if(!new_block) {
+                            return
+                        }
+                        if(b.is_simple_qube) {
+                            cached_blocks.set(b.id, new_block);
+                        }
+                    }
+                } else {
+                    if(name.indexOf('POTTED_') === 0) {
+                        // POTTED_PINK_TULIP - ALLIUM
+                        // POTTED_WITHER_ROSE - LILY OF THE VALEY
+                        const in_pot_block_name = name.substring(7);
+                        const in_pot_block = BLOCK.fromName(in_pot_block_name);
+                        if(in_pot_block && in_pot_block.id > 0) {
+                            new_block = new DBItemBlock(FLOWER_POT_BLOCK_ID, {item: new DBItemBlock(in_pot_block.id)})
+                        }
+                    } else if(name.indexOf('INFESTED_') === 0) {
+                        // e.g. INFESTED_STONE_BRICKS
+                        const name2 = name.substring(9);
+                        const b2 = BLOCK.fromName(name2);
+                        if(!b2.is_dummy) {
+                            new_block = new DBItemBlock(b2.id, {infested: true})
+                        }
                     }
                 }
-            }
-            // If not implemented block
-            if(!new_block) {
-                not_found_blocks.set(name, (not_found_blocks.get(name) ?? 0) + 1);
-                // replace with TEST block and store original to his extra_data
-                new_block = DBItemBlock.cloneFrom(TEST_BLOCK)
-                new_block.extra_data = {n: name}
-                if(block._properties) {
-                    // fast check if object not empty
-                    for(let _ in block._properties) {
-                        new_block.extra_data.p = block._properties;
-                        break;
+                // If not implemented block
+                if(!new_block) {
+                    not_found_blocks.set(name, (not_found_blocks.get(name) ?? 0) + 1);
+                    // replace with TEST block and store original to his extra_data
+                    new_block = DBItemBlock.cloneFrom(TEST_BLOCK)
+                    new_block.extra_data = {n: name}
+                    if(block._properties) {
+                        // fast check if object not empty
+                        for(let _ in block._properties) {
+                            new_block.extra_data.p = block._properties;
+                            break;
+                        }
                     }
                 }
+                if (b?.is_fluid || b?.always_waterlogged || new_block.waterlogged) {
+                    const lvl = new_block.extra_data?.level ?? 0;
+                    if (new_block.id === STILL_WATER_BLOCK.id) {
+                        fluidValue = FLUID.FLUID_WATER_ID + lvl;
+                    }
+                    if (new_block.id === STILL_LAVA_BLOCK.id) {
+                        fluidValue = FLUID.FLUID_LAVA_ID + lvl;
+                    }
+                    if(b?.is_fluid) {
+                        new_block = AIR_BLOCK;
+                    }
+                }
+                states.set(stateId, {fluidValue, new_block, b, read_entity_props})
             }
-            let fluidValue = 0;
-            if (b?.is_fluid || b?.always_waterlogged || new_block.waterlogged) {
-                const lvl = new_block.extra_data?.level ?? 0;
-                if (new_block.id === STILL_WATER_BLOCK.id) {
-                    fluidValue = FLUID.FLUID_WATER_ID + lvl;
-                }
-                if (new_block.id === STILL_LAVA_BLOCK.id) {
-                    fluidValue = FLUID.FLUID_LAVA_ID + lvl;
-                }
-                if(b?.is_fluid) {
-                    new_block = AIR_BLOCK;
-                }
-            }
+            this.blocks.set(bpos, new_block)
             // Некоторые блоки могут создавать другие блоки (двери, высокие растения и прочее)
             if(new_block.emmit_blocks) {
                 for(const eb of new_block.emmit_blocks) {
                     this.blocks.set(eb_pos.copyFrom(bpos).addSelf(eb.move), eb)
-                    delete(eb.move)
                 }
-                delete(new_block.emmit_blocks)
             }
-            this.blocks.set(bpos, new_block)
             if (fluidValue) {
                 this.fluids.push(bpos.x, bpos.y, bpos.z, fluidValue);
             }
@@ -259,7 +279,7 @@ export class SchematicReader {
     }
 
     //
-    parseBlockName(block) {
+    parseBlockName(block : IMCBlock, out : IParseBlockResult) : any {
         if(block.name == 'wall_sign') {
             block.name = 'oak_wall_sign';
         }
@@ -283,19 +303,28 @@ export class SchematicReader {
             block.name = 'anvil';
         }
         //
-        let name = block.name.toUpperCase();
-        if(name in this.replaced_names) {
-            name = this.replaced_names[name];
+        let name = block.name.toUpperCase()
+        if(name != 'AIR') {
+            const rn = this.replaced_names[name]
+            if(rn) {
+                name = rn
+            }
         }
-        return name;
+        out.b = BLOCK[name]
+        out.name = name
+        return out
     }
 
     //
-    createBlockFromSchematic(block : IMCBlock, b : IBlockMaterial) : DBItemBlock | null {
+    createBlockFromSchematic(block : IMCBlock, b : IBlockMaterial, schematic : Schematic, BlockEntities : VectorCollector, pos : Vector, read_entity_props : boolean) : DBItemBlock | null {
         const props = block._properties;
         let new_block = new DBItemBlock(b.id)
         if(new_block.id == 0) {
             return new_block;
+        }
+        if(read_entity_props) {
+            this.entity_pos.copyFrom(pos).subSelf(schematic.offset)
+            block.entities = BlockEntities.get(this.entity_pos)
         }
         if(b.item || b.style_name == 'extruder' || b.style_name == 'text') {
             if(b.item && !b.tags.includes('can_set_as_block')) {
@@ -495,7 +524,7 @@ export class SchematicReader {
                     } else if(b.tags.includes('rotate_x16')) {
                         new_block.rotate.x = Math.round(props.rotation / 16 * 360) % 360
                     } else if(b.tags.includes('rotate_sign')) {
-                        new_block.rotate.x = Math.round(props.rotation / 16 * 360) % 360
+                        new_block.rotate.x = (props.rotation / 16 * 4 + 2) % 4
                     }
                 }
             }

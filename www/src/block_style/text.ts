@@ -182,7 +182,7 @@ export default class style {
                 )
             }
 
-            const flags = QUAD_FLAGS.QUAD_FLAG_SDF
+            const flags = QUAD_FLAGS.FLAG_QUAD_SDF
 
             style._aabb_char.south.set(style._letter_tex, flags, 1, null, null, false, color)
 

@@ -189,7 +189,7 @@ void main() {
     float playerLight = 0.0, sunNormalLight = 1.0;
     vec3 combinedLight = vec3(1.0);
 
-    if(checkFlag(QUAD_FLAG_SDF)) {
+    if(checkFlag(FLAG_QUAD_SDF)) {
 
         // sdf pipeline
 
@@ -258,7 +258,7 @@ void main() {
             if(color.a < 0.7) discard;
         } else {
             // text not allow to discard in this place
-            if(checkFlag(QUAD_FLAG_OPACITY)) {
+            if(checkFlag(FLAG_QUAD_OPACITY)) {
                 color.a *= v_color.b / 255.0;
             } else {
                 if(color.a < 0.1) discard;
@@ -278,17 +278,17 @@ void main() {
 
     }
 
-    if(!checkFlag(NO_CAN_TAKE_LIGHT)) {
+    if(!checkFlag(FLAG_NO_CAN_TAKE_LIGHT)) {
         vec4 centerSample;
         #include<local_light_pass>
         #include<ao_light_pass>
-        if(!checkFlag(NO_CAN_TAKE_AO)) {
+        if(!checkFlag(FLAG_NO_CAN_TAKE_AO)) {
             #include<sun_light_pass>
         }
         if (cavePart > 0.0 && u_useNormalMap > 0.5 && u_SunDir.w < 0.5) {
             #include<normal_light_pass>
         }
-        if(u_eyeinwater > 0. && !checkFlag(NO_FOG)) {
+        if(u_eyeinwater > 0. && !checkFlag(FLAG_NO_FOG)) {
             // caustics on underwater blocks
             #include<caustic1_pass>
         }

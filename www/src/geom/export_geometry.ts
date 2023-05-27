@@ -124,7 +124,7 @@ export class ExportGeometry16 extends BaseExportGeometry {
 
             let color_R = a_color & 0x3ff, color_B = (a_color >> 10) & 0x3ff, color_G = (a_color >> 20);
             let color_mul = 0xffffffff, color_add = 0x0;
-            if ((flags & QUAD_FLAGS.MASK_BIOME) > 0) {
+            if ((flags & QUAD_FLAGS.FLAG_MASK_BIOME) > 0) {
                 color_add = palette.buf[color_B * palette.width + color_R];
             } else if ((flags & QUAD_FLAGS.FLAG_MULTIPLY_COLOR) > 0) {
                 color_mul = palette.buf[color_B * palette.width + color_R];

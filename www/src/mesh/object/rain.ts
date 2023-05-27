@@ -99,7 +99,7 @@ export default class Mesh_Object_Rain {
     createBuffer(c) {
 
         const vertices  = [];
-        const flags     = QUAD_FLAGS.FLAG_TEXTURE_SCROLL | QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_RAIN_OPACITY;
+        const flags     = QUAD_FLAGS.FLAG_TEXTURE_SCROLL | QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_RAIN_OPACITY;
         let quads       = 0;
 
         if(this.buffer) {
