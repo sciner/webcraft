@@ -234,9 +234,9 @@ export default class style {
                 if (is_north) {
                     planes[0].rot[1] = Math.PI;
                 } else if (is_west) {
-                    planes[0].rot[1] = Math.PI * 3 / 2;
-                } else if (is_east) {
                     planes[0].rot[1] = Math.PI / 2;
+                } else if (is_east) {
+                    planes[0].rot[1] = Math.PI * 3 / 2;
                 } else {
                     planes[0].rot[1] = 0;
                 }

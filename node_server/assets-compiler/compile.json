@@ -24,6 +24,17 @@
         {"spritesheet_id": "default", "x": 28, "y": 31, "image": "item/splash_potion.png", "diff_to_mask": true},
         {"spritesheet_id": "default", "x": 29, "y": 31, "image": "item/potion_overlay.png", "diff_to_source": true}
     ],
+    "predefined_style_props": {
+        "stairs": {
+            "can_rotate": true,
+            "tags": [
+                "stairs"
+            ],
+            "extra_data": {
+                "point": {"x": 0, "y": 0, "z": 0}
+            }
+        }
+    },
     "blocks" : [
         {
             "id": 202,
@@ -2527,14 +2538,10 @@
             "name": "COBBLESTONE_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "cobblestone"
             },
             "texture": "block/cobblestone.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "COBBLESTONE_STAIRS",
@@ -2990,11 +2997,7 @@
             "material": {
                 "id": "stone"
             },
-            "tags": [
-                "stairs"
-            ],
             "texture": "block/polished_blackstone.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "POLISHED_ANDESITE_STAIRS",
@@ -3017,11 +3020,7 @@
             "material": {
                 "id": "stone"
             },
-            "tags": [
-                "stairs"
-            ],
             "texture": "block/polished_blackstone_bricks.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "POLISHED_BLACKSTONE_BRICK_STAIRS",
@@ -3153,11 +3152,7 @@
             "material": {
                 "id": "stone"
             },
-            "tags": [
-                "stairs"
-            ],
             "texture": "block/bricks.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "BRICK_STAIRS",
@@ -3180,11 +3175,7 @@
             "material": {
                 "id": "stone"
             },
-            "tags": [
-                "stairs"
-            ],
             "texture": "block/stone_bricks.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "STONE_STAIRS",
@@ -3448,15 +3439,11 @@
             "material": {
                 "id": "stone"
             },
-            "tags": [
-                "stairs"
-            ],
             "texture": {
                 "side": "block/sandstone.png",
                 "up": "block/sandstone_bottom.png",
                 "down": "block/sandstone_bottom.png"
             },
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "SANDSTONE_STAIRS",
@@ -3502,11 +3489,7 @@
             "material": {
                 "id": "wood"
             },
-            "tags": [
-                "stairs"
-            ],
-            "texture": "block/birch_planks.png",
-            "can_rotate": true
+            "texture": "block/birch_planks.png"
         },
         {
             "id": 53,
@@ -3516,11 +3499,7 @@
             "material": {
                 "id": "wood"
             },
-            "tags": [
-                "stairs"
-            ],
-            "texture": "block/oak_planks.png",
-            "can_rotate": true
+            "texture": "block/oak_planks.png"
         },
         {
             "id": 163,
@@ -3530,11 +3509,7 @@
             "material": {
                 "id": "wood"
             },
-            "tags": [
-                "stairs"
-            ],
-            "texture": "block/acacia_planks.png",
-            "can_rotate": true
+            "texture": "block/acacia_planks.png"
         },
         {
             "id": 134,
@@ -3544,11 +3519,7 @@
             "material": {
                 "id": "wood"
             },
-            "tags": [
-                "stairs"
-            ],
-            "texture": "block/spruce_planks.png",
-            "can_rotate": true
+            "texture": "block/spruce_planks.png"
         },
         {
             "id": 534,
@@ -3558,11 +3529,7 @@
             "material": {
                 "id": "wood"
             },
-            "tags": [
-                "stairs"
-            ],
-            "texture": "block/dark_oak_planks.png",
-            "can_rotate": true
+            "texture": "block/dark_oak_planks.png"
         },
         {
             "id": 535,
@@ -3572,11 +3539,7 @@
             "material": {
                 "id": "wood"
             },
-            "tags": [
-                "stairs"
-            ],
-            "texture": "block/jungle_planks.png",
-            "can_rotate": true
+            "texture": "block/jungle_planks.png"
         },
         {
             "id": 156,
@@ -3586,11 +3549,7 @@
             "material": {
                 "id": "quartz"
             },
-            "tags": [
-                "stairs"
-            ],
             "texture": "block/quartz_block_top.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "QUARTZ_STAIRS",
@@ -5243,14 +5202,10 @@
             "name": "STONE_BRICK_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "stone"
             },
             "texture": "block/stone_bricks.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "STONE_BRICK_STAIRS",
@@ -5615,14 +5570,10 @@
             "name": "DEEPSLATE_BRICKS_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "stone"
             },
             "texture": "block/deepslate_bricks.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "DEEPSLATE_BRICK_STAIRS",
@@ -7206,14 +7157,10 @@
             "name": "POLISHED_ANDESITE_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "stone"
             },
             "texture": "block/polished_andesite.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "POLISHED_ANDESITE_STAIRS",
@@ -7293,14 +7240,10 @@
             "name": "DEEPSLATE_BRICK_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "stone"
             },
             "texture": "block/deepslate_bricks.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "DEEPSLATE_BRICK_STAIRS",
@@ -7371,14 +7314,10 @@
             "name": "DEEPSLATE_TILE_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "stone"
             },
             "texture": "block/deepslate_tiles.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "DEEPSLATE_TILE_STAIRS",
@@ -7483,14 +7422,10 @@
             "name": "MOSSY_COBBLESTONE_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "cobblestone"
             },
             "texture": "block/mossy_cobblestone.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "MOSSY_COBBLESTONE_STAIRS",
@@ -7559,14 +7494,10 @@
             "name": "WAXED_CUT_COPPER_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "iron"
             },
             "texture": "block/cut_copper.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "WAXED_CUT_COPPER_STAIRS",
@@ -7620,11 +7551,7 @@
             "material": {
                 "id": "stone"
             },
-            "tags": [
-                "stairs"
-            ],
             "texture": "block/mossy_stone_bricks.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "MOSSY_STONE_BRICK_STAIRS",
@@ -7727,11 +7654,7 @@
             "material": {
                 "id": "stone"
             },
-            "tags": [
-                "stairs"
-            ],
             "texture": "block/dark_prismarine.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "DARK_PRISMARINE_STAIRS",
@@ -7754,11 +7677,7 @@
             "material": {
                 "id": "stone"
             },
-            "tags": [
-                "stairs"
-            ],
             "texture": "block/prismarine_bricks.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "PRISMARINE_BRICK_STAIRS",
@@ -7816,11 +7735,7 @@
             "material": {
                 "id": "stone"
             },
-            "tags": [
-                "stairs"
-            ],
             "texture": "block/red_sandstone.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "RED_SANDSTONE_STAIRS",
@@ -7918,11 +7833,7 @@
             "material": {
                 "id": "stone"
             },
-            "tags": [
-                "stairs"
-            ],
             "texture": "block/sandstone_top.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "SMOOTH_SANDSTONE_STAIRS",
@@ -8049,11 +7960,7 @@
             "material": {
                 "id": "netherrack"
             },
-            "tags": [
-                "stairs"
-            ],
             "texture": "block/nether_bricks.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "NETHER_BRICK_STAIRS",
@@ -8164,14 +8071,10 @@
             "name": "SMOOTH_QUARTZ_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "stone"
             },
             "texture": "block/quartz_block_top.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "SMOOTH_QUARTZ_STAIRS",
@@ -8257,14 +8160,10 @@
             "name": "PRISMARINE_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "stone"
             },
             "texture": "block/prismarine.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "PRISMARINE_STAIRS",
@@ -8284,14 +8183,10 @@
             "name": "END_STONE_BRICK_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "stone"
             },
             "texture": "block/end_stone_bricks.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "END_STONE_BRICK_STAIRS",
@@ -8376,14 +8271,10 @@
             "name": "ANDESITE_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "stone"
             },
             "texture": "block/andesite.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "ANDESITE_STAIRS",
@@ -8499,14 +8390,10 @@
             "name": "WARPED_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.wood",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "wood"
             },
-            "texture": "block/warped_planks.png",
-            "can_rotate": true
+            "texture": "block/warped_planks.png"
         },
         {
             "id": 77,
@@ -8596,14 +8483,10 @@
             "name": "PURPUR_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "stone"
             },
             "texture": "block/purpur_block.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "PURPUR_STAIRS",
@@ -8707,14 +8590,10 @@
             "name": "GRANITE_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "stone"
             },
             "texture": "block/granite.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "GRANITE_STAIRS",
@@ -8734,14 +8613,10 @@
             "name": "POLISHED_GRANITE_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "stone"
             },
             "texture": "block/polished_granite.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "POLISHED_GRANITE_STAIRS",
@@ -8761,14 +8636,10 @@
             "name": "DIORITE_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.stone",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "stone"
             },
             "texture": "block/diorite.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "DIORITE_STAIRS",
@@ -8788,14 +8659,10 @@
             "name": "CRIMSON_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.wood",
-            "tags": [
-                "stairs"
-            ],
             "material": {
                 "id": "wood"
             },
-            "texture": "block/crimson_planks.png",
-            "can_rotate": true
+            "texture": "block/crimson_planks.png"
         },
         {
             "id": 29,
@@ -9308,11 +9175,7 @@
             "material": {
                 "id": "stone"
             },
-            "tags": [
-                "stairs"
-            ],
             "texture": "block/polished_diorite.png",
-            "can_rotate": true,
             "drop_item": [
                 {
                     "name": "POLISHED_DIORITE_STAIRS",

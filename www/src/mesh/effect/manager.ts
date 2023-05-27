@@ -70,7 +70,7 @@ export class Mesh_Effect_Manager {
             for(let i = 0; i < args.pos.length; i++) {
                 const em = this.effects.get(args.type)
                 if(!em) {
-                    throw 'error_invalid_particle'
+                    throw `error_invalid_particle|${args.type}`
                 }
                 const pos = new Vector(args.pos[i])
                 const emitter = new em(this.mesh_manager, pos, args)
@@ -81,7 +81,7 @@ export class Mesh_Effect_Manager {
             for(let item of args.list) {
                 const em = this.effects.get(item.type)
                 if(!em) {
-                    throw 'error_invalid_particle'
+                    throw `error_invalid_particle|${item.type}`
                 }
                 const pos = new Vector(item.pos)
                 emmiters.push(new em(this.mesh_manager, pos, item.args))
@@ -116,7 +116,7 @@ export class Mesh_Effect_Manager {
     createEmitter(name : string, pos : Vector, params : any) {
         const em = this.effects.get(name);
         if(!em) {
-            throw 'error_invalid_particle';
+            throw `error_invalid_particle|${name}`
         }
         const emitter = new em(this.mesh_manager, new Vector(pos), params);
         this.emitters.push(emitter);

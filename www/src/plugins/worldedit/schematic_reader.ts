@@ -1,7 +1,7 @@
 import { BLOCK, DBItemBlock } from "../../blocks.js";
 import { Schematic } from "@server/node_modules/madcraft-schematic-reader/index.js";
 import { promises as fs } from 'fs';
-import { DIRECTION_BIT, SIX_VECS, Vector, VectorCollector } from "../../helpers.js";
+import { DIRECTION_BIT, ObjectHelpers, SIX_VECS, Vector, VectorCollector } from "../../helpers.js";
 import { RailShape } from "../../block_type/rail_shape.js";
 import * as FLUID from '../../fluid/FluidConst.js';
 
@@ -9,6 +9,14 @@ const facings4 = ['north', 'west', 'south', 'east'];
 const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
 const dripstone_stages = ['tip', 'frustum', 'middle', 'base'];
 const NO_IMPORT_BLOCKS = ['NETHER_PORTAL'];
+
+declare type IMCBlock = {
+    name:        string
+    _properties: any
+    entities:    any
+    signText:    any
+    on_wall:     any
+}
 
 // const {Schematic} = await import("prismarine-schematic" as any)
 
@@ -69,6 +77,7 @@ export class SchematicReader {
             TALLGRASS:              'TALL_GRASS',
             YELLOW_FLOWER:          'DANDELION',
             CARVED_PUMPKIN:         'LIT_PUMPKIN',
+            LAPIS_ORE:              'LAPIS_LAZULI_ORE',
         }
     }
 
@@ -124,6 +133,7 @@ export class SchematicReader {
         const STILL_LAVA_BLOCK = {id: BLOCK.fromName('STILL_LAVA').id};
         // each all blocks
         const ep = new Vector(0, 0, 0);
+        const eb_pos = new Vector(0, 0, 0)
         let min_y = Infinity;
         const cached_blocks = new Map();
         (schematic as any).forEachFast((block, pos) => {
@@ -141,7 +151,7 @@ export class SchematicReader {
                 return;
             }
             const b = BLOCK[name];
-            let new_block = null;
+            let new_block = null
             if(b) {
                 // speed optimization
                 if(b.is_simple_qube) {
@@ -165,7 +175,10 @@ export class SchematicReader {
                         ep.copyFrom(pos).subSelf(schematic.offset);
                         block.entities = BlockEntities.get(ep);
                     }
-                    new_block = this.createBlockFromSchematic(block, b);
+                    new_block = this.createBlockFromSchematic(block, b)
+                    if(!new_block) {
+                        return
+                    }
                     if(b.is_simple_qube) {
                         cached_blocks.set(b.id, new_block);
                     }
@@ -215,7 +228,15 @@ export class SchematicReader {
                     new_block = AIR_BLOCK;
                 }
             }
-            this.blocks.set(bpos, new_block);
+            // Некоторые блоки могут создавать другие блоки (двери, высокие растения и прочее)
+            if(new_block.emmit_blocks) {
+                for(const eb of new_block.emmit_blocks) {
+                    this.blocks.set(eb_pos.copyFrom(bpos).addSelf(eb.move), eb)
+                    delete(eb.move)
+                }
+                delete(new_block.emmit_blocks)
+            }
+            this.blocks.set(bpos, new_block)
             if (fluidValue) {
                 this.fluids.push(bpos.x, bpos.y, bpos.z, fluidValue);
             }
@@ -270,7 +291,7 @@ export class SchematicReader {
     }
 
     //
-    createBlockFromSchematic(block, b : IBlockMaterial) {
+    createBlockFromSchematic(block : IMCBlock, b : IBlockMaterial) : DBItemBlock | null {
         const props = block._properties;
         let new_block = new DBItemBlock(b.id)
         if(new_block.id == 0) {
@@ -290,12 +311,13 @@ export class SchematicReader {
             new_block.rotate = new Vector(0, 1, 0);
         }
         //
-        const setExtraData = (k, v) => {
-            if(!new_block.extra_data) {
-                new_block.extra_data = {};
+        const setExtraData = (k : string, v : any, obj? : {[key: string]: any}) => {
+            obj = obj ?? new_block
+            if(!obj.extra_data) {
+                obj.extra_data = {}
             }
-            new_block.extra_data[k] = v;
-        };
+            obj.extra_data[k] = v
+        }
         // block entities
         if(block.entities) {
             if(b.chest) {
@@ -477,35 +499,6 @@ export class SchematicReader {
                     }
                 }
             }
-            // trapdoors and doors
-            // top|bottom|lower|upper
-            if(b.tags.includes('door')) {
-                // console.log(props)
-            }
-            if('half' in props) {
-                switch(props.half) {
-                    case 'top': {
-                        setExtraData('point', {x: 0, y: 0.9, z: 0});
-                        break;
-                    }
-                    case 'bottom': {
-                        if(b.has_head) {
-                            //
-                        } else {
-                            setExtraData('point', {x: 0, y: 0.1, z: 0});
-                        }
-                        break;
-                    }
-                    case 'upper': {
-                        if(b.has_head) {
-                            setExtraData('is_head', true);
-                        } else {
-                            setExtraData('point', {x: 0, y: 0.9, z: 0});
-                        }
-                        break;
-                    }
-                }
-            }
             // bed
             if(b.style_name == 'bed') {
                 if('part' in props) {
@@ -627,8 +620,43 @@ export class SchematicReader {
             if('waterlogged' in props && props.waterlogged) {
                 new_block.waterlogged = props.waterlogged;
             }
+            // trapdoors and doors
+            // top|bottom|lower|upper
+            if('half' in props) {
+                const has_point = !!b.extra_data?.point
+                switch(props.half) {
+                    case 'top': {
+                        setExtraData('point', {x: 0, y: 0.9, z: 0})
+                        break
+                    }
+                    case 'lower':
+                    case 'bottom': {
+                        if(b.has_head) {
+                            if(has_point) {
+                                setExtraData('point', {x: 0, y: 0.1, z: 0})
+                            }
+                            new_block.emmit_blocks = []
+                            const eb = ObjectHelpers.deepClone(new_block)
+                            setExtraData('is_head', true, eb)
+                            eb.move = b.has_head.pos
+                            new_block.emmit_blocks = [eb]
+                        } else {
+                            setExtraData('point', {x: 0, y: 0.1, z: 0});
+                        }
+                        break
+                    }
+                    case 'upper': {
+                        if(b.has_head) {
+                            return null
+                        } else if(has_point) {
+                            setExtraData('point', {x: 0, y: 0.9, z: 0});
+                        }
+                        break
+                    }
+                }
+            }
         }
-        return new_block;
+        return new_block
     }
 
     parseChestPropsExtraData(props) {

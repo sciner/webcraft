@@ -29,6 +29,7 @@ const WOOD_PALETTE = ['BIRCH', 'OAK', 'ACACIA', 'SPRUCE', 'DARK_OAK', 'JUNGLE'/*
 // CompileData
 export class CompileData {
     predefined_textures: any;
+    predefined_style_props?:    { [key: string]: any }
     blocks: any[];
 
     constructor(compile_json) {
