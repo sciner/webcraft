@@ -922,7 +922,24 @@ export class ServerChunk {
 
             console.log('/////////////////////////////////////////////////////////////////////////////////////////')
 
-            if (aa.id == 593 && ee.id != 593) {
+            if (aa.id == 593 && ee.id == 593 && bb.id == 593 && !tblock.extra_data.middle) {
+                const actions = new WorldAction();
+                actions.addBlocks([{
+                    pos: tblock.posworld.clone(),
+                    item: {
+                        id: tblock.id,
+                        extra_data: {
+                            up: up,
+                            base: false,
+                            merge: false,
+                            middle: true,
+                            frustum: false
+                        }
+                    },
+                    action_id: BLOCK_ACTION.MODIFY
+                }]);
+                world.actions_queue.add(null, actions);
+            } else if (aa.id == 593 && ee.id == 593 && !tblock.extra_data.frustum) {
                 const actions = new WorldAction();
                 actions.addBlocks([{
                     pos: tblock.posworld.clone(),
