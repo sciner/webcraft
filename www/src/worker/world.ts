@@ -371,11 +371,19 @@ class BuildVerticesResult {
 function buildVertices(chunk : ChunkWorkerChunk, return_map : boolean = false) : BuildVerticesResult {
     let prev_dirty = chunk.dirty;
     chunk.timers.start('build_vertices')
+    let p = performance.now()
     chunk.dirty = true;
     let is_builded = chunk.buildVertices(buildSettings);
     if(!is_builded) {
         chunk.dirty = prev_dirty;
         return null;
+    }
+    let diff = performance.now() - p
+    if(diff > 100) {
+        console.log(chunk.addr.toHash(), diff)
+        if(chunk.addr.equal(new Vector(-2, 0, -1))) {
+            debugger
+        }
     }
     chunk.timers.stop()
     const resp = new BuildVerticesResult(
