@@ -2043,6 +2043,9 @@
                     {"name": "middle", "when": {"extra_data.middle": true}},
                     {"name": "tip_merge", "when": {"extra_data.merge": true}},
                     {"name": "tip"}
+                ],
+                "rotate": [
+                    {"type": "flipx", "when": {"extra_data.up": false}}
                 ]
             }
         }

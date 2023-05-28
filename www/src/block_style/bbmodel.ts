@@ -269,6 +269,12 @@ export default class style {
                             }
                             break
                         }
+                        case 'flipx': {
+                            mat4.translate(matrix, matrix, [0, .5, 0])
+                            mat4.rotateX(matrix, matrix, Math.PI)
+                            mat4.translate(matrix, matrix, [0, -.5, 0])
+                            break
+                        }
                         case 'cog':
                         case 'rotate_by_pos_n_6':
                         case 'six': {
