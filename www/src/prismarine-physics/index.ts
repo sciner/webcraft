@@ -178,7 +178,7 @@ export class Physics {
         if (bm.BLUE_ICE) { // 1.13+
             blockSlipperiness[bm.BLUE_ICE.id] = 0.989
         }
-        if (bm.TINA) { 
+        if (bm.GREEN_ALGAE) { 
             this.tinaLikePassable = bm.GREEN_ALGAE.passable
         }
 
@@ -433,7 +433,7 @@ export class Physics {
         // Finally, apply block collisions (web, soulsand...)
         playerBB.contract(0.001, 0.001, 0.001)
         const cursor = new Vector(0, 0, 0)
-        for (cursor.y = playerBB.y_min; cursor.y <= playerBB.y_max; cursor.y += 0.1) {
+        for (cursor.y = Math.floor(playerBB.y_min); cursor.y <= Math.floor(playerBB.y_max); cursor.y++) {
             for (cursor.z = Math.floor(playerBB.z_min); cursor.z <= Math.floor(playerBB.z_max); cursor.z++) {
                 for (cursor.x = Math.floor(playerBB.x_min); cursor.x <= Math.floor(playerBB.x_max); cursor.x++) {
                     const block = world.getBlock(cursor)
