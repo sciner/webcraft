@@ -27,7 +27,7 @@ export default class style {
 
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         let cardinal_direction = CubeSym.dirAdd(tblock.getCardinalDirection(), CubeSym.ROT_Y2);
-        if(style.block_manager.isOpened(tblock)) {
+        if(style.block_manager.isOpened(tblock as TBlock)) {
             cardinal_direction = CubeSym.dirAdd(cardinal_direction, tblock.extra_data.left ? DIRECTION.RIGHT : DIRECTION.LEFT);
         }
         let width = !for_physic && tblock.material?.bb ? 2 : 3

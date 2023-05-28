@@ -108,7 +108,7 @@ export class MobManager {
                                     mob.applyNetState(new_state)
                                     const [ground, inLiquid] = unpackBooleans(cmd.data[i + 6], 2) // флаги, упакованные в одно число
                                     mob.ground = ground
-                                    mob.inLiquid = inLiquid
+                                    mob.submergedPercent = inLiquid ? 1 : 0
                                     if (new_state?.extra_data) {
                                         mob.health = new_state.extra_data.health
                                     }

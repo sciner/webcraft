@@ -1,5 +1,4 @@
 import {BLOCK} from "@client/blocks.js";
-import { BLOCK_ACTION } from "@client/server_client.js";
 import type { TickingBlockManager } from "../server_chunk.js";
 
 export default class Ticker {
@@ -11,7 +10,6 @@ export default class Ticker {
         const max_ticks = 50;
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
-        const updated_blocks = [];
         if(!extra_data || !extra_data.slots) {
             return;
         }
@@ -85,7 +83,7 @@ export default class Ticker {
                                 coocked = true;
                             }
                         } else {
-                            return updated_blocks;
+                            return null;
                         }
                         fuel_used = true;
                         is_update = ((state.fuel_time - 1) % 2) == 0;
@@ -122,10 +120,9 @@ export default class Ticker {
         }
         // если что-то обновилось, то шлём это игрокам
         if(is_update) {
-            updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: BLOCK_ACTION.MODIFY});
-            world.chests.sendChestToPlayers(tblock, null);
+            world.saveSendExtraData(tblock)
         }
-        return updated_blocks;
+        return null
     }
 
 }

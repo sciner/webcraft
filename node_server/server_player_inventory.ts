@@ -1,4 +1,3 @@
-import {INVENTORY_DRAG_SLOT_INDEX, INVENTORY_SLOT_COUNT} from "@client/constant.js";
 import {InventoryComparator, IRecipeManager, TUsedRecipe} from "@client/inventory_comparator.js";
 import {Inventory, InventorySize, TInventoryState, TInventoryStateChangeMessage} from "@client/inventory.js";
 import { ServerClient } from "@client/server_client.js";
@@ -6,6 +5,7 @@ import { ServerPlayer } from "./server_player.js";
 import type { Player } from "@client/player.js";
 import {DROP_ITEM_HORIZONTAL_VELOCITY, DROP_ITEM_VERTICAL_VELOCITY, THROW_ITEM_ADD_VERTICAL_VELOCITY, THROW_ITEM_VELOCITY} from "./server_constant.js";
 import {Vector} from "@client/helpers/vector.js";
+import type {WorldTransactionUnderConstruction} from "./db/world/WorldDBActor.js";
 
 export class ServerPlayerInventory extends Inventory {
 
@@ -31,10 +31,9 @@ export class ServerPlayerInventory extends Inventory {
 
     // Saves the inventory to DB, updates hands, sends the inventory to other players,
     // and optionally sends it to the owner.
-    refresh(send_state: boolean): true {
+    refresh(send_state: boolean): void {
         // Update hands
-        this.current.index = isNaN(this.current.index) ? 0 : this.current.index;
-        this.current.index2 = isNaN(this.current.index2) ? -1 : this.current.index2;
+        this.fixCurrentIndexes()
         this.player.updateHands();
         // Marks that it needs to be saved in DB
         this.markDirty();
@@ -42,7 +41,6 @@ export class ServerPlayerInventory extends Inventory {
         if(send_state) {
             this.send();
         }
-        return true;
     }
 
     /**
@@ -100,7 +98,7 @@ export class ServerPlayerInventory extends Inventory {
             }
             const new_items = state.items
             const size = new InventorySize().calc(new_items, this.block_manager)
-            if (!size.slotsValid(new_items)) {
+            if (!(params.allow_temporary || size.slotsValid(new_items))) {
                 throw 'invalid_slots'
             }
             // New state
@@ -129,6 +127,10 @@ export class ServerPlayerInventory extends Inventory {
                         this.player.onCrafted(recipe, used_recipe.onCraftedData);
                     }
                 }
+                // Теортически возможно что клиент прислал неправильные индексы. Они испарвятся, но клиент не узнает.
+                // Практически это крайне маловероятно и не очень страшно, поэтому не проверяем этот случай.
+                this.setIndexes(state.current, false)
+
                 return true // the state is accepted, don't send anything to the player
             }
         } catch (e) {
@@ -140,7 +142,7 @@ export class ServerPlayerInventory extends Inventory {
         return false
     }
 
-    private createDropItem(items: IInventoryItem[], throwVelocity?: float, yaw?: float): void {
+    createDropItem(items: IInventoryItem[], throwVelocity?: float, yaw?: float): void {
         const player = this.player
         yaw ??= player.state.rotate.z
         const pos = player.state.pos.clone()
@@ -175,29 +177,24 @@ export class ServerPlayerInventory extends Inventory {
         }
         this.createDropItem([{...this.current_item, count: 1}], THROW_ITEM_VELOCITY)
         if(this.current_item.count == 1) {
-            this.setItem(this.current.index, null);
+            this.items[this.current.index] = null
+            // Обновить текущий инструмент у игрока
+            this.select(this.current.index)
         } else {
             this.decrement(null, true);
         }
         return true;
     }
 
-    // returns true if changed
-    moveOrDropFromInvalidOrTemporarySlots(resend = true): void {
-        const items = this.items
-        for (const i of this.getSize().invalidAndTemporaryIndices()) {
-            const item = items[i]
-            if (item) {
-                if (!this.incrementAndReorganize(item, true, resend)) {
-                    this.createDropItem([item], 0)
-                }
-                items[i] = null
-            }
+    /** Из несуществующих и временных слотов переносит в существующие или выбрасывает. */
+    fixTemporarySlots(): void {
+        const thrown = this.moveFromSlots(true, this.getSize().invalidAndTemporaryIndices(this.items.length))
+        for(const item of thrown) {
+            this.createDropItem([item], 0)
         }
-        items.length = INVENTORY_SLOT_COUNT // обрезать длину если слишком велика
     }
 
-    writeToWorldTransaction(underConstruction) {
+    writeToWorldTransaction(underConstruction:  WorldTransactionUnderConstruction): void {
         underConstruction.updatePlayerInventory.push([
             this.player.session.user_id,
             JSON.stringify(this.exportItems())

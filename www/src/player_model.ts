@@ -47,6 +47,11 @@ class PlayerModelSharedProps implements IPlayerSharedProps {
 
 export class PlayerModel extends MobModel implements IPlayerOrModel {
     sharedProps:        PlayerModelSharedProps
+    /**
+     * Расстояние до игрока на сервере.
+     * null передается когда игрок оказывается слишком далеко, после чего апдейты перестают приходить.
+     * При создании игрока (и возможно в некоторых других ситуациях) - undefined.
+     */
     distance:           number | null
     textCanvas:         HTMLCanvasElement
     textContext:        any
@@ -239,7 +244,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
         nametag.visible = !this.sneak && !this.hide_nametag
 
-        if(!nametag.visible || this.distance == null) {
+        if(!nametag.visible) {
             return
         }
 
@@ -309,7 +314,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         ])
 
         const mesh = new Mesh_Object_Base()
-        mesh.changeFlags(QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.NO_AO | QUAD_FLAGS.NO_FOG | QUAD_FLAGS.LOOK_AT_CAMERA)
+        mesh.changeFlags(QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_NO_FOG | QUAD_FLAGS.FLAG_LOOK_AT_CAMERA)
         mesh.setGLMaterial(render.defaultShader.materials.label.getSubMat(texture))
         mesh.setVertices(vertices as any)
         mesh.ignoreParentRotation = true
@@ -354,7 +359,9 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
     setProps(pos: IVector | null, rotate: IVector | null, sneak: boolean, running: boolean,
         hands: PlayerHands, sitting: false | TSittingState,
-        sleep: false | TSleepState, anim : false | TAnimState, attack: false | TAnimState, fire: boolean, health?: number, on_ground: boolean = true): void {
+        sleep: false | TSleepState, anim : false | TAnimState, attack: false | TAnimState, fire: boolean, health?: number,
+        on_ground: boolean = true, submergedPercent: float = 0,
+    ): void {
         if (pos) {
             this.pos = pos
         }
@@ -372,6 +379,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.fire = fire
         this.sleep = sleep
         this.ground = on_ground
+        this.submergedPercent = submergedPercent
         this.health = health
         //
         const current_right_hand_id = hands.right?.id;

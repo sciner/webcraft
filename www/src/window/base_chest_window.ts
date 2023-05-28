@@ -1,6 +1,5 @@
 import { ArrayHelpers, ObjectHelpers, Vector } from "../helpers.js";
-import { BLOCK } from "../blocks.js";
-import { Label } from "../ui/wm.js";
+import {Button, Label} from "../ui/wm.js";
 import {CraftTableInventorySlot, CraftTableSlot} from "./base_craft_window.js";
 import { ServerClient } from "../server_client.js";
 import {BAG_LINE_COUNT, CHEST_INTERACTION_MARGIN_BLOCKS, CHEST_LINE_COUNT, DEFAULT_CHEST_SLOT_COUNT, INVENTORY_DRAG_SLOT_INDEX, MAX_DIRTY_INVENTORY_DURATION, UI_THEME} from "../constant.js";
@@ -8,12 +7,24 @@ import {ChestHelpers, isBlockRoughlyWithinPickatRange, TChestInfo} from "../bloc
 import { Lang } from "../lang.js";
 import { BaseInventoryWindow } from "./base_inventory_window.js"
 import type { TBlock } from "../typed_blocks3.js";
-import {CHEST_CHANGE, TChestChange, TChestConfirmData} from "../inventory.js";
+import type {TInventoryStateChangeParams} from "../inventory.js";
+import type {TChestChange, TChestConfirmData, TCmdChestContent, TOneChestConfirmData} from "../chest.js";
+import {CHEST_CHANGE} from "../chest.js";
+import {ItemsCollection} from "../inventory.js";
+
+export type TChestWindowSlotInfo = {
+    pos: { x: number, y: number }
+    size?: number
+    readonly?: boolean
+}
 
 export class BaseChestWindow extends BaseInventoryWindow {
 
     /** Слоты сундука, или объединение двух сундуков */
-    chest: { slots: CraftTableInventorySlot[] }
+    chest: {
+        slots: CraftTableInventorySlot[]
+        collection: ItemsCollection
+    }
 
     /** Описывает последнее произошедшее изменение (которое должно быть отиправлено на сервер) */
     lastChange: TChestChange = {
@@ -28,14 +39,25 @@ export class BaseChestWindow extends BaseInventoryWindow {
     /** A random number. If it's null, no confirmation is requested when closing. */
     chestSessionId: number | null = null
 
+    private sentRequestId       = 0     // последний отосланный номер запроса
+    private confirmedRequestId  = 0     // последний номер запроса, на который получен ответ
+
+    /**
+     * Используется чтобы не показывать окно если сразу пришел сигнал закрытия.
+     * Может, можно обойтись без него очищая timeout?
+     */
+    dontShowChestSessionId?: number
+
     info            : TChestInfo        // информация о первом сундуке
     secondInfo      : TChestInfo | null // информация о втором сундуке
+    isPublic        : boolean           // если 1-й сундук хранит данные в публичных слотах
 
     firstLoading    = false
     secondLoading   = false
     changeLoading   = false // если true, то оба сундука загружены, но клент ждет результат какой-то операции над нимим
     timeout         : any = null
     maxDirtyTime    : number | null = null
+    btnSortChest ?  : Button
 
     constructor(x, y, w, h, id, title, text, inventory, options) {
 
@@ -78,8 +100,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
                 this.hideAndSetupMousePointer() // It also takes care of the dragged item.
                 return
             }
-            const mat = tblock.material
-            if (!(mat.chest.private || mat.id === BLOCK.ENDER_CHEST.id)) {
+            if (ChestHelpers.isPublic(tblock.material)) {
                 this.setLocalData(tblock)
             }
         }
@@ -93,14 +114,25 @@ export class BaseChestWindow extends BaseInventoryWindow {
         }
 
         // Add listeners for server commands
-        this.server.AddCmdListener([ServerClient.CMD_CHEST_CONTENT], (cmd) => {
+        this.server.AddCmdListener([ServerClient.CMD_CHEST_CONTENT], (cmd: INetworkMessage<TCmdChestContent>) => {
             this.setData(cmd.data);
         });
 
-        this.server.AddCmdListener([ServerClient.CMD_CHEST_CHANGE_PROCESSED], (cmd: INetworkMessage<int>) => {
-            if (cmd.data === this.chestSessionId) {
-                this.changeLoading = false
-                this.onLoadingChanged()
+        this.server.AddCmdListener([ServerClient.CMD_CHEST_CHANGE_PROCESSED], (cmd: INetworkMessage) => {
+            if (cmd.data.chestSessionId === this.chestSessionId && this.visible) {
+                this.confirmedRequestId = cmd.data.requestId
+                // если мы пропускали обновления от тикеров, теперь пора применить его
+                if (this.isPublic && this.confirmedRequestId === this.sentRequestId) {
+                    const tblock = this.world.getBlock(this.info.pos)
+                    if (tblock.material.chest) {
+                        this.setLocalData(tblock)
+                    }
+                }
+                // если жадали загружки чтобы разблокировать слоты
+                if (this.changeLoading) {
+                    this.changeLoading = false
+                    this.onLoadingChanged()
+                }
             }
         })
 
@@ -127,15 +159,16 @@ export class BaseChestWindow extends BaseInventoryWindow {
 
     }
 
-    protected onLoadingChanged(): void {
+    protected onLoadingChanged(context = 'onLoadingChanged'): void {
         const loading = this.loading
         for(const slot of this.chest.slots) {
             slot.locked = loading
         }
+        this.onInventoryChange(context)
     }
 
     protected createButtonSortChest(): void {
-        this.createButtonSort(false, 25,() => {
+        this.btnSortChest = this.createButtonSort(false, 25,() => {
             if (this.loading) {
                 return
             }
@@ -144,6 +177,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
             this.lastChange.prevInventory = null // сервер применит текущее состояние инвентаря, предыдущее не нужно
             this.confirmAction()
             this.changeLoading = true
+            this.onInventoryChange('ButtonSortChest')
         })
     }
 
@@ -152,24 +186,22 @@ export class BaseChestWindow extends BaseInventoryWindow {
         this.lastChange.type = CHEST_CHANGE.NONE
         this.changeLoading = false
         this.getRoot().center(this)
-        Qubatch.releaseMousePointer()
         if(this.options.sound.open) {
             Qubatch.sounds.play(this.options.sound.open.tag, this.options.sound.open.action)
         }
         this.world.blockModifierListeners.push(this.blockModifierListener)
         super.onShow(args)
-        this.fixAndValidateSlots('onShow')
-        this.refresh()
     }
 
     // Обработчик закрытия формы
-    onHide(was_visible : boolean) {
+    onHide() {
         if (this.chestSessionId != null) { // if the closing wasn't forced by the server
-            this.inventory.sendStateChange({
-                forget_chests: true
+            this.sendInventory({
+                forget_chests: true,
+                allow_temporary: false
             })
         }
-        if(was_visible && this.options.sound.close) {
+        if (this.options.sound.close) {
             Qubatch.sounds.play(this.options.sound.close.tag, this.options.sound.close.action)
         }
         this.info = null; // disables AddCmdListener listeners 
@@ -182,11 +214,11 @@ export class BaseChestWindow extends BaseInventoryWindow {
         const self = this
 
         // Remembers two affected slots before a user action is executed.
-        function updateLastChangeSlots(craftSlot) {
-            const lastChange = craftSlot.parent.lastChange;
+        function updateLastChangeSlots(craftSlot: CraftTableInventorySlot) {
+            const lastChange = craftSlot.ct.lastChange;
             lastChange.type = CHEST_CHANGE.SLOTS;
-            lastChange.slotIndex = craftSlot.getIndex();
-            lastChange.slotInChest = craftSlot.is_chest_slot;
+            lastChange.slotIndex = craftSlot.slot_index
+            lastChange.slotInChest = craftSlot.slot_source != null
             const item = craftSlot.getItem();
             lastChange.slotPrevItem = item ? { ...item } : null;
             const dargItem = self.inventory.items[INVENTORY_DRAG_SLOT_INDEX];
@@ -199,7 +231,8 @@ export class BaseChestWindow extends BaseInventoryWindow {
         const handlerMouseDown = function(e) {
             updateLastChangeSlots(this);
             this._originalMouseDown(e);
-            this.parent.confirmAction();
+            self.confirmAction();
+            // onInventoryChange вызыется в _originalMouseDown
         }
 
         //
@@ -207,6 +240,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
             updateLastChangeSlots(this);
             this._originalOnDrop(e);
             this.parent.confirmAction();
+            // onInventoryChange вызыется в _originalOnDrop
         }
 
         //
@@ -226,14 +260,13 @@ export class BaseChestWindow extends BaseInventoryWindow {
     // Confirm action
     confirmAction(): void {
         this.fixAndValidateSlots('confirmAction')
-
         const that = this
 
-        function extractOneChest(isFirst, info) {
+        function extractOneChest(isFirst, info): TOneChestConfirmData {
             const res = { pos: info.pos, slots: {} };
             const range = ChestHelpers.getOneChestRange(isFirst, that.secondInfo != null, that.chest.slots.length);
             for(let i = range.min; i < range.max; i++) {
-                let item = that.chest.slots[i]?.item;
+                let item = that.chest.slots[i]?.getItem();
                 if (item) {
                     res.slots[i - range.min] = item;
                 }
@@ -252,6 +285,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
                 return;
             }
         }
+
         // Here there may or may not be some change, described by this.lastChange or not.
         const params: TChestConfirmData = {
             chestSessionId:  this.chestSessionId,
@@ -262,8 +296,23 @@ export class BaseChestWindow extends BaseInventoryWindow {
         if (this.secondInfo) {
             params.secondChest = extractOneChest(false, this.secondInfo);
         }
+        // если клиент ждет подтверждения окончания сортировки чтобы разблокировать слоты
+        // или пропускает обнвления от тикеров до окончания своего запроса
+        if (params.change.type === CHEST_CHANGE.SORT || this.isPublic) {
+            params.requestId = ++this.sentRequestId
+        }
         // Send to server
         this.server.ChestConfirm(params);
+
+        // Изменить блок не-приватного сундука в мире. Только одинарные бывают не-приватными.
+        // Т.к. если действие успешно, сервер их не пришлет, и блок останется без изменений.
+        if (this.isPublic) {
+            const extra_data = this.world.getBlock(this.info.pos).extra_data
+            if (extra_data) {
+                extra_data.slots = params.chest.slots
+            }
+        }
+
         // Forget the previous inventory. If there are no changes, it won't be sent next time.
         this.lastChange.prevInventory = null;
         this.maxDirtyTime = null;
@@ -289,16 +338,16 @@ export class BaseChestWindow extends BaseInventoryWindow {
         this.info = info;
         const firstBlock = this.world.getBlock(info.pos);
         const firstMat = firstBlock.material;
-        this.firstLoading = firstMat.chest.private || firstMat.id === BLOCK.ENDER_CHEST.id;
+        this.isPublic = ChestHelpers.isPublic(firstMat)
+        this.firstLoading = !this.isPublic
 
-        // analyze an load the 2nd chest
+        // analyze and load the 2nd chest
         this.secondInfo = secondInfo;
         this.secondLoading = false;
         if (secondInfo) {
             secondInfo.chestSessionId = this.chestSessionId;
             const secondBlock = this.world.getBlock(secondInfo.pos);
-            const secondMat = secondBlock.material
-            this.secondLoading = secondMat.chest.private || secondMat.id === BLOCK.ENDER_CHEST.id;
+            this.secondLoading = true // второй не бывает публичным
 
             // Both chest requests send both positions to set player.currentChests properly
             secondInfo.otherPos = info.pos;
@@ -332,7 +381,11 @@ export class BaseChestWindow extends BaseInventoryWindow {
         }
     }
 
-    setLocalData(tblock) {
+    private setLocalData(tblock: TBlock): void {
+        if (this.isPublic && this.confirmedRequestId < this.sentRequestId) {
+            // пропускаем обновления от тикеров, пока не придет подтверждение нашего последнего действия, наче слот будет "мигать"
+            return
+        }
         this.setData({
             pos:            tblock.posworld,
             slots:          tblock.extra_data.slots,
@@ -341,7 +394,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
     }
 
     // Пришло содержимое сундука от сервера
-    setData(chest) {
+    protected setData(chest: TCmdChestContent): void {
         if (!this.info) {
             return;
         }
@@ -374,8 +427,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
             // this.chest.slots[i].item = chest.slots[i - range.min] || null;
             this.chest.slots[i].setItem(chest.slots[i - range.min] || null)
         }
-        this.fixAndValidateSlots('setData')
-        this.onLoadingChanged()
+        this.onLoadingChanged('BaseChestWindow setData')
     }
 
     // Очистка слотов сундука от предметов
@@ -386,9 +438,9 @@ export class BaseChestWindow extends BaseInventoryWindow {
     }
 
     // Prepare slots based on specific window type
-    prepareSlots(count = DEFAULT_CHEST_SLOT_COUNT) {
+    prepareSlots(count = DEFAULT_CHEST_SLOT_COUNT): TChestWindowSlotInfo[] {
 
-        const resp  = [];
+        const resp  : TChestWindowSlotInfo[] = [];
         const xcnt  = CHEST_LINE_COUNT
         const sx    = this.slots_x
         const sy    = 60 * this.zoom
@@ -409,35 +461,32 @@ export class BaseChestWindow extends BaseInventoryWindow {
     }
 
     /**
-    * Creates chest slots.
-    * @param {Array} slots_info - the array of {x, y} objects - slot positions on
-    *   the screen. It's the value retuned by {@link prepareSlots}
-    */
-    createSlots(slots_info) {
+     * Creates chest slots.
+     * @param slots_info - the value returned by {@link prepareSlots}
+     */
+    protected createSlots(slots_info: TChestWindowSlotInfo[]): void {
         const ct = this
         if(ct.chest) {
             console.error('createCraftSlots() already created')
             return
         }
         const sz = this.cell_size
+        const items: (IInventoryItem | null)[] = []
         this.chest = {
-            /**
-             * @type {CraftTableInventorySlot[]}
-             */
-            slots: []
+            slots: [],
+            collection: new ItemsCollection(items, this.world.block_manager)
         }
-        for(let i in slots_info) {
+        for(let i of slots_info.keys()) {
             const info = slots_info[i]
             const options = {
                 readonly: info.readonly,
                 disableIfLoading: true,
-                onMouseEnterBackroundColor: '#ffffff33'
+                onMouseEnterBackgroundColor: '#ffffff33'
             };
             const lblSlot = new CraftTableInventorySlot(info.pos.x, info.pos.y, info.size ?? sz, info.size ?? sz,
-                `lblCraftChestSlot${i}`, null, null, this, null, options)
-            lblSlot.index = i
-            lblSlot.is_chest_slot = true
+                `lblCraftChestSlot${i}`, null, null, this, i, items, options)
             this.chest.slots.push(lblSlot)
+            this.chest.collection.items.push(null)
             ct.add(lblSlot)
         }
     }
@@ -457,7 +506,7 @@ export class BaseChestWindow extends BaseInventoryWindow {
         }
     }
 
-    fixAndValidateSlots(context) {
+    fixAndValidateSlots(context: string): void {
         super.fixAndValidateSlots(context)
         for(const slot of this.chest.slots) {
             const item = slot.getItem()
@@ -470,4 +519,28 @@ export class BaseChestWindow extends BaseInventoryWindow {
         }
     }
 
+    sendInventory(params: TInventoryStateChangeParams): void {
+        params.allow_temporary ??= true
+        super.sendInventory(params)
+    }
+
+    onInventoryChange(context?: string): void {
+        super.onInventoryChange(context)
+        // Проверить, возможно ли сортировать сундук.
+        // Если перетаскивается предмет - не проверять, чтобы было меньше мигаений кнопки попусту
+        // (мы все равно не можем нажать в этот момент)
+        if (this.loading) {
+            this.btnSortChest.enabled = false
+            return
+        }
+        if (this.btnSortChest && this.inventory.drag.item == null) {
+            const copy = this.chest.collection.clone()
+            copy.autoSort()
+            this.btnSortChest.enabled = !this.chest.collection.equal(copy)
+        }
+        // обновить слоты сундука
+        for(const slot of this.chest.slots) {
+            slot.setItem(slot.item)
+        }
+    }
 }

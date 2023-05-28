@@ -29,6 +29,7 @@ const WOOD_PALETTE = ['BIRCH', 'OAK', 'ACACIA', 'SPRUCE', 'DARK_OAK', 'JUNGLE'/*
 // CompileData
 export class CompileData {
     predefined_textures: any;
+    predefined_style_props?:    { [key: string]: any }
     blocks: any[];
 
     constructor(compile_json) {
@@ -452,7 +453,8 @@ export class CompileData {
                 "material": {"id": "glass"},
                 "transparent": true,
                 "tags": [
-                    BLOCK_GROUP_TAG.BLOCK
+                    BLOCK_GROUP_TAG.BLOCK,
+                    "is_solid_for_fluid"
                 ],
                 "sound": "madcraft:block.glass",
                 "texture": `block/${color}_stained_glass.png`

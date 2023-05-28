@@ -15,6 +15,18 @@ export class ServerPlayerManager extends AbstractPlayerManager<ServerWorld, Serv
         this.deletedPlyersByUserIdBeingWritten = null; // to avoid errors in race conditions
     }
 
+    getByName(name: string): ServerPlayer | null {
+        if (name[0] === '@') {
+            name = name.substring(1)
+        }
+        for(const player of this.list.values()) {
+            if (player.session.username === name) {
+                return player
+            }
+        }
+        return null
+    }
+
     add(player: ServerPlayer): void {
         const user_id = player.session.user_id
         this.list.set(user_id, player)

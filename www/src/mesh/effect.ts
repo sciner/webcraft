@@ -62,7 +62,7 @@ export class Mesh_Effect {
      */
     add(particle) {
 
-        const flags = particle.force_flags || (QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA | (particle.flags || 0))
+        const flags = particle.force_flags || (QUAD_FLAGS.FLAG_NORMAL_UP | QUAD_FLAGS.FLAG_LOOK_AT_CAMERA | (particle.flags || 0))
         const pp = particle.pp;
         const {x, y, z} = particle.pos;
 

@@ -420,7 +420,7 @@ export class PickAt {
             chunkAddr:  this.grid.toChunkAddr(pos),
             block:      block.clonePOJO(),
             material:   block.material,
-            fluid:      block.fluid,
+            fluid:      (pos_ as any).fluidVal,
         }
         let normal = ((pos_ as any).n);
         if (normal) {

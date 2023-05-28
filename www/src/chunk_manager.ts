@@ -15,7 +15,7 @@ import {ChunkRenderList} from "./chunk_render_list.js";
 import type { World } from "./world.js";
 import type { ChunkGrid } from "./core/ChunkGrid.js";
 import { AABB } from "./core/AABB.js";
-import type { Renderer } from "render.js";
+import type { Renderer } from "./render.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];

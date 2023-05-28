@@ -1,5 +1,4 @@
 import {BLOCK} from "@client/blocks.js";
-import { BLOCK_ACTION } from "@client/server_client.js";
 import type { TickingBlockManager } from "../server_chunk.js";
 
 export default class Ticker {
@@ -13,12 +12,11 @@ export default class Ticker {
         }
         const tblock = v.tblock;
         const extra_data = tblock.extra_data;
-        const updated_blocks = [];
         if(!extra_data || !extra_data.slots) {
             return;
         }
         let charged = 0;
-        for(let [slot_index, battery] of Object.entries<any>(extra_data.slots)) {
+        for(let battery of Object.values<any>(extra_data.slots)) {
             const mat = BLOCK.fromId(battery.id);
             if(mat.is_battery) {
                 battery.power += 1;
@@ -27,10 +25,9 @@ export default class Ticker {
         }
         if(charged > 0) {
             // console.log(`Battery charged count: ${charged}`);
-            updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: BLOCK_ACTION.MODIFY});
-            world.chests.sendChestToPlayers(tblock, null);
+            world.saveSendExtraData(tblock)
         }
-        return updated_blocks;
+        return null
     }
 
 }

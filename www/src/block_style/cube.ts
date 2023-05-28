@@ -220,7 +220,7 @@ export default class style {
         let lm = IndexedColor.WHITE;
         if(material.tags.includes('mask_biome')) {
             lm = dirt_color || IndexedColor.GRASS;
-            flags = QUAD_FLAGS.MASK_BIOME;
+            flags = QUAD_FLAGS.FLAG_MASK_BIOME;
         } else if(material.tags.includes('mask_color')) {
             flags = QUAD_FLAGS.FLAG_MASK_COLOR_ADD;
             lm = material.mask_color;
@@ -357,7 +357,7 @@ export default class style {
         // Shift the horizontal plane randomly, to prevent a visible big plane.
         // Alternate shift by 0.25 block up/down from the center + some random.
         leaves_planes[0].move.y = ((x + z) % 2 - 0.5) * 0.5 + (r2 - 0.5) * 0.3;
-        let flag = QUAD_FLAGS.MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES | QUAD_FLAGS.NORMAL_UP
+        let flag = QUAD_FLAGS.FLAG_MASK_BIOME | QUAD_FLAGS.FLAG_LEAVES | QUAD_FLAGS.FLAG_NORMAL_UP
         if(block.extra_data) {
             if(block.extra_data && block.extra_data.v != undefined) {
                 const color = LEAVES_COLORS[block.extra_data.v % LEAVES_COLORS.length]
@@ -435,7 +435,7 @@ export default class style {
         let axes_up                 = null
         let axes_down               = null
         let lm                      = _lm_grass.copyFrom(IndexedColor.WHITE)
-        let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0
+        let flags                   = material.light_power ? QUAD_FLAGS.FLAG_NO_AO : 0
         let sideFlags               = flags
         let upFlags                 = flags
 
@@ -478,10 +478,10 @@ export default class style {
                     lm.g += GRASS_PALETTE_OFFSET.y
                 }
                 if(!material.is_dirt) {
-                    flags = QUAD_FLAGS.MASK_BIOME;
+                    flags = QUAD_FLAGS.FLAG_MASK_BIOME;
                 }
-                sideFlags = QUAD_FLAGS.MASK_BIOME;
-                upFlags = QUAD_FLAGS.MASK_BIOME;
+                sideFlags = QUAD_FLAGS.FLAG_MASK_BIOME;
+                upFlags = QUAD_FLAGS.FLAG_MASK_BIOME;
                 if(block.extra_data && block.extra_data.v != undefined) {
                     const color = LEAVES_COLORS[block.extra_data.v % LEAVES_COLORS.length]
                     lm.r = color.r
@@ -570,7 +570,7 @@ export default class style {
                 const rv = randoms.double(z * chunk.size.x + x + y * chunk.size.y) | 0
                 if(block.id == bm.LILY_PAD.id) {
                     axes_down = UP_AXES[rv % 4];
-                    flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX | QUAD_FLAGS.MASK_BIOME;
+                    flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX | QUAD_FLAGS.FLAG_MASK_BIOME;
                 } else {
                     axes_up = UP_AXES[rv % 4];
                 }
@@ -701,7 +701,7 @@ export default class style {
         } else if (side != 'down') {
             _sideParams.f |= sideFlags
         }
-        if((_sideParams.f & QUAD_FLAGS.MASK_BIOME) == QUAD_FLAGS.MASK_BIOME) {
+        if((_sideParams.f & QUAD_FLAGS.FLAG_MASK_BIOME) == QUAD_FLAGS.FLAG_MASK_BIOME) {
             lm.b = _sideParams.t[3] * TX_CNT;
         }
         return _sideParams
@@ -728,6 +728,10 @@ export default class style {
     }
 
     static pushOverlayTextures(center_material : IBlockMaterial, bm : BLOCK, x : number, y : number, z : number, neighbours, emmited_blocks: any[], chunk : ChunkWorkerChunk, dirt_color? : IndexedColor, matrix? : imat4, pivot? : number[] | IVector) {
+
+        if(center_material.width || center_material.height) {
+            return
+        }
 
         _overlay.neightbours[0] = neighbours.WEST
         _overlay.neightbours[1] = neighbours.SOUTH
@@ -810,7 +814,7 @@ export default class style {
                 if(mat.tags.includes('mask_biome')) {
                     lm.r += GRASS_PALETTE_OFFSET.x;
                     lm.g += GRASS_PALETTE_OFFSET.y;
-                    flags |= QUAD_FLAGS.MASK_BIOME;
+                    flags |= QUAD_FLAGS.FLAG_MASK_BIOME;
                 }
                 const t = bm.calcMaterialTexture(mat, DIRECTION.UP, 1, 1, undefined, undefined, undefined, overlay_name);
                 _overlay.sides.up.set(t, flags, 0, lm, overlay_axes_up, false);
@@ -840,7 +844,7 @@ export default class style {
         const dm1 = -1
         const pp = lm.pack()
         const h2 = height == 1 ? .5 : 0
-        const fo = flags // | QUAD_FLAGS.NORMAL_UP
+        const fo = flags // | QUAD_FLAGS.FLAG_NORMAL_UP
         // north
         if(neighbours.NORTH.material.transparent) {
             vertices.push(x + .5, z + 1.25, y + h2, 1, 0, 0, 0, .5, dm1, c[0], c[1], c[2], c[3], pp, fo)

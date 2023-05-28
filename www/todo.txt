@@ -100,48 +100,48 @@
 
 // lm (r, b, b) + flags
 
-    NORMAL_UP
+    FLAG_NORMAL_UP
         куда-то поворачивает какую-то нормаль
 
-    MASK_BIOME - если указан, тогда:
+    FLAG_MASK_BIOME - если указан, тогда:
         lm.r - x координата в той же текстуре указывающая на цвет тинта
         lm.g - y координата в той же текстуре указывающая на цвет тинта
         lm.b - указывает на смещение маски (смещение на 1 блок = 1/32)
         Данный флаг дружит с FLAG_ANIMATED и они делят lm.b между собой
 
-    NO_AO
+    FLAG_NO_AO
         квад как то по особому игнорирует AO
-        см. NO_CAN_TAKE_AO
+        см. FLAG_NO_CAN_TAKE_AO
 
-    NO_FOG
+    FLAG_NO_FOG
         квад игнорирует туман
 
-    LOOK_AT_CAMERA
+    FLAG_LOOK_AT_CAMERA
         квад всегда будет повернут в камеру
 
-    LOOK_AT_CAMERA_HOR
+    FLAG_LOOK_AT_CAMERA_HOR
         квад всегда будет повернут в сторону камеру по оси X
 
     FLAG_ANIMATED
         квад с анимированной текстурой, при этом
         lm.b - будет указывать на количество кадров
-        Данный флаг дружит с MASK_BIOME и они делят lm.b между собой
+        Данный флаг дружит с FLAG_MASK_BIOME и они делят lm.b между собой
 
     FLAG_TEXTURE_SCROLL
         текстура плавно скролится
         lm.g - содержит скорость скрола
 
-    NO_CAN_TAKE_AO
+    FLAG_NO_CAN_TAKE_AO
         квад как то по особому игнорирует AO
-        см. NO_AO
+        см. FLAG_NO_AO
 
-    QUAD_FLAG_OPACITY
+    FLAG_QUAD_OPACITY
         lm.b - умножает альфа аканал текстуры квада на значение в этом компоненте
 
-    QUAD_FLAG_SDF
+    FLAG_QUAD_SDF
         указывает на то, что это SDF шрифт и его нужно обрабатывать по особому
 
-    NO_CAN_TAKE_LIGHT
+    FLAG_NO_CAN_TAKE_LIGHT
         квад игнорирует освещение
 
     FLAG_RAIN_OPACITY

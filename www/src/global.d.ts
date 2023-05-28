@@ -208,6 +208,7 @@ interface IBlockMiningMaterial {
         time: number
         instruments: string[]
     }
+    float?: boolean // если true, то не тонет в воде
     getMiningTime(instrument : object | any, force : boolean) : float
 }
 
@@ -355,13 +356,18 @@ interface IBlockMaterial {
     flags: int // BLOCK_FLAG enum
     planes: IPlane[]
     tx_cnt: number
-    overlay_textures_weight: number
     material: IBlockMiningMaterial
     material_key: string
+    // Textures
     texture: any
-    texture_overlays: any
+    texture_overlays: any // overlay-текстуры (песок, снег, земля, гравий и т.д., которые "высыпаются" на соседние блоки)
+    overlay_textures_weight: number // Определяет порядок наслоения overlay-текстур друг на друга 
     connected_sides: any
+    stage_textures?: string[]
+    texture_variants?: {}[]
+    hanging_textures?: {ripe: string[], noripe: string[]}[]
     texture_animations: any
+    //
     multiply_color: IColor
     mask_color: IColor
     has_head: {pos: IVector}
@@ -378,6 +384,7 @@ interface IBlockMaterial {
         time: int,
         level: int
     }[]
+    piece_of?: string // если задано, то этот блок - кусочек другого блока (shard, nugget, и т.п.)
     // boolean values
     spawnable: boolean
     planting: boolean
@@ -410,6 +417,7 @@ interface IBlockMaterial {
     is_flower: boolean
     is_battery: boolean
     is_log: boolean
+    always_waterlogged: boolean
     // boolean values that are automatically calculated by BLOCK, not from JSON
     has_window: boolean
     is_jukebox: boolean

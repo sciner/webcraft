@@ -22,7 +22,7 @@ const REPAIR_BY_MATERIALS = {
     'leather':  { names: ['LEATHER'] },
     'stone':    { names: ['COBBLESTONE',
         // These are not in the game, but can be used in Minecraft
-        'COBBLED_DEEPSLATE', 'BLACKSTONE'] }, 
+        'COBBLED_DEEPSLATE', 'BLACKSTONE'] },
     'iron':     { names: ['IRON_INGOT'] },
     'gold':     { names: ['GOLD_INGOT'] },
     'diamond':  { names: ['DIAMOND'] },
@@ -32,12 +32,17 @@ const REPAIR_BY_MATERIALS = {
 export type TUsedAnvilRecipe = {
     recipe_id       : string
     used_items_keys : string[]
-    count           : int[]
-    label           : string | null | false // if (label === false), it's not being changed
+    count           : int[]     // 1 или 2 элемента
+    /**
+     * Имя, кторое возможно будет установлено предмету. Специальные значения:
+     * - null - удалить имя
+     * - {@link ItemHelpers.LABEL_NO_CHANGE} - не менятяь
+     */
+    label           : string | null
 }
 
 type TAnvilGetResultFn = (first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-                label: string | null | false, outUsedCount: [int, int]) => IInventoryItem | null
+                label: string | null, outUsedCount: int[]) => IInventoryItem | null
 
 export type TAnvilRecipe = {
     id: string
@@ -49,8 +54,10 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
 
     constructor() {
         this.addRecipe('rename',
-            function(first_item: IInventoryItem | null, second_item: IInventoryItem | null, label: string | null | false, outUsedCount: [int, int]): IInventoryItem | null {
-                if (first_item == null || second_item != null || label === false) {
+            function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
+                     label: string | null, outUsedCount: int[]): IInventoryItem | null
+            {
+                if (first_item == null || second_item != null || label === ItemHelpers.LABEL_NO_CHANGE) {
                     return null;
                 }
                 if (label !== null) {
@@ -69,7 +76,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
 
         this.addRecipe('repair', // repair by ingredients; repair by combining is 'combine'
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-                     label: string | null | false, outUsedCount: [int, int]): IInventoryItem | null
+                     label: string | null, outUsedCount: int[]): IInventoryItem | null
             {
                 if (first_item == null || second_item == null) {
                     return null;
@@ -80,7 +87,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                 if (!power || !maxPower || power >= maxPower) {
                     return null;
                 }
-                if (label !== false && label !== null) {
+                if (label !== ItemHelpers.LABEL_NO_CHANGE && label !== null) {
                     label = ItemHelpers.validateAndPreprocessLabel(label);
                 }
                 // find the expected repair ingredients
@@ -117,7 +124,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                 const result = ObjectHelpers.deepClone(first_item);
                 result.count = 1;
                 result.power = Math.min(maxPower, power + powerIncrement);
-                if (label !== false) {
+                if (label !== ItemHelpers.LABEL_NO_CHANGE) {
                     ItemHelpers.setLabel(result, label);
                 }
                 ItemHelpers.incrementExtraDataField(result, 'age', 1);
@@ -128,7 +135,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
         // combines an item with the same item or a book, merges enchantments
         this.addRecipe('combine',
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-                     label: string | null | false, outUsedCount: [int, int]): IInventoryItem | null
+                     label: string | null, outUsedCount: int[]): IInventoryItem | null
             {
                 if (first_item == null || second_item == null) {
                     return null;
@@ -138,7 +145,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                 if (second_item.id !== BLOCK.ENCHANTED_BOOK.id && second_item.id !== first_item.id) {
                     return null;
                 }
-                if (label !== false && label !== null) {
+                if (label !== ItemHelpers.LABEL_NO_CHANGE && label !== null) {
                     label = ItemHelpers.validateAndPreprocessLabel(label);
                 }
                 const result = ObjectHelpers.deepClone(first_item);
@@ -197,9 +204,9 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
 
                 outUsedCount[0] = 1;
                 outUsedCount[1] = 1;
-                
+
                 result.count = 1;
-                if (label !== false) {
+                if (label !== ItemHelpers.LABEL_NO_CHANGE) {
                     ItemHelpers.setLabel(result, label);
                 }
                 ItemHelpers.incrementExtraDataField(result, 'age', 1);
@@ -224,7 +231,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
      * arguments, and the resulting item. If no recipe is applicable, returns null.
      */
     findRecipeAndResult(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
-        label: string | null | false, outUsedCount: [int, int]
+        label: string | null, outUsedCount: int[],
     ): { recipe: TAnvilRecipe, result: IInventoryItem } | null {
         for(const recipe of this.recipes.values()) {
             try {
@@ -243,7 +250,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
      * @throws if it's impossible
      */
     applyUsedRecipe(used_recipe: TUsedAnvilRecipe, recipe: TAnvilRecipe, used_items: IInventoryItem[]): IInventoryItem {
-        const outUsedCount: [int, int] = [0, 0];
+        const outUsedCount: int[] = [0]
         const result = recipe.getResult(used_items[0], used_items[1], used_recipe.label, outUsedCount);
         if (outUsedCount[0] != used_items[0]?.count || outUsedCount[1] != used_items[1]?.count) {
             throw 'error_recipe_does_not_match_used_items_count';

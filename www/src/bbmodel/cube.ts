@@ -31,19 +31,32 @@ export class BBModel_Cube extends BBModel_Child {
         let flag = 0
         this.faces = {}
         if(faces) {
-            // if(this.json.name.includes('#grass')) {
-            //     flag |= QUAD_FLAGS.FLAG_LEAVES
-            // }
-            if(this.json.name.includes('#flag_torch_flame')) {
-                flag |= QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.LOOK_AT_CAMERA_HOR | QUAD_FLAGS.NORMAL_UP
+            const name = this.json.name
+            if(name.includes('#flag_torch_flame')) {
+                flag |= QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_LOOK_AT_CAMERA_HOR | QUAD_FLAGS.FLAG_NORMAL_UP
                 flag |= QUAD_FLAGS.FLAG_TORCH_FLAME
-            }
-            if(this.json.name.includes('#flag_fluid_erase')) {
-                flag |= QUAD_FLAGS.FLAG_FLUID_ERASE | QUAD_FLAGS.NO_CAN_TAKE_LIGHT
-            }
-            // flag |= QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.NORMAL_UP
-            if(['dandelion', 'poppy'].includes(this.model.json.name)) {
-                flag |= QUAD_FLAGS.NO_AO | QUAD_FLAGS.FLAG_LEAVES // | QUAD_FLAGS.NORMAL_UP;
+            } else if(name.includes('#flag_fluid_erase')) {
+                flag |= QUAD_FLAGS.FLAG_FLUID_ERASE | QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT
+            } else {
+                if(['dandelion', 'poppy'].includes(this.model.json.name)) {
+                    flag |= QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_LEAVES // | QUAD_FLAGS.FLAG_NORMAL_UP;
+                }
+                // another flags
+                if(name.includes('#flag_')) {
+                    const temp = name.split('#flag_')
+                    for(let flag_name of temp) {
+                        if(flag_name.length == 0) continue
+                        let i = flag_name.indexOf('#')
+                        if(i >= 0) {
+                            flag_name = flag_name.sub(0, i)
+                        }
+                        flag_name = `FLAG_${flag_name.toUpperCase()}`
+                        const f = QUAD_FLAGS[flag_name]
+                        if(f != undefined) {
+                            flag |= parseInt(f)
+                        }
+                    }
+                }
             }
             for(let f in faces) {
                 // remove empty faces

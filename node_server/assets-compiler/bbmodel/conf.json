@@ -113,6 +113,7 @@
         {"name": "titanium_ore"},
         {"name": "poor_titanium_ore"},
         {"name": "amethyst_cluster"},
+        {"name": "brewing_stand"},
 
         {"name": "tool/primitive_axe"},
         {"name": "tool/sunglasses"},
@@ -1215,7 +1216,7 @@
                 "model": "cactus",
                 "aabb_stylename": "cactus",
                 "set_state": [
-                    {"name": "side_top",
+                    {"name": "top",
                         "when": {
                             "extra_data.into_pot": true
                         }
@@ -2008,6 +2009,27 @@
             "name": "MECHANISM_ASSEMBLER",
             "bb": {
                 "model": "tool/mechanism_assembler"
+            }
+        },
+        {
+            "id": 117,
+            "name": "BREWING_STAND",
+            "aabb": [5, 0, 5, 11, 16, 11],
+            "bb": {
+                "model": "brewing_stand"
+            }
+        },
+        {
+            "id": 285,
+            "name": "GOLDEN_CHESTPLATE",
+            "bb": {
+                "model": "armor/scrap_armor",
+                "set_state": [
+                    {"name": "preview/preview_chestplate"}
+                ],
+                "select_texture": [
+                    {"name": "scrap_armor_gold"}
+                ]
             }
         }
     ]

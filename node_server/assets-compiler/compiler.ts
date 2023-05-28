@@ -1,9 +1,10 @@
+import lodash from 'lodash';
 import skiaCanvas from 'skia-canvas';
 import fs from 'fs';
 import { DEFAULT_TEXTURE_SUFFIXES, Spritesheet } from "./spritesheet.js";
 import { CompileData } from "./compile_data.js";
 import { DEFAULT_STYLE_NAME, DEFAULT_TX_CNT } from '@client/constant.js';
-import { Mth } from '@client/helpers.js';
+import { Mth, ObjectHelpers } from '@client/helpers.js';
 
 const BLOCK_NAMES = {
     DIRT: 'DIRT',
@@ -92,7 +93,12 @@ export class Compiler {
                 await spritesheet.drawTexture(tex[key], texture.x, texture.y, false, null, null, `_${key}`);
             }
         }
-        this.compile_data.blocks = await this.compileBlocks(this.compile_data.blocks);
+        //
+        const predefined_style_props = new Map()
+        for(const [k, v] of Object.entries(this.compile_data.predefined_style_props)) {
+            predefined_style_props.set(k, v)
+        }
+        this.compile_data.blocks = await this.compileBlocks(this.compile_data.blocks, predefined_style_props)
         await this.export();
     }
 
@@ -152,7 +158,7 @@ export class Compiler {
     }
 
     //
-    async compileBlocks(blocks : IBlockMaterial[], spritesheet_storage? : any) {
+    async compileBlocks(blocks : IBlockMaterial[], predefined_style_props? : Map<string, {[key: string] : any}> , spritesheet_storage? : any) {
 
         if(!spritesheet_storage) {
             spritesheet_storage = this
@@ -174,8 +180,21 @@ export class Compiler {
 
             //
             block.tags = block.tags ?? [];
-
             block.flammable = this.flammable_blocks.get(block.name) ?? null
+
+            // Predefined style props
+            const predefined_style = predefined_style_props?.get(block.style)
+            if(predefined_style) {
+                const a = ObjectHelpers.deepClone(predefined_style)
+                const b = ObjectHelpers.deepClone(block)
+                block = {...block, ...a}
+                const mergeWithFunc = (objValue, srcValue) => {
+                    if(lodash.isArray(objValue)) {
+                        return objValue.concat(srcValue)
+                    }
+                }
+                lodash.mergeWith(block, b, mergeWithFunc)
+            }
 
             // Auto add tags
             const tags = block.tags = block.tags || [];

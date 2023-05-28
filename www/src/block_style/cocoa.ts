@@ -52,7 +52,7 @@ export default class style {
 
         const c_up_top          = style.block_manager.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
         const stage             = block.extra_data.stage;
-        const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
+        const flag              = QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_NORMAL_UP;
         const rot               = [0, ((3 - block.rotate.x) / 4) * (2 * Math.PI), 0];
         const pos               = new Vector(x, y, z);
 

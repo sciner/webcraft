@@ -435,7 +435,7 @@ export default class style {
                         sign:   sign.length > 0 ? AlphabetTexture.getStringUVs(sign.join(' | ')) : null
                     },
                     new Vector(x, y, z),
-                    tblock.rotate ?? Vector.ZERO,
+                    (tblock.rotate as Vector) ?? Vector.ZERO,
                     pivot,
                     matrix
                 );

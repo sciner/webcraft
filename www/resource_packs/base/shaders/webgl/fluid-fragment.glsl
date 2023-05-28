@@ -155,17 +155,23 @@ void main() {
     } else {
 
         #include<caustic_pass_onwater>
-        #include<raindrops_onwater>
 
-        if(!checkFlag(NO_CAN_TAKE_LIGHT)) {
+        vec3 mul;
+        float daySample;
+
+        if(!checkFlag(FLAG_NO_CAN_TAKE_LIGHT)) {
             #include<local_light_pass>
             #include<ao_light_pass>
             #include<shoreline>
-            // Apply light
-            color.rgb *= (combinedLight * sunNormalLight);
+            mul = (combinedLight * sunNormalLight);
         } else {
-            color.rgb *= sunNormalLight;
+            mul = vec3(sunNormalLight);
         }
+    
+        #include<raindrops_onwater>
+        // Apply light
+        color.rgb *= mul;
+
     }
 
     // _include<swamp_fog>
