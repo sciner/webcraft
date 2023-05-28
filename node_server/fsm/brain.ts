@@ -336,6 +336,10 @@ export class FSMBrain {
         if (this.target || !this.targets || this.targets.length == 0 || this.distance_view < 1) {
             return
         }
+        // это медленная фекция, но ее можно выполнять раз в несколько секунд
+        if ((this.world.ticks_stat.number + this.mob.id) % 30 !== 0) {
+            return
+        }
         const mob = this.mob;
         const world = mob.getWorld();
         const players = world.getPlayersNear(mob.pos, this.distance_view, false);
