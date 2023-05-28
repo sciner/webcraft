@@ -92,8 +92,8 @@ export class ServerChunkManager {
             texFormat: 'rgba8unorm',
             depthMul: 1,
         }
+        this.grid                       = world.grid
         this.dataWorld                  = new DataWorld(this);
-        this.grid                       = this.dataWorld.grid
         this.fluidWorld                 = new FluidWorld(this);
         this.fluidWorld.database        = world.db.fluid;
         this.fluidWorld.queue           = new FluidWorldQueue(this.fluidWorld);

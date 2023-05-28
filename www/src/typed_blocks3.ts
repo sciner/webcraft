@@ -1,13 +1,13 @@
 import { Vector, ObjectHelpers } from "./helpers.js";
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
-import { ChunkGrid } from "./core/ChunkGrid.js";
 import { AABB } from './core/AABB.js';
 import {BLOCK, POWER_NO} from "./blocks.js";
 import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidBuildVertices.js";
 import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID, fluidLightPower} from "./fluid/FluidConst.js";
 import type { FluidChunk } from "./fluid/FluidChunk.js";
 import type { ChunkLight } from "./light/ChunkLight.js";
+import type { ChunkGrid } from "./core/ChunkGrid.js";
 
 export function newTypedBlocks(coord : Vector, grid: ChunkGrid) : TypedBlocks3 {
     return new TypedBlocks3(coord, grid);
@@ -755,7 +755,7 @@ export class DataWorld {
         if(!chunkManager.tech_info.chunk_size) {
             throw 'error_undefined_chunnk_size'
         }
-        this.grid = new ChunkGrid({chunkSize: chunkManager.tech_info.chunk_size});
+        this.grid = chunkManager.grid
         this.base = new BaseChunk({grid: this.grid, size: new Vector(INF, INF, INF)})
             .setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
     }

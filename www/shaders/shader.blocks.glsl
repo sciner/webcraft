@@ -65,7 +65,7 @@
     uniform float u_aoDisaturateFactor;
 
     vec3 getCamPeriod() {
-        return vec3(u_camera_posi % ivec3(1000)) + u_camera_pos;
+        return vec3(u_camera_posi % ivec3(2500)) + u_camera_pos;
     }
 
     bool checkFlag(int flag) {

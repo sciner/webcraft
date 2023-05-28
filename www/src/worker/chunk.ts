@@ -61,8 +61,8 @@ export class ChunkWorkerChunkManager {
                 return false;
             }
         };
+        this.grid = world.grid
         this.dataWorld = new DataWorld(this);
-        this.grid = this.dataWorld.grid
         this.fluidWorld = new FluidWorld(this);
         this.verticesPool = new WorkerGeometryPool(null, {});
     }
