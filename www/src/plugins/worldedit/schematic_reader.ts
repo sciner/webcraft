@@ -140,20 +140,22 @@ export class SchematicReader {
             console.error('schematic reader not support read chests and other block entities')
         }
 
-        const not_found_blocks = new Map();
-        const bpos = new Vector(0, 0, 0);
-        const AIR_BLOCK = new DBItemBlock(0)
-        const TEST_BLOCK = {id: BLOCK.fromName('TEST').id};
-        const FLOWER_POT_BLOCK_ID = BLOCK.fromName('FLOWER_POT').id;
-        const STILL_WATER_BLOCK = {id: BLOCK.fromName('STILL_WATER').id};
-        const STILL_LAVA_BLOCK = {id: BLOCK.fromName('STILL_LAVA').id};
+        let min_y = Infinity
+
+        const not_found_blocks                  = new Map()
+        const cached_blocks                     = new Map()
+        const states : Map<int, IStateBlock>    = new Map()
+        const bpos                              = new Vector(0, 0, 0)
+        const eb_pos                            = new Vector(0, 0, 0)
+        const FLOWER_POT_BLOCK_ID               = BLOCK.fromName('FLOWER_POT').id
+        const AIR_BLOCK                         = new DBItemBlock(0)
+        const TEST_BLOCK                        = new DBItemBlock(BLOCK.fromName('TEST').id)
+        const STILL_WATER_BLOCK                 = new DBItemBlock(BLOCK.fromName('STILL_WATER').id)
+        const STILL_LAVA_BLOCK                  = new DBItemBlock(BLOCK.fromName('STILL_LAVA').id)
+        const result : IParseBlockResult        = {b: null, name: null};
+
         // each all blocks
-        const eb_pos = new Vector(0, 0, 0)
-        let min_y = Infinity;
-        const cached_blocks = new Map();
-        const result : IParseBlockResult = {b: null, name: null};
-        const states : Map<int, IStateBlock> = new Map();
-        (schematic as any).forEachFast((block : IMCBlock, pos, stateId : int) => {
+        (schematic as any).forEachFast((block : IMCBlock, pos : IVector, stateId : int) => {
             bpos.copyFrom(pos)
             bpos.z *= -1;
             if(bpos.y < min_y) {
@@ -171,7 +173,7 @@ export class SchematicReader {
                 new_block = st.new_block
                 fluidValue = st.fluidValue
                 if(st.read_entity_props) {
-                    new_block = this.createBlockFromSchematic(block, st.b, schematic, BlockEntities, pos, st.read_entity_props)
+                    new_block = this.createBlockFromSchematic(block, st.b, schematic, BlockEntities, pos as Vector, st.read_entity_props)
                 }
             } else {
                 const {name, b} = this.parseBlockName(block, result)
@@ -195,8 +197,10 @@ export class SchematicReader {
                             read_entity_props = true
                         } else if(b.is_banner) {
                             read_entity_props = true
+                        } else if(b.name == 'FLOWER_POT') {
+                            read_entity_props = true
                         }
-                        new_block = this.createBlockFromSchematic(block, b, schematic, BlockEntities, pos, read_entity_props)
+                        new_block = this.createBlockFromSchematic(block, b, schematic, BlockEntities, pos as Vector, read_entity_props)
                         if(!new_block) {
                             return
                         }
@@ -385,6 +389,24 @@ export class SchematicReader {
             } else if(b.is_banner) {
                 if('Patterns' in block.entities) {
                     setExtraData('patterns', block.entities.Color);
+                }
+            } else if(b.name == 'FLOWER_POT') {
+                // old versions format
+                let potted_block_name = block.entities.Item
+                if(potted_block_name) {
+                    if(potted_block_name.indexOf(':') >= 0) {
+                        potted_block_name = potted_block_name.split(':')[1].toUpperCase()
+                        let in_pot_block = BLOCK[potted_block_name]
+                        if(!in_pot_block) {
+                            let nn = this.replaced_names[potted_block_name]
+                            if(nn) {
+                                in_pot_block = BLOCK[nn]
+                            }
+                        }
+                        if(in_pot_block) {
+                            setExtraData('item', new DBItemBlock(in_pot_block.id))
+                        }
+                    }
                 }
             } else if(b.name == 'LECTERN') {
                 if(block.entities.Book) {

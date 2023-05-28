@@ -6375,10 +6375,7 @@
             "style": "planting",
             "sound": "madcraft:block.grass",
             "has_head": {"pos": {"x": 0, "y": 1, "z": 0}},
-            "texture": {
-                "up": "block/large_fern_top.png",
-                "down": "block/large_fern_bottom.png"
-            },
+            "texture": "block/large_fern.png",
             "inventory": {
                 "style": "extruder",
                 "texture": "block/large_fern_top.png"
@@ -6387,6 +6384,7 @@
                 "id": "plant"
             },
             "tags": [
+                "is_tall_grass",
                 "no_drop",
                 "mask_biome"
             ],
