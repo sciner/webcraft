@@ -2979,6 +2979,7 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
         }
     } else {
         */
+    if (pos.n.y == 1) {
         actions.addBlocks([{pos: position.offset(0, 1, 0), item: {id: mat_block.id, extra_data: {
             up: false,
             base: false,
@@ -2986,6 +2987,15 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
             middle: false,
             frustum: false
         }}, action_id: BLOCK_ACTION.CREATE}]);
+    } else if (pos.n.y == -1) {
+        actions.addBlocks([{pos: position.offset(0, -1, 0), item: {id: mat_block.id, extra_data: {
+            up: false,
+            base: false,
+            merge: false,
+            middle: false,
+            frustum: false
+        }}, action_id: BLOCK_ACTION.CREATE}]);
+    }
     //}
  /*
     const position = new Vector(pos)

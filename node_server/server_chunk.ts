@@ -903,25 +903,106 @@ export class ServerChunk {
         // метод работы со сталактитами и сталагмитами
         const changePointedDripstone = () => {
             const up = tblock?.extra_data?.up;
-            const h = this.getBlock(neighbour.posworld.offset(0, -2, 0), null, null, null, true);
-            const e = this.getBlock(neighbour.posworld.offset(0, -1, 0), null, null, null, true);
-            const a = this.getBlock(neighbour.posworld.offset(0, 1, 0), null, null, null, true);
-            const b = this.getBlock(neighbour.posworld.offset(0, 2, 0), null, null, null, true);
-            const c = this.getBlock(neighbour.posworld.offset(0, 3, 0), null, null, null, true);
-            console.log('----------------------------------------------------------------------------------')
+            //const h = this.getBlock(neighbour.posworld.offset(0, -2, 0), null, null, null, true);
+            //const e = this.getBlock(neighbour.posworld.offset(0, -1, 0), null, null, null, true);
+            //const a = this.getBlock(neighbour.posworld.offset(0, 1, 0), null, null, null, true);
+            //const b = this.getBlock(neighbour.posworld.offset(0, 2, 0), null, null, null, true);
+            //const c = this.getBlock(neighbour.posworld.offset(0, 3, 0), null, null, null, true);
+           // console.log('----------------------------------------------------------------------------------')
 
-            console.log('h: ' + h.id +' e: ' + e.id + ' a: ' + a.id + ' b: ' + b.id + ' c: ' + c.id)
+          //  console.log('h: ' + h.id +' e: ' + e.id + ' a: ' + a.id + ' b: ' + b.id + ' c: ' + c.id)
 
-            const hh = this.getBlock(tblock.posworld.offset(0, -2, 0), null, null, null, true);
-            const ee = this.getBlock(tblock.posworld.offset(0, -1, 0), null, null, null, true);
-            const aa = this.getBlock(tblock.posworld.offset(0, 1, 0), null, null, null, true);
-            const bb = this.getBlock(tblock.posworld.offset(0, 2, 0), null, null, null, true);
-            const cc = this.getBlock(tblock.posworld.offset(0, 3, 0), null, null, null, true);
+            const a = this.getBlock(tblock.posworld.offset(0, up ? -1 : 1, 0), null, null, null, true);
+            const b = this.getBlock(tblock.posworld.offset(0, up ? 1 : -1, 0), null, null, null, true);
+            const c = this.getBlock(tblock.posworld.offset(0, up ? 2 : -2, 0), null, null, null, true);
+            const d = this.getBlock(tblock.posworld.offset(0, up ? 3 : -3, 0), null, null, null, true);
 
-            console.log('hh: ' + hh.id + ' ee: ' + ee.id + ' aa: ' + aa.id + ' bb: ' + bb.id + ' cc: ' + cc.id)
+            console.log('a: ' + a.id + ' | b: ' + b.id + ' c: ' + c.id + ' d: ' + d.id + ' up : ' + up)
 
             console.log('/////////////////////////////////////////////////////////////////////////////////////////')
 
+            let ed = null
+            if (b.id == bm.POINTED_DRIPSTONE.id && c.id == 0) {
+                if (!tblock.extra_data.frustum) {
+                    ed = {
+                        up: up,
+                        base: false,
+                        merge: false,
+                        middle: false,
+                        frustum: true
+                    }
+                }
+            } else if (b.id == bm.POINTED_DRIPSTONE.id && c.id == bm.POINTED_DRIPSTONE.id && d.id == 0) {
+                if (!tblock.extra_data.middle) {
+                    ed = {
+                        up: up,
+                        base: false,
+                        merge: false,
+                        middle: true,
+                        frustum: false
+                    }
+                }
+            } else if (a.id != bm.POINTED_DRIPSTONE.id && b.id == bm.POINTED_DRIPSTONE.id && c.id == bm.POINTED_DRIPSTONE.id) {
+                if (!tblock.extra_data.base) {
+                    ed = {
+                        up: up,
+                        base: true,
+                        merge: false,
+                        middle: false,
+                        frustum: false
+                    }
+                }
+            }
+
+            if (ed) {
+                const actions = new WorldAction();
+                actions.addBlocks([{
+                    pos: tblock.posworld.clone(),
+                    item: {
+                        id: tblock.id,
+                        extra_data: ed
+                    },
+                    action_id: BLOCK_ACTION.MODIFY
+                }]);
+                world.actions_queue.add(null, actions);
+            }
+
+            /*if (bb.id == 0 && aa.id == 593 && !tblock.extra_data.frustum) {
+                const actions = new WorldAction();
+                actions.addBlocks([{
+                    pos: tblock.posworld.clone(),
+                    item: {
+                        id: tblock.id,
+                        extra_data: {
+                            up: up,
+                            base: false,
+                            merge: false,
+                            middle: false,
+                            frustum: true
+                        }
+                    },
+                    action_id: BLOCK_ACTION.MODIFY
+                }]);
+                world.actions_queue.add(null, actions);
+            }
+            if (bb.id == 593 && aa.id == 593 && !tblock.extra_data.middle) {
+                const actions = new WorldAction();
+                actions.addBlocks([{
+                    pos: tblock.posworld.clone(),
+                    item: {
+                        id: tblock.id,
+                        extra_data: {
+                            up: up,
+                            base: false,
+                            merge: false,
+                            middle: true,
+                            frustum: false
+                        }
+                    },
+                    action_id: BLOCK_ACTION.MODIFY
+                }]);
+                world.actions_queue.add(null, actions);
+            }
             if (aa.id == 593 && ee.id == 593 && bb.id == 593 && !tblock.extra_data.middle) {
                 const actions = new WorldAction();
                 actions.addBlocks([{
@@ -956,7 +1037,7 @@ export class ServerChunk {
                     action_id: BLOCK_ACTION.MODIFY
                 }]);
                 world.actions_queue.add(null, actions);
-            }
+            }*/
 
             /*if (block?.id == bm.POINTED_DRIPSTONE.id && block?.extra_data?.up == up) {
                 const actions = new WorldAction();
@@ -1172,7 +1253,7 @@ export class ServerChunk {
                     break;
                 }
                 case 'pointed_dripstone': {
-                    //changePointedDripstone();
+                    changePointedDripstone();
                     break;
                 }
             }
