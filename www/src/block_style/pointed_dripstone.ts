@@ -35,7 +35,7 @@ export default class style {
 
         const bm = style.block_manager
         const extra_data = block.extra_data;
-        const dir = getDirection(extra_data, neighbours);
+        /*const dir = getDirection(extra_data, neighbours);
         console.log(dir)
         const texture = bm.calcTexture(block.material.texture, dir);
         const planes = [];
@@ -67,7 +67,7 @@ export default class style {
                 type:       'dripping',
                 isWater:    extra_data?.water
             }]);
-        }
+        }*/
     }
 
 }

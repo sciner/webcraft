@@ -1118,7 +1118,7 @@ export class ServerChunk {
                     break;
                 }
                 case 'pointed_dripstone': {
-                    changePointedDripstone();
+                    //changePointedDripstone();
                     break;
                 }
             }
@@ -1214,7 +1214,7 @@ export class ServerChunk {
                     break;
                 }
                 case 'pointed_dripstone': {
-                    changePointedDripstone();
+                    //changePointedDripstone();
                     break;
                 }
             }
