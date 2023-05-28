@@ -729,6 +729,10 @@ export default class style {
 
     static pushOverlayTextures(center_material : IBlockMaterial, bm : BLOCK, x : number, y : number, z : number, neighbours, emmited_blocks: any[], chunk : ChunkWorkerChunk, dirt_color? : IndexedColor, matrix? : imat4, pivot? : number[] | IVector) {
 
+        if(center_material.width || center_material.height) {
+            return
+        }
+
         _overlay.neightbours[0] = neighbours.WEST
         _overlay.neightbours[1] = neighbours.SOUTH
         _overlay.neightbours[2] = neighbours.EAST

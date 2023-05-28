@@ -1216,7 +1216,7 @@
                 "model": "cactus",
                 "aabb_stylename": "cactus",
                 "set_state": [
-                    {"name": "side_top",
+                    {"name": "top",
                         "when": {
                             "extra_data.into_pot": true
                         }
