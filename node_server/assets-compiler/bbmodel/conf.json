@@ -2045,7 +2045,7 @@
                     {"name": "tip"}
                 ],
                 "rotate": [
-                    {"type": "flipx", "when": {"extra_data.up": false}}
+                    {"type": "flipx", "when": {"extra_data.up": true}}
                 ]
             }
         }

@@ -912,10 +912,10 @@ export class ServerChunk {
 
           //  console.log('h: ' + h.id +' e: ' + e.id + ' a: ' + a.id + ' b: ' + b.id + ' c: ' + c.id)
 
-            const a = this.getBlock(tblock.posworld.offset(0, up ? -1 : 1, 0), null, null, null, true);
-            const b = this.getBlock(tblock.posworld.offset(0, up ? 1 : -1, 0), null, null, null, true);
-            const c = this.getBlock(tblock.posworld.offset(0, up ? 2 : -2, 0), null, null, null, true);
-            const d = this.getBlock(tblock.posworld.offset(0, up ? 3 : -3, 0), null, null, null, true);
+            const a = this.getBlock(tblock.posworld.offset(0, up ? 1 : -1, 0), null, null, null, true);
+            const b = this.getBlock(tblock.posworld.offset(0, up ? -1 : 1, 0), null, null, null, true);
+            const c = this.getBlock(tblock.posworld.offset(0, up ? -2 : 2, 0), null, null, null, true);
+            const d = this.getBlock(tblock.posworld.offset(0, up ? -3 : 3, 0), null, null, null, true);
 
             console.log('a: ' + a.id + ' | b: ' + b.id + ' c: ' + c.id + ' d: ' + d.id + ' up : ' + up)
 

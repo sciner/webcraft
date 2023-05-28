@@ -4886,6 +4886,7 @@
         {
             "id": 593,
             "name": "POINTED_DRIPSTONE",
+            "can_rotate":true,
             "passable": 0,
             "transparent": true,
             "style": "pointed_dripstone",

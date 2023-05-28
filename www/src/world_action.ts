@@ -2981,7 +2981,7 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
         */
     if (pos.n.y == 1) {
         actions.addBlocks([{pos: position.offset(0, 1, 0), item: {id: mat_block.id, extra_data: {
-            up: true,
+            up: false,
             base: false,
             merge: false,
             middle: false,
@@ -2989,7 +2989,7 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
         }}, action_id: BLOCK_ACTION.CREATE}]);
     } else if (pos.n.y == -1) {
         actions.addBlocks([{pos: position.offset(0, -1, 0), item: {id: mat_block.id, extra_data: {
-            up: false,
+            up: true,
             base: false,
             merge: false,
             middle: false,
