@@ -4,7 +4,7 @@ import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 import type { Biome3TerrainMap } from "../terrain_generator/biome3/terrain/map.js";
 import type { BLOCK } from "../blocks.js";
 import type { DataChunk } from "../core/DataChunk";
-import type { ChunkGrid } from "../core/ChunkGrid.js";
+import { ChunkGrid } from "../core/ChunkGrid.js";
 import { DAYLIGHT_VALUE } from "../constant.js";
 
 /** If it's true, it causes the chunk total chunk timers to be printed once after the wueue is empty. */
@@ -99,12 +99,14 @@ export class WorkerWorld {
     totalChunkTimers = DEBUG_CHUNK_GEN_TIMERS ? new PerformanceTimer() : null
     is_server: boolean
     tech_info: TWorldTechInfo
+    grid: ChunkGrid;
 
     constructor(block_manager: BLOCK, settings: TBlocksSettings, is_server: boolean, tech_info: TWorldTechInfo) {
         this.block_manager = block_manager
         this.settings = settings
         this.is_server = is_server
         this.tech_info = tech_info
+        this.grid = new ChunkGrid({chunkSize: new Vector().copyFrom(this.tech_info.chunk_size)})
         this.chunks = new VectorCollector()
         this.genQueue = new ChunkWorkQueue(this)
         this.chunkManager = new ChunkWorkerChunkManager(this)

@@ -149,7 +149,7 @@ export class ServerWorld implements IWorld {
         this.db.removeDeadDrops();
         await newTitlePromise;
         this.info           = await this.db.getWorld(world_guid);
-
+        this.grid           = new ChunkGrid({chunkSize: new Vector().copyFrom(this.info.tech_info.chunk_size)})
         this.worldChunkFlags = new WorldChunkFlags(this);
         this.dbActor        = new WorldDBActor(this);
 
@@ -242,7 +242,7 @@ export class ServerWorld implements IWorld {
         // flush database
         await this.db.flushWorld()
 
-        const grid = new ChunkGrid({chunkSize: new Vector(info.tech_info.chunk_size)})
+        const grid = this.grid
         const blocks = [];
         const chunks_addr = new VectorCollector()
         const block_air = {id: 0}
@@ -308,7 +308,7 @@ export class ServerWorld implements IWorld {
 
         // store modifiers in db
         let t = performance.now()
-        await this.db.chunks.bulkInsertWorldModify(blocks, undefined, null, grid)
+        await this.db.chunks.bulkInsertWorldModify(blocks, undefined, null)
         console.log('Building: store modifiers in db ...', performance.now() - t)
 
         // compress chunks in db
