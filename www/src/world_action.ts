@@ -2940,80 +2940,23 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
     if (!world_material || !mat_block || (mat_block.id != bm.POINTED_DRIPSTONE.id)) {
         return false
     }
+
     const position = new Vector(pos)
-    /*if (world_block.id == bm.POINTED_DRIPSTONE.id) {
-        const up = world_block.extra_data.up
-        const air_pos = position.offset(0, up ? -1 : 1, 0)
-        const block = world.getBlock(air_pos)
-        if (block.id == BLOCK.AIR.id && block.fluid == 0) {
-            actions.addBlocks([
-                {
-                    pos: air_pos, 
-                    item: {
-                        id: mat_block.id, 
-                        extra_data: {
-                            up: up,
-                            base: false,
-                            merge: false,
-                            middle: false,
-                            frustum: false
-                        }
-                    }, 
-                    action_id: BLOCK_ACTION.CREATE
-                },
-                {
-                    pos: position, 
-                    item: {
-                        id: mat_block.id, 
-                        extra_data: {
-                            up: up,
-                            base: false,
-                            merge: false,
-                            middle: false,
-                            frustum: true
-                        }
-                    }, 
-                    action_id: BLOCK_ACTION.REPLACE
-                }
-            ]);
-        }
-    } else {
-        */
-    if (pos.n.y == 1) {
-        actions.addBlocks([{pos: position.offset(0, 1, 0), item: {id: mat_block.id, extra_data: {
-            up: false,
-            base: false,
-            merge: false,
-            middle: false,
-            frustum: false
-        }}, action_id: BLOCK_ACTION.CREATE}]);
-    } else if (pos.n.y == -1) {
-        actions.addBlocks([{pos: position.offset(0, -1, 0), item: {id: mat_block.id, extra_data: {
-            up: true,
-            base: false,
-            merge: false,
-            middle: false,
-            frustum: false
-        }}, action_id: BLOCK_ACTION.CREATE}]);
-    }
-    //}
- /*
-    const position = new Vector(pos)
-    if (world_block.id == BLOCK.POINTED_DRIPSTONE.id) {
+    if (world_block.id == bm.POINTED_DRIPSTONE.id) {
         const up = world_block.extra_data.up;
         const air_pos = position.offset(0, up ? -1 : 1, 0);
         const block = world.getBlock(air_pos);
-        if (block.id == BLOCK.AIR.id && block.fluid == 0) {
-            actions.addBlocks([{pos: air_pos, item: {id: BLOCK.POINTED_DRIPSTONE.id, extra_data: {up: up}}, action_id: BLOCK_ACTION.CREATE}]);
+        if (block.id == bm.AIR.id && block.fluid == 0) {
+            actions.addBlocks([{pos: air_pos, item: {id: mat_block.id, extra_data: {up: up, tip: true}}, action_id: BLOCK_ACTION.CREATE}]);
+        } else if (block.id == bm.POINTED_DRIPSTONE.id && block.extra_data?.up != up) {
+            actions.addBlocks([{pos: position, item: {id: mat_block.id, extra_data: {up: up, merge: true}}, action_id: BLOCK_ACTION.CREATE}]);
         }
     } else {
         if (pos.n.y == 1) {
-            actions.addBlocks([{pos: position.offset(0, 1, 0), item: {id: BLOCK.POINTED_DRIPSTONE.id, extra_data: {up: false}}, action_id: BLOCK_ACTION.CREATE}]);
-        }
-        if (pos.n.y == -1) {
-            actions.addBlocks([{pos: position.offset(0, -1, 0), item: {id: BLOCK.POINTED_DRIPSTONE.id, extra_data: {up: true}}, action_id: BLOCK_ACTION.CREATE}]);
+            actions.addBlocks([{pos: position.offset(0, 1, 0), item: {id: mat_block.id, extra_data: {tip: true}}, action_id: BLOCK_ACTION.CREATE}])
+        } else if (pos.n.y == -1) {
+            actions.addBlocks([{pos: position.offset(0, -1, 0), item: {id: mat_block.id, extra_data: {up: true, tip: true}}, action_id: BLOCK_ACTION.CREATE}])
         }
     }
-*/
-    return true;
+    return true
 }

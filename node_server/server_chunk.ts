@@ -903,53 +903,28 @@ export class ServerChunk {
         // метод работы со сталактитами и сталагмитами
         const changePointedDripstone = () => {
             const up = tblock?.extra_data?.up;
-            //const h = this.getBlock(neighbour.posworld.offset(0, -2, 0), null, null, null, true);
-            //const e = this.getBlock(neighbour.posworld.offset(0, -1, 0), null, null, null, true);
-            //const a = this.getBlock(neighbour.posworld.offset(0, 1, 0), null, null, null, true);
-            //const b = this.getBlock(neighbour.posworld.offset(0, 2, 0), null, null, null, true);
-            //const c = this.getBlock(neighbour.posworld.offset(0, 3, 0), null, null, null, true);
-           // console.log('----------------------------------------------------------------------------------')
-
-          //  console.log('h: ' + h.id +' e: ' + e.id + ' a: ' + a.id + ' b: ' + b.id + ' c: ' + c.id)
-
-            const a = this.getBlock(tblock.posworld.offset(0, up ? 1 : -1, 0), null, null, null, true);
-            const b = this.getBlock(tblock.posworld.offset(0, up ? -1 : 1, 0), null, null, null, true);
-            const c = this.getBlock(tblock.posworld.offset(0, up ? -2 : 2, 0), null, null, null, true);
-            const d = this.getBlock(tblock.posworld.offset(0, up ? -3 : 3, 0), null, null, null, true);
-
-            console.log('a: ' + a.id + ' | b: ' + b.id + ' c: ' + c.id + ' d: ' + d.id + ' up : ' + up)
-
-            console.log('/////////////////////////////////////////////////////////////////////////////////////////')
-
+            const below = this.getBlock(tblock.posworld.offset(0, up ? 1 : -1, 0), null, null, null, true)
+            const above = this.getBlock(tblock.posworld.offset(0, up ? -1 : 1, 0), null, null, null, true)
             let ed = null
-            if (b.id == bm.POINTED_DRIPSTONE.id && c.id == 0) {
-                if (!tblock.extra_data.frustum) {
-                    ed = {
-                        up: up,
-                        base: false,
-                        merge: false,
-                        middle: false,
-                        frustum: true
-                    }
-                }
-            } else if (b.id == bm.POINTED_DRIPSTONE.id && c.id == bm.POINTED_DRIPSTONE.id && d.id == 0) {
-                if (!tblock.extra_data.middle) {
-                    ed = {
-                        up: up,
-                        base: false,
-                        merge: false,
-                        middle: true,
-                        frustum: false
-                    }
-                }
-            } else if (a.id != bm.POINTED_DRIPSTONE.id && b.id == bm.POINTED_DRIPSTONE.id && c.id == bm.POINTED_DRIPSTONE.id) {
-                if (!tblock.extra_data.base) {
+            if (below.id != 0 && below.id != bm.POINTED_DRIPSTONE.id && above.id == bm.POINTED_DRIPSTONE.id  && up == above.extra_data?.up && above.extra_data?.middle) {
+                if (!tblock.extra_data?.base) {
                     ed = {
                         up: up,
                         base: true,
-                        merge: false,
-                        middle: false,
-                        frustum: false
+                    }
+                }
+            } else if (above.id == bm.POINTED_DRIPSTONE.id && ((above.extra_data?.tip && up == above.extra_data?.up) || above.extra_data?.merge)) {
+                if (!tblock.extra_data?.frustum) {
+                    ed = {
+                        up: up,
+                        frustum: true
+                    }
+                }
+            } else if (above.id == bm.POINTED_DRIPSTONE.id  && up == above.extra_data?.up && (above.extra_data?.middle || above.extra_data?.frustum)) {
+                if (!tblock.extra_data?.middle) {
+                    ed = {
+                        up: up,
+                        middle: true,
                     }
                 }
             }
@@ -966,94 +941,7 @@ export class ServerChunk {
                 }]);
                 world.actions_queue.add(null, actions);
             }
-
-            /*if (bb.id == 0 && aa.id == 593 && !tblock.extra_data.frustum) {
-                const actions = new WorldAction();
-                actions.addBlocks([{
-                    pos: tblock.posworld.clone(),
-                    item: {
-                        id: tblock.id,
-                        extra_data: {
-                            up: up,
-                            base: false,
-                            merge: false,
-                            middle: false,
-                            frustum: true
-                        }
-                    },
-                    action_id: BLOCK_ACTION.MODIFY
-                }]);
-                world.actions_queue.add(null, actions);
-            }
-            if (bb.id == 593 && aa.id == 593 && !tblock.extra_data.middle) {
-                const actions = new WorldAction();
-                actions.addBlocks([{
-                    pos: tblock.posworld.clone(),
-                    item: {
-                        id: tblock.id,
-                        extra_data: {
-                            up: up,
-                            base: false,
-                            merge: false,
-                            middle: true,
-                            frustum: false
-                        }
-                    },
-                    action_id: BLOCK_ACTION.MODIFY
-                }]);
-                world.actions_queue.add(null, actions);
-            }
-            if (aa.id == 593 && ee.id == 593 && bb.id == 593 && !tblock.extra_data.middle) {
-                const actions = new WorldAction();
-                actions.addBlocks([{
-                    pos: tblock.posworld.clone(),
-                    item: {
-                        id: tblock.id,
-                        extra_data: {
-                            up: up,
-                            base: false,
-                            merge: false,
-                            middle: true,
-                            frustum: false
-                        }
-                    },
-                    action_id: BLOCK_ACTION.MODIFY
-                }]);
-                world.actions_queue.add(null, actions);
-            } else if (aa.id == 593 && ee.id == 593 && !tblock.extra_data.frustum) {
-                const actions = new WorldAction();
-                actions.addBlocks([{
-                    pos: tblock.posworld.clone(),
-                    item: {
-                        id: tblock.id,
-                        extra_data: {
-                            up: up,
-                            base: false,
-                            merge: false,
-                            middle: false,
-                            frustum: true
-                        }
-                    },
-                    action_id: BLOCK_ACTION.MODIFY
-                }]);
-                world.actions_queue.add(null, actions);
-            }*/
-
-            /*if (block?.id == bm.POINTED_DRIPSTONE.id && block?.extra_data?.up == up) {
-                const actions = new WorldAction();
-                actions.addBlocks([{
-                    pos: block.posworld.clone(),
-                    item: {
-                        id: block.id,
-                        extra_data: {
-                            up: up
-                        }
-                    },
-                    action_id: BLOCK_ACTION.MODIFY
-                }]);
-                world.actions_queue.add(null, actions);
-            }*/
-        };
+        }
 
         //
         function createDrop(tblock : TBlock, generate_destroy : boolean = false) {
