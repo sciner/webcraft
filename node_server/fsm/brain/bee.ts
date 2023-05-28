@@ -79,7 +79,7 @@ export class Brain extends FSMBrain {
     }
 
     // возвращение в улей
-    doReturnToHome(delta) {
+    doReturnToHome(delta): boolean {
         const mob = this.mob;
         const block = this.getFlightBlocks(false);
 
@@ -108,6 +108,7 @@ export class Brain extends FSMBrain {
                 nest.appendMob(mob);
             }
         }
+        return false // уже выполнили физику выше
     }
 
     // сбор пыльцы

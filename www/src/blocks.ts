@@ -68,14 +68,24 @@ export let NEIGHB_BY_SYM = {};
 // texture (array | function)   - ?
 // transparent (bool)           - Not cube
 
-/** Поля блока, сохраняемые в БД. */
+/**
+ * Поля блока, существующие в чанке и в БД.
+ * Ожидается что во время игры содержит только такие поля:
+ *   id: int
+ *   extra_data?  : Dict
+ *   rotate?      : Vector
+ *   entity_id?   : string
+ * Временно (при чтении схематик) может содержать другие.
+ * Поля кроме id не нужно объявлять из-за снижения производительности.
+ */
 export class DBItemBlock {
+    [key: string]: any;
     id: int
-    extra_data?  : Dict
-    rotate?      : IVector
-    entity_id?   : string
-    /** Используется временно при чтении схематики. За пределы схематик не выходит. В БД не сохраняется. */
-    waterlogged? : boolean
+    // extra_data?  : Dict
+    // rotate?      : Vector
+    // waterlogged? : boolean
+    // entity_id?   : string
+    // power?       : float
 
     constructor(id : int, extra_data? : Dict) {
         this.id = id
