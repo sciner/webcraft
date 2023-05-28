@@ -1406,7 +1406,7 @@ export class Renderer {
                         if(!block?.material?.can_take_shadow) {
                             continue;
                         }
-                        const block_shapes = BLOCK.getShapes(vec, block, world, false, false);
+                        const block_shapes = BLOCK.getShapes(block, world, false, false);
                         for(let i = 0; i < block_shapes.length; i++) {
                             const s = [...block_shapes[i]];
                             if(s[0] < 0) s[0] = 0;

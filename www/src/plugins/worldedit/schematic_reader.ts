@@ -92,7 +92,7 @@ export class SchematicReader {
         // each all blocks
         const ep = new Vector(0, 0, 0);
         let min_y = Infinity;
-        const cached_blocks = new Map();
+        const cached_blocks = new Map<int, DBItemBlock>();
         (schematic as any).forEachFast((block, pos) => {
             bpos.copyFrom(pos);
             bpos.z *= -1;
@@ -108,7 +108,7 @@ export class SchematicReader {
                 return;
             }
             const b = BLOCK[name];
-            let new_block = null;
+            let new_block: DBItemBlock | null = null;
             if(b) {
                 // speed optimization
                 if(b.is_simple_qube) {
@@ -237,7 +237,7 @@ export class SchematicReader {
     }
 
     //
-    createBlockFromSchematic(block, b : IBlockMaterial) {
+    createBlockFromSchematic(block, b : IBlockMaterial): DBItemBlock {
         const props = block._properties;
         let new_block = new DBItemBlock(b.id)
         if(new_block.id == 0) {

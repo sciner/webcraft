@@ -82,10 +82,20 @@ export class FSMBrain {
         if (!this.enabled) {
             return
         }
-        const stateFunctionUsed = this.stack.tick(delta, this);
+
+        const stateFunctionUsed = this.stack.getCurrentState()
         if (stateFunctionUsed) {
-            this.addStat(stateFunctionUsed.func.name, true);
+            // мозг думает
+            const doPhysics = this.stack.tick(delta, this)
+            this.addStat(stateFunctionUsed.func.name, true)
+            // выполнить физику, выслать состояние
+            if (doPhysics) {
+                this.applyControl(delta)
+                this.addStat('physics')
+                this.sendState()
+            }
         }
+
         const driving = this.mob.driving
         if (driving) {
             // есть вождение, но моб сам им управляет. Обновить состояние вождения.
@@ -117,22 +127,6 @@ export class FSMBrain {
     /** Updates the control {@link pc} */
     updateControl(new_states: MobControlParams): void {
         this.pc.updateControlsFromMob(new_states, this.mob.rotate.z)
-
-        /* The old code - slow
-
-        const pc = this.pc;
-        for (let [key, value] of Object.entries(new_states)) {
-            switch (key) {
-                case 'yaw': {
-                    pc.player_state.yaw = value as float;
-                    break;
-                }
-                default: {
-                    pc.controls[key] = value;
-                    break;
-                }
-            }
-        }*/
     }
 
     applyControl(delta : float) {
@@ -355,19 +349,19 @@ export class FSMBrain {
     }
 
     // идти за игроком, если в руках нужный предмет
-    doCatch(delta) {
+    doCatch(delta: float): boolean {
         this.timer_panic = 0;
         const mob = this.mob;
         if (!this.target || this.distance_view < 1) {
             this.target = null;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         const dist = mob.pos.distance(this.target.state.pos);
         if (this.target.game_mode.isSpectator() || dist > this.distance_view || !this.targets.includes(this.target.state.hands.right.id)) {
             this.target = null;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
         const forward = (dist > 1.5 && !this.is_wall && !this.ahead.is_abyss) ? true : false;
@@ -376,70 +370,67 @@ export class FSMBrain {
             jump: this.in_water,
             sneak: false
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
     /** Стоит на месте, но иногда начинает идти; реагирует на разные ситуации. См. также {@link doNothing} */
-    doStand(delta : float) {
+    doStand(delta : float): boolean {
         // нашел цель
         if (this.target) {
             this.stack.replaceState(this.doCatch);
-            return;
+            return false
         }
         // попал в воду
         if (this.in_water) {
             this.stack.replaceState(this.doFindGround);
-            return;
+            return false
         }
         if (Math.random() < .05 || this.timer_panic > 0) {
             this.stack.replaceState(this.doForward);
-            return;
+            return false
         }
         this.updateControl({
             forward: false,
             jump: false,
             sneak: false
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
     /** Не делает ниего, ни при каких обстоятелствах. Для неодушевленных объектов типа лодки. См. также {@link doStand} */
-    doNothing(delta: float): void {
+    doNothing(delta: float): boolean {
         this.updateControl({
             forward: false,
             jump: false,
             sneak: false,
             pitch: false
         })
-        this.applyControl(delta)
-        this.sendState()
+        return true
     }
 
     // просто ходит
-    doForward(delta) {
+    doForward(delta: float): boolean {
         const mob = this.mob;
         // нашел цель
         if (this.target) {
             this.stack.replaceState(this.doCatch);
-            return;
+            return false
         }
         // попал в воду
         if (this.in_water) {
             this.stack.replaceState(this.doFindGround);
-            return;
+            return false
         }
         // обход препятсвия
         if (this.is_wall || this.ahead.is_fire || this.ahead.is_lava || (this.ahead.is_water && this.time_fire == 0) || this.ahead.is_abyss) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + (Math.random() - Math.random()) * Math.PI / 8;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         if (Math.random() < 0.05) {
             mob.rotate.z = mob.rotate.z + (Math.random() - Math.random()) * Math.PI / 12;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         this.updateControl({
             forward: true,
@@ -447,17 +438,16 @@ export class FSMBrain {
             sneak: false,
             pitch: this.timer_panic > 0
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
     // поиск суши
-    doFindGround(delta) {
+    doFindGround(delta: float): boolean {
         const mob = this.mob;
         // нашел цель
         if (this.target) {
             this.stack.replaceState(this.doCatch);
-            return;
+            return false
         }
         // находим пересечение сред
         if (this.in_air) {
@@ -483,7 +473,7 @@ export class FSMBrain {
             mob.rotate.z = this.angleTo(this.to)
             if (dist < 0.5) {
                 this.stack.replaceState(this.doStand);
-                return;
+                return false
             }
         }
         this.updateControl({
@@ -491,8 +481,7 @@ export class FSMBrain {
             jump: this.pc.player_state.isInWater,
             sneak: false
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
     /**

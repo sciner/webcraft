@@ -28,8 +28,8 @@ export class Brain extends FSMBrain {
     }
 
     // если нашли гнездо
-    doForward(delta) {
-        super.doForward(delta);
+    doForward(delta: float): boolean {
+        const result = super.doForward(delta)
         if ((performance.now() - this.egg_timer) > LAY_INTERVAL) {
             const mob = this.mob;
             const world = mob.getWorld();
@@ -39,16 +39,16 @@ export class Brain extends FSMBrain {
                 this.nest_timer = performance.now();
                 this.nest = this.legs;
                 this.stack.replaceState(this.doLay);
-                return;
             }
         }
+        return result
     }
 
     // Процесс сноса яйца
-    doLay(delta) {
+    doLay(delta: float): boolean {
         if (!this.nest || this.nest.extra_data.eggs >= COUNT_EGGS_IN_NEST) {
             this.stack.replaceState(this.doForward);
-            return;
+            return false
         }
         const mob = this.mob;
         const nest_pos = this.nest.posworld.offset(0.5, 0.5, 0.5);
@@ -70,7 +70,7 @@ export class Brain extends FSMBrain {
                 world.actions_queue.add(null, actions);
                 this.stack.replaceState(this.doForward);
             }
-            return;
+            return false
         }
 
         mob.rotate.z = this.angleTo(nest_pos);
@@ -80,9 +80,7 @@ export class Brain extends FSMBrain {
             jump: false,
             sneak: true
         });
-
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
     onKill(actor, type_damage) {

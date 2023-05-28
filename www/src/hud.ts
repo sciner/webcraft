@@ -499,9 +499,6 @@ export class HUD {
                 if (desc.block.entity_id) {
                     this.block_text += '\nentity_id: ' + desc.block.entity_id;
                 }
-                if (desc.block.power) {
-                    this.block_text += '\npower: ' + desc.block.power;
-                }
                 if (desc.material.is_solid) {
                     this.block_text += ' is_solid ';
                 }

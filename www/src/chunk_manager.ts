@@ -228,6 +228,7 @@ export class ChunkManager {
             properties:     dummy,
             material:       dummy,
             shapes:         [],
+            fluid:          0,
             getProperties: function() {
                 return this.material;
             }

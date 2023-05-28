@@ -42,7 +42,7 @@ export class ServerChunkManager {
     unloading_subset_index: int;
     unloading_state_count: int;
     ticks_stat: WorldTickStat;
-    DUMMY: { id: any; name: any; shapes: any[]; properties: any; material: any; getProperties: () => any; };
+    DUMMY: { id: any; name: any; shapes: any[]; properties: any; material: any; fluid: any, getProperties: () => any; };
     dataWorld: DataWorld;
     itemWorld: ItemWorld;
     use_light: boolean = true;
@@ -84,6 +84,7 @@ export class ServerChunkManager {
             properties: dummy,
             material:   dummy,
             shapes:     [],
+            fluid:      0,
             getProperties: function() {
                 return this.material
             }

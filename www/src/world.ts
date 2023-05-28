@@ -18,6 +18,7 @@ import type {Physics} from "./prismarine-physics/index.js";
 import {ClientDrivingManager} from "./control/driving_manager.js";
 import type {GameClass} from "./game.js";
 import type {GameSettings} from "./game.js";
+import type {ChunkGrid} from "./core/ChunkGrid.js";
 
 // World container
 export class World implements IWorld {
@@ -58,6 +59,8 @@ export class World implements IWorld {
         this.drivingManager         = new ClientDrivingManager(this);
         this.blockModifierListeners = [];
     }
+
+    get grid(): ChunkGrid   { return this.chunkManager.grid }
 
     /** Closes the connection on an unrecoverable error */
     terminate(err: any) {
