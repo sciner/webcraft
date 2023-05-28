@@ -2941,7 +2941,7 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
         return false
     }
     const position = new Vector(pos)
-    if (world_block.id == bm.POINTED_DRIPSTONE.id) {
+    /*if (world_block.id == bm.POINTED_DRIPSTONE.id) {
         const up = world_block.extra_data.up
         const air_pos = position.offset(0, up ? -1 : 1, 0)
         const block = world.getBlock(air_pos)
@@ -2978,6 +2978,7 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
             ]);
         }
     } else {
+        */
         actions.addBlocks([{pos: position.offset(0, 1, 0), item: {id: mat_block.id, extra_data: {
             up: false,
             base: false,
@@ -2985,7 +2986,7 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
             middle: false,
             frustum: false
         }}, action_id: BLOCK_ACTION.CREATE}]);
-    }
+    //}
  /*
     const position = new Vector(pos)
     if (world_block.id == BLOCK.POINTED_DRIPSTONE.id) {

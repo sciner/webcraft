@@ -903,8 +903,45 @@ export class ServerChunk {
         // метод работы со сталактитами и сталагмитами
         const changePointedDripstone = () => {
             const up = tblock?.extra_data?.up;
-            const block = this.getBlock(neighbour.posworld.offset(0, up ? 2 : -2, 0), null, null, null, true);
-            if (block?.id == bm.POINTED_DRIPSTONE.id && block?.extra_data?.up == up) {
+            const h = this.getBlock(neighbour.posworld.offset(0, -2, 0), null, null, null, true);
+            const e = this.getBlock(neighbour.posworld.offset(0, -1, 0), null, null, null, true);
+            const a = this.getBlock(neighbour.posworld.offset(0, 1, 0), null, null, null, true);
+            const b = this.getBlock(neighbour.posworld.offset(0, 2, 0), null, null, null, true);
+            const c = this.getBlock(neighbour.posworld.offset(0, 3, 0), null, null, null, true);
+            console.log('----------------------------------------------------------------------------------')
+
+            console.log('h: ' + h.id +' e: ' + e.id + ' a: ' + a.id + ' b: ' + b.id + ' c: ' + c.id)
+
+            const hh = this.getBlock(tblock.posworld.offset(0, -2, 0), null, null, null, true);
+            const ee = this.getBlock(tblock.posworld.offset(0, -1, 0), null, null, null, true);
+            const aa = this.getBlock(tblock.posworld.offset(0, 1, 0), null, null, null, true);
+            const bb = this.getBlock(tblock.posworld.offset(0, 2, 0), null, null, null, true);
+            const cc = this.getBlock(tblock.posworld.offset(0, 3, 0), null, null, null, true);
+
+            console.log('hh: ' + hh.id + ' ee: ' + ee.id + ' aa: ' + aa.id + ' bb: ' + bb.id + ' cc: ' + cc.id)
+
+            console.log('/////////////////////////////////////////////////////////////////////////////////////////')
+
+            if (aa.id == 593 && ee.id != 593) {
+                const actions = new WorldAction();
+                actions.addBlocks([{
+                    pos: tblock.posworld.clone(),
+                    item: {
+                        id: tblock.id,
+                        extra_data: {
+                            up: up,
+                            base: false,
+                            merge: false,
+                            middle: false,
+                            frustum: true
+                        }
+                    },
+                    action_id: BLOCK_ACTION.MODIFY
+                }]);
+                world.actions_queue.add(null, actions);
+            }
+
+            /*if (block?.id == bm.POINTED_DRIPSTONE.id && block?.extra_data?.up == up) {
                 const actions = new WorldAction();
                 actions.addBlocks([{
                     pos: block.posworld.clone(),
@@ -917,7 +954,7 @@ export class ServerChunk {
                     action_id: BLOCK_ACTION.MODIFY
                 }]);
                 world.actions_queue.add(null, actions);
-            }
+            }*/
         };
 
         //
@@ -1214,7 +1251,7 @@ export class ServerChunk {
                     break;
                 }
                 case 'pointed_dripstone': {
-                    //changePointedDripstone();
+                    changePointedDripstone();
                     break;
                 }
             }
