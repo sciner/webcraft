@@ -1,6 +1,6 @@
 import { BBModel_Model } from "./bbmodel/model.js";
 import { Helpers } from "./helpers.js";
-import { CLIENT_SKIN_ROOT, CLIENT_MUSIC_ROOT } from "./constant.js";
+import { CLIENT_MUSIC_ROOT } from "./constant.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
 import {ShaderPreprocessor} from "./renders/ShaderPreprocessor.js";
 
@@ -41,7 +41,6 @@ export class Resources {
     static shadow             : any = {};
     static clouds             : any = {};
     static inventory          : any = {};
-    static physics            : any = {};
     static models             : any = {};
     static sounds             : any = {};
     static music              : any = null;
@@ -170,9 +169,6 @@ export class Resources {
 
         // Painting
         all.push(Resources.loadPainting());
-
-        // Physics features
-        all.push(fetch('/src/prismarine-physics/lib/features.json').then(response => response.json()).then(json => { this.physics.features = json;}));
 
         // Clouds texture
         all.push(loadImage('/media/clouds.png').then((image1 : CanvasImageSource) => {

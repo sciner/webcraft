@@ -120,6 +120,7 @@ export class Chat extends TextBox {
                     cmd.data.text += ` ${elpapsed} ms`;
                 } else {
                     cmd.data.text = Lang[cmd.data.text];
+                    console.debug('System message: ' + cmd.data.text) // TODO убрать когда длинные сообщения можно будет прочитать в самой игре
                 }
             }
             this.messages.add(cmd.data.username, cmd.data.text)

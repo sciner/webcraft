@@ -129,7 +129,7 @@ export class Mesh_Effect_Particle {
                 this.shapes = [];
                 const tblock = Qubatch.world.getBlock(this.block_pos);
                 if(tblock && tblock.id > 0) {
-                    const shapes = BLOCK.getShapes(this.block_pos, tblock, Qubatch.world, true, false);
+                    const shapes = BLOCK.getShapes(tblock, Qubatch.world, true, false);
                     for(let j = 0 ; j < shapes.length; j++) {
                         aabb.fromArray(shapes[j]).translate(this.block_pos.x, this.block_pos.y, this.block_pos.z);
                         aabb.toArray(shapes[j]);

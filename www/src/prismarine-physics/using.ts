@@ -3,14 +3,15 @@
 **/
 
 import {Vector} from "../helpers.js";
-import {BLOCK} from "../blocks.js";
 import {Physics, PrismarinePlayerState} from "./index.js";
-import {TBlock} from "../typed_blocks3.js";
 import {PLAYER_CONTROL_TYPE, PlayerControl} from "../control/player_control.js";
 import {PHYSICS_INTERVAL_MS, PLAYER_HEIGHT, PLAYER_PHYSICS_HALF_WIDTH} from "../constant.js";
 import type {PlayerTickData} from "../control/player_tick_data.js";
 import type {World} from "../world.js";
 import type {Effects} from "../player.js";
+import {BlockAccessor} from "../block_accessor.js";
+import {ArenaPool} from "./arena_pool.js";
+import {AABB} from "./lib/aabb.js";
 
 export const PHYSICS_TIMESTEP = PHYSICS_INTERVAL_MS / 1000;
 export const DEFAULT_SLIPPERINESS = 0.6;
@@ -41,6 +42,8 @@ export type TPrismarineOptions = {
     airborneAcceleration? : float // 0.02 in Minecraft (default), 0.1 in typical old bugged jumps
 }
 
+const tmpPrevPos = new Vector()
+
 export function addDefaultPhysicsOptions(options: TPrismarineOptions) {
     options.playerHeight        ??= PLAYER_HEIGHT
     options.playerHalfWidth     ??= PLAYER_PHYSICS_HALF_WIDTH
@@ -52,78 +55,102 @@ export function addDefaultPhysicsOptions(options: TPrismarineOptions) {
     }
 }
 
-// FakeWorld
-export class FakeWorld {
-    world: World;
-    block_manager: typeof BLOCK
-    block_pos: Vector;
-    _pos: Vector;
-    _localPos: Vector;
-    tblock: TBlock;
+export class PhysicsBlock {
+    private block_manager: typeof BLOCK
+    id      : int
 
-    static getMCData(): any {
-        return {
-            effectsByName: [],
-            version: {
-                majorVersion: '1.17'
-            }
-        };
+    constructor(block_manager: typeof BLOCK) {
+        this.block_manager = block_manager
     }
-
-    constructor(world: World) {
-        this.world = world;
-        this.block_manager = world.block_manager
-        this.block_pos = new Vector(0, 0, 0);
-        this._pos = new Vector(0, 0, 0);
-        this._localPos = new Vector(0, 0, 0);
-        this.tblock = new TBlock();
-    }
-
-    /**
-     * Return block from real world
-     * @throws {@link PHYSICS_CHUNK_NOT_READY_EXCEPTION} if the chunk isn't ready
-     * TODO return null if air and no liquid (optimization)
-     */
-    getBlock(pos : Vector, tblock? : TBlock) : FakeBlock | null {
-        const return_tblock = !!tblock
-        const { _pos, _localPos } = this;
-        tblock = tblock || this.tblock
-        _pos.copyFrom(pos).flooredSelf();
-        const chunk = this.world.chunkManager.getByPos(_pos);
-        if (!chunk?.isReady()) {
-            // previously new FakeBlock(null, -1, 0, shapesEmpty) on server, null on client
-            throw PHYSICS_CHUNK_NOT_READY_EXCEPTION
-        }
-        _localPos.set(_pos.x - chunk.coord.x, _pos.y - chunk.coord.y, _pos.z - chunk.coord.z);
-        chunk.tblocks.get(_localPos, tblock);
-        const id = tblock.id;
-        const fluid = tblock.fluid;
-        let shapes: tupleFloat6[] | null = tblock.shapes // it's always null
-        let clonedPos = this._pos.clone();
-        if (shapes === null) {
-            shapes = (id > 0) ? BLOCK.getShapes(this._pos, tblock, this.world, true, false) : shapesEmpty;
-        }
-        if(!return_tblock) tblock = null
-        return new FakeBlock(clonedPos, id, fluid, shapes, tblock);
+    
+    get material(): IBlockMaterial {
+        return this.block_manager.fromId(this.id)
     }
 }
 
-const shapesEmpty = [];
-const tmpPrevPos = new Vector()
+export class LiquidBlock {
+    position    = new Vector()
+    fluid       : int
+}
 
-export class FakeBlock {
-    position: Vector
-    id      : int
-    fluid   : int
-    shapes  : tupleFloat6[]
-    tblock? : TBlock
+/** Специализированная версия {@link BlockAccessor}, возвращающая данные для физики. */
+export class PhysicsBlockAccessor extends BlockAccessor {
+    private block_manager   : typeof BLOCK
 
-    constructor(pos: Vector, id: int, fluid: int, shapes: tupleFloat6[], tblock?: TBlock) {
-        this.position = pos
-        this.id = id
-        this.shapes = shapes
-        this.tblock = tblock
-        this.fluid = fluid
+    // Пулы блоков. Все блоки возвращаются в пул 1 раз перед выполнением физики.
+    private blockPool       : ArenaPool<PhysicsBlock>
+    private liquidBlockPool = new ArenaPool(LiquidBlock)
+    private poolAABB        = new ArenaPool(AABB)
+
+    private static tmpPos = new Vector()
+
+    constructor(world: IWorld) {
+        super(world)
+        this.block_manager = this.world.block_manager
+        this.blockPool = new ArenaPool(PhysicsBlock, this.block_manager)
+    }
+
+    reset(initial: IVector): this {
+        super.reset(PhysicsBlockAccessor.tmpPos.copyFrom(initial).flooredSelf())
+        this.blockPool.reset()
+        this.liquidBlockPool.reset()
+        this.poolAABB.reset()
+        return this
+    }
+
+    /** @return блок, если материал не воздух. Иначе - null. Жидкость не учитывает. */
+    getBlock(fakeBlock?: PhysicsBlock): PhysicsBlock | null {
+        const tblock = this.block
+        const id = tblock.id
+        if (id < 0) { // если это DUMMY - чанк не готов
+            throw PHYSICS_CHUNK_NOT_READY_EXCEPTION
+        }
+        // если блок совсем пустой
+        if (id <= 0) {
+            return null
+        }
+        // заполнить свойства блока
+        fakeBlock ??= this.blockPool.alloc()
+        fakeBlock.id = id
+        return fakeBlock
+    }
+
+    /** @return блок, если в нем есть жидкость. Иначе - null. */
+    getLiquidBlock(): LiquidBlock | null {
+        const fluid = this.block.fluid
+        if (!(fluid > 0)) { // эта проверка работает и для DUMMY
+            return null
+        }
+        // заполнить свойства блока
+        const res = this.liquidBlockPool.alloc()
+        res.fluid = fluid
+        this.getPos(res.position)
+        return res
+    }
+
+    /** Добавляет AABB препятствий к {@link aabbs}. */
+    getObstacleAABBs(aabbs: AABB[]): void {
+        const tblock = this.block
+        const material = this.block.material
+        if (material.id <= 0) {
+            if (material.id < 0) { // если это DUMMY - чанк не готов
+                throw PHYSICS_CHUNK_NOT_READY_EXCEPTION
+            }
+            return
+        }
+        /** Проверка что блок - препятствие. Она должна совпадать с проверкой в {@link BLOCK.getShapes} */
+        if (!material.passable && !material.planting) {
+
+            // Иммутабельные (?) AABB которые на вернул стиль
+            const style = this.block_manager.styles.get(material.style_name)
+            const styleAABBs = style.aabb(tblock, true, this.world, false)
+            for(const styleAABB of styleAABBs) {
+                const aabb = this.poolAABB.alloc()
+                    .copyFrom(styleAABB)
+                    .translate(this.x, this.y, this.z)
+                aabbs.push(aabb)
+            }
+        }
     }
 }
 

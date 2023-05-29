@@ -69,7 +69,7 @@ export class RaycasterResult {
 
 export class Raycaster {
     private world   : World
-    private BLOCK   : BLOCK
+    private BLOCK   : typeof BLOCK
     private _dir    = new Vector(0, 0, 0)
     private _pos    = new Vector(0, 0, 0)
     private _blk    = new Vector(0, 0, 0)
@@ -268,7 +268,7 @@ export class Raycaster {
             }
 
             if (hitShape) {
-                const shapes = this.BLOCK.getShapes(leftTop, b, this.world, false, true);
+                const shapes = this.BLOCK.getShapes(b, this.world, false, true);
                 let flag = false;
 
                 for (let i = 0; i < shapes.length; i++) {
