@@ -2943,20 +2943,25 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
 
     const position = new Vector(pos)
     if (world_block.id == bm.POINTED_DRIPSTONE.id) {
-        const up = world_block.extra_data.up;
-        const air_pos = position.offset(0, up ? -1 : 1, 0);
-        const block = world.getBlock(air_pos);
-        if (block.id == bm.AIR.id && block.fluid == 0) {
-            actions.addBlocks([{pos: air_pos, item: {id: mat_block.id, extra_data: {up: up, tip: true}}, action_id: BLOCK_ACTION.CREATE}]);
-        } else if (block.id == bm.POINTED_DRIPSTONE.id && block.extra_data?.up != up) {
-            actions.addBlocks([{pos: position, item: {id: mat_block.id, extra_data: {up: up, merge: true}}, action_id: BLOCK_ACTION.CREATE}]);
+        const up = world_block.extra_data.up
+        const air_pos = position.offset(0, up ? -1 : 1, 0)
+        const block_air = world.getBlock(air_pos)
+        if (block_air.id == bm.AIR.id && block_air.fluid == 0) {
+            const dp_pos = air_pos.offset(0, up ? -1 : 1, 0)
+            const block_dp = world.getBlock(dp_pos)
+            if (block_dp.id == bm.POINTED_DRIPSTONE.id && block_dp.extra_data?.up != up) {
+                actions.addBlocks([{pos: air_pos, item: {id: mat_block.id, extra_data: {up: up, merge: true}}, action_id: BLOCK_ACTION.CREATE}])
+            } else {
+                actions.addBlocks([{pos: air_pos, item: {id: mat_block.id, extra_data: {up: up, tip: true}}, action_id: BLOCK_ACTION.CREATE}]) 
+            } 
         }
     } else {
         if (pos.n.y == 1) {
-            actions.addBlocks([{pos: position.offset(0, 1, 0), item: {id: mat_block.id, extra_data: {tip: true}}, action_id: BLOCK_ACTION.CREATE}])
+            actions.addBlocks([{pos: position.offset(0, 1, 0), item: {id: mat_block.id, extra_data: {up: false, tip: true}}, action_id: BLOCK_ACTION.CREATE}])
         } else if (pos.n.y == -1) {
             actions.addBlocks([{pos: position.offset(0, -1, 0), item: {id: mat_block.id, extra_data: {up: true, tip: true}}, action_id: BLOCK_ACTION.CREATE}])
         }
     }
+
     return true
 }

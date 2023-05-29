@@ -900,42 +900,81 @@ export class ServerChunk {
         const world = this.world;
         const bm = world.block_manager
 
+        // метод удаляет блок капельника
+        const delPointedDripstone = () => {
+            if (neighbourPos.y == pos.y) {
+                return
+            }
+            const up = tblock?.extra_data?.up
+            const below = this.getBlock(tblock.posworld.offset(0, up ? 1 : -1, 0), null, null, null, true)
+            let extra_data = null
+            if (below.id != 0) {
+                extra_data = {
+                    up: up,
+                    tip: true
+                }
+            } else if (below.id == bm.POINTED_DRIPSTONE.id) {
+                if (tblock.extra_data?.frustum) {
+                    extra_data = {
+                        up: up,
+                        tip: true,
+                    }
+                }
+            }
+            
+            if (extra_data) {
+                const actions = new WorldAction();
+                actions.addBlocks([{
+                    pos: tblock.posworld.clone(),
+                    item: {
+                        id: bm.POINTED_DRIPSTONE.id,
+                        extra_data: extra_data
+                    },
+                    action_id: BLOCK_ACTION.MODIFY
+                }]);
+                world.actions_queue.add(null, actions);
+            }
+        }
+
         // метод работы со сталактитами и сталагмитами
         const changePointedDripstone = () => {
-            const up = tblock?.extra_data?.up;
+            if (neighbourPos.y == pos.y) {
+                return
+            }
+            const up = tblock?.extra_data?.up
             const below = this.getBlock(tblock.posworld.offset(0, up ? 1 : -1, 0), null, null, null, true)
             const above = this.getBlock(tblock.posworld.offset(0, up ? -1 : 1, 0), null, null, null, true)
-            let ed = null
+            let extra_data = null
             if (below.id != 0 && below.id != bm.POINTED_DRIPSTONE.id && above.id == bm.POINTED_DRIPSTONE.id  && up == above.extra_data?.up && above.extra_data?.middle) {
                 if (!tblock.extra_data?.base) {
-                    ed = {
+                    extra_data = {
                         up: up,
                         base: true,
                     }
                 }
             } else if (above.id == bm.POINTED_DRIPSTONE.id && ((above.extra_data?.tip && up == above.extra_data?.up) || above.extra_data?.merge)) {
                 if (!tblock.extra_data?.frustum) {
-                    ed = {
+                    extra_data = {
                         up: up,
                         frustum: true
                     }
                 }
             } else if (above.id == bm.POINTED_DRIPSTONE.id  && up == above.extra_data?.up && (above.extra_data?.middle || above.extra_data?.frustum)) {
                 if (!tblock.extra_data?.middle) {
-                    ed = {
+                    extra_data = {
                         up: up,
                         middle: true,
                     }
                 }
             }
 
-            if (ed) {
+            if (extra_data) {
                 const actions = new WorldAction();
                 actions.addBlocks([{
                     pos: tblock.posworld.clone(),
                     item: {
                         id: tblock.id,
-                        extra_data: ed
+                        extra_data: extra_data
                     },
                     action_id: BLOCK_ACTION.MODIFY
                 }]);
@@ -1141,7 +1180,7 @@ export class ServerChunk {
                     break;
                 }
                 case 'pointed_dripstone': {
-                    changePointedDripstone();
+                    delPointedDripstone();
                     break;
                 }
             }
