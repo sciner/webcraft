@@ -33,7 +33,7 @@ class MaterialBuf {
 // ChunkManager
 export class ChunkWorkerChunkManager {
 
-    DUMMY:          { id: any; shapes: any[]; properties: any; material: any; getProperties: () => any; canReplace: () => boolean; }
+    DUMMY:          { id: any; properties: any; material: any; getProperties: () => any; canReplace: () => boolean; }
     block_manager:  BLOCK
     world:          WorkerWorld
     destroyed:      boolean
@@ -51,7 +51,6 @@ export class ChunkWorkerChunkManager {
         this.tech_info = world.tech_info
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
-            shapes: [],
             properties: BLOCK.DUMMY,
             material: BLOCK.DUMMY,
             getProperties: function() {

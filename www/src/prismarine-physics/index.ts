@@ -391,7 +391,7 @@ export class Physics {
         entity.isCollidedVertically = dy !== oldVelY
         entity.onGround = entity.isCollidedVertically && oldVelY < 0
 
-        const blockAtFeet = acc.setOffset(pos, 0, -0.2, 0).getBlock()
+        const blockAtFeet = acc.setOffsetFloor(pos, 0, -0.2, 0).getBlock()
 
         if (dx !== oldVelX) vel.x = 0
         if (dz !== oldVelZ) vel.z = 0
@@ -433,7 +433,7 @@ export class Physics {
             }
         }
         // код для случая supportFeature('velocityBlocksOnTop')
-        const blockBelow = acc.setOffset(entity.pos, 0, -0.5, 0).getBlock()
+        const blockBelow = acc.setOffsetFloor(entity.pos, 0, -0.5, 0).getBlock()
         if (blockBelow && blockBelow.id > 0) {
             if (blockBelow.id === this.soulsandId) {
                 vel.x *= this.soulsandSpeed
@@ -472,7 +472,7 @@ export class Physics {
     private isOnLadder(pos: Vector): boolean {
         const acc = this.blockAccessor
         const offset_value_y = .07
-        const block = acc.setOffset(pos, 0, offset_value_y, 0).block
+        const block = acc.setOffsetFloor(pos, 0, offset_value_y, 0).block
         const id = block.id
         if (id > 0) {
             if (this.ladderIds.includes(id)) {
@@ -510,7 +510,7 @@ export class Physics {
                 inertia         = this.flyingInertia
                 acceleration    = this.flyingAcceleration
             } else if (entity.onGround) {
-                const blockUnderId = acc.setOffset(pos, 0, -1, 0).block.id
+                const blockUnderId = acc.setOffsetFloor(pos, 0, -1, 0).block.id
                 if (blockUnderId) {
                     inertia = (this.blockSlipperiness[blockUnderId] || options.defaultSlipperiness) * 0.91
                     if (options.useBoatSpeed && this.iceIds.includes(blockUnderId)) {
@@ -675,7 +675,7 @@ export class Physics {
         const block_position = block.position
         const curDepth = this.getRenderedDepth(block)
         for (const [dx, dz] of DX_DZ_FOUR_DIRECTIONS) {
-            const adjBlock = acc.setOffset(block_position, dx, 0, dz).getBlock(this.tmpFakeBlock)
+            const adjBlock = acc.setOffsetFloor(block_position, dx, 0, dz).getBlock(this.tmpFakeBlock)
             let neighbourDepth = this.getRenderedDepth(acc.block) // модифицированная глубина воды в двух соседних блоках, если туда может протечь
             if (neighbourDepth < 0) { // если нет воды в соседнем блоке
                 const adjIsSolid = adjBlock && isSolidForFluid(adjBlock.material)
@@ -858,7 +858,7 @@ export class Physics {
                 if (jumpSpeed) {
                     vel.y = Math.fround(jumpSpeed * this.scale)
                     if(this.honeyblockId != BLOCK_NOT_EXISTS) {
-                        const blockBelow = acc.setOffset(entity.pos, 0, -0.5, 0).getBlock()
+                        const blockBelow = acc.setOffsetFloor(entity.pos, 0, -0.5, 0).getBlock()
                         vel.y *= ((blockBelow && blockBelow.id === this.honeyblockId) ? this.honeyblockJumpSpeed : 1);
                     }
                     const jumpBoost = getEffectLevel(Effect.JUMP_BOOST, entity.options.effects);

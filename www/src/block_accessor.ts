@@ -12,6 +12,7 @@ const tmp_BlockAccessor_Vector = new Vector();
  * Ускорение достигается за счет кешировния текущего чанка и индексоов.
  *
  * Как пользоваться:
+ * Желательно 1 раз создать экземпляр класса и повторно его использовать.
  * 1. Перед каждым использованием 1 раз вызвать {@link reset}
  * 2. Менять координаты текущего блока разными методами: {@link x}, {@link y}, {@link z}, {@link set}, {@link addScalar}, и т.п.
  * 3. Обращаться к текущему блоку через поле {@link block} (он может принимать значение DUMMY!)
@@ -34,7 +35,7 @@ export class BlockAccessor {
     
     /** 
      * Блок в текущей позиции - TBlock или DUMMY.
-     * Значение ействительно до следущего изменения позиции или {@link reset}
+     * Значение действительно до следущего изменения позиции или {@link reset}
      */
     block   : TBlock
 
@@ -60,10 +61,8 @@ export class BlockAccessor {
         }
         // переход к указанному блоку
         if ((initial as TBlock).tb) {
-            const tblock =  initial as TBlock
-            this.tblockVec.copyFrom(tblock.vec)
-            this.tblock.tb = tblock.tb
-            this.chunkCoord = tblock.tb.coord
+            this.tblock.initFrom(initial as TBlock)
+            this.chunkCoord = this.tblock.tb.coord
             this.block = this.tblock
         } else {
             const vec = initial as IVector
@@ -142,13 +141,22 @@ export class BlockAccessor {
         return this
     }
 
-    set(vec: Vector): this {
+    set(vec: IVector): this {
         return this.setScalar(vec.x, vec.y, vec.z)
     }
 
+    setFloor(vec: IVector): this {
+        return this.setScalar(Math.floor(vec.x), Math.floor(vec.y), Math.floor(vec.z))
+    }
+
     /** Устанавливает координаты текущего блока равные сумме вектора и смещения */
-    setOffset(vec: Vector, dx: int, dy: int, dz: int): this {
+    setOffset(vec: IVector, dx: int, dy: int, dz: int): this {
         return this.setScalar(vec.x + dx, vec.y + dy, vec.z + dz)
+    }
+
+    /** Устанавливает координаты текущего блока равные сумме вектора и смещения, округленных вниз */
+    setOffsetFloor(vec: IVector, dx: int, dy: int, dz: int): this {
+        return this.setScalar(Math.floor(vec.x + dx), Math.floor(vec.y + dy), Math.floor(vec.z + dz))
     }
 
     /**
@@ -178,9 +186,8 @@ export class BlockAccessor {
     private _changeChunk(x: int, y: int, z: int): void {
         const grid = this.chunkManager.grid
         const addr = grid.getChunkAddr(x, y, z, tmp_BlockAccessor_Vector);
-        // Получить данные чанка. Эта строка учитывает и отсутствующие, и не готорые чанки
-        const tb = this.chunkManager.getChunk(addr)?.tblocks
-
+        const chunk = this.chunkManager.getChunk(addr)
+        const tb = chunk?.isReady() && chunk.tblocks
         if (tb) {
             this.chunkCoord = tb.coord
             this.block      = this.tblock

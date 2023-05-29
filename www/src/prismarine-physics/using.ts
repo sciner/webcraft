@@ -90,20 +90,6 @@ export class PhysicsBlockAccessor extends BlockAccessor {
         this.blockPool = new ArenaPool(PhysicsBlock, this.block_manager)
     }
 
-    /** В отличие от родительского метода, принимает не целые координаты */
-    set(vec: Vector): this {
-        return this.setScalar(Math.floor(vec.x), Math.floor(vec.y), Math.floor(vec.z))
-    }
-
-    /** Устанавливает позицию равную сумме вектора и смещения (не целых) */
-    setOffset(vec: Vector, dx: int, dy: int, dz: int): this {
-        return this.setScalar(
-            Math.floor(vec.x + dx),
-            Math.floor(vec.y + dy),
-            Math.floor(vec.z + dz)
-        )
-    }
-
     reset(initial: IVector): this {
         super.reset(PhysicsBlockAccessor.tmpPos.copyFrom(initial).flooredSelf())
         this.blockPool.reset()
