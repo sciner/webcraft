@@ -16,6 +16,7 @@ import type { BBModel_Model } from '../bbmodel/model.js';
 import type { Biome } from '../terrain_generator/biome3/biomes.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { World } from '../world.js';
+import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 
 const { mat4, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
@@ -146,8 +147,48 @@ export default class style {
             }
         }
 
-        // const animation_name = 'walk';
-        // model.playAnimation(animation_name, performance.now() / 1000)
+        let mesh = null
+
+        if(block instanceof TBlock) {
+
+            // 1.
+            if(bb.set_animation) {
+                let animation_name = null
+                for(let anim of bb.set_animation) {
+                    if(anim.names) {
+                        const x = xyz.x % chunk.size.x
+                        const y = xyz.y % chunk.size.y
+                        const z = xyz.z % chunk.size.z
+                        const index = Math.floor(randoms.double(Math.round(z * chunk.size.x + x + y)) * anim.names.length)
+                        animation_name = style.processName(anim.names[index], block)
+                        break
+                    } else {
+                        if(style.checkWhen(model, block, anim.when, neighbours)) {
+                            animation_name = style.processName(anim.name, block)
+                            break
+                        }
+                    }
+                }
+                if(animation_name) {
+                    mesh = {animations: new Map(), prev_animations: new Map()}
+                    for(const group_name of model.groups.keys()) {
+                        mesh.animations.set(group_name, new Map())
+                    }
+                    model.playAnimation(animation_name, 999999, mesh as Mesh_Object_BBModel)
+                }
+            }
+        }
+
+        // if(block instanceof TBlock) {
+        //     if(block.material.name == 'LEVER') {
+        //         mesh = {animations: new Map(), prev_animations: new Map()}
+        //         for(const group_name of model.groups.keys()) {
+        //             mesh.animations.set(group_name, new Map())
+        //         }
+        //         const animation_name = Math.random() > .5 ? 'on' : 'off'
+        //         model.playAnimation(animation_name, 0, mesh as Mesh_Object_BBModel)
+        //     }
+        // }
 
         // Add particles for block
         const particles = []
@@ -181,7 +222,7 @@ export default class style {
                     }
                     const p = new Vector(pos).addScalarSelf(.5, 0, .5)
                     particles.push({pos: p.addSelf(block.posworld), type, args})
-                })
+                }, mesh)
             }
         }
         style.addParticles(model, block, matrix, particles)

@@ -359,7 +359,7 @@ export class BLOCK {
             return MASK_SRC_NONE
         }
         let val = MASK_SRC_NONE
-        if (material.is_water) {
+        if (material.is_water /*|| material.layering?.slab*/) {
             return MASK_SRC_FILTER
         } else if(material.light_power) {
             let power = material.light_power.a;

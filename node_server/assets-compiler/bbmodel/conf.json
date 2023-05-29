@@ -2038,7 +2038,11 @@
             "name": "LEVER",
             "bb": {
                 "model": "lever",
-                "rotate": {"type": "six"}
+                "rotate": {"type": "six"},
+                "set_animation": [
+                    {"name": "on", "when": {"extra_data.pressed": 1}},
+                    {"name": "off", "when": {"extra_data.pressed": 0}}
+                ]
             }
         }
     ]

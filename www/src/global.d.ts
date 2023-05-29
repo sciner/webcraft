@@ -350,6 +350,7 @@ interface IBlockMaterial {
         }
         select_texture?:    any
         set_state?:         any
+        set_animation:      any
         particles?:         any
         rotate?:            any
     }

@@ -12844,7 +12844,7 @@
             "height": 0.1875,
             "depth": 0.5,
             "_aabb_size": {"x": 6, "y": 10, "z": 8},
-            "aabb": [5, 0, 4, 11, 10, 12],
+            "aabb": [5, 0, 4, 11, 8, 12],
             "can_rotate": true,
             "transparent": true,
             "extra_data": {"pressed": 0},
