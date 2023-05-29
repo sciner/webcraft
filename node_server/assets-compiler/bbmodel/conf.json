@@ -252,7 +252,7 @@
                 "model": "chest",
                 "behavior": "chest",
                 "rotate": {"type": "cardinal_direction"},
-                "animated": {
+                "_animated": {
                     "name": "idle"
                 }
             }

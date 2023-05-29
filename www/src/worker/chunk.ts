@@ -777,6 +777,7 @@ export class ChunkWorkerChunk implements IChunk {
                                 const properties = neibMat[i];
                                 if (!properties || properties.transparent) {
                                     pcnt--;
+                                    break
                                 }
                             }
                             empty = pcnt === 6;

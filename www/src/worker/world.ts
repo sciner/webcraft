@@ -371,19 +371,30 @@ class BuildVerticesResult {
 function buildVertices(chunk : ChunkWorkerChunk, return_map : boolean = false) : BuildVerticesResult {
     let prev_dirty = chunk.dirty;
     chunk.timers.start('build_vertices')
-    let p = performance.now()
     chunk.dirty = true;
+    // let p = performance.now()
+    // if(chunk.addr.equal(new Vector(-5, 0, -1))) {
+    //     // if(chunk.zasad) return null
+    //     globalThis.styles_stat = new Map()
+    // }
+    // chunk.zasad = true
     let is_builded = chunk.buildVertices(buildSettings);
+    // let diff = performance.now() - p
+    // if(diff > 50) {
+    //     console.log(chunk.addr.toHash(), diff)
+    // }
+    // if(chunk.addr.equal(new Vector(-5, 0, -1))) {
+    //     let rows = []
+    //     for(let [id, item] of globalThis.styles_stat.entries()) {
+    //         rows.push({id, ...item})
+    //     }
+    //     console.log(chunk.coord.toHash())
+    //     console.table(rows)
+    //     console.table(new Error().stack)
+    // }
     if(!is_builded) {
         chunk.dirty = prev_dirty;
         return null;
-    }
-    let diff = performance.now() - p
-    if(diff > 100) {
-        console.log(chunk.addr.toHash(), diff)
-        if(chunk.addr.equal(new Vector(-2, 0, -1))) {
-            debugger
-        }
     }
     chunk.timers.stop()
     const resp = new BuildVerticesResult(

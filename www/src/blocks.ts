@@ -26,6 +26,14 @@ export const LAYERING_MOVE_TO_DOWN_STYLES   = ['grass', 'tall_grass', 'wildflowe
 export const AIR_BLOCK_SIMPLE = Object.freeze({id: 0})
 const AIR_BLOCK_STRINGIFIED = '{"id":0}' // JSON.stringify(AIR_BLOCK_SIMPLE)
 
+const props_name = {}
+    props_name[DIRECTION.UP]      = 'up'
+    props_name[DIRECTION.DOWN]    = 'down'
+    props_name[DIRECTION.LEFT]    = 'west'
+    props_name[DIRECTION.RIGHT]   = 'east'
+    props_name[DIRECTION.FORWARD] = 'north'
+    props_name[DIRECTION.BACK]    = 'south'
+
 export enum BLOCK_SAME_PROPERTY {
     EXTRA_DATA = 1,
     ROTATE = 2,
@@ -1301,21 +1309,9 @@ export class BLOCK {
         } else if(c instanceof Function) {
             c = c(dir);
         } else if (typeof c === 'object' && c !== null) {
-            let prop = null;
-            switch(dir) {
-                case DIRECTION.UP: {prop = 'up'; break;}
-                case DIRECTION.DOWN: {prop = 'down'; break;}
-                case DIRECTION.LEFT: {prop = 'west'; break;}
-                case DIRECTION.RIGHT: {prop = 'east'; break;}
-                case DIRECTION.FORWARD: {prop = 'north'; break;}
-                case DIRECTION.BACK: {prop = 'south'; break;}
-                default: {prop = dir;}
-            }
-            if(c.hasOwnProperty(prop)) {
-                c = c[prop];
-            } else if(c.hasOwnProperty('side')) {
-                c = c.side;
-            } else {
+            const prop = props_name[dir] ?? dir
+            c = c[prop] ?? c['side']
+            if(!c) {
                 throw 'Invalid texture prop `' + prop + '`';
             }
         }
