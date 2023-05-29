@@ -17,13 +17,17 @@ import type { Biome } from '../terrain_generator/biome3/biomes.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { World } from '../world.js';
 
-const { mat4, quat, vec3 } = glMatrix;
+const { mat4, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
-const DEFAULT_AABB_SIZE = new Vector(12, 12, 12)
-const pivotObj = new Vector(0.5, .5, 0.5)
+// const DEFAULT_AABB_SIZE = new Vector(12, 12, 12)
+// const pivotObj = new Vector(0.5, 0.5, 0.5)
 const xyz = new Vector(0, 0, 0)
+const aabb_matrix = mat4.create()
+const aabb_pivot = new Vector(0.5, 0.0, 0.5)
+const aabb_xyz = new Vector()
 const randoms = new FastRandom('bbmodel', MAX_CHUNK_SQUARE)
 const DEFAULT_SIX_ROTATE = Vector.YP.clone()
+let aabb_chunk = null
 
 class BBModel_TextureRule {
     /**
@@ -63,37 +67,6 @@ export default class style {
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
         const bb = tblock.material.bb
-
-        if (!for_physic) {
-            switch(bb.model.name) {
-                case 'cake': {
-                    return [new AABB(0, 0, 0, 1, .5, 1)]
-                }
-                case 'chain': {
-                    const aabb_size = tblock.material.aabb_size || DEFAULT_AABB_SIZE
-                    const aabb = new AABB()
-                    aabb.set(0, 0, 0, 0, 0, 0)
-                    aabb
-                        .translate(.5 * TX_SIZE, aabb_size.y/2, .5 * TX_SIZE)
-                        .expand(aabb_size.x/2, aabb_size.y/2, aabb_size.z/2)
-                        .div(TX_SIZE)
-                    // Rotate
-                    if(tblock.getCardinalDirection) {
-                        const cardinal_direction = tblock.getCardinalDirection()
-                        const matrix = CubeSym.matrices[cardinal_direction]
-                        // on the ceil
-                        if(tblock.rotate && tblock.rotate.y == -1) {
-                            if(tblock.hasTag('rotate_by_pos_n')) {
-                                aabb.translate(0, 1 - aabb.y_max, 0)
-                            }
-                        }
-                        aabb.applyMatrix(matrix, pivotObj)
-                    }
-                    return [aabb]
-                }
-            }
-        }
-
         const styleVariant = style.block_manager.styles.get(bb?.aabb_stylename ?? bb.behavior)
         if(styleVariant?.aabb) {
             return styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
@@ -103,16 +76,21 @@ export default class style {
         const mat_abbb = tblock.material.aabb
 
         if(mat_abbb) {
-            aabb.set(
-                mat_abbb[0] / 16, 
-                mat_abbb[1] / 16, 
-                mat_abbb[2] / 16, 
-                mat_abbb[3] / 16, 
-                mat_abbb[4] / 16, 
-                mat_abbb[5] / 16
-            )
+            aabb.set(...mat_abbb).div(16)
         } else {
             aabb.set(0, 0, 0, 1, 1, 1)
+        }
+
+        if(tblock instanceof TBlock) {
+            const grid = world.grid
+            grid.math.worldPosToChunkPos(tblock.posworld, aabb_xyz)
+            const {x, y, z} = aabb_xyz
+            if(!aabb_chunk) {
+                aabb_chunk = {size: grid.chunkSize}
+            }
+            mat4.identity(aabb_matrix)
+            style.applyRotate(aabb_chunk as ChunkWorkerChunk, tblock.material.bb.model, tblock, neighbours, aabb_matrix, x, y, z)
+            aabb.applyMat4(aabb_matrix, aabb_pivot)
         }
 
         // if(!for_physic) {

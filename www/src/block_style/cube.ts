@@ -68,7 +68,7 @@ export const LEAVES_COLORS = [
     new IndexedColor(28, 524, 0), // yellow
 ]
 
-const pivotObj = {x: 0.5, y: .5, z: 0.5};
+const pivotObj = {x: 0.5, y: 0.5, z: 0.5};
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
 const _aabb = new AABB();
 const _leaves_rot = new Vector(0, 0, 0)

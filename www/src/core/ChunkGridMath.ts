@@ -36,6 +36,10 @@ export class ChunkGridMath {
         return 0;
     }
 
+    worldPosToChunkPos(vec : Vector, out : Vector) : Vector {
+        return out
+    }
+
     relativePosToChunkIndex_s(x: int, y: int, z: int): int {
         return 0;
     }
@@ -132,8 +136,19 @@ export function generateChunkGridMath(chunkSize): ChunkGridMath {
         return ${CHUNK_CX} * x + ${CHUNK_CY} * y + ${CHUNK_CZ} * z + ${CHUNK_CW};
     }
 
+    worldPosToChunkPos(vec, out) {
+        out.x = vec.x - Math.floor(vec.x / ${CHUNK_SIZE_X}) * ${CHUNK_SIZE_X};
+        out.y = vec.y - Math.floor(vec.y / ${CHUNK_SIZE_Y}) * ${CHUNK_SIZE_Y};
+        out.z = vec.z - Math.floor(vec.z / ${CHUNK_SIZE_Z}) * ${CHUNK_SIZE_Z};
+        return out
+    }
+
     relativePosToChunkIndex_s(x, y, z) {
         return ${CHUNK_CX} * x + ${CHUNK_CY} * y + ${CHUNK_CZ} * z + ${CHUNK_CW};
+    }
+
+    worldPosToRelativeChunkPos(vec, out) {
+        return out;
     }
 
     relativePosToFlatIndexInChunk_s(x, y, z) {
@@ -163,6 +178,7 @@ export function generateChunkGridMath(chunkSize): ChunkGridMath {
     yFromChunkIndex(index) {
         return (index / (${CHUNK_OUTER_SIZE_X} * ${CHUNK_OUTER_SIZE_Z}) | 0) - ${CHUNK_PADDING}
     }
+
 `;
     } else if (CHUNK_CY === 1) {
         /*

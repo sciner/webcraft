@@ -223,6 +223,42 @@ export class AABB {
         return this;
     }
 
+    applyMat4(matrix : imat4, pivot : IVector) : this {
+        if (pivot) {
+            this.x_min -= pivot.x;
+            this.y_min -= pivot.y;
+            this.z_min -= pivot.z;
+            this.x_max -= pivot.x;
+            this.y_max -= pivot.y;
+            this.z_max -= pivot.z;
+        }
+
+        const x0 = this.x_min * matrix[0] + this.y_min * matrix[4] + this.z_min * matrix[8];
+        const x1 = this.x_max * matrix[0] + this.y_max * matrix[4] + this.z_max * matrix[8];
+        const y0 = this.x_min * matrix[1] + this.y_min * matrix[5] + this.z_min * matrix[9];
+        const y1 = this.x_max * matrix[1] + this.y_max * matrix[5] + this.z_max * matrix[9];
+        const z0 = this.x_min * matrix[2] + this.y_min * matrix[6] + this.z_min * matrix[10];
+        const z1 = this.x_max * matrix[2] + this.y_max * matrix[6] + this.z_max * matrix[10];
+
+        this.x_min = Math.min(x0, x1) + matrix[12];
+        this.x_max = Math.max(x0, x1) + matrix[12];
+        this.y_min = Math.min(y0, y1) + matrix[13];
+        this.y_max = Math.max(y0, y1) + matrix[13];
+        this.z_min = Math.min(z0, z1) + matrix[14];
+        this.z_max = Math.max(z0, z1) + matrix[14];
+
+        if (pivot) {
+            this.x_min += pivot.x;
+            this.y_min += pivot.y;
+            this.z_min += pivot.z;
+            this.x_max += pivot.x;
+            this.y_max += pivot.y;
+            this.z_max += pivot.z;
+        }
+
+        return this;
+    }
+
     contains(x : number, y : number, z : number) : boolean {
         return x >= this.x_min && x < this.x_max
             && y >= this.y_min && y < this.y_max
