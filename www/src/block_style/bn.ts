@@ -41,7 +41,7 @@ export default class style {
   
         box(16, 16, 16, 0, vertices, side, side, x, y, z);
         box(12, 12, 2, 0, vertices, obsidian, obsidian, x, y, z);
-        box(10, 10, 11, 2, vertices, beacon, beacon, x, y, z, QUAD_FLAGS.NO_CAN_TAKE_LIGHT);
+        box(10, 10, 11, 2, vertices, beacon, beacon, x, y, z, QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT);
 
         if(typeof QubatchChunkWorker != 'undefined' && block?.extra_data?.state) {
             QubatchChunkWorker.postMessage([

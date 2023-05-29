@@ -314,7 +314,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         ])
 
         const mesh = new Mesh_Object_Base()
-        mesh.changeFlags(QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.NO_AO | QUAD_FLAGS.NO_FOG | QUAD_FLAGS.LOOK_AT_CAMERA)
+        mesh.changeFlags(QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_NO_FOG | QUAD_FLAGS.FLAG_LOOK_AT_CAMERA)
         mesh.setGLMaterial(render.defaultShader.materials.label.getSubMat(texture))
         mesh.setVertices(vertices as any)
         mesh.ignoreParentRotation = true

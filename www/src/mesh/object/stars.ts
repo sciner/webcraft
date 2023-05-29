@@ -90,7 +90,7 @@ export class Mesh_Object_Stars {
                 size * dx2, size * dy2, size * dz2,
                 ...this.c,
                 lm.pack(),
-                QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.NO_FOG | QUAD_FLAGS.QUAD_FLAG_OPACITY
+                QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_NO_FOG | QUAD_FLAGS.FLAG_QUAD_OPACITY
             );
         }
 

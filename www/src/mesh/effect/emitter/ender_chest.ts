@@ -85,7 +85,7 @@ export default class emitter extends BaseEmitter {
                 has_physics:    false,
                 ag:             new Vector(0, 0, 0),
                 pp:             this.pp,
-                flags:          QUAD_FLAGS.FLAG_MULTIPLY_COLOR | QUAD_FLAGS.NO_CAN_TAKE_LIGHT,
+                flags:          QUAD_FLAGS.FLAG_MULTIPLY_COLOR | QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT,
                 material_key:   this.material_key,
                 material:       this.material,
                 velocity:       particle_pos.sub(this.pos).normal().multiplyScalarSelf(-.1),

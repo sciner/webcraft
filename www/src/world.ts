@@ -18,6 +18,7 @@ import type {Physics} from "./prismarine-physics/index.js";
 import {ClientDrivingManager} from "./control/driving_manager.js";
 import type {GameClass} from "./game.js";
 import type {GameSettings} from "./game.js";
+import { ChunkGrid } from "./core/ChunkGrid.js";
 
 // World container
 export class World implements IWorld {
@@ -44,6 +45,7 @@ export class World implements IWorld {
 
     private lastMeasuredQueudLag = 0
     private unansweredQueudLagTimes = new SimpleQueue<number>()
+    grid: ChunkGrid;
 
     constructor(game: GameClass, settings : GameSettings, block_manager : typeof BLOCK) {
 
@@ -194,6 +196,7 @@ export class World implements IWorld {
 
         // Init
         this.players.init();
+        this.grid = new ChunkGrid({chunkSize: new Vector().copyFrom(this.info.tech_info.chunk_size)})
         this.chunkManager.init();
         this.mobs.init();
         this.drop_items.init();

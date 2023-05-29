@@ -24,15 +24,16 @@ export class Brain extends FSMBrain {
     }
     
     // просто стоит и кушает траву, если голодная
-    doStand(delta) {
-        super.doStand(delta);
+    doStand(delta: float): boolean {
+        const result = super.doStand(delta);
         if (this.is_sheared && Math.random() < 0.8) {
             this.stack.replaceState(this.doEat);
         }
+        return result
     }
     
     // ест траву
-    doEat(delta) {
+    doEat(delta: float): boolean {
         const mob = this.mob;
         const world = mob.getWorld();
         const bm = world.block_manager
@@ -68,6 +69,7 @@ export class Brain extends FSMBrain {
             }
         }
         this.stack.replaceState(this.doForward);
+        return false
     }
     
     // Если убили моба

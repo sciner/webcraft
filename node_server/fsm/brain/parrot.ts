@@ -50,7 +50,7 @@ export class Brain extends FSMBrain {
     }
 
     // просто полет
-    doForward(delta) {
+    doForward(delta: float): boolean {
         const mob = this.mob;
         
         const block = this.getFlightBlocks();
@@ -85,8 +85,7 @@ export class Brain extends FSMBrain {
             forward: true,
             sneak: block.sneak
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
 
     }
 

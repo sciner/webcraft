@@ -188,11 +188,11 @@ export class ChunkManager {
         const that                  = this;
 
         this.tech_info              = world.info.tech_info
+        this.grid                   = world.grid
         this.dataWorld              = new DataWorld(this);
         this.fluidWorld             = new FluidWorld(this);
         this.fluidWorld.mesher      = new FluidMesher(this.fluidWorld);
         this.biomes                 = new Biomes(null);
-        this.grid                   = this.dataWorld.grid
 
         // Add listeners for server commands
         world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(decompressNearby(cmd.data))});
@@ -227,7 +227,7 @@ export class ChunkManager {
             id:             dummy.id,
             properties:     dummy,
             material:       dummy,
-            shapes:         [],
+            fluid:          0,
             getProperties: function() {
                 return this.material;
             }

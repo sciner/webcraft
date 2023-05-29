@@ -148,7 +148,7 @@ export default class emitter extends BaseEmitter {
     calcPPAndFlags(chunk, pos, block, extra_data) {
         const bm = this.block_manager
         // Color masks
-        let flags = QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA; // QUAD_FLAGS.NO_AO;
+        let flags = QUAD_FLAGS.FLAG_NORMAL_UP | QUAD_FLAGS.FLAG_LOOK_AT_CAMERA; // QUAD_FLAGS.FLAG_NO_AO;
         let lm = _lm_grass.copyFrom(IndexedColor.WHITE);
         if(block) {
             const blockFlags = bm.flags[block.id]
@@ -161,7 +161,7 @@ export default class emitter extends BaseEmitter {
                     lm.y += GRASS_PALETTE_OFFSET.y;
                 }
                 if(!block.is_dirt) {
-                    flags |= QUAD_FLAGS.MASK_BIOME
+                    flags |= QUAD_FLAGS.FLAG_MASK_BIOME
                 }
                 // leaves custom color
                 if(extra_data && extra_data.v != undefined) {

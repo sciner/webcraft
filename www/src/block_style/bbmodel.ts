@@ -440,11 +440,6 @@ export default class style {
                         model.hideAllExcept(['top'])
                     }
                 }
-                if(tblock.extra_data?.into_pot) {
-                    // mat4.copy(matrix, tblock.matrix)
-                    mat4.scale(matrix, matrix, [.5, .5, .5])
-                    mat4.translate(matrix, matrix, [0, .5, 0]);
-                }
                 break
             }
             case 'age': {

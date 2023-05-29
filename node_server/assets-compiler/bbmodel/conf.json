@@ -1217,7 +1217,7 @@
                 "model": "cactus",
                 "aabb_stylename": "cactus",
                 "set_state": [
-                    {"name": "side_top",
+                    {"name": "top",
                         "when": {
                             "extra_data.into_pot": true
                         }
@@ -2015,6 +2015,7 @@
         {
             "id": 117,
             "name": "BREWING_STAND",
+            "aabb": [5, 0, 5, 11, 16, 11],
             "bb": {
                 "model": "brewing_stand"
             }

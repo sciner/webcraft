@@ -169,8 +169,8 @@ export class DBWorldChunk {
      * @param {Number} dt
      * @param {Number} user_id - used if rows[i].user_id is null.
      */
-    async bulkInsertWorldModify(rows, dt = unixTime(), user_id = null, grid? : ChunkGrid) {
-        grid = this.world.chunks?.grid ?? grid
+    async bulkInsertWorldModify(rows, dt = unixTime(), user_id = null) {
+        const grid = this.world.grid
         const {getFlatIndexInChunk} = grid.math;
         const jsonRows = rows.map(row => {
             const chunk_addr = row.chunk_addr ?? grid.toChunkAddr(row.pos, tmpAddr);
@@ -361,7 +361,7 @@ export class DBWorldChunk {
      *  - drop the table indices, insert, then create indices
      */
     async unpackAllChunkModifiers() {
-        const {fromFlatChunkIndex} = this.world.chunks.grid.math;
+        const {fromFlatChunkIndex} = this.world.grid.math;
 
         const BATCH_SIZE = 1000; // load limited number of chunks a once to not run out of memory
 

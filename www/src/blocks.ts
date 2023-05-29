@@ -10,6 +10,7 @@ import type { World } from "./world.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
 import { MASK_SRC_AO, MASK_SRC_BLOCK, MASK_SRC_DAYLIGHT, MASK_SRC_NONE } from './worker-light/LightConst.js';
 import { MASK_SRC_FILTER } from './worker-light/LightConst.js';
+import type {AABB} from "./core/AABB.js";
 
 export const TRANS_TEX                      = [4, 12]
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64
@@ -67,26 +68,33 @@ export let NEIGHB_BY_SYM = {};
 // texture (array | function)   - ?
 // transparent (bool)           - Not cube
 
+/**
+ * Поля блока, существующие в чанке и в БД.
+ * Ожидается что во время игры содержит только такие поля:
+ *   id: int
+ *   extra_data?  : Dict
+ *   rotate?      : Vector
+ *   entity_id?   : string
+ * Временно (при чтении схематик) может содержать другие.
+ * Поля кроме id не нужно объявлять из-за снижения производительности.
+ */
 export class DBItemBlock {
     [key: string]: any;
     id: int
-    // extra_data?  : any
+    // extra_data?  : Dict
     // rotate?      : Vector
     // waterlogged? : boolean
     // entity_id?   : string
     // power?       : float
 
-    constructor(id : int, extra_data? : any) {
+    constructor(id : int, extra_data? : Dict) {
         this.id = id
         if(extra_data) {
             this.extra_data = null
         }
     }
 
-    /**
-     * @return {DBItemBlock}
-     */
-    static cloneFrom(block: { [x: string]: any }): DBItemBlock {
+    static cloneFrom(block: Dict): DBItemBlock {
         const result = new DBItemBlock(block.id)
         for(let k in block)  {
             result[k] = block[k]
@@ -456,7 +464,7 @@ export class BLOCK {
      * Combined old {@link convertItemToDBItem} and checks from old DBWorld.blockSet.
      * Specifically for blocks: expects that {@link item} may be TBlock, doesn't return count, optimization for AIR.
      */
-    static convertBlockToDBItem(item) {
+    static convertBlockToDBItem(item: Dict | null): DBItemBlock | null {
         if(item && item instanceof DBItemBlock) {
             return item
         }
@@ -470,7 +478,7 @@ export class BLOCK {
             // First check the material, then access potentially slow tblock.rotate.
             if (this.fromId(resp.id).can_rotate) {
                 v = item.rotate;
-                if (v !== null && v !== undefined) {
+                if (v != null) {
                     resp.rotate = v;
                 }
             }
@@ -481,12 +489,6 @@ export class BLOCK {
             v = item.extra_data;    // avoid accessing tblock.extra_data twice
             if (v) {
                 resp.extra_data = v;
-            }
-            // Power in blocks is never used and not fully supported, e.g. it's lost in the old DBWorld.updateChunks.
-            // TODO either use and fully support, or remove it.
-            v = item.power;
-            if (v) {
-                resp.power = v;
             }
         }
         return resp;
@@ -852,7 +854,6 @@ export class BLOCK {
 
         if(existing_block) {
             if(replace_block) {
-                // const existingBehavior = existing_block.bb?.behavior ?? existing_block.style
                 this.flags[existing_block.id] = 0 // clear the old block flags; the new block might not have them
                 for(let prop_name in existing_block) {
 
@@ -867,9 +868,6 @@ export class BLOCK {
                         block[prop_name] = prop_value
                     }
                 }
-                // if (block.bb) {
-                //     block.bb.behavior = existingBehavior
-                // }
             } else {
                 console.error('Duplicate block id ', block.id, block)
             }
@@ -915,7 +913,7 @@ export class BLOCK {
         }
         //
         block.has_window        = !!block.window;
-        block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : POWER_NO;
+        block.power             = block.power ?? POWER_NO;
         block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
         block.draw_only_down    = block.tags.includes('draw_only_down');
@@ -1451,20 +1449,22 @@ export class BLOCK {
     /**
      * Return block shapes
      */
-    static getShapes(pos : Vector, tblock : TBlock, world : World, for_physic : boolean, expanded : boolean, neighbours?): Array<tupleFloat6> {
+    static getShapes(tblock : TBlock, world : World, for_physic : boolean, expanded : boolean, neighbours?): Array<tupleFloat6> {
 
-        const shapes = [] // x1 y1 z1 x2 y2 z2
+        let shapes: tupleFloat6[] = [] // x1 y1 z1 x2 y2 z2
         const material = tblock.material
 
         if(!material) {
             return shapes
         }
 
-        if((!material.passable && !material.planting) || !for_physic) {
+        /** Проверка что блок - препятствие. Она должна совпадать с проверкой в {@link PhysicsBlockAccessor.getObstacleAABBs} */
+        if(!for_physic || (!material.passable && !material.planting)) {
 
-            const styleVariant = BLOCK.styles.get(material.style);
+            const styleVariant = BLOCK.styles.get(for_physic ? material.style_name : material.style);
             if (styleVariant && styleVariant.aabb) {
-                shapes.push(...styleVariant.aabb(tblock, for_physic, world, neighbours, expanded))
+                shapes = styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
+                    .map(aabb => aabb.toArray())
             } else {
                 debugger
                 console.error('Deprecated');
@@ -1472,7 +1472,7 @@ export class BLOCK {
 
         }
 
-        return shapes.map(aabb => aabb.toArray())
+        return shapes
 
     }
 
@@ -1556,7 +1556,7 @@ export class BLOCK {
             block.visible_for_ao = BLOCK.visibleForAO(block.id)
             block.light_power_number = BLOCK.getLightPower(block)
             block.interact_water = block.tags.includes('interact_water') || !!block.layering?.slab
-            block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab || !!block.is_leaves
+            block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab || !!block.is_leaves || !!block.tags.includes('trapdoor')
             if(!block.support_style && block.planting) {
                 block.support_style = 'planting'
             }

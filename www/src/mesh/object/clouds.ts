@@ -111,7 +111,7 @@ export default class Mesh_Object_Clouds {
         // console.log(parseInt(this.vertices.length / GeometryTerrain.strideFloats) + ' quads in clouds ');
         //
         this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
-        this.buffer.changeFlags(QUAD_FLAGS.NO_FOG | QUAD_FLAGS.NO_AO, 'replace');
+        this.buffer.changeFlags(QUAD_FLAGS.FLAG_NO_FOG | QUAD_FLAGS.FLAG_NO_AO, 'replace');
         this.buffer.updateInternal();
     }
 
