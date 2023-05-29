@@ -7,6 +7,7 @@ import { BlockStyleRegInfo, TX_SIZE } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as cube_style } from '../block_style/cube.js';
 import { default as pot_style } from '../block_style/pot.js';
+import { default as pointed_dripstone_style } from '../block_style/pointed_dripstone.js';
 import { default as cauldron_style } from '../block_style/cauldron.js';
 import { default as sign_style } from '../block_style/sign.js';
 import { default as glMatrix } from "@vendors/gl-matrix-3.3.min.js";
@@ -326,6 +327,12 @@ export default class style {
         const bb = mat.bb
 
         switch(bb.behavior ?? bb.model.name) {
+            case 'pointed_dripstone': {
+                if(tblock instanceof TBlock) {
+                    pointed_dripstone_style.postBehavior(tblock, tblock.extra_data)
+                }
+                break
+            }
             case 'sign': {
                 const m = mat4.create()
                 mat4.copy(m, matrix)

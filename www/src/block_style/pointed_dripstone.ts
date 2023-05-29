@@ -1,13 +1,25 @@
 import { DIRECTION, IndexedColor, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
-import { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo, default as default_style } from './default.js';
 import type { BlockManager, FakeTBlock } from '../blocks.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { World } from '../world.js';
+import type { TBlock } from 'typed_blocks3.js';
 
+// const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)))
 
-const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)));
+function getDirection(extra_data) {
+    if (extra_data?.base) {
+        return DIRECTION.DOWN
+    } else if (extra_data?.middle) {
+        return DIRECTION.SOUTH
+    } else if (extra_data?.frustum) {
+        return DIRECTION.NORTH
+    } else if (extra_data?.merge) {
+        return DIRECTION.WEST
+    }
+    return DIRECTION.UP
+}
 
 // style pointed_dripstone
 export default class style {
@@ -54,31 +66,23 @@ export default class style {
             });
         }
 
+        style.postBehavior(block, extra_data)
+
+    }
+
+    static postBehavior(tblock : TBlock | FakeTBlock, extra_data : any) {
         // анимация капель
         if (typeof QubatchChunkWorker != 'undefined' && extra_data?.up) {
-            QubatchChunkWorker.postMessage(['delete_animated_block', block.posworld]);
+            QubatchChunkWorker.postMessage(['delete_animated_block', tblock.posworld]);
         }
         if (typeof QubatchChunkWorker != 'undefined' && extra_data?.up && extra_data?.tip && (extra_data?.water || extra_data?.lava)) {
             QubatchChunkWorker.postMessage(['create_block_emitter', {
-                block_pos:  block.posworld,
-                pos:        [block.posworld.clone().addScalarSelf(.5, .8, .5)],
+                block_pos:  tblock.posworld,
+                pos:        [tblock.posworld.clone().addScalarSelf(.5, .8, .5)],
                 type:       'dripping',
                 isWater:    extra_data?.water
             }]);
         }
     }
 
-}
-
-function getDirection(extra_data) {
-    if (extra_data?.base) {
-        return DIRECTION.DOWN
-    } else if (extra_data?.middle) {
-        return DIRECTION.SOUTH
-    } else if (extra_data?.frustum) {
-        return DIRECTION.NORTH
-    } else if (extra_data?.merge) {
-        return DIRECTION.WEST
-    }
-    return DIRECTION.UP
 }
