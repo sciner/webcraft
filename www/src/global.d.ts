@@ -259,6 +259,10 @@ interface IBlockMaterial {
     name: string
     title: string
     style: string
+    /**
+     * Имя стиля, не зависящего от BB модели - для игровой логики и физики. Заполняется автоматически.
+     * Если блок переопределялся несколко раз - то в нем хранится имя последнего стиля без BB модели.
+     */
     style_name: string
     support_style: string
     sham_block_name: string
@@ -406,6 +410,7 @@ interface IBlockMaterial {
     is_cap_block: boolean
     is_leaves: int // LEAVES_TYPE
     is_entity: boolean
+    is_opaque_for_fluid: boolean
     is_portal: boolean
     is_glass: boolean
     is_grass: boolean

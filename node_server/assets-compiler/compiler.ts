@@ -148,11 +148,13 @@ export class Compiler {
         return item.cnv;
     }
 
-    makeModelName(block) {
+    makeModelName(block: IBlockMaterial): void {
         if(!block.style) {
             block.style = DEFAULT_STYLE_NAME
         }
-        block.style_name = block.bb?.model ?? block.style
+        if (!block.bb) {
+            block.style_name = block.style
+        } // иначе блок унаследует style_name от старого блока когда будет добавлен
     }
 
     //

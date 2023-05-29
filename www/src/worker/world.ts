@@ -145,7 +145,7 @@ export class WorkerWorld {
             if(chunk) {
                 // 2. Set block
                 if(m.type) {
-                    chunk.setBlock(m.pos.x, m.pos.y, m.pos.z, m.type, m.is_modify, m.power, m.rotate, null, m.extra_data);
+                    chunk.setBlock(m.pos.x, m.pos.y, m.pos.z, m.type, m.is_modify, m.rotate, null, m.extra_data);
                 }
                 pos_world.set(m.pos.x - chunk.coord.x, m.pos.y - chunk.coord.y, m.pos.z - chunk.coord.z);
                 chunk.setDirtyBlocks(pos_world);

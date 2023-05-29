@@ -1,4 +1,4 @@
-import { BLOCK, POWER_NO, DropItemVertices, FakeVertices } from "../blocks.js";
+import { BLOCK, DropItemVertices, FakeVertices } from "../blocks.js";
 import { PerformanceTimer, Vector } from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK, TypedBlocks3 } from "../typed_blocks3.js";
 import { AABB } from '../core/AABB.js';
@@ -33,7 +33,7 @@ class MaterialBuf {
 // ChunkManager
 export class ChunkWorkerChunkManager {
 
-    DUMMY:          { id: any; shapes: any[]; properties: any; material: any; getProperties: () => any; canReplace: () => boolean; }
+    DUMMY:          { id: any; properties: any; material: any; getProperties: () => any; canReplace: () => boolean; }
     block_manager:  BLOCK
     world:          WorkerWorld
     destroyed:      boolean
@@ -51,7 +51,6 @@ export class ChunkWorkerChunkManager {
         this.tech_info = world.tech_info
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
-            shapes: [],
             properties: BLOCK.DUMMY,
             material: BLOCK.DUMMY,
             getProperties: function() {
@@ -362,7 +361,8 @@ export class ChunkWorkerChunk implements IChunk {
     }
 
     // setBlock
-    setBlock(x, y, z, orig_type, is_modify, power, rotate, entity_id, extra_data) {
+    setBlock(x: int, y: int, z: int, orig_type: IBlockItem,
+             is_modify: boolean, rotate: IVector | null, entity_id: string | null, extra_data: Dict | null) {
         const {getFlatIndexInChunk, getBlockIndex} = this.chunkManager.grid.math;
         //TODO: take liquid into account
         // fix rotate
@@ -371,19 +371,11 @@ export class ChunkWorkerChunk implements IChunk {
         } else {
             rotate = null;
         }
-        // fix power
-        if(typeof power === 'undefined' || power === null) {
-            power = POWER_NO;
-        }
-        if(power === 0) {
-            power = null;
-        }
         this.temp_vec.set(x, y, z);
         //
         if(is_modify) {
             const modify_item = {
                 id:     orig_type.id,
-                power:  power,
                 rotate: rotate
             };
             this.modify_list[getFlatIndexInChunk(this.temp_vec)] = modify_item;
@@ -411,7 +403,6 @@ export class ChunkWorkerChunk implements IChunk {
             }
         }
         tblock.id         = orig_type.id;
-        tblock.power      = power;
         tblock.rotate     = rotate;
         tblock.entity_id  = entity_id;
         tblock.texture    = null;

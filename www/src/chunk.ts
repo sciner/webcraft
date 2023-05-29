@@ -1,7 +1,7 @@
 import { Vector } from "./helpers.js";
 import {newTypedBlocks, TBlock} from "./typed_blocks3.js";
 import type { TypedBlocks3 } from "./typed_blocks3.js";
-import {BLOCK, DBItemBlock, POWER_NO} from "./blocks.js";
+import {BLOCK, DBItemBlock} from "./blocks.js";
 import {AABB} from './core/AABB.js';
 import {ChunkLight} from "./light/ChunkLight.js";
 import type BaseRenderer from "./renders/BaseRenderer.js";
@@ -441,13 +441,11 @@ export class Chunk {
             const extra_data = ('extra_data' in type) ? type.extra_data : null;
             const entity_id = ('entity_id' in type) ? type.entity_id : null;
             const rotate = ('rotate' in type) ? type.rotate : null;
-            const power = ('power' in type) ? type.power : POWER_NO;
             if (extra_data) tblock.extra_data = extra_data;
             if (entity_id) tblock.entity_id = entity_id;
             if (rotate) tblock.rotate = rotate;
-            if (power) tblock.power = power;
             //
-            set_block_list.push({pos, type, power, rotate, extra_data, is_modify});
+            set_block_list.push({pos, type, rotate, extra_data, is_modify});
             Qubatch.render.meshes.effects.deleteBlockEmitter(pos);
             // light
             if (use_light) {
