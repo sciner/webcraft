@@ -1560,7 +1560,7 @@ export class SimpleBlockSlot extends Window {
             const tintMode = item.extra_data?.enchantments ? 1 : 0
 
             this.setBackground(hud_atlas.getSpriteFromMap(this.slot_full))
-            this.setIcon(getBlockImage(item), 'centerstretch', 1.1, tintMode)
+            this.setIcon(getBlockImage(item), 'centerstretch', 1.0, tintMode)
 
             const power_in_percent = mat?.item?.indicator == 'bar'
             label = item.count > 1 ? item.count : null
