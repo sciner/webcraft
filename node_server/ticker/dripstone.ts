@@ -4,6 +4,8 @@ import type { TickingBlockManager } from "../server_chunk.js";
 import type { ServerWorld } from 'server_world.js';
 import type { Vector } from '@client/helpers.js';
 
+const MAX_HEIGHT = 16
+
 export default class Ticker {
 
     static type = 'dripstone';
@@ -12,34 +14,19 @@ export default class Ticker {
     static func(this: TickingBlockManager, tick_number : int, world : ServerWorld, chunk, v) {
 
         const setPointedDripstone = (position: Vector, up: boolean, lava: boolean, water: boolean) => {
-            const block_dp = world.getBlock(position.offset(0, up ? -1 : 1, 0))
-            if (block_dp.id == bm.POINTED_DRIPSTONE.id && block_dp.extra_data?.up != up) {
-                updated_blocks.push({
-                    pos: position,
-                    item: {
-                        id: bm.POINTED_DRIPSTONE.id,
-                        extra_data: {
-                            up: up,
-                            merge: true
-                        }
-                    },
-                    action_id: BLOCK_ACTION.MODIFY
-                })
-            } else {
-                updated_blocks.push({
-                    pos: position,
-                    item: {
-                        id: bm.POINTED_DRIPSTONE.id,
-                        extra_data: {
-                            tip: true,
-                            up: up,
-                            water: water,
-                            lava: lava
-                        }
-                    },
-                    action_id: BLOCK_ACTION.MODIFY
-                })
-            }
+            updated_blocks.push({
+                pos: position,
+                item: {
+                    id: bm.POINTED_DRIPSTONE.id,
+                    extra_data: {
+                        tip: true,
+                        up: up,
+                        water: water,
+                        lava: lava
+                    }
+                },
+                action_id: BLOCK_ACTION.MODIFY
+            })
         } 
 
         const random_tick_speed = world.rules.getRandomTickSpeedValue() / 4096
@@ -56,7 +43,7 @@ export default class Ticker {
         const bm = world.block_manager
         // высота сталактита
         let stalactite = null
-        for (let i = 1; i < 8; i++) {
+        for (let i = 1; i < MAX_HEIGHT / 2; i++) {
             const block = world.getBlock(pos.offset(0, -i, 0))
             if (!block || block.id != bm.POINTED_DRIPSTONE.id || !block.extra_data?.up) {
                 stalactite = i - 1
@@ -78,7 +65,7 @@ export default class Ticker {
             }
             // высота сталагмита
             let stalagmite = null
-            for (let i = stalactite + 1; i < 15; i++) {
+            for (let i = stalactite + 1; i < MAX_HEIGHT; i++) {
                 const block = world.getBlock(pos.offset(0, -i, 0))
                 if (block && block.id != bm.AIR.id) {
                     stalagmite = i - 1

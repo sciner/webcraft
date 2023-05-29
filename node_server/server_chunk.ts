@@ -945,14 +945,21 @@ export class ServerChunk {
             const below = this.getBlock(tblock.posworld.offset(0, up ? 1 : -1, 0), null, null, null, true)
             const above = this.getBlock(tblock.posworld.offset(0, up ? -1 : 1, 0), null, null, null, true)
             let extra_data = null
-            if (below.id != 0 && below.id != bm.POINTED_DRIPSTONE.id && above.id == bm.POINTED_DRIPSTONE.id  && up == above.extra_data?.up && above.extra_data?.middle) {
+            if (below.id != 0 && below.id != bm.POINTED_DRIPSTONE.id && above.id == bm.POINTED_DRIPSTONE.id && above.extra_data?.middle) {
                 if (!tblock.extra_data?.base) {
                     extra_data = {
                         up: up,
                         base: true,
                     }
                 }
-            } else if (above.id == bm.POINTED_DRIPSTONE.id && ((above.extra_data?.tip && up == above.extra_data?.up) || above.extra_data?.merge)) {
+            } else if (above.id == bm.POINTED_DRIPSTONE.id  && up != above.extra_data?.up && (above.extra_data?.tip || above.extra_data?.merge)) {
+                if (!tblock.extra_data?.merge) {
+                    extra_data = {
+                        up: up,
+                        merge: true,
+                    }
+                }
+            } else if (above.id == bm.POINTED_DRIPSTONE.id && (above.extra_data?.tip || above.extra_data?.merge)) {
                 if (!tblock.extra_data?.frustum) {
                     extra_data = {
                         up: up,
@@ -967,7 +974,6 @@ export class ServerChunk {
                     }
                 }
             }
-
             if (extra_data) {
                 const actions = new WorldAction();
                 actions.addBlocks([{

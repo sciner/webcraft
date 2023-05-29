@@ -2949,11 +2949,7 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
         if (block_air.id == bm.AIR.id && block_air.fluid == 0) {
             const dp_pos = air_pos.offset(0, up ? -1 : 1, 0)
             const block_dp = world.getBlock(dp_pos)
-            if (block_dp.id == bm.POINTED_DRIPSTONE.id && block_dp.extra_data?.up != up) {
-                actions.addBlocks([{pos: air_pos, item: {id: mat_block.id, extra_data: {up: up, merge: true}}, action_id: BLOCK_ACTION.CREATE}])
-            } else {
-                actions.addBlocks([{pos: air_pos, item: {id: mat_block.id, extra_data: {up: up, tip: true}}, action_id: BLOCK_ACTION.CREATE}]) 
-            } 
+            actions.addBlocks([{pos: air_pos, item: {id: mat_block.id, extra_data: {up: up, tip: true}}, action_id: BLOCK_ACTION.CREATE}]) 
         }
     } else {
         if (pos.n.y == 1) {
