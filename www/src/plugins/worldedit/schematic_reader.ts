@@ -102,7 +102,7 @@ export class SchematicReader {
 
         orig_file_name += ''
 
-        let file_name = `./data/schematics/${orig_file_name}`;
+        let file_name = `../data/schematics/${orig_file_name}`;
         console.log(file_name)
 
         // Check schem file exists and try extension append
@@ -456,11 +456,12 @@ export class SchematicReader {
         if(props) {
             // button
             if(b.is_button) {
+                setExtraData('powered', props?.powered ?? false)
                 if(b.tags.includes('rotate_by_pos_n_12')) {
                     if('face' in props && 'facing' in props) {
                         // ceiling wall floor
                         if(props.face == 'ceiling') {
-                            new_block.rotate.x = Math.max(facings4.indexOf(props.facing), 0);
+                            new_block.rotate.x = (Math.max(facings4.indexOf(props.facing), 0) + 2)  % 4
                             new_block.rotate.y = -1;
                         } else if(props.face == 'floor') {
                             new_block.rotate.x = Math.max(facings4.indexOf(props.facing), 0);

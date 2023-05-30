@@ -2,6 +2,9 @@ import { BLOCK_ACTION } from '@client/server_client.js';
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import type { TickingBlockManager } from "../server_chunk.js";
 import type { ServerWorld } from 'server_world.js';
+import type { Vector } from '@client/helpers.js';
+
+const MAX_HEIGHT = 16
 
 export default class Ticker {
 
@@ -9,6 +12,23 @@ export default class Ticker {
 
     //
     static func(this: TickingBlockManager, tick_number : int, world : ServerWorld, chunk, v) {
+
+        const setPointedDripstone = (position: Vector, up: boolean, lava: boolean, water: boolean) => {
+            updated_blocks.push({
+                pos: position,
+                item: {
+                    id: bm.POINTED_DRIPSTONE.id,
+                    extra_data: {
+                        tip: true,
+                        up: up,
+                        water: water,
+                        lava: lava
+                    }
+                },
+                action_id: BLOCK_ACTION.MODIFY
+            })
+        } 
+
         const random_tick_speed = world.rules.getRandomTickSpeedValue() / 4096
         const is_tick = Math.random() < random_tick_speed
         if (!is_tick) {
@@ -23,9 +43,9 @@ export default class Ticker {
         const bm = world.block_manager
         // высота сталактита
         let stalactite = null
-        for (let i = 1; i < 8; i++) {
+        for (let i = 1; i < MAX_HEIGHT / 2; i++) {
             const block = world.getBlock(pos.offset(0, -i, 0))
-            if (!block || block.id != bm.POINTED_DRIPSTONE.id || !block?.extra_data?.up) {
+            if (!block || block.id != bm.POINTED_DRIPSTONE.id || !block.extra_data?.up) {
                 stalactite = i - 1
                 break
             }
@@ -35,38 +55,17 @@ export default class Ticker {
             const lava = (above.id == bm.AIR.id && (above.fluid & FLUID_TYPE_MASK) == FLUID_LAVA_ID)
             const water = (above.id == bm.AIR.id && (above.fluid & FLUID_TYPE_MASK) == FLUID_WATER_ID)
             const peak = world.getBlock(pos.offset(0, -stalactite, 0))
-            if (peak && peak.id == bm.POINTED_DRIPSTONE.id && (water != peak?.extra_data?.water || lava != peak?.extra_data?.lava)) {
-                updated_blocks.push({
-                    pos: peak.posworld,
-                    item: {
-                        id: bm.POINTED_DRIPSTONE.id,
-                        extra_data: {
-                            up: true,
-                            water: water,
-                            lava: lava
-                        }
-                    },
-                    action_id: BLOCK_ACTION.MODIFY
-                })
-            }
-            const air = world.getBlock(pos.offset(0,  -stalactite - 1, 0))
-            if (air && water && (Math.random() < (random_tick_speed / 10)) && air.id == bm.AIR.id && air.fluid == 0) {
-                updated_blocks.push({
-                    pos: air.posworld,
-                    item: {
-                        id: bm.POINTED_DRIPSTONE.id,
-                        extra_data: {
-                            up: true,
-                            water: true,
-                            lava: false
-                        }
-                    },
-                    action_id: BLOCK_ACTION.CREATE
-                });
+            if (peak?.id == bm.POINTED_DRIPSTONE.id && peak.extra_data?.tip && (water != peak.extra_data.water || lava != peak.extra_data.lava)) {
+                setPointedDripstone(peak.posworld, true, lava, water)
+            } else {
+                const air = world.getBlock(pos.offset(0, -stalactite - 1, 0))
+                if (air?.id == bm.AIR.id && air.fluid == 0 && Math.random() < (random_tick_speed / 10) && water) {
+                    setPointedDripstone(air.posworld, true, false, true)
+                }
             }
             // высота сталагмита
             let stalagmite = null
-            for (let i = stalactite + 1; i < 15; i++) {
+            for (let i = stalactite + 1; i < MAX_HEIGHT; i++) {
                 const block = world.getBlock(pos.offset(0, -i, 0))
                 if (block && block.id != bm.AIR.id) {
                     stalagmite = i - 1
@@ -92,18 +91,8 @@ export default class Ticker {
                                 action_id: BLOCK_ACTION.MODIFY
                             })
                         }
-                    }
-                    if (stalactite != stalagmite && (ground?.material?.is_solid || (ground.id == bm.POINTED_DRIPSTONE.id && ground?.extra_data?.up == false)) && (Math.random() < (random_tick_speed / 20)) && water) {
-                        updated_blocks.push({
-                            pos: pos.offset(0, -stalagmite, 0),
-                            item: {
-                                id: bm.POINTED_DRIPSTONE.id,
-                                extra_data: {
-                                    up: false
-                                }
-                            },
-                            action_id: BLOCK_ACTION.CREATE
-                        })
+                    } else if (stalactite != stalagmite && (ground?.material?.is_solid || (ground.id == bm.POINTED_DRIPSTONE.id && !ground.extra_data?.up)) && (Math.random() < (random_tick_speed / 20)) && water) {
+                        setPointedDripstone(pos.offset(0, -stalagmite, 0), false, false, false)
                     }
                 }
             }

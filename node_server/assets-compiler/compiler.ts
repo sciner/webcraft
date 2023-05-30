@@ -111,7 +111,8 @@ export class Compiler {
         fs.writeFileSync(`${this.options.output_dir}/blocks.json`, data);
         // copy files
         for(let fn of this.options.copy_files) {
-            fs.copyFile(`./${fn}`, `${this.options.output_dir}/${fn}`, (err) => {
+            const fn2 = fn.replace('../../data/assets/', '')
+            fs.copyFile(`./${fn}`, `${this.options.output_dir}/${fn2}`, (err) => {
                 if(err) {
                     throw err;
                 }

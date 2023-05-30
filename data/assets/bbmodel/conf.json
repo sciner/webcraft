@@ -114,6 +114,8 @@
         {"name": "poor_titanium_ore"},
         {"name": "amethyst_cluster"},
         {"name": "brewing_stand"},
+        {"name": "pointed_dripstone"},
+        {"name": "lever"},
 
         {"name": "tool/primitive_axe"},
         {"name": "tool/sunglasses"},
@@ -252,7 +254,7 @@
                 "model": "chest",
                 "behavior": "chest",
                 "rotate": {"type": "cardinal_direction"},
-                "animated": {
+                "_animated": {
                     "name": "idle"
                 }
             }
@@ -2029,6 +2031,35 @@
                 ],
                 "select_texture": [
                     {"name": "scrap_armor_gold"}
+                ]
+            }
+        },
+        {
+            "id": 593,
+            "name": "POINTED_DRIPSTONE",
+            "bb": {
+                "model": "pointed_dripstone",
+                "set_state": [
+                    {"name": "base", "when": {"extra_data.base": true}},
+                    {"name": "frustum", "when": {"extra_data.frustum": true}},
+                    {"name": "middle", "when": {"extra_data.middle": true}},
+                    {"name": "tip_merge", "when": {"extra_data.merge": true}},
+                    {"name": "tip"}
+                ],
+                "rotate": [
+                    {"type": "flipx", "when": {"extra_data.up": true}}
+                ]
+            }
+        },
+        {
+            "id": 309,
+            "name": "LEVER",
+            "bb": {
+                "model": "lever",
+                "rotate": {"type": "six"},
+                "set_animation": [
+                    {"name": "on", "when": {"extra_data.powered": true}},
+                    {"name": "off", "when": {"extra_data.powered": false}}
                 ]
             }
         }

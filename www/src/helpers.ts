@@ -496,11 +496,11 @@ export function calcRotateMatrix(material, rotate : IVector, cardinal_direction 
                     matrix = mat4.create();
                     if(rotate.y == 1) {
                         // on the floor
-                        mat4.rotateY(matrix, matrix, (rotate.x / 4) * (2 * Math.PI) + Math.PI);
+                        mat4.rotateY(matrix, matrix, -(rotate.x / 4) * (2 * Math.PI))
                     } else {
                         // on the ceil
                         mat4.rotateZ(matrix, matrix, Math.PI);
-                        mat4.rotateY(matrix, matrix, (rotate.x / 4) * (2 * Math.PI) + Math.PI*2);
+                        mat4.rotateY(matrix, matrix, (rotate.x / 4) * (2 * Math.PI))
                     }
                 }
             }
