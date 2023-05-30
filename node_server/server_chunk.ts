@@ -1,12 +1,12 @@
 import { CHUNK_STATE } from "@client/chunk_const.js";
 import { BLOCK_ACTION, ServerClient } from "@client/server_client.js";
-import { DIRECTION, SIX_VECS, Vector, VectorCollector } from "@client/helpers.js";
+import { DIRECTION, IndexedColor, SIX_VECS, Vector, VectorCollector } from "@client/helpers.js";
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "@client/block_helpers.js";
 import { newTypedBlocks, TBlock, TypedBlocks3 } from "@client/typed_blocks3.js";
 import {dropBlock, TActionBlock, WorldAction} from "@client/world_action.js";
 import { COVER_STYLE_SIDES, DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE } from "@client/constant.js";
 import { compressWorldModifyChunk } from "@client/compress/world_modify_chunk.js";
-import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
+import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID, FLUID_WATER_ID, PACKED_CELL_LENGTH, PACKET_CELL_DIRT_COLOR_R, PACKET_CELL_DIRT_COLOR_G, PACKET_CELL_WATER_COLOR_R, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_BIOME_ID } from "@client/fluid/FluidConst.js";
 import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
 import { TickerHelpers } from "./ticker/ticker_helpers.js";
@@ -20,8 +20,10 @@ import { FluidChunkQueue } from "@client/fluid/FluidChunkQueue.js";
 import type { DBItemBlock } from "@client/blocks";
 import type { ChunkDBActor } from "./db/world/ChunkDBActor.js";
 
-const _rnd_check_pos = new Vector(0, 0, 0);
-const tmpRandomTickerTBlock = new TBlock()
+const _rnd_check_pos            = new Vector(0, 0, 0);
+const tmpRandomTickerTBlock     = new TBlock()
+const tmp_posVector             = new Vector()
+const tmp_onFluidEvent_TBlock   = new TBlock()
 
 export interface ServerModifyList {
     compressed?         : BLOB
@@ -234,6 +236,7 @@ export class ServerChunk {
     _random_tick_actions:               any;
     waitingToUnloadWater:               boolean;
     waitingToUnloadWorldTransaction:    boolean;
+    packedCells:                        Int16Array;
 
     static SCAN_ID = 0;
 
@@ -550,6 +553,7 @@ export class ServerChunk {
             }
         }
         */
+        this.packedCells = args.packedCells || null;
         this.tblocks = newTypedBlocks(this.coord, chunkManager.dataWorld.grid);
         this.tblocks.chunk = this;
         this.tblocks.light = this.light;
@@ -1511,7 +1515,22 @@ export class ServerChunk {
         this.chunkManager.chunkDisposed(this);
     }
 
-}
+    //
+    geCell(global_xz : Vector) : IChunkCell | null {
+        const pc = this.packedCells
+        if(!pc) return null
+        const x = global_xz.x - this.coord.x
+        const z = global_xz.z - this.coord.z
+        if(x < 0 || z < 0 || x >= this.size.x || z >= this.size.z) {
+            throw 'error_invalid_coord'
+        }
+        const cell_index = z * this.size.x + x
+        const i = cell_index * PACKED_CELL_LENGTH
+        return {
+            dirt_color:     new IndexedColor(pc[i + PACKET_CELL_DIRT_COLOR_R], pc[i + PACKET_CELL_DIRT_COLOR_G], 0),
+            water_color:    new IndexedColor(pc[i + PACKET_CELL_WATER_COLOR_R], pc[i + PACKET_CELL_WATER_COLOR_G], 0),
+            biome_id:       pc[i + PACKET_CELL_BIOME_ID] | 0,
+        } as IChunkCell
+    }
 
-const tmp_posVector         = new Vector();
-const tmp_onFluidEvent_TBlock = new TBlock();
+}

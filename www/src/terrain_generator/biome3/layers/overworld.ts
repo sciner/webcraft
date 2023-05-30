@@ -779,6 +779,9 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                 if(rnd.double() < .07) {
                     chunk.setBlockIndirect(x, y + 1, z, bm.LILY_PAD.id)
                     has_overfluid_block = true
+                } else if(rnd.double() < .07) {
+                    chunk.setBlockIndirect(x, y + 1, z, bm.GREEN_ALGAE.id)
+                    has_overfluid_block = true
                 }
             }
         }

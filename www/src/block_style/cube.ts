@@ -399,11 +399,14 @@ export default class style {
             // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
             if(material.random_rotate_up) {
                 const rv = randoms.double(z * chunk.size.x + x + y * chunk.size.y) | 0
-                if(block.id == bm.LILY_PAD.id) {
+                if(block.id == bm.LILY_PAD.id || block.id == bm.GREEN_ALGAE.id) {
                     axes_down = UP_AXES[rv % 4];
                     flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX | QUAD_FLAGS.FLAG_MASK_BIOME;
                 } else {
                     axes_up = UP_AXES[rv % 4];
+                }
+                if(material.tags.includes('mask_biome')) {
+                    flags |= QUAD_FLAGS.FLAG_MASK_BIOME
                 }
                 autoUV = false;
             }
@@ -905,7 +908,7 @@ export default class style {
         }
 
     }
-    
+
     static pushEdgeTextures(material : IBlockMaterial, bm : BLOCK, x : float, y : float, z : float, neighbours, vertices : float[], lm : IndexedColor, flags : int, height : float) {
         if(material.name != 'GRASS_BLOCK' && material.name != 'GRASS_BLOCK_SLAB') {
             return

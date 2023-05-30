@@ -12837,6 +12837,28 @@
             "texture": "block/redstone_lamp.png"
         },
         {
+            "id": 1107,
+            "name": "GREEN_ALGAE",
+            "transparent": true,
+            "passable": 1,
+            "height": 0.0625,
+            "sound": "madcraft:block.grass",
+            "material": {
+                "id": "plant"
+            },
+            "planting": false,
+            "tags": [
+                "draw_only_down",
+                "set_on_water",
+                "doubleface",
+                "no_drop_ao",
+                "random_rotate_up"
+            ],
+            "texture": "block/green_algae.png",
+            "random_ticker": "algae",
+            "composter_chance": 0.65
+        },
+        {
             "id": 309,
             "name": "LEVER",
             "material": {

@@ -362,7 +362,7 @@ interface IBlockMaterial {
     // Textures
     texture: any
     texture_overlays: any // overlay-текстуры (песок, снег, земля, гравий и т.д., которые "высыпаются" на соседние блоки)
-    overlay_textures_weight: number // Определяет порядок наслоения overlay-текстур друг на друга 
+    overlay_textures_weight: number // Определяет порядок наслоения overlay-текстур друг на друга
     connected_sides: any
     stage_textures?: string[]
     texture_variants?: {}[]
@@ -536,6 +536,12 @@ declare type IUpdateBlock = {
     pos: IVector
     item: any
     action_id: int
+}
+
+declare type IChunkCell = {
+    dirt_color: IColor
+    water_color: IColor
+    biome_id: int
 }
 
 declare type IBBModelHideLists = {

@@ -39,6 +39,9 @@ export class Physics {
     private readonly ladderIds          : int[]
     private readonly bubbleColumnId     : int
     private readonly iceIds             : int[]
+    private tinaLikePassable            : float
+    private tinaId                      : int
+
 
     // =================== options from old physics object ====================
 
@@ -166,8 +169,12 @@ export class Physics {
         if (bm.BLUE_ICE) { // 1.13+
             blockSlipperiness[bm.BLUE_ICE.id] = 0.989
         }
+        if (bm.GREEN_ALGAE) { 
+            this.tinaLikePassable = bm.GREEN_ALGAE.passable
+        }
 
         // Block ids
+        this.tinaId         = bm.GREEN_ALGAE.id
         this.soulsandId     = bm.SOUL_SAND.id
         this.honeyblockId   = bm.HONEY_BLOCK?.id ?? BLOCK_NOT_EXISTS // 1.15+
         for (const block of [bm.COBWEB, bm.SWEET_BERRY_BUSH]) {
@@ -238,6 +245,14 @@ export class Physics {
             vel.y = 0
             vel.z = 0
             entity.isInWeb = false
+        } else if (entity.isInTina) {
+            dx *= entity.passable;
+            dy *= entity.passable;
+            dz *= entity.passable;
+            vel.x = 0
+            vel.y = 0
+            vel.z = 0
+            entity.isInTina = false
         }
 
         let oldVelX = dx
@@ -414,7 +429,11 @@ export class Physics {
                     const block = acc.getBlock()
                     if (block && block.id > 0) {
                         const cobwebLikePassable = this.cobwebLikePassable[block.id]
-                        if (cobwebLikePassable != null) {
+                        if (block.id == this.tinaId && (y + .0625) > playerBB.y_min) {
+                            // блок тины
+                            entity.isInTina = true
+                            entity.passable = this.tinaLikePassable
+                        } else if (cobwebLikePassable != null) {
                             entity.isInWeb = true
                             entity.passable = cobwebLikePassable
                         } else if (block.id === this.bubbleColumnId) {
@@ -848,7 +867,12 @@ export class Physics {
         // Handle inputs
         if (control.jump || entity.jumpQueued) {
             if (entity.jumpTicks > 0) entity.jumpTicks--
-            if (entity.isInWater || entity.isInLava) {
+            if (entity.isInTina) {
+                if (!control.sneak && options.floatSubmergedHeight == null) {
+                    // @fixed Без этого фикса игрок не может выбраться из тины на берег
+                    vel.y += 0.05 // 0.07
+                }
+            } else if (entity.isInWater || entity.isInLava) {
                 if (!control.sneak && options.floatSubmergedHeight == null) {
                     // @fixed Без этого фикса игрок не может выбраться из воды на берег
                     vel.y += 0.09 // 0.04
@@ -968,6 +992,7 @@ export class PrismarinePlayerState implements IPlayerControlState {
      */
     _submergedPercent?: float
     isInWeb     = false
+    isInTina    = false
     isOnLadder  = false
     isCollidedHorizontally  = false
     isCollidedVertically    = false

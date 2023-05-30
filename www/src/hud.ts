@@ -532,6 +532,17 @@ export class HUD {
                     }
                 }
             }
+
+            if (this.draw_block_info) {
+                this.block_text += '\n\nPlayer info: '
+                const state = player.controlManager.prismarine.player_state
+                this.block_text += '\nvel: ' + state.vel
+                this.block_text += '\nGround: ' + state.onGround
+                this.block_text += '\nisCollidedHorizontally: ' + state.isCollidedHorizontally
+                this.block_text += '\nisCollidedVertically: ' + state.isCollidedVertically
+                this.block_text += '\nsubmergedHeight: ' + state.submergedHeight
+                this.block_text += '\nLava: ' + state.isInLava + ' Water: ' + state.isInWater + ' Liquid: ' + state.isInLiquid
+            }
         }
 
         // My XYZ
