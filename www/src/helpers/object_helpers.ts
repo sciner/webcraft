@@ -167,4 +167,54 @@ export class ObjectHelpers {
         }
         return dst
     }
+
+    // For now, it supports only plain objects, Array, primitives and Vector.
+    static deepCloneFast(v: any) : any {
+        if (v == null) {
+            return v
+        }
+        // Splitting this function into 3 increases(!) performance
+        // Probably because JIT can infer static types in deepCloneArray() and deepCloneObject()
+        if (v.length != null && Array.isArray(v)) {
+            return this.deepCloneArrayFast(v)
+        }
+        if (typeof v === 'object') {
+            return this.deepCloneObjectFast(v)
+        }
+        return v;
+    }
+
+    static deepCloneArrayFast(v: Array<any>): Array<any> {
+        const out = [...v]
+        const {deepCloneArrayFast, deepCloneObjectFast} = ObjectHelpers
+        for(let i = 0; i < v.length; i++) {
+            const vv = v[i]
+            if(vv === null || !(typeof vv === 'object')) continue
+            out[i] = (vv.length != null && Array.isArray(vv)) ? deepCloneArrayFast(vv) : deepCloneObjectFast(vv)
+        }
+        return out
+    }
+
+    static deepCloneObjectFast(v: object, out : object = undefined): object {
+        if ((<any>v).x != null && v instanceof Vector) {
+            const n = v.n
+            v = new Vector(v)
+            if(n) {
+                (v as Vector).n = new Vector(n)
+            }
+            return v
+        }
+        out = out || {...v}
+        const {deepCloneArrayFast, deepCloneObjectFast} = ObjectHelpers
+        for(let key in v) {
+            const vv = v[key]
+            if(vv == null || !(typeof vv === 'object')) {
+                out[key] = vv
+                continue
+            }
+            out[key] = (vv.length != null && Array.isArray(vv)) ? deepCloneArrayFast(vv) : deepCloneObjectFast(vv)
+        }
+        return out;
+    }
+
 }

@@ -1,4 +1,4 @@
-import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar, IndexedColor, ArrayHelpers } from './helpers.js';
+import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar, IndexedColor, ArrayHelpers, ObjectHelpers } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
@@ -105,7 +105,7 @@ export class DBItemBlock {
     static cloneFrom(block: Dict): DBItemBlock {
         const result = new DBItemBlock(block.id)
         for(let k in block)  {
-            result[k] = block[k]
+            result[k] = ObjectHelpers.deepClone(block[k])
         }
         return result
     }
@@ -931,6 +931,7 @@ export class BLOCK {
         block.is_jukebox        = block.tags.includes('jukebox');
         block.is_mushroom_block = block.tags.includes('mushroom_block');
         block.is_button         = block.tags.includes('button');
+        block.is_powered        = block.extra_data && ('powered' in block.extra_data)
         block.is_sapling        = block.tags.includes('sapling');
         block.is_battery        = ['car_battery'].includes(block?.item?.name);
         block.is_layering       = !!block.layering

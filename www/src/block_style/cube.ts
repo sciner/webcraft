@@ -139,7 +139,7 @@ export default class style {
 
         // Button
         if(material.is_button) {
-            if(tblock.extra_data?.pressed) {
+            if(tblock.extra_data?.powered) {
                 height /= 2;
             }
         }
@@ -323,7 +323,7 @@ export default class style {
         }
         // Button
         if(material.is_button) {
-            if(block.extra_data?.pressed) {
+            if(block.extra_data?.powered) {
                 height /= 2;
             }
         } else if(material.is_fluid) {

@@ -1,4 +1,4 @@
-import { Vector, VectorCollector } from "@client/helpers.js";
+import { ObjectHelpers, Vector, VectorCollector } from "@client/helpers.js";
 import {WorldAction} from "@client/world_action.js";
 import { BLOCK_ACTION, ServerClient } from "@client/server_client.js";
 import {FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, isFluidId} from "@client/fluid/FluidConst.js";
@@ -410,7 +410,7 @@ export default class WorldEdit {
         };
         //
         const grid = chat.world.chunkManager.grid
-        const player_pos = player.state.pos.floored();
+        const player_pos : Vector = player.state.pos.floored();
         let affected_count = 0;
         //
         const data = copy_data ?? player._world_edit_copy;
@@ -419,7 +419,7 @@ export default class WorldEdit {
         let chunk_addr = null;
         let actions = null;
         //
-        const getChunkActions = (chunk_addr) => {
+        const getChunkActions = (chunk_addr : Vector) => {
             if(chunk_addr_o.equal(chunk_addr)) {
                 return actions
             }
@@ -433,11 +433,13 @@ export default class WorldEdit {
             return actions
         }
         // blocks
+        const AIR_BLOCK = new DBItemBlock(0)
         for(const [bpos, item] of data.blocks.entries()) {
+            const clone : DBItemBlock = item.id ? ObjectHelpers.deepCloneObjectFast(item, new DBItemBlock(item.id)) as DBItemBlock : AIR_BLOCK // ((item.extra_data || item.rotate) ? ObjectHelpers.deepCloneObjectFast(item, new DBItemBlock(item.id)) : item)
             const pos = player_pos.add(bpos)
             chunk_addr = grid.toChunkAddr(pos, chunk_addr)
             actions = getChunkActions(chunk_addr)
-            actions.addBlock({pos, item, action_id})
+            actions.addBlock({pos, item: clone, action_id})
             affected_count++
         }
         // fluids
