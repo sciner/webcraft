@@ -1672,8 +1672,8 @@ function pressToButton(e, world, pos, player, world_block, world_material, mat_b
         return false;
     }
     extra_data = extra_data || {}
-    extra_data.pressed = !extra_data.pressed ? 1 : 0;
-    if(extra_data && 'pressed' in extra_data) {
+    extra_data.powered = !extra_data.powered ? true : false
+    if(extra_data && 'powered' in extra_data) {
         pos = new Vector(pos);
         actions.addBlocks([{pos: pos, item: {id: world_material.id, rotate, extra_data}, action_id: BLOCK_ACTION.MODIFY}]);
         actions.addPlaySound({tag: 'madcraft:block.player', action: 'click', pos: new Vector(pos), except_players: [player.session.user_id]});

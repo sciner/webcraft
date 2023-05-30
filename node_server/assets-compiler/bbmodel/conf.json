@@ -115,6 +115,7 @@
         {"name": "amethyst_cluster"},
         {"name": "brewing_stand"},
         {"name": "pointed_dripstone"},
+        {"name": "lever"},
 
         {"name": "tool/primitive_axe"},
         {"name": "tool/sunglasses"},
@@ -253,7 +254,7 @@
                 "model": "chest",
                 "behavior": "chest",
                 "rotate": {"type": "cardinal_direction"},
-                "animated": {
+                "_animated": {
                     "name": "idle"
                 }
             }
@@ -2047,6 +2048,18 @@
                 ],
                 "rotate": [
                     {"type": "flipx", "when": {"extra_data.up": true}}
+                ]
+            }
+        },
+        {
+            "id": 309,
+            "name": "LEVER",
+            "bb": {
+                "model": "lever",
+                "rotate": {"type": "six"},
+                "set_animation": [
+                    {"name": "on", "when": {"extra_data.powered": true}},
+                    {"name": "off", "when": {"extra_data.powered": false}}
                 ]
             }
         }

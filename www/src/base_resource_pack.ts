@@ -354,6 +354,15 @@ export class BaseResourcePack {
             }
         }
 
+        // if(!globalThis.styles_stat) globalThis.styles_stat = new Map()
+        // // const k = tblock.id // style
+        // const k = style
+        // let stat = globalThis.styles_stat.get(k)
+        // if(!stat) {
+        //     stat = {count: 0, time: 0, blocks: []}
+        //     globalThis.styles_stat.set(k, stat);
+        // }
+
         /*
         // stat
         let stat = this.styles_stat.get(style);
@@ -365,7 +374,8 @@ export class BaseResourcePack {
         // let p = performance.now();
         const resp = module.func(tblock, vertices, chunk, pos.x, y, pos.z, neighbours, biome, dirt_color, unknown, _matrix, _pivot, force_tex, neibIDs);
         // stat.count++;
-        // stat.time += (performance.now() - p);
+        // stat.blocks.push(tblock.id)
+        // stat.time += (performance.now() - p)
         if (vertices.length % 15 > 0) {
             console.log("oops mesh");
         }

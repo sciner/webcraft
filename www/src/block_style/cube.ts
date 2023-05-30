@@ -68,9 +68,10 @@ export const LEAVES_COLORS = [
     new IndexedColor(28, 524, 0), // yellow
 ]
 
-const pivotObj = {x: 0.5, y: .5, z: 0.5};
+const pivotObj = {x: 0.5, y: 0.5, z: 0.5};
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
 const _aabb = new AABB();
+const _leaves_rot = new Vector(0, 0, 0)
 const _center = new Vector(0, 0, 0);
 const _sides = {
     up: new AABBSideParams(),
@@ -138,7 +139,7 @@ export default class style {
 
         // Button
         if(material.is_button) {
-            if(tblock.extra_data?.pressed) {
+            if(tblock.extra_data?.powered) {
                 height /= 2;
             }
         }
@@ -322,7 +323,7 @@ export default class style {
         }
         // Button
         if(material.is_button) {
-            if(block.extra_data?.pressed) {
+            if(block.extra_data?.powered) {
                 height /= 2;
             }
         } else if(material.is_fluid) {
@@ -347,9 +348,11 @@ export default class style {
 
     static makeLeaves(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
+        const is_fake               = block instanceof FakeTBlock
         const bm                    = style.block_manager
         const material              = block.material;
-        const leaves_tex = bm.calcTexture(material.texture, 'round');
+        const leaves_tex            = bm.calcTexture(material.texture, 'round');
+
         _lm_leaves.copyFrom(dirt_color);
         _lm_leaves.b = leaves_tex[3] * TX_CNT;
         const r1 = (randoms.double((z * 13 + x * 3 + y * 23)) | 0) / 100
@@ -366,12 +369,12 @@ export default class style {
             }
         }
         for(let i = 0; i < leaves_planes.length; i++) {
-            if(block instanceof FakeTBlock && i == 0) continue
+            if(is_fake && i == 0) continue
             const plane = leaves_planes[i];
             // fill object
             _pl.size     = plane.size;
             _pl.uv       = plane.uv as [number, number];
-            _pl.rot      = new Vector(Math.PI*2 * r1, plane.rot[1] + r2 * 0.01, plane.rot[2]);
+            _pl.rot      = _leaves_rot.setScalar(Math.PI*2 * r1, plane.rot[1] + r2 * 0.01, plane.rot[2]);
             _pl.lm       = _lm_leaves;
             _pl.pos      = _vec.set(
                 x + (plane.move?.x || 0),
@@ -396,8 +399,7 @@ export default class style {
         }
 
         // Beautiful leaves
-        const sheared = (block?.extra_data?.sheared) ? block?.extra_data?.sheared : false;
-        if(material.transparent && material.is_leaves == LEAVES_TYPE.BEAUTIFUL && !sheared) {
+        if(material.transparent && material.is_leaves == LEAVES_TYPE.BEAUTIFUL && !(block?.extra_data?.sheared ?? false)) {
             return style.makeLeaves(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex)
         }
 
