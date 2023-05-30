@@ -68,7 +68,7 @@
                 "id": "water"
             },
             "texture": {
-                "side": "block/lava_still.png"
+                "side": "block/water_still.png"
             }
         },
         {
@@ -79,7 +79,7 @@
                 "id": "water"
             },
             "texture": {
-                "side": "block/water_still.png"
+                "side": "block/lava_still.png"
             }
         },
         {
@@ -4908,7 +4908,11 @@
                 "down": "./textures/pointed_dripstone_base.png"
             },
             "extra_data": {
-                "up": true
+                "up": true,
+                "base": false,
+                "merge": false,
+                "middle": false,
+                "frustum": false
             }
         },
         {
