@@ -38,7 +38,8 @@ export default class style {
 
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const aabb = new AABB()
-        aabb.set(0.25, 0, 0.25, 0.75, 1, 0.75)
+        const w2 = 22/36/2
+        aabb.set(.5, 0, .5, .5, 1, .5).expand(w2, 0, w2)
         return [aabb]
     }
 

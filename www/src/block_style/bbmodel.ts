@@ -68,37 +68,24 @@ export default class style {
      */
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
-        const bb = tblock.material.bb
-        const styleVariant = style.block_manager.styles.get(bb?.aabb_stylename ?? bb.behavior)
+        const material = tblock.material
+        const bb = material.bb
+        const mat_abbb = material.aabb
+
+        // 1. if tblock has specific ABBB
+        if(mat_abbb) {
+            const aabb = new AABB(...mat_abbb).div(16)
+            return [style.rotateAABB(aabb, tblock, for_physic, world, neighbours, expanded)]
+        }
+
+        // 2. if tblock has style calculated AABB
+        const styleVariant = style.block_manager.styles.get(bb?.aabb_stylename ?? material.style_name)
         if(styleVariant?.aabb) {
             return styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
         }
 
-        const aabb = new AABB()
-        const mat_abbb = tblock.material.aabb
-
-        if(mat_abbb) {
-            aabb.set(...mat_abbb).div(16)
-        } else {
-            aabb.set(0, 0, 0, 1, 1, 1)
-        }
-
-        if(tblock instanceof TBlock) {
-            const grid = world.grid
-            grid.math.worldPosToChunkPos(tblock.posworld, aabb_xyz)
-            const {x, y, z} = aabb_xyz
-            if(!aabb_chunk) {
-                aabb_chunk = {size: grid.chunkSize}
-            }
-            mat4.identity(aabb_matrix)
-            style.applyRotate(aabb_chunk as ChunkWorkerChunk, tblock.material.bb.model, tblock, neighbours, aabb_matrix, x, y, z)
-            aabb.applyMat4(aabb_matrix, aabb_pivot)
-        }
-
-        // if(!for_physic) {
-        //     aabb.expand(1/100, 1/100, 1/100)
-        // }
-        return [aabb]
+        // 3. default full block size AABB
+        return [style.rotateAABB(new AABB(0, 0, 0, 1, 1, 1), tblock, for_physic, world, neighbours, expanded)]
 
     }
 
@@ -707,6 +694,24 @@ export default class style {
         if(texture_name) {
             model.selectTextureFromPalette(texture.group, texture_name)
         }
+    }
+
+    static rotateAABB(aabb : AABB, tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB {
+
+        if(tblock instanceof TBlock) {
+            const grid = world.grid
+            grid.math.worldPosToChunkPos(tblock.posworld, aabb_xyz)
+            const {x, y, z} = aabb_xyz
+            if(!aabb_chunk) {
+                aabb_chunk = {size: grid.chunkSize}
+            }
+            mat4.identity(aabb_matrix)
+            style.applyRotate(aabb_chunk as ChunkWorkerChunk, tblock.material.bb.model, tblock, neighbours, aabb_matrix, x, y, z)
+            aabb.applyMat4(aabb_matrix, aabb_pivot)
+        }
+
+        return aabb
+
     }
 
     // Stand
