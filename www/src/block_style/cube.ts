@@ -402,6 +402,7 @@ export default class style {
                 if(block.id == bm.LILY_PAD.id || block.id == bm.GREEN_ALGAE.id) {
                     axes_down = UP_AXES[rv % 4];
                     flags |= QUAD_FLAGS.FLAG_WAVES_VERTEX;
+                    y -= 1/16
                 } else {
                     axes_up = UP_AXES[rv % 4];
                 }
