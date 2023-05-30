@@ -429,7 +429,7 @@ export class Physics {
                     const block = acc.getBlock()
                     if (block && block.id > 0) {
                         const cobwebLikePassable = this.cobwebLikePassable[block.id]
-                        if (block.id == this.tinaId && (block.position.y + .0625) > playerBB.y_min) {
+                        if (block.id == this.tinaId && (y + .0625) > playerBB.y_min) {
                             // блок тины
                             entity.isInTina = true
                             entity.passable = this.tinaLikePassable
