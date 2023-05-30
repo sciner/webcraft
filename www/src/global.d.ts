@@ -350,6 +350,7 @@ interface IBlockMaterial {
         }
         select_texture?:    any
         set_state?:         any
+        set_animation:      any
         particles?:         any
         rotate?:            any
     }
@@ -449,6 +450,7 @@ interface IBlockMaterial {
     sound: string
     inventory_icon_id?: number
     max_in_stack: number
+    is_powered: boolean
 }
 
 interface INetworkMessage<DataT = any> {

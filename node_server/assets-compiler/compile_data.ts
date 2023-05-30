@@ -147,7 +147,7 @@ export class CompileData {
                 "depth": 0.25,
                 "can_rotate": true,
                 "transparent": true,
-                "extra_data": {pressed: 0},
+                "extra_data": {powered: false},
                 "tags": [
                     "no_drop_ao",
                     "rotate_by_pos_n_12",

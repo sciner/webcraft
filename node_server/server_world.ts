@@ -856,7 +856,7 @@ export class ServerWorld implements IWorld {
                 const previous_item = {id: 0}
                 let cps = null;
                 for (let params of actions.blocks.list) {
-                    const block_pos = new Vector(params.pos).flooredSelf();
+                    const block_pos = new Vector(params.pos).flooredSelf()
                     params.pos = block_pos;
                     //
                     if(!(params.item instanceof DBItemBlock)) {

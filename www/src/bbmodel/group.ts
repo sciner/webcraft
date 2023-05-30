@@ -37,20 +37,20 @@ export class BBModel_Group extends BBModel_Child {
         this.children.push(child)
     }
 
-    pushVertices(vertices : float[], pos : Vector, lm : IndexedColor, parent_matrix, emmit_particles_func? : Function) {
+    pushVertices(vertices : float[], pos : Vector, lm : IndexedColor, parent_matrix, emmit_particles_func? : Function, mesh?: Mesh_Object_BBModel) {
 
         const mx = this._mx
         mat4.identity(mx)
 
         mat4.copy(mx, parent_matrix)
-        this.playAnimations(mx)
+        this.playAnimations(mx, mesh)
         mat4.multiply(mx, mx, this.matrix)
 
         for(let part of this.children) {
             if(!part.visibility) {
                 continue
             }
-            part.pushVertices(vertices, pos, lm, mx, emmit_particles_func)
+            part.pushVertices(vertices, pos, lm, mx, emmit_particles_func, mesh)
         }
     }
 

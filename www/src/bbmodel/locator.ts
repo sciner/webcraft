@@ -28,7 +28,11 @@ export class BBModel_Locator extends BBModel_Child {
         vec3.transformMat4(tempVec3, tempVec3, parent_matrix);
         _emmiter_pos.copy(tempVec3)
         if(emmit_particles_func) {
-            emmit_particles_func(StringHelpers.trim(this.name, '_'), _emmiter_pos)
+            // TODO: временное отключение, дело в том, что у моделей локаторы не только для частиц, но и просто для обозначения места (слота).
+            // В общем программа пытается создать эмиттер частиц например для BREWING_STAND, а там нет частиц, там есть именно слоты.
+            if(!this.name.includes('slot')) {
+                emmit_particles_func(StringHelpers.trim(this.name, '_'), _emmiter_pos)
+            }
         } else {
             console.debug('empty_emmit_particles_func')
         }

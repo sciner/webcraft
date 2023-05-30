@@ -5262,7 +5262,8 @@
                 "style": "extruder",
                 "texture": "item/chain.png"
             },
-            "aabb_size": {"x": 4.5, "y": 16, "z": 4.5},
+            "_aabb_size": {"x": 4.5, "y": 16, "z": 4.5},
+            "aabb": [5.75, 0, 5.75, 10.25, 16, 10.25],
             "sound": "madcraft:block.stone",
             "material": {
                 "id": "iron"
@@ -6250,6 +6251,7 @@
                 "style": "extruder",
                 "texture": "item/cake.png"
             },
+            "aabb": [0, 0, 0, 1, 0.5, 1],
             "extra_data": {"pieces": 7},
             "sound": "madcraft:block.cloth",
             "material": {
@@ -12810,6 +12812,7 @@
             "id": 495,
             "name": "NETHER_QUARTZ_ORE",
             "texture": "block/nether_quartz_ore.png",
+            "sound": "madcraft:block.stone",
             "material": {
                 "id": "quartz"
             }
@@ -12817,6 +12820,7 @@
         {
             "id": 496,
             "name": "REDSTONE_LAMP",
+            "sound": "madcraft:block.stone",
             "material": {
                 "id": "stone"
             },
@@ -12827,6 +12831,29 @@
                 "a": 255
             },
             "texture": "block/redstone_lamp.png"
+        },
+        {
+            "id": 309,
+            "name": "LEVER",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/stone.png",
+            "sound": "madcraft:block.stone",
+            "width": 0.375,
+            "height": 0.1875,
+            "depth": 0.5,
+            "_aabb_size": {"x": 6, "y": 10, "z": 8},
+            "aabb": [5, 0, 4, 11, 8, 12],
+            "can_rotate": true,
+            "transparent": true,
+            "extra_data": {"powered": false},
+            "tags": [
+                "no_drop_ao",
+                "rotate_by_pos_n_12",
+                "button"
+            ],
+            "support_style": "item_frame"
         }
     ]
 }
