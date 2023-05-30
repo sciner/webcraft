@@ -246,7 +246,7 @@ export class WorldEditBuilding {
         }
 
         // export
-        const file_name = `./data/building_schema/${building.name}.js`;
+        const file_name = `../data/building_schema/${building.name}.js`;
         const fs = (globalThis as any).fs
 
         // Write building to file

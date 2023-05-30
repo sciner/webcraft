@@ -102,7 +102,7 @@ export class SchematicReader {
 
         orig_file_name += ''
 
-        let file_name = `./data/schematics/${orig_file_name}`;
+        let file_name = `../data/schematics/${orig_file_name}`;
         console.log(file_name)
 
         // Check schem file exists and try extension append
