@@ -164,7 +164,7 @@ export class MeshGroup {
         // Create draw buffers
         this.meshes.forEach((mesh, _, map) => {
             mesh.buffer = new GeometryTerrain(mesh.vertices);
-            // mesh.buffer.changeFlags(QUAD_FLAGS.NO_CAN_TAKE_AO, 'or');
+            // mesh.buffer.changeFlags(QUAD_FLAGS.FLAG_NO_CAN_TAKE_AO, 'or');
         });
 
     }

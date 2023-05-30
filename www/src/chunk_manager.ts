@@ -15,6 +15,7 @@ import {ChunkRenderList} from "./chunk_render_list.js";
 import type { World } from "./world.js";
 import type { ChunkGrid } from "./core/ChunkGrid.js";
 import { AABB } from "./core/AABB.js";
+import type { Renderer } from "./render.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
@@ -187,11 +188,11 @@ export class ChunkManager {
         const that                  = this;
 
         this.tech_info              = world.info.tech_info
+        this.grid                   = world.grid
         this.dataWorld              = new DataWorld(this);
         this.fluidWorld             = new FluidWorld(this);
         this.fluidWorld.mesher      = new FluidMesher(this.fluidWorld);
         this.biomes                 = new Biomes(null);
-        this.grid                   = this.dataWorld.grid
 
         // Add listeners for server commands
         world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(decompressNearby(cmd.data))});
@@ -226,7 +227,7 @@ export class ChunkManager {
             id:             dummy.id,
             properties:     dummy,
             material:       dummy,
-            shapes:         [],
+            fluid:          0,
             getProperties: function() {
                 return this.material;
             }
@@ -282,12 +283,22 @@ export class ChunkManager {
                     TrackerPlayer.loadAndPlay('/media/disc/' + args.filename, args.pos, args.dt);
                     break;
                 }
-                case 'add_animated_block': {
+                case 'create_block_emitter': {
                     Qubatch.render.meshes.effects.createBlockEmitter(args);
                     break;
                 }
                 case 'add_bbmesh': {
-                    Qubatch.render.addBBModel(new Vector(args.block_pos).addScalarSelf(.5, 0, .5), args.model, args.rotate, args.animation_name)
+                    const a = args as IAddMeshArgs
+                    const pos = new Vector().copyFrom(a.block_pos)
+                    const key = `block_bbmesh_${pos.toHash()}`
+                    const render = Qubatch.render as Renderer
+                    render.addBBModelForChunk(pos.addScalarSelf(.5, 0, .5), a.model, new Vector().copyFrom(a.rotate), a.animation_name, a.hide_groups, key, true, a.matrix)
+                    break
+                }
+                case 'remove_bbmesh': {
+                    const pos = new Vector().copyFrom(args.block_pos)
+                    const key = `block_bbmesh_${pos.toHash()}`;
+                    (Qubatch.render as Renderer).meshes.remove(key, Qubatch.render)
                     break
                 }
                 case 'delete_animated_block': {

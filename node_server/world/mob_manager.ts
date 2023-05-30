@@ -38,8 +38,8 @@ export class WorldMobManager {
 
     private tmp_tick_chunk_addr     = new Vector()
 
-    static STAT_NAMES = ['update_chunks', 'unload', 'other', 'onLive', 'onFind']
-    static MOB_STAT_NAMES = ['onLive', 'onFind']
+    static MOB_STAT_NAMES = ['physics', 'other', 'onLive', 'onFind']
+    static STAT_NAMES = ['update_chunks', 'unload', ...WorldMobManager.MOB_STAT_NAMES]
 
     constructor(world: ServerWorld) {
 
@@ -141,7 +141,7 @@ export class WorldMobManager {
         for(let mob of this.list.values()) {
             if(mob.isAlive) {
                 mob.tick(delta);
-                this.ticks_stat.add('other')
+                mob.getBrain().addStat('other')
             } else if(!mob.death_time) {
                 mob.death_time = performance.now();
             } else if(performance.now() - mob.death_time > DEAD_MOB_TTL || mob?.extra_data.play_death_animation == false) {

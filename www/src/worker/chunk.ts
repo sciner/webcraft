@@ -1,4 +1,4 @@
-import { BLOCK, POWER_NO, DropItemVertices, FakeVertices } from "../blocks.js";
+import { BLOCK, DropItemVertices, FakeVertices } from "../blocks.js";
 import { PerformanceTimer, Vector } from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK, TypedBlocks3 } from "../typed_blocks3.js";
 import { AABB } from '../core/AABB.js';
@@ -33,7 +33,7 @@ class MaterialBuf {
 // ChunkManager
 export class ChunkWorkerChunkManager {
 
-    DUMMY:          { id: any; shapes: any[]; properties: any; material: any; getProperties: () => any; canReplace: () => boolean; }
+    DUMMY:          { id: any; properties: any; material: any; getProperties: () => any; canReplace: () => boolean; }
     block_manager:  BLOCK
     world:          WorkerWorld
     destroyed:      boolean
@@ -51,7 +51,6 @@ export class ChunkWorkerChunkManager {
         this.tech_info = world.tech_info
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
-            shapes: [],
             properties: BLOCK.DUMMY,
             material: BLOCK.DUMMY,
             getProperties: function() {
@@ -61,8 +60,8 @@ export class ChunkWorkerChunkManager {
                 return false;
             }
         };
+        this.grid = world.grid
         this.dataWorld = new DataWorld(this);
-        this.grid = this.dataWorld.grid
         this.fluidWorld = new FluidWorld(this);
         this.verticesPool = new WorkerGeometryPool(null, {});
     }
@@ -362,7 +361,8 @@ export class ChunkWorkerChunk implements IChunk {
     }
 
     // setBlock
-    setBlock(x, y, z, orig_type, is_modify, power, rotate, entity_id, extra_data) {
+    setBlock(x: int, y: int, z: int, orig_type: IBlockItem,
+             is_modify: boolean, rotate: IVector | null, entity_id: string | null, extra_data: Dict | null) {
         const {getFlatIndexInChunk, getBlockIndex} = this.chunkManager.grid.math;
         //TODO: take liquid into account
         // fix rotate
@@ -371,19 +371,11 @@ export class ChunkWorkerChunk implements IChunk {
         } else {
             rotate = null;
         }
-        // fix power
-        if(typeof power === 'undefined' || power === null) {
-            power = POWER_NO;
-        }
-        if(power === 0) {
-            power = null;
-        }
         this.temp_vec.set(x, y, z);
         //
         if(is_modify) {
             const modify_item = {
                 id:     orig_type.id,
-                power:  power,
                 rotate: rotate
             };
             this.modify_list[getFlatIndexInChunk(this.temp_vec)] = modify_item;
@@ -395,14 +387,27 @@ export class ChunkWorkerChunk implements IChunk {
         if(x < 0 || y < 0 || z < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
             return;
         }
-        const block        = this.tblocks.get(this.temp_vec);
-        block.id         = orig_type.id;
-        block.power      = power;
-        block.rotate     = rotate;
-        block.entity_id  = entity_id;
-        block.texture    = null;
-        block.extra_data = extra_data;
-        this.emitted_blocks.delete(block.index);
+        const tblock = this.tblocks.get(this.temp_vec);
+        if(tblock.id > 0) {
+            const textra = tblock.extra_data
+            if( !(orig_type.id == tblock.id) ||
+                !(orig_type.entity_id == tblock.entity_id) ||
+                !((textra === extra_data) || (JSON.stringify(textra) == JSON.stringify(extra_data)))) {
+                // block replaced
+                // console.log('block replaced', tblock.material.name, orig_type.id)
+                if(tblock.material.bb?.animated) {
+                    QubatchChunkWorker.postMessage(['remove_bbmesh', {
+                        block_pos: tblock.posworld.clone(),
+                    }])
+                }
+            }
+        }
+        tblock.id         = orig_type.id;
+        tblock.rotate     = rotate;
+        tblock.entity_id  = entity_id;
+        tblock.texture    = null;
+        tblock.extra_data = extra_data;
+        this.emitted_blocks.delete(tblock.index);
     }
 
     // Return block ID

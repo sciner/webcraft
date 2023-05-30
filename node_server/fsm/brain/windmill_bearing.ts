@@ -34,7 +34,7 @@ export class Brain extends FSMBrain {
 
     onLive() {}
 
-    doStand(delta : float) {
+    doStand(delta : float): boolean {
         const mob = this.mob
         if(mob.rotate.z != 0) {
             mob.rotate.z = 0
@@ -43,12 +43,12 @@ export class Brain extends FSMBrain {
                 jump: false,
                 sneak: false
             })
-            this.applyControl(delta)
-            this.sendState()
+            return true
         }
+        return false
     }
 
-    doRotate(delta : float) {
+    doRotate(delta : float): boolean {
         const mob = this.mob
         const tblock = this.world.getBlock(this._bpos, this._tblock)
         if(tblock) {
@@ -65,8 +65,7 @@ export class Brain extends FSMBrain {
                 })
             }
         }
-        this.applyControl(delta)
-        this.sendState()
+        return true
     }
    
     // Если убили моба

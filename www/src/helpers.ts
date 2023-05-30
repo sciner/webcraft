@@ -712,13 +712,26 @@ export class VectorCollectorFlat {
 }
 
 // calc rotate
+// export function mat4ToRotate(matrix : imat4, out?: Vector) : Vector {
+//     out = out || new Vector(0, 0, 0)
+//     const _quat = quat.create();
+//     mat4.getRotation(_quat, matrix);
+//     getEuler(out, _quat)
+//     out.swapXZSelf().divScalarSelf(180).multiplyScalarSelf(Math.PI)
+//     return out
+// }
+
 export function mat4ToRotate(matrix) : Vector {
     const out = new Vector(0, 0, 0)
     const _quat = quat.create();
     mat4.getRotation(_quat, matrix);
     getEuler(out, _quat)
-    out.swapXZSelf().divScalarSelf(180).multiplyScalarSelf(Math.PI)
-    return out
+    // out.swapXZSelf().divScalarSelf(180).multiplyScalarSelf(Math.PI)
+    // return out
+    let tmp = out.x;
+    out.x = 180 - out.y;
+    out.y = -tmp;
+    return out //.multiplyScalarSelf(Math.PI / 180);
 }
 
 export async function blobToImage(blob : Blob) : Promise<HTMLImageElement> {

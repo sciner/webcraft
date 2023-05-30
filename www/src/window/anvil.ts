@@ -1,56 +1,32 @@
 import { ItemHelpers } from "../block_helpers.js";
 import { Label, TextEdit } from "../ui/wm.js";
-import { BAG_LINE_COUNT, ITEM_LABEL_MAX_LENGTH, UI_THEME } from "../constant.js";
-import {AnvilRecipeManager, TAnvilRecipe} from "../recipes_anvil.js";
-import {CraftTableSlot, BaseCraftWindow, TCraftTableSlotContext} from "./base_craft_window.js";
+import {BAG_LINE_COUNT, INVENTORY_CRAFT_INDEX_MIN, ITEM_LABEL_MAX_LENGTH, UI_THEME} from "../constant.js";
+import {AnvilRecipeManager, TAnvilRecipe, TUsedAnvilRecipe} from "../recipes_anvil.js";
+import {CraftTableSlot, BaseCraftWindow, CraftTableInventorySlot} from "./base_craft_window.js";
 import { BLOCK } from "../blocks.js";
 import { Lang } from "../lang.js";
 import type { PlayerInventory } from "../player_inventory.js";
 import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH } from "../constant.js";
+import type {TInventoryStateChangeParams} from "../inventory.js";
+import type {TMouseEvent} from "../vendors/wm/wm.js";
 
-//
-export class AnvilSlot extends CraftTableSlot {
+export class AnvilResultSlot extends CraftTableSlot {
 
     declare ct: AnvilWindow
 
-    constructor(x, y, w, h, id, title, text, ct) {
-        super(x, y, w, h, id, title, text, ct, null)
-        this.ct = ct
-        this.refresh()
-    }
-
-    onMouseDown(e : any) {
-        const ct = this.ct
-        const dragItem = this.getItem()
-        if (!dragItem) {
+    onMouseDown(e : TMouseEvent) {
+        const item = this.item
+        if (!item) {
             return
         }
-        if (this == ct.lblResultSlot) {
-            ct.useRecipe();
-        }
-        this.getInventory().setDragItem(this, dragItem, e.drag, this.w, this.h)
+        this.ct.useRecipe()
+        this.getInventory().setDragItem(this, item)
         this.setItem(null)
-        ct.updateResult()
+        this.ct.onInventoryChange('AnvilResultSlot onMouseDown')
     }
 
-    onDrop(e : any) {
-        const ct = this.ct
-        if (this == ct.lblResultSlot) {
-            return;
-        }
-        const oldItem = this.getItem();
-        if(!this.dropIncrementOrSwap(e, oldItem)) {
-            return
-        }
-        // Если это первый слот
-        if (this == ct.first_slot) {
-            const oldCurrentLabel = oldItem && ItemHelpers.getLabel(oldItem);
-            const newCurrentLabel = ItemHelpers.getLabel(this.getItem());
-            if (oldCurrentLabel !== newCurrentLabel) {
-                ct.lbl_edit.text = newCurrentLabel
-            }
-        }
-        ct.updateResult();
+    onDrop(e: TMouseEvent) {
+        // ничего
     }
 
 }
@@ -59,21 +35,17 @@ export class AnvilSlot extends CraftTableSlot {
 export class AnvilWindow extends BaseCraftWindow {
 
     lbl_edit                    : TextEdit
-    first_slot                  : AnvilSlot
-    second_slot                 : AnvilSlot
+    first_slot                  : CraftTableInventorySlot
+    second_slot                 : CraftTableInventorySlot
+    oldFirstSlotLabel ?         : string | null // старая метка предмета из 1-го слота
     recipes                     = new AnvilRecipeManager()
-    used_recipes : {
-        recipe_id       : string
-        used_items_keys : string[]
-        count           : [int, int]
-        label           : string
-    }[] = []
+    used_recipes                : TUsedAnvilRecipe[] = []
     current_recipe              : TAnvilRecipe | null = null
     current_recipe_outCount     : [int, int] | null = null
-    current_recipe_label?       : string
+    current_recipe_label?       : string | null
 
     constructor(inventory : PlayerInventory) {
-        
+
         super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmAnvil', null, null, inventory)
         this.w *= this.zoom
         this.h *= this.zoom
@@ -91,7 +63,7 @@ export class AnvilWindow extends BaseCraftWindow {
         this.createInventorySlots(this.cell_size, (this.w / this.zoom) - slots_width, 60, UI_THEME.window_padding, undefined, true)
 
         // Создание слотов для крафта
-        this.createCraft(this.cell_size);
+        this.createAnvilCraft(this.cell_size);
 
         // Редактор названия предмета
         this.createEdit()
@@ -106,19 +78,16 @@ export class AnvilWindow extends BaseCraftWindow {
 
     // Обработчик закрытия формы
     onHide() {
-        this.inventory.sendStateChange({
+        this.sendInventory({
             used_recipes: this.used_recipes,
-            recipe_manager_type: 'anvil',
-            thrown_items: this.clearCraft()
+            recipe_manager_type: 'anvil'
         })
         this.used_recipes = []
-        this.refresh()
     }
 
     // Обработчик открытия формы
     onShow(args) {
         this.lbl_edit.text = ''
-        Qubatch.releaseMousePointer()
         super.onShow(args)
     }
 
@@ -143,11 +112,11 @@ export class AnvilWindow extends BaseCraftWindow {
         this.add(lbl)
     }
 
-    private createCraft(cell_size: number) {
+    private createAnvilCraft(cell_size: number) {
         const y = 91 + 27.5
-        this.first_slot = new AnvilSlot(52 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilFirstSlot', null, null, this);
-        this.second_slot = new AnvilSlot(158 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilSecondSlot', null, null, this);
-        this.lblResultSlot = new AnvilSlot(266 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilResultSlot', null, null, this);
+        this.first_slot = new CraftTableInventorySlot(52 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilFirstSlot', null, null, this, INVENTORY_CRAFT_INDEX_MIN);
+        this.second_slot = new CraftTableInventorySlot(158 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilSecondSlot', null, null, this, INVENTORY_CRAFT_INDEX_MIN + 1);
+        this.lblResultSlot = new AnvilResultSlot(266 * this.zoom, y * this.zoom, cell_size, cell_size, 'lblAnvilResultSlot', null, null, this, null);
         this.add(this.first_slot);
         this.add(this.second_slot);
         this.add(this.lblResultSlot);
@@ -169,6 +138,7 @@ export class AnvilWindow extends BaseCraftWindow {
     updateResult() {
         const first_item = this.first_slot.getItem()
         if(!first_item) {
+            this.oldFirstSlotLabel = null
             if(this.lbl_edit.text != '') {
                 this.lbl_edit.text = ''
             }
@@ -176,11 +146,11 @@ export class AnvilWindow extends BaseCraftWindow {
             return
         }
         const second_item = this.second_slot.getItem()
-        let label : false | null | string = this.lbl_edit.text
+        let label: string | null = this.lbl_edit.text
         if (label === ItemHelpers.getLabel(first_item)) {
             // If it's the same, don't try to change, and don't validate it, so unchanged block titles
             // longer than ITEM_LABEL_MAX_LENGTH don't get rejected.
-            label = false;
+            label = ItemHelpers.LABEL_NO_CHANGE;
         } else if (label === BLOCK.fromId(first_item.id).title) {
             // If it's the same as the title, clear the label instead.
             // It must be checked here, not in the recipes, because it depeends on the user's locale.
@@ -197,7 +167,7 @@ export class AnvilWindow extends BaseCraftWindow {
         }
     }
 
-    useRecipe() {
+    useRecipe(): void {
         const count = this.current_recipe_outCount;
         // here we decrement or clear the ingredients slots
         const used_items_keys = this.getUsedItemsKeysAndDecrement(count);
@@ -209,4 +179,27 @@ export class AnvilWindow extends BaseCraftWindow {
         });
     }
 
+    sendInventory(params: TInventoryStateChangeParams): void {
+        params.used_recipes = this.used_recipes
+        params.recipe_manager_type = 'anvil'
+        this.used_recipes = []
+        super.sendInventory(params)
+    }
+
+    onInventoryChange(context?: string): void {
+        this.updateResult()
+
+        // Если в первый слот положили непустой предмет, и его метка отличается от той,
+        // что была раньше в этом слоте - сбросить редактируемый текст
+        const item = this.first_slot.item
+        if (item) {
+            const newLabel = ItemHelpers.getLabel(item);
+            if (this.oldFirstSlotLabel !== newLabel) {
+                this.oldFirstSlotLabel = newLabel
+                this.lbl_edit.text = newLabel
+            }
+        }
+
+        super.onInventoryChange(context)
+    }
 }

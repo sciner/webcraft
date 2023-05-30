@@ -328,7 +328,7 @@ export class PickAt {
         // let pp = 0;
         // let flags       = 0, sideFlags = 0, upFlags = 0;
         let block       = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-        let shapes      = BLOCK.getShapes(pos, block, this.world, false, false);
+        let shapes      = BLOCK.getShapes(block, this.world, false, false);
         let aabb = new AABB();
         for (let i = 0; i < shapes.length; i++) {
             aabb.set(...shapes[i]);
@@ -343,7 +343,7 @@ export class PickAt {
         let pp = 0;
         let flags       = 0, sideFlags = 0, upFlags = 0;
         let block       = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-        let shapes      = BLOCK.getShapes(pos, block, this.world, false, false);
+        let shapes      = BLOCK.getShapes(block, this.world, false, false);
         for (let i = 0; i < shapes.length; i++) {
             const shape = shapes[i];
             let x1 = shape[0];
@@ -420,7 +420,7 @@ export class PickAt {
             chunkAddr:  this.grid.toChunkAddr(pos),
             block:      block.clonePOJO(),
             material:   block.material,
-            fluid:      block.fluid,
+            fluid:      (pos_ as any).fluidVal,
         }
         let normal = ((pos_ as any).n);
         if (normal) {

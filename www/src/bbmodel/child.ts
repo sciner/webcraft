@@ -1,6 +1,7 @@
 import {IndexedColor, Vector} from "../helpers.js";
-import type { BBModel_Model } from "./model.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
+import type { BBModel_Model } from "./model.js";
+import type { BBModel_Group } from "./group.js";
 
 const {mat4, vec3, quat} = glMatrix;
 const TX_SIZE = 16;
@@ -18,10 +19,17 @@ export class BBModel_Child {
     matrix:             any
     visibility:         boolean
     orig_visibility:    boolean
+    name:               string
+    path:               string
+
+    private _parent:    BBModel_Group
 
     constructor(model? : BBModel_Model, json? : any) {
         this.model = model
         this.json = json
+        if(json) {
+            this.name = json.name ?? null
+        }
         this.pivot = new Vector()
         this.rot = new Vector()
         this.matrix = mat4.create()
@@ -39,5 +47,20 @@ export class BBModel_Child {
     }
 
     pushVertices(vertices : float[], pos : Vector, lm : IndexedColor, parentMatrix : imat4) {}
+
+    get parent() : BBModel_Group {
+        return this._parent
+    }
+
+    set parent(value : BBModel_Group) {
+        this._parent = value
+        const path = [this.name]
+        while(value) {
+            path.unshift(value.name)
+            value = value.parent
+        }
+        path.shift()
+        this.path = path.join('/').toLowerCase()
+    }
 
 }

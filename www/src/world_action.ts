@@ -18,6 +18,7 @@ import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
 import type { TSittingState, TSleepState} from "./player.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
+import type {TChestInfo} from "./block_helpers.js";
 
 /** A type that is as used as player in actions. */
 export type ActionPlayerInfo = {
@@ -561,6 +562,7 @@ export class WorldAction {
      * чтобы синхронизироваться с упарвлением по окончанию действия.
      */
     controlEventId? : int
+    load_chest?: TChestInfo
 
     constructor(id ? : string | int | null, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
         this.#world = world;
@@ -2339,6 +2341,12 @@ function openDoor(e, world, pos, player, world_block, world_material, mat_block,
         const block_connected = world.getBlock(connected_pos);
         if(block_connected.id == world_material.id) {
             block_connected.extra_data.opened = extra_data.opened;
+            // fix splitted doors
+            if(extra_data.point && extra_data.left !== undefined) {
+                block_connected.extra_data.point = extra_data.point
+                block_connected.extra_data.left = extra_data.left
+                block_connected.extra_data.is_head = !extra_data.is_head
+            }
             actions.addBlocks([{pos: connected_pos, item: {id: block_connected.id, rotate, extra_data: block_connected.extra_data}, action_id: BLOCK_ACTION.MODIFY}]);
         }
     }

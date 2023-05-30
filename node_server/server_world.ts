@@ -149,7 +149,7 @@ export class ServerWorld implements IWorld {
         this.db.removeDeadDrops();
         await newTitlePromise;
         this.info           = await this.db.getWorld(world_guid);
-
+        this.grid           = new ChunkGrid({chunkSize: new Vector().copyFrom(this.info.tech_info.chunk_size)})
         this.worldChunkFlags = new WorldChunkFlags(this);
         this.dbActor        = new WorldDBActor(this);
 
@@ -242,7 +242,7 @@ export class ServerWorld implements IWorld {
         // flush database
         await this.db.flushWorld()
 
-        const grid = new ChunkGrid({chunkSize: new Vector(info.tech_info.chunk_size)})
+        const grid = this.grid
         const blocks = [];
         const chunks_addr = new VectorCollector()
         const block_air = {id: 0}
@@ -308,7 +308,7 @@ export class ServerWorld implements IWorld {
 
         // store modifiers in db
         let t = performance.now()
-        await this.db.chunks.bulkInsertWorldModify(blocks, undefined, null, grid)
+        await this.db.chunks.bulkInsertWorldModify(blocks, undefined, null)
         console.log('Building: store modifiers in db ...', performance.now() - t)
 
         // compress chunks in db
@@ -609,7 +609,7 @@ export class ServerWorld implements IWorld {
         this.chat.sendSystemChatMessageToSelectedPlayers(`player_connected|${player.session.username}`, Array.from(this.players.keys()));
         // 8. Move or drop items from wrong slots
         // Это не полный фикс инвентаря. Первая часть фикса - см. при загрузке в DBWorld.registerPlayer()
-        player.inventory.moveOrDropFromInvalidOrTemporarySlots(false)
+        player.inventory.fixTemporarySlots()
         // 9. Send CMD_CONNECTED
         const data: PlayerConnectData = {
             session: player.session,
@@ -731,14 +731,22 @@ export class ServerWorld implements IWorld {
     }
 
     /**
-     * It does everything that needs to be done when a block extra_data is modified:
-     * marks the block as dirty, updates the chunk modifiers.
+     * Сохраняет измененную extra_data блока {@link tblock} в БД, модификаторах чанка и
+     * посылает ее всем игрокам, видящим этот блок, кроме {@link except_player}.
+     *
+     * Этот метод делает все, что нужно при изменении extra_data.
+     * Не нужно ничего другого посылать или создавать действий.
      */
-    onBlockExtraDataModified(tblock : TBlock, pos : IVector = tblock.posworld.clone()): void {
+    saveSendExtraData(tblock: TBlock, except_player?: ServerPlayer): void {
+        const pos = tblock.posworld
+        // запомнить изменения для записи в БД
         const item = tblock.convertToDBItem();
         const data = { pos, item };
         tblock.chunk.dbActor.markBlockDirty(data, tblock.index, BLOCK_DIRTY.UPDATE_EXTRA_DATA);
         tblock.chunk.addModifiedBlock(pos, item, item.id);
+        // отослать игрокам
+        const players = this.chests.findPlayers(tblock, except_player)
+        this.chests.sendContentToPlayers(players, tblock)
     }
 
     get chunkManager() : ServerChunkManager {

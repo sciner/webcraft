@@ -1,4 +1,4 @@
-import { calcRotateMatrix, DIRECTION, FastRandom, Helpers, IndexedColor, StringHelpers, Vector } from '../helpers.js';
+import { calcRotateMatrix, DIRECTION, FastRandom, Helpers, IndexedColor, mat4ToRotate, StringHelpers, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import { TBlock } from '../typed_blocks3.js';
@@ -17,7 +17,7 @@ import type { Biome } from '../terrain_generator/biome3/biomes.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { World } from '../world.js';
 
-const { mat4, vec3 } = glMatrix;
+const { mat4, quat, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
 const DEFAULT_AABB_SIZE = new Vector(12, 12, 12)
 const pivotObj = new Vector(0.5, .5, 0.5)
@@ -176,17 +176,39 @@ export default class style {
         let draw_bottom_copy = block.hasTag('draw_bottom_copy') && (neighbours?.DOWN && neighbours?.DOWN.material.layering)
         const floors = draw_bottom_copy ? 2 : 1
         for(let i = 0; i < floors; i++) {
-            model.draw(vertices, new Vector(x + .5, y - i, z + .5), lm, matrix, (type, pos, args) => {
-                if(typeof QubatchChunkWorker == 'undefined') {
-                    return
+            if(bb.animated && (typeof QubatchChunkWorker != 'undefined')) {
+                let animation_name = 'idle'
+                // if(block.material.chest) {
+                //     let ed = block.extra_data
+                //     let opened = ed.opened
+                //     if(ed.opened !== undefined) {
+                //         animation_name = opened ? 'open' : 'close'
+                //     }
+                // }
+                const args : IAddMeshArgs = {
+                    block_pos:          block.posworld.clone(),
+                    model:              model.name,
+                    animation_name:     animation_name,
+                    hide_groups:        model.getHiddenGroupNames(),
+                    extra_data:         block.extra_data,
+                    matrix:             matrix,
+                    rotate:             mat4ToRotate(matrix),
                 }
-                const p = new Vector(pos).addScalarSelf(.5, 0, .5)
-                particles.push({pos: p.addSelf(block.posworld), type, args})
-            })
+                QubatchChunkWorker.postMessage(['add_bbmesh', args])
+                return null
+            } else {
+                model.draw(vertices, new Vector(x + .5, y - i, z + .5), lm, matrix, (type : string, pos : Vector, args : any) => {
+                    if(typeof QubatchChunkWorker == 'undefined') {
+                        return
+                    }
+                    const p = new Vector(pos).addScalarSelf(.5, 0, .5)
+                    particles.push({pos: p.addSelf(block.posworld), type, args})
+                })
+            }
         }
         style.addParticles(model, block, matrix, particles)
         if(particles.length > 0) {
-            QubatchChunkWorker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['create_block_emitter', {
                 block_pos:  block.posworld,
                 list: particles
             }]);
@@ -303,8 +325,6 @@ export default class style {
                 mat4.copy(m, matrix)
                 mat4.rotateY(m, m, Math.PI)
                 const aabb = sign_style.makeAABBSign(tblock, x, y, z)
-                const e = 0 // -1/30
-                aabb.expand(e, e, e)
                 const fblock = sign_style.makeTextBlock(tblock, aabb, pivot, m, x, y, z)
                 if(fblock) {
                     emmited_blocks.push(fblock)
@@ -407,11 +427,6 @@ export default class style {
                         model.hideAllExcept(['top'])
                     }
                 }
-                if(tblock.extra_data?.into_pot) {
-                    // mat4.copy(matrix, tblock.matrix)
-                    mat4.scale(matrix, matrix, [.5, .5, .5])
-                    mat4.translate(matrix, matrix, [0, .5, 0]);
-                }
                 break
             }
             case 'age': {
@@ -432,19 +447,6 @@ export default class style {
             case 'chest': {
                 const type = tblock.extra_data?.type ?? null
                 const is_big = !!type
-
-                /*
-                if(typeof QubatchChunkWorker != 'undefined') {
-                    QubatchChunkWorker.postMessage(['add_bbmesh', {
-                        block_pos:          tblock.posworld.clone().addScalarSelf(0, 1, 0),
-                        model:              model.name,
-                        animation_name:     null,
-                        extra_data:         tblock.extra_data,
-                        rotate:             mat4ToRotate(matrix)
-                    }]);
-                }
-                */
-
                 if(is_big) {
                     if(type == 'left') {
                         model.hideGroups(['small', 'big'])
@@ -581,7 +583,7 @@ export default class style {
             const condition_value = when[k]
             switch(k) {
                 case 'state': {
-                    if(model.state !== condition_value) {
+                    if(Array.isArray(condition_value) ? !condition_value.includes(model.state) : (model.state !== condition_value)) {
                         return false
                     }
                     break
@@ -592,16 +594,28 @@ export default class style {
                     }
                     break
                 }
+                case 'sign:samerot': {
+                    if(sign_style.same_rot_with_up_neighbour(tblock, neighbours.UP) != condition_value) {
+                        return false
+                    }
+                    break
+                }
                 default: {
                     if(k.startsWith('neighbour.')) {
-                        // Example: "when": {"neighbour.up": "AIR"}
-                        const nname = k.substring(10).toUpperCase()
+                        const temp = k.split('.')
+                        // Examples: "when": {"neighbour.up.material.name": "AIR"}
+                        //           "when": {"neighbour.up.material.is_solid": true}
+                        if(temp.length != 4) {
+                            return false
+                        }
+                        const nname = temp[1].toUpperCase()
                         const n = neighbours[nname]
                         if(!n) {
                             return false
                         }
+                        const property_name = temp[3]
                         const nmat = n.material
-                        if(!nmat || n.material.name != when[k]) {
+                        if(!nmat || n.material[property_name] != when[k]) {
                             return false
                         }
                     } else if(k.startsWith('extra_data.')) {

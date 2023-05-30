@@ -1,7 +1,8 @@
 import { Vector } from "./helpers.js";
-import type {TChestConfirmData, TInventoryStateChangeMessage} from "./inventory.js";
+import type {TInventoryStateChangeMessage} from "./inventory.js";
 import type { ChunkManager } from "./chunk_manager.js";
 import type {TChestInfo} from "./block_helpers.js";
+import type {TChestConfirmData} from "./chest.js";
 
 type CmdListener = (INetworkMessage) => void
 type CmdListenersSet = Set<CmdListener>
@@ -113,6 +114,7 @@ export class ServerClient {
     // Drop items
 	static CMD_DROP_ITEM_ADDED          = 76;
 	static CMD_DROP_ITEM_DELETED        = 77;
+    static CMD_DROP_ITEM_PICKED         = 124 // s->p: сообщает игроку, что он успешно подобрал предмет
 	static CMD_DROP_ITEM_UPDATE         = 78;
     static CMD_DROP_ITEM_FULL_UPDATE    = 109;
 	static CMD_DROP_ITEM                = 86; // p->s (throw an item from a hand)

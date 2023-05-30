@@ -90,7 +90,7 @@ export class MobModel extends NetworkPhysicObject {
     fire?:              boolean = false
     attack?:            false | TAnimState = false
     ground:             boolean = true
-    inLiquid:           boolean = false
+    submergedPercent:   float = 0   // на какую долю погруен в жидкость, от 0 до 1. Это значение неточное, на основе другого AABB! (как в физике)
     running:            boolean = false
     driving?:           ClientDriving | null
     hasUse?:            boolean     // см. TMobConfig.hasUse
@@ -101,6 +101,9 @@ export class MobModel extends NetworkPhysicObject {
     is_sheared:         boolean = false
     gui_matrix:         float[]
     renderLast:         boolean
+    hasSwimAnim:        boolean
+    hasFastSwimAnim:    boolean
+    hasIdleSwim:        boolean
 
     #health: number = 100
     #timer_demage: number
@@ -129,6 +132,9 @@ export class MobModel extends NetworkPhysicObject {
             this._mesh.modifiers.selectTextureFromPalette('', this.skin.texture_name)
         }
 
+        this.hasSwimAnim        = this._mesh.model.animations.has('swim')
+        this.hasFastSwimAnim    = this._mesh.model.animations.has('fast_swim')
+        this.hasIdleSwim        = this._mesh.model.animations.has('idle_swim')
     }
 
     /** Мы не можем использовать в этом файле instanceof PlayerModel, т.к. не можем его испортировать из-за циклической зависимости*/
@@ -374,6 +380,15 @@ export class MobModel extends NetworkPhysicObject {
                 mesh.setAnimation('sitting')
             } else if (this?.extra_data?.attack || this.attack) {
                 mesh.setAnimation('attack')
+            } else if (!this.ground && this.submergedPercent === 1 && this.hasSwimAnim) { // плавание (если есть такая анимация)
+                if (this.running) {
+                    anim = this.hasFastSwimAnim ? 'fast_swim' : 'swim*1.5'
+                } else if (this.moving || this.movingY === 1) {
+                    anim = 'swim'
+                } else if (this.hasIdleSwim) {
+                    anim = 'idle_swim'
+                }
+                mesh.setAnimation(anim ?? 'jump')
             } else if (!this.ground && !animations?.noAirborne) { // прыжок или полет (в том числе в жидкости)
                 if (animations?.fly) {
                     if (!this.moving) {     // более медленные анимации если полет вниз или на месте

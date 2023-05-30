@@ -29,11 +29,11 @@ void main() {
     vec3 axisX = a_axisX;
     vec3 axisY = a_axisY;
 
-    if (checkFlag(LOOK_AT_CAMERA)) {
+    if (checkFlag(FLAG_LOOK_AT_CAMERA)) {
         mat3 lookAtMat = inverse(mat3(u_worldView));
         axisX = lookAtMat * axisX.xzy;
         axisY = lookAtMat * axisY.xzy;
-    } else if (checkFlag(LOOK_AT_CAMERA_HOR)) {
+    } else if (checkFlag(FLAG_LOOK_AT_CAMERA_HOR)) {
         // mat3 lookAtMat = inverse(mat3(u_worldView));
         axisX = vec3(normalize((a_position + add_pos).yx) * length(a_axisX), 0.0);
         axisX.y = -axisX.y;
@@ -53,7 +53,7 @@ void main() {
     }
 
     //
-    if (checkFlag(NORMAL_UP)) {
+    if (checkFlag(FLAG_NORMAL_UP)) {
         v_normal = -normalize(axisY);
     } else {
         v_normal = normalize(cross(axisX, axisY));
@@ -83,7 +83,7 @@ void main() {
     v_texcoord1_diff = uvCenter1 - uvCenter0;
 
     if(u_fogOn) {
-        if (!checkFlag(MASK_BIOME) && !checkFlag(FLAG_MASK_COLOR_ADD)) {
+        if (!checkFlag(FLAG_MASK_BIOME) && !checkFlag(FLAG_MASK_COLOR_ADD)) {
             v_color.a = 0.0;
         }
     }

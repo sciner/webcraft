@@ -1,53 +1,42 @@
 import {Mth, Vector} from "../helpers.js";
 import { Effect } from "../block_type/effect.js";
 import { AABB } from "./lib/aabb.js";
-import {Resources} from "../resources.js";
-import type {FakeBlock, TPrismarineOptions} from "./using.js";
-import {FakeWorld, addDefaultPhysicsOptions} from "./using.js";
+import type {TPrismarineOptions} from "./using.js";
+import {addDefaultPhysicsOptions, PhysicsBlockAccessor, PhysicsBlock, LiquidBlock} from "./using.js";
 import {PHYSICS_ROTATION_DECIMALS, PLAYER_ZOOM} from "../constant.js";
-import { TBlock } from "../typed_blocks3.js";
 import type {IPlayerControls, IPlayerControlState} from "../control/player_control.js";
 import type {Effects} from "../player.js";
 import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID} from "../fluid/FluidConst.js";
 import type {World} from "../world.js";
 import type {TDrivingConfig} from "../control/driving.js";
+import type {TBlock} from "../typed_blocks3.js";
 
 const BLOCK_NOT_EXISTS = -2;
-const _ladder_check_tblock = new TBlock()
-const tmpVectorCursor = new Vector()
 const DX_DZ_FOUR_DIRECTIONS = [[0, 1], [-1, 0], [0, -1], [1, 0]]
-
-function makeSupportFeature(mcData, features): (feature: string) => boolean {
-    return feature => features.some(({ name, versions }) => name === feature && versions.includes(mcData.version.majorVersion))
-}
 
 type TPrismarineEffects = {
     effects?: Effects[]
 }
 
 type TLiquidInBB = {
-    waterBlocks: FakeBlock[]
-    lavaBlocks: FakeBlock[]
+    waterBlocks: LiquidBlock[]
+    lavaBlocks: LiquidBlock[]
     submergedHeight: float
 }
 
 export class Physics {
 
-    private readonly world              : FakeWorld
     private readonly block_manager      : typeof BLOCK
 
     // ================== options from old Physics function ===================
 
-    private readonly supportFeature_velocityBlocksOnTop: boolean
-    private readonly supportFeature_climbUsingJump: boolean
     private readonly blockSlipperiness  : (float | undefined)[] = []
     // Block ids
     private readonly slimeBlockId       : int | null
     private readonly soulsandId         : int
     private readonly honeyblockId       : int // 1.15+
     private readonly cobwebLikePassable : (float | undefined)[] = [] // for cobweb-like it's passable value
-    private readonly ladderId           : int
-    private readonly vineId             : int
+    private readonly ladderIds          : int[]
     private readonly bubbleColumnId     : int
     private readonly iceIds             : int[]
     private tinaLikePassable            : float
@@ -140,27 +129,29 @@ export class Physics {
     // ========================== temporary objects ===========================
 
     private repeated        : boolean   // true если симуляция повторная (на клиенте)
+    private blockAccessor   : PhysicsBlockAccessor
     private tmpPlayerBB     = new AABB()
     private tmpWaterBB      = new AABB()
     private tmpLavaBB       = new AABB()
     private tmpLiquidBB     = new AABB()
     private tmpBB           = new AABB()
     private tmpBBgetLiquid  = new AABB()
-    private tmpVector       = new Vector()
     private tmpFlowVec      = new Vector()
     private tmpAccelerationVec = new Vector()
+    private tmpDesiredSpeed = new Vector()
+    private tmpTriedSpeed   = new Vector()
+    private tmpFakeBlock    : PhysicsBlock
+    private tmpFakeBlock2   : PhysicsBlock
+    private tmpSurroundingBBs   : AABB[] = []
 
     constructor(world: World) {
-        const mcData        = FakeWorld.getMCData()
-        this.world          = new FakeWorld(world)
         this.block_manager  = world.block_manager
         const bm            = this.block_manager
+        this.blockAccessor  = new PhysicsBlockAccessor(world)
+        this.tmpFakeBlock   = new PhysicsBlock(bm)
+        this.tmpFakeBlock2  = new PhysicsBlock(bm)
 
         // ================== options from old Physics function ===================
-
-        const supportFeature = makeSupportFeature(mcData, Resources.physics.features)
-        this.supportFeature_velocityBlocksOnTop = supportFeature('velocityBlocksOnTop')
-        this.supportFeature_climbUsingJump =  supportFeature('climbUsingJump')
 
         // Block Slipperiness
         // https://www.mcpk.wiki/w/index.php?title=Slipperiness
@@ -189,23 +180,15 @@ export class Physics {
         for (const block of [bm.COBWEB, bm.SWEET_BERRY_BUSH]) {
             this.cobwebLikePassable[block.id] = block.passable
         }
-        this.ladderId       = bm.LADDER.id
-        this.vineId         = bm.VINE.id
+        this.ladderIds      = [bm.LADDER, bm.VINE].map(mat => mat.id)
         this.bubbleColumnId = bm.BUBBLE_COLUMN?.id ?? BLOCK_NOT_EXISTS // 1.13+
         this.iceIds         = [bm.ICE, ...bm.bySuffix['_ICE']].map(mat => mat.id)
 
         // =================== options from old physics object ====================
 
-        if (supportFeature('independentLiquidGravity')) {
-            this.waterGravity   = 0.02
-            this.lavaGravity    = 0.02
-        } else if (supportFeature('proportionalLiquidGravity')) {
-            this.waterGravity   = this.gravity / 16
-            this.lavaGravity    = this.gravity / 4
-        } else {
-            this.waterGravity   = 0
-            this.lavaGravity    = 0
-        }
+        // код для случая supportFeature('proportionalLiquidGravity')
+        this.waterGravity   = this.gravity / 16
+        this.lavaGravity    = this.gravity / 4
     }
 
     private getPlayerBB(entity: PrismarinePlayerState, pos: IVector, res: AABB): AABB {
@@ -222,21 +205,23 @@ export class Physics {
         pos.z = bb.z_min + halfWidth
     }
 
-    private getSurroundingBBs(queryBB: AABB): AABB[] {
-        const world = this.world
-        const surroundingBBs = []
-        const cursor = new Vector(0, 0, 0)
-        for (cursor.y = Math.floor(queryBB.y_min) - 1; cursor.y <= Math.floor(queryBB.y_max); cursor.y++) {
-            for (cursor.z = Math.floor(queryBB.z_min); cursor.z <= Math.floor(queryBB.z_max); cursor.z++) {
-                for (cursor.x = Math.floor(queryBB.x_min); cursor.x <= Math.floor(queryBB.x_max); cursor.x++) {
-                    const block = world.getBlock(cursor)
-                    if (block && block.id > 0) {
-                        const blockPos = block.position
-                        for (const shape of block.shapes) {
-                            const blockBB = new AABB(shape[0], shape[1], shape[2], shape[3], shape[4], shape[5])
-                            blockBB.translate(blockPos.x, blockPos.y, blockPos.z)
-                            surroundingBBs.push(blockBB)
-                        }
+    /**
+     * Возвращает AABB препятствий.
+     * Результат действительне до повторного вызова - повторно использует один и тот же массив.
+     */
+    private getSurroundingBBs(queryBB: AABB, findFirst?: boolean): AABB[] {
+        const surroundingBBs = this.tmpSurroundingBBs
+        surroundingBBs.length = 0
+        let acc = this.blockAccessor
+        for (let y = Math.floor(queryBB.y_min) - 1; y <= Math.floor(queryBB.y_max); y++) { // если findFirst == true, начинать с y  быстрее
+            acc.y = y
+            for (let z = Math.floor(queryBB.z_min); z <= Math.floor(queryBB.z_max); z++) {
+                acc.z = z
+                for (let x = Math.floor(queryBB.x_min); x <= Math.floor(queryBB.x_max); x++) {
+                    acc.x = x
+                    acc.getObstacleAABBs(surroundingBBs)
+                    if (findFirst && surroundingBBs.length) {
+                        return surroundingBBs
                     }
                 }
             }
@@ -245,12 +230,12 @@ export class Physics {
     }
 
     private moveEntity(entity: PrismarinePlayerState, dx: float, dy: float, dz: float): void {
-        const world = this.world
         const options = entity.options
         const vel = entity.vel
         const pos = entity.pos
         let playerBB = this.getPlayerBB(entity, pos, this.tmpPlayerBB)
         const tmpBB = this.tmpBB
+        const acc = this.blockAccessor
 
         if (entity.isInWeb) {
             dx *= entity.passable; // 0.25
@@ -275,23 +260,26 @@ export class Physics {
         let oldVelZ = dz
 
         // не допустить падения с блока
+        // Очень медленно (куча лишних вычислений AABB), но редко выполняется - можно не оптимизировать.
         if (entity.onGround && (entity.control.sneak || this.repeated)) {
             const step = 0.05
 
             // In the 3 loops bellow, y offset should be -1, but that doesnt reproduce vanilla behavior.
-            for (; dx !== 0 && this.getSurroundingBBs(tmpBB.copyFrom(playerBB).translate(dx, 0, 0)).length === 0; oldVelX = dx) {
+            while (dx !== 0 && this.getSurroundingBBs(tmpBB.copyFrom(playerBB).translate(dx, 0, 0), true).length === 0) {
                 if (dx < step && dx >= -step) dx = 0
                 else if (dx > 0) dx -= step
                     else dx += step
+                oldVelX = dx
             }
 
-            for (; dz !== 0 && this.getSurroundingBBs(tmpBB.copyFrom(playerBB).translate(0, 0, dz)).length === 0; oldVelZ = dz) {
+            while (dz !== 0 && this.getSurroundingBBs(tmpBB.copyFrom(playerBB).translate(0, 0, dz), true).length === 0) {
                 if (dz < step && dz >= -step) dz = 0
                 else if (dz > 0) dz -= step
                     else dz += step
+                oldVelZ = dz
             }
 
-            while (dx !== 0 && dz !== 0 && this.getSurroundingBBs(tmpBB.copyFrom(playerBB).translate(dx, 0, dz)).length === 0) {
+            while (dx !== 0 && dz !== 0 && this.getSurroundingBBs(tmpBB.copyFrom(playerBB).translate(dx, 0, dz), true).length === 0) {
                 if (dx < step && dx >= -step) dx = 0
                 else if (dx > 0) dx -= step
                     else dx += step
@@ -418,7 +406,7 @@ export class Physics {
         entity.isCollidedVertically = dy !== oldVelY
         entity.onGround = entity.isCollidedVertically && oldVelY < 0
 
-        const blockAtFeet = world.getBlock(pos.offset(0, -0.2, 0))
+        const blockAtFeet = acc.setOffsetFloor(pos, 0, -0.2, 0).getBlock()
 
         if (dx !== oldVelX) vel.x = 0
         if (dz !== oldVelZ) vel.z = 0
@@ -432,21 +420,14 @@ export class Physics {
 
         // Finally, apply block collisions (web, soulsand...)
         playerBB.contract(0.001, 0.001, 0.001)
-        const cursor = new Vector(0, 0, 0)
-        for (cursor.y = Math.floor(playerBB.y_min); cursor.y <= Math.floor(playerBB.y_max); cursor.y++) {
-            for (cursor.z = Math.floor(playerBB.z_min); cursor.z <= Math.floor(playerBB.z_max); cursor.z++) {
-                for (cursor.x = Math.floor(playerBB.x_min); cursor.x <= Math.floor(playerBB.x_max); cursor.x++) {
-                    const block = world.getBlock(cursor)
+        for (let y = Math.floor(playerBB.y_min); y <= Math.floor(playerBB.y_max); y++) {
+            acc.y = y
+            for (let z = Math.floor(playerBB.z_min); z <= Math.floor(playerBB.z_max); z++) {
+                acc.z = z
+                for (let x = Math.floor(playerBB.x_min); x <= Math.floor(playerBB.x_max); x++) {
+                    acc.x = x
+                    const block = acc.getBlock()
                     if (block && block.id > 0) {
-                        /*if (supportFeature('velocityBlocksOnCollision')) {
-                            if (block.id === soulsandId) {
-                                vel.x *= this.soulsandSpeed
-                                vel.z *= this.soulsandSpeed
-                            } else if (block.id === honeyblockId) {
-                                vel.x *= this.honeyblockSpeed
-                                vel.z *= this.honeyblockSpeed
-                            }
-                        }*/
                         const cobwebLikePassable = this.cobwebLikePassable[block.id]
                         if (block.id == this.tinaId && (block.position.y + .0625) > playerBB.y_min) {
                             // блок тины
@@ -458,8 +439,8 @@ export class Physics {
                         } else if (block.id === this.bubbleColumnId) {
                             // TODO: fast fix
                             const down = false; // !block.metadata
-                            const aboveBlock = world.getBlock(cursor.offset(0, 1, 0))
-                            const bubbleDrag = (aboveBlock && aboveBlock.id === 0 /* air */) ? this.bubbleColumnSurfaceDrag : this.bubbleColumnDrag
+                            acc.y = y + 1
+                            const bubbleDrag = acc.block.id === 0 ? this.bubbleColumnSurfaceDrag : this.bubbleColumnDrag
                             if (down) {
                                 vel.y = Math.max(bubbleDrag.maxDown, vel.y - bubbleDrag.down)
                             } else {
@@ -470,67 +451,66 @@ export class Physics {
                 }
             }
         }
-        if (this.supportFeature_velocityBlocksOnTop) {
-            const blockBelow = world.getBlock(entity.pos.floored().offsetSelf(0, -0.5, 0))
-            if (blockBelow && blockBelow.id > 0) {
-                if (blockBelow.id === this.soulsandId) {
-                    vel.x *= this.soulsandSpeed
-                    vel.z *= this.soulsandSpeed
-                } else if (blockBelow.id === this.honeyblockId) {
-                    vel.x *= this.honeyblockSpeed
-                    vel.z *= this.honeyblockSpeed
-                }
+        // код для случая supportFeature('velocityBlocksOnTop')
+        const blockBelow = acc.setOffsetFloor(entity.pos, 0, -0.5, 0).getBlock()
+        if (blockBelow && blockBelow.id > 0) {
+            if (blockBelow.id === this.soulsandId) {
+                vel.x *= this.soulsandSpeed
+                vel.z *= this.soulsandSpeed
+            } else if (blockBelow.id === this.honeyblockId) {
+                vel.x *= this.honeyblockSpeed
+                vel.z *= this.honeyblockSpeed
             }
         }
     }
 
     /**
+     * Добавляет к X и Z скорости в желаемом направлении.
      * @param strafe - см. forward
      * @param forward Поведение: при длине вектора (strafe, forward) <= 1, ускорение пропорционально и длине
      *   этого вектора, и {@param multiplier}. При дальнейшкм росте длины этого вектора, ускорение уже не растет.
      */
-    private applyHeading(entity: PrismarinePlayerState, strafe: float, forward: float, multiplier: float): void {
-        const length = Math.sqrt(strafe * strafe + forward * forward)
-        if (length < 0.01) return
+    private applyHeading(vel: Vector, yaw: float, strafe: float, forward: float, multiplier: float): void {
+        const lengthSqr = strafe * strafe + forward * forward
+        if (lengthSqr < 0.01 * 0.01) return
+        const length = Math.sqrt(lengthSqr)
 
-        const norm = multiplier / Math.max(length, 1)
+        const norm = this.scale * multiplier / Math.max(length, 1)
 
-        strafe *= norm * this.scale
-        forward *= norm * this.scale
+        strafe *= norm
+        forward *= norm
 
-        const yaw = Math.PI - entity.yaw
+        yaw = Math.PI - yaw
         const sin = Math.sin(yaw)
         const cos = Math.cos(yaw)
 
-        const vel = entity.vel
         vel.x += strafe * cos - forward * sin
         vel.z += forward * cos + strafe * sin
     }
 
-    private isLadder(block: FakeBlock | null): boolean {
-        return (block && (block.id === this.ladderId || block.id === this.vineId))
-    }
-
     private isOnLadder(pos: Vector): boolean {
+        const acc = this.blockAccessor
         const offset_value_y = .07
-        const _pos = pos.offset(0, offset_value_y, 0).flooredSelf()
-        const block = this.world.getBlock(_pos, _ladder_check_tblock)
-        let resp = this.isLadder(block)
-        // if block is opened trapdoor
-        if(!resp && block?.tblock && block.tblock.material.tags.includes('trapdoor') && block.tblock.extra_data?.opened) {
-            // check under block
-            _pos.y--
-            resp = this.isLadder(this.world.getBlock(_pos))
+        const block = acc.setOffsetFloor(pos, 0, offset_value_y, 0).block
+        const id = block.id
+        if (id > 0) {
+            if (this.ladderIds.includes(id)) {
+                return true
+            }
+            // if block is opened trapdoor
+            if(block.material.tags.includes('trapdoor') && block.extra_data?.opened) {
+                // check under block
+                acc.y--
+                if (this.ladderIds.includes(acc.block.id)) {
+                    return true
+                }
+            }
         }
-        return resp
-    }
-
-    private doesNotCollide(entity: PrismarinePlayerState, pos: Vector): boolean {
-        const pBB = this.getPlayerBB(entity, pos, this.tmpPlayerBB)
-        return !this.getSurroundingBBs(pBB).some(x => pBB.intersect(x)) && this.getLiquidInBB(pBB) == null
+        return false
     }
 
     private moveEntityWithHeading(entity: PrismarinePlayerState, strafe: number, forward: number): void {
+        const acc = this.blockAccessor
         const options = entity.options
         const vel = entity.vel
         const pos = entity.pos
@@ -549,11 +529,11 @@ export class Physics {
                 inertia         = this.flyingInertia
                 acceleration    = this.flyingAcceleration
             } else if (entity.onGround) {
-                const blockUnder = this.world.getBlock(pos.offset(0, -1, 0))
-                if (blockUnder) {
-                    inertia = (this.blockSlipperiness[blockUnder.id] || options.defaultSlipperiness) * 0.91
-                    if (options.useBoatSpeed && this.iceIds.includes(blockUnder.id)) {
-                        acceleration = blockUnder.id === this.block_manager.BLUE_ICE?.id
+                const blockUnderId = acc.setOffsetFloor(pos, 0, -1, 0).block.id
+                if (blockUnderId) {
+                    inertia = (this.blockSlipperiness[blockUnderId] || options.defaultSlipperiness) * 0.91
+                    if (options.useBoatSpeed && this.iceIds.includes(blockUnderId)) {
+                        acceleration = blockUnderId === this.block_manager.BLUE_ICE?.id
                             ? this.boatBlueIceAcceleration
                             : this.boatOtherIceAcceleration
                     } else {
@@ -577,7 +557,7 @@ export class Physics {
                 acceleration *= this.slowEffect / slowness;
             }
 
-            this.applyHeading(entity, strafe, forward, acceleration)
+            this.applyHeading(entity.vel, entity.yaw, strafe, forward, acceleration)
 
             if (entity.isOnLadder) {
                 vel.x = Mth.clampModule(vel.x, this.ladderMaxSpeed)
@@ -587,8 +567,8 @@ export class Physics {
 
             this.moveEntity(entity, vel.x, vel.y, vel.z)
 
-            if (entity.isOnLadder && (entity.isCollidedHorizontally ||
-                (this.supportFeature_climbUsingJump && entity.control.jump))) {
+            // считаем включенным supportFeature('climbUsingJump') - учитываем entity.control.jump
+            if (entity.isOnLadder && (entity.isCollidedHorizontally || entity.control.jump)) {
                 vel.y = this.ladderClimbSpeed // climb ladder
             }
 
@@ -626,6 +606,10 @@ export class Physics {
                     horizontalInertia += (0.546 - horizontalInertia) * strider / 3
                     acceleration += (0.7 - acceleration) * strider / 3
                 }
+                // Сделать скорость при беге (быстром плавании) чуть больше. Это не как в майне - просто чтобы был хоть какой-то эффект
+                if (entity.control.sprint) {
+                    acceleration *= this.sprintSpeed
+                }
 
                 if (entity.dolphinsGrace > 0) horizontalInertia = 0.96
             }
@@ -655,33 +639,32 @@ export class Physics {
                 vel.y -= liquidGravity
             }
 
-            this.applyHeading(entity, strafe, forward, acceleration)
+            const desiredSpeed = this.tmpDesiredSpeed.zero()    // скорость которую хочет сам игрок (без учета течения)
+            this.applyHeading(desiredSpeed, entity.yaw, strafe, forward, acceleration)
+            vel.addSelf(desiredSpeed)
+            const triedSpeed = this.tmpTriedSpeed.copyFrom(vel) // скорость до уменьшения в результате коллизий
             this.moveEntity(entity, vel.x, vel.y, vel.z)
             vel.y *= verticalInertia
             vel.x *= horizontalInertia
             vel.z *= horizontalInertia
 
-            const liquidImpulseTestY = vel.y + 0.6 - pos.y + lastY + (options.floatSubmergedHeight ?? 0)
-            if (entity.isCollidedHorizontally && this.doesNotCollide(entity, pos.offset(vel.x, liquidImpulseTestY, vel.z))) {
-                vel.y = this.outOfLiquidImpulse // jump out of liquid
-            }
-        }
-    }
+            // если уперся в препятствие, и сам хочет двигаться примерно в том же направлении
+            if (entity.isCollidedHorizontally &&
+                (desiredSpeed.x || desiredSpeed.z) && (triedSpeed.x || triedSpeed.z) &&
+                Math.abs(Mth.radians_to_minus_PI_PI_range(triedSpeed.getYaw() - desiredSpeed.getYaw())) < Mth.PI_DIV2
+            ) {
+                // код бывший в функции doesNotCollide(). Перенесен сюда чтобы было ясно видно где вызвается getSurroundingBBs()
+                const liquidImpulseTestY = vel.y + 0.6 - pos.y + lastY + (options.floatSubmergedHeight ?? 0)
+                const posBB = pos.offset(vel.x, liquidImpulseTestY, vel.z)
+                const pBB = this.getPlayerBB(entity, posBB, this.tmpPlayerBB)
+                const desNotCollide = !this.getSurroundingBBs(pBB).some(x => pBB.intersect(x))
+                    && this.getLiquidInBB(pBB, null, null, true) == null
 
-    private isMaterialInBB(queryBB: AABB, type: int|int[]): boolean {
-        const world = this.world
-        const cursor = tmpVectorCursor
-        for (cursor.y = Math.floor(queryBB.y_min); cursor.y <= Math.floor(queryBB.y_max); cursor.y++) {
-            for (cursor.z = Math.floor(queryBB.z_min); cursor.z <= Math.floor(queryBB.z_max); cursor.z++) {
-                for (cursor.x = Math.floor(queryBB.x_min); cursor.x <= Math.floor(queryBB.x_max); cursor.x++) {
-                    const block = world.getBlock(cursor)
-                    if (block && ((type as []).length ? (type as int[]).includes(block.id) : block.id === type)) {
-                        return true
-                    }
+                if (desNotCollide) {
+                    vel.y = this.outOfLiquidImpulse // jump out of liquid
                 }
             }
         }
-        return false
     }
 
     /**
@@ -689,66 +672,64 @@ export class Physics {
      *  0 - no water
      *  1 - full of water
      */
-    private getLiquidHeightPcent(block: FakeBlock): float {
-
+    private getLiquidHeightPcent(block: LiquidBlock): float {
 
         /* Old code:
         return (getRenderedDepth(block) + 1) / 9
         */
 
-
         const renderDepth = this.getRenderedDepth(block)
         return renderDepth < 0 ? 0 : (8 - renderDepth) / 8
     }
 
-    private getFlow(block: FakeBlock, flow: Vector): void {
-        flow.zero()
-        const block_position = block.position
-        const world = this.world
-        const curlevel = this.getRenderedDepth(block)
-        const tmpVec = this.tmpVector
-        for (const [dx, dz] of DX_DZ_FOUR_DIRECTIONS) {
-            const pos = tmpVec.copyFrom(block_position).translate(dx, 0, dz)
-            const adjBlock = world.getBlock(pos)
-            const adjLevel = this.getRenderedDepth(adjBlock)
-            if (adjLevel < 0) { // if there is no water
-                /*
-                Old code, adjBlock.boundingBox doesn't exist:
-                if (adjBlock && adjBlock.boundingBox !== 'empty') {
-                */
-                if (adjBlock) {
-                    pos.y--
-                    const adjLevel = this.getRenderedDepth(world.getBlock(pos))
-                    if (adjLevel >= 0) {
-                        const f = adjLevel - (curlevel - 8)
-                        flow.x += dx * f
-                        flow.z += dz * f
-                    }
-                }
-            } else {
-                const f = adjLevel - curlevel
-                flow.x += dx * f
-                flow.z += dz * f
-            }
+    private getFlow(block: LiquidBlock, flow: Vector): void {
+
+        function isSolidForFluid(block: IBlockMaterial): boolean {
+            return block.is_solid || block.is_solid_for_fluid
         }
 
-        const fluidLevel = block.fluid & FLUID_LEVEL_MASK
-        if (fluidLevel >= 8) {
-            for (const [dx, dz] of DX_DZ_FOUR_DIRECTIONS) {
-                const pos = tmpVec.copyFrom(block_position).translate(dx, 0, dz)
-                const adjBlock = world.getBlock(pos)
-                pos.y++
-                const adjUpBlock = world.getBlock(pos)
-                /*
-                Old code, adjBlock.boundingBox doesn't exist; normalize() is immutable
-                if ((adjBlock && adjBlock.boundingBox !== 'empty') || (adjUpBlock && adjUpBlock.boundingBox !== 'empty')) {
-                    flow.normalize().translate(0, -6, 0)
+        const acc = this.blockAccessor
+        let emptyNeighbours = 0
+        flow.zero()
+        const block_position = block.position
+        const curDepth = this.getRenderedDepth(block)
+        for (const [dx, dz] of DX_DZ_FOUR_DIRECTIONS) {
+            const adjBlock = acc.setOffsetFloor(block_position, dx, 0, dz).getBlock(this.tmpFakeBlock)
+            let neighbourDepth = this.getRenderedDepth(acc.block) // модифицированная глубина воды в двух соседних блоках, если туда может протечь
+            if (neighbourDepth < 0) { // если нет воды в соседнем блоке
+                const adjIsSolid = adjBlock && isSolidForFluid(adjBlock.material)
+                if (!adjIsSolid) {
+                    emptyNeighbours++
                 }
-                */
-                if (adjBlock || adjUpBlock) {
-                    flow.normalizeSelf().translate(0, -6, 0)
+                acc.y-- // смотрим на блок под соседним
+                const adjDownBlock = acc.block
+                if (isSolidForFluid(adjDownBlock.material)) { // если в блок под соседним не может протечь вода
+                    if (adjIsSolid) {
+                        continue // и в соседний тоже не может протечь - никуда не течет
+                    }
+                    // Верх блока под соседним - "дно", в соседний может протечь вода.
+                    // Считаем как будто там есть воды немножко.
+                    neighbourDepth = 7
+                } else { // в блок под соседним может протечь вода
+                    let adjDownDepth = this.getRenderedDepth(adjDownBlock)
+                    if (adjDownDepth < 0) {
+                        adjDownDepth = 7 // воды нет, но мы уже проверили что может протечь - будем считать что немного есть
+                    } else if (adjDownDepth === 0 && adjIsSolid) {
+                        // Блок под соседним полон, и в соседний не может протечь.
+                        // Это типичная ситуация возле некоторых берегов, например, ледника.
+                        continue
+                    }
+                    neighbourDepth = adjDownDepth + 8
                 }
             }
+            const f = neighbourDepth - curDepth
+            flow.x += dx * f
+            flow.z += dz * f
+        }
+
+        if ((block.fluid & FLUID_LEVEL_MASK) >= 8) { // если вода в текущем блоке "стекла сверху"
+            // если мы находимся на краю отвесной стены воды - добавить поток вниз. Чем больше пустых соседей, тем сильней.
+            flow.y -= emptyNeighbours * 6
         }
 
         flow.normalizeSelf()
@@ -762,7 +743,7 @@ export class Physics {
      *  ...
      *  7 - 1/8 of block is filled with water
      */
-    private getRenderedDepth(block: FakeBlock): float {
+    private getRenderedDepth(block: LiquidBlock | TBlock | null): float {
         const fluid = block?.fluid
         if (!fluid) {
             return -1
@@ -771,29 +752,29 @@ export class Physics {
         return fluidLevel >= 8 ? 0 : fluidLevel
     }
 
-    private getLiquidInBB(bb: AABB, waterBB?: AABB, lavaBB?: AABB): TLiquidInBB | null {
-        const world = this.world
+    private getLiquidInBB(bb: AABB, waterBB?: AABB | null, lavaBB?: AABB | null, findFirst?: boolean): TLiquidInBB | null {
         let res: TLiquidInBB | null = null
-        const cursor = tmpVectorCursor
-        for (cursor.y = Math.floor(bb.y_min); cursor.y <= Math.floor(bb.y_max); cursor.y++) {
-            for (cursor.z = Math.floor(bb.z_min); cursor.z <= Math.floor(bb.z_max); cursor.z++) {
-                for (cursor.x = Math.floor(bb.x_min); cursor.x <= Math.floor(bb.x_max); cursor.x++) {
-                    const block = world.getBlock(cursor)
-                    /* Old code: waterlogged doesn't exist
-                    if (block && block.material && (block.material.is_water || waterLike.has(block.id) || block.getProperties().waterlogged)) {
-                        const waterLevel = cursor.y + 1 - getLiquidHeightPcent(block)
-                    */
+        const acc = this.blockAccessor
+        for (let y = Math.floor(bb.y_min); y <= Math.floor(bb.y_max); y++) { // если findFirst == true, начинать с y  быстрее
+            acc.y = y
+            for (let z = Math.floor(bb.z_min); z <= Math.floor(bb.z_max); z++) {
+                acc.z = z
+                for (let x = Math.floor(bb.x_min); x <= Math.floor(bb.x_max); x++) {
+                    acc.x = x
+                    const block = acc.getLiquidBlock()
+                    if (!block) {
+                        continue
+                    }
                     let level = this.getLiquidHeightPcent(block)
                     if (level) {
-                        level += cursor.y
+                        level += y
                         const isWater = (block.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID
                         let liquidBB = bb
 
                         // if specific (smaller) BBs are given for water and lava
                         if (waterBB) {
                             liquidBB = isWater ? waterBB : lavaBB
-                            const blockBB = this.tmpBBgetLiquid.set(cursor.x, cursor.y, cursor.z,
-                                cursor.x + 1, level, cursor.z + 1)
+                            const blockBB = this.tmpBBgetLiquid.set(x, y, z, x + 1, level, z + 1)
                             if (!liquidBB.intersect(blockBB)) {
                                 continue
                             }
@@ -809,6 +790,9 @@ export class Physics {
                             const resBlocks = isWater ? res.waterBlocks : res.lavaBlocks
                             resBlocks.push(block)
                             res.submergedHeight = Math.max(res.submergedHeight, submergedHeight)
+                            if (findFirst) {
+                                return res
+                            }
                         }
                     }
                 }
@@ -845,6 +829,7 @@ export class Physics {
         const vel = entity.vel
         const pos = entity.pos
         const control = entity.control
+        const acc = this.blockAccessor.reset(entity.pos)
 
         this.repeated = repeated
 
@@ -864,6 +849,8 @@ export class Physics {
             entity.isInWater = liquidInBB.waterBlocks.length != 0
             entity.isInLava = liquidInBB.lavaBlocks.length != 0
             entity.submergedHeight = liquidInBB.submergedHeight
+            // Из-за манипуляций с AABB, значение submergedHeight неточное. waterBB имеет наименьщею высоту.
+            entity._submergedPercent = Math.min(1, liquidInBB.submergedHeight / waterBB.height)
         } else {
             entity.isInWater = entity.isInLava = false
         }
@@ -895,7 +882,7 @@ export class Physics {
                 if (jumpSpeed) {
                     vel.y = Math.fround(jumpSpeed * this.scale)
                     if(this.honeyblockId != BLOCK_NOT_EXISTS) {
-                        const blockBelow = this.world.getBlock(entity.pos.floored().offsetSelf(0, -0.5, 0))
+                        const blockBelow = acc.setOffsetFloor(entity.pos, 0, -0.5, 0).getBlock()
                         vel.y *= ((blockBelow && blockBelow.id === this.honeyblockId) ? this.honeyblockJumpSpeed : 1);
                     }
                     const jumpBoost = getEffectLevel(Effect.JUMP_BOOST, entity.options.effects);
@@ -970,46 +957,6 @@ export class Physics {
     }
 }
 
-function getEnchantmentLevel(mcData, enchantmentName, enchantments) {
-    const enchantmentDescriptor = mcData.enchantmentsByName[enchantmentName]
-    if (!enchantmentDescriptor) {
-        return 0
-    }
-
-    for (const enchInfo of enchantments) {
-        if (typeof enchInfo.id === 'string') {
-            if (enchInfo.id.includes(enchantmentName)) {
-                return enchInfo.lvl
-            }
-        } else if (enchInfo.id === enchantmentDescriptor.id) {
-            return enchInfo.lvl
-        }
-    }
-    return 0
-}
-
-function getStatusEffectNamesForVersion(supportFeature) {
-    if (supportFeature('effectNamesAreRegistryNames')) {
-        return {
-            jumpBoostEffectName: 'jump_boost',
-            speedEffectName: 'speed',
-            slownessEffectName: 'slowness',
-            dolphinsGraceEffectName: 'dolphins_grace',
-            slowFallingEffectName: 'slow_falling',
-            levitationEffectName: 'levitation'
-        }
-    } else {
-        return {
-            jumpBoostEffectName: 'JumpBoost',
-            speedEffectName: 'Speed',
-            slownessEffectName: 'Slowness',
-            dolphinsGraceEffectName: 'DolphinsGrace',
-            slowFallingEffectName: 'SlowFalling',
-            levitationEffectName: 'Levitation'
-        }
-    }
-}
-
 // возвращает уровень эффекта
 function getEffectLevel(val: int, effects?: TPrismarineEffects): int {
     if (!effects?.effects) {
@@ -1039,6 +986,11 @@ export class PrismarinePlayerState implements IPlayerControlState {
     sneak       = false
     /** If isInWater or isInLava, it shows the height of the part of the bounding box that is below the surface */
     submergedHeight?: float
+    /**
+     * Часть от целого, погруженная в жидкость (важно: не от полной высоты объекта, а от фиктивного "сжатого" AABB)
+     * Если не в жидкости - не определено. В АПИ использовать {@link submergedPercent}
+     */
+    _submergedPercent?: float
     isInWeb     = false
     isInTina    = false
     isOnLadder  = false
@@ -1082,6 +1034,10 @@ export class PrismarinePlayerState implements IPlayerControlState {
     }
 
     get isInLiquid(): boolean { return this.isInWater || this.isInLava }
+
+    get submergedPercent(): float {
+        return this.isInWater || this.isInLava ? this._submergedPercent : 0
+    }
 
     /**
      * Копирует некоторые динамически меняющиеся поля из другого состояния.

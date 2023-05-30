@@ -1,46 +1,12 @@
-import {ArrayOrMap, Helpers} from "./helpers.js";
-import {PAPERDOLL_BACKPACK, PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, BAG_LENGTH_MIN, BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, HOTBAR_LENGTH_MIN, PAPERDOLL_CONTAINERS_SLOTS, INVENTORY_DRAG_SLOT_INDEX, INVENTORY_SLOT_COUNT, PAPERDOLL_MIN_INDEX, PAPERDOLL_MAX_INDEX, BAG_MAX_INDEX} from "./constant.js";
+import {ArrayOrMap, Helpers, ObjectHelpers} from "./helpers.js";
+import {PAPERDOLL_BACKPACK, PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, BAG_LENGTH_MIN,
+    BAG_LENGTH_MAX, HOTBAR_LENGTH_MAX, HOTBAR_LENGTH_MIN, PAPERDOLL_CONTAINERS_SLOTS, INVENTORY_DRAG_SLOT_INDEX,
+    INVENTORY_SLOT_COUNT, PAPERDOLL_MIN_INDEX, PAPERDOLL_END, INVENTORY_CRAFT_END, INVENTORY_CRAFT_INDEX_MIN
+} from "./constant.js";
 import { BLOCK } from "./blocks.js"
-import {InventoryComparator, TUsedRecipe} from "./inventory_comparator.js";
+import {InventoryComparator, TItemNeedsCount, TUsedRecipe} from "./inventory_comparator.js";
 import type { ArmorState, Player } from "./player.js";
 import type {PlayerInventory} from "./player_inventory.js";
-
-/** Действия над (инвентарем + сундуком) */
-export enum CHEST_CHANGE {
-    NONE,
-    SLOTS,  // it may be adding or subtracting drag item from a slot, if slotIndex >= 0
-    MERGE_SMALL_STACKS,
-    SHIFT_SPREAD,
-    SORT
-}
-
-/** Описывает действией над (инвентарем + сундуком), которое сервер должен произвести по просьбе клиента */
-export type TChestChange = {
-    type            : CHEST_CHANGE,
-
-    // Слот сундука или инвентаря, учатсвующий в изменении
-    slotIndex       : int,
-    slotInChest     : boolean,
-    slotPrevItem    : IInventoryItem | null,    // значение слота до изменения
-
-    dragPrevItem    : IInventoryItem | null,    // значение drag слота до изменения
-
-    prevInventory   : (IInventoryItem | null)[] | null  // значение инвентаря до изменения
-}
-
-type TOneChestConfirmData = {
-    pos     : IVector
-    slots   : Dict<IInventoryItem>
-}
-
-/** Сообщение серверу о действиях над (инвентарем + сундуком) */
-export type TChestConfirmData = {
-    chestSessionId  : number
-    change          : TChestChange
-    chest           : TOneChestConfirmData
-    secondChest ?   : TOneChestConfirmData
-    inventory_slots : (IInventoryItem | null)[] // Инвентарь, который по мнению клиента должен получиться после изменения
-}
 
 type TInventoryCurrentIndices = {
     /** Индекс выбранного в правой руке в хотбаре */
@@ -67,6 +33,7 @@ export type TInventoryStateChangeParams = {
     delete_items?: IInventoryItem[] | null
     dont_check_equal?: boolean
     forget_chests?: boolean // если true, то сервер заывает сундуки, с которыми работал игрок
+    allow_temporary?: boolean    // если true, то временные и несуществующие слоты не очищаются при отправке
 }
 
 export type TInventoryStateChangeMessage = {
@@ -76,6 +43,8 @@ export type TInventoryStateChangeMessage = {
 /**
  * Представляет переменный размер инвентаря, зависящий от надетых предметов.
  * Умеет вычисялть размер по списку предметов, проверять корректность индексов слотов, и итерировать их.
+ * Также может использоваться для простых массивов предметов любого размера (не инвентаря), чтобы выполнять
+ * над ними те же алгоритмы, что над инвентарем.
  *
  * Названия групп слотов:
  * - hotbar
@@ -96,7 +65,11 @@ export class InventorySize {
     /** Размер хотбара = номер максимального слота в хотбаре (не включительно) */
     hotbar: int
 
-    fake: boolean
+    /**
+     * Если true, то это размер не инвентаря, а просто какого-то массива предметов (например, сундука).
+     * В этом случае не все методы имеют смысл, но итерация сумки работает.
+     */
+    protected fake: boolean
 
     /** Вычисляет (обновляет) размер рюкзака с учетом наетых предметов */
     calc(items: (IInventoryItem | null)[], block_manager: typeof BLOCK): this {
@@ -115,8 +88,11 @@ export class InventorySize {
         return this
     }
 
-    /** Устанавлиает размер как будто инвентарь содержит {@link length} слотов без дыр */
-    setFakeContinuous(length: int): this {
+    /**
+     * Устанавлиает размер как будто есть {@link length} слотов без дыр.
+     * Это не для инвентаря, а для других простых коллкций предметов.
+     */
+    setFake(length: int): this {
         this.fake = true
         this.bagEnd = length
         this.hotbar = Math.min(length, HOTBAR_LENGTH_MAX)
@@ -129,10 +105,12 @@ export class InventorySize {
     slotExists(index: int): boolean {
         return index < this.bagEnd // быстрая проверка - слот в сумке или специальных слотах
             ? index >= HOTBAR_LENGTH_MAX || (index >= 0 && index < this.hotbar)
-            : (index >= PAPERDOLL_MIN_INDEX && index <= PAPERDOLL_MAX_INDEX) || index === INVENTORY_DRAG_SLOT_INDEX
+            :   (index >= PAPERDOLL_MIN_INDEX && index < PAPERDOLL_END) ||
+                (index >= INVENTORY_CRAFT_INDEX_MIN && index < INVENTORY_CRAFT_END) ||
+                index === INVENTORY_DRAG_SLOT_INDEX
     }
 
-    /** @return true если слот существует и в сумке */
+    /** @return true если слот существует в сумке */
     bagSlotExists(index: int): boolean {
         return (index >= HOTBAR_LENGTH_MAX && index < this.bagEnd) || (index >= 0 && index < this.hotbar)
     }
@@ -177,53 +155,341 @@ export class InventorySize {
     }
 
     /** Итерирует индексы несуществующих слотов */
-    *invalidIndices(): IterableIterator<int> {
+    *invalidIndices(length = INVENTORY_SLOT_COUNT): IterableIterator<int> {
         for(let i = this.hotbar; i < HOTBAR_LENGTH_MAX; i++) {
             yield i
         }
         for(let i = this.bagEnd; i < PAPERDOLL_MIN_INDEX; i++) {
             yield i
         }
-        for(let i = PAPERDOLL_MAX_INDEX + 1; i < INVENTORY_DRAG_SLOT_INDEX; i++) {
+        for(let i = PAPERDOLL_END; i < INVENTORY_DRAG_SLOT_INDEX; i++) {
+            yield i
+        }
+        for(let i = INVENTORY_DRAG_SLOT_INDEX + 1; i < INVENTORY_CRAFT_INDEX_MIN; i++) {
+            yield i
+        }
+        for(let i = INVENTORY_CRAFT_END; i < length; i++) {
             yield i
         }
     }
 
-    /** Итерирует индексы несуществующих и временных слотов (драг слота) */
-    *invalidAndTemporaryIndices(): IterableIterator<int> {
-        yield *this.invalidIndices()
+    *craftIndices(): IterableIterator<int> {
+        for(let i = INVENTORY_CRAFT_INDEX_MIN; i < INVENTORY_CRAFT_END; i++) {
+            yield i
+        }
+    }
+
+    /** Итерирует индексы временных слотов (драг и крафт слота) */
+    *temporaryIndices(): IterableIterator<int> {
         yield INVENTORY_DRAG_SLOT_INDEX
+        yield *this.craftIndices()
+    }
+
+    /**
+     * Совместно {@link invalidIndices} и {@link temporaryIndices}
+     * Первым - дрвг слот, т.к. премет оставшийся в нем в нем наиболее заметен игроку.
+     */
+    *invalidAndTemporaryIndices(length = INVENTORY_SLOT_COUNT): IterableIterator<int> {
+        yield INVENTORY_DRAG_SLOT_INDEX
+        yield *this.invalidIndices(length)
+        yield *this.craftIndices()
     }
 }
 
-/** A base class for ServerPlayerInventory and the client inventory {@link PlayerInventory} */
-export abstract class Inventory {
-
-    private static tmpMapUpdated = new Map<int, int>()
-    private static tmpMapAdded = new Map<int, IInventoryItem>()
-
-    block_manager: typeof BLOCK
-    player: Player
-    current: TInventoryCurrentIndices
+/**
+ * Коллекция предметов, над которой можно производить действия (сортировка, добвление, и т.п.)
+ * Например: инвентарь, сундук, просто массив полученный откудато.
+ */
+export class ItemsCollection {
     items: (IInventoryItem | null)[]
-
-    private readonly count      : int
-    onSelect                    = (item: IInventoryItem) => {}
+    block_manager: typeof BLOCK
     /** Не обращаться к этому полю напрямую, вместо этого вызывать {@link getSize} */
-    private _size               = new InventorySize()
+    protected _size = new InventorySize()
 
-    constructor(player : Player, state : TInventoryState) {
-        this.count              = state.items.length;
-        this.player             = player;
-        this.block_manager      = player.world.block_manager;
-        this.current            = state.current;
-        this.items              = new Array(this.count); // state.items;
-        this.applyNewItems(state.items, false)
+    constructor(items: (IInventoryItem | null)[], block_manager: typeof BLOCK) {
+        this.items = items
+        this.block_manager = block_manager
+    }
+
+    /** Обновляет и возвращает размер коллекции */
+    getSize(): InventorySize {
+        return this._size.setFake(this.items.length)
+    }
+
+    equal(other: ItemsCollection): boolean {
+        return ObjectHelpers.deepEqual(this.items, other.items)
+    }
+
+    /** Клонирует предметы до глубины 2 (позволяет независимо менять в них количество, не extra_data) */
+    clone(): ItemsCollection {
+        return new ItemsCollection(ObjectHelpers.deepClone(this.items, 2), this.block_manager)
+    }
+
+    /**
+     * Объединяет стеки одинакового типа.
+     * Группирует все непустые стеки в начале инвентаря.
+     * Не сортирует предметы по порядку (не аналог Array.sort).
+     * @param items - сортируемые предметы
+     * @param fromIndex - начальный индекс (включительно)
+     * @param toIndex - конечный индекс (не включительно)
+     */
+    autoSort(fromIndex: int = 0, toIndex: int = this.items.length): void {
+        const {items, block_manager} = this
+        for (let i = fromIndex; i < toIndex; i++) {
+            if (!items[i]) { // переместить слоты на пустые места ближе к началу инвентаря
+                for (let j = i + 1; j < toIndex; j++) {
+                    if (items[j]) {
+                        items[i] = items[j]
+                        items[j] = null
+                        break
+                    }
+                }
+            }
+            if (!items[i]) {
+                break // непустые слоты закончились
+            }
+            // добавить к неполным слотам
+            const max_stack = block_manager.getItemMaxStack(items[i])
+            if (items[i].count == max_stack) {
+                continue
+            }
+            for (let j = i + 1; j < toIndex; j++) {
+                if (items[j] && InventoryComparator.itemsEqualExceptCount(items[i], items[j])) {
+                    const sum = items[i].count + items[j].count
+                    if (sum <= max_stack) {
+                        items[i].count += items[j].count
+                        items[j] = null
+                    } else {
+                        items[i].count = max_stack
+                        items[j].count = sum - max_stack
+                        break
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+/**
+ * Коллекция предметов инвентаря: сам инвентарь, временная копия его предметов, полученный откуда-то массив предметов.
+ * Отличине от инвентаря: не прявязан к игроку; изменния не вызывают побочных эффектов (отправка сообщений,
+ * перерисовка), не содержит индексов выбранных предметов.
+ */
+export class InventoryItemsCollection extends ItemsCollection {
+
+    // Временные массивы - используется в реализации increment
+    private static tmpUpdated:  [index: int, count: int][] = []
+    private static tmpAdded:    [index: int, intem: IInventoryItem][] = []
+
+    private static tmpRemainingIndices: int[] = []
+
+    /** См. {@link ItemsCollection.clone} */
+    clone(): InventoryItemsCollection {
+        return new InventoryItemsCollection(ObjectHelpers.deepClone(this.items, 2), this.block_manager)
     }
 
     /** Обновляет и возвращает размер рюкзака с учетом надетых предметов */
     getSize(): InventorySize {
         return this._size.calc(this.items, this.block_manager)
+    }
+
+    /**
+     * Добавляет стек пердметов {@link src} к слотам инвентаря, целиком или частично.
+     * Меняет count в {@link src}.
+     * Не вызывает побочных эффектов (отправка сообщений, изменение выбранных предметов, и т.п.)
+     * @param no_update_if_remains - если true и не получилось добавить целиком, то не добавлется ничего. По умолчанию false.
+     * @param backpackFirst true, то создание новых слотов в первую очередь выполняется в рюкзаке. Иначе - в хотбаре. По умалчание false.
+     *   Не влияет на добавление к существующим слотам - это всегда сначала в хотбар.
+     * @returns true если что-то изменилось
+     */
+    simpleIncrement(src: IInventoryItem, no_update_if_remains?: boolean, backpackFirst?: boolean): boolean {
+        const {block_manager, items} = this
+        const size = this.getSize()
+        const item_max_count = block_manager.getItemMaxStack(src)
+        let remainingCount = src.count
+
+        // во временных массивах запоминаются изменения, которые мы возможно не выполним
+        const updated = Inventory.tmpUpdated
+        const added = Inventory.tmpAdded
+        updated.length = 0
+        added.length = 0
+
+        // 1. update cell if exists
+        let changed = false
+        if(item_max_count > 1) {
+            for(const i of size.bagIndices()) {
+                const item = items[i];
+                if(item && item.count < item_max_count && InventoryComparator.itemsEqualExceptCount(item, src)) {
+                    changed = true
+                    const delta = Math.min(remainingCount, item_max_count - item.count)
+                    updated.push([i, item.count + delta])
+                    remainingCount -= delta
+                    if (remainingCount === 0) {
+                        break
+                    }
+                }
+            }
+        }
+        // 2. start new slot
+        if (remainingCount > 0) {
+            const indices = backpackFirst ? size.backpackHotbarIndices() : size.bagIndices()
+            for(const i of indices) {
+                if(!items[i]) {
+                    const new_slot = {
+                        ...src,
+                        count: Math.min(remainingCount, item_max_count)
+                    }
+                    added.push([i, new_slot])
+                    changed = true
+                    remainingCount -= new_slot.count
+                    if (remainingCount === 0) {
+                        break
+                    }
+                }
+            }
+        }
+        // no update if remains
+        if(no_update_if_remains && remainingCount > 0) {
+            return false
+        }
+        if(changed) {
+            src.count = remainingCount
+            // updated
+            for(let [i, count] of updated) {
+                items[i].count = count
+            }
+            // added
+            for(let [i, item] of added) {
+                items[i] = item
+            }
+        }
+        return changed
+    }
+
+    /**
+     * Перемещает из указанных слотов в сумку, возможно перкладывая другие стеки в рюкзаке чтобы освободить место.
+     * @param force - если true, то обязательно освобождает слоты, даже если нет места.
+     *   Иначе - только если есть найдется свободное место, и только целиком.
+     * @return предметы, которым не налось место
+     */
+    moveFromSlots(force: boolean, slotIndices: Iterable<int>): IInventoryItem[] {
+
+        /**
+         * Пытается объединить неполные кучки предметов чтобы освободить {@link count} слотов.
+         * Не удаляет из HUD слотов, но может добавить к ним.
+         *
+         * Не оптимизировано, но это кажется не важно.
+         *
+         * @return true если что-то изменилось (даже если освободилось меньше чем {@link count})
+         *  Внимание! Если в слотах изначально количество превышало max_stack, может переложить что-то,
+         *  вернуть true, но не освободить ни одного стека.
+         */
+        function reorganizeFreeSlots(count: int): boolean {
+            const size = that.getSize()
+            const simpleKeys = new Array<string>(size.bagEnd)
+            const freeSpaceByKey: Dict<int> = {} // total free space in all stacks of this type of item
+            let changed = false
+
+            for(const i of size.bagIndices()) {
+                const item = items[i]
+                if (item) {
+                    const key = InventoryComparator.makeItemCompareKey(item)
+                    simpleKeys[i] = key
+                    const thisItemFreeSpace = Math.max(0, block_manager.getItemMaxStack(item) - item.count)
+                    freeSpaceByKey[key] = (freeSpaceByKey[key] ?? 0) + thisItemFreeSpace
+                }
+            }
+
+            // for each slot that can be freed. It excludes HUD slots
+            for(let i = HOTBAR_LENGTH_MAX; i < size.bagEnd; i++) {
+                const item = items[i]
+                if (!item) {
+                    continue
+                }
+
+                // check if this item can be completely moved to partially other filled slots
+                const key = simpleKeys[i]
+                const thisItemFreeSpace = Math.max(0, block_manager.getItemMaxStack(item) - item.count)
+                const otherItemsFreeSpace = freeSpaceByKey[key] - thisItemFreeSpace // свободное место в дргих стках того же типа
+                if (item.count > otherItemsFreeSpace) {
+                    continue
+                }
+
+                // этот стек можно целиком разместить в других неполных стеках. Перемещаем.
+                changed = true
+                items[i] = null // do it before incrementing, so it won't add to itself
+
+                const success = that.simpleIncrement(item, true)
+                if (!success) {
+                    throw Error() // этого не должно произойти - мы знаем что хватало места
+                }
+                freeSpaceByKey[key] -= thisItemFreeSpace
+                if (--count == 0) {
+                    return true
+                }
+            }
+            return changed
+        }
+
+        const that = this
+        const thrown: IInventoryItem[] = []
+        const {block_manager, items} = this
+        const remaining = InventoryItemsCollection.tmpRemainingIndices
+        remaining.length = 0
+        // сначала попробуем переместить без перекладывания других предметов
+        for(const i of slotIndices) {
+            const item = items[i]
+            if (item) {
+                this.simpleIncrement(item, !force, true) // если force - то перекладываем более насйтойчиво (даже частично)
+                if (item.count) {
+                    remaining.push(i)
+                } else {
+                    items[i] = null
+                }
+            }
+        }
+        if (remaining.length && force) {
+            // пробуем освободить слоты, а потом еще раз переложить или выкинуть
+            reorganizeFreeSlots(remaining.length)
+            for(const i of remaining) {
+                const item = items[i]
+                if (item) {
+                    this.simpleIncrement(item, false, true)
+                    if (item.count) { // если еще осталось - выкинуть
+                        thrown.push(item)
+                    }
+                    items[i] = null
+                }
+            }
+        }
+        return thrown
+    }
+
+    /**
+     * Сортирует предметы в рюкзаке (не хотбаре) как {@link Inventory.autoSort}
+     * Переносит из несуществующих слотов в существующие, если возможно.
+     */
+    autoSortInventory(): void {
+        this.autoSort(HOTBAR_LENGTH_MAX, this.getSize().bagEnd)
+        this.moveFromSlots(true, this.getSize().invalidIndices())
+    }
+}
+
+/**
+ * Инвентарь, принадлежащий конкретному игроку.
+ * Базовый класс ServerPlayerInventory и клиентсокго {@link PlayerInventory}
+ */
+export abstract class Inventory extends InventoryItemsCollection {
+
+    player: Player
+    current: TInventoryCurrentIndices
+
+    constructor(player : Player, state : TInventoryState) {
+        super(new Array(state.items.length), player.world.block_manager)
+        this.player             = player;
+        this.current            = state.current;
+        this.applyNewItems(state.items, false)
     }
 
     //
@@ -239,8 +505,8 @@ export abstract class Inventory {
         if(!Array.isArray(items)) {
             throw 'error_items_must_be_array';
         }
-        if(items.length != this.count) {
-            throw 'error_items_invalid_count|' + `${items.length} != ${this.count}`;
+        if(items.length != this.items.length) {
+            throw 'error_items_invalid_count|' + `${items.length} != ${this.items.length}`;
         }
         const new_items = [];
         for(let i in items) {
@@ -264,12 +530,37 @@ export abstract class Inventory {
         return this.items[this.current.index];
     }
 
-    //
+    /** Делает занчения индексов {@link current} корректными. */
+    fixCurrentIndexes(): void {
+        const current = this.current
+        const size = this.getSize()
+
+        if (typeof current.index !== 'number' || isNaN(current.index)) {
+            current.index = 0
+        }
+        if (current.index < 0) {
+            current.index = size.hotbar - 1
+        }
+        if (current.index >= size.hotbar) {
+            current.index = 0
+        }
+
+        if (typeof current.index2 !== 'number' || !size.bagSlotExists(current.index2)) {
+            current.index2 = -1
+        }
+    }
+
+    /**
+     * Умышленное переключение текущего предмета игроком.
+     * На клиенте - отправляет команду на серве.
+     *
+     * Не вызывать как хак чтобы обновиь UI или индексы при изменении инвентаря! Для этого есть
+     * {@link PlayerInventory.refresh}
+     */
     select(index: int, resend = true): void {
-        const hotbar = this.getSize().hotbar
-        this.current.index = (index + hotbar) % hotbar
-        this.refresh(resend);
-        this.onSelect(this.current_item)
+        this.current.index = index
+        this.fixCurrentIndexes()
+        this.refresh(resend)
         if(this.player.mechanism_assembler.pos1) {
             this.player.mechanism_assembler.pos1 = null
             this.player.mechanism_assembler.pos2 = null
@@ -277,15 +568,15 @@ export abstract class Inventory {
     }
 
     /**
-     * Добавляет стек пердметов {@link src} к слотам инвентаря, целиком или частично.
-     * Производит (возможно неполную) валидацию {@link src}
-     * @param no_update_if_remains - если true и не получилось добавить целиком, то не добавлется ничего
-     * @param updateSource - если true, то count в исходном предмете уменьшается на добалвенное количество
-     * @param resend - отправить изменения игроку (только на сервере)
+     * Добавляет стек пердметов {@link src} к слотам инвентаря, целиком или частично. Дополнительно:
+     * - производит (возможно неполную) валидацию {@link src}
+     * - вызывает {@link refresh}, высылает обновление клиенту
+     * - возможно, обновляет {@link current}
+     * @param no_update_if_remains - если true и не получилось добавить целиком, то не добавлется ничего. По умолчанию false.
      * @returns true если что-то изменилось
      * @throws если src некорректно
      */
-    increment(src: IInventoryItem, no_update_if_remains?: boolean, updateSource?: boolean, resend = true): boolean {
+    increment(src: IInventoryItem, no_update_if_remains?: boolean, updateSrcCount?: boolean): boolean {
         if(!src.id) {
             throw 'error_empty_block_id';
         }
@@ -300,140 +591,23 @@ export abstract class Inventory {
         if(this.block_manager.fromId(src.id).is_dummy) {
             throw 'error_invalid_block_id';
         }
-        no_update_if_remains = !!no_update_if_remains;
         const mat = this.block_manager.convertItemToInventoryItem(src);
-        //
-        const updated = Inventory.tmpMapUpdated
-        updated.clear()
-        const added = Inventory.tmpMapAdded
-        added.clear()
-        const item_max_count = this.block_manager.getItemMaxStack(mat)
 
-        const size = this.getSize()
-        // 1. update cell if exists
-        let changed = false
-        if(item_max_count > 1) {
-            for(const i of size.bagIndices()) {
-                const item = this.items[i];
-                if(item && item.count < item_max_count && InventoryComparator.itemsEqualExceptCount(item, mat)) {
-                    changed = true
-                    const delta = Math.min(mat.count, item_max_count - item.count)
-                    updated.set(i, item.count + delta)
-                    mat.count -= delta
-                    if (mat.count === 0) {
-                        break
-                    }
-                }
-            }
-        }
-        // 2. start new slot
-        if(mat.count > 0) {
-            for(const i of size.bagIndices()) {
-                if(!this.items[i]) {
-                    const new_slot = {...mat};
-                    added.set(i, new_slot);
-                    changed = true
-                    new_slot.count = Math.min(mat.count, item_max_count)
-                    mat.count -= new_slot.count
-                    if (mat.count === 0) {
-                        break
-                    }
-                }
-            }
-        }
-        // no update if remains
-        if(no_update_if_remains && mat.count > 0) {
-            return false;
-        }
-        if(changed) {
-            if (updateSource) {
+        const oldCurrentItem = this.current_item
+
+        const changed = this.simpleIncrement(mat, no_update_if_remains)
+
+        if (changed) {
+            if (updateSrcCount) {
                 src.count = mat.count
             }
-            // updated
-            for(let [i, count] of updated.entries()) {
-                this.items[i].count = count;
-            }
-            // added
-            let select_index = -1;
-            for(let [i, item] of added.entries()) {
-                this.items[i] = item;
-                if(i == this.current.index) {
-                    select_index = i;
-                }
-            }
-            if(select_index >= 0) {
-                this.select(select_index); // вызывает внутри refresh
+            if ((this.current_item != null) !== (oldCurrentItem != null)) {
+                this.select(this.current.index, true) // вызывает внутри refresh
             } else {
-                this.refresh(resend);
+                this.refresh(true)
             }
         }
         return changed
-    }
-
-    /**
-     * Пытается объединить неполные кучки предметов чтобы освободить слот.
-     * Не удаляет из HUD слотов, но может добавить к ним.
-     *
-     * Не оптимизировано, но это кажется не важно.
-     *
-     * @return индекс освободенного слота, или -1 если не получилось
-     */
-    private reorganizeFreeSlot(): int {
-        const bm     = this.block_manager
-        const items  = this.items
-        const size = this.getSize()
-        const simpleKeys = new Array<string>(size.bagEnd)
-        const freeSpaceByKey: Dict<int> = {} // total free space in all stacks of this type of item
-
-        for(const i of size.bagIndices()) {
-            const item = items[i]
-            if (item) {
-                const key = InventoryComparator.makeItemCompareKey(item)
-                simpleKeys[i] = key
-                const thisItemFreeSpace = bm.getItemMaxStack(item) - item.count
-                freeSpaceByKey[key] = (freeSpaceByKey[key] ?? 0) + thisItemFreeSpace
-            }
-        }
-
-        // for each slot that can be freed. It excludes HUD slots
-        for(let i = HOTBAR_LENGTH_MAX; i < size.bagEnd; i++) {
-            const item = items[i]
-            if (!item) {
-                continue
-            }
-            // check if this item can be completely moved to partially other filled slots
-            const key = simpleKeys[i]
-            const thisItemFreeSpace = bm.getItemMaxStack(item) - item.count
-            const otherItemsFreeSpace = freeSpaceByKey[key] - thisItemFreeSpace
-            if (item.count > otherItemsFreeSpace) {
-                continue
-            }
-            // move the item to other slots
-            items[i] = null // do it before incrementing, so it won't add to itself
-            if (this.increment(item, true, false, false) && !items[i]) {
-                return i
-            }
-        }
-        return -1
-    }
-
-    /**
-     * Похоже на {@link increment}, но если не может добавить предмет, то пытается объединить неполные кучки
-     * других предметов чтоыб освободить место. Обновляет count в {@link item}.
-     * @return true если что-то изменилось
-     */
-    incrementAndReorganize(item: IInventoryItem, no_update_if_remains?: boolean, resend = true): boolean {
-        let result = this.increment(item, no_update_if_remains, true, resend)
-        if (item.count) {
-            const slotIndex = this.reorganizeFreeSlot()
-            if (slotIndex >= 0) {
-                this.items[slotIndex] = {...item}
-                item.count = 0
-                this.refresh(resend)
-                result = true
-            }
-        }
-        return result
     }
 
     /** Decrements the power of {@link current_item}. */
@@ -515,7 +689,7 @@ export abstract class Inventory {
     /**
      * Decrements one or multiple items is visible slots by the given total amount,
      * or, if the given amount is not present, decrements by as much as posible.
-     
+
     decrementByItemID(item_id, count, dont_refresh) {
         for(let i = 0; i < INVENTORY_VISIBLE_SLOT_COUNT; i++) {
             let item = this.items[i];
@@ -534,16 +708,14 @@ export abstract class Inventory {
         }
     }
     */
+
     /**
-     * Decrements the item count by {@link count} or by as much as posible, and removes the
+     * Decrements the item count by {@link count} or by as much as possible, and removes the
      * item from list if the count becomes 0.
-     * @param {Array|Object} list
-     * @param { int } index
-     * @param { int } count
-     * @return { int } - the amount actually subtracted
+     * @return int the amount actually subtracted
      */
-    static decrementByIndex(list, index, count = 1) {
-        const item = list[index];
+    decrementByIndex(index: int, count: int = 1): int {
+        const item = this.items[index];
         if (item == null) {
             return 0;
         }
@@ -551,13 +723,9 @@ export abstract class Inventory {
             item.count -= count;
             return count;
         } else {
-            ArrayOrMap.delete(list, index, null);
+            this.items[index] = null
             return item.count;
         }
-    }
-
-    decrementByIndex(index, count = 1) {
-        return Inventory.decrementByIndex(this.items, index, count);
     }
 
     countItemId(item_id) {
@@ -573,20 +741,23 @@ export abstract class Inventory {
     /**
      * Возвращает список того, чего и в каком количестве не хватает
      * в (текущем инвентаре + дополнительном списке предметов) по указанному списку.
-     * @param {Array} resources - the array of needed resources, see {@link Recipe.calcNeedResources}
-     * @param {Array} additionalItems - optional additional items, g.e. from craft slots.
-     * @returns { object } with properties:
-     *  - missing: Array - mising resuces
-     *  - has: Array - the found resources
+     * @param resources - the array of needed resources, see {@link Recipe.calcNeedResources}
+     * @param craftSlotsNumber - из скольких первых слотов крафта учитывать предметы
+     * @returns объект со следующими свойствами
+     *  - missing - недостающие ресурсы
+     *  - has -найденные ресурсы
      */
-    hasResources(resources, additionalItems = null) {
+    hasResources(resources: TItemNeedsCount[], craftSlotsNumber: int = 0): {
+        missing: TItemNeedsCount[],
+        has: (TItemNeedsCount & {item_index: int})[]
+    } {
         const resp = {
             missing: [],
             has: []
         };
         // combined array of items
         const items =  this.items.slice(0, this.getSize().bagEnd)
-        additionalItems && items.push(...additionalItems)
+        items.push(...this.items.slice(INVENTORY_CRAFT_INDEX_MIN, INVENTORY_CRAFT_INDEX_MIN + craftSlotsNumber))
         // array of mutable counts - no need to clone the the items themselves
         const counts = items.map(item => item?.count);
         // iterate the resources in order of decreasing needs specificity
@@ -634,29 +805,15 @@ export abstract class Inventory {
         return this.current.index;
     }
 
-    //
-    setItem(index, item) {
-        this.items[index] = item
-        // Обновить текущий инструмент у игрока
-        this.select(this.current.index)
-    }
-
-    next() {
-        this.select(++this.current.index);
-    }
-
-    prev() {
-        this.select(--this.current.index);
-    }
-
-    // Refresh
-    refresh(resend : boolean): true {
-        return true;
-    }
+    /**
+     * Вызывается после изменений инвентаря чтобы оповестить об этом другие классы.
+     * Семантика отличается на клиенте и сервере.
+     */
+    abstract refresh(send_state : boolean): void
 
     // Клонирование материала в инвентарь
     cloneMaterial(pos, allow_create_new) {
-        
+
         const { block_manager, player } = this;
 
         if(!player.game_mode.canBlockClone()) {
@@ -764,7 +921,7 @@ export abstract class Inventory {
         for(const slot_index of [PAPERDOLL_BOOTS, PAPERDOLL_LEGGINGS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET]) {
             if(this.items[slot_index]) {
                 const item = this.block_manager.fromId(this.items[slot_index].id);
-                resp += item.armor?.damage ?? 0;
+                resp += item?.extra_data?.protection ?? 0;
             }
         }
         return resp
@@ -853,46 +1010,4 @@ export abstract class Inventory {
         return true;
     }*/
 
-    /**
-     * Объединяет стеки одинакового типа.
-     * Группирует все непустые стеки в начале инвентаря.
-     * Не сортирует предметы по порядку (не аналог Array.sort).
-     * @param items - сортируемые предметы
-     * @param fromIndex - начальный индекс (включительно)
-     * @param toIndex - конечный индекс (не включительно)
-     */
-    static autoSort(items: (IInventoryItem | null)[], fromIndex: int, toIndex: int, bm: typeof BLOCK): void {
-        for (let i = fromIndex; i < toIndex; i++) {
-            if (!items[i]) { // переместить слоты на пустые места ближе к началу инвентаря
-                for (let j = i + 1; j < toIndex; j++) {
-                    if (items[j]) {
-                        items[i] = items[j]
-                        items[j] = null
-                        break
-                    }
-                }
-            }
-            if (!items[i]) {
-                break // непустые слоты закончились
-            }
-            // добавить к неполным слотам
-            const max_stack = bm.getItemMaxStack(items[i])
-            if (items[i].count == max_stack) {
-                continue
-            }
-            for (let j = i + 1; j < toIndex; j++) {
-                if (items[j] && InventoryComparator.itemsEqualExceptCount(items[i], items[j])) {
-                    const sum = items[i].count + items[j].count
-                    if (sum <= max_stack) {
-                        items[i].count += items[j].count
-                        items[j] = null
-                    } else {
-                        items[i].count = max_stack
-                        items[j].count = sum - max_stack
-                        break
-                    }
-                }
-            }
-        }
-    }
 }

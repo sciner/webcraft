@@ -22,7 +22,7 @@ class FluidMaterial {
             this.flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;
         }
         if (block.light_power) {
-            this.flags |= QUAD_FLAGS.NO_CAN_TAKE_LIGHT;
+            this.flags |= QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT;
         }
 
         let texture_id = 'default';

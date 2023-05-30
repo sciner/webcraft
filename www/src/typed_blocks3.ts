@@ -1,13 +1,13 @@
 import { Vector, ObjectHelpers } from "./helpers.js";
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
-import { ChunkGrid } from "./core/ChunkGrid.js";
 import { AABB } from './core/AABB.js';
-import {BLOCK, POWER_NO} from "./blocks.js";
+import {BLOCK, DBItemBlock} from "./blocks.js";
 import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidBuildVertices.js";
 import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID, fluidLightPower} from "./fluid/FluidConst.js";
 import type { FluidChunk } from "./fluid/FluidChunk.js";
 import type { ChunkLight } from "./light/ChunkLight.js";
+import type { ChunkGrid } from "./core/ChunkGrid.js";
 
 export function newTypedBlocks(coord : Vector, grid: ChunkGrid) : TypedBlocks3 {
     return new TypedBlocks3(coord, grid);
@@ -171,20 +171,10 @@ export class TypedBlocks3 {
 
     tblocks?        : TypedBlocks3 = null
     id              : Uint16Array = null
-    /** TODO it's unused. Maybe remove it */
-    power           : VectorCollector1D = null
     rotate          : VectorCollector1D<IVector> = null
     entity_id       : VectorCollector1D<string> = null
     texture         : VectorCollector1D = null
     extra_data      : VectorCollector1D = null
-    /** TODO it's unused. Maybe remove it */
-    falling         : VectorCollector1D = null
-    /** TODO it's unused. Maybe remove it. See the comment to {@link TBlock.shapes} */
-    shapes          : VectorCollector1D = null
-    /** TODO it's never set. Maybe remove it */
-    metadata        : VectorCollector1D = null
-    /** TODO it seems to be not used. Maybe remove it */
-    position        : VectorCollector1D = null
     // TODO: type it. its ServerChunk
     chunk           : any
 
@@ -201,16 +191,10 @@ export class TypedBlocks3 {
         //
         this.dataChunk  = new DataChunk({ grid, strideBytes: 2 }).setPos(coord);
         const cs        = this.dataChunk.getStrides();
-        this.power      = new VectorCollector1D(cs);
         this.rotate     = new VectorCollector1D(cs);
         this.entity_id  = new VectorCollector1D(cs);
         this.texture    = new VectorCollector1D(cs);
         this.extra_data = new VectorCollector1D(cs);
-        this.falling    = new VectorCollector1D(cs);
-        //
-        this.shapes     = new VectorCollector1D(cs);
-        this.metadata   = new VectorCollector1D(cs);
-        this.position   = new VectorCollector1D(cs);
         /**
          * store resourcepack_id and number of vertices here
          * @type {Uint8Array}
@@ -264,13 +248,10 @@ export class TypedBlocks3 {
 
         this.dataChunk.uint16View.set(state.id, 0);
         const strides   = this.dataChunk.getStrides();
-        this.power      = new VectorCollector1D(strides, state.power);
         this.rotate     = new VectorCollector1D(strides, state.rotate);
         this.entity_id  = new VectorCollector1D(strides, state.entity_id);
         this.texture    = new VectorCollector1D(strides, state.texture);
         this.extra_data = new VectorCollector1D(strides, state.extra_data);
-        this.shapes     = new VectorCollector1D(strides, state.shapes);
-        this.falling    = new VectorCollector1D(strides, state.falling);
         if(refresh_non_zero) {
             this.refreshNonZero();
         }
@@ -282,13 +263,10 @@ export class TypedBlocks3 {
     saveState() {
         return {
             id: this.dataChunk.uint16View,
-            power: this.power.list,
             rotate: this.rotate.list,
             entity_id: this.entity_id.list,
             texture: this.texture.list,
             extra_data: this.extra_data.list,
-            shapes: this.shapes.list,
-            falling: this.falling.list,
             fluid: this.fluid.saveState(),
         }
     }
@@ -402,14 +380,10 @@ export class TypedBlocks3 {
     delete(vec : Vector) {
         const block         = this.get(vec, tmpTBlock_delete);
         block.id            = 0;
-        block.power         = 0;
         block.rotate        = null;
         block.entity_id     = null;
         block.texture       = null;
         block.extra_data    = null;
-        block.falling       = null;
-        block.shapes        = null;
-        block.position      = null;
 
         if (this.vertices) {
             this.vertices[block.index * 2 + 1] = MASK_VERTEX_MOD;
@@ -426,7 +400,6 @@ export class TypedBlocks3 {
         this.rotate.deleteByIndex(ind)
         this.extra_data.deleteByIndex(ind)
         this.entity_id.deleteByIndex(ind)
-        this.power.deleteByIndex(ind)
     }
 
     /**
@@ -546,13 +519,6 @@ export class TypedBlocks3 {
         }
         if (entity_id !== undefined) {
             this.entity_id.setOrDeleteByIndex(index, entity_id);
-        }
-        if (power !== undefined) {
-            if (power != null) {
-                this.power.setByIndex(index, power);
-            } else {
-                this.power.deleteByIndex(index);
-            }
         }
     }
 
@@ -755,7 +721,7 @@ export class DataWorld {
         if(!chunkManager.tech_info.chunk_size) {
             throw 'error_undefined_chunnk_size'
         }
-        this.grid = new ChunkGrid({chunkSize: chunkManager.tech_info.chunk_size});
+        this.grid = chunkManager.grid
         this.base = new BaseChunk({grid: this.grid, size: new Vector(INF, INF, INF)})
             .setPos(new Vector(-INF / 2, -INF / 2, -INF / 2));
     }
@@ -954,12 +920,6 @@ export class TBlock {
             if (v) {
                 res.entity_id = v;
             }
-            // Power in blocks is never used and not fully supported, e.g. it's lost in the old DBWorld.updateChunks.
-            // TODO either use and fully support, or remove it.
-            v = this.power;
-            if (v) {
-                res.power = v;
-            }
         }
         return res;
     }
@@ -1040,20 +1000,6 @@ export class TBlock {
             + (Math.round(day * 255 / 15) << 8);
     }
 
-    /** TODO it's unused. Maybe remove it */
-    get power() {
-        let resp = this.tb.power.get(this.vec);
-        if(resp === null) resp = POWER_NO;
-        return resp;
-    }
-    set power(value) {
-        if(value) {
-            this.tb.power.set(this.vec, value)
-            return
-        }
-        this.tb.power.delete(this.vec);
-    }
-
     //
     get rotate(): IVector | null {
         return this.tb.rotate.getByIndex(this.index)
@@ -1086,18 +1032,6 @@ export class TBlock {
         this.tb.extra_data.setOrDeleteByIndex(this.index, value)
     }
 
-    /** TODO it's unused. Maybe remove it */
-    get falling() {
-        return this.tb.falling.get(this.vec);
-    }
-    set falling(value) {
-        if(value) {
-            this.tb.falling.set(this.vec, value)
-            return
-        }
-        this.tb.falling.delete(this.vec);
-    }
-
     // // vertices
     // get vertices() {
     //     return this.tb.vertices.get(this.vec);
@@ -1109,22 +1043,6 @@ export class TBlock {
     //     }
     //     this.tb.vertices.delete(this.vec);
     // }
-
-    /**
-     * TODO it's never set. It's used by prismarine in {@link FakeWorld.getBlock}, but it's always null,
-     *  so {@link BLOCK.getShapes} is used instead.
-     *  Maybe make it always return null, or the same value as BLOCK.getShapes.
-     */
-    get shapes() {
-        return this.tb.shapes.get(this.vec);
-    }
-    set shapes(value) {
-        if(value) {
-            this.tb.shapes.set(this.vec, value)
-            return
-        }
-        this.tb.shapes.delete(this.vec);
-    }
 
     // properties
     get properties() {
@@ -1148,23 +1066,6 @@ export class TBlock {
     }
     getProperties() {
         return this.material;
-    }
-    /** TODO it seems to be not used. Maybe remove it */
-    get position() {
-        // return new Vector(this.vec.x + this.tb.coord.x, this.vec.y + this.tb.coord.y, this.vec.z + this.tb.coord.z);
-        return this.tb.position.get(this.vec);
-    }
-    set position(value) {
-        if(value) {
-            this.tb.position.set(this.vec, value)
-            return
-        }
-        this.tb.position.delete(this.vec);
-    }
-
-    /** TODO it's never set. Maybe remove it */
-    get metadata() {
-        return this.tb.metadata.get(this.vec);
     }
 
     get fluid() {
@@ -1223,7 +1124,7 @@ export class TBlock {
         return mat?.tags?.includes(tag) ?? false
     }
 
-    convertToDBItem() {
+    convertToDBItem(): DBItemBlock {
         return BLOCK.convertBlockToDBItem(this);
     }
 
@@ -1245,7 +1146,6 @@ export class TBlock {
         this.id = obj.id;
         this.extra_data = obj?.extra_data || null;
         this.entity_id = obj?.entity_id || null;
-        this.power = obj?.power || null;
         this.rotate = obj?.rotate || null;
     }
 

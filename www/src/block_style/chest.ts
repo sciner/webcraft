@@ -226,7 +226,7 @@ export default class style {
 
         // Add animations
         if(block.material.name == 'ENDER_CHEST' && typeof QubatchChunkWorker != 'undefined') {
-            QubatchChunkWorker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['create_block_emitter', {
                 block_pos: block.posworld,
                 pos: [block.posworld.clone().addScalarSelf(.5, .5, .5)],
                 type: 'ender_chest'

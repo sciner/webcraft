@@ -60,7 +60,7 @@ export default class style {
             QubatchChunkWorker.postMessage(['delete_animated_block', block.posworld]);
         }
         if (typeof QubatchChunkWorker != 'undefined' && extra_data?.up == true && dir == DIRECTION.UP && (extra_data?.water || extra_data?.lava)) {
-            QubatchChunkWorker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['create_block_emitter', {
                 block_pos:  block.posworld,
                 pos:        [block.posworld.clone().addScalarSelf(.5, .8, .5)],
                 type:       'dripping',

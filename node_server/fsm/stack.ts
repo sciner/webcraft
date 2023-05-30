@@ -1,27 +1,34 @@
+
+/**
+ * @returns true если посл евызова нужно промоделировать физику и выслать состояние
+ */
+type FSMFunction = (context: any, delta: float, args: any) => boolean
+
 declare type FSMState = {
-    func : Function
+    func : FSMFunction
     args : any
 }
 
 export class FSMStack {
     list: FSMState[] = []
-    
-    tick(delta : float, context : any) : FSMState | null{
+
+    /** @returns true, если нужно моделировать физику */
+    tick(delta : float, context : any) : boolean {
         const current = this.getCurrentState()
         if(current) {
             const func = current.func
-            func.call(context, delta, current.args)
+            return func.call(context, delta, current.args) ?? false
         }
-        return current
+        return false
     }
     
-    pushState(func : Function, args? : any) {
+    pushState(func : FSMFunction, args? : any) {
         if (this.getCurrentState()?.func !== func) {
             this.list.push({func, args})
         }
     }
 
-    replaceState(func : Function, args? : any) {
+    replaceState(func : FSMFunction, args? : any) {
         if (this.getCurrentState()?.func !== func) {
             this.list.pop();
             this.list.push({func, args} as FSMState)

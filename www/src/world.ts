@@ -5,7 +5,7 @@ import {PlayerManager} from "./player_manager.js";
 import {BLOCK_ACTION, ServerClient} from "./server_client.js";
 import { Lang } from "./lang.js";
 import { SimpleQueue, Vector } from "./helpers.js";
-import { ChestHelpers } from "./block_helpers.js";
+import {ChestHelpers, TChestInfo} from "./block_helpers.js";
 import { BuildingTemplate } from "./terrain_generator/cluster/building_template.js";
 import { MOUSE, WORLD_TYPE_BUILDING_SCHEMAS } from "./constant.js";
 import type { BLOCK } from "./blocks";
@@ -18,6 +18,7 @@ import type {Physics} from "./prismarine-physics/index.js";
 import {ClientDrivingManager} from "./control/driving_manager.js";
 import type {GameClass} from "./game.js";
 import type {GameSettings} from "./game.js";
+import { ChunkGrid } from "./core/ChunkGrid.js";
 
 // World container
 export class World implements IWorld {
@@ -44,6 +45,7 @@ export class World implements IWorld {
 
     private lastMeasuredQueudLag = 0
     private unansweredQueudLagTimes = new SimpleQueue<number>()
+    grid: ChunkGrid;
 
     constructor(game: GameClass, settings : GameSettings, block_manager : typeof BLOCK) {
 
@@ -194,6 +196,7 @@ export class World implements IWorld {
 
         // Init
         this.players.init();
+        this.grid = new ChunkGrid({chunkSize: new Vector().copyFrom(this.info.tech_info.chunk_size)})
         this.chunkManager.init();
         this.mobs.init();
         this.drop_items.init();
@@ -297,7 +300,7 @@ export class World implements IWorld {
             player.stopAllActivity();
             var info = actions.load_chest
             var window = info.window;
-            var secondInfo = null;
+            var secondInfo: TChestInfo | null = null;
             if (window === 'frmChest') {
                 secondInfo = ChestHelpers.getSecondHalf(this, info.pos);
                 if (secondInfo) {

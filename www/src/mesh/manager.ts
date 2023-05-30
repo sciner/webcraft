@@ -3,6 +3,7 @@ import { Helpers, makeChunkEffectID, Vector } from "../helpers.js";
 import type { Renderer } from "../render.js";
 import type { World } from "../world.js";
 import { Mesh_Effect_Manager } from "./effect/manager.js";
+import type { Mesh_Object_Base } from "./object/base.js";
 import { Mesh_Object_BBModel } from "./object/bbmodel.js";
 
 // MeshManager
@@ -42,7 +43,7 @@ export class MeshManager {
     }
 
     //
-    addForChunk(chunk_addr, mesh, key) {
+    addForChunk(chunk_addr : Vector, mesh, key : string) {
         const chunk_addr_hash = chunk_addr.toHash();
         let chunk = this.chunks.get(chunk_addr_hash);
         if(!chunk) {
