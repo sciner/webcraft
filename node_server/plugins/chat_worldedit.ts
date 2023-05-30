@@ -435,7 +435,7 @@ export default class WorldEdit {
         // blocks
         const AIR_BLOCK = new DBItemBlock(0)
         for(const [bpos, item] of data.blocks.entries()) {
-            const clone : DBItemBlock = item.id ? ObjectHelpers.deepCloneObjectFast(item, new DBItemBlock(item.id)) as DBItemBlock : AIR_BLOCK // ((item.extra_data || item.rotate) ? ObjectHelpers.deepCloneObjectFast(item, new DBItemBlock(item.id)) : item)
+            const clone : DBItemBlock = item.id ? ObjectHelpers.deepCloneObject(item, 100, new DBItemBlock(item.id)) as DBItemBlock : AIR_BLOCK
             const pos = player_pos.add(bpos)
             chunk_addr = grid.toChunkAddr(pos, chunk_addr)
             actions = getChunkActions(chunk_addr)
