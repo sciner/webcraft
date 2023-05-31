@@ -429,7 +429,7 @@ export class TypedBlocks3 {
         return this.id[index] > 0;
     }
 
-    getNeighbours(tblock, world, cache) : BlockNeighbours {
+    getNeighbours(tblock : TBlock, world, cache : TBlock[]) : BlockNeighbours {
         const { portals, safeAABB, pos, outerSize } = this.dataChunk;
         const cx = 1, cy = outerSize.x * outerSize.z, cz = outerSize.x;
         const localPos = tblock.vec;
@@ -492,11 +492,6 @@ export class TypedBlocks3 {
         for (let dir = 0; dir < CC.length; dir++) {
             const cb = cache[dir];
             neighbours[CC[dir].name] = cb;
-            const properties = cb?.properties;
-            if(!properties || properties.transparent || properties.fluid) {
-                // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
-                neighbours.pcnt--;
-            }
         }
 
         return neighbours;
@@ -522,7 +517,7 @@ export class TypedBlocks3 {
         }
     }
 
-    setBlockId(x : int, y : int, z : int, id : int) {
+    setBlockId(x : int, y : int, z : int, id : int) : int {
         const { cx, cy, cz, cw, portals, pos, safeAABB } = this.dataChunk;
         const index = cx * x + cy * y + cz * z + cw;
         this.id[index] = id;
@@ -628,6 +623,7 @@ export class TypedBlocks3 {
     }
 
     makeBedrockEdge() {
+        const bedrock_block_id = 1 // BEDROCK.id
         const {id} = this;
         const {outerSize, cx, cy, cz} = this.dataChunk;
         let rest = (outerSize.z - 1) * cz;
@@ -635,21 +631,21 @@ export class TypedBlocks3 {
             for (let y = 0; y < outerSize.y; y++) {
                 let ind = x * cx + y * cy;
                 id[ind] = 1;
-                id[ind + rest] = 1;
+                id[ind + rest] = bedrock_block_id
             }
         rest = (outerSize.y - 1) * cy;
         for (let x = 0; x < outerSize.x; x++)
             for (let z = 0; z < outerSize.z; z++) {
                 let ind = x * cx + z * cz;
                 id[ind] = 1;
-                id[ind + rest] = 1;
+                id[ind + rest] = bedrock_block_id
             }
         rest = (outerSize.x - 1) * cx;
         for (let z = 0; z < outerSize.z; z++)
             for (let y = 0; y < outerSize.y; y++) {
                 let ind = z * cz + y * cy;
                 id[ind] = 1;
-                id[ind + rest] = 1;
+                id[ind + rest] = bedrock_block_id
             }
     }
 
@@ -1130,9 +1126,6 @@ export class TBlock {
 
     /**
      * Возвращает всех 6-х соседей блока
-     * @param {Vector} pos
-     * @param {Array} cache
-     * @returns
      */
     getNeighbours(world, cache) {
         return this.tb.getNeighbours(this, world, cache);

@@ -8,6 +8,7 @@ import type BaseRenderer from "./renders/BaseRenderer.js";
 import type { ChunkManager } from "./chunk_manager.js";
 import {BaseGeometryPool} from "./geom/base_geometry_pool.js";
 import {ChunkMesh} from "./chunk_mesh.js";
+import type { IWorkerChunkCreateArgs } from "./worker/chunk.js";
 
 let global_uniqId = 0;
 const _inchunk_pos = new Vector(0, 0, 0)
@@ -95,12 +96,12 @@ export class Chunk {
         // console.log('2. createChunk: send', this.addr.toHash());
         chunkManager.postWorkerMessage(['createChunk', [
             {
-                addr: this.addr,
-                seed: this.seed,
-                uniqId: this.uniqId,
+                addr:        this.addr,
+                seed:        this.seed,
+                uniqId:      this.uniqId,
                 modify_list: modify_list || null,
-                dataId: this.getDataTextureOffset()
-            }
+                dataId:      this.getDataTextureOffset()
+            } as IWorkerChunkCreateArgs
         ]]);
 
         this.packedCells = null;
@@ -408,7 +409,7 @@ export class Chunk {
     }
 
     //
-    newModifiers(mods_arr, set_block_list) {
+    newModifiers(mods_arr, set_block_list : {pos : Vector, type : any, rotate? : Vector, extra_data ? :any, is_modify : boolean}[]) {
         const chunkManager = this.getChunkManager();
         const blockModifierListeners = chunkManager.getWorld().blockModifierListeners;
         const use_light = this.inited && chunkManager.use_light;

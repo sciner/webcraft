@@ -1,5 +1,6 @@
 import { gzip, ungzip, inflate, deflate } from 'pako';
-import { BLOCK } from '../blocks.js';
+import { BLOCK, DBItemBlock } from '../blocks.js';
+import type { IParsedChunkModifyList } from 'worker/chunk.js';
 
 const COL_D = String.fromCharCode(8);
 const ROW_D = '\t';
@@ -114,15 +115,14 @@ export function shallowCloneAndSanitizeIfPrivate(item) {
 /**
  * Decompress chunk modifiers
  * @param {Uint8Array} buf 
- * @returns 
  */
-export function decompressWorldModifyChunk(buf) {
+export function decompressWorldModifyChunk(buf) : IParsedChunkModifyList {
     const gzipped = buf[0] == 31 && buf[1] == 139;
     if(gzipped) {
         buf = ungzip(buf);
         buf = new TextDecoder().decode(buf);
     }
-    const resp = {};
+    const resp = {} as IParsedChunkModifyList
     buf = buf.split(ROW_D);
     let prev_row = null;
     let prev_id = null;
@@ -145,7 +145,7 @@ export function decompressWorldModifyChunk(buf) {
                 // id
                 let id = parseInt(s[1]);
                 if(prev_id !== null) id += prev_id;
-                resp[index] = {id};
+                resp[index] = new DBItemBlock(id)
                 // extra_data
                 if(s[2]) {
                     resp[index].extra_data = JSON.parse(s[2]);
