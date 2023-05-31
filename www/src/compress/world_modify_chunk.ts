@@ -1,6 +1,6 @@
 import { gzip, ungzip, inflate, deflate } from 'pako';
 import { BLOCK, DBItemBlock } from '../blocks.js';
-import type { IParsedChunkModifyList } from 'worker/chunk.js';
+import type { IParsedChunkModifyList } from '../worker/chunk.js';
 
 const COL_D = String.fromCharCode(8);
 const ROW_D = '\t';
