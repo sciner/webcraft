@@ -33,9 +33,13 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
                 models.push(model.name)
             }
             for(let block of this.conf.blocks) {
-                if(block.id && block.bb?.model) {
-                    const name = block.bb?.model
-                    if(!models.includes(name)) {
+                const bb = block.bb
+                if(block.id && bb) {
+                    if(!bb.model && !bb.extends) {
+                        bb.model = block.name.toLowerCase()
+                    }
+                    const name = bb.model
+                    if(name && !models.includes(name)) {
                         this.conf.bbmodels.push({name})
                     }
                 }

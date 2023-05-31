@@ -11,7 +11,6 @@ import { BBMODEL_ATLAS_SIZE } from "../constant.js";
 import type { BBModel_Child } from "./child.js";
 
 const VEC_2 = new Vector(2, 2, 2)
-const FIX_POS = new Vector(-8, -8, 8)
 const EMPTY_ARGS = []
 
 const {quat} = glMatrix
@@ -590,19 +589,18 @@ export class BBModel_Model {
 
         const from  = new Vector().copy(el.from)
         const to    = new Vector().copy(el.to)
+        const size = to.subSelf(from)
 
-        //
         const shift = this.json._properties?.shift
         if(shift) {
             from.addSelf(shift)
-            to.addSelf(shift)
         }
 
-        const size = to.subSelf(from);
-        const translate = from.addSelf(FIX_POS).addSelf(size.div(VEC_2))
+        const translate = from.addSelf(size.div(VEC_2))
         translate.z = -translate.z
+        translate.addScalarSelf(-8, -8, -8)
 
-        let child
+        let child : BBModel_Child
 
         switch(el.type) {
             case 'cube': {
@@ -611,7 +609,7 @@ export class BBModel_Model {
             }
             case 'locator': {
                 child = new BBModel_Locator(this, el, size, translate)
-                this.addParticleLocator(child)
+                this.addParticleLocator(child as BBModel_Locator)
                 break
             }
             default: {
