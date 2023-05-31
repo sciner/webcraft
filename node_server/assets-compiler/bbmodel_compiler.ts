@@ -25,6 +25,23 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
             assert: { type: 'json' }
         })).default;
         //
+
+        // auto init model list
+        if(this.conf.blocks) {
+            const models = []
+            for(let model of this.conf.bbmodels) {
+                models.push(model.name)
+            }
+            for(let block of this.conf.blocks) {
+                if(block.id && block.bb?.model) {
+                    const name = block.bb?.model
+                    if(!models.includes(name)) {
+                        this.conf.bbmodels.push({name})
+                    }
+                }
+            }
+        }
+
         // const list = [];
         for(let bb of this.conf.bbmodels) {
             const path = `${this.options.model_dir}/${bb.name}.bbmodel`;

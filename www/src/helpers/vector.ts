@@ -524,7 +524,7 @@ export class Vector implements IVector {
         return volx * voly * volz;
     }
 
-    copy(from: Vector | number[] | IVector) {
+    copy(from: Vector | number[] | IVector) : this {
         if (from == null) {
             return this;
         }

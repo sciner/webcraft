@@ -421,6 +421,7 @@ export class BBModel_Model {
                 if(isScalar(group)) {
                     this.addElement(origin, this.getElement(group));
                 } else {
+                    this.json._properties.shift = new Vector().set(group.origin[0], 0, group.origin[2]).mulScalarSelf(-1);
                     this.addGroup(origin, group);
                 }
             }

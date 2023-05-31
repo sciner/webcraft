@@ -860,6 +860,10 @@ export class BLOCK {
             }
         }
 
+        if(!existing_block && !block.style_name) {
+            block.style_name = block.style
+        }
+
         if(existing_block) {
             if(replace_block) {
                 this.flags[existing_block.id] = 0 // clear the old block flags; the new block might not have them

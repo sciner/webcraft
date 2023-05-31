@@ -80,7 +80,7 @@ export default class style {
 
         // 2. if tblock has style calculated AABB
         const styleVariant = style.block_manager.styles.get(bb?.aabb_stylename ?? material.style_name)
-        if(styleVariant?.aabb) {
+        if(styleVariant?.aabb && styleVariant.aabb !== style.computeAABB) {
             return styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
         }
 
