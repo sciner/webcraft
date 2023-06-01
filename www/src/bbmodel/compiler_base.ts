@@ -143,6 +143,8 @@ export class BBModel_Compiler_Base {
                 scale_y:    tex.texture.height / resolution.height,
                 ...await spritesheet.drawTexture(tex.texture, place.x, place.y) // {x, y, sx, sy};
             }
+            if(tex.texture.width < 32) texture_item.scale_x *= 32 / tex.texture.width
+            if(tex.texture.height < 32) texture_item.scale_y *= 32 / tex.texture.height
             textures.set(i + '', texture_item);
             textures.set(tex.id, texture_item)
         }

@@ -393,7 +393,7 @@ export class BBModel_Model {
 
     //
     parse() {
-        const origin = new Vector(0, 0, 0);
+        const origin = new Vector(8, 0, 8);
         const model_json = this.json;
         //
         if(model_json.elements) {
@@ -416,11 +416,17 @@ export class BBModel_Model {
                 }
             }
         } else if(model_json.outliner) {
+            const need_shift = model_json.meta.model_format != 'animated_entity_model' // java_block | animated_entity_model
             for(let group of model_json.outliner) {
                 if(isScalar(group)) {
+                    if(need_shift) {
+                        this.json._properties.shift = new Vector(8, 0, 8).mulScalarSelf(-1)
+                    }
                     this.addElement(origin, this.getElement(group));
                 } else {
-                    this.json._properties.shift = new Vector().set(group.origin[0], 0, group.origin[2]).mulScalarSelf(-1);
+                    if(need_shift) {
+                        this.json._properties.shift = new Vector().set(group.origin[0], 0, group.origin[2]).mulScalarSelf(-1)
+                    }
                     this.addGroup(origin, group);
                 }
             }
