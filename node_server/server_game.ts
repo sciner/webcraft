@@ -237,11 +237,6 @@ export class ServerGame {
             const skin_id       = Array.isArray(query.skin_id) ? query.skin_id[0] : query.skin_id;
             // Get loaded world
             this.getWorld(world_guid).then(async (world: ServerWorld | null) => {
-
-
-                console.log(`this.getWorld(world_guid).then ${world}`)
-
-
                 if (this.shutdownPromise) {
                     return // don't join players when shutting down
                 }
