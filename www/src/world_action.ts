@@ -1,5 +1,5 @@
 import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth,
-    SpatialDeterministicRandom, ObjectHelpers, getValidPosition, relPosToIndex } from "./helpers.js";
+    SpatialDeterministicRandom, ObjectHelpers, getValidPosition, relPosToIndex, relIndexToPos } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CD_ROT, CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT, NO_DESTRUCTABLE_BLOCKS } from "./blocks.js";
@@ -483,6 +483,33 @@ class DestroyBlocks {
                     this.add(block, position);
                 }
             }
+        }
+        //
+        if(tblock.material.fatbody) {
+            const destroyer = this
+            function destroyFatBody() : void {
+                const del_mat = tblock.material
+                const bd = del_mat.fatbody
+                const {x, y, z, w, h, d} = bd
+                const move = new Vector(0, 0, 0)
+                const shift = new Vector(0, 0, 0)
+                const relindex = tblock.extra_data.relindex
+                if(relindex == -1) {
+                    relIndexToPos(relPosToIndex(0, 0, 0), shift)
+                } else {
+                    relIndexToPos(relindex, shift)
+                }
+                for(move.x = x; move.x < x + w; move.x++) {
+                    for(move.y = y; move.y < y + h; move.y++) {
+                        for(move.z = z; move.z < z + d; move.z++) {
+                            const connected_pos = tblock.posworld.addByCardinalDirectionSelf(move.sub(shift), tblock.rotate.x + 2)
+                            const block_connected = world.getBlock(connected_pos)
+                            destroyer.add(block_connected, pos)
+                        }
+                    }
+                }
+            }
+            destroyFatBody()
         }
         // Destroy connected blocks
         for(let cn of ['next_part', 'previous_part']) {

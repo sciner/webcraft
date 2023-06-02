@@ -48,7 +48,7 @@ export class BBModel_Cube extends BBModel_Child {
                         if(flag_name.length == 0) continue
                         let i = flag_name.indexOf('#')
                         if(i >= 0) {
-                            flag_name = flag_name.sub(0, i)
+                            flag_name = flag_name.substring(0, i)
                         }
                         flag_name = `FLAG_${flag_name.toUpperCase()}`
                         const f = QUAD_FLAGS[flag_name]

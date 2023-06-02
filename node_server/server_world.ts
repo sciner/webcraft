@@ -855,6 +855,7 @@ export class ServerWorld implements IWorld {
                 let postponedActions = null; // WorldAction containing a subset of actions.blocks, postponed until the current chunk loads
                 const previous_item = {id: 0}
                 let cps = null;
+                let destroy_particles_count = 0
                 for (let params of actions.blocks.list) {
                     const block_pos = new Vector(params.pos).flooredSelf()
                     params.pos = block_pos;
@@ -894,18 +895,21 @@ export class ServerWorld implements IWorld {
                         if (!ignore_check_air) {
                             if (params.action_id == BLOCK_ACTION.DESTROY) {
                                 if (params.destroy_block.id > 0) {
-                                    const except_players = [];
-                                    if(server_player) except_players.push(server_player)
-                                    cps.custom_packets.push({
-                                        except_players,
-                                        packets: [{
-                                            name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
-                                            data: {
-                                                pos: params.pos.clone().addScalarSelf(.5, .5, .5),
-                                                item: params.destroy_block
-                                            }
-                                        }]
-                                    });
+                                    if(destroy_particles_count < 3 || destroy_particles_count % 3 == 0) {
+                                        const except_players = [];
+                                        if(server_player) except_players.push(server_player)
+                                        cps.custom_packets.push({
+                                            except_players,
+                                            packets: [{
+                                                name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
+                                                data: {
+                                                    pos: params.pos.clone().addScalarSelf(.5, .5, .5),
+                                                    item: params.destroy_block
+                                                }
+                                            }]
+                                        })
+                                    }
+                                    destroy_particles_count++
                                 }
                             }
                         }

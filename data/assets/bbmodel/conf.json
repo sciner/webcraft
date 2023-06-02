@@ -2082,7 +2082,10 @@
                 "set_state": [
                     {"name": "_", "when": {"!extra_data.relindex": -1}},
                     {"name": "default"}
-                ]
+                ],
+                "_animated": {
+                    "name": "idle"
+                }
             }
         }
     ]
