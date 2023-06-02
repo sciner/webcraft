@@ -1,0 +1,10 @@
+version: '2'
+
+
+services:
+  app:
+    build: .
+    volumes:
+      - ./storage:/app/webcraft/storage
+    ports:
+      - 5700:5700
