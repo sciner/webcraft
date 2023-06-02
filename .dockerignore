@@ -1,0 +1,18 @@
+# common
+**/node_modules
+.git
+
+# client module
+www/js
+www/js-lib
+www/js-bundles
+www/media/music
+www/resource_packs/bbmodel/*.json
+www/resource_packs/bbmodel/textures/*.png
+www/resource_packs/bbmodel/textures/*.jpg
+www/resource_packs/bbmodel/textures/*.jpeg
+www/resource_packs/base/textures
+www/resource_packs/base/blocks.json
+
+# server module
+node_server/js_server

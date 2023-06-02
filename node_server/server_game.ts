@@ -104,7 +104,7 @@ export class ServerGame {
             console.log(`>>>>>>> BEFORE LOAD WORLD ${world_guid} <<<<<<<`);
             const p = performance.now();
             const worldTitlePromise = this.db.getWorld(world_guid);
-            const conn = await SQLiteServerConnector.connect(`../world/${world_guid}/world.sqlite`);
+            const conn = await SQLiteServerConnector.connect(`../storage/world/${world_guid}/world.sqlite`);
             const world = new ServerWorld(BLOCK);
             const db_world = await DBWorld.openDB(conn, world);
             const title = (await worldTitlePromise).title;
@@ -129,7 +129,7 @@ export class ServerGame {
 
     // Start websocket server
     async start(config) {
-        const conn = await SQLiteServerConnector.connect('./game.sqlite3');
+        const conn = await SQLiteServerConnector.connect('../storage/game.sqlite3');
         await DBGame.openDB(conn).then((db) => {
             this.db = db;
             (global as any).Log = new GameLog(this.db);
