@@ -291,9 +291,7 @@ export default class Biome3LayerBottomCaves extends Biome3LayerBase {
                                     } else if(dripstone_allow) {
                                         // Dripstone
                                         if(aleaRandom.double() < .3) {
-                                            chunk.setBlockIndirect(x, y_start - 0, z, bm.POINTED_DRIPSTONE.id, null, {up: true})
-                                            chunk.setBlockIndirect(x, y_start - 1, z, bm.POINTED_DRIPSTONE.id, null, {up: true})
-                                            chunk.setBlockIndirect(x, y_start - 2, z, bm.POINTED_DRIPSTONE.id, null, {up: true})
+                                            this.addPointedDripstone(chunk, bm, x, y_start, z, aleaRandom.double() * 6 | 0)
                                         }
                                         // reset stalactite
                                         y_start = Infinity;
@@ -451,6 +449,44 @@ export default class Biome3LayerBottomCaves extends Biome3LayerBase {
 
         return map
 
+    }
+
+    /**
+     * Метод добавляем блок driprstone_pointer
+     * @param height - высота капельника
+     */
+    addPointedDripstone(chunk: ChunkWorkerChunk, bm, x: number, y: number, z: number, height: number ) {
+        if (height > 0) {
+            chunk.setBlockIndirect(x, y - height + 1, z, bm.POINTED_DRIPSTONE.id, null, {
+                up: true,
+                tip: true
+            })
+        }
+        if (height > 1) {
+            chunk.setBlockIndirect(x, y - height + 2, z, bm.POINTED_DRIPSTONE.id, null, {
+                up: true,
+                frustum: true
+            })
+        }
+        if (height == 3) {
+            chunk.setBlockIndirect(x, y, z, bm.POINTED_DRIPSTONE.id, null, {
+                up: true,
+                middle: true
+            })
+        } else if (height > 3) {
+            chunk.setBlockIndirect(x, y, z, bm.POINTED_DRIPSTONE.id, null, {
+                up: true,
+                base: true
+            })
+        }
+        if (height > 2) {
+            for (let i = 3; i < height; i++) {
+                chunk.setBlockIndirect(x, y - height + i, z, bm.POINTED_DRIPSTONE.id, null, {
+                    up: true,
+                    middle: true
+                })
+            }
+        }
     }
 
 }
