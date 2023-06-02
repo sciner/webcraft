@@ -46,7 +46,7 @@ export class GLChunkDrawer extends ChunkDrawer {
                 this.curMat = material;
                 material.bind();
                 this.curVao.bind(material.shader);
-                material.shader.updatePos(chunk.coord, null);
+                material.shader.updatePos(null, null);
             }
             this.elements[this.count++] = geom;
         } else {

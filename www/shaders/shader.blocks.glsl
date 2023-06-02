@@ -33,12 +33,13 @@
     #define FLAG_MASK_COLOR_ADD         15
     #define FLAG_TORCH_FLAME            16
     #define FLAG_FLUID_ERASE            17
-    #define DELIMITER_VERTEX     ((1 << 18) - 1)
-    #define FLAG_WAVES_VERTEX           18
-    #define FLAG_LOOK_AT_CAMERA              19
-    #define FLAG_LOOK_AT_CAMERA_HOR          20
-    #define FLAG_TRIANGLE               21
-    #define FLAG_MIR2_TEX               22
+    #define FLAG_LIGHT_GRID             18
+    #define DELIMITER_VERTEX     ((1 << 19) - 1)
+    #define FLAG_WAVES_VERTEX           19
+    #define FLAG_LOOK_AT_CAMERA              20
+    #define FLAG_LOOK_AT_CAMERA_HOR          21
+    #define FLAG_TRIANGLE               22
+    #define FLAG_MIR2_TEX               23
 
 #endif
 
@@ -89,7 +90,9 @@
     uniform sampler2D u_blockDayLightSampler;
     uniform sampler2D u_maskColorSampler;
     //--
-
+    uniform highp isampler3D u_gridChunkSampler;
+    uniform vec3 u_gridChunkSize;
+    uniform vec3 u_gridChunkOffset;
 #endif
 
 #ifdef global_uniforms_vert
@@ -547,7 +550,29 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
     // global illumination
     vec3 absNormal = abs(v_normal);
     vec3 signNormal = sign(v_normal);
-    vec3 lightCoord = v_chunk_pos + 1.0 + v_lightOffset.xyz + v_normal * 0.01;
+
+    vec3 lightCoord;
+    float lightId;
+
+    if (checkFlag(FLAG_LIGHT_GRID))
+    {
+        vec3 chunkCoord = floor(v_chunk_pos / u_gridChunkSize);
+        ivec3 ts = textureSize(u_gridChunkSampler, 0);
+        int chunkIntData = texelFetch(u_gridChunkSampler, ivec3(chunkCoord) % ts, 0).r;
+        lightCoord = (v_chunk_pos - chunkCoord * u_gridChunkSize);
+        lightCoord.x += float(chunkIntData & 0x1ff);
+        lightCoord.y += float((chunkIntData >> 9) & 0x1ff);
+        lightCoord.z += float((chunkIntData >> 18) & 0x1ff);
+        lightId = float( (chunkIntData >> 27) & 0xf );
+    }
+    else
+    {
+        lightCoord = v_chunk_pos + v_lightOffset.xyz;
+        lightId = v_lightId;
+    }
+
+    lightCoord += 1.0 + v_normal * 0.01;
+
     int aoMask = 0;
     if (absNormal.x >= absNormal.y && absNormal.x >= absNormal.z) {
         aoMask = 6;
@@ -564,13 +589,13 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
     if (u_lightOverride.z > 1.5) {
         centerSample.xy = u_lightOverride.xy;
     } else {
-        if (v_lightId < 0.5) {
+        if (lightId < 0.5) {
             // default light
-        } else if (v_lightId < 2.5) {
+        } else if (lightId < 2.5) {
             ivec3 lightCoordInt = ivec3(floor(lightCoord));
             ivec3 lightCoordHalf = lightCoordInt >> 1;
             ivec4 big0;
-            if (v_lightId < 1.5) {
+            if (lightId < 1.5) {
                 big0 = texelFetch(u_lightTex[0], lightCoordHalf, 0);
             } else {
                 big0 = texelFetch(u_lightTex[1], lightCoordHalf, 0);
@@ -590,7 +615,7 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
                 int neibShift = shift ^ dirShift;
                 ivec4 big1, big2, big4, bigDiag;
                 if ((neibShift & 1) != 0) {
-                    if (v_lightId < 1.5) {
+                    if (lightId < 1.5) {
                         big1 = texelFetch(u_lightTex[0], lightCoordHalf + ivec3(dirSign.x, 0, 0), 0);
                     } else {
                         big1 = texelFetch(u_lightTex[1], lightCoordHalf + ivec3(dirSign.x, 0, 0), 0);
@@ -600,7 +625,7 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
                 }
                 int little1 = sampleCubeLight(big1, shift ^ 1);
                 if ((neibShift & 2) != 0) {
-                    if (v_lightId < 1.5) {
+                    if (lightId < 1.5) {
                         big2 = texelFetch(u_lightTex[0], lightCoordHalf + ivec3(0, dirSign.y, 0), 0);
                     } else {
                         big2 = texelFetch(u_lightTex[1], lightCoordHalf + ivec3(0, dirSign.y, 0), 0);
@@ -610,7 +635,7 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
                 }
                 int little2 = sampleCubeLight(big2, shift ^ 2);
                 if ((neibShift & 4) != 0) {
-                    if (v_lightId < 1.5) {
+                    if (lightId < 1.5) {
                         big4 = texelFetch(u_lightTex[0], lightCoordHalf + ivec3(0, 0, dirSign.z), 0);
                     } else {
                         big4 = texelFetch(u_lightTex[1], lightCoordHalf + ivec3(0, 0, dirSign.z), 0);
@@ -643,7 +668,7 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
                     part.xyz = abs(lightPart.yzx * 2.0);
                 }
                 if ((neibShift & aoMask) == aoMask) {
-                    if (v_lightId < 1.5) {
+                    if (lightId < 1.5) {
                         bigDiag = texelFetch(u_lightTex[0], diagCoord, 0);
                     } else {
                         bigDiag = texelFetch(u_lightTex[1], diagCoord, 0);
@@ -783,12 +808,12 @@ v_axisV *= sign(a_uvSize.y);
 
     vec4 normalSample[8];
 
-    if (v_lightId < 0.5) {
-    } else if (v_lightId < 1.5) {
+    if (lightId < 0.5) {
+    } else if (lightId < 1.5) {
         for (int i = 0; i < 8; i++) {
             normalSample[i] = texelFetch(u_lightTex[0], iCoord[i], 0);
         }
-    } else if (v_lightId < 2.5) {
+    } else if (lightId < 2.5) {
         for (int i = 0; i < 8; i++) {
             normalSample[i] = texelFetch(u_lightTex[1], iCoord[i], 0);
         }
