@@ -74,6 +74,25 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
             }
         );
 
+        this.addRecipe('new_farm',
+            function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
+                     label: string | null, outUsedCount: int[]): IInventoryItem | null
+            {
+                if (first_item == null || second_item == null || second_item.id != 641) {
+                    return null
+                }
+
+                outUsedCount[0] = 1;
+                outUsedCount[1] = 1;
+                const result = ObjectHelpers.deepClone(first_item)
+                result.count = 1;
+                ItemHelpers.setExtraDataField(result, 'enchantments1', {'xer': 3});
+                return result;
+
+            }
+        );
+
+
         this.addRecipe('repair', // repair by ingredients; repair by combining is 'combine'
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
                      label: string | null, outUsedCount: int[]): IInventoryItem | null
