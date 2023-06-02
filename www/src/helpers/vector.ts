@@ -710,3 +710,22 @@ export class Vector4 {
         this.height = height;
     }
 }
+
+export function relPosToIndex(x : int, y : int, z : int) : int {
+    const mg : int = 32
+    const sz : int = mg * 2 + 1
+    x += mg
+    z += mg
+    return sz * (sz * y + z) + x
+}
+
+export function relIndexToPos(index : int, out : Vector) : Vector {
+    const mg : int = 32
+    const sz : int = mg * 2 + 1
+    out.x = index % sz
+    out.y = index / (sz * sz) | 0
+    out.z = (index % (sz * sz) - out.x) / sz
+    out.x -= mg
+    out.z -= mg
+    return out
+}

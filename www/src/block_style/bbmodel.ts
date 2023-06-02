@@ -31,6 +31,10 @@ const randoms = new FastRandom('bbmodel', MAX_CHUNK_SQUARE)
 const DEFAULT_SIX_ROTATE = Vector.YP.clone()
 let aabb_chunk = null
 
+function checkNot(value : boolean, not : boolean) : boolean {
+    return value ? !not : not
+}
+
 class BBModel_TextureRule {
     /**
      * Texture name
@@ -599,22 +603,26 @@ export default class style {
             return true
         }
         for(let k in when) {
+            const not = k.startsWith('!')
             const condition_value = when[k]
+            if(not) {
+                k = k.substring(1)
+            }
             switch(k) {
                 case 'state': {
-                    if(Array.isArray(condition_value) ? !condition_value.includes(model.state) : (model.state !== condition_value)) {
+                    if(checkNot(Array.isArray(condition_value) ? !condition_value.includes(model.state) : (model.state !== condition_value), not)) {
                         return false
                     }
                     break
                 }
                 case 'rotate.y': {
-                    if(tblock.rotate?.y !== condition_value) {
+                    if(checkNot(tblock.rotate?.y !== condition_value, not)) {
                         return false
                     }
                     break
                 }
                 case 'sign:samerot': {
-                    if(sign_style.same_rot_with_up_neighbour(tblock, neighbours.UP) != condition_value) {
+                    if(checkNot(sign_style.same_rot_with_up_neighbour(tblock, neighbours.UP) != condition_value, not)) {
                         return false
                     }
                     break
@@ -634,18 +642,18 @@ export default class style {
                         }
                         const property_name = temp[3]
                         const nmat = n.material
-                        if(!nmat || n.material[property_name] != when[k]) {
+                        if(checkNot((!nmat || n.material[property_name] != condition_value), not)) {
                             return false
                         }
                     } else if(k.startsWith('extra_data.')) {
                         const key = k.substring(11)
                         const value = tblock.extra_data ? (tblock.extra_data[key] ?? null) : null
                         if(Array.isArray(condition_value)) {
-                            if(!condition_value.includes(value)) {
+                            if(checkNot(!condition_value.includes(value), not)) {
                                 return false
                             }
                         } else {
-                            if(condition_value != value) {
+                            if(checkNot(condition_value != value, not)) {
                                 return false
                             }
                         }

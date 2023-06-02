@@ -1,5 +1,5 @@
 import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth,
-    SpatialDeterministicRandom, ObjectHelpers, getValidPosition } from "./helpers.js";
+    SpatialDeterministicRandom, ObjectHelpers, getValidPosition, relPosToIndex } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CD_ROT, CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT, NO_DESTRUCTABLE_BLOCKS } from "./blocks.js";
@@ -1382,6 +1382,37 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
             action_id: BLOCK_ACTION.CREATE
         };
         pushBlock(next_block);
+    }
+    //
+    if(mat_block.fatbody) {
+        function makeBody() : void {
+            const bd = mat_block.fatbody
+            const {x, y, z, w, h, d} = bd
+            const move = new Vector(0, 0, 0)
+            for(move.x = x; move.x < x + w; move.x++) {
+                for(move.y = y; move.y < y + h; move.y++) {
+                    for(move.z = z; move.z < z + d; move.z++) {
+                        const new_rotate = orientation.clone()
+                        const relindex = relPosToIndex(move.x, move.y, move.z)
+                        const next_block = {
+                            pos: pos.clone().addByCardinalDirectionSelf(move, orientation.x + 2),
+                            item: {
+                                id:         mat_block.id,
+                                rotate:     new_rotate,
+                                extra_data: {...new_item.extra_data, relindex}
+                            },
+                            action_id: BLOCK_ACTION.CREATE
+                        };
+                        pushBlock(next_block)
+                    }
+                }
+            }
+            if(!new_item.extra_data) {
+                new_item.extra_data = {}
+            }
+            new_item.extra_data.relindex = -1
+        }
+        makeBody()
     }
     // Проверяем, что все блоки можем установить
     for(let pb of pushed_blocks) {

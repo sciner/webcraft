@@ -451,6 +451,7 @@ interface IBlockMaterial {
     inventory_icon_id?: number
     max_in_stack: number
     is_powered: boolean
+    fatbody?: {x : int, y : int, z : int, w : int, h : int, d : int}
 }
 
 interface INetworkMessage<DataT = any> {

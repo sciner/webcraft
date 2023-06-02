@@ -2062,6 +2062,28 @@
                     {"name": "off", "when": {"extra_data.powered": false}}
                 ]
             }
+        },
+        {
+            "id": 3000,
+            "name": "BILLBOARD",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "extra_data": {"relindex": -1},
+            "fatbody": {"x": -3, "y": 0, "z": 0, "w": 7, "h": 4, "d": 1},
+            "bb": {
+                "import_anyway": true,
+                "rotate": {"type": "cardinal_direction"},
+                "set_state": [
+                    {"name": "_", "when": {"!extra_data.relindex": -1}},
+                    {"name": "default"}
+                ]
+            }
         }
     ]
 }
