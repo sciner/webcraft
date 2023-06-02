@@ -485,11 +485,11 @@ class DestroyBlocks {
             }
         }
         //
-        if(tblock.material.fatbody) {
+        if(tblock.material.megablock) {
             const destroyer = this
-            function destroyFatBody() : void {
+            function destroyMegaBlock() : void {
                 const del_mat = tblock.material
-                const bd = del_mat.fatbody
+                const bd = del_mat.megablock
                 const {x, y, z, w, h, d} = bd
                 const move = new Vector(0, 0, 0)
                 const shift = new Vector(0, 0, 0)
@@ -509,7 +509,7 @@ class DestroyBlocks {
                     }
                 }
             }
-            destroyFatBody()
+            destroyMegaBlock()
         }
         // Destroy connected blocks
         for(let cn of ['next_part', 'previous_part']) {
@@ -1411,9 +1411,9 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
         pushBlock(next_block);
     }
     //
-    if(mat_block.fatbody) {
+    if(mat_block.megablock) {
         function makeBody() : void {
-            const bd = mat_block.fatbody
+            const bd = mat_block.megablock
             const {x, y, z, w, h, d} = bd
             const move = new Vector(0, 0, 0)
             for(move.x = x; move.x < x + w; move.x++) {

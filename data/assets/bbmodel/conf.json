@@ -2075,7 +2075,7 @@
                 "no_drop_ao"
             ],
             "extra_data": {"relindex": -1},
-            "fatbody": {"x": -3, "y": 0, "z": 0, "w": 7, "h": 4, "d": 1},
+            "megablock": {"x": -3, "y": 0, "z": 0, "w": 7, "h": 4, "d": 1},
             "bb": {
                 "import_anyway": true,
                 "rotate": {"type": "cardinal_direction"},
