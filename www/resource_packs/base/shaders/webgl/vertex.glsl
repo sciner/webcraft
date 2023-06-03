@@ -121,5 +121,16 @@ void main() {
     }
 
     v_flags = v_flags & DELIMITER_VERTEX;
+
+    if (checkFlag(FLAG_LIGHT_GRID))
+    {
+        if (a_chunkId < -0.5) {
+            v_chunk_pos = v_chunk_pos + chunk_corner - u_gridChunkOffset;
+        } else
+        {
+            v_chunk_pos = v_world_pos - u_gridChunkOffset;
+        }
+    }
+
     #include_post<flat_encode>
 }
