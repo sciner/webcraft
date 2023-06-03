@@ -1016,7 +1016,7 @@ export class ServerPlayer extends Player {
         if (!head) {
             return false;
         }
-        const instrument = bm.fromId(this.currentInventoryItem.id);
+        const instrument = bm.fromId(this?.currentInventoryItem?.id);
         const is_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID)
         const mul = getMulSpeedDestroy(this, is_water)
         const mining_time_server = block.material.getMiningTime({material: instrument}, false) / mul

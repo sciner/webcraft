@@ -2958,6 +2958,7 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
             actions.addBlocks([{pos: position.offset(0, -1, 0), item: {id: mat_block.id, extra_data: {up: true, tip: true}}, action_id: BLOCK_ACTION.CREATE}])
         }
     }
+    actions.decrement = true
 
     return true
 }
