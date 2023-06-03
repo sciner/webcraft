@@ -79,7 +79,7 @@ export class Enchantments {
             suffixes: ['_HELMET'],
             max_level: 3,
             weight: 2
-        } as IEchantment,
+        } as IEchantment
         // TODO add the rest
     };
 
@@ -104,22 +104,11 @@ export class Enchantments {
     ];
 
     /** Yields [enchantment, level] for each enchantment on the item. */
-    /*static *ofItem(item) {
-        const enchantments = item.extra_data?.enchantments;
-        if (enchantments) {
-            console.log(enchantments)
-            for(let id in enchantments) {
-                yield [this.byId[id], enchantments[id]];
-            }
-        }
-    }*/
-
-    /** Yields [enchantment, level] for each enchantment on the item. */
     static *ofItem(item) {
         const enchantments = item.extra_data?.enchantments;
         if (enchantments) {
-            for(const enchantment of enchantments) {
-                yield [this.byId[enchantment.id], enchantment.lvl];
+            for(let id in enchantments) {
+                yield [this.byId[id], enchantments[id]];
             }
         }
     }
@@ -143,17 +132,13 @@ export class Enchantments {
     }
 
     /** @return true if the the enchantment is compatible with a type of this item. */
-    /*static isCompatibleType(item, enchantment) {
+    static isCompatibleType(item, enchantment) {
         if (item.id === BLOCK.ENCHANTED_BOOK.id) {
             return true;
         }
         const blockName = BLOCK.fromId(item.id).name;
         return enchantment.names?.includes(blockName) ||
             enchantment.suffixes?.find(it => blockName.endsWith(it)) != null;
-    }*/
-    static isCompatibleType(item, enchantment) {
-        const blockName = BLOCK.fromId(item.id).name
-        return enchantment.suffixes?.includes(blockName) || enchantment.suffixes?.find(it => blockName.endsWith(it)) != null
     }
 
     /** @return true if the item has any enchantments incompatible with this enchantment. */
