@@ -153,22 +153,22 @@ export class CraftTableSlot extends SimpleBlockSlot {
                     resp += '\r' + Lang['protection'] + ': ' + block.extra_data.protection
                 }
                 if (block?.power && item?.power) {
-                    resp += '\r' + Lang['durability'] + ': ' + item.power + '/' + block.power
                     const bonus = Upgrade.getValueById(item, block.power, Upgrade.POWER)
+                    resp += '\r' + Lang['durability'] + ': ' + (item.power + bonus) + '/' + block.power
                     if (bonus) {
                         resp += '+' + Math.round(bonus)
                     } 
                 }
                 if (block.damage) {
-                    resp += '\r' + Lang['damage'] + ': ' + block.damage
                     const bonus = Upgrade.getValueById(item, block.damage, Upgrade.DAMAGE )
+                    resp += '\r' + Lang['damage'] + ': ' + (block.damage + bonus)
                     if (bonus) {
                         resp += '+' + bonus
                     } 
                 }
                 if (block.speed) {
-                    resp += '\r' + Lang['speed'] + ': ' + block.speed
                     const bonus = Upgrade.getValueById(item, block.speed, Upgrade.SPEED )
+                    resp += '\r' + Lang['speed'] + ': ' + (block.speed + bonus)
                     if (bonus) {
                         resp += '+' + bonus
                     } 
