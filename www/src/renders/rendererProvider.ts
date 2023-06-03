@@ -1,8 +1,6 @@
 import WebGLRenderer from './webgl/index.js';
-import WebGPURenderer from './webgpu/index.js';
 
 const RENDERS: any[] =  [
-    WebGPURenderer,
     WebGLRenderer
 ];
 

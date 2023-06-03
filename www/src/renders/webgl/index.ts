@@ -15,6 +15,7 @@ import {GLChunkDrawer} from "./GLChunkDrawer.js";
 import {GLLineDrawer} from "./GLLineDrawer.js";
 import {WebGLFluidShader} from "./WebGLFluidShader.js";
 import {GLSillyDrawer} from "./GLSillyDrawer.js";
+import * as VAUX from 'vauxcel';
 
 const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
 
@@ -334,7 +335,8 @@ export default class WebGLRenderer extends BaseRenderer {
     async init(args) {
         await super.init(args);
 
-        const gl = this.gl = this.view.getContext('webgl2', {...this.options, stencil: true});
+        this.pixiRender = new VAUX.Renderer(this.options);
+        const gl = this.gl = this.pixiRender.gl;
         this.resetBefore();
         this.multidrawExt = gl.getExtension('WEBGL_multi_draw');
         this.multidrawBaseExt = gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
@@ -441,11 +443,18 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     createProgram({vertex, fragment, tfVaryings}, preprocessArgs = {}) {
-        return Helpers.createGLProgram(this.gl, {
+        const program = new VAUX.Program({
             vertex: this.preprocessor.applyBlocks(vertex, preprocessArgs),
             fragment: this.preprocessor.applyBlocks(fragment, preprocessArgs),
-            tfVaryings: tfVaryings,
-        });
+        }, tfVaryings ? { transformFeedbackVaryings : {
+            names: tfVaryings,
+            bufferMode: 'interleaved'
+        }} : null );
+
+        const shader = new VAUX.Shader(program);
+        this.pixiRender.shader.bind(shader);
+
+        return program.glPrograms[this.pixiRender.CONTEXT_UID].program;
     }
 
     createTexture3D(options) {

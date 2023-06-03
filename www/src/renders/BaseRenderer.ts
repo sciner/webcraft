@@ -5,6 +5,7 @@ import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
 import type GeometryTerrain from '../geometry_terrain.js';
 import type { WebGLMaterial } from './webgl/WebGLMaterial.js';
 import type {GeomCopyOperation} from "../geom/big_geom_batch_update.js";
+import type * as VAUX from 'vauxcel';
 
 const {mat4} = glMatrix;
 
@@ -453,6 +454,7 @@ export default class BaseRenderer {
     batch : BatchSystem
     preprocessor = new ShaderPreprocessor();
     globalBufs: Dict<BaseBuffer> = {};
+    pixiRender: VAUX.Renderer = null;
 
     /**
      *
