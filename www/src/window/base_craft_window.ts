@@ -133,11 +133,11 @@ export class CraftTableSlot extends SimpleBlockSlot {
                 const block = BLOCK.fromId(item.id)
                 const label = item.extra_data?.label;
                 resp = label
-                    ? `${label} (${block.title}, #${item.id})`
+                    ? `${block.title} (${label}, #${item.id})`
                     : `${block.title} (#${item.id})`;
                 if (item?.extra_data?.enchantments) {
                     for(const [e, lvl] of Enchantments.ofItem(item)) {
-                        resp += '\r' + e?.name + ' ' + lvl;
+                        resp += '\r' + e.name + ' ' + StringHelpers.romanize(lvl);
                     }
                 }
                 if (item.extra_data?.age) {
@@ -153,8 +153,11 @@ export class CraftTableSlot extends SimpleBlockSlot {
                     resp += '\r' + Lang['protection'] + ': ' + block.extra_data.protection
                 }
                 if (block?.power && item?.power) {
-                    const bonus = Upgrade.getValueById(item, item.power, Upgrade.POWER)
-                    resp += '\r' + Lang['durability'] + ': ' + Math.round((item.power + bonus) * 1000 / block.power) / 10 + '%'
+                    resp += '\r' + Lang['durability'] + ': ' + item.power + '/' + block.power
+                    const bonus = Upgrade.getValueById(item, block.power, Upgrade.POWER)
+                    if (bonus) {
+                        resp += '+' + Math.round(bonus)
+                    } 
                 }
                 if (block.damage) {
                     resp += '\r' + Lang['damage'] + ': ' + block.damage

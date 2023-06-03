@@ -76,12 +76,11 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
             }
         );
 
-        this.addRecipe('simple',
+        this.addRecipe('craft',
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
                      label: string | null, outUsedCount: int[]): IInventoryItem | null
             {
-                // @todo пока id алмаза, переделать на пыль
-                if (first_item == null || second_item == null || second_item.id != 641) {
+                if (first_item == null || second_item == null || second_item.id != BLOCK.DIAMOND_DUST.id) {
                     return null
                 }
                 // покрывать можно только один раз, на каких предметах можно использовать

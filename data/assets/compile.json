@@ -12880,6 +12880,16 @@
                 "button"
             ],
             "support_style": "item_frame"
+        },
+        {
+            "id": 1108,
+            "name": "DIAMOND_DUST",
+            "style": "extruder",
+            "texture": "item/diamond.png",
+            "item": {"name": "powder"},
+            "material": {
+                "id": "powder"
+            }
         }
     ]
 }
