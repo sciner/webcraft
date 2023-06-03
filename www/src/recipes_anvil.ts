@@ -169,7 +169,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                 }
                 // удаляем все модификации
                 ItemHelpers.deleteExtraDataField(result, 'upgrades')
-                ItemHelpers.incrementExtraDataField(result, 'age', 1);
+                //ItemHelpers.incrementExtraDataField(result, 'age', 1);
                 return result;
             }
         );
@@ -179,6 +179,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
                      label: string | null, outUsedCount: int[]): IInventoryItem | null
             {
+                return null // отключено
                 if (first_item == null || second_item == null) {
                     return null;
                 }
