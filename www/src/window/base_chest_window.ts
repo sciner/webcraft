@@ -530,7 +530,9 @@ export class BaseChestWindow extends BaseInventoryWindow {
         // Если перетаскивается предмет - не проверять, чтобы было меньше мигаений кнопки попусту
         // (мы все равно не можем нажать в этот момент)
         if (this.loading) {
-            this.btnSortChest.enabled = false
+            if (this.btnSortChest) {
+                this.btnSortChest.enabled = false
+            }
             return
         }
         if (this.btnSortChest && this.inventory.drag.item == null) {
