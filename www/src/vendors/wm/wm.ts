@@ -1773,13 +1773,7 @@ export class WindowManager extends Window {
         if (qubatchRender) {
             this.qubatchRender = qubatchRender;
             this.canvas = qubatchRender.canvas;
-            this.pixiRender = new VAUX.Renderer({
-                context: qubatchRender.renderBackend.gl,
-                view: this.canvas,
-                width: this.canvas.width,
-                height: this.canvas.height,
-                clearBeforeRender: false
-            })
+            this.pixiRender = qubatchRender.renderBackend.pixiRender;
         } else {
             this.pixiRender = new VAUX.Renderer({
                 view: this.canvas,

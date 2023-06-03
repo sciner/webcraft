@@ -335,7 +335,7 @@ export default class WebGLRenderer extends BaseRenderer {
     async init(args) {
         await super.init(args);
 
-        this.pixiRender = new VAUX.Renderer(this.options);
+        this.pixiRender = new VAUX.Renderer({...this.options, view: this.view});
         const gl = this.gl = this.pixiRender.gl;
         this.resetBefore();
         this.multidrawExt = gl.getExtension('WEBGL_multi_draw');
