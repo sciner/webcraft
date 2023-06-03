@@ -456,32 +456,24 @@ export default class Biome3LayerBottomCaves extends Biome3LayerBase {
      * @param height - высота капельника
      */
     addPointedDripstone(chunk: ChunkWorkerChunk, bm, x: number, y: number, z: number, height: number ) {
-        if (height > 0) {
-            chunk.setBlockIndirect(x, y - height + 1, z, bm.POINTED_DRIPSTONE.id, null, {
-                up: true,
-                tip: true
-            })
-        }
-        if (height > 1) {
-            chunk.setBlockIndirect(x, y - height + 2, z, bm.POINTED_DRIPSTONE.id, null, {
-                up: true,
-                frustum: true
-            })
-        }
-        if (height == 3) {
-            chunk.setBlockIndirect(x, y, z, bm.POINTED_DRIPSTONE.id, null, {
-                up: true,
-                middle: true
-            })
-        } else if (height > 3) {
-            chunk.setBlockIndirect(x, y, z, bm.POINTED_DRIPSTONE.id, null, {
-                up: true,
-                base: true
-            })
-        }
-        if (height > 2) {
-            for (let i = 3; i < height; i++) {
-                chunk.setBlockIndirect(x, y - height + i, z, bm.POINTED_DRIPSTONE.id, null, {
+        for (let i = 0; i <= height; i++) {
+            if (i == height) {
+                chunk.setBlockIndirect(x, y - i, z, bm.POINTED_DRIPSTONE.id, null, {
+                    up: true,
+                    tip: true
+                })
+            } else if (i == height - 1) {
+                chunk.setBlockIndirect(x, y - i, z, bm.POINTED_DRIPSTONE.id, null, {
+                    up: true,
+                    frustum: true
+                })
+            } else if (i == 0 && height != 2) {
+                chunk.setBlockIndirect(x, y - i, z, bm.POINTED_DRIPSTONE.id, null, {
+                    up: true,
+                    base: true
+                })
+            } else {
+                chunk.setBlockIndirect(x, y - i, z, bm.POINTED_DRIPSTONE.id, null, {
                     up: true,
                     middle: true
                 })
