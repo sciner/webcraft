@@ -1,12 +1,21 @@
 import {Vector, unixTime} from '@client/helpers.js';
 import {DBGameSkins, UPLOAD_STARTING_ID} from './game/skin.js';
+import {TransactionMutex} from "./db_helpers.js";
 
 export class DBGame {
     conn: DBConnection;
     skins: DBGameSkins;
+    /**
+     * Используется чтобы:
+     *  - не начинать транзакцию до зваершения предущей (иначе SQLITE_ERROR)
+     *  - не вносить важных изменения (смена пароля, деньги, и т.п.) пока выполняется какая-то другая транзакция
+     *    (иначе они могут откатиться вместе с ней). Неважные изменения типа логов и статистики - можно.
+     */
+    transactionMutex: TransactionMutex
 
     constructor(conn: DBConnection) {
         this.conn = conn;
+        this.transactionMutex = new TransactionMutex(conn)
         this.skins = new DBGameSkins(this);
     }
 
@@ -240,7 +249,7 @@ export class DBGame {
 
     // Создание нового мира (сервера)
     async Registration(username, password) {
-        await this.conn.get('begin transaction');
+        const transaction = await this.transactionMutex.beginTransaction()
         try {
             if(await this.conn.get("SELECT id, username, guid, password FROM user WHERE username = ?", [username])) {
                 throw 'error_player_exists';
@@ -273,10 +282,10 @@ export class DBGame {
             await this.JoinWorld(lastID, "demo")
             await this.JoinWorld(lastID, "d5d3520c-c6cb-4ef2-b439-d37df069demo")
             await this.JoinWorld(lastID, "3ee277a4-1834-4310-91da-389bf9c8demo")
-            await this.conn.get('commit')
+            await transaction.commit()
             return lastID
         } catch(e) {
-            await this.conn.get('rollback')
+            await transaction.rollback()
             throw e
         }
     }
@@ -308,11 +317,12 @@ export class DBGame {
     // Регистрация новой сессии пользователя
     async CreatePlayerSession(user_row) {
         const session_id = randomUUID();
+        const allowTransactionCb = await this.transactionMutex.noTransaction()
         await this.conn.run('INSERT INTO user_session(dt, user_id, token) VALUES (:dt, :user_id, :session_id)', {
             ':dt':          unixTime(),
             ':user_id':     user_row.id,
             ':session_id':  session_id
-        });
+        }).finally(allowTransactionCb)
         return {
             user_id:        user_row.id,
             user_guid:      user_row.guid,
@@ -374,6 +384,7 @@ export class DBGame {
         //     throw 'error_world_with_same_title_already_exist';
         // }
         const guid = randomUUID();
+        const allowTransactionCb = await this.transactionMutex.noTransaction()
         const result = await this.conn.run('INSERT OR IGNORE INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode)', {
             ':dt':          unixTime(),
             ':guid':        guid,
@@ -383,7 +394,7 @@ export class DBGame {
             ':game_mode':   game_mode,
             ':generator':   JSON.stringify(generator),
             ':pos_spawn':   JSON.stringify(pos_spawn),
-        });
+        }).finally(allowTransactionCb)
         // lastID
         let lastID = result.lastID;
         if(!result.changes) { // If it's a single-player, or insertion failed in multi-player
@@ -410,6 +421,7 @@ export class DBGame {
             throw 'error_player_exists_in_world';
         }
         const dt = unixTime();
+        // тут нельзя ждать транзации, т.к. оно вызывается из танзакции
         const result = await this.conn.run('INSERT INTO world_player(dt, world_id, user_id, dt_last_visit) VALUES (:dt, :world_id, :user_id, :dt_last_visit)', {
             ':dt':          dt,
             ':world_id':    world_id,
@@ -512,17 +524,19 @@ export class DBGame {
         }
         // Если это задний фон
         if(cover) {
+            const allowTransactionCb = await this.transactionMutex.noTransaction()
             await this.conn.run('UPDATE world SET cover = :cover WHERE guid = :guid', {
                 ':cover': filename,
                 ':guid':  guid
-            });
+            }).finally(allowTransactionCb)
         }
         // Заносим в базу скриншот
+        const allowTransactionCb = await this.transactionMutex.noTransaction()
         await this.conn.run('INSERT INTO screenshot (dt, guid_world, guid_file) VALUES (:dt, :guid, :file)', {
             ':dt':  unixTime(),
             ':guid': guid,
             ':file': filename
-        });
+        }).finally(allowTransactionCb)
         return filename;
     }
 

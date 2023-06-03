@@ -1,6 +1,6 @@
 import {Mth, ObjectHelpers, Vector} from "@client/helpers.js";
 import {Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps} from "@client/player.js";
-import { GameMode } from "@client/game_mode.js";
+import {GAME_MODE, GameMode} from "@client/game_mode.js";
 import { ServerClient } from "@client/server_client.js";
 import {Raycaster, RaycasterResult} from "@client/Raycaster.js";
 import { PlayerEvent } from "./player_event.js";
@@ -196,7 +196,8 @@ export class ServerPlayer extends Player {
         this.world_data = init_info.world_data;
         this.prev_world_data = ObjectHelpers.deepClone(this.world_data);
         // GameMode
-        this.game_mode = new GameMode(this, init_info.state.game_mode);
+        const game_mode = this.is_spectator_bot ? GAME_MODE.SPECTATOR : init_info.state.game_mode
+        this.game_mode = new GameMode(this, game_mode);
         this.game_mode.onSelect = async (mode) => {
             this.cancelDriving()
             if (this.game_mode.isCreative()) {

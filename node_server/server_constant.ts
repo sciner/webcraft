@@ -1,5 +1,11 @@
 import { MAX_PACKET_LAG_SECONDS } from "@client/constant.js"
 
+/**
+ * Если true, клиент может при входе в мир сказать что он бот, и сразу использовать режим наблюдателя не будучи админом.
+ * TODO отключить в релизе
+ */
+export const SPECTATOR_BOTS_ENABLED = true
+
 // =================================== сеть ===================================
 
 /** The server sends a command to each player at least once per this interval of time. */
