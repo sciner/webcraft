@@ -526,15 +526,15 @@ export class BaseChestWindow extends BaseInventoryWindow {
 
     onInventoryChange(context?: string): void {
         super.onInventoryChange(context)
-        // Проверить, возможно ли сортировать сундук.
-        // Если перетаскивается предмет - не проверять, чтобы было меньше мигаений кнопки попусту
-        // (мы все равно не можем нажать в этот момент)
         if (this.loading) {
             if (this.btnSortChest) {
                 this.btnSortChest.enabled = false
             }
             return
         }
+        // Проверить, возможно ли сортировать сундук.
+        // Если перетаскивается предмет - не проверять, чтобы было меньше миганий кнопки попусту
+        // (мы все равно не можем нажать в этот момент)
         if (this.btnSortChest && this.inventory.drag.item == null) {
             const copy = this.chest.collection.clone()
             copy.autoSort()
