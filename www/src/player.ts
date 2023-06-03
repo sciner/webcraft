@@ -1,4 +1,4 @@
-import {Helpers, Vector, ObjectHelpers, CAMERA_MODE} from "./helpers.js";
+import {Helpers, Vector, ObjectHelpers, CAMERA_MODE, getMulSpeedDestroy} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
@@ -24,6 +24,7 @@ import { MechanismAssembler } from "./mechanism_assembler.js";
 import { BBModel_Model } from "./bbmodel/model.js";
 import { AABB } from "./core/AABB.js";
 import type {PrismarinePlayerState} from "./prismarine-physics/index.js";
+import Upgrade from "./enums/upgrade.js";
 
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
@@ -781,13 +782,10 @@ export class Player implements IPlayer {
             }
         // destroy block
         } else if(e.destroyBlock) {
-            const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
-            const block         = BLOCK.fromId(world_block.id);
-            let mul             = Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
-            mul *= this.eyes_in_block?.is_water ? 0.2 : 1;
-            mul += mul * 0.2 * this.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
-            mul -= mul * 0.2 * this.getEffectLevel(Effect.MINING_FATIGUE); // усталость
-            const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative()) / mul;
+            const world_block = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
+            const block       = BLOCK.fromId(world_block.id);
+            const mul         = getMulSpeedDestroy(this, this.eyes_in_block?.is_water)
+            const mining_time = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative()) / mul;
             // arm animation + sound effect + destroy particles
             if(e.destroyBlock) {
                 const hitIndex = Math.floor(times / (RENDER_DEFAULT_ARM_HIT_PERIOD / 1000));

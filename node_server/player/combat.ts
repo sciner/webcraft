@@ -1,6 +1,7 @@
 import { ATTACK_COOLDOWN } from "@client/constant.js";
 import type { ServerPlayer } from "../server_player.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
+import Upgrade from "@client/enums/upgrade.js";
 
 const TIME_CRIT_DELAY = 1000
 
@@ -28,18 +29,22 @@ export class ServerPlayerCombat {
         this.#time = performance.now()
         this.#mob_id = mob_id
         this.#player_id = player_id
-        this.#item = world.block_manager.fromId(player.state.hands.right.id)
-        const speed = this.#item?.speed ? this.#item.speed : 1
+        this.#item = {...player.currentInventoryItem}
+        const block = world.block_manager.fromId(this.#item.id)
+        const speed = block.speed ? block.speed : 1
         player.state.attack = {title: 'attack', speed: speed}
     }
 
     setDamage(tick) {
         const player = this.#player
         if (player.state.attack) {
-            const speed = this.#item?.speed ? this.#item.speed : 1
+            const world = player.world
+            const block = world.block_manager.fromId(this.#item.id)
+            const speed = block?.speed ? block.speed : 1
             const time = (performance.now() - this.#time) * speed
             if (time >= ATTACK_COOLDOWN) {
-                let damage = this.#item?.damage ? this.#item.damage : 1
+                let damage = block?.damage ? block.damage : 1
+                damage += Upgrade.getValueById(this.#item, damage, Upgrade.DAMAGE)
                 let enum_damage = EnumDamage.PUNCH
                 //if (player.controlManager.prismarine.player_state.control.jump && time < (TIME_1_SEC + TIME_CRIT_DELAY)) {
                 if (Math.random() < .2) {  
@@ -79,6 +84,7 @@ export class ServerPlayerCombat {
 
     // урон от оружия
     onAttack(mob_id, player_id) {
+        console.log('onAttack')
         const player = this.#player
         const world = player.world
         const item = world.block_manager.fromId(player.state.hands.right.id)

@@ -3,6 +3,7 @@ import { ItemHelpers } from "./block_helpers.js";
 import { ObjectHelpers } from "./helpers.js";
 import { Enchantments } from "./enchantments.js"
 import type { IRecipeManager } from "./inventory_comparator.js";
+import  Upgrade  from "./enums/upgrade.js";
 
 const REPAIR_PER_INGREDIENT = 0.25;
 const REPAIR_PER_COMBINE_BONUS = 0.12;
@@ -25,8 +26,9 @@ const REPAIR_BY_MATERIALS = {
         'COBBLED_DEEPSLATE', 'BLACKSTONE'] },
     'iron':     { names: ['IRON_INGOT'] },
     'gold':     { names: ['GOLD_INGOT'] },
-    'diamond':  { names: ['DIAMOND'] },
-    'netherite':{ names: ['NETHERITE_INGOT'] }
+    'copper':   { names: ['COPPER_INGOT'] },
+    'netherite': { names: ['NETHERITE_INGOT']},
+    'titanium': { names: ['TITANIUM_INGOT'] }
 };
 
 export type TUsedAnvilRecipe = {
@@ -74,21 +76,41 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
             }
         );
 
-        this.addRecipe('new_farm',
+        this.addRecipe('simple',
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
                      label: string | null, outUsedCount: int[]): IInventoryItem | null
             {
+                // @todo пока id алмаза, переделать на пыль
                 if (first_item == null || second_item == null || second_item.id != 641) {
                     return null
                 }
+                // покрывать можно только один раз, на каких предметах можно использовать
+                if (first_item?.extra_data?.upgrades || !Upgrade.isCompatible(first_item)) {
+                    return null
+                }
+                const upgrades = [
+                    {
+                        lvl: .3,
+                        id: Upgrade.SPEED
+                    },
+                    {
+                        lvl: .3,
+                        id: Upgrade.POWER
+                    },
+                    {
+                        lvl: .3,
+                        id: Upgrade.DAMAGE
+                    }
+                ]
 
-                outUsedCount[0] = 1;
-                outUsedCount[1] = 1;
+                outUsedCount[0] = 1
+                outUsedCount[1] = 1
+
                 const result = ObjectHelpers.deepClone(first_item)
-                result.count = 1;
-                ItemHelpers.setExtraDataField(result, 'enchantments1', {'xer': 3});
-                return result;
-
+                result.count = 1
+                ItemHelpers.setExtraDataField(result, 'upgrades', upgrades)
+                ItemHelpers.setLabel(result, 'Diamond Coating')
+                return result
             }
         );
 
@@ -146,6 +168,8 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                 if (label !== ItemHelpers.LABEL_NO_CHANGE) {
                     ItemHelpers.setLabel(result, label);
                 }
+                // удаляем все модификации
+                ItemHelpers.deleteExtraDataField(result, 'upgrades')
                 ItemHelpers.incrementExtraDataField(result, 'age', 1);
                 return result;
             }

@@ -17,6 +17,7 @@ import type {TMouseEvent} from "../vendors/wm/wm.js";
 import type {GameClass} from "../game.js";
 import type {AnvilResultSlot} from "./anvil.js";
 import {CHEST_CHANGE} from "../chest.js";
+import Upgrade from "../enums/upgrade.js";
 
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55'
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF'
@@ -134,8 +135,10 @@ export class CraftTableSlot extends SimpleBlockSlot {
                 resp = label
                     ? `${label} (${block.title}, #${item.id})`
                     : `${block.title} (#${item.id})`;
-                for(const [e, lvl] of Enchantments.ofItem(item)) {
-                    resp += '\r' + e.name + ' ' + StringHelpers.romanize(lvl);
+                if (item?.extra_data?.enchantments) {
+                    for(const [e, lvl] of Enchantments.ofItem(item)) {
+                        resp += '\r' + e?.name + ' ' + lvl;
+                    }
                 }
                 if (item.extra_data?.age) {
                     resp += '\rAnvil uses: ' + item.extra_data?.age;
@@ -149,8 +152,23 @@ export class CraftTableSlot extends SimpleBlockSlot {
                 if (block.extra_data?.protection) {
                     resp += '\r' + Lang['protection'] + ': ' + block.extra_data.protection
                 }
-                if (block.extra_data?.durability) {
-                    resp += '\r' + Lang['durability'] + ': ' + block.extra_data.durability
+                if (block?.power && item?.power) {
+                    const bonus = Upgrade.getValueById(item, item.power, Upgrade.POWER)
+                    resp += '\r' + Lang['durability'] + ': ' + Math.round((item.power + bonus) * 1000 / block.power) / 10 + '%'
+                }
+                if (block.damage) {
+                    resp += '\r' + Lang['damage'] + ': ' + block.damage
+                    const bonus = Upgrade.getValueById(item, block.damage, Upgrade.DAMAGE )
+                    if (bonus) {
+                        resp += '+' + bonus
+                    } 
+                }
+                if (block.speed) {
+                    resp += '\r' + Lang['speed'] + ': ' + block.speed
+                    const bonus = Upgrade.getValueById(item, block.speed, Upgrade.SPEED )
+                    if (bonus) {
+                        resp += '+' + bonus
+                    } 
                 }
             }
         }

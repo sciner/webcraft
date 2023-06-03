@@ -1,4 +1,4 @@
-import {Mth, ObjectHelpers, Vector} from "@client/helpers.js";
+import {Mth, ObjectHelpers, Vector, getMulSpeedDestroy} from "@client/helpers.js";
 import {Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps} from "@client/player.js";
 import { GameMode } from "@client/game_mode.js";
 import { ServerClient } from "@client/server_client.js";
@@ -27,6 +27,7 @@ import type {ServerDriving} from "./control/server_driving.js";
 import { ServerPlayerCombat } from "player/combat.js";
 import type {TChestSlots} from "@client/block_helpers.js";
 import type {PrismarinePlayerState} from "@client/prismarine-physics/index.js";
+import Upgrade from "@client/enums/upgrade.js";
 
 export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
     time?: number;
@@ -1015,15 +1016,13 @@ export class ServerPlayer extends Player {
         if (!head) {
             return false;
         }
-        const instrument = bm.fromId(this.state.hands.right.id);
-        let mul = world.getGeneratorOptions('tool_mining_speed', 1);
-        mul *= (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) ? 0.2 : 1;
-        mul += mul * 0.2 * this.effects.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
-        mul -= mul * 0.2 * this.effects.getEffectLevel(Effect.MINING_FATIGUE); // усталость
-        const mining_time_server = block.material.getMiningTime({material: instrument}, false) / mul;
-        const mining_time_client = performance.now() - this.mining_time_old;
-        this.mining_time_old = performance.now();
-        this.addExhaustion(0.005);
+        const instrument = bm.fromId(this.currentInventoryItem.id);
+        const is_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID)
+        const mul = getMulSpeedDestroy(this, is_water)
+        const mining_time_server = block.material.getMiningTime({material: instrument}, false) / mul
+        const mining_time_client = performance.now() - this.mining_time_old
+        this.mining_time_old = performance.now()
+        this.addExhaustion(.005)
         if ((mining_time_client - mining_time_server * 1000) >= -50) {
             this.state.stats.pickat++;
             return true;

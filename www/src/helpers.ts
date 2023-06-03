@@ -31,6 +31,8 @@ import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { Vector } from "./helpers/vector.js";
 import {Color} from "./helpers/color.js";
 import type { World } from "./world.js";
+import Upgrade from "./enums/upgrade.js";
+import { Effect } from "./block_type/effect.js";
 
 const {mat4, quat} = glMatrix;
 
@@ -409,8 +411,19 @@ export class IvanArray<T=any> {
     }
 }
 
-
-
+/**
+    * Возвращает множитель скорости разрушения блока 
+    * @param pos - позиция
+    * @param world - ссылка на world
+*/
+export function getMulSpeedDestroy(player, in_water: boolean): number {
+    let mul = 1
+    mul += Upgrade.getValueById(player.currentInventoryItem, mul, Upgrade.SPEED); // скорость от апдейта
+    mul += mul * 0.2 * player.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
+    mul -= mul * 0.2 * player.getEffectLevel(Effect.MINING_FATIGUE); // усталость
+    mul *= in_water ? 0.2 : 1;
+    return mul
+}
     /**
      * Возвращает позицию, на которой можно стоять вокруг точки pos или null
      * @param pos - позиция

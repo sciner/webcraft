@@ -248,6 +248,8 @@
         "sec": {"en": "sec", "ru": "сек", "fr": "sec", "es": "seg", "man": "秒", "kk": "сек"},
         "protection": {"en": "Protection", "ru": "Защита", "fr": "", "es": "", "man": "", "kk": ""},
         "durability": {"en": "Durability", "ru": "Прочность", "fr": "", "es": "", "man": "", "kk": ""},
+        "speed": {"en": "Speed", "ru": "Скорость", "fr": "", "es": "", "man": "", "kk": ""},
+        "damage": {"en": "Damage", "ru": "Урон", "fr": "", "es": "", "man": "", "kk": ""},
         "placeholder_click_for_search": {"en": "Click for search", "ru": "Введите текст для поиска", "fr": "", "es": "", "man": "", "kk": ""}
     }
 }
