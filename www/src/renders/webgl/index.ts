@@ -335,19 +335,13 @@ export default class WebGLRenderer extends BaseRenderer {
     async init(args) {
         await super.init(args);
 
-        this.pixiRender = new VAUX.Renderer({...this.options, view: this.view});
+        this.pixiRender = new VAUX.Renderer({...this.options,
+            clearBeforeRender: false,
+            view: this.view, width: this.view.width, height: this.view.height});
         const gl = this.gl = this.pixiRender.gl;
         this.resetBefore();
         this.multidrawExt = gl.getExtension('WEBGL_multi_draw');
         this.multidrawBaseExt = gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
-
-        const provokeExt = gl.getExtension('WEBGL_provoking_vertex');
-
-        if (provokeExt) {
-            provokeExt.provokingVertexWEBGL(provokeExt.FIRST_VERTEX_CONVENTION_WEBGL);
-        } else {
-            this.preprocessor.fallbackProvoke = true;
-        }
 
         this.line.init();
         this.silly.init();
@@ -452,7 +446,7 @@ export default class WebGLRenderer extends BaseRenderer {
         }} : null );
 
         const shader = new VAUX.Shader(program);
-        this.pixiRender.shader.bind(shader);
+        this.pixiRender.shader.bind(shader, true);
 
         return program.glPrograms[this.pixiRender.CONTEXT_UID].program;
     }
