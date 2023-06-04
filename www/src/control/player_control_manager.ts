@@ -9,7 +9,7 @@ import {DEBUG_LOG_PLAYER_CONTROL, DEBUG_LOG_PLAYER_CONTROL_DETAIL, MAX_CLIENT_ST
 import {SimpleQueue} from "../helpers/simple_queue.js";
 import type {PlayerControl} from "./player_control.js";
 import {GameMode} from "../game_mode.js";
-import {MonotonicUTCDate} from "../helpers.js";
+import {Helpers, MonotonicUTCDate, Mth} from "../helpers.js";
 import {ClientPlayerTickData, PLAYER_TICK_DATA_STATUS, PLAYER_TICK_MODE, PlayerTickData} from "./player_tick_data.js";
 import {ServerClient} from "../server_client.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketWriter, PlayerControlSessionPacket} from "./player_control_packets.js";
@@ -33,7 +33,7 @@ export abstract class PlayerControlManager<TPlayer extends Player> {
 
     // the different controllers
     spectator: SpectatorPlayerControl
-    prismarine: PrismarinePlayerControl
+    prismarine?: PrismarinePlayerControl // на фейковом клиенте undefined для spectator_bot
     protected controlByType: PlayerControl[]
     /** The controller selected at the moment. */
     current: PlayerControl
@@ -61,6 +61,7 @@ export abstract class PlayerControlManager<TPlayer extends Player> {
     private tmpPos = new Vector()
 
     constructor(player: TPlayer) {
+        const is_spectator_bot = player.options?.is_spectator_bot
         this.player = player
         const pos = new Vector(player.sharedProps.pos)
         const options: TPrismarineOptions = {
@@ -68,13 +69,22 @@ export abstract class PlayerControlManager<TPlayer extends Player> {
             airborneInertia         : 0.76, // 0.91 in Minecraft (default), 0.546 in typical old bugged jumps
             airborneAcceleration    : 0.05  // 0.02 in Minecraft (default), 0.1 in typical old bugged jumps
         }
-        this.prismarine = new PrismarinePlayerControl(player.world, pos, options)
+        if (!is_spectator_bot) {
+            this.prismarine = new PrismarinePlayerControl(player.world, pos, options)
+        }
         const useOldSpectator = Qubatch.settings?.old_spectator_controls ?? false
         this.spectator = new SpectatorPlayerControl(player.world, pos, useOldSpectator)
         this.controlByType = [this.prismarine, this.spectator]
-        this.current = this.prismarine // it doesn't matter what we choose here, it'll be corrected in the next line
+        this.current = this.spectator // it doesn't matter what we choose here, it'll be corrected in the next line
         this.updateCurrentControlType(false)
         this.startNewPhysicsSession(pos)
+    }
+
+    /** Приводит углы поворота игрока к нормальным значениям для камеры */
+    static fixRotation(rotation: IVector): IVector {
+        rotation.z = Mth.radians_to_0_2PI_range(rotation.z)
+        rotation.x = Mth.clampModule(rotation.x, Mth.PI_DIV2)
+        return rotation
     }
 
     protected get knownTime(): float {

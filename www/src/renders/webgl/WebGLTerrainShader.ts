@@ -223,6 +223,14 @@ export class WebGLTerrainShader extends BaseTerrainShader {
             }
         } else {
             gl.uniform3f(this.u_add_pos, -camPos.x, -camPos.z, -camPos.y);
+
+            pos = camPos;
+            if (this.u_gridChunkOffset) {
+                const x = - pos.x + (-1 + Math.round(pos.x / gridTexSize.x)) * gridTexSize.x;
+                const y = - pos.y + (-1 + Math.round(pos.y / gridTexSize.y)) * gridTexSize.y;
+                const z = - pos.z + (-1 + Math.round(pos.z / gridTexSize.z)) * gridTexSize.z;
+                gl.uniform3f(this.u_gridChunkOffset, x, z, y);
+            }
         }
         if (modelMatrix) {
             gl.uniformMatrix4fv(this.uModelMat, false, modelMatrix);

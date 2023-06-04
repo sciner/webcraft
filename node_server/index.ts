@@ -21,7 +21,7 @@ import skiaCanvas from 'skia-canvas';
 
 // Check version of modules
 const required_versions = {
-    nodejs: '17.2.0 - 19.8.1',
+    nodejs: '17.2.0 - 20.2.0',
     sqlite3: '>= 3.38.4' // 5.0.8
 };
 function checkVersion(module_name : string, current) {
