@@ -1845,5 +1845,26 @@
             "item": "madcraft:glowstone",
             "count": 1
         }
+    },
+    {
+        "id": "736f2b28-ced3-41b1-92cf-993b1e1bd272",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "i i",
+            "ici",
+            " i "
+        ],
+        "key": {
+            "i": {
+                "item": "special:iron_ingot"
+            },
+            "c": {
+                "item": "special:chest"
+            }
+        },
+        "result": {
+            "item": "madcraft:hopper",
+            "count": 1
+        }
     }
 ]
