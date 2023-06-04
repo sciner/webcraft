@@ -93,6 +93,7 @@
             "material": {
                 "id": "water"
             },
+            "listeners": ["bubbles"],
             "texture_animations": {
                 "up": null,
                 "side": 0
@@ -2807,6 +2808,7 @@
             "material": {
                 "id": "sand"
             },
+            "listeners": ["bubbles"],
             "texture": "block/soul_sand.png"
         },
         {

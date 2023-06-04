@@ -1,57 +1,11 @@
-import { ArrayOrMap, ObjectHelpers, StringHelpers, unixTime } from "@client/helpers.js";
+import {ArrayHelpers, ObjectHelpers, StringHelpers} from "@client/helpers.js";
 
 export function epochMillis() {
     return Date.now();
 }
 
-/**
- * Parses a config containing many-to-many relations between keys and values,
- * and stores the result in a map, which it returns.
- *
- * @param {Array} conf - its elements can be:
- * - scalars (which represend both a key and a value);
- * - [keys, values], where both keys and values can be scalars or arrays of scalars.
- * @param {Function} transformKey - it's aplied to every key
- * @param {Map, Object or Array} result - the resulting mapping of transformed keys
- *   to values. For each key, it has a list of uniques values associated with this key.
- * @returns the result parametr.
- */
-export function parseManyToMany(conf, transformKey = v => v, result: any[] | Map<any, any> = new Map()) {
-
-    function add(key, value) {
-        key = transformKey(key);
-        var list = ArrayOrMap.get(result, key);
-        if (list == null) {
-            list = [];
-            ArrayOrMap.set(result, key, list);
-        }
-        if (list.indexOf(value) < 0) {
-            list.push(value);
-        }
-    }
-
-    for(var entry of conf) {
-        if (typeof entry !== 'object') {
-            add(entry, entry);
-            continue;
-        }
-        if (!Array.isArray(entry) || entry.length !== 2) {
-            throw new Error('Elemetns of must be scalars or 2-element arrays. Wrong entry: ' +
-                JSON.stringify(entry));
-        }
-        var [keys, values] = entry;
-        keys = Array.isArray(keys) ? keys : [keys];
-        values = Array.isArray(values) ? values : [values];
-        for(let key of keys) {
-            for(let value of values) {
-                add(key, value);
-            }
-        }
-    }
-    return result;
-}
-
-async function rollupImport(dir, file) {
+/** Импорт из некоторых директорий, совместимый с rollup */
+async function rollupImport(dir: string, file: string): Promise<any> {
     switch(dir) {
         case './ticker/listeners/': return import(`./ticker/listeners/${file}.js`);
     }
@@ -59,119 +13,38 @@ async function rollupImport(dir, file) {
 }
 
 /**
- * Parses many-to-many conf and impots objects from .js modules.
- *
- * @param {Array} conf - the reult of {@link parseManyToMany}.
- *   The values can be "moduleName", or "moduleName:importDescription".
- *   importDescription can contain ":"; only the 1st ":" is treated as a separator.
- * @param {String} folder
- * @param {Function} doImport - imports and processes an export described by a string
- *   from a module. Implementations: {@link simpleImport}, {@link importClassInstance}.
- * @param {Map, Object or Array} result - the resulting mapping of transformed keys
- *   to loaded objects, see {@link parseManyToMany}.
- * @param { object } uniqueImports - collects all unique [config_value, imported_objct] here.
- * @returns the result parametr,.
+ * Ипортирует объект или экземпляр класса из модуля:
+ *  - если импортируется клаасс - создает его экземпляр через new
+ *  - если импортируется функция, она считается фабрикой классов - вызывает ее и возвращает реузльтат
+ *  - иначе (просто объект) - возвращает его
+ * @param classDescription - строка, описывающая импортируемый класс. Форматы:
+ *  - "moduleName" - импортирует default из модуля
+ *  - "moduleName:name" - импортирует name из модуля moduleName
+ *  - "moduleName:name(arg1, arg2, arg3)" - импортирует name из модуля moduleName и использует указанные
+ *    аргументы при вызове функции или конструктора.
  */
-
-export async function loadMappedImports(resultMap,
-    folder,
-    doImport = simpleImport,
-    uniqueImports = {}
-) {
-    // load missing unique imports into uniqueImports as promises
-    const promises = [];
-    for(let list of ArrayOrMap.values(resultMap)) {
-        for(var i = 0; i < list.length; i++) {
-            const fullImportString = list[i];
-            if (uniqueImports[fullImportString]) {
-                continue;
-            }
-            // declare them const, otherwise functions use the same value from the closure
-            const [moduleName, importStr_] = StringHelpers.splitFirst(fullImportString, ':');
-            const importStr = importStr_ || 'default';
-            const p = rollupImport(folder, moduleName).then(function (module) {
-                const imp = doImport(module, importStr, fullImportString);
-                if (imp == null) {
-                    const fullModuleName = folder + moduleName + '.js'
-                    throw new Error(`Can't import ${importStr} from ${fullModuleName}`);
-                }
-                return imp;
-            });
-            uniqueImports[fullImportString] = p;
-            promises.push(p);
-        }
-    }
-    // await all promises and replace the strings with imported objects
-    return await Promise.all(promises).then(async function () {
-        for(let list of ArrayOrMap.values(resultMap)) {
-            for(var i = 0; i < list.length; i++) {
-                const fullImportString = list[i];
-                var imp = uniqueImports[fullImportString];
-                if (imp instanceof Promise) {
-                    imp = await imp; // it's already resolved
-                    uniqueImports[fullImportString] = imp;
-                    imp._mappedfullImportString = fullImportString;
-                }
-                list[i] = imp;
-            }
-        }
-        return resultMap;
-    });
-}
-
-// https://stackoverflow.com/questions/526559/testing-if-something-is-a-class-in-javascript
-function isClass(obj) {
-    const isCtorClass = obj.constructor
-        && obj.constructor.toString().substring(0, 5) === 'class'
-    if (obj.prototype === undefined) {
-        return isCtorClass
-    }
-    const isPrototypeCtorClass = obj.prototype.constructor
-        && obj.prototype.constructor.toString
-        && obj.prototype.constructor.toString().substring(0, 5) === 'class'
-    return isCtorClass || isPrototypeCtorClass
-}
-
-/**
- * It can be passed to {@link loadMappedImports}
- */
-export function simpleImport(module, str, fullStr) {
-    return module[str];
-}
-
-/**
- * It can be passed to {@link loadMappedImports}
- * Cases:
- * 1. Creates instances of imported classes;
- * 2. Calls imported functions (asumes that they are class factories);
- * 3. Returns imported instances of classes unchanged.
- * In cases 1 and 2, arguments can be described like this:
- *      moduleName:functionOrClassName(arg1, arg2, arg3)
- */
-export function importClassInstance(module, str, fullImportString?) {
-    var [name, args] = StringHelpers.splitFirst(str, '(');
+export async function importInstance<T>(folder: string, classDescription: string): Promise<T> {
+    let [moduleName, importStr] = StringHelpers.splitFirst(classDescription, ':')
+    importStr ??= 'default'
+    const module = await rollupImport(folder, moduleName)
+    let [name, args] = StringHelpers.splitFirst(importStr, '(')
     if (args) {
         args = '[' + args.substr(0, args.length - 1) + ']';
         args = JSON.parse(args);
     } else {
-        args = EMPTY_ARRAY;
+        args = ArrayHelpers.EMPTY
     }
-    const obj = module[name];
-    if (typeof obj !== 'function') { // it's null or object
-        return obj;
+    let obj = module[name];
+    if (obj === undefined) {
+        throw new Error(`Can't import ${importStr} from ${folder + moduleName}.js`);
     }
-    if (isClass(obj)) {
-        return new obj(...args);
-    } else {
-        // assume it's a factory function
-        return obj(...args);
+    if (typeof obj === 'function') {
+        // https://stackoverflow.com/questions/526559/testing-if-something-is-a-class-in-javascript
+        const isClass = obj.constructor?.toString().substring(0, 5) === 'class' ||
+            obj.prototype?.constructor?.toString().substring(0, 5) === 'class'
+        obj = isClass ? new obj(...args) : obj(...args)
     }
-}
-
-export function importClassInstanceWithId(module, str, fullImportString) {
-    const res = importClassInstance(module, str);
-    res.importString = fullImportString;
-    return res;
+    return obj
 }
 
 export class DelayedCalls {
@@ -289,8 +162,6 @@ export class DelayedCalls {
         }
     }
 }
-
-const EMPTY_ARRAY = [];
 
 export class PacketHelpers {
 

@@ -1,13 +1,12 @@
-import { parseManyToMany, loadMappedImports, importClassInstanceWithId } from '../server_helpers.js'
+import {importInstance} from '../server_helpers.js'
 import { BLOCK } from '@client/blocks.js';
 import { TBlock } from "@client/typed_blocks3.js";
-import { ArrayHelpers, ArrayOrMap, Vector } from '@client/helpers.js';
+import { ArrayHelpers, Vector } from '@client/helpers.js';
 import { BLOCK_ACTION } from '@client/server_client.js';
-import { FLUID_TYPE_MASK, FLUID_WATER_INTERACT, FLUID_WATER_REMOVE,
-    FLUID_WATER_ABOVE_INTERACT, FLUID_WATER_ABOVE_REMOVE 
-} from '@client/fluid/FluidConst.js';
+import {FLUID_WATER_INTERACT, FLUID_WATER_REMOVE, FLUID_WATER_ABOVE_INTERACT, FLUID_WATER_ABOVE_REMOVE} from '@client/fluid/FluidConst.js';
 import type { ServerChunk } from '../server_chunk.js';
 import type {TActionBlock} from "@client/world_action.js";
+import type {ServerWorld} from "../server_world.js";
 
 export class TickerHelpers {
 
@@ -27,158 +26,177 @@ export class TickerHelpers {
     }
 }
 
+export type TBlockListenerResult = {
+    /** Если задаано, то вызывать через указанное время */
+    callAgainDelay?: int
+    /** Если задаано, то этот параметр будет передан в следующий вызов */
+    callAgainParam?: any
+    /** Если задано, то будет создано действие с этии блоками */
+    blocks?: (TActionBlock | null)[] | TActionBlock
+}
+
+export interface IBlockListener {
+    /** Необязательное более короткое id, не зависящее от имени файла. Задержанные вызовы функций сохраняются в БД с его использованием. */
+    id?: string
+
+    /** Эти поля заполняются автоматически, ими может пользоваться реализация */
+    world?: ServerWorld
+    block_manager?: typeof BLOCK
+
+    /** В каких ситуациях вызывать {@link onChange} */
+    onChangeEnabled?: {
+        set?: boolean           // после установки этого блока
+        delete?: boolean        // после удаления этого блоа
+        loadBelow?: boolean     // после загрузки чанка под блоком
+        fluidChange?: boolean
+        fluidRemove?: boolean
+    }
+
+    /** В каких ситуациях вызывать {@link onNeighbour} */
+    onNeighbourEnabled?: {
+        above?: boolean
+        loadAbove?: boolean         // после загрузки чанка над блоком
+        fluidChangeAbove?: boolean
+        fluidRemoveAbove?: boolean
+    }
+
+    /**
+     * Слушатель изменения этого блока.
+     * Может вызываться до изменения, после изменения, или когда нет изменения (например, при загрузке
+     * соседнего чанка).
+     */
+    onChange?(chunk: ServerChunk, pos: Vector, block: TBlock, oldId: int, param?: any): TBlockListenerResult | null
+
+    /**
+     * Слушатель изменения соседа (пока реализовано только для жидкостей).
+     * Вызывается после изменения соседа, или при отстутсвии изменения (например, при загрузке соседнего чанка).
+     * @param dir - вектор, указывающий направление на соседа, например, (0, 1, 0)
+     */
+    onNeighbour?(chunk: ServerChunk, pos: Vector, block: TBlock, neighbour: TBlock, dir: IVector, param?: any): TBlockListenerResult | null
+
+    // эти поля заполняются автоматически - не обяъвлять их в реализации класса
+    _onChangeCalleeId?: string
+    _onNeighbourChangeCalleeId?: string
+    _thisArray?: IBlockListener[]
+}
+
+/** Для каждого id блока может быть массив слушателей */
+type ListenersTable = (IBlockListener[] | undefined)[]
+
+/**
+ * Загружает и хранит обраотчики изменения блоков, которые умеют:
+ * - вызываться при изменении блока, жидкости, соседних блоков или загрузке соседнего чанка
+ * - повторно выполняться с задержкой
+ */
 export class BlockListeners {
-    calleesById: {};
+    readonly world: ServerWorld
+    readonly block_manager: typeof BLOCK
+    calleesById: Dict<Function> = {} // для DelayedCalls
     fluidBlockPropsById: Uint8Array;
-    uniqueImports: {};
-    promises: any[];
-    calleePrefixes: {};
-    beforeBlockChangeListeners: any | Map<any, any>;
-    afterBlockChangeListeners: any | Map<any, any>;
-    fluidChangeListeners: any | Map<any, any>;
-    fluidRemoveListeners: any | Map<any, any>;
-    fluidAboveChangeListeners: any | Map<any, any>;
-    fluidAboveRemoveListeners: any | Map<any, any>;
 
-    constructor() {
-        this.calleesById = {}; // for DelayedCalls
-        this.fluidBlockPropsById = new Uint8Array(BLOCK.max_id + 1);
+    /** Списки слушателей у которых вызывается {@link IBlockListener.onChange} */
+    onChange_set            : ListenersTable = []
+    onChange_delete         : ListenersTable = []
+    onChange_loadBelow      : ListenersTable = []
+    onChange_fluidChange    : ListenersTable = []
+    onChange_fluidRemove    : ListenersTable = []
 
-        // internals
-        this.uniqueImports = {};
-        this.promises = [];
-        this.calleePrefixes = {}; // to find duplicates
+    /** Списки слушателей у которых вызывается {@link IBlockListener.onNeighbour} */
+    onNeighbour_above               : ListenersTable = []
+    onNeighbour_loadAbove           : ListenersTable = []
+    onNeighbour_fluidChangeAbove    : ListenersTable = []
+    onNeighbour_fluidRemoveAbove    : ListenersTable = []
+
+    blocksUpdatedByDelayedCalls : TActionBlock[] = []
+    private tmpBlock            = new TBlock()
+    private tmpNeighbourBlock   = new TBlock()
+
+    constructor(world: ServerWorld) {
+        this.world = world
+        this.block_manager = world.block_manager
+        this.fluidBlockPropsById = new Uint8Array(this.block_manager.max_id + 1)
     }
 
-    async loadAll(config) {
-       
-        // "Before change" listenes are called by the old (possibly to-be-removed) block id,
-        // before it's changed. Use it to listen for removal, and process extra_data of the removed block.
-        this.beforeBlockChangeListeners = this.#loadList(
-            config.before_block_change_listeners,
-            '.bbc', 0,
-            (listener, calleeId) => {
-                listener.onBeforeBlockChangeCalleeId = calleeId;
-                // "Before change" listners are called with newMaterial == current block.material
-                return function(chunk, pos) {
-                    const tblock = (chunk as ServerChunk).getBlock(pos, null, null, tmp_DelayedBlockListener_block);
-                    const upd_blocks = listener.onBeforeBlockChange(chunk, tblock, tblock.material, false);
-                    TickerHelpers.pushBlockUpdates(chunk.blocksUpdatedByListeners, upd_blocks);
+    async loadAll() {
+
+        function add(block: IBlockMaterial, listener: IBlockListener, list: ListenersTable): void {
+            (list[block.id] ??= []).push(listener)
+        }
+
+        const uniqueListeners = new Map<string, IBlockListener>()
+        const tmpPos = new Vector()
+        
+        // найти все используемые слушатели
+        for(const block of this.block_manager.getAll()) {
+            const importStrings = block.listeners ?? ArrayHelpers.EMPTY
+            for(const importStr of importStrings) {
+                uniqueListeners.set(importStr, null)
+            }
+        }
+
+        // загрузить все классы
+        for(const importStr of uniqueListeners.keys()) {
+            const listener = await importInstance<IBlockListener>('./ticker/listeners/', importStr)
+            uniqueListeners.set(importStr, listener)
+
+            // препроцессинг
+            const id = listener.id ?? importStr
+            listener._thisArray = [listener]
+            listener.world = this.world
+            listener.block_manager = this.block_manager
+
+            // создать и зарегистрировать функции с задержанным вызовом
+            listener._onChangeCalleeId          = id + '.oc'
+            this.calleesById[listener._onChangeCalleeId] = (chunk: ServerChunk, pos: IVector, param: any) => {
+                const tblock = chunk.getBlock(pos, null, null, this.tmpBlock)
+                const material = tblock.material
+                chunk.callBlockListeners(listener._thisArray, tmpPos.copyFrom(pos), tblock, tblock.id, this.blocksUpdatedByDelayedCalls, param)
+            }
+
+            listener._onNeighbourChangeCalleeId = id + '.onc'
+            this.calleesById[listener._onNeighbourChangeCalleeId] = (chunk: ServerChunk, pos: IVector, dir: IVector, param: any) => {
+                const tblock    = chunk.getBlock(pos, null, null, this.tmpBlock)
+                const neighbour = chunk.getBlock(pos.x + dir.x, pos.y + dir.y, pos.z + dir.z, this.tmpNeighbourBlock, true)
+                chunk.callNeighbourListeners(listener._thisArray, tmpPos.copyFrom(pos), tblock, neighbour, dir, this.blocksUpdatedByDelayedCalls, param)
+            }
+        }
+        
+        // зарегистрировать слушателей для блоков
+        for(const block of this.block_manager.getAll()) {
+            const importStrings = block.listeners ?? ArrayHelpers.EMPTY
+            for(const importStr of importStrings) {
+                const listener = uniqueListeners.get(importStr)
+                const {onChangeEnabled, onNeighbourEnabled} = listener
+
+                // для вызова onChange
+                if (onChangeEnabled.set)        add(block, listener, this.onChange_set)
+                if (onChangeEnabled.delete)     add(block, listener, this.onChange_delete)
+                if (onChangeEnabled.loadBelow)  add(block, listener, this.onChange_loadBelow)
+                if (onChangeEnabled.fluidChange) {
+                    add(block, listener, this.onChange_fluidChange)
+                    this.fluidBlockPropsById[block.id] |= FLUID_WATER_INTERACT
+                }
+                if (onChangeEnabled.fluidRemove) {
+                    add(block, listener, this.onChange_fluidRemove)
+                    this.fluidBlockPropsById[block.id] |= FLUID_WATER_REMOVE
+                }
+
+                // для вызова onNeighbour
+                if (onNeighbourEnabled.above)       add(block, listener, this.onNeighbour_above)
+                if (onNeighbourEnabled.loadAbove)   add(block, listener, this.onNeighbour_loadAbove)
+                if (onNeighbourEnabled.fluidChangeAbove) {
+                    add(block, listener, this.onNeighbour_fluidChangeAbove)
+                    this.fluidBlockPropsById[block.id] |= FLUID_WATER_ABOVE_INTERACT
+                }
+                if (onNeighbourEnabled.fluidRemoveAbove) {
+                    add(block, listener, this.onNeighbour_fluidRemoveAbove)
+                    this.fluidBlockPropsById[block.id] |= FLUID_WATER_ABOVE_REMOVE
                 }
             }
-        );
-
-        // "After change" listenes are called by the new block id, after it's set.
-        this.afterBlockChangeListeners = this.#loadList(
-            config.after_block_change_listeners,
-            '.abc', 0,
-            (listener, calleeId) => {
-                listener.onAfterBlockChangeCalleeId = calleeId;
-                return function(chunk, pos, oldBlockId) {
-                    const tblock = (chunk as ServerChunk).getBlock(pos, null, null, tmp_DelayedBlockListener_block);
-                    const upd_blocks = listener.onAfterBlockChange(chunk, tblock, BLOCK.BLOCK_BY_ID[oldBlockId], false);
-                    TickerHelpers.pushBlockUpdates(chunk.blocksUpdatedByListeners, upd_blocks);
-                }
-            }
-        );
-
-        this.fluidChangeListeners = this.#loadList(
-            config.fluid_change_listeners,
-            '.fi', FLUID_WATER_INTERACT,
-            (listener, calleeId) => {
-                listener.onFluidChangeCalleeId = calleeId;
-                return function(chunk, pos) {
-                    const tblock = (chunk as ServerChunk).getBlock(pos, null, null, tmp_DelayedBlockListener_block);
-                    const upd_blocks = listener.onFluidChange(chunk, tblock, tblock.fluid, false);
-                    TickerHelpers.pushBlockUpdates(chunk.blocksUpdatedByListeners, upd_blocks);
-                }
-            }
-        );
-
-        this.fluidRemoveListeners = this.#loadList(
-            config.fluid_remove_listeners,
-            '.fr', FLUID_WATER_REMOVE,
-            (listener, calleeId) => {
-                listener.onFluidRemoveCalleeId = calleeId;
-                return function(chunk, pos) {
-                    const tblock = (chunk as ServerChunk).getBlock(pos, null, null, tmp_DelayedBlockListener_block);
-                    if ((tblock.fluid & FLUID_TYPE_MASK) === 0) {
-                        const upd_blocks = listener.onFluidRemove(chunk, tblock, false);
-                        TickerHelpers.pushBlockUpdates(chunk.blocksUpdatedByListeners, upd_blocks);
-                    }
-                }
-            }
-        );
-
-        this.fluidAboveChangeListeners = this.#loadList(
-            config.fluid_above_change_listeners,
-            '.fai', FLUID_WATER_ABOVE_INTERACT,
-            (listener, calleeId) => {
-                listener.onFluidAboveChangeCalleeId = calleeId;
-                return function(chunk, pos) {
-                    const tblock = (chunk as ServerChunk).getBlock(pos, null, null, tmp_DelayedBlockListener_block);
-                    const upd_blocks = listener.onFluidAboveChange(chunk, tblock, tblock.fluid, false);
-                    TickerHelpers.pushBlockUpdates(chunk.blocksUpdatedByListeners, upd_blocks);
-                }
-            }
-        );
-
-        this.fluidAboveRemoveListeners = this.#loadList(
-            config.fluid_above_remove_listeners,
-            '.far', FLUID_WATER_ABOVE_REMOVE,
-            (listener, calleeId) => {
-                listener.onFluidAboveRemoveCalleeId = calleeId;
-                return function(chunk, pos) {
-                    const tblock = (chunk as ServerChunk).getBlock(pos, null, null, tmp_DelayedBlockListener_block);
-                    if ((tblock.fluid & FLUID_TYPE_MASK) === 0) {
-                        const upd_blocks = listener.onFluidAboveRemove(chunk, tblock, false);
-                        TickerHelpers.pushBlockUpdates(chunk.blocksUpdatedByListeners, upd_blocks);
-                    }
-                }
-            }
-        );
-
-        return await Promise.all(this.promises);
+        }
     }
 
-    #loadList(conf, calleeIdSuffix, fluidBlockProps, calleeFactoryFn) {
-        // parse config
-        const result = parseManyToMany(conf,
-            name => BLOCK.fromName(name.toUpperCase()).id,
-            []);
-        // import code
-        const p = loadMappedImports(result,
-            './ticker/listeners/',
-            importClassInstanceWithId,
-            this.uniqueImports
-        ).then((mappedImports) => {
-            for(var [blockId, list] of ArrayOrMap.entries(mappedImports)) {
-                // create callees
-                for(var i = 0; i < list.length; i++) {
-                    const listener = list[i];
-
-                    const calleePrefix = listener.importString;
-                    const exListener = this.calleePrefixes[calleePrefix];
-                    if (exListener && exListener !== listener) {
-                        throw new Error('Duplicate calleePrefix: ' + calleePrefix);
-                    }
-                    this.calleePrefixes[calleePrefix] = listener;
-
-                    const calleeId = calleePrefix + calleeIdSuffix;
-                    this.calleesById[calleeId] = calleeFactoryFn(listener, calleeId);
-                }
-                // add fluid flags
-                if (fluidBlockProps) {
-                    this.fluidBlockPropsById[blockId] |= fluidBlockProps;
-                }
-            }
-        });
-        this.promises.push(p);
-        return result;
-    }
-};
-
-const tmp_DelayedBlockListener_block = new TBlock();
+}
 
 // helper methods and constructors for frequently used block updates
 export class BlockUpdates {
