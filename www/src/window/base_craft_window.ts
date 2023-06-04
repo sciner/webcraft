@@ -154,7 +154,7 @@ export class CraftTableSlot extends SimpleBlockSlot {
                 }
                 if (block?.power && item?.power) {
                     const bonus = Upgrade.getValueById(item, block.power, Upgrade.POWER)
-                    resp += '\r' + Lang['durability'] + ': ' + (item.power + bonus) + '/' + block.power
+                    resp += '\r' + Lang['durability'] + ': ' + Math.round(item.power) + '/' + block.power
                     if (bonus) {
                         resp += '+' + Math.round(bonus)
                     } 
