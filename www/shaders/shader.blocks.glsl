@@ -61,7 +61,7 @@
     uniform vec2 u_resolution;
     uniform float u_eyeinwater;
     uniform vec3 u_shift;
-    uniform vec4 u_SunDir;
+    uniform vec4 u_sunDir;
     uniform float u_localLightRadius;
     uniform float u_aoDisaturateFactor;
 
@@ -97,8 +97,8 @@
 
 #ifdef global_uniforms_vert
     // global uniforms vertex part
-    uniform mat4 uProjMatrix;
-    uniform mat4 u_worldView;
+    uniform mat4 u_projMatrix;
+    uniform mat4 u_viewMatrix;
     uniform mat4 uModelMatrix;
     uniform int uModelMatrixMode;
     uniform vec3 u_add_pos;
@@ -436,14 +436,14 @@
 
 #ifdef sun_light_pass
     // sun light pass
-    if (u_SunDir.w < 0.5) {
+    if (u_sunDir.w < 0.5) {
         float lighter = (1. - v_lightMode);
         vec3 minecraftSun = vec3(0.6 + lighter * .2, 0.8 + lighter * .1, 1.0);
         if (v_normal.z < 0.0) minecraftSun.z = 0.5 + lighter * .25;
         sunNormalLight = dot(minecraftSun, v_normal * v_normal);
     } else {
         // limit brightness to 0.2
-        sunNormalLight = 1.0 + max(0., dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness;
+        sunNormalLight = 1.0 + max(0., dot(v_normal, normalize(u_sunDir.xyz))) * u_brightness;
         combinedLight = vec3(1.0);
     }
     //--

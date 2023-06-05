@@ -55,7 +55,7 @@ export class WebGLLineShader extends BaseLineShader {
             prevShader.unbind();
         }
         this.context._shader = this;
-        this.context.pixiRender.shader.bind(this.defShader, true);
+        this.context.pixiRender.shader.bind(this.defShader, false);
         gl.enable(gl.POLYGON_OFFSET_FILL);
         gl.polygonOffset(-2, -4);
         this.update();
@@ -103,7 +103,7 @@ export class WebGLLineShader extends BaseLineShader {
             return;
         }
         this.globalID = gu.updateID;
-        this.updateGlobalUniforms();
+        // this.updateGlobalUniforms();
 
         this.resetMatUniforms();
     }

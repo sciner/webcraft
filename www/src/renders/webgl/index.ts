@@ -17,6 +17,9 @@ import {WebGLFluidShader} from "./WebGLFluidShader.js";
 import {GLSillyDrawer} from "./GLSillyDrawer.js";
 import * as VAUX from 'vauxcel';
 
+import glMatrix from "@vendors/gl-matrix-3.3.min.js";
+const {mat4} = glMatrix;
+
 const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
 
 const TEXTURE_TYPE_FORMAT = {
@@ -43,56 +46,33 @@ const TEXTURE_MODE = {
 }
 
 export class WebGLCubeShader extends WebGLUniversalShader {
-    [key: string]: any;
-
     constructor(context, options) {
+
+        if (!options.uniforms) {
+            options = {...options, uniforms: {}}
+        }
+        Object.assign(options.uniforms, {
+            u_viewMatrix2: mat4.create(),
+            u_projMatrix2: mat4.create(),
+        });
         super(context, options);
-
-        /**
-         *
-         * @type {WebGLTexture}
-         */
-        this.texture = context.createTexture({
-            source: options.sides
-        });
-
-        this.texture.bind();
-        // we already can use uniforms
-        // make only set default values
-        this._makeUniforms({
-            // 'u_texture': this.texture, // load default texture to 0 slot
-            'u_viewMatrix': new Float32Array(16),
-            'u_projMatrix': new Float32Array(16),
-            'u_resolution': [1, 1],
-        });
-
-    }
-
-    set resolution(v) {
-        this.uniforms['u_resolution'].value = v;
-    }
-
-    get resolution() {
-        return this.uniforms['u_resolution'];
     }
 
     /**
      * @deprecated
      */
     get lookAt() {
-        return this.uniforms['u_viewMatrix'].value;
+        return this.uniforms['u_viewMatrix2']
     }
 
     /**
      * @deprecated
      */
     get proj() {
-        return this.uniforms['u_projMatrix'].value;
+        return this.uniforms['u_projMatrix2'];
     }
 
     bind(force = false) {
-        this.texture.bind(0);
-
         super.bind(force);
     }
 
@@ -120,8 +100,8 @@ export class WebGLCubeGeometry extends BaseCubeGeometry {
         this.vertex.bind();
         this.index.bind();
 
-        gl.vertexAttribPointer(shader.attrs['a_vertex'].location, 3, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shader.attrs['a_vertex'].location);
+        gl.vertexAttribPointer(shader.getAttribLocation('a_vertex'), 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shader.getAttribLocation('a_vertex'));
     }
 
     unbind() {
@@ -358,12 +338,14 @@ export default class WebGLRenderer extends BaseRenderer {
         // WebGLMaterial.lightState = null;
 
         this._shader = null;
+        this.pixiRender.shader.reset();
     }
 
     resetAfter() {
         this.gl.bindVertexArray(null);
         this._shader?.unbind();
         this._shader = null;
+        this.pixiRender.shader.reset();
         // for (let i = 0; i < 16; i++) {
         //     this.gl.bindTexture();
         // }

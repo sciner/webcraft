@@ -14,7 +14,7 @@ export class BaseShader {
         // context.createProgram({vertex, fragment,
 
         this.initProgram();
-        this.defShader = new VAUX.Shader(this.program);
+        this.defShader = new VAUX.Shader(this.program, { globalUniforms: context.globalUniforms });
         /**
          * @type {{vertex: string, fragment: string}}
          */

@@ -1,11 +1,11 @@
-import {Color, IvanArray, Mth, Vector} from '../helpers.js';
+import {Color, deepAssign, IvanArray, Mth, Vector} from '../helpers.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import {BatchSystem} from "./batch/BatchSystem.js";
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
 import type GeometryTerrain from '../geometry_terrain.js';
 import type { WebGLMaterial } from './webgl/WebGLMaterial.js';
 import type {GeomCopyOperation} from "../geom/big_geom_batch_update.js";
-import type * as VAUX from 'vauxcel';
+import * as VAUX from 'vauxcel';
 
 const {mat4} = glMatrix;
 
@@ -325,10 +325,37 @@ export class BaseMaterial {
     }
 }
 
-export class GlobalUniformGroup {
-    [key: string]: any;
+export let defaultGlobalUniforms = {
+    u_projMatrix: mat4.create() as imat4,
+    u_viewMatrix: mat4.create() as imat4,
+    u_chunkBlockDist: 1 as float,
+    u_brightness: 1 as float,
+    u_resolution: [1, 1] as tupleFloat2,
+    u_fogAddColor: [0, 0, 0, 0] as tupleFloat4,
+    u_fogColor: [1, 1, 1, 1] as tupleFloat4,
+    u_time: performance.now() as float,
+    u_testLightOn: 0 as float,
+    u_crosshairOn: true,
+    u_sunDir: [0, 0, 0, 0] as tupleFloat4,
+    u_useNormalMap: 0 as float,
+    u_gridChunkSize: [0, 0, 0] as tupleFloat3,
+    u_gridTexSize: [0, 0, 0] as tupleFloat3,
+    u_rain_strength: 0 as float,
+    u_camera_pos: [0, 0, 0] as tupleFloat3,
+    u_camera_posi: [0, 0, 0] as tupleInt3,
+    u_eyeinwater: 0 as float,
+    u_localLigthRadius: 0 as float,
+    u_fogOn: true
+}
 
-    constructor(options ? : any) {
+export class GlobalUniformGroup extends VAUX.UniformGroup<typeof defaultGlobalUniforms> {
+    declare uniforms: typeof defaultGlobalUniforms;
+    camPos = new Vector();
+    gridChunkSize = new Vector();
+    gridTexSize = new Vector();
+    constructor() {
+        super(Object.assign({}, defaultGlobalUniforms));
+
         this.projMatrix         = mat4.create();
         this.viewMatrix         = mat4.create();
 
@@ -345,20 +372,183 @@ export class GlobalUniformGroup {
         this.sunDir = [0, 0, 0];
         this.useSunDir = false;
 
-        this.updateID = 0;
-        this.camPos = new Vector();
-        this.useNormalMap = false;
-        this.gridChunkSize = new Vector();
-        this.gridTexSize = new Vector();
+        this.eyeinwater = false;
 
         this.localLigthRadius = 0;
         this.rainStrength = 0;
     }
 
-    update() {
-        this.updateID++;
+    update()
+    {
+        super.update();
     }
 
+    get projMatrix(): imat4 {
+        return this.uniforms.u_projMatrix;
+    }
+
+    set projMatrix(val)
+    {
+        this.uniforms.u_projMatrix = val
+    }
+
+    get viewMatrix(): imat4 {
+        return this.uniforms.u_viewMatrix;
+    }
+
+    set viewMatrix(val)
+    {
+        this.uniforms.u_viewMatrix = val
+    }
+
+    get chunkBlockDist(): number {
+        return this.uniforms.u_chunkBlockDist;
+    }
+
+    set chunkBlockDist(val)
+    {
+        this.uniforms.u_chunkBlockDist = val
+    }
+
+    get brightness(): number {
+        return this.uniforms.u_brightness;
+    }
+
+    set brightness(val)
+    {
+        this.uniforms.u_brightness = val
+    }
+
+    get resolution(): tupleFloat2 {
+        return this.uniforms.u_resolution;
+    }
+
+    set resolution(val)
+    {
+        this.uniforms.u_resolution = val
+    }
+
+    get fogAddColor(): tupleFloat4 {
+        return this.uniforms.u_fogAddColor;
+    }
+
+    set fogAddColor(val)
+    {
+        this.uniforms.u_fogAddColor = val
+    }
+
+    get fogColor(): tupleFloat4 {
+        return this.uniforms.u_fogColor;
+    }
+
+    set fogColor(val)
+    {
+        this.uniforms.u_fogColor = val
+    }
+
+    get time(): number {
+        return this.uniforms.u_time;
+    }
+
+    set time(val)
+    {
+        this.uniforms.u_time = val
+    }
+
+    get testLightOn(): number {
+        return this.uniforms.u_testLightOn;
+    }
+
+    set testLightOn(val)
+    {
+        this.uniforms.u_testLightOn = val
+    }
+
+    get crosshairOn(): boolean {
+        return this.uniforms.u_crosshairOn;
+    }
+
+    set crosshairOn(val)
+    {
+        this.uniforms.u_crosshairOn = val
+    }
+
+    get sunDir(): tupleFloat3 {
+        return this.uniforms.u_sunDir as any;
+    }
+
+    set sunDir(val)
+    {
+        this.uniforms.u_sunDir[0] = val[0];
+        this.uniforms.u_sunDir[1] = val[1];
+        this.uniforms.u_sunDir[2] = val[2];
+    }
+
+    get useSunDir(): boolean {
+        return !!this.uniforms.u_sunDir[3];
+    }
+
+    set useSunDir(val)
+    {
+        this.uniforms.u_sunDir[3] = +val;
+    }
+
+    get useNormalMap(): boolean {
+        return !!this.uniforms.u_useNormalMap;
+    }
+
+    set useNormalMap(val)
+    {
+        this.uniforms.u_useNormalMap = +val
+    }
+
+    get eyeinwater(): boolean {
+        return !!this.uniforms.u_eyeinwater;
+    }
+
+    set eyeinwater(val)
+    {
+        this.uniforms.u_eyeinwater = +val
+    }
+
+    get localLigthRadius(): number {
+        return this.uniforms.u_localLigthRadius;
+    }
+
+    set localLigthRadius(val)
+    {
+        this.uniforms.u_localLigthRadius = val
+    }
+
+    get rainStrength(): number {
+        return this.uniforms.u_rain_strength;
+    }
+
+    set rainStrength(val)
+    {
+        this.uniforms.u_rain_strength = val
+    }
+
+    manualSync =  (ud: Dict<any>, uv: Dict<any>, renderer: VAUX.Renderer, syncData?: any)  => {
+        if (!ud['u_camera_pos']) {
+            return;
+        }
+
+        const cx = this.camPos.x, cy = this.camPos.y, cz = this.camPos.z;
+        const px = Math.floor(cx), py = Math.floor(cy), pz = Math.floor(cz);
+        uv.u_camera_pos[0] = cx - px;
+        uv.u_camera_pos[1] = cz - pz;
+        uv.u_camera_pos[2] = cy - py;
+        uv.u_camera_posi[0] = px;
+        uv.u_camera_posi[1] = pz;
+        uv.u_camera_posi[2] = py;
+
+        if (ud.u_gridChunkSize) {
+            uv.u_gridChunkSize[0] = this.gridChunkSize.x;
+            uv.u_gridChunkSize[1] = this.gridChunkSize.z;
+            uv.u_gridChunkSize[2] = this.gridChunkSize.y;
+        }
+    }
 }
 
 export class LightUniformGroup {
@@ -398,16 +588,15 @@ export class CubeMesh {
             lookAt, proj
         } = this;
 
-        proj.set(projMatrix);
-        lookAt.set(lookAtMatrix);
-        mat4.rotate(lookAt, lookAt, Math.PI / 2, [1, 0, 0]);
+        mat4.copy(proj, projMatrix);
+        mat4.copy(lookAt, lookAtMatrix);
+        // mat4.rotate(lookAt, lookAt, Math.PI / 2, [1, 0, 0]);
 
         lookAt[12] = 0;
         lookAt[13] = 0;
         lookAt[14] = 0;
 
         this.shader.resolution = [width, height];
-
         this.shader.context.drawCube(this);
     }
 }

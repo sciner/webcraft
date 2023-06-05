@@ -232,6 +232,8 @@ export class InHandOverlay {
 
         globalUniforms.update();
 
+        render.defaultShader.bind(true);
+
         renderBackend.beginPass({clearDepth: true, clearColor: false});
 
         if(inHandItemMesh) {

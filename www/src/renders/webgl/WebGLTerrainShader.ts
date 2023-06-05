@@ -11,8 +11,8 @@ export class WebGLTerrainShader extends BaseTerrainShader {
     constructor(context, options) {
         super(context, options);
 
-        this.uProjMat           = this.getUniformLocation('uProjMatrix');
-        this.uModelMatrix       = this.getUniformLocation('u_worldView');
+        this.uProjMat           = this.getUniformLocation('u_projMatrix');
+        this.uModelMatrix       = this.getUniformLocation('u_viewMatrix');
         this.uModelMat          = this.getUniformLocation('uModelMatrix');
         this.uModelMatMode      = this.getUniformLocation('uModelMatrixMode');
 
@@ -28,7 +28,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_pixelSize        = this.getUniformLocation('u_pixelSize');
         this.u_resolution       = this.getUniformLocation('u_resolution');
         this.u_eyeinwater       = this.getUniformLocation('u_eyeinwater');
-        this.u_SunDir           = this.getUniformLocation('u_SunDir');
+        this.u_SunDir           = this.getUniformLocation('u_sunDir');
         this.u_mipmap           = this.getUniformLocation('u_mipmap');
         this.u_chunkBlockDist   = this.getUniformLocation('u_chunkBlockDist');
         this.u_brightness       = this.getUniformLocation('u_brightness');
@@ -115,7 +115,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
             prevShader.unbind();
         }
         this.context._shader = this;
-        this.context.pixiRender.shader.bind(this.defShader, true);
+        this.context.pixiRender.shader.bind(this.defShader, false);
         this.update();
     }
 
@@ -147,7 +147,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform3i(this.u_camera_posi, px, pz, py);
         this.u_gridChunkSize && gl.uniform3f(this.u_gridChunkSize, gu.gridChunkSize.x, gu.gridChunkSize.z, gu.gridChunkSize.y);
         gl.uniform2fv(this.u_resolution, gu.resolution);
-        this.u_eyeinwater && gl.uniform1f(this.u_eyeinwater, gu.u_eyeinwater);
+        this.u_eyeinwater && gl.uniform1f(this.u_eyeinwater, gu.eyeinwater);
         this.u_SunDir && gl.uniform4fv(this.u_SunDir, [...gu.sunDir, gu.useSunDir ? 1 : 0]);
         gl.uniform1f(this.u_localLightRadius, gu.localLigthRadius);
         // gl.uniform1f(this.u_opaqueThreshold, 0.0);
@@ -196,8 +196,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
             return;
         }
         this.globalID = gu.updateID;
-        this.updateGlobalUniforms();
-
         this.resetMatUniforms();
     }
 

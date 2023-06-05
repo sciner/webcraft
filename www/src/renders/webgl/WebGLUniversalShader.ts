@@ -1,5 +1,6 @@
 import { BaseShader } from "../BaseShader.js";
 import { WebGLTexture } from "./index.js";
+import * as VAUX from 'vauxcel';
 
 const p = WebGLRenderingContext.prototype;
 
@@ -185,7 +186,7 @@ export class UniformBinding {
 }
 
 export class WebGLUniversalShader extends BaseShader {
-    [key: string]: any;
+    uniShader: VAUX.Shader;
     /**
      *
      * @param {WebGLRenderer} context
@@ -194,79 +195,8 @@ export class WebGLUniversalShader extends BaseShader {
     constructor (context, options) {
         super(context, options);
 
-        this.useGlobalUniforms = options && options.useGlobalUniforms === false ? false : true;
-
-        /**
-         * @type {WebGLProgram}
-         */
-        this.program = context.createProgram(options.code, options.defines || {});
-
-        /**
-         * @type {AttrLoaderInfo[]}
-         */
-        this._attrsFlat = [];
-        /**
-         * @type {UniformBinding[]}
-         */
-        this._uniformsFlat = [];
-
-        // Temp value. Unfifrom call getTextureSlot when need bind texture
-        this._textureSlot = 0;
-
-        /**
-         * @type {{[key: string] : AttrLoaderInfo }}
-         */
-        this.attrs = {};
-
-        /**
-         * @type {{[key: string] : UniformBinding}}
-         */
-        this.uniforms = {};
-
-        this._queryAttrs();
-
         if (options.uniforms) {
             this._makeUniforms(options.uniforms);
-        }
-    }
-
-    _queryAttrs() {
-        /**
-         * @type {WebGL2RenderingContext}
-         */
-        const pr = this.context.pixiRender;
-        const gl = pr.gl;
-        const p = this.program.glPrograms[pr.CONTEXT_UID].program;
-
-        const attrsCount = gl.getProgramParameter(p, gl.ACTIVE_ATTRIBUTES);
-
-        for(let i = 0; i < attrsCount; i ++) {
-            const attr = gl.getActiveAttrib(p, i);
-
-            const record = this.attrs[attr.name] = {
-                location: gl.getAttribLocation(p, attr.name),
-                info: attr,
-                name: attr.name,
-                trimmedName: attr.name.replace('a_', '')
-            };
-
-            this.attrs[record.trimmedName] = record;
-
-            this._attrsFlat.push(record)
-        }
-
-        const uniformCount = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
-
-        for(let i = 0; i < uniformCount; i ++) {
-            const info = gl.getActiveUniform(p, i);
-            const loc = gl.getUniformLocation(p, info.name);
-            const record = new UniformBinding(info, loc, this);
-
-            this.uniforms[record.name] = record;
-            // for easy lookup
-            this.uniforms[record.trimmedName] = record;
-
-            this._uniformsFlat.push(record);
         }
     }
 
@@ -276,24 +206,13 @@ export class WebGLUniversalShader extends BaseShader {
             gl
         } = this.context;
 
-        for(const name in uniforms) {
-            if (!this.uniforms[name]) {
-                console.warn('Unknow uniform location: ' + name);
-                continue;
-            }
 
-            this.uniforms[name].fill(uniforms[name]);
+        if (!this.uniShader) {
+            this.uniShader = new VAUX.Shader(this.program, {...uniforms, globalUniforms: this.context.globalUniforms})
+        } else {
+            Object.assign(this.uniShader.uniforms, uniforms);
         }
-    }
-
-    _applyUniforms() {
-        for(let u of this._uniformsFlat) {
-            u.upload();
-        }
-    }
-
-    getTextureSlot() {
-        return this._textureSlot ++;
+        this.uniforms = this.uniShader.uniforms;
     }
 
     bind(force = false) {
@@ -311,18 +230,10 @@ export class WebGLUniversalShader extends BaseShader {
 
         this.context._shader = this;
 
-        this.context.pixiRender.shader.bind(this.defShader, true);
-
-        this._textureSlot = 0;
-        this.update();
+        this.context.pixiRender.shader.bind(this.uniShader, false);
     }
 
     unbind() {
 
-    }
-
-    update() {
-
-        this._applyUniforms();
     }
 }

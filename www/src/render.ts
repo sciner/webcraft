@@ -21,7 +21,13 @@ import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {BLEND_MODES, GlobalUniformGroup, LightUniformGroup} from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
-import { DEFAULT_CLOUD_HEIGHT, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_ZOOM, THIRD_PERSON_CAMERA_DISTANCE } from "./constant.js";
+import {
+    DEFAULT_CLOUD_HEIGHT,
+    MIN_BRIGHTNESS,
+    NOT_SPAWNABLE_BUT_INHAND_BLOCKS,
+    PLAYER_ZOOM,
+    THIRD_PERSON_CAMERA_DISTANCE
+} from "./constant.js";
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import { PACKED_CELL_LENGTH, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_WATER_COLOR_R } from "./fluid/FluidConst.js";
@@ -439,18 +445,19 @@ export class Renderer {
         camera.set(new Vector(0, 0, 5), new Vector(0, 0, Math.PI));
         // larg for valid render results
         gu.fogColor = [0, 0, 0, 0];
-        gu.fogDensity = 100;
+        // gu.fogDensity = 100;
         gu.chunkBlockDist = 100;
         gu.resolution = [target.width, target.height];
 
         // when use a sun dir, brightness is factor how many of sunfactor is applied
         // sun light is additive
-        gu.brightness = 0.0; // 0.55 * 1.0; // 1.3
+        gu.brightness = MIN_BRIGHTNESS; // 0.55 * 1.0; // 1.3
         gu.sunDir = [-1, -1, 1];
         gu.useSunDir = true;
 
         camera.use(gu, true);
         gu.update();
+        this.defaultShader.bind(true);
 
         this.renderBackend.beginPass({
             target
@@ -753,10 +760,10 @@ export class Renderer {
 
         // larg for valid render results
         gu.fogColor         = [0, 0, 0, 0]
-        gu.fogDensity       = 100
+        // gu.fogDensity       = 100
         gu.chunkBlockDist   = 100
         gu.resolution       = [target.width, target.height]
-        gu.brightness       = 0.0; // 0.55 * 1.0; // 1.3
+        gu.brightness       = MIN_BRIGHTNESS; // 0.55 * 1.0; // 1.3
         gu.sunDir           = [-1, -1, 1]
         gu.useSunDir        = true
 
@@ -765,6 +772,7 @@ export class Renderer {
         camera.use(gu, true)
         gu.update()
 
+        this.defaultShader.bind(true);
         this.renderBackend.beginPass({
             target
         })
@@ -1003,7 +1011,7 @@ export class Renderer {
         camera.use(renderBackend.globalUniforms, true);
 
         globalUniforms.crosshairOn = this.crosshairOn;
-        globalUniforms.u_eyeinwater = player.eyes_in_block?.is_water ? 1. : 0.;
+        globalUniforms.eyeinwater = player.eyes_in_block?.is_water ? 1. : 0.;
         globalUniforms.gridChunkSize.copyFrom(this.world.chunkManager.grid.chunkSize);
         globalUniforms.gridTexSize.copyFrom(renderList.chunkGridTex.size).multiplyVecSelf(globalUniforms.gridChunkSize);
         globalUniforms.update();
@@ -1178,6 +1186,7 @@ export class Renderer {
 
         // we should reset camera state because a viewMatrix used for picking
         this.camera.use(this.globalUniforms);
+        this.defaultShader.bind(true);
     }
 
     // Destroy block particles
@@ -1696,12 +1705,12 @@ export class Renderer {
         guiCam._updateProj();
         // larg for valid render results
         gu.fogColor = [0, 0, 0, 0];
-        gu.fogDensity = 100;
+        // gu.fogDensity = 100;
         gu.chunkBlockDist = 100;
 
         // when use a sun dir, brightness is factor how many of sunfactor is applied
         // sun light is additive
-        gu.brightness = 0.0; // 0.55 * 1.0; // 1.3
+        gu.brightness = MIN_BRIGHTNESS; // 0.55 * 1.0; // 1.3
         // gu.sunDir = [-1, -1, 1];
         // gu.useSunDir = true;
         lu.pushOverride(0x100ff);
@@ -1709,7 +1718,7 @@ export class Renderer {
         guiCam.use(gu, true);
         gu.update();
 
-        this.defaultShader.bind();
+        this.defaultShader.bind(true);
 
         lambda(this);
 

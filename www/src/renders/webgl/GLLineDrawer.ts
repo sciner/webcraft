@@ -4,8 +4,8 @@ import {ObjectDrawer} from "../batch/ObjectDrawer.js";
 const vertex = `#version 300 es
 precision highp float;
 
-uniform mat4 uProjMatrix;
-uniform mat4 uViewMatrix;
+uniform mat4 u_projMatrix;
+uniform mat4 u_viewMatrix;
 uniform vec3 u_add_pos;
 
 uniform vec2 u_resolution;
@@ -21,8 +21,8 @@ out vec3 vLine1;
 out vec4 vColor;
 
 void main() {
-    vec4 screenPos1 = uProjMatrix * uViewMatrix * vec4(aPoint1 + u_add_pos, 1.0);
-    vec4 screenPos2 = uProjMatrix * uViewMatrix * vec4(aPoint2 + u_add_pos, 1.0);
+    vec4 screenPos1 = u_projMatrix * u_viewMatrix * vec4(aPoint1 + u_add_pos, 1.0);
+    vec4 screenPos2 = u_projMatrix * u_viewMatrix * vec4(aPoint2 + u_add_pos, 1.0);
     
     // culling to frustrum
     float dz = screenPos2.z - screenPos1.z;
