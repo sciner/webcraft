@@ -3,6 +3,7 @@ import { BBModel_Child } from "./child.js";
 import { IndexedColor, QUAD_FLAGS, Vector } from "../helpers.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { BBModel_Model } from './model.js';
+import type { Mesh_Object_BBModel } from 'mesh/object/bbmodel.js';
 
 const {mat4} = glMatrix;
 const tempMat = mat4.create();
@@ -85,8 +86,8 @@ export class BBModel_Cube extends BBModel_Child {
         }
     }
 
-    pushVertices(vertices : float[], pos : Vector, lm : IndexedColor, parentMatrix : imat4, emmit_particles_func? : Function) {
-        const worldMatrix = mat4.multiply(tempMat, parentMatrix, this.matrix);
+    pushVertices(vertices : float[], pos : Vector, lm : IndexedColor, parent_matrix : imat4, emmit_particles_func? : Function, mesh?: Mesh_Object_BBModel) {
+        const worldMatrix = mat4.multiply(tempMat, parent_matrix, this.matrix);
         const model = this.model
         const force_texture_name = this.selected_texture_name ?? model.selected_texture_name
         const faces = force_texture_name ? this.faces_palette?.get(force_texture_name) : this.faces

@@ -37,7 +37,7 @@ export class BBModel_Group extends BBModel_Child {
         this.children.push(child)
     }
 
-    pushVertices(vertices : float[], pos : Vector, lm : IndexedColor, parent_matrix, emmit_particles_func? : Function, mesh?: Mesh_Object_BBModel) {
+    pushVertices(vertices : float[], pos : Vector, lm : IndexedColor, parent_matrix : imat4, emmit_particles_func? : Function, mesh?: Mesh_Object_BBModel) {
 
         const mx = this._mx
         mat4.identity(mx)

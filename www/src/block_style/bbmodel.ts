@@ -417,6 +417,18 @@ export default class style {
 
         // 2.
         switch(behavior) {
+            case 'billboard': {
+                model.hideGroups(['display', 'eyes'])
+                if(tblock instanceof TBlock) {
+                    if(tblock.extra_data.relindex == -1) {
+                        //     console.log(emmited_blocks)
+                        //     const bm = style.block_manager
+                        //     const verts = []
+                        //     emmited_blocks.push(new FakeVertices(bm.STONE.material_key, verts))
+                    }
+                }
+                break
+            }
             case 'jukebox': {
                 cube_style.playJukeboxDisc(chunk, tblock, xyz.x, xyz.y, xyz.z)
                 break

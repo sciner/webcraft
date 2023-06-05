@@ -148,7 +148,7 @@ export class BBModel_Model {
     /**
      * Draw
      */
-    draw(vertices: float[], pos : Vector, lm : IndexedColor, matrix : imat4, emmit_particles_func? : Function, mesh?: Mesh_Object_BBModel) {
+    draw(vertices: float[], pos : Vector, lm : IndexedColor, matrix : imat4, emmit_particles_func? : Function, mesh?: Mesh_Object_BBModel, emmited_blocks? : any[]) {
         this.root.pushVertices(vertices, pos, lm, matrix, emmit_particles_func, mesh)
     }
 
