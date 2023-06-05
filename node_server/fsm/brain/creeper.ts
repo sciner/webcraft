@@ -150,7 +150,7 @@ export class Brain extends FSMBrain {
         const players = world.getPlayersNear(mobPos, this.players_damage_distance, true);
         for(let i = 0; i < players.length; i++) {
             const player = players[i];
-            player.setDamage(damage, EnumDamage.EXPLOSION);
+            player.setDamage(damage, EnumDamage.EXPLOSION, mob.pos);
             // play hit sound for this player
             custom_packets.user_ids.push(player.session.user_id);
         }

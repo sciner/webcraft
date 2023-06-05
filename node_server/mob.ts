@@ -347,8 +347,8 @@ export class Mob {
         this.inChunk = chunk
     }
 
-    setDamage(val : number, type_damage? : EnumDamage, actor?) {
-        this.#brain.onDamage(val, type_damage, actor);
+    setDamage(val : number, type_damage? : EnumDamage, actor?: any, pos? : Vector) {
+        this.#brain.onDamage(val, type_damage, actor, pos)
     }
 
     setUseItem(item_id, actor) {

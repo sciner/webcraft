@@ -39,13 +39,13 @@ export class Brain extends FSMBrain {
         const ray = this.world.raycaster.get(pos, rotate, 2)
         // если на пути встретился моб
         if (ray?.mob) {
-            ray.mob.setDamage(1, EnumDamage.SNOWBALL, mob)
+            ray.mob.setDamage(1, EnumDamage.SNOWBALL, mob, mob.pos)
             this.onKill(null, null)
             return false
         }
         // если на пути встретился игрок
         if (ray?.player) {
-            ray.player.setDamage(1, EnumDamage.SNOWBALL, mob)
+            ray.player.setDamage(1, EnumDamage.SNOWBALL, mob.pos)
             this.onKill(null, null)
             return false
         }

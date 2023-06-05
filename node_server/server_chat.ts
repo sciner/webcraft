@@ -140,7 +140,7 @@ export class ServerChat {
                         this.world.mobs.kill()
                         break
                     case 'me':
-                        player.setDamage(999999, EnumDamage.OTHER, player)
+                        player.setDamage(999999, EnumDamage.OTHER)
                         break
                     default:
                         this.sendSystemChatMessageToSelectedPlayers('!langUsage: /kill (me|mobs)', player)

@@ -273,7 +273,7 @@ export class FSMBrain {
         if (this.in_lava) {
             if (this.timer_lava_damage <= 0) {
                 this.timer_lava_damage = MUL_1_SEC;
-                this.onDamage(2, EnumDamage.LAVA, null);
+                this.onDamage(2, EnumDamage.LAVA, null, null);
             } else {
                 this.timer_lava_damage--;
             }
@@ -291,7 +291,7 @@ export class FSMBrain {
         if (this.in_water && config.can_asphyxiate) {
             if (this.timer_water_damage >= MUL_1_SEC) {
                 this.timer_water_damage = 0;
-                this.onDamage(1, EnumDamage.WATER, null);
+                this.onDamage(1, EnumDamage.WATER, null, null);
             } else {
                 this.timer_water_damage++;
             }
@@ -307,7 +307,7 @@ export class FSMBrain {
             this.time_fire--
             if (this.timer_fire_damage >= MUL_1_SEC) {
                 this.timer_fire_damage = 0;
-                this.onDamage(1, EnumDamage.FIRE, null);
+                this.onDamage(1, EnumDamage.FIRE, null, null);
             } else {
                 this.timer_fire_damage++;
             }
@@ -494,13 +494,12 @@ export class FSMBrain {
     * type_damage - от чего умер[упал, сгорел, утонул]
     * actor - игрок или пероснаж
     */
-    onDamage(val : number, type_damage : EnumDamage, actor) {
+    onDamage(val : number, type_damage : EnumDamage, actor, pos: Vector) {
         const mob = this.mob;
         const world = mob.getWorld();
-        if (actor && mob.config.damagePushes && this.enabled && [EnumDamage.CRIT, EnumDamage.SNOWBALL].includes(type_damage)) {
-            const pos = actor?.state?.pos ?? actor.pos
+        if (pos && mob.config.damagePushes && this.enabled) {
             const velocity = mob.pos.sub(pos).normSelf()
-            velocity.y = 0.2
+            velocity.y = .2
             mob.addVelocity(velocity)
         }
         mob.indicators.live -= val

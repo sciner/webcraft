@@ -19,6 +19,7 @@ import { Lang } from "./lang.js";
 import type { TSittingState, TSleepState} from "./player.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
 import type {TChestInfo} from "./block_helpers.js";
+import { EnumDamage } from "./enums/enum_damage.js";
 
 /** A type that is as used as player in actions. */
 export type ActionPlayerInfo = {
@@ -750,6 +751,17 @@ export class WorldAction {
         let rays = 0;
 
         // const p = performance.now();
+        // Наносим урон игрокам и мобам
+        if (Qubatch.is_server) { 
+            const players = world.getPlayersNear(vec_center, distance, true)
+            for (const player of players) {
+                player.setDamage(strength, EnumDamage.EXPLOSION, vec_center)
+            }
+            const mobs = world.getMobsNear(vec_center, distance)
+            for (const mob of mobs) {
+                mob.setDamage(strength, EnumDamage.EXPLOSION, null, vec_center)
+            }
+        }
 
         for(let x = -maxDistance; x <= maxDistance; ++x) {
             for(let y = -maxDistance; y <= maxDistance; ++y) {

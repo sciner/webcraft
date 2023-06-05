@@ -357,8 +357,8 @@ export class ServerPlayer extends Player {
     }
 
     // Нанесение урона игроку
-    setDamage(val : number, type_damage? : EnumDamage, actor?) {
-        this.damage.addDamage(val, type_damage, actor);
+    setDamage(val : number, type_damage? : EnumDamage, pos?: Vector) {
+        this.damage.addDamage(val, type_damage, pos)
     }
 
     /**

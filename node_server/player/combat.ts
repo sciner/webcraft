@@ -53,7 +53,7 @@ export class ServerPlayerCombat {
                     if (!target) {
                         return
                     }
-                    target.setDamage(damage, enum_damage, player)
+                    target.setDamage(damage, enum_damage, player.state.pos)
                     // уменьшаем прочнось предмета
                     if (this.#item?.power) {
                         player.inventory.decrement_instrument()
@@ -65,7 +65,7 @@ export class ServerPlayerCombat {
                     if (!target) {
                         return
                     }
-                    target.setDamage(damage, enum_damage, player)
+                    target.setDamage(damage, enum_damage, player, player.state.pos)
                     // уменьшаем прочнось предмета
                     if (this.#item?.power) {
                         player.inventory.decrement_instrument()
@@ -98,7 +98,7 @@ export class ServerPlayerCombat {
                 if (!target) {
                     return
                 }
-                target.setDamage(damage, enum_damage, player)
+                target.setDamage(damage, enum_damage, player.state.pos)
                 // уменьшаем прочнось предмета
                 if (item?.power) {
                     player.inventory.decrement_instrument()
@@ -110,7 +110,7 @@ export class ServerPlayerCombat {
                 if (!target) {
                     return
                 }
-                target.setDamage(damage, enum_damage, player)
+                target.setDamage(damage, enum_damage, player, player.state.pos)
                 // уменьшаем прочнось предмета
                 if (item?.power) {
                     player.inventory.decrement_instrument()
@@ -141,7 +141,7 @@ export class ServerPlayerCombat {
             if (!target) {
                 return
             }
-            target.setDamage(damage, EnumDamage.PUNCH, player)
+            target.setDamage(damage, EnumDamage.PUNCH, player.state.pos)
             // уменьшаем прочнось предмета
             if (item?.power) {
                 player.inventory.decrement_instrument()

@@ -4,7 +4,7 @@ import { Vector } from "@client/helpers.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import type { ServerPlayer } from "../server_player.js";
 import { PLAYER_BURNING_TIME, PLAYER_STATUS } from "@client/constant.js";
-import { EnumDamage } from "@client/enums/enum_damage.js";
+import type { EnumDamage } from "@client/enums/enum_damage.js";
 
 const MUL_1_SEC = 20
 const INSTANT_DAMAGE_TICKS = 10
@@ -37,7 +37,7 @@ export class ServerPlayerDamage {
     instant_damage_timer: number = 0;
     damage: number = 0
     type_damage : EnumDamage
-    actor: any
+    private pos: Vector
     #ground = true
     #last_height = null
     #timer_fire: number = 0
@@ -269,9 +269,8 @@ export class ServerPlayerDamage {
         // армор
         damage = Math.round((damage * (32 - this.player.inventory.getArmorLevel())) / 32)
         if (damage > 0) {
-            if (this.actor && [EnumDamage.CRIT, EnumDamage.SNOWBALL].includes(this.type_damage)) {
-                const pos = this.actor?.state?.pos ? this.actor.state.pos : this.actor.pos
-                const velocity = player.state.pos.sub(pos).normSelf()
+            if (this.pos) {
+                const velocity = player.state.pos.sub(this.pos).normSelf()
                 velocity.y = .2
                 player.controlManager.prismarine.player_state.vel.addSelf(velocity)
             }
@@ -291,13 +290,13 @@ export class ServerPlayerDamage {
     /*
     * Нанесение урона игроку
     */
-    addDamage(val : number, type_damage? : EnumDamage, actor?) {
+    addDamage(val: number, type_damage?: EnumDamage, pos?: Vector) {
         const player = this.player
         if(player.status !== PLAYER_STATUS.ALIVE || !player.game_mode.mayGetDamaged()) {
             return false
         }
         this.type_damage = type_damage
-        this.actor = actor
+        this.pos = pos
         this.damage = val
         return true
     }
