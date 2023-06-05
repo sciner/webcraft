@@ -595,52 +595,13 @@ export class ServerChunk {
     }
 
     private onBlocksGeneratedOrRestored(): void {
-
-        const callListenersY = (chunkLow: ServerChunk, chunkHigh: ServerChunk) => {
-            block1.tb = chunkLow.tblocks
-            block2.tb = chunkHigh.tblocks
-            for(let x = 0; x < size.x; x++) {
-                for(let z = 0; z < size.z; z++) {
-                    const id1 = block1.setRelativePos(x, size.y - 1, z).id
-                    const id2 = block2.setRelativePos(x, 0, z).id
-
-                    let listeners = blockListeners.onChange_loadBelow[id2]
-                    if (listeners) {
-                        this.callBlockListeners(listeners, block2.posworld, block2, id2, world.blocksUpdatedByListeners)
-                    }
-
-                    listeners = blockListeners.onNeighbour_loadAbove[id1]
-                    if (listeners) {
-                        this.callNeighbourListeners(listeners, block1.posworld, block1, block2, Vector.YP, world.blocksUpdatedByListeners)
-                    }
-                }
-            }
-        }
-
-        const {size, chunkManager, world} = this
+        const chunkManager = this.getChunkManager();
         if (!chunkManager) {
             return;
         }
         chunkManager.dataWorld.syncOuter(this);
         // fluid
         this.fluid.queue.init();
-
-        // Вызвать обработчики для блоков возле границ чанка (в этом и соседних чанках)
-        const blockListeners = this.world.blockListeners
-        const block1    = tmp_onNeighbourLoaded_block1
-        const block2    = tmp_onNeighbourLoaded_block2
-
-        const up = chunkManager.getChunk(this.addr.offset(0, 1, 0))
-        if (up?.isReady()) {
-            callListenersY(this, up)
-        }
-
-        const down = chunkManager.getChunk(this.addr.offset(0, -1, 0))
-        if (down?.isReady()) {
-            callListenersY(down, this)
-        }
-
-        world.addUpdatedBlocksActions(world.blocksUpdatedByListeners)
     }
 
     /**
@@ -680,8 +641,32 @@ export class ServerChunk {
         this.onMobsLoadedOrRestored();
     }
 
-    private onMobsLoadedOrRestored() {
-        const chunkManager = this.getChunkManager();
+    private onMobsLoadedOrRestored(): void {
+
+        const processBorderY = (chunkLow: ServerChunk, chunkHigh: ServerChunk) => {
+            block1.tb = chunkLow.tblocks
+            block2.tb = chunkHigh.tblocks
+            for(let x = 0; x < size.x; x++) {
+                block1.setRelativePos(x, size.y - 1, 0)
+                block2.setRelativePos(x, 0, 0)
+                for(let z = 0; z < size.z; z++) {
+                    let listeners = onChange_loadBelow[block2.id]
+                    if (listeners) {
+                        this.callBlockListeners(listeners, block2.posworld, block2, block2.id, world.blocksUpdatedByListeners)
+                    }
+                    listeners = onNeighbour_loadAbove[block1.id]
+                    if (listeners) {
+                        this.callNeighbourListeners(listeners, block1.posworld, block1, block2, Vector.YP, world.blocksUpdatedByListeners)
+                    }
+                    block1.index += cz
+                    block1.vec.z++
+                    block2.index += cz
+                    block2.vec.z++
+                }
+            }
+        }
+
+        const {size, chunkManager, world} = this
         // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
         if(this.connections.size > 0) {
             this.sendMobs()
@@ -707,8 +692,26 @@ export class ServerChunk {
         }
         if (this.shouldUnload()) {
             // TODO : wait a bit, dont unload yet?
-            chunkManager.invalidate(this);
+            chunkManager.invalidate(this)
+            return
         }
+
+        // Вызвать обработчики для блоков возле границ чанка (в этом и соседних чанках).
+        // После установки CHUNK_STATE.READY - на случай если это важно обработчикам.
+        const {onChange_loadBelow, onNeighbour_loadAbove} = world.blockListeners
+        const {cz}      = chunkManager.grid.math
+        const block1    = tmp_onNeighbourLoaded_block1
+        const block2    = tmp_onNeighbourLoaded_block2
+
+        const up = chunkManager.getChunk(this.addr.offset(0, 1, 0))
+        if (up?.isReady()) {
+            processBorderY(this, up)
+        }
+        const down = chunkManager.getChunk(this.addr.offset(0, -1, 0))
+        if (down?.isReady()) {
+            processBorderY(down, this)
+        }
+        world.addUpdatedBlocksActions(world.blocksUpdatedByListeners)
     }
 
     shouldUnload() : boolean {
