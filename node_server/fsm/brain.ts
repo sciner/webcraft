@@ -504,6 +504,7 @@ export class FSMBrain {
         }
         mob.indicators.live -= val
         mob.extra_data.health = Math.round(mob.indicators.live * 100 / mob.config.health)
+        this.sendState()
         if (mob.indicators.live <= 0) {
             mob.kill();
             this.onKill(actor, type_damage);
