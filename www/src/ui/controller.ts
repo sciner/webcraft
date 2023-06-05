@@ -5,7 +5,7 @@ import { UIApp } from './app.js';
 import { TexturePackManager } from './texture_pack-manager.js';
 import { SkinManager } from './skin-manager.js';
 import { GameClass } from '../game.js';
-import { Player } from '../player.js';
+import {Player, PlayerOptions} from '../player.js';
 import { Lang } from "../lang.js";
 import { KEY, MOUSE } from "../constant.js";
 import  registerTextFilter from './angular/textfilter.js';
@@ -100,7 +100,7 @@ class GameController {
     sunDir: { value: Vector; apply: () => void; getValue: () => string; };
     current_window: { id: string; show(id: any): void; toggle(id: any): void; getTitle(): any; };
     registration: { loading: boolean; form: { username: string; password: string; }; submit: () => boolean; reset: () => void; isValid: () => any; };
-    settings: { show_advanced_settings: boolean, form: any; lightMode: { list: { id: number; name: string; }[]; current: any; }; chunkGeometryMode: { list: { id: number; name: string; }[]; current: any; }; chunkGeometryAlloc: { list: { id: number; name: string; }[]; current: any; }; save: () => void; toggle: () => boolean; updateSlider: (inputId: any) => void; };
+    settings: { show_advanced_settings: boolean, form: PlayerOptions; lightMode: { list: { id: number; name: string; }[]; current: any; }; chunkGeometryMode: { list: { id: number; name: string; }[]; current: any; }; chunkGeometryAlloc: { list: { id: number; name: string; }[]; current: any; }; save: () => void; toggle: () => boolean; updateSlider: (inputId: any) => void; };
     boot: { loading: boolean; latest_save: boolean; init(): void; };
     DeleteWorld: { world_guid: string; world_title: string; showModal(world_guid: any): void; delete(): any; };
     mygames: {

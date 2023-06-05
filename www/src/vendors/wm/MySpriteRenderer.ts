@@ -9,7 +9,7 @@ in vec2 aVertexPosition;
 in vec2 aSpriteUV;
 in vec4 aTextureRegion;
 in vec4 aTint;
-in float aMultiField;
+in int aMultiField;
 
 uniform mat3 projectionMatrix;
 uniform mat3 translationMatrix;
@@ -19,7 +19,7 @@ out vec2 vTextureCoord;
 out vec2 vSpriteUV;
 out vec4 vTextureRegion;
 out vec4 vTint;
-out float vMultiField;
+flat out int vMultiField;
 
 void main(void){
     gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
@@ -39,7 +39,7 @@ in vec2 vTextureCoord;
 in vec2 vSpriteUV;
 in vec4 vTextureRegion;
 in vec4 vTint;
-in float vMultiField;
+flat in int vMultiField;
 uniform sampler2D uSamplers[%count%];
 uniform float u_time;
 
@@ -50,9 +50,8 @@ void main() {
     
     vec2 textureCoord = clamp(vTextureCoord, vTextureRegion.xy + .5, (vTextureRegion.xy + vTextureRegion.zw) - .5);
     
-    int multiField = int(vMultiField + 0.5);
-    int textureId = multiField % 32;
-    multiField = multiField / 32;
+    int textureId = vMultiField % 32;
+    int multiField = vMultiField / 32;
     int pma = multiField % 2;
     multiField = multiField / 2;
     int tintMode = multiField;
@@ -103,7 +102,7 @@ export class MyBatchGeometry extends VAUX.Geometry {
             .addAttribute('aSpriteUV', this._buffer, 2, false, VAUX.TYPES.FLOAT)
             .addAttribute('aTextureRegion', this._buffer, 4, false, VAUX.TYPES.FLOAT)
             .addAttribute('aTint', this._buffer, 4, true, VAUX.TYPES.UNSIGNED_BYTE)
-            .addAttribute('aMultiField', this._buffer, 1, true, VAUX.TYPES.FLOAT)
+            .addAttribute('aMultiField', this._buffer, 1, false, VAUX.TYPES.INT)
             .addIndex(this._indexBuffer);
 
         this.vertexSize = 10;
@@ -177,10 +176,9 @@ export class MySpriteRenderer extends VAUX.BatchRenderer {
         const frame = element._texture._frame;
 
         const alpha = Math.min(element.worldAlpha, 1.0);
-        const argb = (alpha < 1.0
-            && element._texture.baseTexture.alphaMode)
-            ? VAUX.utils.premultiplyTint(element._tintRGB, alpha)
-            : element._tintRGB + (alpha * 255 << 24);
+        const argb = VAUX.Color.shared
+            .setValue(element._tintRGB)
+            .toPremultiplied(alpha, element._texture.baseTexture.alphaMode > 0);
 
         // lets not worry about tint! for now..
         for (let i = 0; i < vertexData.length; i += 2) {
@@ -195,7 +193,7 @@ export class MySpriteRenderer extends VAUX.BatchRenderer {
             float32View[aIndex++] = frame.height;
 
             uint32View[aIndex++] = argb;
-            float32View[aIndex++] = multiField;
+            uint32View[aIndex++] = multiField;
         }
 
         for (let i = 0; i < indicies.length; i++) {
