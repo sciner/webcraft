@@ -1,9 +1,8 @@
-import { calcRotateMatrix, DIRECTION, FastRandom, Helpers, IndexedColor, mat4ToRotate, StringHelpers, Vector } from '../helpers.js';
+import { calcRotateMatrix, DIRECTION, FastRandom, Helpers, IndexedColor, mat4ToRotate, QUAD_FLAGS, StringHelpers, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import { TBlock } from '../typed_blocks3.js';
-import { CubeSym } from '../core/CubeSym.js';
-import { BlockStyleRegInfo, TX_SIZE } from '../block_style/default.js';
+import { BlockStyleRegInfo } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as cube_style } from '../block_style/cube.js';
 import { default as pot_style } from '../block_style/pot.js';
@@ -18,6 +17,8 @@ import type { Biome } from '../terrain_generator/biome3/biomes.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { World } from '../world.js';
 import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
+import { BBModel_Cube } from '../bbmodel/cube.js';
+import { BBModel_Group } from '../bbmodel/group.js';
 
 const { mat4, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
@@ -169,6 +170,20 @@ export default class style {
                     model.playAnimation(animation_name, 999999, mesh as Mesh_Object_BBModel)
                 }
             }
+
+            if(block.material.megablock) {
+                const addCubesFlag = (group : BBModel_Group, flag : int) => {
+                    for(const child of group.children) {
+                        if(child instanceof BBModel_Cube) {
+                            child.flag |= flag
+                        } else if(child instanceof BBModel_Group) {
+                            addCubesFlag(child, flag)
+                        }
+                    }
+                }
+                addCubesFlag(model.root, QUAD_FLAGS.FLAG_LIGHT_GRID)
+            }
+
         }
 
         // if(block instanceof TBlock) {

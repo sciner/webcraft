@@ -51,7 +51,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         const block = items[0]
         this.pn             = performance.now() + Math.random() * 2000 // рандом, чтобы одновременно сгенерированные дропы крутились не одинаково
         this.posFact        = this.pos.clone()
-        this.block          = new FakeTBlock(block.id)
+        this.block          = new FakeTBlock(block.id, block.extra_data)
         this.block_material = this.block.material
         this.items          = items
 

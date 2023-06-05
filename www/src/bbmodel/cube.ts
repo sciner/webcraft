@@ -14,6 +14,7 @@ export class BBModel_Cube extends BBModel_Child {
     size: Vector;
     translate: Vector;
     faces: {};
+    flag: int = 0
     faces_palette: any;
     inflate: float = 0
 
@@ -27,33 +28,40 @@ export class BBModel_Cube extends BBModel_Child {
         this.setFaces(json.faces)
     }
 
-    setFaces(faces) {
+    private setFaces(faces) {
         let flag = 0
         this.faces = {}
         if(faces) {
-            const name = this.json.name
-            if(name.includes('#flag_torch_flame')) {
-                flag |= QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_LOOK_AT_CAMERA_HOR | QUAD_FLAGS.FLAG_NORMAL_UP
-                flag |= QUAD_FLAGS.FLAG_TORCH_FLAME
-            } else if(name.includes('#flag_fluid_erase')) {
-                flag |= QUAD_FLAGS.FLAG_FLUID_ERASE | QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT
-            } else {
-                if(['dandelion', 'poppy'].includes(this.model.json.name)) {
-                    flag |= QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_LEAVES // | QUAD_FLAGS.FLAG_NORMAL_UP;
-                }
-                // another flags
-                if(name.includes('#flag_')) {
-                    const temp = name.split('#flag_')
-                    for(let flag_name of temp) {
-                        if(flag_name.length == 0) continue
-                        let i = flag_name.indexOf('#')
-                        if(i >= 0) {
-                            flag_name = flag_name.substring(0, i)
+            const name_lower = this.json.name.toLowerCase()
+            if(['dandelion', 'poppy'].includes(this.model.json.name)) {
+                flag |= QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_LEAVES // | QUAD_FLAGS.FLAG_NORMAL_UP;
+            }
+            // another flags
+            if(name_lower.includes('#flag_')) {
+                const temp = name_lower.split('#flag_')
+                for(let flag_name of temp) {
+                    if(flag_name.length == 0) continue
+                    let i = flag_name.indexOf('#')
+                    if(i >= 0) {
+                        flag_name = flag_name.substring(0, i)
+                    }
+                    flag_name = `FLAG_${flag_name.toUpperCase()}`
+                    const f = QUAD_FLAGS[flag_name]
+                    switch(f as any) {
+                        case QUAD_FLAGS.FLAG_TORCH_FLAME: {
+                            flag |= QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_LOOK_AT_CAMERA_HOR | QUAD_FLAGS.FLAG_NORMAL_UP
+                            flag |= QUAD_FLAGS.FLAG_TORCH_FLAME
+                            break
                         }
-                        flag_name = `FLAG_${flag_name.toUpperCase()}`
-                        const f = QUAD_FLAGS[flag_name]
-                        if(f != undefined) {
-                            flag |= parseInt(f)
+                        case QUAD_FLAGS.FLAG_FLUID_ERASE: {
+                            flag |= QUAD_FLAGS.FLAG_FLUID_ERASE | QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT
+                            break
+                        }
+                    }
+                    if(f != undefined) {
+                        flag |= parseInt(f)
+                        if(flag_name == 'FLAG_LIGHT_GRID') {
+                            console.log(this.json.name, f, parseInt(f), flag)
                         }
                     }
                 }
@@ -90,6 +98,7 @@ export class BBModel_Cube extends BBModel_Child {
         default_style.pushPART(vertices, {
             faces:      faces,
             size:       this.size,
+            flag:       this.flag,
             translate:  this.translate,
             lm:         lm,
             pos:        pos,

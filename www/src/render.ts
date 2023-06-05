@@ -405,7 +405,7 @@ export class Renderer {
                 if(!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name)) {
                     return null;
                 }
-                const drop = new Mesh_Object_Block_Drop(this.world, this.gl, null, [{id: block.id}], ZERO);
+                const drop = new Mesh_Object_Block_Drop(this.world, this.gl, null, [{id: block.id, extra_data: block.extra_data}], ZERO);
                 drop.block_material.inventory_icon_id = inventory_icon_id++;
                 addAtlasSprite(drop.block_material)
                 return drop;
