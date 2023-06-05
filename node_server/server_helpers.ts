@@ -152,13 +152,19 @@ export class DelayedCalls {
         return JSON.stringify(list);
     }
 
-    deserialize(str) {
-        this.list = JSON.parse(str);
-        for (let entry of this.list) {
-            const callee = this.calleesById[entry.id];
+    deserialize(str: string): void {
+        const list = JSON.parse(str)
+        this.list = []
+        for (let entry of list) {
+            const callee = this.calleesById[entry.id]
+            if (!callee) {
+                console.error(`Loaded unknown calleeId: ${entry.id}`)
+                continue
+            }
             if (callee.afterDelayedLoading) {
                 entry.args = callee.afterDelayedLoading(entry.args);
             }
+            this.list.push(entry)
         }
     }
 }
