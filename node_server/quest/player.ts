@@ -12,7 +12,7 @@ export class QuestPlayer {
     world: any;
     handlers: Map<any, any>;
     groups: any;
-    quests: any;
+    quests: Map<int, Quest> // by quest.id
 
     constructor(quest_manager, player) {
         this.quest_manager = quest_manager;

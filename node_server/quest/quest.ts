@@ -9,10 +9,12 @@ import {ServerPlayer} from "../server_player.js"
 // Quest
 export class Quest {
 
+    // эти поля должны быть приватными из-за JSON.stringify
     #quest_player;
     #player: ServerPlayer
     #next_quests;
     #dirtyFlags : int;
+
     id: int;
     title: string;
     description: string;
@@ -76,6 +78,9 @@ export class Quest {
             }
         }
     }
+
+    /** #player обязан быть приватным из-за JSON.stringify, но он нужен в конструкторе действий квеста */
+    getPlayer(): ServerPlayer { return this.#player }
 
     /**
      * Before the world transaction, quests wered and loaded for each change.

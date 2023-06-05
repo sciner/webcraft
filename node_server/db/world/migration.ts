@@ -18,6 +18,12 @@ import {preprocessSQL} from "../db_helpers.js";
   WHERE block_id = 999;
 
 Если нужно делать миграцию предметов, то нужно менять еще инвентари игроков и содержимое сундуков.
+
+TODO: удалить устаревшие поля. Они остаются на некоторое время чтобы старые версии могли открывать БД.
+Устарели 05.06.2023 в quest_action (включены в params): block_id, cnt, pos.
+Устарели до 05.06.2023 в user (включены в state), но возможно где-то еще используются, надо проверить код: indicators,
+  pos_spawn, pos, rotate, chunk_render_dist, game_mode, stats.
+Есть дублирующиеся поля в таблице world_modify.
 */
 
 // Migrations
@@ -1045,6 +1051,16 @@ export class DBWorldMigration {
         migrations.push({version: 102, queries: [
             `DELETE from world_modify_chunks;`
         ]});
+
+        migrations.push({version: 103, queries: [
+            `ALTER TABLE quest_action ADD COLUMN params TEXT NOT NULL DEFAULT '{}'`,
+            `UPDATE quest_action SET params = '{"block_suffixes":["_LOG"],"cnt":5}', description = '{"ru":"Добыть 5 брёвен","en":"Mine 5 logs"}' WHERE id = 1`,
+            `UPDATE quest_action SET params = '{"block_id":18,"cnt":20}' WHERE id = 2`,
+            `UPDATE quest_action SET params = '{"block_id":58,"cnt":1}' WHERE id = 3`,
+            `UPDATE quest_action SET params = '{"block_id":58,"cnt":1}' WHERE id = 4`,
+            // тут только удалено слово дубовые/oak по сравнению с врсией 51
+            `UPDATE quest SET title = '{"ru":"Добыть брёвна","en":"Get logs"}', description = '{"ru":"Необходимо добыть бревна. После этого вы сможете скрафтить орудия, для дальнейшего развития.\\r\\n\\r\\n1-й шаг — Найдите дерево\\r\\nНайдите любое дерево, подойдите к нему так близко, чтобы вокруг блока древесины, на которую вы нацелены появилась тонкая обводка. Зажмите левую кнопку мыши и не отпускайте, пока не будет добыто бревно.\\r\\nЧтобы сломать бревно рукой нужно примерно 6 секунд.\\r\\n\\r\\n2-й шаг — Подберите блок\\r\\nПодойдите ближе к выпавшему блоку, он попадёт в ваш инвентарь.","en":"You need to get logs. After that, you can craft weapons for further development.\\r\\n\\r\\n1st step - Find a tree\\r\\nFind any tree, get close enough to it so that a thin outline appears around the block of wood you are aiming at. Hold down the left mouse button and do not release until the log is mined.\\r\\nIt takes about 6 seconds to break a log by hand.\\r\\n\\r\\n2nd step - Pick up a block\\r\\nGet closer to the dropped block, it will go into your inventory."}'  WHERE id = 1`
+        ]})
 
         for(let m of migrations) {
             if(m.version > version) {

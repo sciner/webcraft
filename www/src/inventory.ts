@@ -728,16 +728,6 @@ export abstract class Inventory extends InventoryItemsCollection {
         }
     }
 
-    countItemId(item_id) {
-        let count = 0;
-        for(let item of this.items) {
-            if (item && item.id === item_id) {
-                count += item.count;
-            }
-        }
-        return count;
-    }
-
     /**
      * Возвращает список того, чего и в каком количестве не хватает
      * в (текущем инвентаре + дополнительном списке предметов) по указанному списку.

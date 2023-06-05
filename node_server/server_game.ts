@@ -242,7 +242,7 @@ export class ServerGame {
                 }
                 if (world == null) {
                     // TODO как-то лучше ответить игрокку что мир не найден
-                    conn.cole(1000)
+                    conn.close(1000)
                     return
                 }
                 Log.append('WsConnected', {world_guid, session_id: query.session_id});
@@ -252,7 +252,7 @@ export class ServerGame {
                 await this.db.IncreasePlayCount(game_world.id, query.session_id);
             }).catch((e) => { // чтобы не было unhandled rejection
                 console.error(e)
-                conn.cole(1000)
+                conn.close(1000)
                 return
             })
         });
