@@ -3,7 +3,7 @@
 // noise factor for rediuce gradinet banding issues
 #define BANDING_NOISE 0.01 
 //
-uniform samplerCube u_texture;
+//uniform samplerCube u_texture;
 uniform float u_brightness;
 uniform float u_nightshift;
 uniform vec3 u_baseColor;

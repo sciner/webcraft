@@ -10,15 +10,15 @@ export class WebGLLineShader extends BaseLineShader {
     constructor(context, options) {
         super(context, options);
 
+        const { program } = this;
         const { gl } = context;
-        const program  = this.program = context.createProgram(options.code, {});
 
-        this.uProjMat           = gl.getUniformLocation(program, 'uProjMatrix');
-        this.uViewMatrix        = gl.getUniformLocation(program, 'uViewMatrix');
+        this.uProjMat           = this.getUniformLocation('uProjMatrix');
+        this.uViewMatrix        = this.getUniformLocation('uViewMatrix');
 
-        this.u_resolution       = gl.getUniformLocation(program, 'u_resolution');
-        this.u_eyeinwater       = gl.getUniformLocation(program, 'u_eyeinwater');
-        this.u_time             = gl.getUniformLocation(program, 'u_time');
+        this.u_resolution       = this.getUniformLocation('u_resolution');
+        this.u_eyeinwater       = this.getUniformLocation('u_eyeinwater');
+        this.u_time             = this.getUniformLocation('u_time');
 
         this.locateUniforms();
 
@@ -30,17 +30,17 @@ export class WebGLLineShader extends BaseLineShader {
     locateAttribs() {
         const { program } = this;
         const { gl } = this.context;
-        this.a_point1           = gl.getAttribLocation(program, 'aPoint1');
-        this.a_point2           = gl.getAttribLocation(program, 'aPoint2');
-        this.a_lineWidth        = gl.getAttribLocation(program, 'aLineWidth');
-        this.a_color            = gl.getAttribLocation(program, 'aColor');
-        this.a_quad             = gl.getAttribLocation(program, 'aQuad');
+        this.a_point1           = this.getAttribLocation('aPoint1');
+        this.a_point2           = this.getAttribLocation('aPoint2');
+        this.a_lineWidth        = this.getAttribLocation('aLineWidth');
+        this.a_color            = this.getAttribLocation('aColor');
+        this.a_quad             = this.getAttribLocation('aQuad');
     }
 
     locateUniforms() {
         const { program } = this;
         const { gl } = this.context;
-        this.u_add_pos          = gl.getUniformLocation(program, 'u_add_pos');
+        this.u_add_pos          = this.getUniformLocation('u_add_pos');
     }
 
     bind(force = false) {
@@ -55,7 +55,7 @@ export class WebGLLineShader extends BaseLineShader {
             prevShader.unbind();
         }
         this.context._shader = this;
-        gl.useProgram(this.program);
+        this.context.pixiRender.shader.bind(this.defShader, true);
         gl.enable(gl.POLYGON_OFFSET_FILL);
         gl.polygonOffset(-2, -4);
         this.update();

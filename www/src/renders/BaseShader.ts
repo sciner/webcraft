@@ -1,18 +1,39 @@
 import {Color} from '../helpers.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
+import * as VAUX from 'vauxcel'
 
 const {mat4} = glMatrix;
 
 export class BaseShader {
     [key: string]: any;
+
+    program: VAUX.Program;
     constructor(context, options) {
         this.context = context;
         this.options = options;
+        // context.createProgram({vertex, fragment,
+
+        this.initProgram();
+        this.defShader = new VAUX.Shader(this.program);
         /**
          * @type {{vertex: string, fragment: string}}
          */
         this.code = options.code;
         this.bindings = [];
+    }
+
+    getUniformLocation(attrName) {
+        const pr = this.context.pixiRender;
+        return pr.gl.getUniformLocation(this.program.glPrograms[pr.CONTEXT_UID].program, attrName);
+    }
+
+    getAttribLocation(attrName) {
+        return this.program.attributeData[attrName].location;
+    }
+    initProgram()
+    {
+        const { context, options } = this;
+        this.program = context.createProgram(options.code, options.defines || {});
     }
 
     bind() {

@@ -11,46 +11,38 @@ export class WebGLTerrainShader extends BaseTerrainShader {
     constructor(context, options) {
         super(context, options);
 
-        const { gl } = context;
-        const program  = this.program = context.createProgram(options.code, {
-            // for ex, skip mip block
-            ['manual_mip'] : {
-                //skip: true
-            }
-        });
+        this.uProjMat           = this.getUniformLocation('uProjMatrix');
+        this.uModelMatrix       = this.getUniformLocation('u_worldView');
+        this.uModelMat          = this.getUniformLocation('uModelMatrix');
+        this.uModelMatMode      = this.getUniformLocation('uModelMatrixMode');
 
-        this.uProjMat           = gl.getUniformLocation(program, 'uProjMatrix');
-        this.uModelMatrix       = gl.getUniformLocation(program, 'u_worldView');
-        this.uModelMat          = gl.getUniformLocation(program, 'uModelMatrix');
-        this.uModelMatMode      = gl.getUniformLocation(program, 'uModelMatrixMode');
-
-        this.u_add_pos          = gl.getUniformLocation(program, 'u_add_pos');
-        this.u_camera_pos       = gl.getUniformLocation(program, 'u_camera_pos');
-        this.u_camera_posi      = gl.getUniformLocation(program, 'u_camera_posi');
-        this.u_fogColor         = gl.getUniformLocation(program, 'u_fogColor');
-        // this.u_fogDensity       = gl.getUniformLocation(program, 'u_fogDensity');
-        this.u_fogAddColor      = gl.getUniformLocation(program, 'u_fogAddColor');
-        this.u_fogOn            = gl.getUniformLocation(program, 'u_fogOn');
-        this.u_crosshairOn      = gl.getUniformLocation(program, 'u_crosshairOn');
-        this.u_blockSize        = gl.getUniformLocation(program, 'u_blockSize');
-        this.u_pixelSize        = gl.getUniformLocation(program, 'u_pixelSize');
-        this.u_resolution       = gl.getUniformLocation(program, 'u_resolution');
-        this.u_eyeinwater       = gl.getUniformLocation(program, 'u_eyeinwater');
-        this.u_SunDir           = gl.getUniformLocation(program, 'u_SunDir');
-        this.u_mipmap           = gl.getUniformLocation(program, 'u_mipmap');
-        this.u_chunkBlockDist   = gl.getUniformLocation(program, 'u_chunkBlockDist');
-        this.u_brightness       = gl.getUniformLocation(program, 'u_brightness');
-        this.u_localLightRadius = gl.getUniformLocation(program, 'u_localLightRadius');
-        this.u_time             = gl.getUniformLocation(program, 'u_time');
-        this.u_lightOverride    = gl.getUniformLocation(program, 'u_lightOverride');
-        this.u_rain_strength    = gl.getUniformLocation(program, 'u_rain_strength');
-        this.u_gridChunkSize    = gl.getUniformLocation(program, 'u_gridChunkSize');
-        this.u_gridChunkOffset  = gl.getUniformLocation(program, 'u_gridChunkOffset');
+        this.u_add_pos          = this.getUniformLocation('u_add_pos');
+        this.u_camera_pos       = this.getUniformLocation('u_camera_pos');
+        this.u_camera_posi      = this.getUniformLocation('u_camera_posi');
+        this.u_fogColor         = this.getUniformLocation('u_fogColor');
+        // this.u_fogDensity       = this.getUniformLocation('u_fogDensity');
+        this.u_fogAddColor      = this.getUniformLocation('u_fogAddColor');
+        this.u_fogOn            = this.getUniformLocation('u_fogOn');
+        this.u_crosshairOn      = this.getUniformLocation('u_crosshairOn');
+        this.u_blockSize        = this.getUniformLocation('u_blockSize');
+        this.u_pixelSize        = this.getUniformLocation('u_pixelSize');
+        this.u_resolution       = this.getUniformLocation('u_resolution');
+        this.u_eyeinwater       = this.getUniformLocation('u_eyeinwater');
+        this.u_SunDir           = this.getUniformLocation('u_SunDir');
+        this.u_mipmap           = this.getUniformLocation('u_mipmap');
+        this.u_chunkBlockDist   = this.getUniformLocation('u_chunkBlockDist');
+        this.u_brightness       = this.getUniformLocation('u_brightness');
+        this.u_localLightRadius = this.getUniformLocation('u_localLightRadius');
+        this.u_time             = this.getUniformLocation('u_time');
+        this.u_lightOverride    = this.getUniformLocation('u_lightOverride');
+        this.u_rain_strength    = this.getUniformLocation('u_rain_strength');
+        this.u_gridChunkSize    = this.getUniformLocation('u_gridChunkSize');
+        this.u_gridChunkOffset  = this.getUniformLocation('u_gridChunkOffset');
 
         this.locateUniforms();
 
         this.locateAttribs();
-        // this.u_chunkLocalPos    = gl.getUniformLocation(program, 'u_chunkLocalPos');
+        // this.u_chunkLocalPos    = this.getUniformLocation('u_chunkLocalPos');
 
         this.hasModelMatrix = false;
 
@@ -62,36 +54,35 @@ export class WebGLTerrainShader extends BaseTerrainShader {
     locateAttribs() {
         const { program } = this;
         const { gl } = this.context;
-        this.a_chunkId          = gl.getAttribLocation(program, 'a_chunkId');
-        this.a_position         = gl.getAttribLocation(program, 'a_position');
-        this.a_axisX            = gl.getAttribLocation(program, 'a_axisX');
-        this.a_axisY            = gl.getAttribLocation(program, 'a_axisY');
-        this.a_uvCenter         = gl.getAttribLocation(program, 'a_uvCenter');
-        this.a_uvSize           = gl.getAttribLocation(program, 'a_uvSize');
-        this.a_color            = gl.getAttribLocation(program, 'a_color');
-        this.a_flags            = gl.getAttribLocation(program, 'a_flags');
-        this.a_quad             = gl.getAttribLocation(program, 'a_quad');
+        this.a_chunkId          = this.getAttribLocation('a_chunkId');
+        this.a_position         = this.getAttribLocation('a_position');
+        this.a_axisX            = this.getAttribLocation('a_axisX');
+        this.a_axisY            = this.getAttribLocation('a_axisY');
+        this.a_uvCenter         = this.getAttribLocation('a_uvCenter');
+        this.a_uvSize           = this.getAttribLocation('a_uvSize');
+        this.a_color            = this.getAttribLocation('a_color');
+        this.a_flags            = this.getAttribLocation('a_flags' );
+        this.a_quad             = this.getAttribLocation('a_quad');
     }
 
     locateUniforms() {
         const { program } = this;
         const { gl } = this.context;
         // depends on material
-        this.u_texture          = gl.getUniformLocation(program, 'u_texture');
-        this.u_texture_n        = gl.getUniformLocation(program, 'u_texture_n');
-        this.u_lightTex         = gl.getUniformLocation(program, 'u_lightTex');
-        this.u_lightOffset      = gl.getUniformLocation(program, 'u_lightOffset');
-        this.u_opaqueThreshold  = gl.getUniformLocation(program, 'u_opaqueThreshold');
-        this.u_tintColor        = gl.getUniformLocation(program, 'u_tintColor');
-        this.u_chunkDataSampler = gl.getUniformLocation(program, 'u_chunkDataSampler');
-        this.u_gridChunkSampler = gl.getUniformLocation(program, 'u_gridChunkSampler');
-        this.u_blockDayLightSampler = gl.getUniformLocation(program, 'u_blockDayLightSampler');
-        this.u_maskColorSampler = gl.getUniformLocation(program, 'u_maskColorSampler');
-        this.u_useNormalMap     = gl.getUniformLocation(program, 'u_useNormalMap');
+        this.u_texture          = this.getUniformLocation('u_texture');
+        this.u_texture_n        = this.getUniformLocation('u_texture_n');
+        this.u_lightTex         = this.getUniformLocation('u_lightTex');
+        this.u_lightOffset      = this.getUniformLocation('u_lightOffset');
+        this.u_opaqueThreshold  = this.getUniformLocation('u_opaqueThreshold');
+        this.u_tintColor        = this.getUniformLocation('u_tintColor');
+        this.u_chunkDataSampler = this.getUniformLocation('u_chunkDataSampler');
+        this.u_gridChunkSampler = this.getUniformLocation('u_gridChunkSampler');
+        this.u_blockDayLightSampler = this.getUniformLocation('u_blockDayLightSampler');
+        this.u_maskColorSampler = this.getUniformLocation('u_maskColorSampler');
+        this.u_useNormalMap     = this.getUniformLocation('u_useNormalMap');
     }
 
     bind(force = false) {
-        const {gl} = this.context;
         const prevShader = this.context._shader;
         if (prevShader === this && !force)
         {
@@ -124,7 +115,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
             prevShader.unbind();
         }
         this.context._shader = this;
-        gl.useProgram(this.program);
+        this.context.pixiRender.shader.bind(this.defShader, true);
         this.update();
     }
 

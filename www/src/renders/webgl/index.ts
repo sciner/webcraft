@@ -448,7 +448,7 @@ export default class WebGLRenderer extends BaseRenderer {
         const shader = new VAUX.Shader(program);
         this.pixiRender.shader.bind(shader, true);
 
-        return program.glPrograms[this.pixiRender.CONTEXT_UID].program;
+        return program;
     }
 
     createTexture3D(options) {

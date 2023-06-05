@@ -234,8 +234,9 @@ export class WebGLUniversalShader extends BaseShader {
         /**
          * @type {WebGL2RenderingContext}
          */
-        const gl = this.context.gl;
-        const p = this.program;
+        const pr = this.context.pixiRender;
+        const gl = pr.gl;
+        const p = this.program.glPrograms[pr.CONTEXT_UID].program;
 
         const attrsCount = gl.getProgramParameter(p, gl.ACTIVE_ATTRIBUTES);
 
@@ -296,7 +297,6 @@ export class WebGLUniversalShader extends BaseShader {
     }
 
     bind(force = false) {
-        const gl = this.context.gl;
         const prevShader = this.context._shader;
 
         if (prevShader === this && !force)
@@ -311,7 +311,7 @@ export class WebGLUniversalShader extends BaseShader {
 
         this.context._shader = this;
 
-        gl.useProgram(this.program);
+        this.context.pixiRender.shader.bind(this.defShader, true);
 
         this._textureSlot = 0;
         this.update();

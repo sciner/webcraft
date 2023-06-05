@@ -33,10 +33,10 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         const { program } = this;
         const { gl } = this.context;
 
-        this.a_blockId       = gl.getAttribLocation(program, 'a_blockId');
-        this.a_fluidId       = gl.getAttribLocation(program, 'a_fluidId');
-        this.a_height        = gl.getAttribLocation(program, 'a_height');
-        this.a_color         = gl.getAttribLocation(program, 'a_color');
+        this.a_blockId       = this.getAttribLocation('a_blockId');
+        this.a_fluidId       = this.getAttribLocation('a_fluidId');
+        this.a_height        = this.getAttribLocation('a_height');
+        this.a_color         = this.getAttribLocation('a_color');
     }
 
     resetMatUniforms() {
@@ -46,17 +46,17 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         const { program } = this;
         const { gl } = this.context;
         // depends on material
-        this.u_texture          = gl.getUniformLocation(program, 'u_texture');
-        this.u_lightTex         = gl.getUniformLocation(program, 'u_lightTex');
-        this.u_lightOffset      = gl.getUniformLocation(program, 'u_lightOffset');
-        this.u_chunkDataSampler = gl.getUniformLocation(program, 'u_chunkDataSampler');
-        this.u_blockDayLightSampler = gl.getUniformLocation(program, 'u_blockDayLightSampler');
-        this.u_maskColorSampler = gl.getUniformLocation(program, 'u_maskColorSampler');
-        this.u_useNormalMap     = gl.getUniformLocation(program, 'u_useNormalMap');
+        this.u_texture          = this.getUniformLocation('u_texture');
+        this.u_lightTex         = this.getUniformLocation('u_lightTex');
+        this.u_lightOffset      = this.getUniformLocation('u_lightOffset');
+        this.u_chunkDataSampler = this.getUniformLocation('u_chunkDataSampler');
+        this.u_blockDayLightSampler = this.getUniformLocation('u_blockDayLightSampler');
+        this.u_maskColorSampler = this.getUniformLocation('u_maskColorSampler');
+        this.u_useNormalMap     = this.getUniformLocation('u_useNormalMap');
 
-        this.u_fluidFlags       = gl.getUniformLocation(program, 'u_fluidFlags');
-        this.u_fluidUV          = gl.getUniformLocation(program, 'u_fluidUV');
-        this.u_fluidFrames      = gl.getUniformLocation(program, 'u_fluidFrames');
+        this.u_fluidFlags       = this.getUniformLocation('u_fluidFlags');
+        this.u_fluidUV          = this.getUniformLocation('u_fluidUV');
+        this.u_fluidFrames      = this.getUniformLocation('u_fluidFrames');
     }
 
     setStaticUniforms() {

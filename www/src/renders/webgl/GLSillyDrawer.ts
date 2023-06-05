@@ -46,9 +46,13 @@ export class WebGLSillyShader extends BaseLineShader {
      * @param {*} options
      */
     constructor(context) {
-        super(context, {});
-
-        this.program = context.createProgram({vertex, fragment, tfVaryings: ["v_silly1", "v_silly2", "v_silly3", "v_silly4"]}, {});
+        super(context, {
+            code: {
+                vertex: vertex,
+                fragment: fragment,
+                tfVaryings: ["v_silly1", "v_silly2", "v_silly3", "v_silly4"]
+            },
+        });
         this.locateAttribs();
         this.globalID = -1;
     }
@@ -56,14 +60,13 @@ export class WebGLSillyShader extends BaseLineShader {
     locateAttribs() {
         const { program } = this;
         const { gl } = this.context;
-        this.a_silly1 = gl.getAttribLocation(program, 'a_silly1');
-        this.a_silly2 = gl.getAttribLocation(program, 'a_silly2');
-        this.a_silly3 = gl.getAttribLocation(program, 'a_silly3');
-        this.a_silly4 = gl.getAttribLocation(program, 'a_silly4');
+        this.a_silly1 = this.getAttribLocation('a_silly1');
+        this.a_silly2 = this.getAttribLocation('a_silly2');
+        this.a_silly3 = this.getAttribLocation('a_silly3');
+        this.a_silly4 = this.getAttribLocation('a_silly4');
     }
 
     bind(force = false) {
-        const {gl} = this.context;
         const prevShader = this.context._shader;
         if (prevShader === this && !force)
         {
@@ -73,7 +76,7 @@ export class WebGLSillyShader extends BaseLineShader {
             prevShader.unbind();
         }
         this.context._shader = this;
-        gl.useProgram(this.program);
+        this.context.pixiRender.shader.bind(this.defShader, true);
     }
 
     unbind() {
