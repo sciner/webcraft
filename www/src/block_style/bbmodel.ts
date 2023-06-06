@@ -421,7 +421,8 @@ export default class style {
             case 'billboard': {
                 if(tblock instanceof TBlock) {
                     if(tblock.extra_data.relindex == -1) {
-                        const group = model.getGroupByPath('default/display')
+                        // const group = model.getGroupByPath('default/display')
+                        const group = model.groups.get('display')
                         const cube = group?.children[0]
                         if(cube && cube instanceof BBModel_Cube) {
                             // create callback for cube
