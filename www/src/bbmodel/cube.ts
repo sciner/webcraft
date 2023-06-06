@@ -1,4 +1,4 @@
-import { default as default_style } from '../block_style/default.js';
+import { default as default_style, QuadPart } from '../block_style/default.js';
 import { BBModel_Child } from "./child.js";
 import { IndexedColor, QUAD_FLAGS, Vector } from "../helpers.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
@@ -18,6 +18,7 @@ export class BBModel_Cube extends BBModel_Child {
     flag: int = 0
     faces_palette: any;
     inflate: float = 0
+    callback: (callback : QuadPart) => void;
 
     constructor(model : BBModel_Model, json : any, size : Vector, translate : Vector) {
         super(model, json)
@@ -96,7 +97,7 @@ export class BBModel_Cube extends BBModel_Child {
             debugger
             throw 'error_bbcube_no_faces'
         }
-        default_style.pushPART(vertices, {
+        const part = {
             faces:      faces,
             size:       this.size,
             flag:       this.flag,
@@ -105,7 +106,13 @@ export class BBModel_Cube extends BBModel_Child {
             pos:        pos,
             inflate:    this.inflate,
             matrix:     worldMatrix
-        }, zeroVec);
+        }
+        const callback = this.callback
+        if(callback) {
+            this.callback = undefined
+            return callback(part)
+        }
+        default_style.pushPART(vertices, part, zeroVec);
     }
 
 }

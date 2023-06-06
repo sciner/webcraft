@@ -19,6 +19,7 @@ import type { World } from '../world.js';
 import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 import { BBModel_Cube } from '../bbmodel/cube.js';
 import { BBModel_Group } from '../bbmodel/group.js';
+import { default as default_style } from '../block_style/default.js';
 
 const { mat4, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
@@ -418,13 +419,33 @@ export default class style {
         // 2.
         switch(behavior) {
             case 'billboard': {
-                model.hideGroups(['display', 'eyes'])
                 if(tblock instanceof TBlock) {
                     if(tblock.extra_data.relindex == -1) {
-                        //     console.log(emmited_blocks)
-                        //     const bm = style.block_manager
-                        //     const verts = []
-                        //     emmited_blocks.push(new FakeVertices(bm.STONE.material_key, verts))
+                        const group = model.getGroupByPath('default/display')
+                        const cube = group?.children[0]
+                        if(cube && cube instanceof BBModel_Cube) {
+                            // create callback for cube
+                            cube.callback = (part) => {
+                                const verts = []
+                                const extra_data = tblock.extra_data ?? {}
+                                if(extra_data.texture?.uv) {
+                                    const {material_key, w, h, uv, tx_size} = extra_data.texture
+                                    part.faces.north.tx_size = tx_size
+                                    part.faces.north.uv = uv
+                                    default_style.pushPART(verts, part, Vector.ZERO)
+                                    emmited_blocks.push(new FakeVertices(material_key, verts))
+                                } else {
+                                    const item = tblock.convertToDBItem()
+                                    if(!globalThis.banner_count) globalThis.banner_count = 0
+                                    const url = `/media/demo/banner${globalThis.banner_count++%2+1}.png`
+                                    const pos = tblock.posworld
+                                    extra_data.texture = {url}
+                                    item.extra_data = extra_data
+                                    QubatchChunkWorker.postMessage(['create_bilboard_texture', {pos, item}])
+                                    // default_style.pushPART(vertices, part, Vector.ZERO)
+                                }
+                            }
+                        }
                     }
                 }
                 break
