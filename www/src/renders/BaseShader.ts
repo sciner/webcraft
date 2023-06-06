@@ -9,12 +9,14 @@ export class BaseShader {
 
     program: VAUX.Program;
     constructor(context, options) {
+        if (!options.uniforms) {
+            options = {...options, uniforms: {}}
+        }
         this.context = context;
         this.options = options;
         // context.createProgram({vertex, fragment,
-
         this.initProgram();
-        this.defShader = new VAUX.Shader(this.program, { globalUniforms: context.globalUniforms });
+        this.defShader = new VAUX.Shader(this.program, { globalUniforms: context.globalUniforms, ...options.uniforms });
         /**
          * @type {{vertex: string, fragment: string}}
          */

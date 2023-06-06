@@ -1,42 +1,43 @@
 import {BaseTerrainShader} from "../BaseShader.js";
 import { MIN_BRIGHTNESS } from "../../constant.js";
+import {UniformGroup} from "vauxcel";
+
+export const defaultTerrainStaticUniforms = {
+    u_texture: 4 as int,
+    u_texture_n: 5 as int,
+    u_chunkDataSampler: 3 as int,
+    u_gridChunkSampler: 6 as int,
+    u_lightTex: [7, 8] as int[],
+    u_maskColorSampler: 1 as int,
+    u_blockDayLightSampler: 2 as int,
+};
+
+export const terrainStatic = new UniformGroup<typeof defaultTerrainStaticUniforms>(defaultTerrainStaticUniforms);
 
 export class WebGLTerrainShader extends BaseTerrainShader {
     [key: string]: any;
+    terrainStatic = terrainStatic
     /**
      *
      * @param {WebGLRenderer} context
      * @param {*} options
      */
     constructor(context, options) {
+
+        if (!options.uniforms) {
+            options = {...options, uniforms: {}}
+        }
+        options.uniforms = {...options.uniforms, terrainStatic };
         super(context, options);
 
-        this.uProjMat           = this.getUniformLocation('u_projMatrix');
-        this.uModelMatrix       = this.getUniformLocation('u_viewMatrix');
         this.uModelMat          = this.getUniformLocation('uModelMatrix');
         this.uModelMatMode      = this.getUniformLocation('uModelMatrixMode');
 
         this.u_add_pos          = this.getUniformLocation('u_add_pos');
-        this.u_camera_pos       = this.getUniformLocation('u_camera_pos');
-        this.u_camera_posi      = this.getUniformLocation('u_camera_posi');
-        this.u_fogColor         = this.getUniformLocation('u_fogColor');
-        // this.u_fogDensity       = this.getUniformLocation('u_fogDensity');
-        this.u_fogAddColor      = this.getUniformLocation('u_fogAddColor');
-        this.u_fogOn            = this.getUniformLocation('u_fogOn');
-        this.u_crosshairOn      = this.getUniformLocation('u_crosshairOn');
         this.u_blockSize        = this.getUniformLocation('u_blockSize');
         this.u_pixelSize        = this.getUniformLocation('u_pixelSize');
-        this.u_resolution       = this.getUniformLocation('u_resolution');
-        this.u_eyeinwater       = this.getUniformLocation('u_eyeinwater');
-        this.u_SunDir           = this.getUniformLocation('u_sunDir');
         this.u_mipmap           = this.getUniformLocation('u_mipmap');
-        this.u_chunkBlockDist   = this.getUniformLocation('u_chunkBlockDist');
-        this.u_brightness       = this.getUniformLocation('u_brightness');
-        this.u_localLightRadius = this.getUniformLocation('u_localLightRadius');
-        this.u_time             = this.getUniformLocation('u_time');
         this.u_lightOverride    = this.getUniformLocation('u_lightOverride');
-        this.u_rain_strength    = this.getUniformLocation('u_rain_strength');
-        this.u_gridChunkSize    = this.getUniformLocation('u_gridChunkSize');
         this.u_gridChunkOffset  = this.getUniformLocation('u_gridChunkOffset');
 
         this.locateUniforms();
@@ -69,17 +70,9 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         const { program } = this;
         const { gl } = this.context;
         // depends on material
-        this.u_texture          = this.getUniformLocation('u_texture');
-        this.u_texture_n        = this.getUniformLocation('u_texture_n');
-        this.u_lightTex         = this.getUniformLocation('u_lightTex');
         this.u_lightOffset      = this.getUniformLocation('u_lightOffset');
         this.u_opaqueThreshold  = this.getUniformLocation('u_opaqueThreshold');
         this.u_tintColor        = this.getUniformLocation('u_tintColor');
-        this.u_chunkDataSampler = this.getUniformLocation('u_chunkDataSampler');
-        this.u_gridChunkSampler = this.getUniformLocation('u_gridChunkSampler');
-        this.u_blockDayLightSampler = this.getUniformLocation('u_blockDayLightSampler');
-        this.u_maskColorSampler = this.getUniformLocation('u_maskColorSampler');
-        this.u_useNormalMap     = this.getUniformLocation('u_useNormalMap');
     }
 
     bind(force = false) {
@@ -129,43 +122,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
     }
 
     updateGlobalUniforms() {
-        const { gl } = this.context;
-        const gu = this.globalUniforms;
-
-        gl.uniformMatrix4fv(this.uModelMatrix, false, gu.viewMatrix);
-        gl.uniformMatrix4fv(this.uProjMat, false, gu.projMatrix);
-        // gl.uniform1f(this.u_fogDensity, this.fogDensity);
-        gl.uniform4fv(this.u_fogColor, gu.fogColor);
-        gl.uniform4fv(this.u_fogAddColor, gu.fogAddColor);
-        gl.uniform1f(this.u_brightness, Math.max(gu.brightness, MIN_BRIGHTNESS));
-        gl.uniform1f(this.u_chunkBlockDist, gu.chunkBlockDist);
-        this.u_useNormalMap && gl.uniform1f(this.u_useNormalMap, gu.useNormalMap);
-
-        const cx = gu.camPos.x, cy = gu.camPos.y, cz = gu.camPos.z;
-        const px = Math.floor(cx), py = Math.floor(cy), pz = Math.floor(cz);
-        gl.uniform3f(this.u_camera_pos, cx - px, cz - pz, cy - py);
-        gl.uniform3i(this.u_camera_posi, px, pz, py);
-        this.u_gridChunkSize && gl.uniform3f(this.u_gridChunkSize, gu.gridChunkSize.x, gu.gridChunkSize.z, gu.gridChunkSize.y);
-        gl.uniform2fv(this.u_resolution, gu.resolution);
-        this.u_eyeinwater && gl.uniform1f(this.u_eyeinwater, gu.eyeinwater);
-        this.u_SunDir && gl.uniform4fv(this.u_SunDir, [...gu.sunDir, gu.useSunDir ? 1 : 0]);
-        gl.uniform1f(this.u_localLightRadius, gu.localLigthRadius);
-        // gl.uniform1f(this.u_opaqueThreshold, 0.0);
-        this.u_fogOn && gl.uniform1i(this.u_fogOn, true);
-        gl.uniform1f(this.u_crosshairOn, gu.crosshairOn);
-        gl.uniform1f(this.u_time, gu.time);
-        gl.uniform1f(this.u_rain_strength, gu.rainStrength);
-    }
-
-    setStaticUniforms() {
-        const { gl } = this.context;
-        gl.uniform1i(this.u_texture, 4);
-        gl.uniform1i(this.u_texture_n, 5);
-        gl.uniform1i(this.u_chunkDataSampler, 3);
-        this.u_gridChunkSampler && gl.uniform1i(this.u_gridChunkSampler, 6);
-        gl.uniform1iv(this.u_lightTex, [7, 8]);
-        gl.uniform1i(this.u_maskColorSampler, 1);
-        gl.uniform1i(this.u_blockDayLightSampler, 2);
     }
 
     resetMatUniforms() {
@@ -180,9 +136,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
     update() {
         const { gl } = this.context;
         const gu = this.globalUniforms;
-        if (this.globalID === -1) {
-            this.setStaticUniforms();
-        }
         const lu = this.lightUniforms;
         if (this._lightOverride !== lu.override) {
             let val = this._lightOverride = lu.override;
