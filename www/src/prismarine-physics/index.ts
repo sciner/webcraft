@@ -831,14 +831,33 @@ export class Physics {
     }
 
     /**
+     * @return координаты блоков, на которых реально стоит игрок (с учетом формы блоков).
+     * Нельзя вызывать из {@link simulatePlayer} (т.к. очищает пулы). Этот метод - только для внешнего АПИ).
+     */
+    getUnderLegs(entity: PrismarinePlayerState): Vector[] {
+        const result: Vector[] = []
+        this.blockAccessor.reset(entity.pos)
+        const queryBB = this.getPlayerBB(entity, entity.pos, this.tmpPlayerBB)
+        queryBB.y_max = queryBB.y_min -= 0.001 // получить только блоки, пересекающие узкий слой под ногами
+        const surroundingBBs = this.getSurroundingBBs(queryBB, 0)
+        for(const aabb of surroundingBBs) {
+            if (aabb.intersect(queryBB)) {
+                const pos = aabb.center.floored()
+                // если передыдущий AABB не относился к тому же блоку
+                if (result.length === 0 || !result[result.length - 1].equal(pos)) {
+                    result.push(pos)
+                }
+            }
+        }
+        return result
+    }
+
+    /**
      * @param repeated - true если это повтор симляции.
      */
     simulatePlayer(entity: PrismarinePlayerState, repeated = false): void {
-        const options = entity.options
-        const vel = entity.vel
-        const pos = entity.pos
-        const control = entity.control
-        const acc = this.blockAccessor.reset(entity.pos)
+        const {vel, pos, control, options} = entity
+        const acc = this.blockAccessor.reset(pos)
 
         this.repeated = repeated
 

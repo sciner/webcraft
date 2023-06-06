@@ -1,15 +1,17 @@
 import { Effect } from "@client/block_type/effect.js";
-import { BLOCK } from "@client/blocks.js";
 import { Vector } from "@client/helpers.js";
 import { FLUID_TYPE_MASK, FLUID_LAVA_ID, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import type { ServerPlayer } from "../server_player.js";
 import { PLAYER_BURNING_TIME, PLAYER_STATUS } from "@client/constant.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
+import {TBlock} from "@client/typed_blocks3.js";
+import {WorldAction} from "@client/world_action.js";
+import {BLOCK_ACTION} from "@client/server_client.js";
 
 const MUL_1_SEC = 20
 const INSTANT_DAMAGE_TICKS = 10
 const INSTANT_HEALTH_TICKS = 10
-const LIVE_REGENERATIN_TICKS = 50
+const LIVE_REGENERATION_TICKS = 50
 const FIRE_LOST_TICKS = 10
 const FIRE_TIME = PLAYER_BURNING_TIME * MUL_1_SEC - 5
 const OXYGEN_LOST_TICKS = 10
@@ -20,6 +22,11 @@ const FOOD_LOST_TICKS = 80
 const PLANTING_LOST_TICKS = 10
 const PLANTING_PADDING_DAMAGE = 0.3
 const MAX_UNDAMAGED_HEIGHT = 3
+const LILY_PAD_BREAK_HEIGHT = 1.5 // падение с этой высоты разрушает кувшинку и защищает от урона. Должно быть <= MAX_UNDAMAGED_HEIGHT
+
+const tmpBlockLegs = new TBlock()
+const tmpBlockHead = new TBlock()
+const blockCache = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
 
 export class ServerPlayerDamage {
     player: ServerPlayer;
@@ -38,28 +45,38 @@ export class ServerPlayerDamage {
     damage: number = 0
     type_damage : EnumDamage
     actor: any
-    #ground = true
-    #last_height = null
+    #ground = true              // находились ли мы на земле в прошлый раз
+    #last_height = -Infinity    // высота, с которой отсчитывается нанесение урона при падении
     #timer_fire: number = 0
+    #protectFallDamage = 0      // если > 0 - защищает от урона при падении. Уменьшается в безопасном месте.
 
     constructor(player : ServerPlayer) {
         this.player = player;
     }
 
-    /*
-    * Метод подсчитывает колличество урона
-    *
-    */
-    getDamage(tick) {
+    /** Устанавливает флаг - однократно защитиь игрока от урона при падении. */
+    protectFallDamage() {
+        // 2 - чтобы обработаь ситуацияю после телепорта (флаг снимется если 2 раза подряд не на земле)
+        this.#protectFallDamage = 2
+    }
+
+    /**
+     * Метод подсчитывает колличество урона и применяет его.
+     */
+    getDamage(tick: int): void {
         const player = this.player
         const world = player.world
-        const position = player.state.pos.floored()
+        const legsPos = player.state.pos.floored()
         const eyePos = player.getEyePos()
-        const head = world.getBlock(eyePos.floored())
-        const legs = world.getBlock(position)
-        if (!head || !legs || head.id < 0 || legs.id < 0) {
+        const head = world.getBlock(eyePos.floored(), tmpBlockHead)
+        const legs = world.getBlock(legsPos, tmpBlockLegs)
+        const legsId = legs.id  // добсуп к id медленный, лучше 1 раз запомнить в переменной
+        if (head.id < 0 || legsId < 0) {
             return;
         }
+        const legsFluid = legs.fluid
+        const legsNeighbours = legs.getNeighbours(player.world, blockCache)
+        const bm = world.block_manager
         const effects = player.effects
         const ind_def = world.defaultPlayerIndicators
         let max_live = ind_def.live
@@ -69,31 +86,53 @@ export class ServerPlayerDamage {
         max_live += 2 * health_boost_lvl;
 
         let damage = this.damage
-        
-        // Урон от падения 
-        const ground = player.controlManager.prismarine.player_state.onGround
-        const is_ladder = player.controlManager.prismarine.player_state.isOnLadder
-        const is_flaying = player.controlManager.prismarine.player_state.flying
-        if (is_ladder || is_flaying || player.in_portal || this.#ground) {
-            this.#last_height = position.y
-        }
-        if (!this.#ground) {
-            const block = world.getBlock(position)
-            if (block.id == 0 && (block.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
-                this.#last_height = position.y
-            }
-            if (ground) {
-                const height = (position.y - this.#last_height) / player.scale
-                if(height < 0) {
-                    const power = -height - MAX_UNDAMAGED_HEIGHT - player.effects.getEffectLevel(Effect.JUMP_BOOST)
-                    if (power > 0) {
-                        damage += power
+
+        // Урон от падения
+        const {onGround, isOnLadder, flying} = player.controlManager.prismarine.player_state
+        // если до этого был на земле, или сейчас в месте из/в/через которое безопасно падать
+        if (this.#ground || isOnLadder || flying || player.in_portal || (legsFluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
+            this.#last_height = legsPos.y
+            this.#protectFallDamage--
+        } else if (onGround) { // если только что приземлился
+            let height = (this.#last_height - legsPos.y) / player.scale
+            if (height >= LILY_PAD_BREAK_HEIGHT) {
+                // найти блоки кувшинок. Проверяем реальную форму через физику, т.к. игрок мог упасть на более высокое препятсвие рядом
+                const underLegs = world.physics.getUnderLegs(player.controlManager.prismarine.player_state)
+                let action: WorldAction | null = null
+                for(const blockPos of underLegs) {
+                    const mat = world.getMaterial(blockPos)
+                    if (mat === bm.LILY_PAD) {
+                        action = action ?? new WorldAction()
+                        action.addBlock({
+                            pos: blockPos,
+                            item: { id: 0 },
+                            destroy_block: {id: mat.id},
+                            action_id: BLOCK_ACTION.DESTROY
+                        })
+                        action.addDropItem({
+                            pos: blockPos,
+                            items: [{id: mat.id}],
+                            force: true
+                        })
                     }
                 }
-                this.#last_height = position.y
+                if (action) {
+                    height = 0
+                    world.actions_queue.add(player, action)
+                }
             }
+            const power = height - MAX_UNDAMAGED_HEIGHT - player.effects.getEffectLevel(Effect.JUMP_BOOST)
+            if (power > 0 && this.#protectFallDamage <= 0) {
+                damage += power
+            }
+            this.#last_height = legsPos.y
+            this.#protectFallDamage = 0
+        } else {
+            // Падаем. Но возможно в прыжке, и высота все еще нарастает.
+            // Не уменьшать высоту, но можно увеличить - чтобы запомнить верхню точку траектории.
+            this.#last_height = Math.max(this.#last_height, legsPos.y)
         }
-        this.#ground = ground
+        this.#ground = onGround
 
         // Урон от голода
         if (this.food_exhaustion_level > 4) {
@@ -149,8 +188,8 @@ export class ServerPlayerDamage {
             }
         }
         // огонь/лава с эффектом защиты от огня
-        const is_lava = (legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
-        if (legs.id == BLOCK.FIRE.id || legs.id == BLOCK.CAMPFIRE.id || is_lava) {
+        const is_lava = (legsId == 0 && (legsFluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
+        if (legsId == bm.FIRE.id || legsId == bm.CAMPFIRE.id || is_lava) {
             this.fire_lost_timer++;
             if (this.fire_lost_timer >= FIRE_LOST_TICKS) {
                 this.fire_lost_timer = 0;
@@ -164,7 +203,7 @@ export class ServerPlayerDamage {
             this.fire_lost_timer = FIRE_LOST_TICKS
             // горение
             const fire_res_lvl = effects.getEffectLevel(Effect.FIRE_RESISTANCE)
-            if (legs.isWater || head.isWater || fire_res_lvl > 0) {
+            if ((legsFluid & FLUID_TYPE_MASK) === FLUID_WATER_ID || head.isWater || fire_res_lvl > 0) {
                 this.#timer_fire = 0
             }
             if (this.#timer_fire > 0) {
@@ -175,13 +214,13 @@ export class ServerPlayerDamage {
             }
         }
 
-        
+
 
         // отравление
         const poison_lvl = effects.getEffectLevel(Effect.POISON);
         if (poison_lvl > 0) {
             this.poison_timer++;
-            if (this.poison_timer >= (POISON_TICKS / (2**(poison_lvl - 1)))) {
+            if (this.poison_timer >= (POISON_TICKS / (1 << (poison_lvl - 1)))) {
                 this.poison_timer = 0;
                 if (player.live_level > 1) {
                     damage++;
@@ -194,7 +233,7 @@ export class ServerPlayerDamage {
         const wither_lvl = effects.getEffectLevel(Effect.WITHER);
         if (wither_lvl > 0) {
             this.wither_timer++;
-            if (this.wither_timer >= (WITHER_TICKS / (2**(wither_lvl - 1)))) {
+            if (this.wither_timer >= (WITHER_TICKS / (1 << (wither_lvl - 1)))) {
                 this.wither_timer = 0;
                 damage++;
             }
@@ -202,26 +241,20 @@ export class ServerPlayerDamage {
             this.wither_timer = 0;
         }
         // урон от растений
-        const isDamagePlanting = (block) => {
-            if (!block) {
-                return false;
-            }
-            if (block.id == BLOCK.CACTUS.id) {
-                return true;
-            }
-            if (block.id == BLOCK.SWEET_BERRY_BUSH.id && block?.extra_data?.stage == 3) {
-                return true;
-            }
-            return false;
+        const isDamagePlanting = (block: TBlock) => {
+            const id = block?.id
+            return id === bm.CACTUS.id ||
+                id === bm.SWEET_BERRY_BUSH.id && block.extra_data?.stage == 3
         }
-        const east = world.getBlock(position.add(Vector.XN));
-        const west = world.getBlock(position.add(Vector.XP));
-        const north = world.getBlock(position.add(Vector.ZP));
-        const south = world.getBlock(position.add(Vector.ZN));
-        const down = world.getBlock(position.add(Vector.YN));
-        const inside = world.getBlock(position);
-        const sub = player.state.pos.sub(position);
-        if ((isDamagePlanting(inside)) || (isDamagePlanting(down)) || (isDamagePlanting(east) && sub.x < PLANTING_PADDING_DAMAGE) || (isDamagePlanting(west) && sub.x > 1.0 - PLANTING_PADDING_DAMAGE) || (isDamagePlanting(south) && sub.z < PLANTING_PADDING_DAMAGE) || (isDamagePlanting(north) && sub.z > 1 - PLANTING_PADDING_DAMAGE)) {
+        const sub = player.state.pos.sub(legsPos);
+        if (isDamagePlanting(legs) ||
+            isDamagePlanting(legsNeighbours.DOWN) ||
+            isDamagePlanting(legsNeighbours.UP) ||
+            isDamagePlanting(legsNeighbours.WEST) && sub.x < PLANTING_PADDING_DAMAGE ||
+            isDamagePlanting(legsNeighbours.EAST) && sub.x > 1.0 - PLANTING_PADDING_DAMAGE ||
+            isDamagePlanting(legsNeighbours.SOUTH) && sub.z < PLANTING_PADDING_DAMAGE ||
+            isDamagePlanting(legsNeighbours.NORTH) && sub.z > 1 - PLANTING_PADDING_DAMAGE
+        ) {
             this.planting_lost_timer++;
             if (this.planting_lost_timer >= PLANTING_LOST_TICKS) {
                 this.planting_lost_timer = 0;
@@ -236,7 +269,7 @@ export class ServerPlayerDamage {
             this.instant_damage_timer++;
             if (this.instant_damage_timer >= INSTANT_DAMAGE_TICKS) {
                 this.instant_damage_timer = 0;
-                damage += 3 * (2**(instant_damage_lvl - 1));
+                damage += 3 * (1 << (instant_damage_lvl - 1));
             }
         } else {
             this.instant_damage_timer = INSTANT_DAMAGE_TICKS;
@@ -247,7 +280,7 @@ export class ServerPlayerDamage {
             this.instant_health_timer++;
             if (this.instant_health_timer >= INSTANT_HEALTH_TICKS) {
                 this.instant_health_timer = 0;
-                player.live_level = Math.min(player.live_level + 2**instant_health_lvl, max_live);
+                player.live_level = Math.min(player.live_level + (1 << instant_health_lvl), max_live);
             }
         } else {
             this.instant_health_timer = INSTANT_HEALTH_TICKS;
@@ -256,7 +289,7 @@ export class ServerPlayerDamage {
         const reg_lvl = effects.getEffectLevel(Effect.REGENERATION);
         if (reg_lvl > 0) {
             this.live_regen_timer++;
-            if (this.live_regen_timer >= (LIVE_REGENERATIN_TICKS / (2**(reg_lvl - 1)))) {
+            if (this.live_regen_timer >= (LIVE_REGENERATION_TICKS / (1 << (reg_lvl - 1)))) {
                 this.live_regen_timer = 0;
                 player.live_level = Math.min(player.live_level + 1, max_live);
             }
@@ -328,6 +361,6 @@ export class ServerPlayerDamage {
         player.live_level   = ind_def.live;
         player.food_level   = ind_def.food;
         player.oxygen_level = ind_def.oxygen;
-        this.#last_height = -100000
+        this.#last_height = -Infinity
     }
 }

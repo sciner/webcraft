@@ -44,7 +44,7 @@ declare type PlaySoundParams = {
 type DropItemParams = {
     pos     : Vector
     items   : IBlockItem[]
-    force ? : boolean
+    force ? : boolean   // если true, то создается даже не в survival mode
 }
 
 export type ActivateMobParams = {

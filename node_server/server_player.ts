@@ -756,6 +756,7 @@ export class ServerPlayer extends Player {
 
         if(this.status !== PLAYER_STATUS.ALIVE || !this.game_mode.mayGetDamaged()) {
             this.#timer_immunity = performance.now()
+            this.damage.protectFallDamage()
             return false
         }
 
@@ -932,6 +933,7 @@ export class ServerPlayer extends Player {
                 );
                 teleported_player.setPosition(new_pos);
                 teleported_player.vision.checkSpiralChunks();
+                teleported_player.damage.protectFallDamage()
             }
         }
     }
