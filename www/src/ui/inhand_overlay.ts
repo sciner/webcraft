@@ -228,7 +228,7 @@ export class InHandOverlay {
                 | (Math.max(lightOverride & 0x00ff, inHandLight & 0xff))
                 | 0x10000;
         }
-        lightUniforms.pushOverride(lightOverride);
+        lightUniforms.pushIfNull(lightOverride);
 
         globalUniforms.update();
 

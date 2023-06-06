@@ -27,7 +27,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         if (!options.uniforms) {
             options = {...options, uniforms: {}}
         }
-        options.uniforms = {...options.uniforms, terrainStatic };
+        options.uniforms = {...options.uniforms, terrainStatic, lightStatic: context.lightUniforms };
         super(context, options);
 
         this.uModelMat          = this.getUniformLocation('uModelMatrix');
@@ -37,7 +37,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_blockSize        = this.getUniformLocation('u_blockSize');
         this.u_pixelSize        = this.getUniformLocation('u_pixelSize');
         this.u_mipmap           = this.getUniformLocation('u_mipmap');
-        this.u_lightOverride    = this.getUniformLocation('u_lightOverride');
         this.u_gridChunkOffset  = this.getUniformLocation('u_gridChunkOffset');
 
         this.locateUniforms();
@@ -48,13 +47,10 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.hasModelMatrix = false;
 
         this._material = null;
-        this._lightOverride = -2;
         this.globalID = -1;
     }
 
     locateAttribs() {
-        const { program } = this;
-        const { gl } = this.context;
         this.a_chunkId          = this.getAttribLocation('a_chunkId');
         this.a_position         = this.getAttribLocation('a_position');
         this.a_axisX            = this.getAttribLocation('a_axisX');
@@ -67,10 +63,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
     }
 
     locateUniforms() {
-        const { program } = this;
-        const { gl } = this.context;
         // depends on material
-        this.u_lightOffset      = this.getUniformLocation('u_lightOffset');
         this.u_opaqueThreshold  = this.getUniformLocation('u_opaqueThreshold');
         this.u_tintColor        = this.getUniformLocation('u_tintColor');
     }
@@ -137,14 +130,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         const { gl } = this.context;
         const gu = this.globalUniforms;
         const lu = this.lightUniforms;
-        if (this._lightOverride !== lu.override) {
-            let val = this._lightOverride = lu.override;
-            if (val >= 0) {
-                gl.uniform3f(this.u_lightOverride, ((val & 0xff) / 255.0), (((val >> 8) & 0xff) / 255.0),  1.0 + (val >> 16));
-            } else {
-                gl.uniform3f(this.u_lightOverride, 0.0, 0.0, 0.0);
-            }
-        }
         if (this.globalID === gu.updateID) {
             return;
         }
