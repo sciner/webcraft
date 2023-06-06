@@ -2,6 +2,8 @@ import {CubeSym} from "../core/CubeSym.js";
 import {Mth} from "./mth.js";
 import { DIRECTION } from "./helper_const.js";
 
+const RELINDEX_MARGIN = 32
+
 export class Vector implements IVector {
     // static cnt = 0;
     // static traces = new Map();
@@ -712,7 +714,7 @@ export class Vector4 {
 }
 
 export function relPosToIndex(x : int, y : int, z : int) : int {
-    const mg : int = 32
+    const mg : int = RELINDEX_MARGIN
     const sz : int = mg * 2 + 1
     x += mg
     z += mg
@@ -720,7 +722,7 @@ export function relPosToIndex(x : int, y : int, z : int) : int {
 }
 
 export function relIndexToPos(index : int, out : Vector) : Vector {
-    const mg : int = 32
+    const mg : int = RELINDEX_MARGIN
     const sz : int = mg * 2 + 1
     out.x = index % sz
     out.y = index / (sz * sz) | 0

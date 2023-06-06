@@ -18,7 +18,7 @@ export class BBModel_Cube extends BBModel_Child {
     flag: int = 0
     faces_palette: any;
     inflate: float = 0
-    callback: (callback : QuadPart) => void;
+    callback: (callback : QuadPart) => boolean
 
     constructor(model : BBModel_Model, json : any, size : Vector, translate : Vector) {
         super(model, json)
@@ -110,7 +110,9 @@ export class BBModel_Cube extends BBModel_Child {
         const callback = this.callback
         if(callback) {
             this.callback = undefined
-            return callback(part)
+            if(callback(part)) {
+                return
+            }
         }
         default_style.pushPART(vertices, part, zeroVec);
     }

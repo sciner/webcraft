@@ -425,25 +425,27 @@ export default class style {
                         const cube = group?.children[0]
                         if(cube && cube instanceof BBModel_Cube) {
                             // create callback for cube
-                            cube.callback = (part) => {
-                                const verts = []
+                            cube.callback = (part) : boolean => {
                                 const extra_data = tblock.extra_data ?? {}
                                 if(extra_data.texture?.uv) {
-                                    const {material_key, w, h, uv, tx_size} = extra_data.texture
-                                    part.faces.north.tx_size = tx_size
-                                    part.faces.north.uv = uv
+                                    const verts = []
+                                    const {material_key, uv, tx_size} = extra_data.texture
+                                    for(const fk in part.faces) {
+                                        const face = part.faces[fk]
+                                        face.tx_size = tx_size
+                                        face.uv = [...uv]
+                                    }
                                     default_style.pushPART(verts, part, Vector.ZERO)
                                     emmited_blocks.push(new FakeVertices(material_key, verts))
-                                } else {
-                                    const item = tblock.convertToDBItem()
-                                    if(!globalThis.banner_count) globalThis.banner_count = 0
-                                    const url = `/media/demo/banner${globalThis.banner_count++%2+1}.png`
-                                    const pos = tblock.posworld
-                                    extra_data.texture = {url}
-                                    item.extra_data = extra_data
-                                    QubatchChunkWorker.postMessage(['create_bilboard_texture', {pos, item}])
-                                    // default_style.pushPART(vertices, part, Vector.ZERO)
+                                    return true
                                 }
+                                const item = tblock.convertToDBItem()
+                                const url = `/media/demo/banner${Math.abs((tblock.posworld.x + tblock.posworld.y + tblock.posworld.z) % 3) + 1}.png`
+                                const pos = tblock.posworld
+                                extra_data.texture = {url}
+                                item.extra_data = extra_data
+                                QubatchChunkWorker.postMessage(['create_bilboard_texture', {pos, item}])
+                                return false
                             }
                         }
                     }
