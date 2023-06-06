@@ -100,19 +100,6 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
                 this.mesh_group.addBlock(Vector.XP, new FakeTBlock(block.id))
             }
 
-            // 3. Add all block parts
-            if(!('inventory' in this.block_material)) {
-                let pos = new Vector(0, 0, 0)
-                let next_part = this.block.material.next_part
-                while(next_part) {
-                    const next = new FakeTBlock(next_part.id)
-                    pos = pos.add(next_part.offset_pos)
-                    this.mesh_group.addBlock(pos, next)
-                    next_part = next.material.next_part
-                    this.mesh_group.multipart = true
-                }
-            }
-
             // 4. Finalize mesh group (recalculate aabb and find blocks neighbours)
             this.mesh_group.finalize()
 

@@ -727,7 +727,7 @@ export class ChunkManager {
         let all_blocks = BLOCK.getAll();
         const set_block_list = [];
         for(let mat of all_blocks) {
-            if(mat.deprecated || !mat.spawnable || mat.item || mat.is_fluid || mat.next_part || mat.previous_part || ['extruder', 'text'].includes(mat.style_name)) {
+            if(mat.deprecated || !mat.spawnable || mat.item || mat.is_fluid || mat.previous_part || ['extruder', 'text'].includes(mat.style_name)) {
                 if(mat.name != 'BEDROCK') {
                     continue;
                 }

@@ -713,9 +713,10 @@ export class Vector4 {
     }
 }
 
-export function relPosToIndex(x : int, y : int, z : int) : int {
+export function relPosToIndex(vec : Vector) : int {
     const mg : int = RELINDEX_MARGIN
     const sz : int = mg * 2 + 1
+    let {x, y, z} = vec
     x += mg
     z += mg
     return sz * (sz * y + z) + x

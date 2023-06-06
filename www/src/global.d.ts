@@ -273,16 +273,6 @@ interface IBlockMaterial {
     power: number
     can_auto_drop: boolean
     is_dummy: boolean
-    /**
-     * @deprecated
-     */
-    next_part: {
-        id: int
-        offset_pos: IVector
-    }
-    /**
-     * @deprecated
-     */
     previous_part: {
         id: int
         offset_pos: IVector

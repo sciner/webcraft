@@ -549,11 +549,11 @@ export class BLOCK {
         const is_door = block.tags.includes('door');
         const is_slab = block.is_layering && block.layering.slab;
         //
-        let extra_data = null;
-        const setExtra = (k, v) => {
-            extra_data = extra_data || {};
-            extra_data[k] = v;
-        };
+        let extra_data = null
+        const setExtra = (k : string, v : any) => {
+            extra_data = extra_data || {}
+            extra_data[k] = v
+        }
         //
         if(orientation.y == 1 && pos.point) {
             pos.point.y = 0;

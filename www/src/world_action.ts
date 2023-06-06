@@ -484,7 +484,7 @@ class DestroyBlocks {
                 }
             }
         }
-        //
+        // mega block
         if(tblock.material.megablock) {
             const destroyer = this
             function destroyMegaBlock() : void {
@@ -495,7 +495,7 @@ class DestroyBlocks {
                 const shift = new Vector(0, 0, 0)
                 const relindex = tblock.extra_data.relindex
                 if(relindex == -1) {
-                    relIndexToPos(relPosToIndex(0, 0, 0), shift)
+                    relIndexToPos(relPosToIndex(Vector.ZERO), shift)
                 } else {
                     relIndexToPos(relindex, shift)
                 }
@@ -512,15 +512,13 @@ class DestroyBlocks {
             destroyMegaBlock()
         }
         // Destroy connected blocks
-        for(let cn of ['next_part', 'previous_part']) {
-            let part = tblock.material[cn];
-            if(part) {
-                const connected_pos = tblock.posworld.add(part.offset_pos);
-                if(!cv.has(connected_pos)) {
-                    let block_connected = world.getBlock(connected_pos);
-                    if(block_connected.id == part.id) {
-                        this.add(block_connected, pos);
-                    }
+        const part = tblock.material.previous_part
+        if(part) {
+            const connected_pos = tblock.posworld.add(part.offset_pos);
+            if(!cv.has(connected_pos)) {
+                let block_connected = world.getBlock(connected_pos);
+                if(block_connected.id == part.id) {
+                    this.add(block_connected, pos);
                 }
             }
         }
@@ -990,7 +988,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
     // set radius for onBlockSet method
     actions.blocks.options.on_block_set_radius = 2;
 
-    let pos                 = e.pos;
+    let pos                 = e.pos
     let world_block         = world.getBlock(pos);
     if (!world_block || world_block.id < 0) { // if it's a DUMMY, the chunk is not loaded
         return [null, null];
@@ -1144,7 +1142,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
 
             // Check if replace
             if(replaceBlock) {
-                if(world_material.previous_part || world_material.next_part || current_inventory_item.style_name == 'ladder') {
+                if(world_material.previous_part || current_inventory_item.style_name == 'ladder') {
                     return [actions, pos];
                 }
                 pos.n.x = 0;
@@ -1362,37 +1360,35 @@ function calcBlockOrientation(mat_block, rotate, n) {
 };
 
 // Set action block
-function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
-    const pushed_blocks = [];
-    const pushed_poses = new VectorCollector();
+function setActionBlock(actions, world, pos, orientation, mat_block, new_item) : boolean {
+    if(mat_block.megablock) {
+        if (!Qubatch.is_server) {
+            return false
+        }
+    }
+    const pushed_blocks = []
+    const pushed_poses = new VectorCollector()
+    //
+    const optimizePushedItem = (item) => {
+        if('extra_data' in item && !item.extra_data) {
+            delete(item.extra_data);
+        }
+        if('rotate' in item) {
+            const block = BLOCK.fromId(item.id);
+            if(!block.can_rotate) {
+                delete(item.rotate);
+            }
+        }
+    }
+    //
     const pushBlock = (params) => {
         if(pushed_poses.has(params.pos)) {
-            return false;
+            return false
         }
-        const optimizePushedItem = (item) => {
-            if('extra_data' in item && !item.extra_data) {
-                delete(item.extra_data);
-            }
-            if('rotate' in item) {
-                const block = BLOCK.fromId(item.id);
-                if(!block.can_rotate) {
-                    delete(item.rotate);
-                }
-            }
-        };
-        optimizePushedItem(params.item);
-        pushed_blocks.push(params);
-        pushed_poses.set(params.pos, true);
-        const block = BLOCK.fromId(params.item.id);
-        if(block.next_part) {
-            // Если этот блок имеет "пару"
-            const next_params = JSON.parse(JSON.stringify(params));
-            next_params.item.id = block.next_part.id;
-            optimizePushedItem(next_params.item);
-            next_params.pos = new Vector(next_params.pos).add(block.next_part.offset_pos);
-            pushBlock(next_params);
-        }
-    };
+        optimizePushedItem(params.item)
+        pushed_blocks.push(params)
+        pushed_poses.set(params.pos, true)
+    }
     //
     pushBlock({pos: new Vector(pos), item: new_item, action_id: BLOCK_ACTION.CREATE});
     // Установить головной блок, если устанавливаемый блок двух-блочный
@@ -1412,25 +1408,21 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
     }
     //
     if(mat_block.megablock) {
-        function makeBody() : void {
-            const bd = mat_block.megablock
-            const {x, y, z, w, h, d} = bd
+        function makeMegaBlock() : void {
+            const {x, y, z, w, h, d} = mat_block.megablock
             const move = new Vector(0, 0, 0)
             for(move.x = x; move.x < x + w; move.x++) {
                 for(move.y = y; move.y < y + h; move.y++) {
                     for(move.z = z; move.z < z + d; move.z++) {
-                        const new_rotate = orientation.clone()
-                        const relindex = relPosToIndex(move.x, move.y, move.z)
-                        const next_block = {
+                        pushBlock({
                             pos: pos.clone().addByCardinalDirectionSelf(move, orientation.x + 2),
                             item: {
                                 id:         mat_block.id,
-                                rotate:     new_rotate,
-                                extra_data: {...new_item.extra_data, relindex}
+                                rotate:     orientation.clone(),
+                                extra_data: {relindex: relPosToIndex(move)}
                             },
                             action_id: BLOCK_ACTION.CREATE
-                        };
-                        pushBlock(next_block)
+                        })
                     }
                 }
             }
@@ -1439,7 +1431,7 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
             }
             new_item.extra_data.relindex = -1
         }
-        makeBody()
+        makeMegaBlock()
     }
     // Проверяем, что все блоки можем установить
     for(let pb of pushed_blocks) {
