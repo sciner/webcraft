@@ -427,24 +427,24 @@ export default class style {
                             // create callback for cube
                             cube.callback = (part) : boolean => {
                                 const extra_data = tblock.extra_data ?? {}
-                                if(extra_data.texture?.uv) {
-                                    const verts = []
-                                    const {material_key, uv, tx_size} = extra_data.texture
-                                    for(const fk in part.faces) {
-                                        const face = part.faces[fk]
-                                        face.tx_size = tx_size
-                                        face.uv = [...uv]
+                                if(extra_data.texture?.url) {
+                                    if(extra_data.texture?.uv) {
+                                        const verts = []
+                                        const {material_key, uv, tx_size} = extra_data.texture
+                                        for(const fk in part.faces) {
+                                            const face = part.faces[fk]
+                                            face.tx_size = tx_size
+                                            face.uv = [...uv]
+                                        }
+                                        default_style.pushPART(verts, part, Vector.ZERO)
+                                        emmited_blocks.push(new FakeVertices(material_key, verts))
+                                        return true
                                     }
-                                    default_style.pushPART(verts, part, Vector.ZERO)
-                                    emmited_blocks.push(new FakeVertices(material_key, verts))
-                                    return true
+                                    const item = tblock.convertToDBItem()
+                                    const pos = tblock.posworld
+                                    item.extra_data = extra_data
+                                    QubatchChunkWorker.postMessage(['create_bilboard_texture', {pos, item}])
                                 }
-                                const item = tblock.convertToDBItem()
-                                const url = `/media/demo/banner${Math.abs((tblock.posworld.x + tblock.posworld.y + tblock.posworld.z) % 3) + 1}.png`
-                                const pos = tblock.posworld
-                                extra_data.texture = {url}
-                                item.extra_data = extra_data
-                                QubatchChunkWorker.postMessage(['create_bilboard_texture', {pos, item}])
                                 return false
                             }
                         }
