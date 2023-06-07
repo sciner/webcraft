@@ -1,4 +1,4 @@
-import type BaseRenderer from "../renders/BaseRenderer.js";
+import type { BaseRenderer } from "../renders/BaseRenderer.js";
 import type {BaseBuffer} from "../renders/BaseRenderer.js";
 import GeometryTerrain from "../geometry_terrain.js";
 

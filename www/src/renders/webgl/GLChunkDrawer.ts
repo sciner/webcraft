@@ -44,17 +44,17 @@ export class GLChunkDrawer extends ChunkDrawer {
                 this.flush();
                 this.curVao = vao;
                 this.curMat = material;
+                material.shader.updatePos(null, null);
                 material.bind();
                 this.curVao.bind(material.shader);
-                material.shader.updatePos(null, null);
             }
             this.elements[this.count++] = geom;
         } else {
             this.flush();
+            material.shader.updatePos(chunk.coord, null);
             material.bind();
             geom.bind(material.shader);
             //TODO: find why some chunks are using chunkID = -1, remove this line
-            material.shader.updatePos(chunk.coord, null);
             gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, geom.size);
             // stat
             context.stat.drawquads += geom.size;

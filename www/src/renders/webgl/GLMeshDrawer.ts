@@ -18,9 +18,9 @@ export class GLMeshDrawer extends ObjectDrawer {
                 break;
             }
         }
+        material.shader.updatePos(a_pos, modelMatrix);
         material.bind();
         geom.bind(material.shader);
-        material.shader.updatePos(a_pos, modelMatrix);
         gl.drawArraysInstanced(draw_type, 0, 6, geom.size);
         // stat
         context.stat.drawquads += geom.size;

@@ -1,6 +1,10 @@
 import {BaseTerrainShader} from "../BaseShader.js";
-import { MIN_BRIGHTNESS } from "../../constant.js";
 import {UniformGroup} from "vauxcel";
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
+import type {BaseTexture} from "../BaseRenderer.js";
+import type {Vector} from "../../helpers/vector.js";
+const {mat4, vec3} = glMatrix;
+
 
 export const defaultTerrainStaticUniforms = {
     u_texture: 4 as int,
@@ -12,11 +16,18 @@ export const defaultTerrainStaticUniforms = {
     u_blockDayLightSampler: 2 as int,
 };
 
-export const terrainStatic = new UniformGroup<typeof defaultTerrainStaticUniforms>(defaultTerrainStaticUniforms);
+export const terrainStatic = new UniformGroup<typeof defaultTerrainStaticUniforms>(defaultTerrainStaticUniforms, true);
 
 export class WebGLTerrainShader extends BaseTerrainShader {
     [key: string]: any;
     terrainStatic = terrainStatic
+    posUniforms: { u_add_pos: Float32Array, u_gridChunkOffset: Float32Array}
+    modelUniforms: {
+        u_modelMatrix: Float32Array, u_modelMatrixMode: float
+    }
+    posUniformGroup: UniformGroup;
+    texture: BaseTexture = null;
+    texture_n: BaseTexture = null;
     /**
      *
      * @param {WebGLRenderer} context
@@ -27,22 +38,31 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         if (!options.uniforms) {
             options = {...options, uniforms: {}}
         }
-        options.uniforms = {...options.uniforms, terrainStatic, lightStatic: context.lightUniforms };
+
+        const posUniforms = {
+            u_add_pos: new Float32Array(4),
+            u_gridChunkOffset: new Float32Array(3),
+        };
+        const modelUniforms = {
+            u_modelMatrix: new Float32Array(16),
+            u_modelMatrixMode: 0 as float,
+        }
+        const posUniformGroup = new UniformGroup(posUniforms);
+        const modelUniformGroup = new UniformGroup(modelUniforms, true);
+
+        options.uniforms = {...options.uniforms,
+            terrainStatic, lightStatic: context.lightUniforms,
+            pos: posUniformGroup,
+            model: modelUniformGroup};
         super(context, options);
 
-        this.uModelMat          = this.getUniformLocation('uModelMatrix');
-        this.uModelMatMode      = this.getUniformLocation('uModelMatrixMode');
+        this.posUniforms = posUniforms;
+        this.posUniformGroup = posUniformGroup;
 
-        this.u_add_pos          = this.getUniformLocation('u_add_pos');
-        this.u_blockSize        = this.getUniformLocation('u_blockSize');
-        this.u_pixelSize        = this.getUniformLocation('u_pixelSize');
-        this.u_mipmap           = this.getUniformLocation('u_mipmap');
-        this.u_gridChunkOffset  = this.getUniformLocation('u_gridChunkOffset');
-
-        this.locateUniforms();
+        this.modelUniforms = modelUniforms;
+        this.modelUniformGroup = modelUniformGroup;
 
         this.locateAttribs();
-        // this.u_chunkLocalPos    = this.getUniformLocation('u_chunkLocalPos');
 
         this.hasModelMatrix = false;
 
@@ -62,47 +82,9 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.a_quad             = this.getAttribLocation('a_quad');
     }
 
-    locateUniforms() {
-        // depends on material
-        this.u_opaqueThreshold  = this.getUniformLocation('u_opaqueThreshold');
-        this.u_tintColor        = this.getUniformLocation('u_tintColor');
-    }
 
     bind(force = false) {
-        const prevShader = this.context._shader;
-        if (prevShader === this && !force)
-        {
-            if (this._material)
-            {
-                this._material.unbind();
-                this._material = null;
-            }
-            this.update();
-            // let path = new Error().stack
-            // path = path.replaceAll('http://localhost:5700/', '').replaceAll(' at ', '\r\n')
-            // if(!globalThis.asddfads)globalThis.asddfads=new Map()
-            // const m = globalThis.asddfads
-            // if(!m.has(path)) {
-            //     m.set(path, 0)
-            // }
-            // m.set(path, m.get(path) + 1)
-            // if(!globalThis.asdfg)globalThis.asdfg=0
-            // if(globalThis.asdfg++%5000==0) {
-            //     console.log(globalThis.asdfg)
-            //     let mm = []
-            //     for(let [k, v] of m.entries()) {
-            //         mm.push(`${v} ... ${k}`)
-            //     }
-            //     console.log(mm)
-            // }
-            return;
-        }
-        if (prevShader) {
-            prevShader.unbind();
-        }
-        this.context._shader = this;
-        this.context.pixiRender.shader.bind(this.defShader, false);
-        this.update();
+        this.context.pixiRender.shader.bind(this.defShader);
     }
 
     unbind() {
@@ -117,54 +99,51 @@ export class WebGLTerrainShader extends BaseTerrainShader {
     updateGlobalUniforms() {
     }
 
-    resetMatUniforms() {
-        const { gl } = this.context;
-        gl.uniformMatrix4fv(this.uModelMat, false, this.modelMatrix);
-        gl.uniform1i(this.uModelMatMode, 0);
-        this.hasModelMatrix = false;
-        // Tint color
-        gl.uniform4fv(this.u_tintColor, this.tintColor.toArray());
-    }
-
     update() {
         const gu = this.globalUniforms;
-        if (this.globalID === gu.updateID) {
+        if (this.globalID === gu.dirtyId) {
             return;
         }
-        this.globalID = gu.updateID;
+        this.globalID = gu.dirtyId;
         this.resetMatUniforms();
     }
 
-    updatePos(pos, modelMatrix) {
-        const { gl } = this.context;
+    updatePosOnly(pos: Vector) {
         const {camPos, gridTexSize} = this.globalUniforms;
+        const { u_add_pos, u_gridChunkOffset } = this.posUniforms;
+
+        this.posUniformGroup.update();
         if (pos) {
-            gl.uniform3f(this.u_add_pos, pos.x - camPos.x, pos.z - camPos.z, pos.y - camPos.y);
-            if (this.u_gridChunkOffset) {
-                const x = - pos.x + (-1 + Math.round(pos.x / gridTexSize.x)) * gridTexSize.x;
-                const y = - pos.y + (-1 + Math.round(pos.y / gridTexSize.y)) * gridTexSize.y;
-                const z = - pos.z + (-1 + Math.round(pos.z / gridTexSize.z)) * gridTexSize.z;
-                gl.uniform3f(this.u_gridChunkOffset, x, z, y);
-            }
+            u_add_pos[0] = pos.x - camPos.x;
+            u_add_pos[1] = pos.z - camPos.z;
+            u_add_pos[2] = pos.y - camPos.y;
         } else {
-            gl.uniform3f(this.u_add_pos, -camPos.x, -camPos.z, -camPos.y);
+            u_add_pos[0] = - camPos.x;
+            u_add_pos[1] = - camPos.z;
+            u_add_pos[2] = - camPos.y;
 
             pos = camPos;
-            if (this.u_gridChunkOffset) {
-                const x = - pos.x + (-1 + Math.round(pos.x / gridTexSize.x)) * gridTexSize.x;
-                const y = - pos.y + (-1 + Math.round(pos.y / gridTexSize.y)) * gridTexSize.y;
-                const z = - pos.z + (-1 + Math.round(pos.z / gridTexSize.z)) * gridTexSize.z;
-                gl.uniform3f(this.u_gridChunkOffset, x, z, y);
-            }
         }
+        u_gridChunkOffset[0] = - pos.x + (-1 + Math.round(pos.x / gridTexSize.x)) * gridTexSize.x;
+        u_gridChunkOffset[1] = - pos.z + (-1 + Math.round(pos.z / gridTexSize.z)) * gridTexSize.z;
+        u_gridChunkOffset[2] = - pos.y + (-1 + Math.round(pos.y / gridTexSize.y)) * gridTexSize.y;
+
+    }
+    updatePos(pos, modelMatrix) {
+        this.updatePosOnly(pos);
+
+        const {modelUniformGroup, modelUniforms} = this;
+
         if (modelMatrix) {
-            gl.uniformMatrix4fv(this.uModelMat, false, modelMatrix);
-            gl.uniform1i(this.uModelMatMode, 1);
+            modelUniformGroup.update();
+            modelUniforms.u_modelMatrix.set(modelMatrix, 0);
+            modelUniforms.u_modelMatrixMode = 1;
             this.hasModelMatrix = true;
         } else {
             if (this.hasModelMatrix) {
-                gl.uniformMatrix4fv(this.uModelMat, false, this.modelMatrix);
-                gl.uniform1i(this.uModelMatMode, 0);
+                modelUniformGroup.update();
+                mat4.identity(modelUniforms.u_modelMatrix);
+                modelUniforms.u_modelMatrixMode = 0;
             }
             this.hasModelMatrix = false;
         }

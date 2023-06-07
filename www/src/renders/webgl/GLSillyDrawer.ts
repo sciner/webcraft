@@ -67,20 +67,10 @@ export class WebGLSillyShader extends BaseLineShader {
     }
 
     bind(force = false) {
-        const prevShader = this.context._shader;
-        if (prevShader === this && !force)
-        {
-            return;
-        }
-        if (prevShader) {
-            prevShader.unbind();
-        }
-        this.context._shader = this;
         this.context.pixiRender.shader.bind(this.defShader, true);
     }
 
     unbind() {
-        this.context._shader = null;
     }
 }
 

@@ -21,7 +21,7 @@ export class WebGLFluidShader extends WebGLTerrainShader {
             options = {...options, uniforms: {}}
         }
 
-        const fluidStatic = new UniformGroup<typeof defaultFluidStaticUniforms>(Object.assign({}, defaultFluidStaticUniforms));
+        const fluidStatic = new UniformGroup<typeof defaultFluidStaticUniforms>(Object.assign({}, defaultFluidStaticUniforms), true);
 
         options.uniforms = {...options.uniforms, fluidStatic };
 
@@ -51,12 +51,5 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         this.a_fluidId       = this.getAttribLocation('a_fluidId');
         this.a_height        = this.getAttribLocation('a_height');
         this.a_color         = this.getAttribLocation('a_color');
-    }
-
-    resetMatUniforms() {
-    }
-
-    locateUniforms() {
-        // depends on material
     }
 }

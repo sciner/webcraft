@@ -4,10 +4,11 @@ import {Color} from "../helpers/color.js";
 import {State, UniformGroup} from "vauxcel";
 import {TerrainTextureUniforms} from "./common.js";
 import type {BaseRenderer, BaseTexture} from "./BaseRenderer.js";
+import type {BaseTerrainShader} from "./BaseShader.js";
 
 export interface ITerrainMaterialOptions {
     decalOffset?: number;
-    shader?: BaseShader;
+    shader?: BaseTerrainShader;
     texture?: BaseTexture;
     texture_n?: BaseTexture;
     cullFace?: boolean;
@@ -26,7 +27,7 @@ export const defaultTerrainMaterial = {
 }
 
 export class BaseMaterial implements Required<ITerrainMaterialOptions> {
-    shader: BaseShader;
+    shader: BaseTerrainShader;
     _texture: BaseTexture = undefined
     texture: BaseTexture = undefined;
     texture_n: BaseTexture;
@@ -48,7 +49,7 @@ export class BaseMaterial implements Required<ITerrainMaterialOptions> {
 
         const terr = {...defaultTerrainMaterial};
         this.terrainUniforms = terr;
-        this.terrainUniformGroup = new UniformGroup(terr);
+        this.terrainUniformGroup = new UniformGroup(terr, true);
 
         this.texture_n = options.texture_n || null;
         this.opaque = options.opaque || false;
@@ -65,10 +66,10 @@ export class BaseMaterial implements Required<ITerrainMaterialOptions> {
 
     beforeBind()
     {
-        this.state.depthMask = this.opaque || !this.shader.fluidFlags;
+        this.state.depthMask = this.opaque || !(this.shader as any).fluidFlags;
         this.terrainUniforms.u_opaqueThreshold = this.opaque ? 0.5 : 0.0;
 
-        const tex = this.texture || this.shader.texture;
+        const tex = this.texture || (this.shader as any).texture;
         if (tex && tex !== this._texture) {
             this._texture = tex;
             const {terrainUniforms} = this;

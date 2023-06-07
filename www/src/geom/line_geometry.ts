@@ -1,5 +1,5 @@
 import {Vector} from "../helpers.js";
-import type BaseRenderer from "../renders/BaseRenderer.js";
+import type { BaseRenderer } from "../renders/BaseRenderer.js";
 
 const MIN_LINES_COUNT = 12
 const STRIDE_FLOATS = 8

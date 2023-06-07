@@ -14,11 +14,7 @@ export class WebGLLineShader extends BaseLineShader {
 
         super(context, options);
 
-        this.locateUniforms();
-
         this.locateAttribs();
-
-        this.globalID = -1;
     }
 
     locateAttribs() {
@@ -29,34 +25,12 @@ export class WebGLLineShader extends BaseLineShader {
         this.a_quad             = this.getAttribLocation('aQuad');
     }
 
-    locateUniforms() {
-        this.u_add_pos          = this.getUniformLocation('u_add_pos');
-    }
-
     bind(force = false) {
         this.context.pixiRender.shader.bind(this.defShader);
         this.context.pixiRender.state.set(this.state);
-
-        const prevShader = this.context._shader;
-        if (prevShader === this && !force)
-        {
-            this.update();
-            return;
-        }
-        if (prevShader) {
-            prevShader.unbind();
-        }
-        this.context._shader = this;
-        this.update();
     }
 
     unbind() {
-        if (this._material)
-        {
-            this._material.unbind();
-            this._material = null;
-        }
-        this.context._shader = null;
     }
 
     update() {

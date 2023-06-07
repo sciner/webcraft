@@ -3,6 +3,7 @@ import * as VAUX from 'vauxcel';
 
 export class WebGLUniversalShader extends BaseShader {
     uniShader: VAUX.Shader;
+    uniforms: any;
     /**
      *
      * @param {WebGLRenderer} context
@@ -32,21 +33,7 @@ export class WebGLUniversalShader extends BaseShader {
     }
 
     bind(force = false) {
-        const prevShader = this.context._shader;
-
-        if (prevShader === this && !force)
-        {
-            this.update();
-            return;
-        }
-
-        if (prevShader) {
-            prevShader.unbind();
-        }
-
-        this.context._shader = this;
-
-        this.context.pixiRender.shader.bind(this.uniShader, false);
+        this.context.pixiRender.shader.bind(this.uniShader);
     }
 
     unbind() {

@@ -1,13 +1,20 @@
 import {Color, Vector} from '../helpers.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import {Program, Shader, BLEND_MODES, State, UniformGroup} from "vauxcel";
+import type {BaseRenderer} from "./BaseRenderer.js";
+import type {GlobalUniformGroup} from "./uniform_groups";
 
 const {mat4} = glMatrix;
 
 export class BaseShader {
-    [key: string]: any;
-
+    state: State = null;
     program: Program;
+    context: BaseRenderer;
+    options: any;
+    defShader: Shader;
+    code: any;
+    globalUniforms: GlobalUniformGroup;
+
     constructor(context, options) {
         if (!options.uniforms) {
             options = {...options, uniforms: {}}
@@ -16,17 +23,12 @@ export class BaseShader {
         this.options = options;
         // context.createProgram({vertex, fragment,
         this.initProgram();
+        this.globalUniforms = context.globalUniforms;
         this.defShader = new Shader(this.program, { globalUniforms: context.globalUniforms, ...options.uniforms });
         /**
          * @type {{vertex: string, fragment: string}}
          */
         this.code = options.code;
-        this.bindings = [];
-    }
-
-    getUniformLocation(attrName) {
-        const pr = this.context.pixiRender;
-        return pr.gl.getUniformLocation(this.program.glPrograms[pr.CONTEXT_UID].program, attrName);
     }
 
     getAttribLocation(attrName) {
@@ -128,7 +130,6 @@ export class BaseTerrainShader extends BaseShader {
     constructor(context, options) {
         super(context, options);
 
-        this.globalUniforms = context.globalUniforms;
         this.lightUniforms = context.lightUniforms;
         this.modelMatrix        = mat4.create();
 
@@ -144,7 +145,6 @@ export class BaseTerrainShader extends BaseShader {
     bind() {
     }
     unbind() {
-
     }
 
     update() {
@@ -156,7 +156,7 @@ export class BaseTerrainShader extends BaseShader {
 
 export class BaseLineShader extends BaseShader {
     posUniforms: { u_add_pos: Float32Array }
-    state: State;
+    posUniformGroup: UniformGroup;
     constructor(context, options) {
 
         const posUniforms = { u_add_pos: new Float32Array(3) };

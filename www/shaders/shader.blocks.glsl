@@ -99,8 +99,8 @@
     // global uniforms vertex part
     uniform mat4 u_projMatrix;
     uniform mat4 u_viewMatrix;
-    uniform mat4 uModelMatrix;
-    uniform int uModelMatrixMode;
+    uniform mat4 u_modelMatrix;
+    uniform int u_modelMatrixMode;
     uniform vec3 u_add_pos;
     uniform float u_pixelSize;
     uniform highp isampler2D u_chunkDataSampler;
@@ -470,8 +470,8 @@
     ivec4 chunkData1 = ivec4(1 << 16, 1 << 16, 1 << 16, 0);
     if (a_chunkId < -0.5) {
         vec3 localPos = a_position;
-        if (uModelMatrixMode > 0) {
-            localPos = (uModelMatrix *  vec4(localPos.xzy, 1.0)).xzy;
+        if (u_modelMatrixMode > 0) {
+            localPos = (u_modelMatrix *  vec4(localPos.xzy, 1.0)).xzy;
         }
         vec3 chunkCoord = floor((localPos - u_gridChunkOffset) / u_gridChunkSize);
         chunk_corner = chunkCoord * u_gridChunkSize + u_gridChunkOffset;

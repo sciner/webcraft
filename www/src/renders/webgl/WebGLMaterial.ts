@@ -13,26 +13,10 @@ export class WebGLMaterial extends BaseMaterial {
         const { shader } = this;
 
         this.beforeBind();
-
         shader.bind();
         pixiRender.shader.bind(this.pixiShader);
 
-        const prevMat = this.shader._material;
-
-        if (prevMat === this && !this._dirty)
-        {
-            return;
-        }
-
-        if (prevMat)
-        {
-            prevMat.unbind();
-        }
-
         pixiRender.state.set(this.state);
-
-        this.shader._material = this;
-
         const tex = this.texture || this.shader.texture;
         const texN = this.texture_n || this.shader.texture_n;
         if (WebGLMaterial.texState !== this.texture) {
@@ -42,7 +26,6 @@ export class WebGLMaterial extends BaseMaterial {
                 texN.bind(5);
             }
         }
-        this._dirty = false;
     }
 
     unbind() {

@@ -1,5 +1,4 @@
-import type BaseRenderer from "../renders/BaseRenderer";
-import type {BaseBuffer} from "../renders/BaseRenderer";
+import type { BaseRenderer, BaseBuffer } from "../renders/BaseRenderer.js";
 import type {IvanArray} from "../helpers";
 import type {GeomCopyOperation} from "./big_geom_batch_update";
 

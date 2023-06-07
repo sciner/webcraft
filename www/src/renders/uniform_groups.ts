@@ -31,8 +31,9 @@ export class GlobalUniformGroup extends VAUX.UniformGroup<typeof defaultGlobalUn
     camPos = new Vector();
     gridChunkSize = new Vector();
     gridTexSize = new Vector();
+    declare dirtyId: number;
     constructor() {
-        super(Object.assign({}, defaultGlobalUniforms));
+        super(Object.assign({}, defaultGlobalUniforms), true);
 
         this.projMatrix         = mat4.create();
         this.viewMatrix         = mat4.create();
@@ -235,7 +236,7 @@ export class LightUniformGroup extends VAUX.UniformGroup<{ u_lightOverride: tupl
     declare uniforms: { u_lightOverride: tupleFloat3 };
 
     constructor() {
-        super({u_lightOverride: new Float32Array(3)});
+        super({u_lightOverride: new Float32Array(3)}, true);
     }
 
     update()
