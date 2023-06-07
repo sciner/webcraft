@@ -227,6 +227,7 @@ export class InventoryComparator {
     /** @returns true if two maps of simple items are equal */
     static compareSimpleItems(old_simple: Map<string, IInventoryItem>, new_simple: Map<string, IInventoryItem>): boolean {
         if (new_simple.size != old_simple.size) {
+            console.log(`* Different number of simple items: old ${new_simple.size}, new ${new_simple.size}`)
             return false;
         }
         for(let [key, item] of new_simple) {
