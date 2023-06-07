@@ -217,7 +217,7 @@ export default class style {
                     model:              model.name,
                     animation_name:     animation_name,
                     hide_groups:        model.getHiddenGroupNames(),
-                    extra_data:         block.extra_data,
+                    item_block:         (block instanceof TBlock) ? block.convertToDBItem() : null,
                     matrix:             matrix,
                     rotate:             mat4ToRotate(matrix),
                 }
@@ -420,33 +420,44 @@ export default class style {
         switch(behavior) {
             case 'billboard': {
                 if(tblock instanceof TBlock) {
-                    if(tblock.extra_data.relindex == -1) {
+                    // if(tblock.extra_data.relindex == -1) {
+                    if(tblock.extra_data.texture) {
                         // const group = model.getGroupByPath('default/display')
                         const group = model.groups.get('display')
                         const cube = group?.children[0]
                         if(cube && cube instanceof BBModel_Cube) {
-                            // create callback for cube
-                            cube.callback = (part) : boolean => {
+                            if(bb.animated && (typeof QubatchChunkWorker != 'undefined')) {
                                 const extra_data = tblock.extra_data ?? {}
-                                if(extra_data.texture?.url) {
-                                    if(extra_data.texture?.uv) {
-                                        const verts = []
-                                        const {material_key, uv, tx_size} = extra_data.texture
-                                        for(const fk in part.faces) {
-                                            const face = part.faces[fk]
-                                            face.tx_size = tx_size
-                                            face.uv = [...uv]
-                                        }
-                                        default_style.pushPART(verts, part, Vector.ZERO)
-                                        emmited_blocks.push(new FakeVertices(material_key, verts))
-                                        return true
-                                    }
+                                if(!extra_data.texture?.uv) {
                                     const item = tblock.convertToDBItem()
                                     const pos = tblock.posworld
                                     item.extra_data = extra_data
-                                    QubatchChunkWorker.postMessage(['create_bilboard_texture', {pos, item}])
+                                    QubatchChunkWorker.postMessage(['create_billboard_texture', {pos, item}])
                                 }
-                                return false
+                            } else {
+                                // create callback for cube
+                                cube.callback = (part) : boolean => {
+                                    const extra_data = tblock.extra_data ?? {}
+                                    if(extra_data.texture?.url) {
+                                        if(extra_data.texture?.uv) {
+                                            const verts = []
+                                            const {material_key, uv, tx_size} = extra_data.texture
+                                            for(const fk in part.faces) {
+                                                const face = part.faces[fk]
+                                                face.tx_size = tx_size
+                                                face.uv = [...uv]
+                                            }
+                                            default_style.pushPART(verts, part, Vector.ZERO)
+                                            emmited_blocks.push(new FakeVertices(material_key, verts))
+                                            return true
+                                        }
+                                        const item = tblock.convertToDBItem()
+                                        const pos = tblock.posworld
+                                        item.extra_data = extra_data
+                                        QubatchChunkWorker.postMessage(['create_billboard_texture', {pos, item}])
+                                    }
+                                    return false
+                                }
                             }
                         }
                     }

@@ -2065,7 +2065,7 @@
         },
         {
             "id": 3000,
-            "name": "BILBOARD7X3",
+            "name": "BILLBOARD7X3",
             "can_rotate": true,
             "transparent": true,
             "material": {
@@ -2088,15 +2088,12 @@
                 "set_state": [
                     {"name": "_", "when": {"!extra_data.relindex": -1}},
                     {"name": "default"}
-                ],
-                "_animated": {
-                    "name": "idle"
-                }
+                ]
             }
         },
         {
             "id": 3001,
-            "name": "BILBOARD1X2",
+            "name": "BILLBOARD1X2",
             "can_rotate": true,
             "transparent": true,
             "material": {
@@ -2114,7 +2111,10 @@
             },
             "bb": {
                 "import_anyway": true,
-                "behavior": "billboard"
+                "behavior": "billboard",
+                "animated": {
+                    "name": "idle"
+                }
             }
         }
     ]

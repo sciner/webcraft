@@ -546,6 +546,6 @@ declare type IAddMeshArgs = {
     hide_groups?:       string[]
     rotate?:            IVector
     animation_name?:    string
-    extra_data?:        any
+    item_block?:        any
     matrix?:            imat4
 }

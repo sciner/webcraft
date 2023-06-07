@@ -26,7 +26,7 @@ export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface', 'decal1', 'decal2'];
 
 const tmpAddr = new Vector()
-let bilboard_tex_compiler : FastCompiller
+let billboard_tex_compiler : FastCompiller
 
 export class ChunkManagerState {
 
@@ -292,7 +292,7 @@ export class ChunkManager {
                     Qubatch.render.meshes.effects.createBlockEmitter(args);
                     break;
                 }
-                case 'create_bilboard_texture': {
+                case 'create_billboard_texture': {
                     const process = async (args) => {
                         //TODO: move to chunk_render_list , this.render_list
                         const item = args.item
@@ -301,26 +301,26 @@ export class ChunkManager {
                         const render = Qubatch.render as Renderer
                         const resource_pack : BaseResourcePack = render.world.block_manager.resource_pack_manager.get('bbmodel')
                         //
-                        if(!bilboard_tex_compiler) {
+                        if(!billboard_tex_compiler) {
                             const options = {
                                 resolution: DEFAULT_TX_SIZE,
                                 tx_cnt: resource_pack.conf.textures.bbmodel_texture_1.tx_cnt
                             }
-                            bilboard_tex_compiler = new FastCompiller(options)
-                            bilboard_tex_compiler.bilboard_textures = new Map()
+                            billboard_tex_compiler = new FastCompiller(options)
+                            billboard_tex_compiler.billboard_textures = new Map()
                         }
                         //
-                        let bilboard_texture_info = bilboard_tex_compiler.bilboard_textures.get(url)
-                        if (!bilboard_texture_info) {
-                            bilboard_texture_info = Resources.loadImage(url, false).then(async (image) => {
+                        let billboard_texture_info = billboard_tex_compiler.billboard_textures.get(url)
+                        if (!billboard_texture_info) {
+                            billboard_texture_info = Resources.loadImage(url, false).then(async (image) => {
                                 const textures = [{
                                     id: url,
                                     name: url,
                                     image
                                 }]
                                 const tx_size = 1
-                                const options = bilboard_tex_compiler.options
-                                const {places, spritesheet} = await bilboard_tex_compiler.findPlaces(textures, true, options.resolution, options.tx_cnt, options)
+                                const options = billboard_tex_compiler.options
+                                const {places, spritesheet} = await billboard_tex_compiler.findPlaces(textures, true, options.resolution, options.tx_cnt, options)
                                 const place = places[0]
                                 const spritesheet_id = spritesheet.id
                                 const {x, y, image_width, image_height} = place
@@ -364,10 +364,10 @@ export class ChunkManager {
                                 return {spritesheet_id, tx_size, w: image_width, h: image_height, material_key, uv}
                             })
                             
-                            bilboard_tex_compiler.bilboard_textures.set(url, bilboard_texture_info)
+                            billboard_tex_compiler.billboard_textures.set(url, billboard_texture_info)
                         }
                         
-                        const info = await bilboard_texture_info
+                        const info = await billboard_texture_info
                         extra_data.texture = {...extra_data.texture, ...info}
                         world.chunkManager.setBlock(args.pos, item)
                     
@@ -380,7 +380,7 @@ export class ChunkManager {
                     const pos = new Vector().copyFrom(a.block_pos)
                     const key = `block_bbmesh_${pos.toHash()}`
                     const render = Qubatch.render as Renderer
-                    render.addBBModelForChunk(pos.addScalarSelf(.5, 0, .5), a.model, new Vector().copyFrom(a.rotate), a.animation_name, a.hide_groups, key, true, a.matrix)
+                    render.addBBModelForChunk(pos.addScalarSelf(.5, 0, .5), a.model, new Vector().copyFrom(a.rotate), a.animation_name, a.hide_groups, key, true, a.matrix, a.item_block)
                     break
                 }
                 case 'remove_bbmesh': {
