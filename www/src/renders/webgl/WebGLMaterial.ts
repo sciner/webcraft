@@ -9,7 +9,7 @@ export class WebGLMaterial extends BaseMaterial {
     }
 
     bind() {
-        const { gl, pixiRender } = this.context;
+        const { pixiRender } = this.context;
         const { shader } = this;
 
         this.beforeBind();

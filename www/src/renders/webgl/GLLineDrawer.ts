@@ -99,9 +99,9 @@ export class GLLineDrawer extends ObjectDrawer {
         if (lineGeom.instances === 0) {
             return;
         }
+        this.shader.updatePos(lineGeom.pos);
         this.shader.bind();
         lineGeom.bind(this.shader);
-        this.shader.updatePos(lineGeom.pos);
         const { gl } = this.context;
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, lineGeom.instances);
     }

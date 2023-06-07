@@ -1,13 +1,13 @@
-import {Color} from '../helpers.js';
+import {Color, Vector} from '../helpers.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
-import * as VAUX from 'vauxcel'
+import {Program, Shader, BLEND_MODES, State, UniformGroup} from "vauxcel";
 
 const {mat4} = glMatrix;
 
 export class BaseShader {
     [key: string]: any;
 
-    program: VAUX.Program;
+    program: Program;
     constructor(context, options) {
         if (!options.uniforms) {
             options = {...options, uniforms: {}}
@@ -16,7 +16,7 @@ export class BaseShader {
         this.options = options;
         // context.createProgram({vertex, fragment,
         this.initProgram();
-        this.defShader = new VAUX.Shader(this.program, { globalUniforms: context.globalUniforms, ...options.uniforms });
+        this.defShader = new Shader(this.program, { globalUniforms: context.globalUniforms, ...options.uniforms });
         /**
          * @type {{vertex: string, fragment: string}}
          */
@@ -155,10 +155,38 @@ export class BaseTerrainShader extends BaseShader {
 }
 
 export class BaseLineShader extends BaseShader {
-    [key: string]: any;
+    posUniforms: { u_add_pos: Float32Array }
+    state: State;
     constructor(context, options) {
+
+        const posUniforms = { u_add_pos: new Float32Array(3) };
+        const posUniformGroup = new UniformGroup(posUniforms);
+        if (!options.uniforms) {
+            options = {...options, uniforms: {}}
+        }
+        options.uniforms = {...options.uniforms, pos: posUniformGroup}
+
         super(context, options);
 
+        this.posUniforms = posUniforms;
+        this.posUniformGroup = posUniformGroup;
         this.globalUniforms = context.globalUniforms;
+
+        this.state = new State();
+        this.state.blendMode = BLEND_MODES.NORMAL_NPM;
+        this.state.depthTest = true;
+        this.state.cullFace = true;
+        this.state.polygonOffsetValue = -2;
+        this.state.polygonOffsetScale = -4;
+    }
+
+    updatePos(pos) {
+        const { camPos } = this.globalUniforms;
+        const { u_add_pos } = this.posUniforms;
+        this.posUniformGroup.update();
+        pos = pos || Vector.ZERO;
+        u_add_pos[0] = pos.x - camPos.x;
+        u_add_pos[1] = pos.z - camPos.z;
+        u_add_pos[2] = pos.y - camPos.y;
     }
 }
