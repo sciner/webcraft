@@ -273,16 +273,6 @@ interface IBlockMaterial {
     power: number
     can_auto_drop: boolean
     is_dummy: boolean
-    /**
-     * @deprecated
-     */
-    next_part: {
-        id: int
-        offset_pos: IVector
-    }
-    /**
-     * @deprecated
-     */
     previous_part: {
         id: int
         offset_pos: IVector
@@ -451,6 +441,7 @@ interface IBlockMaterial {
     inventory_icon_id?: number
     max_in_stack: number
     is_powered: boolean
+    megablock?: {x : int, y : int, z : int, w : int, h : int, d : int}
 }
 
 interface INetworkMessage<DataT = any> {
@@ -555,6 +546,6 @@ declare type IAddMeshArgs = {
     hide_groups?:       string[]
     rotate?:            IVector
     animation_name?:    string
-    extra_data?:        any
+    item_block?:        any
     matrix?:            imat4
 }

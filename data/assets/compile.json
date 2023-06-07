@@ -6384,7 +6384,7 @@
             "texture": "block/large_fern.png",
             "inventory": {
                 "style": "extruder",
-                "texture": "block/large_fern_top.png"
+                "texture": "block/large_fern.png"
             },
             "material": {
                 "id": "plant"

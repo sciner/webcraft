@@ -699,7 +699,7 @@ export class ChunkWorkerChunk implements IChunk {
 
         const processFakeVertices = (fv : FakeVertices) => {
             const matBuf = getMaterialBuf(fv.material_key)
-            matBuf.buf.vertices.push(...fv.vertices)
+            matBuf.buf.vertices.pushMany(fv.vertices)
         }
 
         // Process block

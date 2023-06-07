@@ -2062,6 +2062,60 @@
                     {"name": "off", "when": {"extra_data.powered": false}}
                 ]
             }
+        },
+        {
+            "id": 3000,
+            "name": "BILLBOARD7X3",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "extra_data": {
+                "relindex": -1,
+                "calculated": [
+                    {"type": "random_item", "name": "texture", "items": [{"url": "/media/demo/banner1.png"}, {"url": "/media/demo/banner2.png"}, {"url": "/media/demo/banner3.png"}]}
+                ]
+            },
+            "megablock": {"x": -3, "y": 0, "z": 0, "w": 7, "h": 4, "d": 1},
+            "bb": {
+                "import_anyway": true,
+                "behavior": "billboard",
+                "rotate": {"type": "cardinal_direction"},
+                "set_state": [
+                    {"name": "_", "when": {"!extra_data.relindex": -1}},
+                    {"name": "default"}
+                ]
+            }
+        },
+        {
+            "id": 3001,
+            "name": "BILLBOARD1X2",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "aabb": [4, 0, 4, 12, 8, 12],
+            "extra_data": {
+                "relindex": -1,
+                "calculated": [
+                    {"type": "random_item", "name": "texture", "items": [{"url": "/media/demo/rollup1.png"}, {"url": "/media/demo/rollup2.png"}]}
+                ]
+            },
+            "bb": {
+                "import_anyway": true,
+                "behavior": "billboard",
+                "animated": {
+                    "name": "idle"
+                }
+            }
         }
     ]
 }
