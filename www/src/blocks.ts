@@ -1147,6 +1147,7 @@ export class BLOCK {
     static invisibleForCam(block : IBlockMaterial) : boolean {
         return  block.is_portal ||
                 (block.passable > 0) ||
+                (block.tags.includes('invisible_for_cam')) ||
                 (block.material.id == 'plant' && (block.style_name == 'planting' || block.planting)) ||
                 (block.style_name == 'ladder') ||
                 (block?.material?.id == 'glass')

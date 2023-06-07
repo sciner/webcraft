@@ -2099,6 +2099,7 @@
                 "id": "stone"
             },
             "tags": [
+                "invisible_for_cam",
                 "no_drop_ao"
             ],
             "aabb": [4, 0, 4, 12, 8, 12],
@@ -2166,8 +2167,8 @@
             }
         },
         {
-            "id": 3004,
-            "name": "CLAY_SHINGLES",
+            "id": 310,
+            "name": "BLUE_CLAY_SHINGLES",
             "can_rotate": true,
             "material": {
                 "id": "stone"
@@ -2176,13 +2177,45 @@
                 "clay_shingles"
             ],
             "bb": {
+                "model": "clay_shingles",
                 "import_anyway": true,
                 "rotate": {"type": "cardinal_direction"},
                 "set_state": [
                     {"name": "outer", "when": {"extra_data.outer": true}},
                     {"name": "inner", "when": {"extra_data.inner": true}},
                     {"name": "normal"}
+                ],
+                "select_texture": [
+                    {"name": "%block_name%"}
                 ]
+            }
+        },
+        {
+            "id": 311,
+            "name": "RED_CLAY_SHINGLES",
+            "can_rotate": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "clay_shingles"
+            ],
+            "bb": {
+                "extends": "BLUE_CLAY_SHINGLES"
+            }
+        },
+        {
+            "id": 312,
+            "name": "GREEN_CLAY_SHINGLES",
+            "can_rotate": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "clay_shingles"
+            ],
+            "bb": {
+                "extends": "BLUE_CLAY_SHINGLES"
             }
         }
     ]
