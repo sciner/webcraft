@@ -328,24 +328,16 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     resetBefore() {
-        const {gl} = this;
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.CULL_FACE);
-        gl.enable(gl.BLEND);
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-
         WebGLMaterial.texState = this._emptyTex;
         // WebGLMaterial.lightState = null;
-
         this._shader = null;
-        this.pixiRender.shader.reset();
+        super.resetBefore();
     }
 
     resetAfter() {
-        this.gl.bindVertexArray(null);
         this._shader?.unbind();
         this._shader = null;
-        this.pixiRender.shader.reset();
+        super.resetAfter();
         // for (let i = 0; i < 16; i++) {
         //     this.gl.bindTexture();
         // }

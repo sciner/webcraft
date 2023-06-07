@@ -1,4 +1,5 @@
 import {BaseLineShader} from "../BaseShader.js";
+import {BLEND_MODES, State} from "vauxcel";
 
 export class WebGLLineShader extends BaseLineShader {
     [key: string]: any;
@@ -25,11 +26,16 @@ export class WebGLLineShader extends BaseLineShader {
         this.locateAttribs();
 
         this.globalID = -1;
+
+        this.state = new State();
+        this.state.blendMode = BLEND_MODES.NORMAL_NPM;
+        this.state.depthTest = true;
+        this.state.cullFace = true;
+        this.state.polygonOffsetValue = -2;
+        this.state.polygonOffsetScale = -4;
     }
 
     locateAttribs() {
-        const { program } = this;
-        const { gl } = this.context;
         this.a_point1           = this.getAttribLocation('aPoint1');
         this.a_point2           = this.getAttribLocation('aPoint2');
         this.a_lineWidth        = this.getAttribLocation('aLineWidth');
@@ -38,8 +44,6 @@ export class WebGLLineShader extends BaseLineShader {
     }
 
     locateUniforms() {
-        const { program } = this;
-        const { gl } = this.context;
         this.u_add_pos          = this.getUniformLocation('u_add_pos');
     }
 
@@ -56,8 +60,7 @@ export class WebGLLineShader extends BaseLineShader {
         }
         this.context._shader = this;
         this.context.pixiRender.shader.bind(this.defShader, false);
-        gl.enable(gl.POLYGON_OFFSET_FILL);
-        gl.polygonOffset(-2, -4);
+        this.context.pixiRender.state.set(this.state);
         this.update();
     }
 
@@ -68,44 +71,10 @@ export class WebGLLineShader extends BaseLineShader {
             this._material = null;
         }
         this.context._shader = null;
-        const {gl} = this.context;
-        gl.enable(gl.POLYGON_OFFSET_FILL);
-    }
-
-    updateGlobalUniforms() {
-        const { gl } = this.context;
-        const gu = this.globalUniforms;
-
-        gl.uniformMatrix4fv(this.uViewMatrix, false, gu.viewMatrix);
-        gl.uniformMatrix4fv(this.uProjMat, false, gu.projMatrix);
-
-        gl.uniform2fv(this.u_resolution, gu.resolution);
-        this.u_time && gl.uniform1f(this.u_time, gu.time);
-        this.u_eyeinwater && gl.uniform1f(this.u_eyeinwater, 1.);
-
-    }
-
-    setStaticUniforms() {
-        const { gl } = this.context;
-    }
-
-    resetMatUniforms() {
-        const { gl } = this.context;
+        this.context.resetState();
     }
 
     update() {
-        const { gl } = this.context;
-        const gu = this.globalUniforms;
-        if (this.globalID === -1) {
-            this.setStaticUniforms();
-        }
-        if (this.globalID === gu.updateID) {
-            return;
-        }
-        this.globalID = gu.updateID;
-        // this.updateGlobalUniforms();
-
-        this.resetMatUniforms();
     }
 
     updatePos(pos) {

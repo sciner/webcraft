@@ -1,12 +1,15 @@
-import {Color, deepAssign, IvanArray, Mth, Vector} from '../helpers.js';
+import {Color, IvanArray, Mth, Vector} from '../helpers.js';
 import {BatchSystem} from "./batch/BatchSystem.js";
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
 import type GeometryTerrain from '../geometry_terrain.js';
-import type { WebGLMaterial } from './webgl/WebGLMaterial.js';
+import type {WebGLMaterial} from './webgl/WebGLMaterial.js';
 import type {GeomCopyOperation} from "../geom/big_geom_batch_update.js";
-import type * as VAUX from 'vauxcel';
+import * as VAUX from 'vauxcel';
+import {BLEND_MODES, State} from 'vauxcel';
 import {GlobalUniformGroup, LightUniformGroup} from "./uniform_groups.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
+import type {BaseShader} from "./BaseShader";
+
 const {mat4} = glMatrix;
 
 export interface PassOptions {
@@ -283,34 +286,76 @@ export class BaseTexture {
     }
 }
 
-export const BLEND_MODES = {
-    NORMAL: 0,
-    ADD: 1,
-    MULTIPLY: 2,
-    SCREEN: 3
+export interface ITerrainMaterialOptions {
+    decalOffset?: number;
+    shader?: BaseShader;
+    texture?: BaseTexture;
+    texture_n?: BaseTexture;
+    cullFace?: boolean;
+    opaque?: boolean;
+    ignoreDepth?: boolean;
+    mipmap?: boolean;
+    blendMode?: VAUX.BLEND_MODES;
+    tintColor?: Color;
 }
 
-export class BaseMaterial {
-    [key: string]: any;
-    decalOffset: number;
-    constructor(context, options) {
+export class BaseMaterial implements Required<ITerrainMaterialOptions> {
+    shader: BaseShader;
+    texture: BaseTexture;
+    texture_n: BaseTexture;
+    opaque: boolean;
+    mipmap: boolean;
+    tintColor: Color;
+
+    context: BaseRenderer;
+    options: ITerrainMaterialOptions;
+    state = new State();
+
+    constructor(context: BaseRenderer, options: ITerrainMaterialOptions) {
         this.context = context;
         this.options = options;
         this.shader = options.shader;
         this.texture = options.texture || null;
         this.texture_n = options.texture_n || null;
-        this.lightTex = options.lightTex || null;
         this.cullFace = options.cullFace || false;
         this.opaque = options.opaque || false;
         this.ignoreDepth = options.ignoreDepth || false;
         this.mipmap = options.mipmap || false;
-        this.blendMode = options.blendMode || BLEND_MODES.NORMAL;
+        this.blendMode = options.blendMode || VAUX.BLEND_MODES.NORMAL_NPM;
         this.tintColor = options.tintColor || new Color(0, 0, 0, 0);
         this.decalOffset = options.decalOffset || 0;
     }
 
-    changeLighTex(light) {
-        this.lightTex = light;
+    get blendMode() {
+        return this.state.blendMode;
+    }
+
+    set blendMode(val: VAUX.BLEND_MODES) {
+        this.state.blendMode = val;
+    }
+
+    get cullFace() {
+        return this.state.culling;
+    }
+
+    set cullFace(val: boolean) {
+        this.state.culling = val;
+    }
+
+    get ignoreDepth() {
+        return !this.state.depthTest;
+    }
+    set ignoreDepth(val: boolean) {
+        this.state.depthTest = !val;
+    }
+
+    get decalOffset() {
+        return -this.state._polygonOffsetValue;
+    }
+
+    set decalOffset(val: number) {
+        this.state.polygonOffsetValue = -val;
+        this.state.polygonOffsetScale = -2 * val;
     }
 
     getSubMat() {
@@ -328,10 +373,13 @@ export class BaseMaterial {
 export class CubeMesh {
     shader: any;
     geom: any;
+    state: VAUX.State;
 
     constructor(shader, geom) {
         this.shader = shader;
         this.geom = geom;
+        this.state = new VAUX.State();
+        this.state.blendMode = BLEND_MODES.NORMAL_NPM;
     }
 
     get lookAt() {
@@ -482,6 +530,11 @@ export default class BaseRenderer {
             this.preprocessor.global_defines = Object.assign({}, options.defines);
         }
 
+        this.state3d = new VAUX.State();
+        this.state3d.blendMode = VAUX.BLEND_MODES.NORMAL_NPM;
+        this.state3d.depthTest = true;
+        this.state3d.cullFace = true;
+
         this.batch = new BatchSystem(this);
 
         this.multidrawExt = null;
@@ -538,6 +591,11 @@ export default class BaseRenderer {
         }
 
         return block;
+    }
+
+    resetState()
+    {
+        this.pixiRender.state.set(this.state3d);
     }
 
     /**
@@ -727,9 +785,14 @@ export default class BaseRenderer {
     }
 
     resetBefore() {
+        this.pixiRender.shader.reset();
+        this.pixiRender.state.reset();
+        this.resetState();
     }
 
     resetAfter() {
+        this.pixiRender.shader.reset();
+        this.pixiRender.geometry.reset();
     }
 
     destroy() {

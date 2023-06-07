@@ -6,6 +6,7 @@ import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
+import {BLEND_MODES} from 'vauxcel';
 
 // Particles
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
@@ -19,7 +20,6 @@ import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { Environment, PRESET_NAMES } from "./environment.js";
 import GeometryTerrain from "./geometry_terrain.js";
-import {BLEND_MODES} from "./renders/BaseRenderer.js";
 import { CubeSym } from "./core/CubeSym.js";
 import {
     DEFAULT_CLOUD_HEIGHT,

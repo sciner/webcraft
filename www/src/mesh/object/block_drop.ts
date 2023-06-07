@@ -28,7 +28,6 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     block:          FakeTBlock
     this:           Vector
     modelMatrix:    imat4 = mat4.create()
-    lightTex:       any= null
     chunk:          any = null
     entity_id:      string
     scale           = new Vector(.3, .3, .3)    // TODO может сделать static, т.к. всегда одинаково

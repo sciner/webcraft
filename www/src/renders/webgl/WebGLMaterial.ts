@@ -1,8 +1,9 @@
-import {BaseMaterial, BLEND_MODES} from "../BaseRenderer.js";
+import {BaseMaterial} from "../BaseRenderer.js";
 import {TerrainTextureUniforms} from "../common.js";
+import {BLEND_MODES, State} from 'vauxcel';
 
 export class WebGLMaterial extends BaseMaterial {
-    [key: string]: any;
+    _dirty: boolean
     constructor(context, options) {
         super(context, options);
 
@@ -10,7 +11,7 @@ export class WebGLMaterial extends BaseMaterial {
     }
 
     bind() {
-        const { gl } = this.context;
+        const { gl, pixiRender } = this.context;
         const { shader } = this;
 
         this.shader.bind();
@@ -32,20 +33,15 @@ export class WebGLMaterial extends BaseMaterial {
             prevMat.unbind();
         }
 
+        this.state.depthMask = this.opaque || !this.shader.fluidFlags;
+
+        pixiRender.state.set(this.state);
+
         this.shader._material = this;
-        if (!this.cullFace) {
-            gl.disable(gl.CULL_FACE);
-        }
         if (this.opaque) {
             gl.uniform1f(this.shader.u_opaqueThreshold, 0.5);
         } else {
             gl.uniform1f(this.shader.u_opaqueThreshold, 0.0);
-        }
-        if (!this.opaque && this.shader.fluidFlags) {
-            gl.depthMask(false);
-        }
-        if (this.ignoreDepth) {
-            gl.disable(gl.DEPTH_TEST);
         }
 
         const tex = this.texture || this.shader.texture;
@@ -66,41 +62,11 @@ export class WebGLMaterial extends BaseMaterial {
             gl.uniform1f(shader.u_mipmap, style.mipmap);
         }
 
-        if (this.blendMode !== BLEND_MODES.NORMAL) {
-            switch (this.blendMode) {
-                case BLEND_MODES.ADD:
-                    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE); break;
-                case BLEND_MODES.MULTIPLY:
-                    gl.blendFuncSeparate(gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA); break;
-                case BLEND_MODES.SCREEN:
-                    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_COLOR, gl.ONE, gl.ONE_MINUS_SRC_ALPHA); break;
-            }
-        }
-        if (this.decalOffset) {
-            gl.enable(gl.POLYGON_OFFSET_FILL);
-            gl.polygonOffset(-this.decalOffset, -2 * this.decalOffset);
-        }
-
         this._dirty = false;
     }
 
     unbind() {
-        const { gl } = this.context;
-        if (!this.cullFace) {
-            gl.enable(gl.CULL_FACE);
-        }
-        if (!this.opaque && this.shader.fluidFlags) {
-            gl.depthMask(true);
-        }
-        if (this.ignoreDepth) {
-            gl.enable(gl.DEPTH_TEST);
-        }
-        if (this.blendMode !== BLEND_MODES.NORMAL) {
-            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-        }
-        if (this.decalOffset) {
-            gl.disable(gl.POLYGON_OFFSET_FILL);
-        }
+        this.context.resetState();
     }
 
     getSubMat(texture = null) {

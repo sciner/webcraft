@@ -2,6 +2,7 @@ import {ObjectDrawer} from "../batch/ObjectDrawer.js";
 
 export class GLCubeDrawer extends ObjectDrawer {
     [key: string]: any;
+
     draw(cube) {
         const { context } = this;
         if (context._mat) {
@@ -15,11 +16,9 @@ export class GLCubeDrawer extends ObjectDrawer {
             gl
         } = context;
 
-        gl.disable(gl.CULL_FACE);
-        gl.disable(gl.DEPTH_TEST);
+        context.pixiRender.state.set(cube.state);
         gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
-        gl.enable(gl.CULL_FACE);
-        gl.enable(gl.DEPTH_TEST);
+        context.resetState();
         // stat
         context.stat.drawquads += 6;
         context.stat.drawcalls++;
