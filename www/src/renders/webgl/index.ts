@@ -1,5 +1,5 @@
 //@ts-check
-import BaseRenderer, {BaseCubeGeometry, BaseTexture, CubeMesh} from "../BaseRenderer.js";
+import {BaseRenderer, BaseCubeGeometry, BaseTexture, CubeMesh} from "../BaseRenderer.js";
 import { BaseCubeShader } from "../BaseShader.js";
 import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";

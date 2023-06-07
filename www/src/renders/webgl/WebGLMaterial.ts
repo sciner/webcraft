@@ -1,6 +1,4 @@
-import {BaseMaterial} from "../BaseRenderer.js";
-import {TerrainTextureUniforms} from "../common.js";
-import {BLEND_MODES, State} from 'vauxcel';
+import {BaseMaterial} from "../TerrainMaterial.js";
 
 export class WebGLMaterial extends BaseMaterial {
     _dirty: boolean
@@ -14,14 +12,12 @@ export class WebGLMaterial extends BaseMaterial {
         const { gl, pixiRender } = this.context;
         const { shader } = this;
 
-        this.shader.bind();
+        this.beforeBind();
+
+        shader.bind();
+        pixiRender.shader.bind(this.pixiShader);
 
         const prevMat = this.shader._material;
-
-        if (!shader.tintColor.equals(this.tintColor)) {
-            gl.uniform4fv(shader.u_tintColor, this.tintColor.toArray());
-            shader.tintColor.copyFrom(this.tintColor);
-        }
 
         if (prevMat === this && !this._dirty)
         {
@@ -33,16 +29,9 @@ export class WebGLMaterial extends BaseMaterial {
             prevMat.unbind();
         }
 
-        this.state.depthMask = this.opaque || !this.shader.fluidFlags;
-
         pixiRender.state.set(this.state);
 
         this.shader._material = this;
-        if (this.opaque) {
-            gl.uniform1f(this.shader.u_opaqueThreshold, 0.5);
-        } else {
-            gl.uniform1f(this.shader.u_opaqueThreshold, 0.0);
-        }
 
         const tex = this.texture || this.shader.texture;
         const texN = this.texture_n || this.shader.texture_n;
@@ -53,15 +42,6 @@ export class WebGLMaterial extends BaseMaterial {
                 texN.bind(5);
             }
         }
-        if (!prevMat || prevMat.texture !== this.texture)
-        {
-            const style = tex.style || TerrainTextureUniforms.default;
-
-            gl.uniform1f(shader.u_blockSize, style.blockSize);
-            gl.uniform1f(shader.u_pixelSize, style.pixelSize);
-            gl.uniform1f(shader.u_mipmap, style.mipmap);
-        }
-
         this._dirty = false;
     }
 

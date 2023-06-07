@@ -1,5 +1,5 @@
 import {Vector} from '../helpers.js';
-import BaseRenderer, {BaseTexture} from "./BaseRenderer.js";
+import { BaseRenderer } from "./BaseRenderer.js";
 
 export class BaseTexture3D {
     width: number;

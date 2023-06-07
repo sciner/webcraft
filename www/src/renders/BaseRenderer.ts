@@ -1,14 +1,13 @@
-import {Color, IvanArray, Mth, Vector} from '../helpers.js';
+import {IvanArray, Mth, Vector} from '../helpers.js';
 import {BatchSystem} from "./batch/BatchSystem.js";
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
 import type GeometryTerrain from '../geometry_terrain.js';
 import type {WebGLMaterial} from './webgl/WebGLMaterial.js';
 import type {GeomCopyOperation} from "../geom/big_geom_batch_update.js";
 import * as VAUX from 'vauxcel';
-import {BLEND_MODES, State} from 'vauxcel';
+import {BLEND_MODES} from 'vauxcel';
 import {GlobalUniformGroup, LightUniformGroup} from "./uniform_groups.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
-import type {BaseShader} from "./BaseShader";
 
 const {mat4} = glMatrix;
 
@@ -286,90 +285,6 @@ export class BaseTexture {
     }
 }
 
-export interface ITerrainMaterialOptions {
-    decalOffset?: number;
-    shader?: BaseShader;
-    texture?: BaseTexture;
-    texture_n?: BaseTexture;
-    cullFace?: boolean;
-    opaque?: boolean;
-    ignoreDepth?: boolean;
-    mipmap?: boolean;
-    blendMode?: VAUX.BLEND_MODES;
-    tintColor?: Color;
-}
-
-export class BaseMaterial implements Required<ITerrainMaterialOptions> {
-    shader: BaseShader;
-    texture: BaseTexture;
-    texture_n: BaseTexture;
-    opaque: boolean;
-    mipmap: boolean;
-    tintColor: Color;
-
-    context: BaseRenderer;
-    options: ITerrainMaterialOptions;
-    state = new State();
-
-    constructor(context: BaseRenderer, options: ITerrainMaterialOptions) {
-        this.context = context;
-        this.options = options;
-        this.shader = options.shader;
-        this.texture = options.texture || null;
-        this.texture_n = options.texture_n || null;
-        this.cullFace = options.cullFace || false;
-        this.opaque = options.opaque || false;
-        this.ignoreDepth = options.ignoreDepth || false;
-        this.mipmap = options.mipmap || false;
-        this.blendMode = options.blendMode || VAUX.BLEND_MODES.NORMAL_NPM;
-        this.tintColor = options.tintColor || new Color(0, 0, 0, 0);
-        this.decalOffset = options.decalOffset || 0;
-    }
-
-    get blendMode() {
-        return this.state.blendMode;
-    }
-
-    set blendMode(val: VAUX.BLEND_MODES) {
-        this.state.blendMode = val;
-    }
-
-    get cullFace() {
-        return this.state.culling;
-    }
-
-    set cullFace(val: boolean) {
-        this.state.culling = val;
-    }
-
-    get ignoreDepth() {
-        return !this.state.depthTest;
-    }
-    set ignoreDepth(val: boolean) {
-        this.state.depthTest = !val;
-    }
-
-    get decalOffset() {
-        return -this.state._polygonOffsetValue;
-    }
-
-    set decalOffset(val: number) {
-        this.state.polygonOffsetValue = -val;
-        this.state.polygonOffsetScale = -2 * val;
-    }
-
-    getSubMat() {
-        return null;
-    }
-
-    destroy() {
-        this.shader = null;
-        this.context = null;
-        this.texture = null;
-        this.options = null;
-    }
-}
-
 export class CubeMesh {
     shader: any;
     geom: any;
@@ -444,7 +359,7 @@ export class BaseCubeGeometry {
 
 }
 
-export default class BaseRenderer {
+export class BaseRenderer {
     [key: string]: any;
 
     batch : BatchSystem
