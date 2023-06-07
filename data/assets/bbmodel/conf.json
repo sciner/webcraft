@@ -2093,6 +2093,29 @@
                     "name": "idle"
                 }
             }
+        },
+        {
+            "id": 3001,
+            "name": "BILBOARD1X2",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "aabb": [4, 0, 4, 12, 8, 12],
+            "extra_data": {
+                "relindex": -1,
+                "calculated": [
+                    {"type": "random_item", "name": "texture", "items": [{"url": "/media/demo/rollup1.png"}, {"url": "/media/demo/rollup2.png"}]}
+                ]
+            },
+            "bb": {
+                "import_anyway": true,
+                "behavior": "billboard"
+            }
         }
     ]
 }
