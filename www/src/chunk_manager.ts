@@ -325,7 +325,7 @@ export class ChunkManager {
                                 const spritesheet_id = spritesheet.id
                                 const {x, y, image_width, image_height} = place
                                 const doubleface = false
-                                const material_key = `bbmodel/${doubleface ? 'doubleface' : 'regular'}/terrain/${spritesheet_id}`
+                                const material_key = `bbmodel/${doubleface ? 'doubleface_transparent' : 'transparent'}/terrain/${spritesheet_id}`
                                 await spritesheet.drawTexture(image, place.x, place.y)
                                 if(!resource_pack.materials.has(material_key)) {
                                     const spritesheet_canvas = spritesheet.ctx.canvas

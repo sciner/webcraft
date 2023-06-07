@@ -20,6 +20,7 @@ import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 import { BBModel_Cube } from '../bbmodel/cube.js';
 import { BBModel_Group } from '../bbmodel/group.js';
 import { default as default_style } from '../block_style/default.js';
+import { CubeSym } from '../core/CubeSym.js';
 
 const { mat4, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
@@ -105,7 +106,14 @@ export default class style {
         const model : BBModel_Model = bb.model
 
         if(!model) {
-            return;
+            return
+        }
+
+        // Not draw metablock blocks
+        if(block instanceof TBlock && block.material.multiblock) {
+            if(block.extra_data.relindex != -1) {
+                return
+            }
         }
 
         if(block.material.style_name == 'tall_grass') {
@@ -172,7 +180,7 @@ export default class style {
                 }
             }
 
-            if(block.material.megablock) {
+            if(block.material.multiblock) {
                 const addCubesFlag = (group : BBModel_Group, flag : int) => {
                     for(const child of group.children) {
                         if(child instanceof BBModel_Cube) {
@@ -623,7 +631,9 @@ export default class style {
     }
 
     static rotateByCardinal4sides(model : BBModel_Model, matrix : imat4, cardinal_direction : int) {
-        switch(cardinal_direction) {
+        CubeSym.applyToMat4(matrix, matrix, cardinal_direction);
+
+        /*switch(cardinal_direction) {
             case DIRECTION.SOUTH:
                 mat4.rotateY(matrix, matrix, Math.PI);
                 break;
@@ -633,7 +643,7 @@ export default class style {
             case DIRECTION.EAST:
                 mat4.rotateY(matrix, matrix, Math.PI / 2);
                 break;
-        }
+        }*/
     }
 
     static addParticles(model : BBModel_Model, tblock : TBlock | FakeTBlock, matrix : imat4, particles) {

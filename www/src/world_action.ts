@@ -485,11 +485,11 @@ class DestroyBlocks {
             }
         }
         // mega block
-        if(tblock.material.megablock) {
+        if(tblock.material.multiblock) {
             const destroyer = this
-            function destroyMegaBlock() : void {
+            function destroyMultiBlock() : void {
                 const del_mat = tblock.material
-                const bd = del_mat.megablock
+                const bd = del_mat.multiblock
                 const {x, y, z, w, h, d} = bd
                 const move = new Vector(0, 0, 0)
                 const shift = new Vector(0, 0, 0)
@@ -509,7 +509,7 @@ class DestroyBlocks {
                     }
                 }
             }
-            destroyMegaBlock()
+            destroyMultiBlock()
         }
         // Destroy connected blocks
         const part = tblock.material.previous_part
@@ -1018,7 +1018,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
     // 2. Destroy
     if(e.destroyBlock) {
         // 1. Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.destroyBlock ??= [removeFromPot, deletePortal, removeFurnitureUpholstery]) {
+        for(let func of FUNCS.destroyBlock ??= [removeFromPot, deletePortal, removeFurnitureUpholstery, removeSlopeUpholstery]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
@@ -1082,7 +1082,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
+        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone, setClayShingles]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 const affectedPos = (func === chSpawnMob) ? null : pos // мобы не меняют блок. И chSpawnMob также портит pos
                 return [actions, affectedPos]
@@ -1361,7 +1361,7 @@ function calcBlockOrientation(mat_block, rotate, n) {
 
 // Set action block
 function setActionBlock(actions, world, pos, orientation, mat_block, new_item) : boolean {
-    if(mat_block.megablock) {
+    if(mat_block.multiblock) {
         if (!Qubatch.is_server) {
             return false
         }
@@ -1407,9 +1407,9 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) :
         pushBlock(next_block);
     }
     //
-    if(mat_block.megablock) {
-        function makeMegaBlock() : void {
-            const {x, y, z, w, h, d} = mat_block.megablock
+    if(mat_block.multiblock) {
+        function makeMultiBlock() : void {
+            const {x, y, z, w, h, d} = mat_block.multiblock
             const move = new Vector(0, 0, 0)
             for(move.x = x; move.x < x + w; move.x++) {
                 for(move.y = y; move.y < y + h; move.y++) {
@@ -1431,7 +1431,7 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) :
             }
             new_item.extra_data.relindex = -1
         }
-        makeMegaBlock()
+        makeMultiBlock()
     }
     // Проверяем, что все блоки можем установить
     for(let pb of pushed_blocks) {
@@ -2931,6 +2931,24 @@ function prePlaceRail(world, pos, new_item, actions) {
     return RailShape.place(world, pos, new_item, actions);
 }
 
+function setClayShingles(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+    if(mat_block.tags.includes('clay_shingles')) {
+        if(['slope', '_stairs'].includes(world_material.style_name)) {
+            extra_data = extra_data || {}
+            extra_data.upholstery = mat_block.name
+            actions.addBlocks([{
+                pos:        new Vector(pos),
+                item:       {id: world_material.id, rotate, extra_data},
+                action_id:  BLOCK_ACTION.MODIFY
+            }])
+            actions.addPlaySound({tag: 'madcraft:block.wood', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]})
+            actions.decrement = true
+        }
+        return true
+    }
+    return false
+}
+
 // Set furniture upholstery
 function setFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(mat_block.tags.includes('wool')) {
@@ -2982,6 +3000,32 @@ function removeFurnitureUpholstery(e, world, pos, player, world_block, world_mat
         }
     }
     return false;
+}
+
+// Remove slope upholstery
+function removeSlopeUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+    if(world_material && ['slope', '_stairs'].includes(world_material.style_name)) {
+        if(extra_data?.upholstery) {
+            const drop_item = {
+                id: BLOCK.fromName(extra_data?.upholstery).id,
+                count: 1
+            };
+            delete(extra_data.upholstery)
+            if(Object.keys(extra_data).length == 0) {
+                extra_data = undefined
+            }
+            actions.addBlocks([{
+                pos:        new Vector(pos),
+                item:       {id: world_block.id, rotate, extra_data},
+                action_id:  BLOCK_ACTION.MODIFY
+            }]);
+            actions.addPlaySound({tag: 'madcraft:block.wood', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]})
+            // Create drop item
+            actions.addDropItem({pos: world_block.posworld.clone().addScalarSelf(.5, .5, .5), items: [drop_item], force: true})
+            return true
+        }
+    }
+    return false
 }
 
 function setPointedDripstone(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {

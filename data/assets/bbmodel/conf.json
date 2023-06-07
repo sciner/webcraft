@@ -2080,13 +2080,12 @@
                     {"type": "random_item", "name": "texture", "items": [{"url": "/media/demo/banner1.png"}, {"url": "/media/demo/banner2.png"}, {"url": "/media/demo/banner3.png"}]}
                 ]
             },
-            "megablock": {"x": -3, "y": 0, "z": 0, "w": 7, "h": 4, "d": 1},
+            "multiblock": {"x": -3, "y": 0, "z": 0, "w": 7, "h": 4, "d": 1},
             "bb": {
                 "import_anyway": true,
                 "behavior": "billboard",
                 "rotate": {"type": "cardinal_direction"},
                 "set_state": [
-                    {"name": "_", "when": {"!extra_data.relindex": -1}},
                     {"name": "default"}
                 ]
             }
@@ -2103,6 +2102,7 @@
                 "no_drop_ao"
             ],
             "aabb": [4, 0, 4, 12, 8, 12],
+            "multiblock": {"x": 0, "y": 0, "z": 0, "w": 1, "h": 3, "d": 1},
             "extra_data": {
                 "relindex": -1,
                 "calculated": [
@@ -2115,6 +2115,74 @@
                 "animated": {
                     "name": "idle"
                 }
+            }
+        },
+        {
+            "id": 3002,
+            "name": "ROOF_HOR",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "extra_data": {
+                "relindex": -1
+            },
+            "multiblock": {"x": 0, "y": 0, "z": 0, "w": 1, "h": 1, "d": 2},
+            "bb": {
+                "import_anyway": true,
+                "model": "roof2",
+                "rotate": {"type": "cardinal_direction"},
+                "set_state": [
+                    {"name": "hor"}
+                ]
+            }
+        },
+        {
+            "id": 3003,
+            "name": "ROOF_VER",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "extra_data": {
+                "relindex": -1
+            },
+            "multiblock": {"x": 0, "y": 0, "z": 0, "w": 1, "h": 2, "d": 1},
+            "bb": {
+                "import_anyway": true,
+                "model": "roof2",
+                "rotate": {"type": "cardinal_direction"},
+                "set_state": [
+                    {"name": "ver"}
+                ]
+            }
+        },
+        {
+            "id": 3004,
+            "name": "CLAY_SHINGLES",
+            "can_rotate": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "clay_shingles"
+            ],
+            "bb": {
+                "import_anyway": true,
+                "rotate": {"type": "cardinal_direction"},
+                "set_state": [
+                    {"name": "outer", "when": {"extra_data.outer": true}},
+                    {"name": "inner", "when": {"extra_data.inner": true}},
+                    {"name": "normal"}
+                ]
             }
         }
     ]

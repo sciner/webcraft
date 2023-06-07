@@ -1,7 +1,7 @@
 import {DIRECTION, IndexedColor, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import { CubeSym } from "../core/CubeSym.js";
-import type { BlockManager, FakeTBlock } from '../blocks.js';
+import { BlockManager, FakeTBlock } from '../blocks.js';
 import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
@@ -119,12 +119,48 @@ export default class style {
             }
         }
 
+        // calcs
+        const calcs = {
+            ne:              sides[0],
+            wn:              sides[1],
+            sw:              sides[2],
+            es:              sides[3],
+            top_parts_count: 0,
+            outer:           false,
+            inner:           false,
+            rotate:          new Vector()
+        }
+        calcs.top_parts_count = (calcs.ne?1:0) + (calcs.wn?1:0) + (calcs.sw?1:0) + (calcs.es?1:0)
+        calcs.inner = calcs.top_parts_count === 3
+        calcs.outer = calcs.top_parts_count === 1
+        if(calcs.outer || calcs.inner) {
+            calcs.rotate.x = 0
+            if(calcs.inner) {
+                if(!calcs.es) {
+                    calcs.rotate.x = DIRECTION.SOUTH
+                } else if(!calcs.sw) {
+                    calcs.rotate.x = DIRECTION.WEST
+                } else if(!calcs.ne) {
+                    calcs.rotate.x = DIRECTION.EAST
+                }
+            } else {
+                if(calcs.ne) {
+                    calcs.rotate.x = DIRECTION.WEST
+                } else if(calcs.wn) {
+                    calcs.rotate.x = DIRECTION.SOUTH
+                } else if(calcs.sw) {
+                    calcs.rotate.x = DIRECTION.EAST
+                }
+            }
+        }
+
         //
         const resp = {
-            on_ceil: on_ceil,
+            on_ceil,
             aabbs: aabbs,
             sides: sides,
             shapes: null,
+            ...calcs,
             getShapes(translate, expand_value) {
                 if(this.shapes) {
                     return this.shapes;
@@ -139,9 +175,9 @@ export default class style {
                 }
                 return this.shapes;
             }
-        };
+        }
 
-        return resp;
+        return resp
 
     }
 
@@ -166,19 +202,19 @@ export default class style {
         const c_south = style.block_manager.calcMaterialTexture(material, DIRECTION.SOUTH, width, height);
         const c_north = [...c_south];
 
-        const info = style.calculate(block, pos, neighbours);
+        const stairs_info = style.calculate(block, pos, neighbours);
 
         //
-        if(info.on_ceil) {
+        if(stairs_info.on_ceil) {
             c_south[1] -= c_south[3];
             c_north[1] -= c_north[3];
             c_up[3] *= -1;
         }
 
-        pushAABB(vertices, info.sides.BASE, pivot, matrix,
+        pushAABB(vertices, stairs_info.sides.BASE, pivot, matrix,
             {
                 up:     new AABBSideParams(c_up, 0, 0, null, null, false),
-                down:   new AABBSideParams([c_up[0], c_up[1], c_up[2], c_up[3] * (info.on_ceil ? 1 : -1)], 0, 0, null, null, false),
+                down:   new AABBSideParams([c_up[0], c_up[1], c_up[2], c_up[3] * (stairs_info.on_ceil ? 1 : -1)], 0, 0, null, null, false),
                 south:  new AABBSideParams(c_south, 0, 0, null, null, false),
                 north:  new AABBSideParams(c_north, 0, 0, null, null, false),
                 west:   new AABBSideParams(c_north, 0, 0, null, null, false),
@@ -194,7 +230,7 @@ export default class style {
         c_north[2]  /= 2;
         c_south[0]  -= .25 / TX_CNT;
         c_north[0]  -= .25 / TX_CNT;
-        if(info.on_ceil) {
+        if(stairs_info.on_ceil) {
             c_south[1] += .5 / TX_CNT;
             c_north[1] += .5 / TX_CNT;
         } else {
@@ -208,8 +244,8 @@ export default class style {
         const c_4 = [...c_south];
 
         // sw
-        if(info.sides[DIRECTION.SOUTH]) {
-            pushAABB(vertices, info.sides[DIRECTION.SOUTH], pivot, matrix,
+        if(stairs_info.sides[DIRECTION.SOUTH]) {
+            pushAABB(vertices, stairs_info.sides[DIRECTION.SOUTH], pivot, matrix,
                 {
                     up:     new AABBSideParams([c_up[0] - .25/TX_CNT, c_up[1] + .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
                     down:   new AABBSideParams([c_up[0] - .25/TX_CNT, c_up[1] - .25/TX_CNT, c_up[2], -c_up[3]], 0, 1, null, null, false),
@@ -224,8 +260,8 @@ export default class style {
 
 
         // se
-        if(info.sides[DIRECTION.EAST]) {
-            pushAABB(vertices, info.sides[DIRECTION.EAST], pivot, matrix,
+        if(stairs_info.sides[DIRECTION.EAST]) {
+            pushAABB(vertices, stairs_info.sides[DIRECTION.EAST], pivot, matrix,
                 {
                     up:     new AABBSideParams([c_up[0] + .25/TX_CNT, c_up[1] + .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
                     down:   new AABBSideParams([c_up[0] + .25/TX_CNT, c_up[1] - .25/TX_CNT, c_up[2], -c_up[3]], 0, 1, null, null, false),
@@ -239,8 +275,8 @@ export default class style {
         }
 
         // en
-        if(info.sides[DIRECTION.NORTH]) {
-            pushAABB(vertices, info.sides[DIRECTION.NORTH], pivot, matrix,
+        if(stairs_info.sides[DIRECTION.NORTH]) {
+            pushAABB(vertices, stairs_info.sides[DIRECTION.NORTH], pivot, matrix,
                 {
                     up:     new AABBSideParams([c_up[0] + .25/TX_CNT, c_up[1] - .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
                     down:   new AABBSideParams([c_up[0] + .25/TX_CNT, c_up[1] + .25/TX_CNT, c_up[2], -c_up[3]], 0, 1, null, null, false),
@@ -254,8 +290,8 @@ export default class style {
         }
 
         // nw
-        if(info.sides[DIRECTION.WEST]) {
-            pushAABB(vertices, info.sides[DIRECTION.WEST], pivot, matrix,
+        if(stairs_info.sides[DIRECTION.WEST]) {
+            pushAABB(vertices, stairs_info.sides[DIRECTION.WEST], pivot, matrix,
                 {
                     up:     new AABBSideParams([c_up[0] - .25/TX_CNT, c_up[1] - .25/TX_CNT, c_up[2], c_up[3]], 0, 1, null, null, false),
                     down:   new AABBSideParams([c_up[0] - .25/TX_CNT, c_up[1] + .25/TX_CNT, c_up[2], -c_up[3]], 0, 1, null, null, false),
@@ -268,6 +304,54 @@ export default class style {
             );
         }
 
+        if(stairs_info) {
+            const resp = style.drawUpholstery(block, stairs_info, x, y, z, pivot, matrix, biome, dirt_color)
+            if(resp) {
+                return resp
+            }
+        }
+
+    }
+
+    static drawUpholstery(block, stairs_info, x, y, z,  pivot, matrix, biome, dirt_color) : any {
+
+        const extra_data = block.extra_data
+        if(extra_data) {
+            const upholstery_block_name = extra_data.upholstery
+            if(upholstery_block_name) {
+                const upholstery_block = style.block_manager.fromName(upholstery_block_name)
+                if(upholstery_block) {
+                    let upholstery_extra_data = undefined
+                    const {outer, inner, rotate, on_ceil} = stairs_info
+                    const rot = new Vector().copyFrom(block.rotate)
+                    if(outer || inner) {
+                        upholstery_extra_data = {outer, inner}
+                        rot.copyFrom(rotate)
+                    }
+                    if(on_ceil) {
+                        if (inner || outer) {
+                            rot.x = (rot.x + 1) % 4;
+                        }
+                        //TODO: reverse ADD direction
+                        rot.x = CubeSym.add(CubeSym.ROT_Z2, rot.x);
+                        y += 1
+                    }
+                    const fb = new FakeTBlock(
+                        upholstery_block.id,
+                        upholstery_extra_data,
+                        new Vector(x, y, z),
+                        rot,
+                        pivot,
+                        matrix,
+                        undefined,
+                        biome,
+                        dirt_color
+                    )
+                    return [fb]
+                }
+            }
+        }
+        return null
     }
 
 }

@@ -1462,8 +1462,8 @@ export class BLOCK {
         /** Проверка что блок - препятствие. Она должна совпадать с проверкой в {@link PhysicsBlockAccessor.getObstacleAABBs} */
         if(!for_physic || (!material.passable && !material.planting)) {
 
-            if(material.megablock) {
-                const fbd = material.megablock
+            if(material.multiblock) {
+                const fbd = material.multiblock
                 const relindex = tblock.extra_data?.relindex
                 const move = relindex == -1 ? Vector.ZERO : relIndexToPos(relindex, new Vector())
                 const aabb = new AABB()
