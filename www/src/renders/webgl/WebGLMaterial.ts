@@ -66,7 +66,6 @@ export class WebGLMaterial extends BaseMaterial {
     }
 
     unbind() {
-        this.context.resetState();
     }
 
     getSubMat(texture = null) {

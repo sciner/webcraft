@@ -18,7 +18,6 @@ export class GLCubeDrawer extends ObjectDrawer {
 
         context.pixiRender.state.set(cube.state);
         gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
-        context.resetState();
         // stat
         context.stat.drawquads += 6;
         context.stat.drawcalls++;

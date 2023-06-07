@@ -71,7 +71,6 @@ export class WebGLLineShader extends BaseLineShader {
             this._material = null;
         }
         this.context._shader = null;
-        this.context.resetState();
     }
 
     update() {
