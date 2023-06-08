@@ -31,7 +31,7 @@ export default class style {
     static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
         // Add animations
         if(typeof QubatchChunkWorker != 'undefined') {
-            QubatchChunkWorker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['create_block_emitter', {
                 block_pos:  block.posworld,
                 pos:        [block.posworld.clone().addScalarSelf(.5, .5, .5)],
                 type:       'bubble_column',

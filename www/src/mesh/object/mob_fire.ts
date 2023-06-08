@@ -27,7 +27,7 @@ export class Mesh_Object_MobFire {
         const material      = BLOCK.fromName('FIRE');
         const texture       = material.texture;
         const c_fire        = BLOCK.calcTexture(texture, DIRECTION.EAST);
-        const flags         = QUAD_FLAGS.NO_CAN_TAKE_LIGHT | QUAD_FLAGS.NO_FOG | QUAD_FLAGS.FLAG_ANIMATED; // | QUAD_FLAGS.LOOK_AT_CAMERA_HOR;
+        const flags         = QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_NO_FOG | QUAD_FLAGS.FLAG_ANIMATED; // | QUAD_FLAGS.FLAG_LOOK_AT_CAMERA_HOR;
         const lm = IndexedColor.WHITE.clone();
         lm.b = BLOCK.getAnimations(material, "west");
 

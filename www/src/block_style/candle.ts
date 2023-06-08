@@ -57,7 +57,7 @@ export default class style {
         const active            = block?.extra_data?.active;
         const c_up_top          = style.block_manager.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
         const count             = Math.min(block.extra_data?.candles || 1, 4);
-        const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
+        const flag              = QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_NORMAL_UP;
 
         const candles = [
             [{mx: 0, mz: 0, height: 5}],
@@ -136,7 +136,7 @@ export default class style {
 
         // Animated block effects
         if(typeof QubatchChunkWorker != 'undefined') {
-            QubatchChunkWorker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['create_block_emitter', {
                 block_pos: block.posworld,
                 pos: wick_positions,
                 type: 'torch_flame'

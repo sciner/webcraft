@@ -26,7 +26,7 @@ export class DropItemManager {
     // Client side method
     init() {
         // On server message
-        this.#world.server.AddCmdListener([ServerClient.CMD_DROP_ITEM_ADDED, ServerClient.CMD_DROP_ITEM_UPDATE, ServerClient.CMD_DROP_ITEM_DELETED], (cmd) => {
+        this.#world.server.AddCmdListener([ServerClient.CMD_DROP_ITEM_ADDED, ServerClient.CMD_DROP_ITEM_UPDATE, ServerClient.CMD_DROP_ITEM_PICKED, ServerClient.CMD_DROP_ITEM_DELETED], (cmd) => {
             switch(cmd.name) {
                 case ServerClient.CMD_DROP_ITEM_ADDED: {
                     for(let drop_item of cmd.data) {
@@ -51,6 +51,13 @@ export class DropItemManager {
                         // Drop item not found
                     }
                     break;
+                }
+                case ServerClient.CMD_DROP_ITEM_PICKED: {
+                    const drop_item = this.list.get(cmd.data)
+                    if (drop_item) {
+                        drop_item.pickedByMe = true
+                    }
+                    break
                 }
                 case ServerClient.CMD_DROP_ITEM_DELETED: {
                     for(let drop_item_id of cmd.data) {

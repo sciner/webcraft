@@ -3,18 +3,8 @@ import { DEFAULT_TX_SIZE } from "../constant.js";
 import type { GameClass } from "../game.js";
 import { Vector } from "../helpers.js";
 import { Resources } from "../resources.js";
-import { BBModel_Compiler_Base } from "./compiler_base.js";
+import { FastCompiller } from "./compiler_base.js";
 import { BBModel_Model } from "./model.js";
-
-class FastCompiller extends BBModel_Compiler_Base {
-    [key: string]: any;
-
-    createTextureID() {
-        const resp = randomUUID()
-        return resp
-    }
-
-}
 
 export class BBModel_DropPaste {
     game: GameClass;

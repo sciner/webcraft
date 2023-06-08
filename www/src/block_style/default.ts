@@ -11,6 +11,8 @@ import type { ChunkWorkerChunk } from "../worker/chunk.js";
 const {mat4} = glMatrix;
 const _aabb = new AABB()
 const _pivot = new Vector(0, 0, 0)
+const _matrix = mat4.create()
+const _tex = [0, 0, 0, 0]
 
 // plane temp variables
 const _plane_aabb = new AABB();
@@ -73,6 +75,27 @@ export class QuadPlane implements IPlane {
     translate: Vector 
 }
 
+export class QuadPart {
+    size : IVector
+    pos : Vector
+    translate : IVector
+    matrix : imat4
+    aabb? : AABB
+    rot? : tupleFloat3
+    inflate? : float
+    flag? : int
+    _faces_compilled? : object
+    lm? : IndexedColor
+    faces : {
+        up?: any
+        down?: any
+        north?: any
+        west?: any
+        south?: any
+        east?: any
+    }
+}
+
 //
 export default class {
 
@@ -99,10 +122,10 @@ export default class {
         }
 
         // Matrix
-        let matrix = mat4.create();
+        mat4.identity(_matrix)
+        let matrix = _matrix
         if(plane.matrix) {
             matrix = mat4.multiply(matrix, matrix, plane.matrix);
-            // matrix = mat4.translate(matrix, matrix, [-.5, 0, -.5]);
         }
         if(plane.rot && !isNaN(plane.rot[0])) {
             if (plane.rot[2] != 0) {
@@ -120,20 +143,16 @@ export default class {
         const orig_tex = plane.texture;
 
         // UV
-        const uv = [orig_tex[0], orig_tex[1]];
-        const add_uv = [
-            -.5 + plane.uv[0]/TX_SIZE,
-            -.5 + plane.uv[1]/TX_SIZE
-        ];
-        uv[0] += add_uv[0];
-        uv[1] += add_uv[1];
+        const add_u = -.5 + plane.uv[0] / TX_SIZE
+        const add_v = -.5 + plane.uv[1] / TX_SIZE
 
         // Texture
-        const tex = [...orig_tex];
-        tex[0] += (add_uv[0] / TX_CNT);
-        tex[1] += (add_uv[1] / TX_CNT);
+        _tex[0] = orig_tex[0] + (add_u / TX_CNT)
+        _tex[1] = orig_tex[1] + (add_v / TX_CNT)
+        _tex[2] = orig_tex[2]
+        _tex[3] = orig_tex[3]
 
-        _plane_faces.west.set(tex,  plane.flag, plane?.lm?.b || 0, plane.lm, null, true)
+        _plane_faces.west.set(_tex,  plane.flag, plane?.lm?.b || 0, plane.lm, null, true)
 
         // Push vertices
         pushAABB(vertices, _plane_aabb, pivot, matrix, _plane_faces, plane.pos);
@@ -141,12 +160,13 @@ export default class {
     }
 
     //
-    static pushPART(vertices, part, pivot = null) {
+    static pushPART(vertices : float[], part : QuadPart, pivot = null) {
 
         const width = part.size.x / TX_SIZE;
         const height = part.size.y / TX_SIZE;
         const depth = part.size.z / TX_SIZE;
         const inflate = part.inflate ? (part.inflate / TX_SIZE) : 0
+        const part_flag = part.flag | 0
 
         // AABB
         // const aabb = new AABB();
@@ -215,7 +235,7 @@ export default class {
                     tex[3] = face.uv[3] / tx_size;
                 }
 
-                faces[k] = new AABBSideParams(tex, face.flag, anim, part.lm, null, face.autoUV)
+                faces[k] = new AABBSideParams(tex, face.flag | part_flag, anim, part.lm, null, face.autoUV)
 
             }
             part._faces_compilled = faces;

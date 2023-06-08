@@ -3,7 +3,7 @@ import { DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE } from "./constant.js";
 import { Vector, VectorCollector } from "./helpers.js";
 import { Lang } from "./lang.js";
 import type { Player } from "./player.js";
-import { ServerClient } from "./server_client.js";
+import { BLOCK_ACTION } from "./server_client.js";
 import type { TBlock } from "./typed_blocks3.js";
 import { TActionBlock, WorldAction } from "./world_action.js";
 
@@ -125,7 +125,7 @@ export class MechanismAssembler {
                                         if(tblock.extra_data?.mob_id) {
                                             mob_id = tblock.extra_data?.mob_id
                                         }
-                                        actions.addBlocks([{pos: pos.clone(), item, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
+                                        actions.addBlocks([{pos: pos.clone(), item, action_id: BLOCK_ACTION.MODIFY}])
                                     }
                                 }
                             }
@@ -222,7 +222,7 @@ export class MechanismAssembler {
                                                 }
                                             ])
                                         }
-                                        actions.addBlocks([{pos, item, action_id: ServerClient.BLOCK_ACTION_MODIFY} as TActionBlock])
+                                        actions.addBlocks([{pos, item, action_id: BLOCK_ACTION.MODIFY} as TActionBlock])
                                     }
                                 }
                                 delete(mob.extra_data.blocks)
@@ -248,7 +248,7 @@ export class MechanismAssembler {
                                                 ndb.extra_data.invisible = true
                                                 ndb.extra_data.in_mesh = true
                                             } else {
-                                                actions.addBlocks([{pos: pos.clone(), item: item_air, action_id: ServerClient.BLOCK_ACTION_REPLACE}])
+                                                actions.addBlocks([{pos: pos.clone(), item: item_air, action_id: BLOCK_ACTION.REPLACE}])
                                             }
                                             if(count++ > max_volume) {
                                                 throw `error_max_volume|${max_volume}`
@@ -283,7 +283,7 @@ export class MechanismAssembler {
                                 mob.getBrain().startRotation()
                             }
                         }
-                        actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate: world_block.rotate, extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY}])
+                        actions.addBlocks([{pos: new Vector(pos), item: {id: world_block.id, rotate: world_block.rotate, extra_data}, action_id: BLOCK_ACTION.MODIFY}])
                     } else {
                         actions.error = 'error_mob_not_found'
                     }

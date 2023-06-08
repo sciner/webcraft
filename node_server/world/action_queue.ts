@@ -4,11 +4,12 @@ import type {ServerWorld} from "../server_world.js";
 import type {ServerPlayer} from "../server_player.js";
 import type {TQueuedNetworkMessage} from "../network/packet_reader.js";
 import {PacketReader} from "../network/packet_reader.js";
+import type {Mob} from "../mob.js";
 
 const MAX_ACTIONS_QUEUE_PROCESSING_TIME_MS = 200
 
 type TQueuedAction = {
-    actor: ServerPlayer | null
+    actor: ServerPlayer | Mob | null
     actions: WorldAction
 }
 
@@ -32,7 +33,7 @@ export class WorldActionQueue {
 
     get length() { return this.list.length }
 
-    add(actor: ServerPlayer | null, actions: WorldAction): void {
+    add(actor: ServerPlayer | Mob | null, actions: WorldAction): void {
         if (this.runningNow) {
             this.childActions.push({actor, actions})
         } else {
@@ -40,7 +41,7 @@ export class WorldActionQueue {
         }
     }
 
-    addFirst(actor: ServerPlayer | null, actions: WorldAction): void {
+    addFirst(actor: ServerPlayer | Mob | null, actions: WorldAction): void {
         this.list.unshift({actor, actions});
     }
 
@@ -88,8 +89,8 @@ export class WorldActionQueue {
                 const item = actionOrMessage as TQueuedAction
 
                 // Check player is connected
-                const player_session = item.actor?.session;
-                if(player_session) {
+                const player_session = (item.actor as ServerPlayer)?.session;
+                if (player_session) { // если нет сессии - значит моб
                     const player = world.players.get(player_session.user_id);
                     if(!player) {
                         continue;

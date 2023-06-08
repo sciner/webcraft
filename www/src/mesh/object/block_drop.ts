@@ -40,6 +40,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     block_material:         IBlockMaterial      // Материал 0-го (видимого) предмета/блока
     minPickupTime:          number  // unixTime - минимальное время, когда мой игрок может его поднять
     deathTime:              number  // unixTime
+    pickedByMe              = false // если true, то предмет уже успешно поднят этим игроков
 
     constructor(world : World, gl, entity_id : string, items : (IInventoryItem | IBlockItem)[], pos : Vector, matrix?: float[], pivot? : Vector, use_cache : boolean = false) {
 
@@ -50,9 +51,14 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         const block = items[0]
         this.pn             = performance.now() + Math.random() * 2000 // рандом, чтобы одновременно сгенерированные дропы крутились не одинаково
         this.posFact        = this.pos.clone()
-        this.block          = new FakeTBlock(block.id)
+        this.block          = new FakeTBlock(block.id, block.extra_data)
         this.block_material = this.block.material
         this.items          = items
+
+        Object.assign(this, {
+            width: .1,
+            height: .25,
+        })
 
         // draw_style
         let draw_style = this.block_material?.inventory_style ?? this.block_material.style
@@ -92,19 +98,6 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
             // 2. Add couples block
             if(['fence', 'wall'].includes(this.block_material.style_name)) {
                 this.mesh_group.addBlock(Vector.XP, new FakeTBlock(block.id))
-            }
-
-            // 3. Add all block parts
-            if(!('inventory' in this.block_material)) {
-                let pos = new Vector(0, 0, 0)
-                let next_part = this.block.material.next_part
-                while(next_part) {
-                    const next = new FakeTBlock(next_part.id)
-                    pos = pos.add(next_part.offset_pos)
-                    this.mesh_group.addBlock(pos, next)
-                    next_part = next.material.next_part
-                    this.mesh_group.multipart = true
-                }
             }
 
             // 4. Finalize mesh group (recalculate aabb and find blocks neighbours)
@@ -154,7 +147,8 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         const target_pos = tmpTargetPos.copyFrom(player.lerpPos).addScalarSelf(0, .85, 0)
         const dist = this.pos.distance(target_pos)
 
-        const canPickup = player.game_mode.canPickupItems() &&
+        const canPickup = this.pickedByMe ||
+            player.game_mode.canPickupItems() &&
             dist < MAX_DIST_FOR_PICKUP &&           // это отсеит большинство предметов - проверим в начале
             unixTime() > this.minPickupTime &&      // мин. время для этого игрока (с учетом задержки для своих предметов)
             performance.now() - this.create_time > MAX_FLY_TIME &&
@@ -190,7 +184,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     }
 
     // Draw
-    draw(render : Renderer, delta : float) {
+    draw(render : Renderer, delta : float, draw_debug_grid : boolean = false) {
 
         if(this.now_draw || this.isDead()) {
             return false
@@ -255,6 +249,11 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
         // Draw mesh group
         this.drawBuffer(render, this.pos, _matrix_rot)
+
+        // Draw AABB wireframe
+        if(this.aabb && draw_debug_grid) {
+            this.aabb.draw(render, this.pos, delta, true /*this.raycasted*/ );
+        }
 
     }
 

@@ -23,7 +23,7 @@
         "./**/*"
     ],
     "exclude": [
-        "./data/building_schema/*.ts",
+        "../data/building_schema/*.ts",
         "./test.ts",
         "./test/test_ArrayHelpers.ts",
     ],

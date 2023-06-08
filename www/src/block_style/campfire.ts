@@ -59,7 +59,7 @@ export default class style {
 
         // Add animations
         if(active && typeof QubatchChunkWorker != 'undefined') {
-            QubatchChunkWorker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['create_block_emitter', {
                 block_pos:  block.posworld,
                 pos:        [block.posworld.clone().addScalarSelf(.5, .5, .5)],
                 type:       'campfire_flame'
@@ -104,7 +104,7 @@ export default class style {
         if(active) {
             const chains = [];
             const flame_animations = bm.getAnimations(block.material, 'up');
-            const flame_flags = QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.NO_AO; // | QUAD_FLAGS.FLAG_LEAVES;
+            const flame_flags = QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.FLAG_NO_AO; // | QUAD_FLAGS.FLAG_LEAVES;
             chains.push({
                 pos: pos,
                 width: 1,
@@ -172,12 +172,12 @@ export default class style {
                 pivot,
                 item.matrix,
                 {
-                    up:     new AABBSideParams(c_planks_side, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
-                    down:   new AABBSideParams(c_planks_side, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
-                    south:  new AABBSideParams(c_planks_side, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
-                    north:  new AABBSideParams(c_planks_side, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
-                    west:   new AABBSideParams(c_planks_ends, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
-                    east:   new AABBSideParams(c_planks_ends, QUAD_FLAGS.NO_CAN_TAKE_AO, 1, null, null, true),
+                    up:     new AABBSideParams(c_planks_side, QUAD_FLAGS.FLAG_NO_CAN_TAKE_AO, 1, null, null, true),
+                    down:   new AABBSideParams(c_planks_side, QUAD_FLAGS.FLAG_NO_CAN_TAKE_AO, 1, null, null, true),
+                    south:  new AABBSideParams(c_planks_side, QUAD_FLAGS.FLAG_NO_CAN_TAKE_AO, 1, null, null, true),
+                    north:  new AABBSideParams(c_planks_side, QUAD_FLAGS.FLAG_NO_CAN_TAKE_AO, 1, null, null, true),
+                    west:   new AABBSideParams(c_planks_ends, QUAD_FLAGS.FLAG_NO_CAN_TAKE_AO, 1, null, null, true),
+                    east:   new AABBSideParams(c_planks_ends, QUAD_FLAGS.FLAG_NO_CAN_TAKE_AO, 1, null, null, true),
                 },
                 pos
             );

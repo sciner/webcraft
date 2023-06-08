@@ -14,7 +14,7 @@ const _ppos         = new Vector(0, 0, 0);
 const _next_pos     = new Vector(0, 0, 0);
 const _block_pos    = new Vector(0, 0, 0);
 
-export const PARTICLE_FLAG_BOUNCE_CEILING = QUAD_FLAGS.NEXT_UNUSED_FLAG;
+export const PARTICLE_FLAG_BOUNCE_CEILING = QUAD_FLAGS.NEXT_UNUSED;
 
 /**
  * The basic particle of the effect with the implementation of physics
@@ -51,7 +51,7 @@ export class Mesh_Effect_Particle {
         this.pp             = args.pp ?? 0;
         this.force_flags    = args.force_flags ?? 0;
         // flags may contain QUAD_FLAGS or PARTICLE_FLAG_*** constants
-        this.flags          = (args.flags ?? 0) | QUAD_FLAGS.NO_AO;
+        this.flags          = (args.flags ?? 0) | QUAD_FLAGS.FLAG_NO_AO;
         this.material_key   = args.material_key;
         this.texture        = args.texture;
 
@@ -129,7 +129,7 @@ export class Mesh_Effect_Particle {
                 this.shapes = [];
                 const tblock = Qubatch.world.getBlock(this.block_pos);
                 if(tblock && tblock.id > 0) {
-                    const shapes = BLOCK.getShapes(this.block_pos, tblock, Qubatch.world, true, false);
+                    const shapes = BLOCK.getShapes(tblock, Qubatch.world, true, false);
                     for(let j = 0 ; j < shapes.length; j++) {
                         aabb.fromArray(shapes[j]).translate(this.block_pos.x, this.block_pos.y, this.block_pos.z);
                         aabb.toArray(shapes[j]);

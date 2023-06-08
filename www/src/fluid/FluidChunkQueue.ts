@@ -11,7 +11,7 @@ import {SingleQueue} from "../light/MultiQueue.js";
 import {AABB} from "../core/AABB.js";
 import {WorldAction} from "../world_action.js";
 import {Vector} from "../helpers.js";
-import {ServerClient} from "../server_client.js";
+import { BLOCK_ACTION } from "../server_client.js";
 import type { FluidChunk } from "./FluidChunk.js";
 import type { FluidWorld } from "./FluidWorld.js";
 
@@ -790,7 +790,7 @@ export class FluidChunkQueue {
             tmp /= outerSize.z;
             let y = tmp;
             const pos = new Vector(x, y, z).addSelf(chunk_coord);
-            actions.addBlocks([{pos, item: {id: block_id}, action_id: ServerClient.BLOCK_ACTION_CREATE}]);
+            actions.addBlocks([{pos, item: {id: block_id}, action_id: BLOCK_ACTION.CREATE}]);
         }
         world.actions_queue.add(null, actions);
     }
@@ -801,4 +801,5 @@ export class FluidChunkQueue {
         }
         this.fluidChunk.queue = null;
     }
+
 }

@@ -1,6 +1,6 @@
 import { Vector } from "@client/helpers.js";
 import { CHUNK_STATE } from "@client/chunk_const.js";
-import { ServerClient } from "@client/server_client.js";
+import { BLOCK_ACTION } from "@client/server_client.js";
 import { WorldChunkFlags } from "./WorldChunkFlags.js";
 import { STABLE_WORLD_MODIFY_CHUNKS_TTL, STABLE_WORLD_MODIFY_CHUNKLESS_TTL, CLEANUP_WORLD_MODIFY_PER_TRANSACTION
     } from "../../server_constant.js";
@@ -161,7 +161,7 @@ export class ChunkDBActor {
         }
         // process params
         index = index ?? this.world.chunks.grid.math.worldPosToChunkIndex(tmpVector.copyFrom(data.pos));
-        state = state ?? (data.action_id === ServerClient.BLOCK_ACTION_MODIFY
+        state = state ?? (data.action_id === BLOCK_ACTION.MODIFY
             ? BLOCK_DIRTY.UPDATE : BLOCK_DIRTY.INSERT);
 
         const entry = this.dirtyBlocks.get(index);

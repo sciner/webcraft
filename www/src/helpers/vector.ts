@@ -2,9 +2,12 @@ import {CubeSym} from "../core/CubeSym.js";
 import {Mth} from "./mth.js";
 import { DIRECTION } from "./helper_const.js";
 
+const RELINDEX_MARGIN = 32
+
 export class Vector implements IVector {
     // static cnt = 0;
     // static traces = new Map();
+    n?: Vector
 
     static XN = new Vector(-1.0, 0.0, 0.0);
     static XP = new Vector(1.0, 0.0, 0.0);
@@ -523,7 +526,7 @@ export class Vector implements IVector {
         return volx * voly * volz;
     }
 
-    copy(from: Vector | number[] | IVector) {
+    copy(from: Vector | number[] | IVector) : this {
         if (from == null) {
             return this;
         }
@@ -708,4 +711,24 @@ export class Vector4 {
         this.width = width;
         this.height = height;
     }
+}
+
+export function relPosToIndex(vec : Vector) : int {
+    const mg : int = RELINDEX_MARGIN
+    const sz : int = mg * 2 + 1
+    let {x, y, z} = vec
+    x += mg
+    z += mg
+    return sz * (sz * y + z) + x
+}
+
+export function relIndexToPos(index : int, out : Vector) : Vector {
+    const mg : int = RELINDEX_MARGIN
+    const sz : int = mg * 2 + 1
+    out.x = index % sz
+    out.y = index / (sz * sz) | 0
+    out.z = (index % (sz * sz) - out.x) / sz
+    out.x -= mg
+    out.z -= mg
+    return out
 }

@@ -1,4 +1,4 @@
-import { IndexedColor, Vector } from '../../helpers.js';
+import { IndexedColor, QUAD_FLAGS, Vector } from '../../helpers.js';
 import GeometryTerrain from '../../geometry_terrain.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { Mesh_Object_Base } from './base.js';
@@ -10,6 +10,25 @@ import { BBModel_Group } from '../../bbmodel/group.js';
 import type Mesh_Object_Block_Drop from './block_drop.js';
 import type { Renderer } from '../../render.js';
 import { Mesh_Object_Asteroid } from './asteroid.js';
+import { BLOCK, DBItemBlock } from '../../blocks.js';
+import { BBModel_Cube } from '../../bbmodel/cube.js';
+import { default as default_style } from '../../block_style/default.js';
+import type { WebGLMaterial } from '../../renders/webgl/WebGLMaterial.js';
+
+export class MeshObjectCustomReplace {
+    buffer: GeometryTerrain
+    gl_material: WebGLMaterial
+
+    constructor(buffer : GeometryTerrain, gl_material : WebGLMaterial) {
+        this.buffer = buffer
+        this.gl_material = gl_material
+    }
+
+    destroy() {
+        this.buffer.destroy()
+    }
+
+}
 
 declare type IGroupModifiers = {
     append:             MeshObjectModifyAppend[],
@@ -36,10 +55,10 @@ class MeshObjectModifyAppend {
 }
 
 class MeshObjectModifyReplaceWithMesh {
-    mesh : Mesh_Object_Block_Drop
+    mesh : Mesh_Object_Block_Drop | MeshObjectCustomReplace
     matrix : imat4
 
-    constructor(mesh : Mesh_Object_Block_Drop, matrix : imat4) {
+    constructor(mesh : Mesh_Object_Block_Drop | MeshObjectCustomReplace, matrix : imat4) {
         this.mesh = mesh
         this.matrix = matrix
     }
@@ -125,7 +144,7 @@ class MeshObjectModifiers {
 
     }
 
-    replaceGroupWithMesh(group_name : string, mesh : Mesh_Object_Block_Drop, matrix : imat4) {
+    replaceGroupWithMesh(group_name : string, mesh : Mesh_Object_Block_Drop | MeshObjectCustomReplace, matrix : imat4) {
 
         if(!this.mesh.model.groups.get(group_name)) {
             return null
@@ -199,6 +218,12 @@ class MeshObjectModifiers {
         return true
     }
 
+    hideGroups(hide_groups: string[]) {
+        for(let name of hide_groups) {
+            this.hideGroup(name)
+        }
+    }
+
     showGroup(group_name : string) : void {
         for(let list of [this.hide_list, this.mesh.hide_groups]) {
             const index = list.indexOf(group_name)
@@ -245,7 +270,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
     vertices_pushed:    Map<string, boolean> = new Map()
     resource_pack:      BaseResourcePack
     modifiers:          MeshObjectModifiers
-    hide_groups:        string[] = []
+    hide_groups:        string[]
     render:             Renderer
     /** Время в секундах, когда измеился тип анимации. Не учитывает изменения скорости и направления. */
     animation_changed:  float | null = null
@@ -254,14 +279,17 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
     trans_animations:   {start : float, duration : float, all: Map<string, {group: BBModel_Group, list: Map<string, Vector>}>} | null = null
     start_time:         float
     chunk:              any
+    item_block?:        DBItemBlock
     apos:               Vector
     chunk_addr:         Vector
     chunk_coord:        Vector
     parsed_animation?:  TParsedAnimation | null
     animation_name_o?:  string | null
+
+    private rotation_matrix?: imat4
     private _block_drawer: Mesh_Object_Asteroid
 
-    constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false) {
+    constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false, rotation_matrix?: imat4, hide_groups?: string[], item_block? : DBItemBlock) {
         super(undefined)
 
         this.model = model
@@ -277,6 +305,13 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         }
 
         this.rotation.set(rotate.toArray())
+        if(rotation_matrix) {
+            this.rotation_matrix = rotation_matrix
+            // } else {
+            // const mx = mat4.create();
+            // mat4.rotateY(mx, mx, this.rotation[2])
+            // this.rotation_matrix = mx
+        }
 
         this.render         = render
         this.life           = 1.0;
@@ -291,9 +326,11 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${doubleface ? 'doubleface' : 'regular'}/terrain/${model.json._properties.texture_id}`);
         this.buffer         = new GeometryTerrain(this.vertices)
         this.modifiers      = new MeshObjectModifiers(this)
-        this.redraw(0.);
+        this.hide_groups    = hide_groups ?? []
+        this.item_block     = item_block
 
-        this.setAnimation(animation_name);
+        this.redraw(0.)
+        this.setAnimation(animation_name)
 
     }
 
@@ -315,8 +352,14 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
 
     redraw(delta: float) {
         this.vertices = []
-        const mx = mat4.create();
-        mat4.rotateY(mx, mx, this.rotation[2]);
+        let mx = this.rotation_matrix
+        if(!mx) {
+            mx = mat4.create();
+            mat4.rotateY(mx, mx, this.rotation[2])
+        }
+        //
+        this.model.resetBehaviorChanges()
+        this.modifiers.hideGroups(this.hide_groups)
         this.model.playAnimation(this.parsed_animation, (this.start_time + performance.now()) / 1000, this)
         this.model.draw(this.vertices, vecZero, lm, mx);
         this.buffer.updateInternal(this.vertices);
@@ -360,7 +403,11 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         if(!m) {
             m = mat4.create()
             mat4.copy(m, this.matrix)
-            mat4.rotateY(m, m, this.rotation[2])
+            if(this.rotation_matrix) {
+                mat4.mul(m, m, this.rotation_matrix)
+            } else {
+                mat4.rotateY(m, m, this.rotation[2])
+            }
         }
 
         if(pos) {
@@ -382,23 +429,58 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
                 start: this.animation_changed
             }
             this.prev_animations = new Map()
-            this.animation_changed = performance.now() / 1000
+            this.animation_changed = null
             this.start_time = performance.now()
             // if(this.model.name == 'mob/humanoid') {
             //     console.log('anim changed', this.animation_name)
             // }
         }
 
+        if(this.item_block) {
+            const mesh = this
+            const {item_block, model} = this
+            const material = BLOCK.BLOCK_BY_ID[item_block.id]
+            if(material.bb.behavior == 'billboard' && item_block.extra_data.texture) {
+                const group = model.groups.get('display')
+                const cube = group?.children[0]
+                if(cube && cube instanceof BBModel_Cube) {
+                    // cube.flag |= QUAD_FLAGS.FLAG_ENCHANTED_ANIMATION | QUAD_FLAGS.FLAG_LEAVES | QUAD_FLAGS.FLAG_LOOK_AT_CAMERA
+                    // create callback for cube
+                    cube.callback = (part) : boolean => {
+                        const extra_data = item_block.extra_data ?? {}
+                        if(extra_data.texture?.url) {
+                            if(extra_data.texture?.uv) {
+                                const verts = []
+                                const {material_key, uv, tx_size} = extra_data.texture
+                                for(const fk in part.faces) {
+                                    const face = part.faces[fk]
+                                    face.tx_size = tx_size
+                                    face.uv = [...uv]
+                                }
+                                default_style.pushPART(verts, part, Vector.ZERO)
+                                const buffer = new GeometryTerrain(verts)
+                                const gl_material = material.resource_pack.getMaterial(material_key)
+                                const replace_mesh = new MeshObjectCustomReplace(buffer, gl_material)
+                                mesh.modifiers.replaceGroupWithMesh(group.name, replace_mesh as any, mat4.create())
+                                return true
+                            }
+                        }
+                        return false
+                    }
+                }
+            }
+        }
+
         this.model.playAnimation(this.animation_name, (performance.now() - this.start_time) / 1000, this)
         this.model.drawBuffered(render, this, this.apos, lm, m)
-        this.animation_changed = null
+
     }
 
-    applyRotate() {
-        this.matrix = mat4.create()
-        const z = this.rotation[2]
-        mat4.rotateZ(this.matrix, this.matrix, z)
-    }
+    // applyRotate() {
+    //     this.matrix = mat4.create()
+    //     const z = this.rotation[2]
+    //     mat4.rotateZ(this.matrix, this.matrix, z)
+    // }
 
     destroy() {
         this.buffer.destroy()

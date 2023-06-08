@@ -1,4 +1,4 @@
-import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar, IndexedColor, ArrayHelpers } from './helpers.js';
+import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar, IndexedColor, ArrayHelpers, ObjectHelpers, relIndexToPos } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
@@ -10,6 +10,7 @@ import type { World } from "./world.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
 import { MASK_SRC_AO, MASK_SRC_BLOCK, MASK_SRC_DAYLIGHT, MASK_SRC_NONE } from './worker-light/LightConst.js';
 import { MASK_SRC_FILTER } from './worker-light/LightConst.js';
+import {AABB} from "./core/AABB.js";
 
 export const TRANS_TEX                      = [4, 12]
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64
@@ -20,10 +21,19 @@ export const BLOCK_DB_PROPS                 = ['power', 'entity_id', 'extra_data
 export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'extra_data']
 export const NO_DESTRUCTABLE_BLOCKS         = ['BEDROCK', 'STILL_WATER']
 export const DIRT_BLOCK_NAMES               = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET']
+export const OK_FOR_PLANT_BLOCK_NAMES       = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET']
 export const LAYERING_MOVE_TO_DOWN_STYLES   = ['grass', 'tall_grass', 'wildflowers']
 
 export const AIR_BLOCK_SIMPLE = Object.freeze({id: 0})
 const AIR_BLOCK_STRINGIFIED = '{"id":0}' // JSON.stringify(AIR_BLOCK_SIMPLE)
+
+const props_name = {}
+    props_name[DIRECTION.UP]      = 'up'
+    props_name[DIRECTION.DOWN]    = 'down'
+    props_name[DIRECTION.LEFT]    = 'west'
+    props_name[DIRECTION.RIGHT]   = 'east'
+    props_name[DIRECTION.FORWARD] = 'north'
+    props_name[DIRECTION.BACK]    = 'south'
 
 export enum BLOCK_SAME_PROPERTY {
     EXTRA_DATA = 1,
@@ -66,29 +76,36 @@ export let NEIGHB_BY_SYM = {};
 // texture (array | function)   - ?
 // transparent (bool)           - Not cube
 
+/**
+ * Поля блока, существующие в чанке и в БД.
+ * Ожидается что во время игры содержит только такие поля:
+ *   id: int
+ *   extra_data?  : Dict
+ *   rotate?      : Vector
+ *   entity_id?   : string
+ * Временно (при чтении схематик) может содержать другие.
+ * Поля кроме id не нужно объявлять из-за снижения производительности.
+ */
 export class DBItemBlock {
     [key: string]: any;
     id: int
-    // extra_data?  : any
+    // extra_data?  : Dict
     // rotate?      : Vector
     // waterlogged? : boolean
     // entity_id?   : string
     // power?       : float
 
-    constructor(id : int, extra_data? : any) {
+    constructor(id : int, extra_data? : Dict) {
         this.id = id
         if(extra_data) {
             this.extra_data = null
         }
     }
 
-    /**
-     * @return {DBItemBlock}
-     */
-    static cloneFrom(block: { [x: string]: any }): DBItemBlock {
+    static cloneFrom(block: Dict): DBItemBlock {
         const result = new DBItemBlock(block.id)
         for(let k in block)  {
-            result[k] = block[k]
+            result[k] = ObjectHelpers.deepClone(block[k])
         }
         return result
     }
@@ -115,18 +132,27 @@ export class FakeVertices {
 
 //
 export class FakeTBlock {
-    [key: string]: any;
+    id:             int
+    extra_data:     any
+    pos?:           Vector
+    rotate?:        Vector
+    pivot?:         Vector
+    matrix?:        imat4
+    tags?:          string[]
+    biome?:         any
+    dirt_color?:    IndexedColor
+    tb?:            any
 
-    constructor(id : int, extra_data? : any, pos?, rotate?, pivot?, matrix?, tags?, biome?, dirt_color? : IndexedColor) {
-        this.id = id;
-        this.extra_data = extra_data;
-        this.pos = pos;
-        this.rotate = rotate;
-        this.pivot = pivot;
-        this.matrix = matrix;
-        this.tags = tags;
-        this.biome = biome;
-        this.dirt_color = dirt_color;
+    constructor(id : int, extra_data? : any, pos? : Vector, rotate? : Vector, pivot?, matrix? : imat4, tags? : string[], biome? : any, dirt_color? : IndexedColor) {
+        this.id         = id
+        this.extra_data = extra_data
+        this.pos        = pos
+        this.rotate     = rotate
+        this.pivot      = pivot
+        this.matrix     = matrix
+        this.tags       = tags
+        this.biome      = biome
+        this.dirt_color = dirt_color
     }
 
     getCardinalDirection() : int {
@@ -174,6 +200,7 @@ class Block_Material implements IBlockMiningMaterial {
 
     id: string
     mining: any
+    float?: boolean // если true, то не тонет в воде
 
     static materials = {
         data: null,
@@ -250,7 +277,7 @@ export class BLOCK {
 
     static settings : TBlocksSettings       = null
 
-    static MAX_BLOCK_ID                     = 2048
+    static MAX_BLOCK_ID                     = 9999
 
     static list                             = new Map();
     static styles                           = new Map();
@@ -332,7 +359,7 @@ export class BLOCK {
             return MASK_SRC_NONE
         }
         let val = MASK_SRC_NONE
-        if (material.is_water) {
+        if (material.is_water /*|| material.layering?.slab*/) {
             return MASK_SRC_FILTER
         } else if(material.light_power) {
             let power = material.light_power.a;
@@ -445,7 +472,7 @@ export class BLOCK {
      * Combined old {@link convertItemToDBItem} and checks from old DBWorld.blockSet.
      * Specifically for blocks: expects that {@link item} may be TBlock, doesn't return count, optimization for AIR.
      */
-    static convertBlockToDBItem(item) {
+    static convertBlockToDBItem(item: Dict | null): DBItemBlock | null {
         if(item && item instanceof DBItemBlock) {
             return item
         }
@@ -459,7 +486,7 @@ export class BLOCK {
             // First check the material, then access potentially slow tblock.rotate.
             if (this.fromId(resp.id).can_rotate) {
                 v = item.rotate;
-                if (v !== null && v !== undefined) {
+                if (v != null) {
                     resp.rotate = v;
                 }
             }
@@ -471,18 +498,12 @@ export class BLOCK {
             if (v) {
                 resp.extra_data = v;
             }
-            // Power in blocks is never used and not fully supported, e.g. it's lost in the old DBWorld.updateChunks.
-            // TODO either use and fully support, or remove it.
-            v = item.power;
-            if (v) {
-                resp.power = v;
-            }
         }
         return resp;
     }
 
     // Return new simplified item
-    static convertItemToInventoryItem(item, b?, no_copy_extra_data : boolean = false) : IInventoryItem {
+    static convertItemToInventoryItem(item? : DBItemBlock, b?, no_copy_extra_data : boolean = false) : IInventoryItem {
         if(!item || !('id' in item) || item.id < 0) {
             return null;
         }
@@ -521,18 +542,18 @@ export class BLOCK {
     }
 
     // Call before setBlock
-    static makeExtraData(block, pos : IVectorPoint, orientation : IVector, world) {
+    static makeExtraData(block : IBlockMaterial, pos : IVectorPoint, orientation : IVector, world) {
         block = BLOCK.BLOCK_BY_ID[block.id];
         const is_trapdoor = block.tags.includes('trapdoor');
         const is_stairs = block.tags.includes('stairs');
         const is_door = block.tags.includes('door');
         const is_slab = block.is_layering && block.layering.slab;
         //
-        let extra_data = null;
-        const setExtra = (k, v) => {
-            extra_data = extra_data || {};
-            extra_data[k] = v;
-        };
+        let extra_data = null
+        const setExtra = (k : string, v : any) => {
+            extra_data = extra_data || {}
+            extra_data[k] = v
+        }
         //
         if(orientation.y == 1 && pos.point) {
             pos.point.y = 0;
@@ -609,7 +630,7 @@ export class BLOCK {
     }
 
     // Execute calculated extra_data fields
-    static calculateExtraData(extra_data, pos : IVector) {
+    static calculateExtraData(extra_data : any, pos : IVector) {
         if('calculated' in extra_data) {
             const calculated = extra_data.calculated;
             delete(extra_data.calculated);
@@ -735,16 +756,12 @@ export class BLOCK {
     }
 
     //
-    static getBlockStyleGroup(block) : string {
+    static getBlockStyleGroup(block : IBlockMaterial) : string {
         let group = 'regular';
-        if('group' in block) return block.group;
+        if(block.group) return block.group
         // make vertices array
         if (block.is_fluid) {
-            if (block.is_water) {
-                group = 'doubleface_transparent';
-            } else {
-                group = 'doubleface';
-            }
+            group = block.is_water ? 'doubleface_transparent' : 'doubleface'
         } else if((block.tags.includes('alpha')) || ['thin'].includes(block.style_name)) {
             // если это блок воды или облако
             group = 'doubleface_transparent';
@@ -772,7 +789,7 @@ export class BLOCK {
     }
 
     // parse block transparent
-    static parseBlockTransparent(block) : boolean {
+    static parseBlockTransparent(block : IBlockMaterial) : boolean {
         let transparent = block.hasOwnProperty('transparent') && !!block.transparent;
         if(block.style_name && block.style_name == 'stairs') {
             transparent = true;
@@ -808,10 +825,9 @@ export class BLOCK {
     }
 
     /**
-     * @param {int} block_id
-     * @returns {number} non-zero if it's solid, 0 otherwise
+     * @returns non-zero if it's solid, 0 otherwise
      */
-    static isSolidID(block_id: number): number {
+    static isSolidID(block_id: int): number {
         if(block_id <= 0) return 0 // I'm not sure if this check makes it fatser or slower
         return this.flags[block_id] & BLOCK_FLAG.SOLID
     }
@@ -844,9 +860,12 @@ export class BLOCK {
             }
         }
 
+        if(!existing_block && !block.style_name) {
+            block.style_name = block.style
+        }
+
         if(existing_block) {
             if(replace_block) {
-                // const existingBehavior = existing_block.bb?.behavior ?? existing_block.style
                 this.flags[existing_block.id] = 0 // clear the old block flags; the new block might not have them
                 for(let prop_name in existing_block) {
 
@@ -861,9 +880,6 @@ export class BLOCK {
                         block[prop_name] = prop_value
                     }
                 }
-                // if (block.bb) {
-                //     block.bb.behavior = existingBehavior
-                // }
             } else {
                 console.error('Duplicate block id ', block.id, block)
             }
@@ -909,7 +925,7 @@ export class BLOCK {
         }
         //
         block.has_window        = !!block.window;
-        block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : POWER_NO;
+        block.power             = block.power ?? POWER_NO;
         block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
         block.draw_only_down    = block.tags.includes('draw_only_down');
@@ -919,6 +935,7 @@ export class BLOCK {
         block.is_jukebox        = block.tags.includes('jukebox');
         block.is_mushroom_block = block.tags.includes('mushroom_block');
         block.is_button         = block.tags.includes('button');
+        block.is_powered        = block.extra_data && ('powered' in block.extra_data)
         block.is_sapling        = block.tags.includes('sapling');
         block.is_battery        = ['car_battery'].includes(block?.item?.name);
         block.is_layering       = !!block.layering
@@ -1127,27 +1144,28 @@ export class BLOCK {
         return resp
     }
 
-    static invisibleForCam(block) : boolean {
+    static invisibleForCam(block : IBlockMaterial) : boolean {
         return  block.is_portal ||
                 (block.passable > 0) ||
+                (block.tags.includes('invisible_for_cam')) ||
                 (block.material.id == 'plant' && (block.style_name == 'planting' || block.planting)) ||
                 (block.style_name == 'ladder') ||
                 (block?.material?.id == 'glass')
     }
 
     // Return true if block can intaract with hand
-    static canInteractWithHand(block) {
+    static canInteractWithHand(block : IBlockMaterial) : boolean {
         return block.tags.includes('door') ||
             block.tags.includes('trapdoor') ||
             block.tags.includes('pot') ||
             block.is_button ||
             block.is_jukebox ||
-            block.window ||
+            !!block.window ||
             ['stool', 'chair'].includes(block.style_name);
     }
 
     // Make material key
-    static makeBlockMaterialKey(resource_pack, material) {
+    static makeBlockMaterialKey(resource_pack : BaseResourcePack, material : IBlockMaterial) {
         let mat_group = material.group;
         let texture_id = 'default';
         let mat_shader = 'terrain';
@@ -1158,29 +1176,29 @@ export class BLOCK {
     }
 
     //
-    static canTakeShadow(mat) {
-        if(mat.id < 1 || !mat) {
+    static canTakeShadow(block : IBlockMaterial) {
+        if(block.id < 1 || !block) {
             return false;
         }
-        const is_layering = mat.is_layering
-        const is_bed = mat.style_name == 'bed'
-        const is_dirt = mat.tags.includes('dirt')
-        if(mat?.transparent && !is_layering && !is_bed && !is_dirt) {
+        const is_layering = block.is_layering
+        const is_bed = block.style_name == 'bed'
+        const is_dirt = block.tags.includes('dirt')
+        if(block?.transparent && !is_layering && !is_bed && !is_dirt) {
             return false;
         }
         return true;
     }
 
     // Return tx_cnt from resource pack texture
-    static calcTxCnt(material) {
+    static calcTxCnt(block : IBlockMaterial) {
         let tx_cnt = TX_CNT;
-        if (typeof material.texture === 'object' && 'id' in material.texture) {
-            let tex = material.resource_pack.conf.textures[material.texture.id];
+        if (typeof block.texture === 'object' && 'id' in block.texture) {
+            let tex = block.resource_pack.conf.textures[block.texture.id];
             if(tex && 'tx_cnt' in tex) {
                 tx_cnt = tex.tx_cnt;
             }
         } else {
-            let tex = material.resource_pack.conf.textures['default'];
+            let tex = block.resource_pack.conf.textures['default'];
             if(tex && 'tx_cnt' in tex) {
                 tx_cnt = tex.tx_cnt;
             }
@@ -1199,10 +1217,10 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
-    static calcMaterialTexture(material, dir : int | string, width? : int, height ? : int, block? : any, force_tex? : any, random_double? : float, overlay_name?: string) : tupleFloat4 {
+    static calcMaterialTexture(material : IBlockMaterial, dir : int | string, width? : int, height ? : int, block? : any, force_tex? : any, random_double? : float, overlay_name?: string) : tupleFloat4 {
 
-        let mat_texture = material?.texture
-        if(material?.texture_variants && (random_double != undefined)) {
+        let mat_texture = material.texture
+        if(material.texture_variants && (random_double != undefined)) {
             mat_texture = material.texture_variants[Math.floor(material.texture_variants.length * random_double)]
         }
         if(overlay_name && material?.texture_overlays) {
@@ -1295,21 +1313,9 @@ export class BLOCK {
         } else if(c instanceof Function) {
             c = c(dir);
         } else if (typeof c === 'object' && c !== null) {
-            let prop = null;
-            switch(dir) {
-                case DIRECTION.UP: {prop = 'up'; break;}
-                case DIRECTION.DOWN: {prop = 'down'; break;}
-                case DIRECTION.LEFT: {prop = 'west'; break;}
-                case DIRECTION.RIGHT: {prop = 'east'; break;}
-                case DIRECTION.FORWARD: {prop = 'north'; break;}
-                case DIRECTION.BACK: {prop = 'south'; break;}
-                default: {prop = dir;}
-            }
-            if(c.hasOwnProperty(prop)) {
-                c = c[prop];
-            } else if(c.hasOwnProperty('side')) {
-                c = c.side;
-            } else {
+            const prop = props_name[dir] ?? dir
+            c = c[prop] ?? c['side']
+            if(!c) {
                 throw 'Invalid texture prop `' + prop + '`';
             }
         }
@@ -1353,8 +1359,8 @@ export class BLOCK {
     }
 
     //
-    static registerStyle(style) {
-        const reg_info = style.getRegInfo(BLOCK);
+    static registerStyle(style : any) {
+        const reg_info = style.getRegInfo(BLOCK)
         for(let style of reg_info.styles) {
             BLOCK.styles.set(style, reg_info);
         }
@@ -1384,48 +1390,47 @@ export class BLOCK {
         return ROTATE.S; // was E
     }
 
-    static isOnCeil(block) : boolean {
+    static isOnCeil(block : TBlock) : boolean {
         return block.extra_data && block.extra_data?.point?.y >= .5; // на верхней части блока (перевернутая ступенька, слэб)
     }
 
-    static isOpened(block) : boolean {
+    static isOpened(block : TBlock) : boolean {
         return !!(block.extra_data && block.extra_data.opened);
     }
 
-    static canFenceConnect(block) : boolean {
-        const style = block.material.bb?.model?.name || block.material.style_name
+    static canFenceConnect(block : TBlock) : boolean {
         return block.id > 0 &&
             (
                 !block.material.transparent ||
                 block.material.is_simple_qube ||
                 block.material.is_solid ||
-                ['fence', 'fence_gate', 'wall', 'pane'].includes(style)
+                ['fence', 'fence_gate', 'wall', 'pane'].includes(block.material.style_name)
             ) && (
                 block.material.material.id != 'leaves'
-            );
+            )
     }
 
-    static canWallConnect(block) : boolean {
+    static canWallConnect(block : TBlock) : boolean {
         return block.id > 0 &&
             (
                 !block.material.transparent ||
                 block.material.is_simple_qube ||
                 block.material.is_solid ||
-                ['wall', 'pane', 'fence'].includes(block.material.bb?.behavior ?? block.material.style_name)
+                ['wall', 'pane', 'fence'].includes(block.material.style_name)
             ) && (
                 block.material.material.id != 'leaves'
-            );
+            )
     }
 
-    static canPaneConnect(block) : boolean {
+    static canPaneConnect(block : TBlock) : boolean {
         return this.canWallConnect(block);
     };
 
-    static canRedstoneDustConnect(block) {
+    static canRedstoneDustConnect(block : TBlock) {
         return block.id > 0 && (block.material && 'redstone' in block.material);
     }
 
-    static autoNeighbs(chunkManager, pos, cardinal_direction, neighbours) {
+    static autoNeighbs(chunkManager, pos : Vector, cardinal_direction : int, neighbours : {}) {
         const mat = CubeSym.matrices[cardinal_direction];
         if (!neighbours) {
             return {
@@ -1446,20 +1451,35 @@ export class BLOCK {
     /**
      * Return block shapes
      */
-    static getShapes(pos : Vector, tblock : TBlock, world : World, for_physic : boolean, expanded : boolean, neighbours?): Array<tupleFloat6> {
+    static getShapes(tblock : TBlock, world : World, for_physic : boolean, expanded : boolean, neighbours?): Array<tupleFloat6> {
 
-        const shapes = [] // x1 y1 z1 x2 y2 z2
+        let shapes: tupleFloat6[] = [] // x1 y1 z1 x2 y2 z2
         const material = tblock.material
 
         if(!material) {
             return shapes
         }
 
-        if((!material.passable && !material.planting) || !for_physic) {
+        /** Проверка что блок - препятствие. Она должна совпадать с проверкой в {@link PhysicsBlockAccessor.getObstacleAABBs} */
+        if(!for_physic || (!material.passable && !material.planting)) {
 
-            const styleVariant = BLOCK.styles.get(material.style);
+            if(material.multiblock) {
+                const fbd = material.multiblock
+                const relindex = tblock.extra_data?.relindex
+                const move = relindex == -1 ? Vector.ZERO : relIndexToPos(relindex, new Vector())
+                const aabb = new AABB()
+                aabb.set(0, 0, 0, fbd.w, fbd.h, fbd.d)
+                const dir = CubeSym.dirAdd(tblock.rotate.x, CubeSym.ROT_Y2)
+                aabb.translate(-move.x + fbd.x, -move.y, -move.z + fbd.z)
+                aabb.rotate(dir, new Vector(.5, 0, .5))
+                shapes.push(aabb.toArray() as tupleFloat6)
+                return shapes
+            }
+
+            const styleVariant = BLOCK.styles.get(for_physic ? material.style_name : material.style);
             if (styleVariant && styleVariant.aabb) {
-                shapes.push(...styleVariant.aabb(tblock, for_physic, world, neighbours, expanded))
+                shapes = styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
+                    .map(aabb => aabb.toArray())
             } else {
                 debugger
                 console.error('Deprecated');
@@ -1467,7 +1487,7 @@ export class BLOCK {
 
         }
 
-        return shapes.map(aabb => aabb.toArray())
+        return shapes
 
     }
 
@@ -1549,9 +1569,10 @@ export class BLOCK {
         for(const block of BLOCK.list.values()) {
             block.is_dummy = !!block.is_dummy
             block.visible_for_ao = BLOCK.visibleForAO(block.id)
+            block.has_powerbar = !!(block.item?.instrument_id || block.armor)
             block.light_power_number = BLOCK.getLightPower(block)
             block.interact_water = block.tags.includes('interact_water') || !!block.layering?.slab
-            block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab
+            block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab || !!block.is_leaves || !!block.tags.includes('trapdoor')
             if(!block.support_style && block.planting) {
                 block.support_style = 'planting'
             }

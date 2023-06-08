@@ -4,7 +4,7 @@ import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 import type { Biome3TerrainMap } from "../terrain_generator/biome3/terrain/map.js";
 import type { BLOCK } from "../blocks.js";
 import type { DataChunk } from "../core/DataChunk";
-import type { ChunkGrid } from "../core/ChunkGrid.js";
+import { ChunkGrid } from "../core/ChunkGrid.js";
 import { DAYLIGHT_VALUE } from "../constant.js";
 
 /** If it's true, it causes the chunk total chunk timers to be printed once after the wueue is empty. */
@@ -99,12 +99,14 @@ export class WorkerWorld {
     totalChunkTimers = DEBUG_CHUNK_GEN_TIMERS ? new PerformanceTimer() : null
     is_server: boolean
     tech_info: TWorldTechInfo
+    grid: ChunkGrid;
 
     constructor(block_manager: BLOCK, settings: TBlocksSettings, is_server: boolean, tech_info: TWorldTechInfo) {
         this.block_manager = block_manager
         this.settings = settings
         this.is_server = is_server
         this.tech_info = tech_info
+        this.grid = new ChunkGrid({chunkSize: new Vector().copyFrom(this.tech_info.chunk_size)})
         this.chunks = new VectorCollector()
         this.genQueue = new ChunkWorkQueue(this)
         this.chunkManager = new ChunkWorkerChunkManager(this)
@@ -132,15 +134,18 @@ export class WorkerWorld {
         const chunk_addr = new Vector(0, 0, 0);
         const pos_world = new Vector(0, 0, 0);
         const grid : ChunkGrid = this.chunkManager.grid
+        let chunk = null
         for(let i = 0; i < args.length; i++) {
             const m = args[i];
             // 1. Get chunk
             grid.getChunkAddr(m.pos.x, m.pos.y, m.pos.z, chunk_addr);
-            const chunk = this.getChunk(chunk_addr);
+            if(!chunk || !chunk.addr.equal(chunk_addr)) {
+                chunk = this.getChunk(chunk_addr);
+            }
             if(chunk) {
                 // 2. Set block
                 if(m.type) {
-                    chunk.setBlock(m.pos.x, m.pos.y, m.pos.z, m.type, m.is_modify, m.power, m.rotate, null, m.extra_data);
+                    chunk.setBlock(m.pos.x, m.pos.y, m.pos.z, m.type, m.is_modify, m.rotate, null, m.extra_data);
                 }
                 pos_world.set(m.pos.x - chunk.coord.x, m.pos.y - chunk.coord.y, m.pos.z - chunk.coord.z);
                 chunk.setDirtyBlocks(pos_world);
@@ -367,7 +372,26 @@ function buildVertices(chunk : ChunkWorkerChunk, return_map : boolean = false) :
     let prev_dirty = chunk.dirty;
     chunk.timers.start('build_vertices')
     chunk.dirty = true;
+    // let p = performance.now()
+    // if(chunk.addr.equal(new Vector(-5, 0, -1))) {
+    //     // if(chunk.zasad) return null
+    //     globalThis.styles_stat = new Map()
+    // }
+    // chunk.zasad = true
     let is_builded = chunk.buildVertices(buildSettings);
+    // let diff = performance.now() - p
+    // if(diff > 50) {
+    //     console.log(chunk.addr.toHash(), diff)
+    // }
+    // if(chunk.addr.equal(new Vector(-5, 0, -1))) {
+    //     let rows = []
+    //     for(let [id, item] of globalThis.styles_stat.entries()) {
+    //         rows.push({id, ...item})
+    //     }
+    //     console.log(chunk.coord.toHash())
+    //     console.table(rows)
+    //     console.table(new Error().stack)
+    // }
     if(!is_builded) {
         chunk.dirty = prev_dirty;
         return null;

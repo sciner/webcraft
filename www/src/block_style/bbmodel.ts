@@ -1,12 +1,12 @@
-import { calcRotateMatrix, DIRECTION, FastRandom, Helpers, IndexedColor, StringHelpers, Vector } from '../helpers.js';
+import { calcRotateMatrix, DIRECTION, FastRandom, Helpers, IndexedColor, mat4ToRotate, QUAD_FLAGS, StringHelpers, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import { TBlock } from '../typed_blocks3.js';
-import { CubeSym } from '../core/CubeSym.js';
-import { BlockStyleRegInfo, TX_SIZE } from '../block_style/default.js';
+import { BlockStyleRegInfo } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as cube_style } from '../block_style/cube.js';
 import { default as pot_style } from '../block_style/pot.js';
+import { default as pointed_dripstone_style } from '../block_style/pointed_dripstone.js';
 import { default as cauldron_style } from '../block_style/cauldron.js';
 import { default as sign_style } from '../block_style/sign.js';
 import { default as glMatrix } from "@vendors/gl-matrix-3.3.min.js";
@@ -16,14 +16,27 @@ import type { BBModel_Model } from '../bbmodel/model.js';
 import type { Biome } from '../terrain_generator/biome3/biomes.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { World } from '../world.js';
+import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
+import { BBModel_Cube } from '../bbmodel/cube.js';
+import { BBModel_Group } from '../bbmodel/group.js';
+import { default as default_style } from '../block_style/default.js';
+import { CubeSym } from '../core/CubeSym.js';
 
 const { mat4, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
-const DEFAULT_AABB_SIZE = new Vector(12, 12, 12)
-const pivotObj = new Vector(0.5, .5, 0.5)
+// const DEFAULT_AABB_SIZE = new Vector(12, 12, 12)
+// const pivotObj = new Vector(0.5, 0.5, 0.5)
 const xyz = new Vector(0, 0, 0)
+const aabb_matrix = mat4.create()
+const aabb_pivot = new Vector(0.5, 0.0, 0.5)
+const aabb_xyz = new Vector()
 const randoms = new FastRandom('bbmodel', MAX_CHUNK_SQUARE)
 const DEFAULT_SIX_ROTATE = Vector.YP.clone()
+let aabb_chunk = null
+
+function checkNot(value : boolean, not : boolean) : boolean {
+    return value ? !not : not
+}
 
 class BBModel_TextureRule {
     /**
@@ -62,63 +75,24 @@ export default class style {
      */
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
-        const bb = tblock.material.bb
+        const material = tblock.material
+        const bb = material.bb
+        const mat_abbb = material.aabb
 
-        if (!for_physic) {
-            switch(bb.model.name) {
-                case 'cake': {
-                    return [new AABB(0, 0, 0, 1, .5, 1)]
-                }
-                case 'chain': {
-                    const aabb_size = tblock.material.aabb_size || DEFAULT_AABB_SIZE
-                    const aabb = new AABB()
-                    aabb.set(0, 0, 0, 0, 0, 0)
-                    aabb
-                        .translate(.5 * TX_SIZE, aabb_size.y/2, .5 * TX_SIZE)
-                        .expand(aabb_size.x/2, aabb_size.y/2, aabb_size.z/2)
-                        .div(TX_SIZE)
-                    // Rotate
-                    if(tblock.getCardinalDirection) {
-                        const cardinal_direction = tblock.getCardinalDirection()
-                        const matrix = CubeSym.matrices[cardinal_direction]
-                        // on the ceil
-                        if(tblock.rotate && tblock.rotate.y == -1) {
-                            if(tblock.hasTag('rotate_by_pos_n')) {
-                                aabb.translate(0, 1 - aabb.y_max, 0)
-                            }
-                        }
-                        aabb.applyMatrix(matrix, pivotObj)
-                    }
-                    return [aabb]
-                }
-            }
+        // 1. if tblock has specific ABBB
+        if(mat_abbb) {
+            const aabb = new AABB(...mat_abbb).div(16)
+            return [style.rotateAABB(aabb, tblock, for_physic, world, neighbours, expanded)]
         }
 
-        const styleVariant = style.block_manager.styles.get(bb?.aabb_stylename ?? bb.behavior)
-        if(styleVariant?.aabb) {
+        // 2. if tblock has style calculated AABB
+        const styleVariant = style.block_manager.styles.get(bb?.aabb_stylename ?? material.style_name)
+        if(styleVariant?.aabb && styleVariant.aabb !== style.computeAABB) {
             return styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
         }
 
-        const aabb = new AABB()
-        const mat_abbb = tblock.material.aabb
-
-        if(mat_abbb) {
-            aabb.set(
-                mat_abbb[0] / 16, 
-                mat_abbb[1] / 16, 
-                mat_abbb[2] / 16, 
-                mat_abbb[3] / 16, 
-                mat_abbb[4] / 16, 
-                mat_abbb[5] / 16
-            )
-        } else {
-            aabb.set(0, 0, 0, 1, 1, 1)
-        }
-
-        // if(!for_physic) {
-        //     aabb.expand(1/100, 1/100, 1/100)
-        // }
-        return [aabb]
+        // 3. default full block size AABB
+        return [style.rotateAABB(new AABB(0, 0, 0, 1, 1, 1), tblock, for_physic, world, neighbours, expanded)]
 
     }
 
@@ -132,7 +106,14 @@ export default class style {
         const model : BBModel_Model = bb.model
 
         if(!model) {
-            return;
+            return
+        }
+
+        // Not draw metablock blocks
+        if(block instanceof TBlock && block.material.multiblock) {
+            if(block.extra_data.relindex != -1) {
+                return
+            }
         }
 
         if(block.material.style_name == 'tall_grass') {
@@ -168,25 +149,101 @@ export default class style {
             }
         }
 
-        // const animation_name = 'walk';
-        // model.playAnimation(animation_name, performance.now() / 1000)
+        let mesh = null
+
+        if(block instanceof TBlock) {
+
+            // 1.
+            if(bb.set_animation) {
+                let animation_name = null
+                for(let anim of bb.set_animation) {
+                    if(anim.names) {
+                        const x = xyz.x % chunk.size.x
+                        const y = xyz.y % chunk.size.y
+                        const z = xyz.z % chunk.size.z
+                        const index = Math.floor(randoms.double(Math.round(z * chunk.size.x + x + y)) * anim.names.length)
+                        animation_name = style.processName(anim.names[index], block)
+                        break
+                    } else {
+                        if(style.checkWhen(model, block, anim.when, neighbours)) {
+                            animation_name = style.processName(anim.name, block)
+                            break
+                        }
+                    }
+                }
+                if(animation_name) {
+                    mesh = {animations: new Map(), prev_animations: new Map()}
+                    for(const group_name of model.groups.keys()) {
+                        mesh.animations.set(group_name, new Map())
+                    }
+                    model.playAnimation(animation_name, 999999, mesh as Mesh_Object_BBModel)
+                }
+            }
+
+            if(block.material.multiblock) {
+                const addCubesFlag = (group : BBModel_Group, flag : int) => {
+                    for(const child of group.children) {
+                        if(child instanceof BBModel_Cube) {
+                            child.flag |= flag
+                        } else if(child instanceof BBModel_Group) {
+                            addCubesFlag(child, flag)
+                        }
+                    }
+                }
+                addCubesFlag(model.root, QUAD_FLAGS.FLAG_LIGHT_GRID)
+            }
+
+        }
+
+        // if(block instanceof TBlock) {
+        //     if(block.material.name == 'LEVER') {
+        //         mesh = {animations: new Map(), prev_animations: new Map()}
+        //         for(const group_name of model.groups.keys()) {
+        //             mesh.animations.set(group_name, new Map())
+        //         }
+        //         const animation_name = Math.random() > .5 ? 'on' : 'off'
+        //         model.playAnimation(animation_name, 0, mesh as Mesh_Object_BBModel)
+        //     }
+        // }
 
         // Add particles for block
         const particles = []
         let draw_bottom_copy = block.hasTag('draw_bottom_copy') && (neighbours?.DOWN && neighbours?.DOWN.material.layering)
         const floors = draw_bottom_copy ? 2 : 1
         for(let i = 0; i < floors; i++) {
-            model.draw(vertices, new Vector(x + .5, y - i, z + .5), lm, matrix, (type, pos, args) => {
-                if(typeof QubatchChunkWorker == 'undefined') {
-                    return
+            if(bb.animated && (typeof QubatchChunkWorker != 'undefined')) {
+                let animation_name = 'idle'
+                // if(block.material.chest) {
+                //     let ed = block.extra_data
+                //     let opened = ed.opened
+                //     if(ed.opened !== undefined) {
+                //         animation_name = opened ? 'open' : 'close'
+                //     }
+                // }
+                const args : IAddMeshArgs = {
+                    block_pos:          block.posworld.clone(),
+                    model:              model.name,
+                    animation_name:     animation_name,
+                    hide_groups:        model.getHiddenGroupNames(),
+                    item_block:         (block instanceof TBlock) ? block.convertToDBItem() : null,
+                    matrix:             matrix,
+                    rotate:             mat4ToRotate(matrix),
                 }
-                const p = new Vector(pos).addScalarSelf(.5, 0, .5)
-                particles.push({pos: p.addSelf(block.posworld), type, args})
-            })
+                QubatchChunkWorker.postMessage(['add_bbmesh', args])
+                return null
+            } else {
+                model.draw(vertices, new Vector(x + .5, y - i, z + .5), lm, matrix, (type : string, pos : Vector, args : any) => {
+                    if(typeof QubatchChunkWorker == 'undefined') {
+                        return
+                    }
+                    const p = new Vector(pos).addScalarSelf(.5, 0, .5)
+                    particles.push({pos: p.addSelf(block.posworld), type, args})
+                }, mesh)
+            }
         }
         style.addParticles(model, block, matrix, particles)
         if(particles.length > 0) {
-            QubatchChunkWorker.postMessage(['add_animated_block', {
+            QubatchChunkWorker.postMessage(['create_block_emitter', {
                 block_pos:  block.posworld,
                 list: particles
             }]);
@@ -247,6 +304,12 @@ export default class style {
                             }
                             break
                         }
+                        case 'flipx': {
+                            mat4.translate(matrix, matrix, [0, .5, 0])
+                            mat4.rotateX(matrix, matrix, Math.PI)
+                            mat4.translate(matrix, matrix, [0, -.5, 0])
+                            break
+                        }
                         case 'cog':
                         case 'rotate_by_pos_n_6':
                         case 'six': {
@@ -298,13 +361,17 @@ export default class style {
         const bb = mat.bb
 
         switch(bb.behavior ?? bb.model.name) {
+            case 'pointed_dripstone': {
+                if(tblock instanceof TBlock) {
+                    pointed_dripstone_style.postBehavior(tblock, tblock.extra_data)
+                }
+                break
+            }
             case 'sign': {
                 const m = mat4.create()
                 mat4.copy(m, matrix)
                 mat4.rotateY(m, m, Math.PI)
                 const aabb = sign_style.makeAABBSign(tblock, x, y, z)
-                const e = 0 // -1/30
-                aabb.expand(e, e, e)
                 const fblock = sign_style.makeTextBlock(tblock, aabb, pivot, m, x, y, z)
                 if(fblock) {
                     emmited_blocks.push(fblock)
@@ -359,6 +426,52 @@ export default class style {
 
         // 2.
         switch(behavior) {
+            case 'billboard': {
+                if(tblock instanceof TBlock) {
+                    // if(tblock.extra_data.relindex == -1) {
+                    if(tblock.extra_data.texture) {
+                        // const group = model.getGroupByPath('default/display')
+                        const group = model.groups.get('display')
+                        const cube = group?.children[0]
+                        if(cube && cube instanceof BBModel_Cube) {
+                            if(bb.animated && (typeof QubatchChunkWorker != 'undefined')) {
+                                const extra_data = tblock.extra_data ?? {}
+                                if(!extra_data.texture?.uv) {
+                                    const item = tblock.convertToDBItem()
+                                    const pos = tblock.posworld
+                                    item.extra_data = extra_data
+                                    QubatchChunkWorker.postMessage(['create_billboard_texture', {pos, item}])
+                                }
+                            } else {
+                                // create callback for cube
+                                cube.callback = (part) : boolean => {
+                                    const extra_data = tblock.extra_data ?? {}
+                                    if(extra_data.texture?.url) {
+                                        if(extra_data.texture?.uv) {
+                                            const verts = []
+                                            const {material_key, uv, tx_size} = extra_data.texture
+                                            for(const fk in part.faces) {
+                                                const face = part.faces[fk]
+                                                face.tx_size = tx_size
+                                                face.uv = [...uv]
+                                            }
+                                            default_style.pushPART(verts, part, Vector.ZERO)
+                                            emmited_blocks.push(new FakeVertices(material_key, verts))
+                                            return true
+                                        }
+                                        const item = tblock.convertToDBItem()
+                                        const pos = tblock.posworld
+                                        item.extra_data = extra_data
+                                        QubatchChunkWorker.postMessage(['create_billboard_texture', {pos, item}])
+                                    }
+                                    return false
+                                }
+                            }
+                        }
+                    }
+                }
+                break
+            }
             case 'jukebox': {
                 cube_style.playJukeboxDisc(chunk, tblock, xyz.x, xyz.y, xyz.z)
                 break
@@ -407,11 +520,6 @@ export default class style {
                         model.hideAllExcept(['top'])
                     }
                 }
-                if(tblock.extra_data?.into_pot) {
-                    // mat4.copy(matrix, tblock.matrix)
-                    mat4.scale(matrix, matrix, [.5, .5, .5])
-                    mat4.translate(matrix, matrix, [0, .5, 0]);
-                }
                 break
             }
             case 'age': {
@@ -432,19 +540,6 @@ export default class style {
             case 'chest': {
                 const type = tblock.extra_data?.type ?? null
                 const is_big = !!type
-
-                /*
-                if(typeof QubatchChunkWorker != 'undefined') {
-                    QubatchChunkWorker.postMessage(['add_bbmesh', {
-                        block_pos:          tblock.posworld.clone().addScalarSelf(0, 1, 0),
-                        model:              model.name,
-                        animation_name:     null,
-                        extra_data:         tblock.extra_data,
-                        rotate:             mat4ToRotate(matrix)
-                    }]);
-                }
-                */
-
                 if(is_big) {
                     if(type == 'left') {
                         model.hideGroups(['small', 'big'])
@@ -536,7 +631,9 @@ export default class style {
     }
 
     static rotateByCardinal4sides(model : BBModel_Model, matrix : imat4, cardinal_direction : int) {
-        switch(cardinal_direction) {
+        CubeSym.applyToMat4(matrix, matrix, cardinal_direction);
+
+        /*switch(cardinal_direction) {
             case DIRECTION.SOUTH:
                 mat4.rotateY(matrix, matrix, Math.PI);
                 break;
@@ -546,7 +643,7 @@ export default class style {
             case DIRECTION.EAST:
                 mat4.rotateY(matrix, matrix, Math.PI / 2);
                 break;
-        }
+        }*/
     }
 
     static addParticles(model : BBModel_Model, tblock : TBlock | FakeTBlock, matrix : imat4, particles) {
@@ -578,41 +675,57 @@ export default class style {
             return true
         }
         for(let k in when) {
+            const not = k.startsWith('!')
             const condition_value = when[k]
+            if(not) {
+                k = k.substring(1)
+            }
             switch(k) {
                 case 'state': {
-                    if(model.state !== condition_value) {
+                    if(checkNot(Array.isArray(condition_value) ? !condition_value.includes(model.state) : (model.state !== condition_value), not)) {
                         return false
                     }
                     break
                 }
                 case 'rotate.y': {
-                    if(tblock.rotate?.y !== condition_value) {
+                    if(checkNot(tblock.rotate?.y !== condition_value, not)) {
+                        return false
+                    }
+                    break
+                }
+                case 'sign:samerot': {
+                    if(checkNot(sign_style.same_rot_with_up_neighbour(tblock, neighbours.UP) != condition_value, not)) {
                         return false
                     }
                     break
                 }
                 default: {
                     if(k.startsWith('neighbour.')) {
-                        // Example: "when": {"neighbour.up": "AIR"}
-                        const nname = k.substring(10).toUpperCase()
+                        const temp = k.split('.')
+                        // Examples: "when": {"neighbour.up.material.name": "AIR"}
+                        //           "when": {"neighbour.up.material.is_solid": true}
+                        if(temp.length != 4) {
+                            return false
+                        }
+                        const nname = temp[1].toUpperCase()
                         const n = neighbours[nname]
                         if(!n) {
                             return false
                         }
+                        const property_name = temp[3]
                         const nmat = n.material
-                        if(!nmat || n.material.name != when[k]) {
+                        if(checkNot((!nmat || n.material[property_name] != condition_value), not)) {
                             return false
                         }
                     } else if(k.startsWith('extra_data.')) {
                         const key = k.substring(11)
                         const value = tblock.extra_data ? (tblock.extra_data[key] ?? null) : null
                         if(Array.isArray(condition_value)) {
-                            if(!condition_value.includes(value)) {
+                            if(checkNot(!condition_value.includes(value), not)) {
                                 return false
                             }
                         } else {
-                            if(condition_value != value) {
+                            if(checkNot(condition_value != value, not)) {
                                 return false
                             }
                         }
@@ -661,6 +774,24 @@ export default class style {
         if(texture_name) {
             model.selectTextureFromPalette(texture.group, texture_name)
         }
+    }
+
+    static rotateAABB(aabb : AABB, tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB {
+
+        if(tblock instanceof TBlock) {
+            const grid = world.grid
+            grid.math.worldPosToChunkPos(tblock.posworld, aabb_xyz)
+            const {x, y, z} = aabb_xyz
+            if(!aabb_chunk) {
+                aabb_chunk = {size: grid.chunkSize}
+            }
+            mat4.identity(aabb_matrix)
+            style.applyRotate(aabb_chunk as ChunkWorkerChunk, tblock.material.bb.model, tblock, neighbours, aabb_matrix, x, y, z)
+            aabb.applyMat4(aabb_matrix, aabb_pivot)
+        }
+
+        return aabb
+
     }
 
     // Stand

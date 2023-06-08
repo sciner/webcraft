@@ -8,7 +8,19 @@ export const dx = [1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0,
 export const dy = [0, 0, 0, 0, 1, -1, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|*/ 1, 1, -1, -1, 1, 1, -1, -1];
 export const dz = [0, 0, 1, -1, 0, 0, /*|*/ 0, 0, 0, 0, 1, 1, -1, -1, 1, -1, 1, -1, /*|*/ 1, 1, 1, 1, -1, -1, -1, -1];
 
-// 10 + (1 - dx) / 2 + (1 - dz)
+export const dxdydzIndex: number[] = [];
+
+function initDxDyDz() {
+    for (let i = 0; i < 27; i++) {
+        dxdydzIndex[i] = 0;
+    }
+    for (let i = 0; i < 26; i++) {
+        const ind = dx[i] + dz[i] * 3 + dy[i] * 9 + 13;
+        dxdydzIndex[ind] = i;
+    }
+}
+
+initDxDyDz();
 
 declare type ChunkGridOptions = {
     chunkSize: Vector,

@@ -1,5 +1,5 @@
 import { WorldAction } from "@client/world_action.js";
-import { ServerClient } from "@client/server_client.js";
+import { BLOCK_ACTION } from "@client/server_client.js";
 import type {TBlock} from "@client/typed_blocks3.js";
 import type {Mob} from "../mob.js";
 
@@ -24,7 +24,7 @@ export class BeeNest {
         mob.extra_data.pollen = 0;
         // 3. Modify block
         const actions = new WorldAction(null, world, false, false);
-        const updated_blocks = {pos: tblock.posworld, item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY};
+        const updated_blocks = {pos: tblock.posworld, item: tblock.convertToDBItem(), action_id: BLOCK_ACTION.MODIFY};
         actions.addBlocks([updated_blocks]);
         world.actions_queue.add(null, actions);
         // 4. Deactivate mob and remove from world

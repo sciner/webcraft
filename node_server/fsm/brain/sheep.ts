@@ -1,7 +1,7 @@
 import { FSMBrain } from "../brain.js";
 import { WorldAction } from "@client/world_action.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
-import { ServerClient } from "@client/server_client.js";
+import { BLOCK_ACTION } from "@client/server_client.js";
 
 export class Brain extends FSMBrain {
     count_grass: number;
@@ -24,15 +24,16 @@ export class Brain extends FSMBrain {
     }
     
     // просто стоит и кушает траву, если голодная
-    doStand(delta) {
-        super.doStand(delta);
+    doStand(delta: float): boolean {
+        const result = super.doStand(delta);
         if (this.is_sheared && Math.random() < 0.8) {
             this.stack.replaceState(this.doEat);
         }
+        return result
     }
     
     // ест траву
-    doEat(delta) {
+    doEat(delta: float): boolean {
         const mob = this.mob;
         const world = mob.getWorld();
         const bm = world.block_manager
@@ -41,25 +42,25 @@ export class Brain extends FSMBrain {
             this.is_sheared = false;
         }
         if (this.is_sheared) {
-            if (this.legs_id == bm.TALL_GRASS.id) {
+            if (this.legs.id == bm.TALL_GRASS.id || this.legs.id == bm.GRASS.id) {
                 const actions = new WorldAction();
                 actions.addBlocks([
                     {
                         pos: mob.pos.floored(), 
                         item: {id : bm.AIR.id}, 
-                        action_id: ServerClient.BLOCK_ACTION_REPLACE
+                        action_id: BLOCK_ACTION.REPLACE
                     }
                 ]);
                 world.actions_queue.add(null, actions); 
                 this.count_grass++;
             } else {
-                if (this.under_id == bm.GRASS_BLOCK.id) {
+                if (this.under && this.under.id == bm.GRASS_BLOCK.id) {
                     const actions = new WorldAction();
                     actions.addBlocks([
                         {
-                            pos: mob.pos.offset(0, -1, 0).floored(), 
+                            pos: this.under.posworld, 
                             item: {id : bm.DIRT.id}, 
-                            action_id: ServerClient.BLOCK_ACTION_REPLACE
+                            action_id: BLOCK_ACTION.REPLACE
                         }
                     ]);
                     world.actions_queue.add(null, actions); 
@@ -68,6 +69,7 @@ export class Brain extends FSMBrain {
             }
         }
         this.stack.replaceState(this.doForward);
+        return false
     }
     
     // Если убили моба

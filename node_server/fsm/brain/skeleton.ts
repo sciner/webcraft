@@ -34,22 +34,26 @@ export class Brain extends FSMBrain {
         const difficulty = world.rules.getValue('difficulty');
         const players = world.getPlayersNear(mob.pos, this.distance_view, true);
         if (players.length > 0 && difficulty != EnumDifficulty.PEACEFUL) {
-            const rnd = (Math.random() * players.length) | 0;
-            const player = players[rnd];
-            this.target = player;
+            for (const player of players) {
+                const m = player.state.sneak ? 1.4 : 1.0
+                if (Math.random() > (mob.pos.distance(player.state.pos) * m / this.distance_view)) {
+                    this.target = player;
+                    break
+                }
+            }
         }
     }
 
     // просто стоит на месте
-    doStand(delta) {
+    doStand(delta: float): boolean {
         // нашел цель
         if (this.target) {
             this.stack.replaceState(this.doCatch);
-            return;
+            return false
         }
         if (Math.random() < 0.05) {
             this.stack.replaceState(this.doForward);
-            return;
+            return false
         }
         const mob = this.mob;
         mob.extra_data.attack = false
@@ -58,41 +62,39 @@ export class Brain extends FSMBrain {
             jump: false,
             sneak: false
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
     // просто ходит
-    doForward(delta) {
+    doForward(delta: float): boolean {
         // нашел цель
         if (this.target) {
             this.stack.replaceState(this.doCatch);
-            return;
+            return false
         }
         // обход препятсвия
         const mob = this.mob;
         mob.extra_data.attack = false
-        if (this.is_wall || this.is_fire || this.is_lava) {
+        if (this.is_wall || this.ahead.is_fire || this.ahead.is_lava || this.ahead.is_abyss) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         if (Math.random() < 0.05) {
             mob.rotate.z = mob.rotate.z + Math.random() * Math.PI;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         this.updateControl({
             forward: true,
             jump: false,
             sneak: false
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
     // преследование игрока
-    doCatch(delta) {
+    doCatch(delta: float): boolean {
         const mob = this.mob;
         const world = mob.getWorld();
         mob.extra_data.attack = false
@@ -100,40 +102,39 @@ export class Brain extends FSMBrain {
         if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
             this.target = null;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         const dist = mob.pos.distance(this.target.state.pos);
         if (mob.playerCanBeAtacked(this.target) || dist > this.distance_view) {
             this.target = null;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         if (dist < this.distance_attack) {
             this.stack.replaceState(this.doAttack);
-            return;
+            return false
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
         this.updateControl({
             forward: true, //!(this.is_abyss | this.is_well),
-            jump: this.is_water
+            jump: this.ahead.is_water
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
-    doAttack(delta) {
+    doAttack(delta: float): boolean {
         const mob = this.mob;
         const world = mob.getWorld();
         const difficulty = world.rules.getValue('difficulty');
         if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
             this.target = null;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         const dist = mob.pos.distance(this.target.state.pos);
-        if (mob.playerCanBeAtacked(this.target) || dist > this.distance_attack || this.is_gate) {
+        if (mob.playerCanBeAtacked(this.target) || dist > this.distance_attack || this.is_wall) {
             this.stack.replaceState(this.doCatch);
-            return;
+            return false
         }
         const angle_to_player = this.angleTo(this.target.state.pos);
         // моб должен примерно быть направлен на игрока
@@ -153,6 +154,7 @@ export class Brain extends FSMBrain {
                 this.sendState()
             }
         }
+        return false
     }
 
     // Если убили моба
@@ -178,15 +180,5 @@ export class Brain extends FSMBrain {
 
     }
 
-    onUse() {
-        this.mob.extra_data.skin = 'wither';
-        this.mob.extra_data.armor = {
-            head: 273,
-            body: null,
-            leg: null,
-            boot: null,
-        };
-        return false;
-    }
 
 }

@@ -1,6 +1,8 @@
 // maybe move other related methods here
 import {Vector} from "./vector.js";
 
+const MAX_DEEP_CLONE_DEPTH = 100
+
 export class ObjectHelpers {
 
     static isEmpty(obj: object): boolean {
@@ -17,46 +19,58 @@ export class ObjectHelpers {
     }
 
     // For now, it supports only plain objects, Array, primitives and Vector.
-    static deepClone(v: any, depth : number = Infinity): any {
-        if (v == null) {
-            return v;
+    static deepClone(src: any, depth : number = MAX_DEEP_CLONE_DEPTH, out : object = undefined) : any {
+        if(src == null) {
+            return src
         }
         // Splitting this function into 3 increases(!) performance
         // Probably because JIT can infer static types in deepCloneArray() and deepCloneObject()
-        if (v.length != null && Array.isArray(v)) {
-            return this.deepCloneArray(v, depth);
+        if(src.length != null && Array.isArray(src)) {
+            return this.deepCloneArray(src, depth)
         }
-        if (typeof v === 'object') {
-            return this.deepCloneObject(v, depth);
+        if(typeof src === 'object') {
+            return this.deepCloneObject(src, depth, out)
         }
-        return v;
+        return src
     }
 
-    static deepCloneArray(v: Array<any>, depth: number = Infinity): Array<any> {
-        if (--depth < 0) {
-            return v;
+    static deepCloneArray(src: Array<any>, depth : number = MAX_DEEP_CLONE_DEPTH): Array<any> {
+        if(--depth < 0) {
+            return src;
         }
-        const res = new Array(v.length);
-        for(let i = 0; i < v.length; i++) {
-            res[i] = this.deepClone(v[i], depth);
+        const out = [...src]
+        const {deepCloneArray, deepCloneObject} = ObjectHelpers
+        for(let i = 0; i < src.length; i++) {
+            const val = src[i]
+            if(val === null || !(typeof val === 'object')) continue
+            out[i] = (val.length != null && Array.isArray(val)) ? deepCloneArray(val, depth) : deepCloneObject(val, depth, undefined)
         }
-        return res;
+        return out
     }
 
-    static deepCloneObject(v: object, depth: number = Infinity): object {
-        if (--depth < 0) {
-            return v;
+    static deepCloneObject(src: object, depth : number = MAX_DEEP_CLONE_DEPTH, out : object = undefined): object {
+        if(--depth < 0) {
+            return src;
         }
-        if ((<any>v).x != null && v instanceof Vector) {
-            return new Vector(v);
+        if((<any>src).x != null && src instanceof Vector) {
+            const n = src.n
+            src = new Vector(src)
+            if(n) {
+                (src as Vector).n = new Vector(n)
+            }
+            return src
         }
-        const res = {};
-        for(let key in v) {
-            // Don't check hasOwnProperty(key) here, because it's not checked anywhere.
-            // If something is added to Object.prototype, the entire project is screwed.
-            res[key] = this.deepClone(v[key], depth);
+        out = out || {...src}
+        const {deepCloneArray, deepCloneObject} = ObjectHelpers
+        for(let key in src) {
+            const val = src[key]
+            if(val == null || !(typeof val === 'object')) {
+                out[key] = val
+                continue
+            }
+            out[key] = (val.length != null && Array.isArray(val)) ? deepCloneArray(val, depth) : deepCloneObject(val, depth, undefined)
         }
-        return res;
+        return out
     }
 
     /**
@@ -67,12 +81,21 @@ export class ObjectHelpers {
      * Maybe add support for Map, Set, primitive arrays.
      */
     static deepEqual(a: any, b: any): boolean {
-        if (a == null || b == null || typeof a !== 'object' || typeof b !== 'object') {
-            return a === b;
+        if (a === b) { // первая проверка - хороша как для примитивов, так и для неглдубоко клонированных объектов
+            return true
         }
-        return Array.isArray(a)
+        if (a == null || b == null) {
+            return false
+        }
+        if (typeof a !== 'object' || typeof b !== 'object') {
+            // Мы уже знаем что (a === b) неверно, т.е. примитивные значения не равны.
+            // Специальный случай: если оба NaN, то (NaN === NaN) неверно, но мы хотим вернуть в этом случае true.
+            // В остальных случаях - false.
+            return Number.isNaN(a) && Number.isNaN(b)
+        }
+        return a.length != null && Array.isArray(a)
             ? Array.isArray(b) && this.deepEqualArray(a, b)
-            : this.deepEqualObject(a, b);
+            : (b.length == null || !Array.isArray(b)) && this.deepEqualObject(a, b)
     }
 
     static deepEqualArray(a: AnyArray, b: AnyArray): boolean {
@@ -153,4 +176,5 @@ export class ObjectHelpers {
         }
         return dst
     }
+
 }

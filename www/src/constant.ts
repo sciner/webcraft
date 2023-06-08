@@ -66,6 +66,11 @@ export const DEFAULT_LIGHT_TYPE_ID          = LIGHT_TYPE.SMOOTH
 
 export const MAGIC_ROTATE_DIV               = 900;
 
+export enum BLOCK_IDS {
+    BACKPACK_BASIC = 1094,
+    TOOLBELT_BASIC = 1095,
+}
+
 // =========================== интерфейс инвентаря ============================
 
 export const INVENTORY_SLOT_SIZE            = 36    // размер слота в пикселях
@@ -81,27 +86,26 @@ export const HOTBAR_LENGTH_MIN              = 4
 export const HOTBAR_LENGTH_MAX              = 12
 export const BAG_LENGTH_MIN                 = 27
 export const BAG_LENGTH_MAX                 = 72
-export const BAG_MAX_INDEX                  = HOTBAR_LENGTH_MAX + BAG_LENGTH_MAX
+export const BAG_END                        = HOTBAR_LENGTH_MAX + BAG_LENGTH_MAX // конец слотов сумки, не включительно
 
 // Player paperdoll slots
-export const PAPERDOLL_MIN_INDEX            = 84  // индекс минимального слота на кукле персонажа (сейчас равен BAG_MAX_INDEX, но в будущем может отличаться)
+export const PAPERDOLL_MIN_INDEX            = 84  // индекс минимального слота на кукле персонажа (сейчас равен BAG_END, но в будущем может отличаться)
 export const PAPERDOLL_BACKPACK             = 84; // backpack
 export const PAPERDOLL_TOOLBELT             = 85; // toolbelt
 export const PAPERDOLL_BOOTS                = 86; // boots
 export const PAPERDOLL_LEGGINGS             = 87; // legs
 export const PAPERDOLL_CHESTPLATE           = 88; // body
 export const PAPERDOLL_HELMET               = 89; // head
-export const PAPERDOLL_MAX_INDEX            = 89  // индекс максимального слота на кукле персонажа
+export const PAPERDOLL_END                  = 90  // конце слотов куклы, не включительно
+
 /** номера слотов, предметы в кторых могут увеличить размер инвентаря */
 export const PAPERDOLL_CONTAINERS_SLOTS     = [PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT]
 
-export enum BLOCK_IDS {
-    BACKPACK_BASIC = 1094,
-    TOOLBELT_BASIC = 1095,
-}
-
 export const INVENTORY_DRAG_SLOT_INDEX      = 99
-export const INVENTORY_SLOT_COUNT           = 100
+
+export const INVENTORY_CRAFT_INDEX_MIN      = 100
+export const INVENTORY_CRAFT_END            = 109 // конец слотов крафта, не включительно
+export const INVENTORY_SLOT_COUNT           = 109
 
 // ================================= сундуки ==================================
 
@@ -152,10 +156,15 @@ export const UI_THEME = {
     button: {
         font: {
             size: 14,
-            color: '#ffffff'
+            color: '#ffffff',
+            disabled_color: '#ffffff88'
         },
         background: {
-            color: '#5bc4da44'
+            color: '#5bc4da44',
+            disabled_color: '#5bc4da22'
+        },
+        border: {
+            disabled_color: '#5bc4da55'
         }
     },
     // chat
@@ -530,4 +539,11 @@ export enum PLAYER_STATUS {
     WAITING_PORTAL  = 2,
     ALIVE           = 3,
     DELETED         = 4
+}
+
+export enum SIGN_POSITION {
+    WALL        = 0,
+    FLOOR       = 1,
+    CEIL        = -1,
+    WALL_ALT    = -2,
 }

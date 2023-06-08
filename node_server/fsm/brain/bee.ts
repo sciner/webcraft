@@ -79,7 +79,7 @@ export class Brain extends FSMBrain {
     }
 
     // возвращение в улей
-    doReturnToHome(delta) {
+    doReturnToHome(delta): boolean {
         const mob = this.mob;
         const block = this.getFlightBlocks(false);
 
@@ -108,18 +108,17 @@ export class Brain extends FSMBrain {
                 nest.appendMob(mob);
             }
         }
+        return false // уже выполнили физику выше
     }
 
     // сбор пыльцы
-    doPollen(delta) {
+    doPollen(delta: float): boolean {
         const mob = this.mob;
         this.updateControl({
             jump: false,
             forward: false,
             sneak: true
         });
-        this.applyControl(delta);
-        this.sendState();
         if (mob.extra_data.pollen >= MAX_POLLEN) {
             mob.extra_data.pollen = MAX_POLLEN;
             // console.log("[AI] doReturnToHome");
@@ -128,10 +127,11 @@ export class Brain extends FSMBrain {
         } else {
             mob.extra_data.pollen += POLLEN_PER_TICK;
         }
+        return true
     }
 
     // просто полет
-    doForward(delta) {
+    doForward(delta: float): boolean {
         const mob = this.mob;
 
         const block = this.getFlightBlocks(true);
@@ -175,15 +175,16 @@ export class Brain extends FSMBrain {
         mob.extra_data.pollen -= POLLEN_PER_TICK / 10;
         mob.extra_data.pollen = Math.max(mob.extra_data.pollen, 0);
 
+        return false // уже выполнили физику выше
     }
 
     // преследование игрока
-    doFollow(delta) {
+    doFollow(delta: float): boolean {
         const mob = this.mob;
 
         if (!this.target) {
             this.stack.replaceState(this.doForward);
-            return;
+            return false
         }
 
         const player = this.target;
@@ -192,14 +193,14 @@ export class Brain extends FSMBrain {
         if (!player || mob.playerCanBeAtacked(player) || difficulty == EnumDifficulty.PEACEFUL) {
             this.target = null;
             this.stack.replaceState(this.doForward);
-            return;
+            return false
         }
 
         const distance = mob.pos.horizontalDistance(player.state.pos);
         if (distance > this.follow_distance) {
             this.target = null;
             this.stack.replaceState(this.doForward);
-            return;
+            return false
         }
 
         mob.rotate.z = this.angleTo(player.state.pos);
@@ -232,7 +233,7 @@ export class Brain extends FSMBrain {
             if (this.ticks_anger == this.anger_time) {
                 this.target = null;
                 this.stack.replaceState(this.doForward);
-                return;
+                return false
             }
         }
 
@@ -243,11 +244,11 @@ export class Brain extends FSMBrain {
             forward: forward,
             sneak: block.sneak
         });
-        this.applyControl(delta);
-        this.sendState();
 
         this.ticks_pollination++;
         mob.extra_data.pollen -= POLLEN_PER_TICK / 10;
+
+        return true
     }
 
     onDamage(val : number, type_damage : EnumDamage, actor) {

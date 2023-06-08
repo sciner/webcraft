@@ -67,8 +67,8 @@ export default class style {
         const material = block.material;
         const rotate = block.rotate || DEFAULT_ROTATE;
         const count = Math.min(block.extra_data?.petals || 1, 4);
-        const flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
-        const stem_flags = flag | QUAD_FLAGS.MASK_BIOME
+        const flag = QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_NORMAL_UP;
+        const stem_flags = flag | QUAD_FLAGS.FLAG_MASK_BIOME
 
         const lm = dirt_color || IndexedColor.GRASS;
 

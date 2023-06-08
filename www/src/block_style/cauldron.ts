@@ -64,7 +64,7 @@ export default class style {
                 }
             },
             {
-                "size": {"x": 12, "y": 10, "z": 12},
+                "size": {"x": 12, "y": 12, "z": 12},
                 "translate": {"x": 0, "y": 2, "z": 0},
                 "faces": {
                     "down": {"uv": [8, 8],"texture": c_inner},
@@ -105,7 +105,7 @@ export default class style {
                 const dir = blockFluid.UP;
                 const anim_frames = bm.getAnimations(blockFluid, side);
                 let lm = IndexedColor.WHITE.clone();
-                let flags = QUAD_FLAGS.NO_AO;
+                let flags = QUAD_FLAGS.FLAG_NO_AO;
                 if(blockFluid.tags.indexOf('multiply_color') >= 0) {
                     lm.copyFrom(blockFluid.multiply_color);
                     flags |= QUAD_FLAGS.FLAG_MULTIPLY_COLOR;

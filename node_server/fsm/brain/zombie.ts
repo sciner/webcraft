@@ -3,6 +3,7 @@ import { WorldAction } from "@client/world_action.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
 import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
 import { MOB_TYPE } from "@client/constant.js";
+import { BaseRenderTarget } from "@client/renders/BaseRenderer.js";
 
 export class Brain extends FSMBrain {
     distance_attack: number;
@@ -34,16 +35,20 @@ export class Brain extends FSMBrain {
         const difficulty = world.rules.getValue('difficulty'); 
         const players = world.getPlayersNear(mob.pos, this.distance_view, true);
         if (players.length > 0 && difficulty != EnumDifficulty.PEACEFUL) {
-            const rnd = (Math.random() * players.length) | 0;
-            const player = players[rnd];
-            this.target = player;
+            for (const player of players) {
+                const m = player.state.sneak ? 1.4 : 1.0
+                if (Math.random() > (mob.pos.distance(player.state.pos) * m / this.distance_view)) {
+                    this.target = player;
+                    break
+                }
+            }
             // Если выбран режим hard, то устанавливаем общий таргет
-            if (difficulty == EnumDifficulty.HARD) {
+            if (difficulty == EnumDifficulty.HARD && this.target) {
                 const bots = world.getMobsNear(mob.pos, this.distance_view, MOB_TYPE.ZOMBIE);
                 for (const bot of bots) {
                     const brain = bot.getBrain();
                     if (!brain.target) {
-                        brain.target = player;
+                        brain.target = this.target;
                     }
                 }
             }
@@ -51,15 +56,15 @@ export class Brain extends FSMBrain {
     }
     
     // просто стоит на месте
-    doStand(delta) {
+    doStand(delta: float): boolean {
         // нашел цель
         if (this.target) {
             this.stack.replaceState(this.doCatch);
-            return;
+            return false
         }
         if (Math.random() < 0.05) {
             this.stack.replaceState(this.doForward);
-            return;
+            return false
         }
         const mob = this.mob;
         mob.extra_data.attack = false
@@ -68,41 +73,39 @@ export class Brain extends FSMBrain {
             jump: false,
             sneak: false
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
     
     // просто ходит
-    doForward(delta) {
+    doForward(delta: float): boolean {
         // нашел цель
         if (this.target) {
             this.stack.replaceState(this.doCatch);
-            return;
+            return false
         }
         // обход препятсвия
         const mob = this.mob;
         mob.extra_data.attack = false
-        if (this.is_wall || this.is_fire || this.is_lava) {
+        if (this.is_wall || this.ahead.is_fire || this.ahead.is_lava || this.ahead.is_abyss) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         if (Math.random() < 0.05) {
             mob.rotate.z = mob.rotate.z + Math.random() * Math.PI;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         this.updateControl({
             forward: true,
             jump: false,
             sneak: false
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
     
     // преследование игрока
-    doCatch(delta) {
+    doCatch(delta: float): boolean {
         const mob = this.mob;
         mob.extra_data.attack = false
         const world = mob.getWorld();
@@ -110,40 +113,39 @@ export class Brain extends FSMBrain {
         if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
             this.target = null;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         const dist = mob.pos.distance(this.target.state.pos);
         if (mob.playerCanBeAtacked(this.target) || dist > this.distance_view) {
             this.target = null;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         if (dist < this.distance_attack) {
             this.stack.replaceState(this.doAttack);
-            return;
+            return false
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
         this.updateControl({
             forward: true, //!(this.is_abyss | this.is_well),
-            jump: this.is_water
+            jump: this.in_water
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
     
-    doAttack(delta) {
+    doAttack(delta: float): boolean {
         const mob = this.mob;
         const world = mob.getWorld();
         const difficulty = world.rules.getValue('difficulty');
         if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
             this.target = null;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         const dist = mob.pos.distance(this.target.state.pos);
-        if (mob.playerCanBeAtacked(this.target) || dist > this.distance_attack || this.is_gate) {
+        if (mob.playerCanBeAtacked(this.target) || dist > this.distance_attack || this.is_wall) {
             this.stack.replaceState(this.doCatch);
-            return;
+            return false
         }
         const angle_to_player = this.angleTo(this.target.state.pos);
         // моб должен примерно быть направлен на игрока
@@ -163,6 +165,7 @@ export class Brain extends FSMBrain {
                 this.sendState()
             }
         }
+        return false
     }
     
     // Если убили моба
@@ -181,7 +184,7 @@ export class Brain extends FSMBrain {
             switch (drop) {
                 case 0: items.push({ id: bm.IRON_INGOT.id, count: 1 }); break;
                 case 1: items.push({ id: bm.CARROT.id, count: 1 }); break;
-                case 2: items.push({ id: type_damage != EnumDamage.FIRE ? bm.POTATO.id : bm.BACKED_POTATO.id, count: 1 }); break;
+                case 2: items.push({ id: type_damage != EnumDamage.FIRE ? bm.POTATOES.id : bm.BACKED_POTATO.id, count: 1 }); break;
             }
         }
         if (items.length > 0) {
@@ -195,15 +198,4 @@ export class Brain extends FSMBrain {
         
     }
     
-    onUse(actor: any, item : any) : boolean {
-        super.onUse(actor, item)
-        this.mob.extra_data.armor = {
-            head: 279, 
-            body: 275,
-            leg: null,
-            boot: null,
-        };
-        return false
-    }
-
 }

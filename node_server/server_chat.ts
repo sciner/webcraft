@@ -1,4 +1,4 @@
-import {ServerClient} from "@client/server_client.js";
+import {BLOCK_ACTION, ServerClient} from "@client/server_client.js";
 import {ArrayHelpers, ArrayOrScalar, DIRECTION, Vector} from "@client/helpers.js";
 import {WorldAction} from "@client/world_action.js";
 import { Weather } from "@client/block_type/weather.js";
@@ -245,6 +245,7 @@ export class ServerChat {
                         '  /netstat (in|out|all) [off|count|size|reset]',
                         '  /astat [recent]',
                         '/shutdown [gentle|force]',
+                        '/resetinventory [username]',
                         ServerChat.XYZ_HELP
                     ]
                 } else {
@@ -320,6 +321,20 @@ export class ServerChat {
                 if (!res) {
                     this.sendSystemChatMessageToSelectedPlayers('!langThe game is already in the process of shutting down.', player)
                 }
+                break
+            }
+            case '/resetinventory': {
+                checkIsAdmin()
+                let target = player
+                if (args[1]) {
+                    target = this.world.players.getByName(args[1])
+                    if (target == null) {
+                        this.sendSystemChatMessageToSelectedPlayers(`!langPlayer not found: ${args[1]}`, player)
+                        return
+                    }
+                }
+                target.inventory.items = this.world.db.getDefaultInventory().items
+                target.inventory.refresh(true)
                 break
             }
             case '/tp':
@@ -617,7 +632,7 @@ export class ServerChat {
                 }
                 const actions = new WorldAction(null, this.world, false, false);
                 const item = {id: bm.STONE.id};
-                const action_id = ServerClient.BLOCK_ACTION_CREATE;
+                const action_id = BLOCK_ACTION.CREATE;
                 pos.x += 1 * ax;
                 pos.z += 1 * az;
                 for(let i = 0; i < 20; i++) {
@@ -717,6 +732,10 @@ export class ServerChat {
                 case 'float':
                 case '?float':
                     value = parseArgFloat(ch)
+                    break
+                case 'boolean':
+                case '?boolean':
+                    value = new String(ch).toLowerCase() == 'true'
                     break
                 case 'x':
                 case '?x':

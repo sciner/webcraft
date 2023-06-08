@@ -4,14 +4,14 @@ import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
 import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE, MIN_STEP_PLAY_SOUND, MIN_HEIGHT_PLAY_SOUND, PLAYER_BURNING_TIME} from "./constant.js";
-import {ClientPlayerControlManager} from "./control/player_control_manager.js";
+import {ClientPlayerControlManager, PlayerControlManager} from "./control/player_control_manager.js";
 import {PlayerControl, PlayerControls} from "./control/player_control.js";
 import {PlayerInventory} from "./player_inventory.js";
 import { PlayerWindowManager } from "./player_window_manager.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {ActionPlayerInfo, doBlockAction, WorldAction} from "./world_action.js";
-import { BODY_ROTATE_SPEED, MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
+import { MOB_EYE_HEIGHT_PERCENT, MOUSE, PLAYER_HEIGHT, PLAYER_ZOOM, RENDER_DEFAULT_ARM_HIT_PERIOD, RENDER_EAT_FOOD_DURATION } from "./constant.js";
 import { HumanoidArm, InteractionHand } from "./ui/inhand_overlay.js";
 import { Effect } from "./block_type/effect.js";
 import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "./fluid/FluidConst.js";
@@ -22,6 +22,8 @@ import type {ClientDriving} from "./control/driving.js";
 import type {PlayerModel} from "./player_model.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
 import { BBModel_Model } from "./bbmodel/model.js";
+import { AABB } from "./core/AABB.js";
+import type {PrismarinePlayerState} from "./prismarine-physics/index.js";
 
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
@@ -59,6 +61,16 @@ export type PlayerSkin = {
     can_select_by_player?:  boolean
     model_name:             string
     texture_name:           string
+}
+
+/** Опции клиентского игрока */
+export type PlayerOptions = {
+    use_light?
+    chunk_geometry_mode?
+    chunk_geometry_alloc?
+    forced_joystick_control?
+    /** Если true, то игрок - тестовый бот, использующий только spectator. */
+    is_spectator_bot? : boolean
 }
 
 type PlayerHand = {
@@ -126,9 +138,17 @@ export type PlayerStateUpdate = PlayerStateDynamicPart & {
     type ?
     dist ?      : number // null means that the player is too far, and it stopped receiving updates
     ground      : boolean
+    submergedPercent ? : float
     running     : boolean
 }
 
+/** Клиент отправляет на сервер чтобы войчти в мир */
+export type CmdConnectData = {
+    world_guid:         string
+    is_spectator_bot?:  boolean
+}
+
+/** Высылается клиенту */
 export type PlayerConnectData = {
     session     : PlayerSession
     state       : PlayerState
@@ -163,7 +183,7 @@ export class Player implements IPlayer {
     chat :                      Chat
     render:                     Renderer;
     world:                      World
-    options:                    any;
+    options:                    PlayerOptions;
     game_mode:                  GameMode;
     inventory:                  PlayerInventory;
     controls:                   PlayerControls;
@@ -205,6 +225,7 @@ export class Player implements IPlayer {
     onGround:                   boolean = false;
     onGroundO:                  boolean = false;
     sneak:                      boolean;
+    is_spectator_bot:           boolean = false // если true, то это специальный отладочный бот, который только летает
 
     //
     headBlock:                  any = null;
@@ -266,6 +287,7 @@ export class Player implements IPlayer {
     #old_distance:              number = 0 
     #old_y:                     number = 0
     mechanism_assembler?:       MechanismAssembler
+    pos1pos2:                   AABB
 
     constructor(options : any = {}, render? : Renderer) {
         this.render = render
@@ -299,9 +321,30 @@ export class Player implements IPlayer {
         //
         this.world.server.AddCmdListener([ServerClient.CMD_CONNECTED], (cmd) => {
             cb(this.playerConnectedToWorld(cmd.data), cmd);
-        });
+        })
+        this.world.server.AddCmdListener([ServerClient.CMD_POS1POS2], (cmd) => {
+            const {pos1, pos2} = cmd.data
+            const show = pos1 && pos2
+            if(show) {
+                this.pos1pos2 = new AABB()
+                this.pos1pos2.set(
+                    Math.min(pos1.x, pos2.x),
+                    Math.min(pos1.y, pos2.y),
+                    Math.min(pos1.z, pos2.z),
+                    Math.max(pos1.x, pos2.x) + 1,
+                    Math.max(pos1.y, pos2.y) + 1,
+                    Math.max(pos1.z, pos2.z) + 1,
+                )
+            } else {
+                this.pos1pos2 = null
+            }
+        })
         //
-        this.world.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: world.info.guid}});
+        const data: CmdConnectData = {
+            world_guid: world.info.guid,
+            is_spectator_bot: this.options.is_spectator_bot ?? false
+        }
+        this.world.server.Send({name: ServerClient.CMD_CONNECT, data})
     }
 
     // playerConnectedToWorld...
@@ -327,7 +370,7 @@ export class Player implements IPlayer {
         this.world.chunkManager.setRenderDist(data.state.chunk_render_dist);
         // Position
         this._height                = PLAYER_HEIGHT;
-        this.pos                    = new Vector(data.state.pos.x, data.state.pos.y, data.state.pos.z);
+        this.pos                    = new Vector(data.state.pos);
         this.lerpPos                = new Vector(this.pos);
         this._block_pos             = new Vector(0, 0, 0);
         this._eye_pos               = new Vector(0, 0, 0);
@@ -585,20 +628,13 @@ export class Player implements IPlayer {
     /** Добавляет вращение к свободной камере либо к повороту игроку */
     addRotate(vec3: IVector): void {
         const dst = this.controlManager.getCamRotation().addSelf(vec3)
-        this.setRotate(dst, dst)
+        PlayerControlManager.fixRotation(dst)
     }
 
-    /**
-     * Добавляет {@link src} к {@link dst} (по умолчанию к повороту игрока) и приводит углы к нормальным значениям для камеры
-     * @param src (0 ... PI)
-     */
-    setRotate(src: IVector, dst: Vector = this.rotate): void {
-        dst.copyFrom(src);
-        if(dst.z < 0) {
-            dst.z = (Math.PI * 2) + dst.z;
-        }
-        dst.x = Helpers.clamp(dst.x, -Math.PI / 2, Math.PI / 2);
-        dst.z = dst.z % (Math.PI * 2);
+    /** Устанавливает поворот игрока */
+    setRotate(src: IVector): void {
+        this.rotate.copyFrom(src)
+        PlayerControlManager.fixRotation(this.rotate)
     }
 
     // Rad to degree
@@ -1238,7 +1274,8 @@ export class Player implements IPlayer {
                 this.state.attack,
                 this.state.fire,
                 this.indicators.live,
-                this.onGround
+                this.onGround,
+                (this.controlManager.current.player_state as PrismarinePlayerState).submergedPercent ?? 0
             )
         }
     }

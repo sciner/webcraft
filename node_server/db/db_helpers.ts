@@ -1,26 +1,80 @@
 import { ArrayHelpers, StringHelpers } from "@client/helpers.js";
-import type { DBWorld } from "./world.js";
 
 const SQLITE_MAX_VARIABLE_NUMBER = 999; // used for bulk queries with (?,?,?), see https://www.sqlite.org/limits.html
 
-/** A handler to complete a transaction, and to resolve a promise at the same time. */
+/** Хэндлер, позволяющий окончить транзакию и одновременно выполнить promise (чтобы следующий ждущий мог начать транзакию) */
 export class Transaction {
-    _db: DBWorld;
-    _resolve: Function;
 
-    constructor(db: DBWorld, resolve: Function) {
-        this._db = db;
-        this._resolve = resolve;
+    private conn: DBConnection
+    private resolve: Function
+
+    constructor(conn: DBConnection, resolve: Function) {
+        this.conn = conn
+        this.resolve = resolve
     }
 
     async commit() {
-        await this._db.TransactionCommit();
-        this._resolve();
+        await this.conn.run('commit')
+        this.resolve()
     }
 
     async rollback() {
-        await this._db.TransactionRollback();
-        this._resolve();
+        await this.conn.run('rollback')
+        this.resolve()
+    }
+}
+
+/** Обеспечивает безопасное поочередное выполнение транзакций. */
+export class TransactionMutex {
+
+    private conn: DBConnection
+    private promise = Promise.resolve()
+
+    constructor(conn: DBConnection) {
+        this.conn = conn
+    }
+
+    /**
+     * Ждет когда предыдщая транзакция завершится. Потом начинает транзакцию.
+     * Несколько вызовом могут ожидать в очереди. Они будут выполнены в порядке создания.
+     * @returns хенлер транзакции. Обязательно(!) надоб вызвать один из его методов чтобы закрыть транзакции
+     *   (обязательно поместить закрытите в catch или finally блок, чтобы не пропустить)
+     */
+    async beginTransaction(): Promise<Transaction> {
+        const prevPromise = this.promise
+        let transaction: Transaction
+        this.promise = new Promise( resolve => {
+            transaction = new Transaction(this.conn, resolve)
+        })
+        // Wait for the completion of the previous transaction (successful or not).
+        // Rollback of a failed transaction is responsibility of the caller.
+        try {
+            await prevPromise
+        } catch(e) {
+            console.error('Awaiting transaction promise', e)
+            // проглотить исключение, чтобы передать управление следующему ждущему
+        }
+        await this.conn.run('begin transaction')
+        return transaction
+    }
+
+    /**
+     * Ждет когда предыдщая транзакция завершится. Потом запрещает создание новых транзакций пока
+     * вызывющий не сообщит что уже можно (через коллбэк).
+     * @returns коллбэк, который нужно обязательно вызывать когда разрешено начинать новые транзакции.
+     *   Не забывать про catch или finally, см. {@link begin}
+     */
+    async noTransaction(): Promise<() => void> {
+        const prevPromise = this.promise
+        let resolve: () => void
+        this.promise = new Promise( r => resolve = r)
+        try {
+            await prevPromise
+        } catch(e) {
+            console.error('Awaiting transaction promise', e)
+            // проглотить исключение, чтобы передать управление следующему ждущему
+        }
+        return resolve
     }
 }
 

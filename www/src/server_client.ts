@@ -1,11 +1,21 @@
 import { Vector } from "./helpers.js";
-import type {TChestConfirmData, TInventoryStateChangeMessage} from "./inventory.js";
+import type {TInventoryStateChangeMessage} from "./inventory.js";
 import type { ChunkManager } from "./chunk_manager.js";
 import type {TChestInfo} from "./block_helpers.js";
+import type {TChestConfirmData} from "./chest.js";
 
 type CmdListener = (INetworkMessage) => void
 type CmdListenersSet = Set<CmdListener>
 type CmdListenersMap = Map<int, CmdListenersSet>
+
+
+// Block actions
+export enum BLOCK_ACTION {
+    CREATE          = 1,
+    DESTROY         = 2,
+    MODIFY          = 3,
+    REPLACE         = 4,
+}
 
 export class ServerClient {
     [key: string]: any;
@@ -22,7 +32,7 @@ export class ServerClient {
 	static CMD_ERROR                    = 7; // server -> player (some error)
     static CMD_LOG_CONSOLE              = 118 // s->p. Шлет текст с сервера в консоль браузера
     static CMD_CHANGE_RENDER_DIST       = 10; // player -> server
-    static CMD_CONNECT                  = 34; // player -> server
+    static CMD_CONNECT                  = 34; // player -> server, см. CmdConnectData
     static CMD_CONNECTED                = 62; // server -> player
 
     // Cnunks and blocks
@@ -59,6 +69,7 @@ export class ServerClient {
     static CMD_CHEST_CONFIRM            = 47; // player -> server (player change chest content)
     static CMD_CHEST_FORCE_CLOSE        = 108; // server -> player (a server tells the client to close the chest window)
     static CMD_CHEST_CHANGE_PROCESSED   = 123 // s->p: сервер сообщил об окончании операции, которую ждал клиент (успешной или нет - не важно)
+    static CMD_POS1POS2                 = 124 //
 
     //
     static CMD_CHANGE_POS_SPAWN         = 63; // player -> server (request to change spawn point)
@@ -103,6 +114,7 @@ export class ServerClient {
     // Drop items
 	static CMD_DROP_ITEM_ADDED          = 76;
 	static CMD_DROP_ITEM_DELETED        = 77;
+    static CMD_DROP_ITEM_PICKED         = 124 // s->p: сообщает игроку, что он успешно подобрал предмет
 	static CMD_DROP_ITEM_UPDATE         = 78;
     static CMD_DROP_ITEM_FULL_UPDATE    = 109;
 	static CMD_DROP_ITEM                = 86; // p->s (throw an item from a hand)
@@ -124,13 +136,7 @@ export class ServerClient {
 
     static CMD_BUILDING_SCHEMA_ADD      = 107;
 
-    // NEXT UNUSED COMMAND INDEX        = 123
-
-    // Block actions
-    static BLOCK_ACTION_CREATE          = 1;
-    static BLOCK_ACTION_DESTROY         = 2;
-    static BLOCK_ACTION_MODIFY          = 3;
-    static BLOCK_ACTION_REPLACE         = 4;
+    // NEXT UNUSED COMMAND INDEX        = 125
 
     ws                                  : WebSocket
     lastPacketReceivedTime              = Infinity; // set to performance.now() when a packet is received

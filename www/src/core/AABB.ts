@@ -52,6 +52,7 @@ export class AABB {
     x_max: number;
     y_max: number;
     z_max: number;
+    private _position?: Vector;
     private _size?: Vector;
     private _center?: Vector;
 
@@ -72,6 +73,12 @@ export class AABB {
         this.y_max = -Infinity;
         this.z_max = -Infinity;
         return this;
+    }
+
+    get position() : Vector {
+        this._position = this._position || new Vector(0, 0, 0 )
+        this._position.set(this.x_min, this.y_min, this.z_min)
+        return this._position
     }
 
     get size() : Vector {
@@ -203,6 +210,42 @@ export class AABB {
         this.y_max = Math.max(y0, y1);
         this.z_min = Math.min(z0, z1);
         this.z_max = Math.max(z0, z1);
+
+        if (pivot) {
+            this.x_min += pivot.x;
+            this.y_min += pivot.y;
+            this.z_min += pivot.z;
+            this.x_max += pivot.x;
+            this.y_max += pivot.y;
+            this.z_max += pivot.z;
+        }
+
+        return this;
+    }
+
+    applyMat4(matrix : imat4, pivot : IVector) : this {
+        if (pivot) {
+            this.x_min -= pivot.x;
+            this.y_min -= pivot.y;
+            this.z_min -= pivot.z;
+            this.x_max -= pivot.x;
+            this.y_max -= pivot.y;
+            this.z_max -= pivot.z;
+        }
+
+        const x0 = this.x_min * matrix[0] + this.y_min * matrix[4] + this.z_min * matrix[8];
+        const x1 = this.x_max * matrix[0] + this.y_max * matrix[4] + this.z_max * matrix[8];
+        const y0 = this.x_min * matrix[1] + this.y_min * matrix[5] + this.z_min * matrix[9];
+        const y1 = this.x_max * matrix[1] + this.y_max * matrix[5] + this.z_max * matrix[9];
+        const z0 = this.x_min * matrix[2] + this.y_min * matrix[6] + this.z_min * matrix[10];
+        const z1 = this.x_max * matrix[2] + this.y_max * matrix[6] + this.z_max * matrix[10];
+
+        this.x_min = Math.min(x0, x1) + matrix[12];
+        this.x_max = Math.max(x0, x1) + matrix[12];
+        this.y_min = Math.min(y0, y1) + matrix[13];
+        this.y_max = Math.max(y0, y1) + matrix[13];
+        this.z_min = Math.min(z0, z1) + matrix[14];
+        this.z_max = Math.max(z0, z1) + matrix[14];
 
         if (pivot) {
             this.x_min += pivot.x;
@@ -404,7 +447,7 @@ export class AABBSideParams {
     lm: IndexedColor | null = null;
     axes?: number[][];
     autoUV: boolean = false;
-    rawColor?: null;
+    rawColor?: number[] | null;
     offset?: number[];
 
     constructor(uv : float[] = [0, 0, 0, 0], flag : int = 0, anim : number = 0, lm : IndexedColor | null = null, axes? : number[][], autoUV : boolean = false, rawColor = null, offset = null) {

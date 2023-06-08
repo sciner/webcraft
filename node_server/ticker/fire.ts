@@ -1,6 +1,6 @@
 import { AIR_BLOCK_SIMPLE, BLOCK } from '@client/blocks.js';
 import { Vector } from '@client/helpers.js';
-import { ServerClient } from '@client/server_client.js';
+import { BLOCK_ACTION } from '@client/server_client.js';
 import { BlockUpdates } from './ticker_helpers.js'
 import type { ServerChunk, TickingBlockManager } from "../server_chunk.js";
 import type { ServerWorld } from 'server_world.js';
@@ -34,11 +34,11 @@ export default class Ticker {
             return false;
         }
         if (!isBurnPosition(world, pos) && block.id == BLOCK.AIR.id && block.fluid == 0) {
-            updated.push({pos: pos.clone(), item: AIR_BLOCK_SIMPLE, action_id: ServerClient.BLOCK_ACTION_MODIFY})
+            updated.push({pos: pos.clone(), item: AIR_BLOCK_SIMPLE, action_id: BLOCK_ACTION.MODIFY})
         }
         const infiniburn = (block.id == BLOCK.NETHERRACK.id || block.id == BLOCK.SOUL_SAND.id); //Бесконечное пламя
         if (!infiniburn && world.isRaining() && Math.random() < 0.2 + age * 0.03) {
-            return [{pos, item: AIR_BLOCK_SIMPLE, action_id: ServerClient.BLOCK_ACTION_MODIFY}]
+            return [{pos, item: AIR_BLOCK_SIMPLE, action_id: BLOCK_ACTION.MODIFY}]
         } else {
             if (age < 15) {
                 extra_data.west = getFlame(world.getBlock(_pos.copyFrom(pos).addSelf(Vector.XN))) != 0
@@ -47,14 +47,14 @@ export default class Ticker {
                 extra_data.south = getFlame(world.getBlock(_pos.copyFrom(pos).addSelf(Vector.ZN))) != 0
                 extra_data.up = block.id != BLOCK.AIR.id && block.id != BLOCK.FIRE.id
                 extra_data.age = Math.min(15, age + rndInt(3) / 2);
-                updated.push({pos, item: {id: BLOCK.FIRE.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                updated.push({pos, item: {id: BLOCK.FIRE.id, extra_data: extra_data}, action_id: BLOCK_ACTION.MODIFY});
             }
             if (!infiniburn) {
                 if (!isBurnPosition(world, pos) && age > 3) {
-                    return [{pos, item: AIR_BLOCK_SIMPLE, action_id: ServerClient.BLOCK_ACTION_MODIFY}];
+                    return [{pos, item: AIR_BLOCK_SIMPLE, action_id: BLOCK_ACTION.MODIFY}];
                 }
                 if (age >= 15 && rndInt(4) == 0) {
-                    return [{pos, item: AIR_BLOCK_SIMPLE, action_id: ServerClient.BLOCK_ACTION_MODIFY}];
+                    return [{pos, item: AIR_BLOCK_SIMPLE, action_id: BLOCK_ACTION.MODIFY}];
                 }
             }
             const humidity = 0;
@@ -141,7 +141,7 @@ function setFireOrDes(world : ServerWorld, pos : Vector, chance : float, age, up
         if (rndInt(age + 10) < 5) {
             setFireBlock(world, pos, age, updated);
         } else {
-            updated.push({pos: pos.clone(), item: AIR_BLOCK_SIMPLE, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+            updated.push({pos: pos.clone(), item: AIR_BLOCK_SIMPLE, action_id: BLOCK_ACTION.MODIFY});
         }
     }
     if (block.id == BLOCK.TNT.id) {
@@ -158,5 +158,5 @@ function setFireBlock(world : ServerWorld, pos : Vector, age, updated : IUpdateB
         up: true,
         age: Math.min((age + rndInt(5) / 4), 15)
     };
-    updated.push({pos: pos.clone(), item: {id: BLOCK.FIRE.id, extra_data: data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+    updated.push({pos: pos.clone(), item: {id: BLOCK.FIRE.id, extra_data: data}, action_id: BLOCK_ACTION.MODIFY});
 }

@@ -10,6 +10,7 @@ import { WorldAction } from "@client/world_action.js";
 import type {MobControlParams} from "@client/control/player_control.js";
 import type {World} from "@client/world.js";
 import type {ServerWorld} from "../server_world.js";
+import type { ServerChunk } from "server_chunk.js";
 
 const MUL_1_SEC = 20;
 
@@ -33,19 +34,15 @@ export class FSMBrain {
     to: any;
     resistance_light: boolean;
     pc: PrismarinePlayerControl;
-    under_id: any;
-    legs_id: any;
+    under: any;
+    legs: any;
     in_water: boolean;
     in_fire: boolean;
     in_lava: boolean;
     in_air: boolean;
-    is_abyss: boolean;
     is_wall: boolean;
-    is_fire: boolean;
-    is_water: boolean;
-    is_lava: boolean;
-    is_gate: boolean;
     targets: any;
+    ahead: any
 
     constructor(mob: Mob) {
         this.mob = mob;
@@ -85,10 +82,20 @@ export class FSMBrain {
         if (!this.enabled) {
             return
         }
-        const stateFunctionUsed = this.stack.tick(delta, this);
+
+        const stateFunctionUsed = this.stack.getCurrentState()
         if (stateFunctionUsed) {
-            this.addStat(stateFunctionUsed.func.name, true);
+            // мозг думает
+            const doPhysics = this.stack.tick(delta, this)
+            this.addStat(stateFunctionUsed.func.name, true)
+            // выполнить физику, выслать состояние
+            if (doPhysics) {
+                this.applyControl(delta)
+                this.addStat('physics')
+                this.sendState()
+            }
         }
+
         const driving = this.mob.driving
         if (driving) {
             // есть вождение, но моб сам им управляет. Обновить состояние вождения.
@@ -120,23 +127,6 @@ export class FSMBrain {
     /** Updates the control {@link pc} */
     updateControl(new_states: MobControlParams): void {
         this.pc.updateControlsFromMob(new_states, this.mob.rotate.z)
-
-        /* The old code - slow
-
-        const pc = this.pc;
-        for (let [key, value] of Object.entries(new_states)) {
-            switch (key) {
-                case 'yaw': {
-                    pc.player_state.yaw = value as float;
-                    break;
-                }
-                default: {
-                    pc.controls[key] = value;
-                    break;
-                }
-            }
-        }
-        */
     }
 
     applyControl(delta : float) {
@@ -193,32 +183,92 @@ export class FSMBrain {
     // контроль жизней и состояния моба
     onLive() {
         const mob = this.mob;
-        const config = mob.config
-        const world = mob.getWorld();
-        const bm = world.block_manager
-        const chunk = mob.inChunk
-        if (!chunk) {
-            return;
+        const mob_chunk = mob.inChunk
+        if (!mob_chunk) {
+            return
         }
-        const forward = mob.pos.add(mob.forward).floored();
-        const ahead = chunk.getBlock(forward.offset(0, 1, 0).floored());
-        const alegs = chunk.getBlock(forward);
-        const under = chunk.getBlock(forward.offset(0, -1, 0));
-        const abyss = chunk.getBlock(forward.offset(0, -2, 0));
-        const head = chunk.getBlock(this.getEyePos().floored());
-        const legs = chunk.getBlock(mob.pos.floored());
-        this.under_id = under.id;
-        this.legs_id = legs.id;
-        this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
-        this.in_fire = (legs.id == bm.FIRE.id || legs.id == bm.CAMPFIRE.id);
-        this.in_lava = (legs.id == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
-        this.in_air = (head.fluid == 0 && (legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID);
-        this.is_abyss = under.id == 0 && under.fluid == 0 && abyss.id == 0 && abyss.fluid == 0 && alegs.id == 0 && alegs.fluid == 0;
-        this.is_wall = (ahead?.id != 0 && ahead?.id != -1 && ahead?.material?.style_name != 'planting' && ahead?.material?.style_name != 'chicken_nest') || (alegs?.material?.style_name == 'fence');
-        this.is_fire = (alegs.id == bm.FIRE.id || alegs.id == bm.CAMPFIRE.id);
-        this.is_water = ((under.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && this.time_fire == 0;
-        this.is_lava = ((under.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
-        this.is_gate = ahead.id != bm.AIR.id;
+        const world = mob.getWorld()
+        // адреса
+        
+        const config = mob.config
+        
+        const bm = world.block_manager
+        const state = this.pc.player_state
+        // @todo старый вариант
+        //const forward = mob.pos.add(mob.forward).floored();
+       // const ahead = chunk.getBlock(forward.offset(0, 1, 0).floored());
+        //const alegs = chunk.getBlock(forward);
+        //const under = chunk.getBlock(forward.offset(0, -1, 0));
+        //const abyss = chunk.getBlock(forward.offset(0, -2, 0));
+        //this.is_abyss = under.id == 0 && under.fluid == 0 && abyss.id == 0 && abyss.fluid == 0 && alegs.id == 0 && alegs.fluid == 0;
+       // this.is_fire = (alegs.id == bm.FIRE.id || alegs.id == bm.CAMPFIRE.id);
+        //this.is_water = ((under.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID)
+       // this.is_lava = ((under.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
+         //this.under_id = under.id;
+         
+        const mob_pos = mob.pos.floored()
+        const head = mob_chunk.getBlock(this.getEyePos().floored())
+        this.legs = mob_chunk.getBlock(mob_pos)
+        this.in_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) && state.isInWater
+        this.in_fire = (this.legs.id == bm.FIRE.id || this.legs.id == bm.CAMPFIRE.id)
+        this.in_lava = state.isInLava
+        this.in_air = (head.fluid == 0 && (this.legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID)
+
+        this.ahead = {
+            is_water: false,
+            is_abyss: false,
+            is_lava: false,
+            is_fire: false
+        }
+        this.under = null
+        // коллизия со стеной
+        this.is_wall = state.isCollidedHorizontally
+        //
+        
+
+        if (!this.is_wall) {
+            const forward = mob.pos.clone()
+            forward.addSelf(mob.forward.mulScalar(this.pc.playerHalfWidth)).floored()
+            let height = 0
+            let chunk : ServerChunk = null
+            const _chunk_addr = new Vector()
+            const grid = world.chunkManager.grid
+            for (let i = 0; i < 5; i++) {
+                grid.getChunkAddr(forward.x, forward.y, forward.z, _chunk_addr)
+                if(!chunk || !chunk.addr.equal(_chunk_addr)) {
+                    chunk = world.chunkManager.getChunk(_chunk_addr)
+                }
+                if(!chunk) {
+                    continue
+                }
+                const block = chunk.getBlock(forward)
+                if (i == 0) {
+                    this.under = block 
+                }
+                forward.y--
+                if (block.id == 0) {
+                    if ((block.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
+                        this.ahead.is_water = true
+                        break
+                    } else if ((block.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
+                        this.ahead.is_lava = true
+                        break
+                    } else {
+                        height++
+                    }
+                } else if (block.id == bm.FIRE.id || block.id == bm.CAMPFIRE.id) {
+                    this.ahead.is_fire = true
+                    break
+                } else {
+                    break
+                }
+            }
+            if (height > 3) {
+                this.ahead.is_abyss = true
+            }
+
+        }
+
         // стоит в лаве
         if (this.in_lava) {
             if (this.timer_lava_damage <= 0) {
@@ -233,13 +283,12 @@ export class FSMBrain {
         }
         // стоит в огне или на свете
         if (this.in_fire || (world.getLight() > 11
-            && (chunk.tblocks.lightData && (legs.lightValue >> 8) === 0)
+            && (mob_chunk.tblocks.lightData && (this.legs.lightValue >> 8) === 0)
             && !this.resistance_light)) {
             this.time_fire = Math.max(8 * MUL_1_SEC, this.time_fire);
         }
         // нехватка воздуха
         if (this.in_water && config.can_asphyxiate) {
-            this.time_fire = 0;
             if (this.timer_water_damage >= MUL_1_SEC) {
                 this.timer_water_damage = 0;
                 this.onDamage(1, EnumDamage.WATER, null);
@@ -249,19 +298,20 @@ export class FSMBrain {
         } else {
             this.timer_water_damage = 0;
         }
+        // тушение в воде
+        if (state.isInWater) {
+            this.time_fire = 0
+        }
         // горение
         if (this.time_fire > 0) {
+            this.time_fire--
             if (this.timer_fire_damage >= MUL_1_SEC) {
                 this.timer_fire_damage = 0;
                 this.onDamage(1, EnumDamage.FIRE, null);
             } else {
                 this.timer_fire_damage++;
             }
-        } else {
-            this.time_fire--;
         }
-        // update extra data
-        this.mob.extra_data.time_fire = this.time_fire;
         // регенерация жизни
         if (this.timer_health >= 10 * MUL_1_SEC) {
             mob.indicators.live = Math.min(mob.indicators.live + 1, this.mob.config.health);
@@ -273,119 +323,118 @@ export class FSMBrain {
         if (this.timer_panic > 0) {
             this.timer_panic--;
         }
-        this.addStat('onLive');
 
-        this.onFind();
+        // update extra data
+        this.mob.extra_data.in_fire = this.time_fire > 0;
+
+        this.addStat('onLive')
+        this.onFind()
     }
 
     // поиск игроков или мобов
     onFind() {
         if (this.target || !this.targets || this.targets.length == 0 || this.distance_view < 1) {
-            return;
+            return
+        }
+        // это медленная функция, но ее можно выполнять раз в несколько секунд
+        if ((this.world.ticks_stat.number + this.mob.id) % 30 !== 0) {
+            return
         }
         const mob = this.mob;
         const world = mob.getWorld();
         const players = world.getPlayersNear(mob.pos, this.distance_view, false);
-        const friends = [];
         for (const player of players) {
-            if (this.targets.includes(player.state.hands.right.id)) {
-                friends.push(player);
+            if (Math.random() > (player.state.pos.distance(mob.pos) / this.distance_view) && this.targets.includes(player.state.hands.right.id)) {
+                this.target = player
+                break
             }
-        }
-        if (friends.length > 0) {
-            const rnd = (Math.random() * friends.length) | 0;
-            const player = friends[rnd];
-            this.target = player;
         }
         this.addStat('onFind');
     }
 
     // идти за игроком, если в руках нужный предмет
-    doCatch(delta) {
+    doCatch(delta: float): boolean {
         this.timer_panic = 0;
         const mob = this.mob;
         if (!this.target || this.distance_view < 1) {
             this.target = null;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         const dist = mob.pos.distance(this.target.state.pos);
         if (this.target.game_mode.isSpectator() || dist > this.distance_view || !this.targets.includes(this.target.state.hands.right.id)) {
             this.target = null;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
-        const forward = (dist > 1.5 && !this.is_wall && !this.is_abyss) ? true : false;
+        const forward = (dist > 1.5 && !this.is_wall && !this.ahead.is_abyss) ? true : false;
         this.updateControl({
             forward: forward,
-            jump: this.is_water,
+            jump: this.in_water,
             sneak: false
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
     /** Стоит на месте, но иногда начинает идти; реагирует на разные ситуации. См. также {@link doNothing} */
-    doStand(delta : float) {
+    doStand(delta : float): boolean {
         // нашел цель
         if (this.target) {
             this.stack.replaceState(this.doCatch);
-            return;
+            return false
         }
         // попал в воду
         if (this.in_water) {
             this.stack.replaceState(this.doFindGround);
-            return;
+            return false
         }
-        if (Math.random() < 0.05 || this.timer_panic > 0) {
+        if (Math.random() < .05 || this.timer_panic > 0) {
             this.stack.replaceState(this.doForward);
-            return;
+            return false
         }
         this.updateControl({
             forward: false,
             jump: false,
             sneak: false
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
     /** Не делает ниего, ни при каких обстоятелствах. Для неодушевленных объектов типа лодки. См. также {@link doStand} */
-    doNothing(delta: float): void {
+    doNothing(delta: float): boolean {
         this.updateControl({
             forward: false,
             jump: false,
             sneak: false,
             pitch: false
         })
-        this.applyControl(delta)
-        this.sendState()
+        return true
     }
 
     // просто ходит
-    doForward(delta) {
+    doForward(delta: float): boolean {
         const mob = this.mob;
         // нашел цель
         if (this.target) {
             this.stack.replaceState(this.doCatch);
-            return;
+            return false
         }
         // попал в воду
         if (this.in_water) {
             this.stack.replaceState(this.doFindGround);
-            return;
+            return false
         }
         // обход препятсвия
-        if (this.is_wall || this.is_fire || this.is_lava || this.is_water) {
+        if (this.is_wall || this.ahead.is_fire || this.ahead.is_lava || (this.ahead.is_water && this.time_fire == 0) || this.ahead.is_abyss) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + (Math.random() - Math.random()) * Math.PI / 8;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         if (Math.random() < 0.05) {
             mob.rotate.z = mob.rotate.z + (Math.random() - Math.random()) * Math.PI / 12;
             this.stack.replaceState(this.doStand);
-            return;
+            return false
         }
         this.updateControl({
             forward: true,
@@ -393,17 +442,16 @@ export class FSMBrain {
             sneak: false,
             pitch: this.timer_panic > 0
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
     // поиск суши
-    doFindGround(delta) {
+    doFindGround(delta: float): boolean {
         const mob = this.mob;
         // нашел цель
         if (this.target) {
             this.stack.replaceState(this.doCatch);
-            return;
+            return false
         }
         // находим пересечение сред
         if (this.in_air) {
@@ -425,21 +473,19 @@ export class FSMBrain {
         }
 
         if (this.to) {
-            const dist = mob.pos.distance(this.to);
-            mob.rotate.z = this.angleTo(this.to);
+            const dist = mob.pos.horizontalDistance(this.to)
+            mob.rotate.z = this.angleTo(this.to)
             if (dist < 0.5) {
                 this.stack.replaceState(this.doStand);
-                return;
+                return false
             }
         }
-
         this.updateControl({
             forward: this.to ? true : false,
-            jump: this.in_water,
+            jump: this.pc.player_state.isInWater,
             sneak: false
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
     /**
@@ -496,7 +542,7 @@ export class FSMBrain {
      * @param actor игрок
      * @param item item
      */
-    onUse(actor : any, item : any) : boolean{
+    onUse(actor : any, item : any) : boolean {
         return false;
     }
 

@@ -154,25 +154,48 @@ export class Label extends lbl {
 }
 
 export class Button extends btn {
-    [key: string]: any;
+
+    private _enabled = true
 
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
         super(x, y, w, h, id, title, text)
         this.style.border.style = 'fixed_single'
-        this.style.font.color = UI_THEME.button.font.color
-        this.style.border.color = UI_THEME.base_font.color
-        this.style.background.color = UI_THEME.button.background.color
         this.style.font.size = UI_THEME.button.font.size
+        this.setDefaultColors()
+    }
+
+    get enabled(): boolean { return this._enabled }
+
+    set enabled(v: boolean) {
+        this._enabled = v
+        if (this.style) { // когда оно вызывается из конструктора окна (где похоже не обязательно вызывать), this.style еще не определено
+            if (v) {
+                this.setDefaultColors()
+            } else {
+                this.style.border.color = UI_THEME.button.border.disabled_color
+                this.style.background.color = UI_THEME.button.background.disabled_color
+                this.style.font.color = UI_THEME.button.font.disabled_color
+            }
+        }
     }
 
     onMouseEnter() {
-        super.onMouseEnter()
-        this.style.background.color = '#ffffff22'
-        this.style.border.color = '#ffffffff'
+        if (this._enabled) {
+            super.onMouseEnter()
+            this.style.background.color = '#ffffff22'
+            this.style.border.color = '#ffffffff'
+        }
     }
 
     onMouseLeave() {
-        super.onMouseLeave()
+        if (this._enabled) {
+            super.onMouseLeave()
+            this.setDefaultColors()
+        }
+    }
+
+    /** Устанавливает цвета кнопки в обычном состоянии (не выделенной, не отключенной) */
+    protected setDefaultColors(): void {
         this.style.border.color = UI_THEME.base_font.color
         this.style.background.color = UI_THEME.button.background.color
         this.style.font.color = UI_THEME.button.font.color

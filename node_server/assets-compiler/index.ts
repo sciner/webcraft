@@ -13,10 +13,10 @@ const compiler = new Compiler({
     ],
     output_dir: "../../www/resource_packs/base",
     base_conf: "../../www/resource_packs/base/conf.json",
-    compile_json: "./compile.json",
+    compile_json: "../../data/assets/compile.json",
     copy_files: [
-        'textures/painting.png',
-        'textures/alphabet_msdf.png',
+        '../../data/assets/textures/painting.png',
+        '../../data/assets/textures/alphabet_msdf.png',
     ]
 });
 await compiler.init();
@@ -26,9 +26,9 @@ await compiler.run();
 const bbcompiler = new BBModel_Compiler({
     resolution:         DEFAULT_TX_SIZE,
     tx_cnt:             BBMODEL_TX_CNT,
-    model_dir:          "./bbmodel/models",
+    model_dir:          "../../data/assets/bbmodel/models",
     output_dir:         "../../www/resource_packs/bbmodel",
-    conf:               "./bbmodel/conf.json",
+    conf:               "../../data/assets/bbmodel/conf.json",
     // texture_pack_dir:   options.texture_pack_dir,
 });
 await bbcompiler.init();

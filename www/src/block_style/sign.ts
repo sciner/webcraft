@@ -1,4 +1,4 @@
-import {DIRECTION, AlphabetTexture, Vector, IndexedColor} from '../helpers.js';
+import {DIRECTION, AlphabetTexture, Vector, IndexedColor, TX_CNT} from '../helpers.js';
 import {BlockManager, FakeTBlock} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
@@ -7,6 +7,7 @@ import type { TBlock } from '../typed_blocks3.js';
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { World } from '../world.js';
+import { SIGN_POSITION } from '../constant.js';
 
 
 const {mat4} = glMatrix;
@@ -16,6 +17,7 @@ const CONNECT_X         = 16 / 16;
 const CONNECT_Z         = 2 / 16;
 const CONNECT_HEIGHT    = 8 / 16;
 const BOTTOM_HEIGHT     = .6;
+const EMPTY_ARRAY       = []
 
 const cubeSymAxis = [
     [0, -1],
@@ -42,8 +44,22 @@ export default class style {
     // computeAABB
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
+        const rot           = tblock.rotate ?? Vector.ZERO
+        const on_ceil       = rot.y == SIGN_POSITION.CEIL
+        const on_wall_alt   = rot.y == SIGN_POSITION.WALL_ALT
+        const on_floor      = rot.y == SIGN_POSITION.FLOOR
+
+        if(on_wall_alt) {
+            const aabb1 = new AABB(7/16, 0, 0, 9/16, 1, 1)
+            if(for_physic) {
+                aabb1.y_min = 14/16
+            }
+            aabb1.rotate((rot.x + 1) % 4, aabb1.center);
+            return [aabb1]
+        }
+
         if(for_physic) {
-            return [];
+            return EMPTY_ARRAY
         }
 
         let x           = 0;
@@ -87,41 +103,78 @@ export default class style {
 
     }
 
+    static same_rot_with_up_neighbour(tblock : TBlock | FakeTBlock, neighbour : TBlock) : boolean {
+        const rot = tblock.rotate ?? Vector.ZERO
+        const on_ceil = rot.y == SIGN_POSITION.CEIL
+        if(on_ceil) {
+            if(neighbour.material.style_name == 'sign') {
+                const angle = Math.abs(neighbour.rotate.x - rot.x)
+                if ((angle > 0.02 && angle < 1.88) || ( angle > 2.02)) {
+                    return false
+                } else {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
     // Build function
     static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
         if(!block || typeof block == 'undefined') {
-            return;
+            return
         }
 
-        const bm = style.block_manager
+        const bm            = style.block_manager
+        const c             = bm.calcMaterialTexture(block.material, DIRECTION.UP)
+        const c_chain       = bm.calcTexture(bm.CHAIN.texture, DIRECTION.UP)
+        const rot           = block.rotate ?? Vector.ZERO
+        const on_ceil       = rot.y == SIGN_POSITION.CEIL
+        const on_wall_alt   = rot.y == SIGN_POSITION.WALL_ALT
+        const on_floor      = rot.y == SIGN_POSITION.FLOOR
+        const aabb          = style.makeAABBSign(block, x, y, z)
 
-        // Texture
-        const c = bm.calcMaterialTexture(block.material, DIRECTION.UP);
-
-        const draw_bottom = block.rotate.y != 0;
-
-        const aabb = style.makeAABBSign(block, x, y, z)
-
-        if(draw_bottom) {
-            matrix = mat4.create();
+        matrix = mat4.create()
+        if(on_ceil || on_floor) {
             mat4.rotateY(matrix, matrix, ((block.rotate.x - 2) / 4) * (2 * Math.PI))
         } else {
-            matrix = CubeSym.matrices[CubeSym.dirAdd(Math.floor(block.rotate.x), CubeSym.ROT_Y2)]
+            mat4.rotateY(matrix, matrix, -((block.rotate.x - 2) / 4) * (2 * Math.PI))
         }
 
-        // Center
-        let aabb_down;
-        if(draw_bottom) {
-            aabb_down = new AABB();
-            aabb_down.set(
-                x + .5 - CENTER_WIDTH/2,
-                y,
-                z + .5 - CENTER_WIDTH/2,
-                x + .5 + CENTER_WIDTH/2,
-                y + BOTTOM_HEIGHT,
-                z + .5 + CENTER_WIDTH/2,
-            );
+        if(on_ceil) {
+            if (neighbours.UP.material.style_name == 'sign') {
+                if(style.same_rot_with_up_neighbour(block, neighbours.UP)) {
+                    style.drawChain(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
+                } else {
+                    style.drawChainTilt(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
+                }
+            } else {
+                //console.log(neighbours.UP.material.style_name + ' ' + neighbours.UP.rotate.x  + ' ' + rot.x)
+                style.drawChain(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
+            }
+        } else if(on_wall_alt) {
+            // настенный крепеж
+            const wall_fixture = aabb.clone()
+            wall_fixture.translate(0, 1 - (wall_fixture.y_max % 1), 0)
+            wall_fixture.y_min = wall_fixture.y_max - wall_fixture.depth
+            // Push wall fixture vertices
+            pushAABB(
+                vertices,
+                wall_fixture,
+                pivot,
+                matrix,
+                {
+                    up:     new AABBSideParams(c, 0, 0, null, null, true),
+                    down:   new AABBSideParams(c, 0, 0, null, null, true),
+                    south:  new AABBSideParams(c, 0, 0, null, null, true),
+                    north:  new AABBSideParams(c, 0, 0, null, null, true),
+                    west:   new AABBSideParams(c, 0, 0, null, null, true),
+                    east:   new AABBSideParams(c, 0, 0, null, null, true),
+                },
+                new Vector(x, y, z)
+            )
+            style.drawChain(vertices, x, y, z, c_chain, pivot, matrix, (aabb.y_max - y))
         }
 
         // Push vertices
@@ -139,10 +192,19 @@ export default class style {
                 east:   new AABBSideParams(c, 0, 0, null, null, true),
             },
             new Vector(x, y, z)
-        );
+        )
 
-        if(draw_bottom) {
-            // Push vertices down
+        // Central stick
+        if(on_floor) {
+            const aabb_down = new AABB(
+                x + .5 - CENTER_WIDTH/2,
+                y,
+                z + .5 - CENTER_WIDTH/2,
+                x + .5 + CENTER_WIDTH/2,
+                y + BOTTOM_HEIGHT,
+                z + .5 + CENTER_WIDTH/2,
+            )
+            // Push vertices of central stick
             const c_down = bm.calcMaterialTexture(block.material, DIRECTION.DOWN);
             pushAABB(
                 vertices,
@@ -158,7 +220,7 @@ export default class style {
                     east:   new AABBSideParams(c_down, 0, 1, null, null, true),
                 },
                 new Vector(x, y, z)
-            );
+            )
         }
 
         const text_block = style.makeTextBlock(block, aabb, pivot, matrix, x, y, z)
@@ -170,48 +232,210 @@ export default class style {
 
     }
 
-    //
-    static makeAABBSign(tblock, x, y, z) {
+    static drawChainTilt(vertices, x, y, z, texture, pivot, matrix, pos) {
+        const sh_chain = 0.22
+        const big = [texture[0] - TX_CNT / (2 * 10000), texture[1], texture[2], texture[3]]
+        const small = [texture[0] - TX_CNT / 10000, texture[1], texture[2], texture[3]]
+        const aabb = new AABB()
+        aabb.set(
+            x + .4, y, z + .5,
+            x + .6, y + 0.56, z + .5
+        )
+        aabb.translate(sh_chain, 0.4, 0)
+        let m = new mat4.create()
+        mat4.rotateZ(m, matrix, Math.PI / 8)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(big, 0, 0, null, null, true),
+                north: new AABBSideParams(big, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+        aabb.translate(-2 * sh_chain, 0, 0)
+        mat4.rotateZ(m, matrix, -Math.PI / 8)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(big, 0, 0, null, null, true),
+                north: new AABBSideParams(big, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+        // малые звенья слева и права 
+        m = new mat4.create()
+        mat4.rotateY(m, matrix, Math.PI / 2)
+        mat4.rotateX(m, m, -Math.PI / 8)
+        aabb.translate(sh_chain, 0, sh_chain)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(small, 0, 0, null, null, true),
+                north: new AABBSideParams(small, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+        mat4.rotateY(m, matrix, Math.PI / 2)
+        mat4.rotateX(m, m, Math.PI / 8)
+        aabb.translate(0, 0, -2 * sh_chain)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(small, 0, 0, null, null, true),
+                north: new AABBSideParams(small, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+    }
 
-        const draw_bottom = tblock.rotate ? (tblock.rotate.y != 0) : true
+    static drawChain(vertices, x, y, z, texture, pivot, matrix, pos, ) {
+        const sh_chain = 3 / 16
+        const big = [texture[0] - TX_CNT / (2 * 10000), texture[1], texture[2], texture[3]]
+        const small = [texture[0] - TX_CNT / 10000, texture[1], texture[2], texture[3]]
+        const aabb = new AABB()
+        aabb.set(
+            x + .4, y, z + .5,
+            x + .6, y + (1 - pos), z + .5
+        )
+        aabb.translate(sh_chain, pos, sh_chain)
+        let m = new mat4.create()
+        mat4.rotateY(m, matrix, Math.PI / 4)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(big, 0, 0, null, null, true),
+                north: new AABBSideParams(big, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+        aabb.translate(-2 * sh_chain, 0, -2 * sh_chain)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(big, 0, 0, null, null, true),
+                north: new AABBSideParams(big, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+        // малые звенья слева и права 
+        m = new mat4.create()
+        mat4.rotateY(m, matrix, -Math.PI / 4)
+        aabb.translate(0, 0, 2 * sh_chain)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(small, 0, 0, null, null, true),
+                north: new AABBSideParams(small, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+        aabb.translate(2 * sh_chain, 0, -2 * sh_chain)
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            m,
+            {
+                south: new AABBSideParams(small, 0, 0, null, null, true),
+                north: new AABBSideParams(small, 0, 0, null, null, true),
+            },
+            new Vector(x, y, z)
+        )
+    }
+
+    //
+    static makeAABBSign(tblock : TBlock | FakeTBlock, x : int, y : int, z : int) {
+
+        const rot           = tblock.rotate ?? Vector.ZERO
+        const draw_bottom   = rot ? (rot.y != 0) : true
+        const is_bb         = !!tblock.material.bb
+        const on_ceil       = rot.y == SIGN_POSITION.CEIL
+        const on_wall_alt   = rot.y == SIGN_POSITION.WALL_ALT
+        const on_floor      = rot.y == SIGN_POSITION.FLOOR
+
+        const connect_z = is_bb ? 3/32 : CONNECT_Z
 
         const aabb = new AABB(
             x + .5 - CONNECT_X / 2,
             y + .6,
-            z + .5 - CONNECT_Z / 2,
+            z + .5 - connect_z / 2,
             x + .5 + CONNECT_X / 2,
             y + .6 + CONNECT_HEIGHT,
-            z + .5 + CONNECT_Z / 2,
+            z + .5 + connect_z / 2,
         )
 
-        if(!draw_bottom) {
-            aabb.translate(0, -(.2 + aabb.height) / 2, .5 - aabb.depth / 2)
+        if(is_bb) {
+            let tz = 0
+            let ty = -.725/32
+            if(!draw_bottom) {
+                ty += -5/16
+                tz = .5 - aabb.depth / 2
+            }
+            aabb.translate(0, ty, tz)
+        } else {
+            if(!draw_bottom) {
+                aabb.translate(0, -(.2 + aabb.height) / 2, .5 - aabb.depth / 2)
+            }
+        }
+
+        if(on_ceil) {
+            aabb.expand(-1/16, 0, 0)
+            aabb.translate(0, -(aabb.y_min - y), 0)
+        } else if(on_wall_alt) {
+            aabb.expand(-1/16, 0, 0)
+            aabb.translate(0, -(aabb.y_min - y), 0)
+        }
+        
+        if(is_bb) {
+            if(on_wall_alt || on_ceil) {
+                aabb.translate(0, .55/32, 0)
+            }
         }
 
         return aabb
 
     }
 
-    //
-    static makeTextBlock(tblock, aabb, pivot, matrix, x, y, z) {
-        const bm = style.block_manager
-        // Return text block
+    // Return text block
+    static makeTextBlock(tblock : TBlock | FakeTBlock, aabb : AABB, pivot, matrix, x : number, y : number, z : number) {
         if(tblock.extra_data) {
-            let text = tblock.extra_data?.text;
+            const text = tblock.extra_data?.text;
             if(text) {
                 const sign = [];
                 if(tblock.extra_data.username) sign.push(tblock.extra_data.username);
                 if(tblock.extra_data.dt) sign.push(new Date(tblock.extra_data.dt || Date.now()).toISOString().slice(0, 10));
                 return new FakeTBlock(
-                    bm.TEXT.id,
+                    style.block_manager.TEXT.id,
                     {
                         ...tblock.extra_data,
-                        aabb: aabb,
-                        chars: AlphabetTexture.getStringUVs(text),
-                        sign: sign.length > 0 ? AlphabetTexture.getStringUVs(sign.join(' | ')) : null
+                        bb:     !!tblock.material.bb,
+                        aabb:   aabb,
+                        chars:  AlphabetTexture.getStringUVs(text),
+                        sign:   sign.length > 0 ? AlphabetTexture.getStringUVs(sign.join(' | ')) : null
                     },
                     new Vector(x, y, z),
-                    tblock.rotate,
+                    (tblock.rotate as Vector) ?? Vector.ZERO,
                     pivot,
                     matrix
                 );

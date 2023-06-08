@@ -2,9 +2,6 @@ import { FAST } from "./constant.js";
 
 export const MAX_CHUNK_SQUARE               = 32 * 32
 export const OLD_CHUNK_SIZE                 = Object.freeze({x: 16, y: 40, z: 16})
-export const CH_SZ_X                        = OLD_CHUNK_SIZE.x
-export const CH_SZ_Y                        = OLD_CHUNK_SIZE.y
-export const CH_SZ_Z                        = OLD_CHUNK_SIZE.z
 export const CHUNK_GENERATE_MARGIN_Y        = FAST ? 1 : 3
 export const CHUNK_SIZE_Y_MAX               = 4096
 export const MAX_CAVES_LEVEL                = 256

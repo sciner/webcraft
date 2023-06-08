@@ -159,6 +159,7 @@
         "error_chest_too_far": {"en": "The chest is too far", "ru": "Сундук слишклм далеко", "es": "", "man": ""},
         "error_sort_chest_other_players": {"en": "Can't sort a chest while it's opened by other players", "ru": "Нельзя сортировать сундук пока он открыт другими игроками", "es": "", "man": ""},
         "chest_loading": {"en": "LOADING...", "ru": "ЗАГРУЗКА...", "fr": "", "es": "", "man": ""},
+        "sort": {"en": "Sort", "ru": "Сортировать", "fr": "", "es": "", "man": ""},
         "effect_removed": {"en": "Effect \"%0\" removed", "ru": "Эффект \"%0\" удалён", "fr": "", "es": "", "man": ""},
         "effect_not_found": {"en": "Effect \"%0\" not found. Example /effect give [id] [level] [time]", "ru": "Эффект \"%0\" не найден. Пример /effect give [id] [level] [time]", "fr": "", "es": "", "man": ""},
         "effect_error_level": {"en": "Effect level must be greater than zero. Example /effect give [id] [level] [time]", "ru": "Уровень эффекта должен быть больше нуля. Пример /effect give [id] [level] [time]", "fr": "", "es": "", "man": ""},
@@ -244,6 +245,9 @@
         "chat_reverse": {"en": "Chat reverse", "ru": "Вывод сообщений снизу вверх", "fr": "Chat inversé", "es": "Chat inverso", "man": "反向聊天"},
         "chat_time": {"en": "Chat display time", "ru": "Длительность видимости чата", "fr": "Durée d'affichage du chat", "es": "Duración de la visualización del chat", "man": "聊天显示时间"},
         "error_undefined_animation_name": {"en": "Undefined animation `%0`", "ru": "Неизвестная анимация `%0`", "fr": "Animation indéfinie `%0`", "es": "Animación indefinida `%0`", "man": "未定义的动画`%0`"},
-        "sec": {"en": "sec", "ru": "сек", "fr": "sec", "es": "seg", "man": "秒", "kk": "сек"}
+        "sec": {"en": "sec", "ru": "сек", "fr": "sec", "es": "seg", "man": "秒", "kk": "сек"},
+        "protection": {"en": "Protection", "ru": "Защита", "fr": "", "es": "", "man": "", "kk": ""},
+        "durability": {"en": "Durability", "ru": "Прочность", "fr": "", "es": "", "man": "", "kk": ""},
+        "placeholder_click_for_search": {"en": "Click for search", "ru": "Введите текст для поиска", "fr": "", "es": "", "man": "", "kk": ""}
     }
 }

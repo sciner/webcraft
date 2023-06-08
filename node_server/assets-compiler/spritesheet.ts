@@ -18,7 +18,7 @@ export const DEFAULT_TEXTURE_SUFFIXES = [
     },
     {
         key: 's',
-        empty: await skiaCanvas.loadImage('./textures/empty_s.png'),
+        empty: await skiaCanvas.loadImage('../../data/assets/textures/empty_s.png'),
         generator(texture) {
             // Try to generate normalmap texture
             const canvas = new skiaCanvas.Canvas(texture.width, texture.height);

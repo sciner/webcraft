@@ -5,6 +5,7 @@ import { NOT_SPAWNABLE_BUT_INHAND_BLOCKS } from "../constant.js";
 import {Helpers, Mth, Vector} from "../helpers.js";
 import Mesh_Object_Block_Drop from "../mesh/object/block_drop.js";
 import type { World } from "../world.js";
+import type {Renderer} from "../render.js";
 
 class ItemUseAnimation {
     [key: string]: any;
@@ -156,7 +157,7 @@ export class InHandOverlay {
 
     }
 
-    update(render, delta) {
+    update(render: Renderer, delta: number): void {
 
         const {
             player, renderBackend, camera
@@ -165,7 +166,7 @@ export class InHandOverlay {
         this.camera.width = camera.width;
         this.camera.height = camera.height;
 
-        const item = player.driving?.config.hideHandItem ? null : player.currentInventoryItem
+        const item = (player.state.sleep || player.driving?.config.hideHandItem) ? null : player.currentInventoryItem
         const id = item?.id ?? -1
 
         if (id !== this.inHandItemId && !this.changeAnimation) {
@@ -395,7 +396,7 @@ export class InHandOverlay {
                 // 2. pivot
                 // 3. rotation (в градусах -180...180)
                 if(bbmodel_hand.rotation) {
-                    base.rotation[0] -= bbmodel_hand.rotation[0]
+                    base.rotation[0] += bbmodel_hand.rotation[0]
                     base.rotation[1] += bbmodel_hand.rotation[1]
                     base.rotation[2] += bbmodel_hand.rotation[2]
                 }

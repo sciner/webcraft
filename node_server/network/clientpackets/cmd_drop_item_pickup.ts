@@ -70,6 +70,12 @@ export default class packet_reader {
 
             world.chunks.itemWorld.delete(drop_item, true);
 
+            // сообщить игроку, что он поднял предмет (чтобы не прервалась анимация поднятия если в инвентаре кончилось место в момент поднятия)
+            player.sendPackets([{
+                name: ServerClient.CMD_DROP_ITEM_PICKED,
+                data: entity_id
+            }])
+
             // @todo players must receive this packet after 200ms after player send request
             // because animation not ended
             setTimeout(async () => {

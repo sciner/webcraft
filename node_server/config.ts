@@ -25,7 +25,7 @@ const all = []
 // 1. load building_schemas
 for(let k in conf_world.building_schemas) {
     const item = conf_world.building_schemas[k]
-    all.push(import(`./data/building_schema/${item.name}.js`).then(module => {
+    all.push(import(`../data/building_schema/${item.name}.js`).then(module => {
         const json = module.default
         json.name = item.name
         json.meta = json.meta ?? {}

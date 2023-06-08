@@ -1,5 +1,5 @@
 import {Vector, VectorCollector} from "@client/helpers.js";
-import {ServerClient} from "@client/server_client.js";
+import { BLOCK_ACTION } from "@client/server_client.js";
 import {Default_Terrain_Generator} from '@client/terrain_generator/default.js';
 
 // TreeGenerator
@@ -128,7 +128,7 @@ export class TreeGenerator extends Default_Terrain_Generator {
             return [];
         }
         for(const [pos, item] of ubl.entries()) {
-            updated_blocks.push({pos: new Vector(pos), item, action_id: ServerClient.BLOCK_ACTION_REPLACE});
+            updated_blocks.push({pos: new Vector(pos), item, action_id: BLOCK_ACTION.REPLACE});
         }
         return updated_blocks;
     }

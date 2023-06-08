@@ -2,7 +2,7 @@ import { parseManyToMany, loadMappedImports, importClassInstanceWithId } from '.
 import { BLOCK } from '@client/blocks.js';
 import { TBlock } from "@client/typed_blocks3.js";
 import { ArrayHelpers, ArrayOrMap, Vector } from '@client/helpers.js';
-import { ServerClient } from '@client/server_client.js';
+import { BLOCK_ACTION } from '@client/server_client.js';
 import { FLUID_TYPE_MASK, FLUID_WATER_INTERACT, FLUID_WATER_REMOVE,
     FLUID_WATER_ABOVE_INTERACT, FLUID_WATER_ABOVE_REMOVE 
 } from '@client/fluid/FluidConst.js';
@@ -192,7 +192,7 @@ export class BlockUpdates {
         return {
             pos: pos.clone(),
             item: {id: BLOCK.TNT.id, extra_data: {explode: true, fuse: 0}},
-            action_id: ServerClient.BLOCK_ACTION_MODIFY
+            action_id: BLOCK_ACTION.MODIFY
         };
     }
 }

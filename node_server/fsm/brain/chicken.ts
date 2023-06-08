@@ -1,7 +1,7 @@
 import { FSMBrain } from "../brain.js";
 import { WorldAction } from "@client/world_action.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
-import { ServerClient } from "@client/server_client.js";
+import { BLOCK_ACTION } from "@client/server_client.js";
 
 const TIME_IN_NEST = 12000;
 const LAY_INTERVAL = 100000;
@@ -28,30 +28,27 @@ export class Brain extends FSMBrain {
     }
 
     // если нашли гнездо
-    doForward(delta) {
-        super.doForward(delta);
+    doForward(delta: float): boolean {
+        const result = super.doForward(delta)
         if ((performance.now() - this.egg_timer) > LAY_INTERVAL) {
             const mob = this.mob;
             const world = mob.getWorld();
-            const block = world.getBlock(mob.pos.floored());
-            if (!block) {
-                return;
-            }
-            if (block.id == world.block_manager.CHICKEN_NEST.id && block.extra_data.eggs < COUNT_EGGS_IN_NEST) {
+            const bm = world.block_manager
+            if (this.legs.id == bm.CHICKEN_NEST.id && this.legs.extra_data.eggs < COUNT_EGGS_IN_NEST) {
                 this.egg_timer = performance.now();
                 this.nest_timer = performance.now();
-                this.nest = block;
+                this.nest = this.legs;
                 this.stack.replaceState(this.doLay);
-                return;
             }
         }
+        return result
     }
 
     // Процесс сноса яйца
-    doLay(delta) {
+    doLay(delta: float): boolean {
         if (!this.nest || this.nest.extra_data.eggs >= COUNT_EGGS_IN_NEST) {
             this.stack.replaceState(this.doForward);
-            return;
+            return false
         }
         const mob = this.mob;
         const nest_pos = this.nest.posworld.offset(0.5, 0.5, 0.5);
@@ -68,12 +65,12 @@ export class Brain extends FSMBrain {
                             eggs: this.nest.extra_data.eggs + 1
                         }
                     },
-                    action_id: ServerClient.BLOCK_ACTION_MODIFY
+                    action_id: BLOCK_ACTION.MODIFY
                 }]);
                 world.actions_queue.add(null, actions);
                 this.stack.replaceState(this.doForward);
             }
-            return;
+            return false
         }
 
         mob.rotate.z = this.angleTo(nest_pos);
@@ -83,9 +80,7 @@ export class Brain extends FSMBrain {
             jump: false,
             sneak: true
         });
-
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
     onKill(actor, type_damage) {
@@ -102,23 +97,6 @@ export class Brain extends FSMBrain {
         actions.addDropItem({ pos: mob.pos, items: items, force: true });
         actions.addPlaySound({ tag: 'madcraft:block.chicken', action: 'death', pos: mob.pos.clone() });
         world.actions_queue.add(actor, actions);
-    }
-
-    // если использовали предмет
-    onUse(actor, id) {
-        if (!actor || !id){
-            return;
-        }
-
-        const mob = this.mob;
-        const world = mob.getWorld()
-        const bm = world.block_manager
-
-        if (id == bm.WHEAT_SEEDS.id) {
-            console.log('use');
-            return true;
-        }
-        return false;
     }
 
 }
