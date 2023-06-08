@@ -1,6 +1,6 @@
 import type { BaseRenderer } from "../renders/BaseRenderer.js";
-import type {BaseBuffer} from "../renders/BaseRenderer.js";
-import GeometryTerrain from "../geometry_terrain.js";
+import { Buffer, Geometry, Renderer } from "vauxcel";
+import { GeometryTerrain } from "../geometry_terrain.js";
 
 export enum VAO_BUFFER_TYPE {
     NONE = 0,
@@ -15,7 +15,8 @@ export interface GeometryVaoOptions {
     bufferType?: VAO_BUFFER_TYPE,
 }
 
-export class BaseGeometryVao {
+export class BaseGeometryVao extends Geometry {
+    [key: string]: any;
     static strideFloats = 10;
 
     strideFloats: number;
@@ -24,17 +25,14 @@ export class BaseGeometryVao {
     context: BaseRenderer;
     bufferType: VAO_BUFFER_TYPE;
     attribs: any = null;
-    gl: WebGL2RenderingContext = null;
 
     data: Float32Array = null;
-    buffer: BaseBuffer = null;
-    quad: BaseBuffer = null;
-    vao: WebGLVertexArrayObject = null;
-    buffers: BaseBuffer[] = [];
+    buffer: Buffer = null;
     hasInstance = false;
-    indexBuffer?: BaseBuffer = null;
+    newBuffer: Buffer = null;
 
     constructor({size = 128, strideFloats = 0, bufferType = VAO_BUFFER_TYPE.BIG}: GeometryVaoOptions) {
+        super();
         this.strideFloats = strideFloats;
         this.stride = this.strideFloats * 4;
         this.size = size;
@@ -44,45 +42,42 @@ export class BaseGeometryVao {
         }
     }
 
-    init(shader) {
-        if (this.context) {
+    init() {
+        this.initBuffer();
+        this.initAttributes();
+    }
+
+    initBuffer() {
+        if (this.bufferType == VAO_BUFFER_TYPE.BIG) {
+            this.buffer = new Buffer(null, false);
+            this.buffer.byteLength = this.size * this.stride;
+        } else {
+            this.buffer = new Buffer(this.data, true);
+        }
+    }
+
+    initAttributes() {
+
+    }
+
+    validateResize(pixiRender: Renderer) {
+        if (!this.newBuffer) {
             return;
         }
-        this.attribs = shader;
-        this.context = shader.context;
-        // when WebGL
-        this.gl = shader.context.gl;
-
-        if (this.bufferType == VAO_BUFFER_TYPE.BIG) {
-            this.buffer = this.context.createBuffer({
-                usage: 'dynamic',
-                bigLength: this.size * this.stride,
-            });
-        } else {
-            this.buffer = this.context.createBuffer({
-                usage: 'static',
-                data: this.data,
-            });
-        }
-
-        (this.buffer as any).glTrySubData = false;
-        // this.data = null;
-
-        if (this.hasInstance) {
-            this.quad = GeometryTerrain.bindQuad(this.context, true);
-            this.buffers = [
-                this.buffer,
-                this.quad
-            ];
-        }
-
-        this.createVao();
+        pixiRender.geometry.swapAndCopyBuffer(this, 0, this.newBuffer);
+        this.staticDraw.buffer = this.staticDraw.newBuffer;
     }
 
     resize(instances) {
         if (this.bufferType === VAO_BUFFER_TYPE.BIG) {
-            this.buffer.bigLength = instances * this.stride;
-            this.buffer.dirty = true;
+            if (Object.keys(this.buffer._glBuffers).length > 0) {
+                if (!this.newBuffer) {
+                    this.newBuffer = new Buffer(null, false);
+                }
+                this.newBuffer.byteLength = instances * this.stride;
+            } else {
+                this.buffer.byteLength = instances * this.stride;
+            }
         } else {
             const oldData = this.data;
             this.data = new Float32Array(instances * this.strideFloats);
@@ -92,10 +87,7 @@ export class BaseGeometryVao {
         this.size = instances;
     }
 
-    drawBindCountSync: number = 0;
     drawBindCount: number = 0;
-    drawSync: WebGLSync = null;
-    copyFlag = false;
 
     /**
      * Only bind for drawing, no actual upload!
@@ -103,60 +95,17 @@ export class BaseGeometryVao {
      */
     bindForDraw() {
         this.drawBindCount++;
-        this.gl.bindVertexArray(this.vao);
+        this.context.pixiRender.geometry.bind(this);
         if (this.buffer.bigResize) {
-            this.buffer.bigResize = false;
-            // shader.bind();
-            this.buffer.bind();
-            this.attribBufferPointers();
-        } else if (this.buffer.dirty || this.hasInstance && !this.context.multidrawBaseExt) {
-            this.buffer.bind();
+            // this.buffer.bigResize = false;
         }
-        this.indexBuffer?.bind();
     }
 
     bind() {
         this.bindForDraw();
     }
 
-    checkFence(force = false) {
-        if (this.drawBindCountSync === this.drawBindCount && !force) {
-            return;
-        }
-        this.drawBindCountSync = this.drawBindCount;
-        const { gl } = this;
-        if (this.drawSync) {
-            gl.deleteSync(this.drawSync);
-        }
-        this.drawSync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
-    }
-
-    isSynced() {
-        const { gl } = this;
-        return !this.drawSync ||
-            gl.getSyncParameter(this.drawSync, gl.SYNC_STATUS) === gl.SIGNALED;
-    }
-
-    createVao() {
-        // override!
-    }
-
-    attribBufferPointers(offsetInstances= 0) {
-        // override!
-    }
-
     destroy() {
-        // we not destroy it, it shared
-        this.quad = null;
-
-        if (this.buffer) {
-            this.buffer.destroy();
-            this.buffer = null;
-        }
-
-        if (this.vao) {
-            this.gl.deleteVertexArray(this.vao);
-            this.vao = null;
-        }
+        super.destroy();
     }
 }

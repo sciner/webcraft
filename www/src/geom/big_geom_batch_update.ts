@@ -3,30 +3,9 @@ import type {BaseGeometryVao} from "./base_geometry_vao";
 import type {TerrainSubGeometry} from "./terrain_sub_geometry";
 import {IvanArray} from "../helpers.js";
 import {SimplePool} from "../helpers/simple_pool.js";
+import {BufferCopyOperation} from "vauxcel";
 
-/**
- * stores instance indexes
- */
-export class GeomCopyOperation {
-    src: number;
-    dst: number;
-    count: number;
-
-    reset() {
-        this.src = 0;
-        this.dst = 0;
-        this.count = 0;
-    }
-
-    set(src: number, dst: number, count: number) {
-        this.src = src;
-        this.dst = dst;
-        this.count = count;
-        return this;
-    }
-
-    static pool = new SimplePool<GeomCopyOperation>(GeomCopyOperation);
-}
+export const bufferCopyOpPool = new SimplePool<BufferCopyOperation>(BufferCopyOperation);
 
 export class BigGeomBatchUpdate {
     copies = new IvanArray<TerrainSubGeometry>(); // from, to, dest
@@ -35,7 +14,7 @@ export class BigGeomBatchUpdate {
     baseGeom: BaseBigGeometry;
     vao: BaseGeometryVao;
     data: Float32Array;
-    copyOps = new IvanArray<GeomCopyOperation>();
+    copyOps = new IvanArray<BufferCopyOperation>();
 
     constructor(baseGeom: BaseBigGeometry) {
         this.baseGeom = baseGeom;
@@ -73,7 +52,7 @@ export class BigGeomBatchUpdate {
         }
         copies.clear();
         for (let i = 0; i < copyOps.count; i++) {
-            GeomCopyOperation.pool.free(copyOps.arr[i]);
+            bufferCopyOpPool.free(copyOps.arr[i]);
         }
         copyOps.clear();
     }
@@ -138,7 +117,7 @@ export class BigGeomBatchUpdate {
 
         const {flipCopyCount, copies, copyOps} = this;
         for (let i = 0; i < copyOps.count; i++) {
-            GeomCopyOperation.pool.free(copyOps.arr[i]);
+            bufferCopyOpPool.free(copyOps.arr[i]);
         }
         copyOps.clear();
         for (let i = 0; i < copies.count; i++) {
@@ -148,7 +127,7 @@ export class BigGeomBatchUpdate {
             }
             let pos = copy.batchStart;
             for (let j = 0; j < copy.glCounts.length; j++) {
-                copyOps.push(GeomCopyOperation.pool.alloc().set(pos, copy.glOffsets[j], copy.glCounts[j]));
+                copyOps.push(bufferCopyOpPool.alloc().set(pos, copy.glOffsets[j], copy.glCounts[j]));
                 pos += copy.glCounts[j];
             }
         }

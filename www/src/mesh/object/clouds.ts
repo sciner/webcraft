@@ -1,6 +1,6 @@
 import {QUAD_FLAGS, Vector} from '../../helpers.js';
 import { default as push_cube_style } from '../../block_style/cube.js';
-import GeometryTerrain from "../../geometry_terrain.js";
+import { GeometryTerrain } from "../../geometry_terrain.js";
 import {Resources} from "../../resources.js";
 import {BLOCK, FakeTBlock} from "../../blocks.js";
 import { AABB } from '../../core/AABB.js';

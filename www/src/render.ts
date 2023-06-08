@@ -19,7 +19,7 @@ import { MeshManager } from "./mesh/manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { Environment, PRESET_NAMES } from "./environment.js";
-import GeometryTerrain from "./geometry_terrain.js";
+import { GeometryTerrain } from "./geometry_terrain.js";
 import { CubeSym } from "./core/CubeSym.js";
 import {
     DEFAULT_CLOUD_HEIGHT,

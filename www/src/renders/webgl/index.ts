@@ -1,10 +1,7 @@
 //@ts-check
 import {BaseRenderer, BaseCubeGeometry, BaseTexture, CubeMesh} from "../BaseRenderer.js";
-import { BaseCubeShader } from "../BaseShader.js";
 import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
-import {WebGLBuffer} from "./WebGLBuffer.js";
-import {Helpers, Mth} from "../../helpers.js";
 import {Resources} from "../../resources.js";
 import {WebGLTexture3D} from "./WebGLTexture3D.js";
 import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
@@ -14,7 +11,6 @@ import {GLCubeDrawer} from "./GLCubeDrawer.js";
 import {GLChunkDrawer} from "./GLChunkDrawer.js";
 import {GLLineDrawer} from "./GLLineDrawer.js";
 import {WebGLFluidShader} from "./WebGLFluidShader.js";
-import {GLSillyDrawer} from "./GLSillyDrawer.js";
 import * as VAUX from 'vauxcel';
 
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
@@ -280,7 +276,6 @@ export default class WebGLRenderer extends BaseRenderer {
         this.cube = new GLCubeDrawer(this);
         this.chunk = new GLChunkDrawer(this);
         this.line = new GLLineDrawer(this);
-        this.silly = new GLSillyDrawer(this);
     }
 
     async init(args) {
@@ -289,13 +284,15 @@ export default class WebGLRenderer extends BaseRenderer {
         this.pixiRender = new VAUX.Renderer({...this.options,
             clearBeforeRender: false,
             view: this.view, width: this.view.width, height: this.view.height});
+
+        this.pixiRender.geometry.copier = new VAUX.TFBufferCopier(16);
+
         const gl = this.gl = this.pixiRender.gl;
         this.resetBefore();
         this.multidrawExt = gl.getExtension('WEBGL_multi_draw');
         this.multidrawBaseExt = gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
 
         this.line.init();
-        this.silly.init();
     }
 
     resetBefore() {
@@ -410,10 +407,6 @@ export default class WebGLRenderer extends BaseRenderer {
             return new WebGLFluidShader(this, shaderCode);
         }
         return this.createShader(shaderCode);
-    }
-
-    createBuffer(options) {
-        return new WebGLBuffer(this, options);
     }
 
     /**

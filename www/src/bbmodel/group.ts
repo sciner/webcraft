@@ -1,7 +1,7 @@
 import { BBModel_Child } from './child.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { IndexedColor, Vector } from '../helpers.js';
-import GeometryTerrain from '../geometry_terrain.js';
+import { GeometryTerrain } from '../geometry_terrain.js';
 import { BBModel_Cube } from './cube.js';
 import type { Renderer } from '../render.js';
 import type { BBModel_Model } from './model.js';

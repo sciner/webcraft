@@ -1,6 +1,6 @@
 import { Vector } from "./helpers.js";
 import {BLEND_MODES} from 'vauxcel';
-import GeometryTerrain from "./geometry_terrain.js";
+import { GeometryTerrain } from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import {Raycaster, RaycasterResult} from "./Raycaster.js";

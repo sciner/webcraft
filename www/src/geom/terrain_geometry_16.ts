@@ -1,39 +1,10 @@
-import GeometryTerrain from "../geometry_terrain.js";
+import {GeometryTerrain, QuadAttr} from "../geometry_terrain.js";
+import {Geometry, TYPES} from "vauxcel";
 
-class QuadAttr {
-    [key: string]: any;
-    /**
-     *
-     * @param {Float32Array} buffer
-     * @param {number} offset
-     */
-    constructor(buffer = null, offset = 0) {
-        if (buffer) {
-            this.set(buffer, offset);
-        }
-    }
-
-    /**
-     *
-     * @param {Float32Array} buffer
-     * @param {number} offset
-     */
-    set(buffer, offset) {
-        this.position = buffer.subarray(offset, offset + 3);
-        this.axisX = buffer.subarray(offset + 3, offset + 6);
-        this.axisY = buffer.subarray(offset + 6, offset + 9);
-        this.uvCenter = buffer.subarray(offset + 9, offset + 11);
-        this.uvSize = buffer.subarray(offset + 11, offset + 13);
-        this.color = buffer.subarray(offset + 13, offset + 14);
-        this.flags = buffer.subarray(offset + 14, offset + 15);
-
-        return this;
-    }
-}
-
-export class GeometryTerrain16 {
+export class GeometryTerrain16 extends Geometry {
     [key: string]: any;
     constructor(vertices) {
+        super();
         // убрал, для уменьшения объема оперативной памяти
         // this.vertices = vertices;
         this.updateID = 0;
@@ -73,6 +44,8 @@ export class GeometryTerrain16 {
         this.buffers = [];
 
         this.customFlag = false;
+
+        this.initGeom();
     }
 
     /**
@@ -87,90 +60,25 @@ export class GeometryTerrain16 {
         return this.strideFloats;
     }
 
-
-    createVao() {
-        const {attribs, gl, stride} = this;
-        this.vao = gl.createVertexArray();
-        gl.bindVertexArray(this.vao);
-
-        gl.enableVertexAttribArray(attribs.a_chunkId);
-        gl.enableVertexAttribArray(attribs.a_position);
-        gl.enableVertexAttribArray(attribs.a_axisX);
-        gl.enableVertexAttribArray(attribs.a_axisY);
-        gl.enableVertexAttribArray(attribs.a_uvCenter);
-        gl.enableVertexAttribArray(attribs.a_uvSize);
-        gl.enableVertexAttribArray(attribs.a_color);
-        gl.enableVertexAttribArray(attribs.a_flags);
-
-        gl.enableVertexAttribArray(attribs.a_quad);
-
-        this.buffer.bind();
-        gl.vertexAttribPointer(attribs.a_position, 3, gl.FLOAT, false, stride, 0);
-        gl.vertexAttribPointer(attribs.a_axisX, 3, gl.FLOAT, false, stride, 3 * 4);
-        gl.vertexAttribPointer(attribs.a_axisY, 3, gl.FLOAT, false, stride, 6 * 4);
-        gl.vertexAttribPointer(attribs.a_uvCenter, 2, gl.FLOAT, false, stride, 9 * 4);
-        gl.vertexAttribPointer(attribs.a_uvSize, 2, gl.FLOAT, false, stride, 11 * 4);
-        gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, 13 * 4);
-        gl.vertexAttribIPointer(attribs.a_flags, 1, gl.UNSIGNED_INT, stride, 14 * 4);
-        gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.FLOAT, false, stride, 15 * 4);
-
-        gl.vertexAttribDivisor(attribs.a_position, 1);
-        gl.vertexAttribDivisor(attribs.a_axisX, 1);
-        gl.vertexAttribDivisor(attribs.a_axisY, 1);
-        gl.vertexAttribDivisor(attribs.a_uvCenter, 1);
-        gl.vertexAttribDivisor(attribs.a_uvSize, 1);
-        gl.vertexAttribDivisor(attribs.a_color, 1);
-        gl.vertexAttribDivisor(attribs.a_flags, 1);
-        gl.vertexAttribDivisor(attribs.a_chunkId, 1);
-
-        this.quad.bind();
-
-        gl.vertexAttribPointer(attribs.a_quad, 2, gl.FLOAT, false, 2 * 4, 0);
+    initGeom() {
+        const { stride } = this;
+        this.addAttribute('a_position', this.buffer, 3, false, undefined, stride, 0, 1);
+        this.addAttribute('a_axisX', this.buffer, 3, false, undefined, stride, 3 * 4, 1);
+        this.addAttribute('a_axisY', this.buffer, 3, false, undefined, stride, 6 * 4, 1);
+        this.addAttribute('a_uvCenter', this.buffer, 2, false, undefined, stride, 9 * 4, 1);
+        this.addAttribute('a_uvSize', this.buffer, 2, false, undefined, stride, 11 * 4, 1);
+        this.addAttribute('a_color', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 13 * 4, 1);
+        this.addAttribute('a_flags', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 14 * 4, 1);
+        this.addAttribute('a_chunkId', this.buffer, 1, false, undefined, stride, 15 * 4, 1);
+        this.addAttribute('a_quad', GeometryTerrain.quadBuf, 2, false, undefined, 2 * 4, 0);
     }
 
-    bind(shader) {
-        if (shader) {
-            this.attribs = shader;
-            this.context = shader.context;
-            // when WebGL
-            this.gl = shader.context.gl;
+    bind() {
+        if (this.uploadID !== this.updateID) {
+            this.uploadID = this.updateID;
+            this.buffer.update();
         }
-
-        if (!this.buffer) {
-            this.buffer = this.context.createBuffer({
-                data: this.data
-            });
-            // this.data = null;
-            this.quad = GeometryTerrain.bindQuad(this.context, true);
-            this.buffers = [
-                this.buffer,
-                this.quad
-            ];
-        }
-
-        const {gl} = this;
-
-        if (gl) {
-            if (!this.vao) {
-                this.createVao();
-                this.uploadID = this.updateID;
-                return;
-            }
-
-            gl.bindVertexArray(this.vao);
-        }
-
-        if (this.uploadID === this.updateID) {
-            return;
-        }
-
-        this.uploadID = this.updateID;
-
-        this.buffer.data = this.data;
-
-        if (gl) {
-            this.buffer.bind();
-        }
+        this.context.pixiRender.geometry.bind(this);
     }
 
     updateInternal(data = null) {
@@ -200,18 +108,7 @@ export class GeometryTerrain16 {
     }
 
     destroy() {
-        // we not destroy it, it shared
-        this.quad = null;
-
-        if (this.buffer) {
-            this.buffer.destroy();
-            this.buffer = null;
-        }
-
-        if (this.vao) {
-            this.gl.deleteVertexArray(this.vao);
-            this.vao = null;
-        }
+        super.destroy();
     }
 
     /**

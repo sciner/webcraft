@@ -1,5 +1,5 @@
 import { QUAD_FLAGS, Vector, VectorCollector } from '../helpers.js';
-import GeometryTerrain from "../geometry_terrain.js";
+import { GeometryTerrain } from "../geometry_terrain.js";
 import { ChunkManager } from '../chunk_manager.js';
 import { LIGHT_TYPE } from '../constant.js';
 import type { Mesh_Effect_Manager } from './effect/manager.js';

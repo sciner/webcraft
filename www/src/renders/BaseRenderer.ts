@@ -3,9 +3,8 @@
 import {IvanArray, Mth, Vector} from '../helpers.js';
 import {BatchSystem} from "./batch/BatchSystem.js";
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
-import type GeometryTerrain from '../geometry_terrain.js';
+import type {GeometryTerrain} from '../geometry_terrain.js';
 import type {WebGLMaterial} from './webgl/WebGLMaterial.js';
-import type {GeomCopyOperation} from "../geom/big_geom_batch_update.js";
 import * as VAUX from 'vauxcel';
 import {BLEND_MODES, Geometry} from 'vauxcel';
 import {GlobalUniformGroup, LightUniformGroup} from "./uniform_groups.js";
@@ -144,65 +143,6 @@ export class BaseRenderTarget {
 
         this.texture = null;
         this.depthTexture = null;
-    }
-}
-
-interface BufferOptions {data?: ArrayBufferLike, index?: boolean, bigLength?: number, usage?: 'static' | 'dynamic' }
-
-export class BaseBuffer {
-    index: boolean;
-    _data: Float32Array | Uint16Array | Int32Array;
-    context: BaseRenderer;
-    options: BufferOptions;
-    bigLength: number;
-    dirty: boolean;
-    /**
-     * notify VAO of big resize
-     */
-    bigResize = false;
-
-    constructor(context, options: BufferOptions= {}) {
-        this.context = context;
-        this.options = options;
-        this._data = options.data as any;
-        this.index = !!options.index;
-        this.bigLength = options.bigLength || 0;
-
-        this.dirty = true;
-    }
-    /**
-     *
-     * @param {Float32Array | Uint16Array} v
-     */
-    set data(v) {
-        this.dirty = true;
-        this._data = v;
-    }
-
-    get data() {
-        return this._data;
-    }
-
-    bind(loc?: number) {
-    }
-
-    update(loc?: number) {
-        this.dirty = false;
-    }
-
-    updatePartial(len: number) {
-
-    }
-
-    multiUpdate(updates) {
-
-    }
-
-    batchUpdate(updBuffer: BaseBuffer, copies: IvanArray<GeomCopyOperation>, stride: number) {
-    }
-
-    destroy() {
-
     }
 }
 
@@ -367,7 +307,6 @@ export class BaseRenderer {
 
     batch : BatchSystem
     preprocessor = new ShaderPreprocessor();
-    globalBufs: Dict<BaseBuffer> = {};
     pixiRender: VAUX.Renderer = null;
 
     /**
@@ -691,10 +630,6 @@ export class BaseRenderer {
      * @returns {Promise<any>}
      */
     async createResourcePackShader(options): Promise<any> {
-        throw new TypeError('Illegal invocation, must be overridden by subclass');
-    }
-
-    createBuffer(options): BaseBuffer {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 

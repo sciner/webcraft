@@ -21,11 +21,11 @@ export class FluidBigGeometry extends BaseBigGeometry {
                 usage: 'static',
                 index: true
             });
-            this.staticDraw.indexBuffer = this.indexBuffer;
+            this.staticDraw.addIndex(this.indexBuffer);
             if (this.staticCopy) {
-                this.staticCopy.indexBuffer = this.indexBuffer;
+                this.staticCopy.addIndex(this.indexBuffer);
             }
-            this.dynamicDraw.indexBuffer = this.indexBuffer;
+            this.dynamicDraw.addIndex(this.indexBuffer);
         }
         if (this.dynamicDraw.size * 6 > this.indexData.length) {
             this.createIndex();
@@ -49,7 +49,7 @@ export class FluidBigGeometry extends BaseBigGeometry {
         }
 
         if (this.indexBuffer) {
-            this.indexBuffer.data = this.indexData;
+            this.indexBuffer.update(this.indexData);
         }
     }
 
