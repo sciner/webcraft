@@ -20,6 +20,7 @@ const FOOD_LOST_TICKS = 80
 const PLANTING_LOST_TICKS = 10
 const PLANTING_PADDING_DAMAGE = 0.3
 const MAX_UNDAMAGED_HEIGHT = 3
+const MAX_DAMAGE_ABSORPTION = 32
 
 export class ServerPlayerDamage {
     player: ServerPlayer;
@@ -271,7 +272,7 @@ export class ServerPlayerDamage {
         if (armor_level > 0 && damage > 0) {
             this.player.inventory.setArmorDecrement()
         }
-        damage = Math.round((damage * (32 - armor_level)) / 32)
+        damage = Math.round((damage * (MAX_DAMAGE_ABSORPTION - armor_level)) / MAX_DAMAGE_ABSORPTION)
         if (damage > 0) {
             if (this.actor && [EnumDamage.CRIT, EnumDamage.SNOWBALL].includes(this.type_damage)) {
                 const pos = this.actor?.state?.pos ? this.actor.state.pos : this.actor.pos
