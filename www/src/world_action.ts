@@ -47,6 +47,13 @@ type DropItemParams = {
     force ? : boolean
 }
 
+const upholstery_types = {
+    // черепица для скосов
+    'clay_shingles': ['slope'],
+    // шерсть для стульев и табуреток
+    'wool': ['chair', 'stool'],
+}
+
 export type ActivateMobParams = {
     id          : int
     spawn_pos   : IVector
@@ -1018,7 +1025,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
     // 2. Destroy
     if(e.destroyBlock) {
         // 1. Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.destroyBlock ??= [removeFromPot, deletePortal, removeFurnitureUpholstery, removeSlopeUpholstery]) {
+        for(let func of FUNCS.destroyBlock ??= [removeFromPot, deletePortal, removeUpholstery]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
@@ -1082,7 +1089,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone, setClayShingles]) {
+        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setUpholstery, setPointedDripstone]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 const affectedPos = (func === chSpawnMob) ? null : pos // мобы не меняют блок. И chSpawnMob также портит pos
                 return [actions, affectedPos]
@@ -2931,98 +2938,73 @@ function prePlaceRail(world, pos, new_item, actions) {
     return RailShape.place(world, pos, new_item, actions);
 }
 
-function setClayShingles(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
-    if(mat_block.tags.includes('clay_shingles')) {
-        if(['slope', '_stairs'].includes(world_material.style_name)) {
-            extra_data = extra_data || {}
-            extra_data.upholstery = mat_block.name
-            actions.addBlocks([{
-                pos:        new Vector(pos),
-                item:       {id: world_material.id, rotate, extra_data},
-                action_id:  BLOCK_ACTION.MODIFY
-            }])
-            actions.addPlaySound({tag: 'madcraft:block.wood', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]})
-            actions.decrement = true
+// Set upholstery
+function setUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+    for(const [type, block_types] of Object.entries(upholstery_types)) {
+        if(mat_block.tags.includes(type)) {
+            if(block_types.includes(world_material.style_name)) {
+                if(extra_data.is_head) {
+                    pos = new Vector(0, -1, 0).add(pos)
+                    world_block = world.getBlock(pos)
+                    extra_data = world_block?.extra_data
+                }
+                // Create drop item
+                if(extra_data.upholstery) {
+                    const drop_material = BLOCK.fromName(extra_data.upholstery)
+                    if(drop_material) {
+                        const drop_item = {
+                            id: BLOCK.fromName(extra_data.upholstery).id,
+                            count: 1
+                        }
+                        actions.addDropItem({pos: world_block.posworld.clone().addScalarSelf(.5, .5, .5), items: [drop_item], force: true})
+                    }
+                }
+                //
+                extra_data.upholstery = mat_block.name
+                actions.addBlocks([{
+                    pos: new Vector(pos),
+                    item: {id: world_material.id, rotate, extra_data},
+                    action_id: BLOCK_ACTION.MODIFY
+                }])
+                actions.addPlaySound({tag: mat_block.sound, action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]})
+                actions.decrement = true
+                return true
+            }
         }
-        return true
     }
     return false
 }
 
-// Set furniture upholstery
-function setFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
-    if(mat_block.tags.includes('wool')) {
-        if(['chair', 'stool'].includes(world_material.style_name)) {
+// Remove upholstery
+function removeUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+    for(const [type, block_types] of Object.entries(upholstery_types)) {
+        if(world_material && block_types.includes(world_material.style_name)) {
             if(extra_data.is_head) {
-                pos = new Vector(0, -1, 0).add(pos);
-                world_block = world.getBlock(pos);
-                extra_data = world_block?.extra_data;
+                pos = new Vector(0, -1, 0).addSelf(pos)
+                world_block = world.getBlock(pos)
+                extra_data = world_block?.extra_data
+                rotate = world_block.rotate
             }
-            extra_data.upholstery = mat_block.name;
-            actions.addBlocks([{
-                pos: new Vector(pos),
-                item: {id: world_material.id, rotate, extra_data},
-                action_id: BLOCK_ACTION.MODIFY
-            }]);
-            actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
-            actions.decrement = true;
-            return true;
-        }
-    }
-    return false;
-}
-
-// Remove furniture upholstery
-function removeFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
-    if(world_material && ['chair', 'stool'].includes(world_material.style_name)) {
-        if(extra_data.is_head) {
-            pos = new Vector(0, -1, 0).add(pos);
-            world_block = world.getBlock(pos);
-            extra_data = world_block?.extra_data;
-            rotate = world_block.rotate;
-        }
-        //
-        if(extra_data?.upholstery) {
-            const drop_item = {
-                id: BLOCK.fromName(extra_data?.upholstery).id,
-                count: 1
-            };
-            delete(extra_data.upholstery);
-            actions.addBlocks([{
-                pos: new Vector(pos),
-                item: {id: world_block.id, rotate, extra_data},
-                action_id: BLOCK_ACTION.MODIFY
-            }]);
-            actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
-            // Create drop item
-            actions.addDropItem({pos: world_block.posworld.clone().addScalarSelf(.5, .5, .5), items: [drop_item], force: true});
-            return true;
-        }
-    }
-    return false;
-}
-
-// Remove slope upholstery
-function removeSlopeUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
-    if(world_material && ['slope', '_stairs'].includes(world_material.style_name)) {
-        if(extra_data?.upholstery) {
-            const drop_item = {
-                id: BLOCK.fromName(extra_data?.upholstery).id,
-                count: 1
-            };
-            delete(extra_data.upholstery)
-            if(Object.keys(extra_data).length == 0) {
-                extra_data = undefined
+            if(extra_data?.upholstery) {
+                // Create drop item
+                const drop_material = BLOCK.fromName(extra_data.upholstery)
+                if(drop_material) {
+                    const drop_item = {
+                        id: drop_material.id,
+                        count: 1
+                    }
+                    actions.addDropItem({pos: world_block.posworld.clone().addScalarSelf(.5, .5, .5), items: [drop_item], force: true})
+                    actions.addPlaySound({tag: drop_material.sound, action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]})
+                }
+                //
+                delete(extra_data.upholstery)
+                actions.addBlocks([{
+                    pos: new Vector(pos),
+                    item: {id: world_block.id, rotate, extra_data},
+                    action_id: BLOCK_ACTION.MODIFY
+                }])
+                return true
             }
-            actions.addBlocks([{
-                pos:        new Vector(pos),
-                item:       {id: world_block.id, rotate, extra_data},
-                action_id:  BLOCK_ACTION.MODIFY
-            }]);
-            actions.addPlaySound({tag: 'madcraft:block.wood', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]})
-            // Create drop item
-            actions.addDropItem({pos: world_block.posworld.clone().addScalarSelf(.5, .5, .5), items: [drop_item], force: true})
-            return true
         }
     }
     return false
