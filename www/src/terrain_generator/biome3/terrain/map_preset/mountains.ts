@@ -3,9 +3,12 @@ import { ClimateParams, DensityParams, DENSITY_AIR_THRESHOLD, MapCellPreset } fr
 import type { TerrainMapCell } from "../map_cell.js";
 
 export class MapCellPreset_Mountains extends MapCellPreset {
-    max_height: number;
-    noise_scale: number;
-    climate: ClimateParams;
+    max_height:     number;
+    noise_scale:    number;
+    climate:        ClimateParams;
+    prev_x:         int = Infinity
+    prev_z:         int = Infinity
+    mfn:            float = null
 
     constructor() {
         super('mountains', {chance: 4, relief: 4, mid_level: 6})
@@ -20,20 +23,24 @@ export class MapCellPreset_Mountains extends MapCellPreset {
         return true
     }
 
+    calcMaxHeight(xyz : Vector) : float {
+        return this.max_height
+    }
+
     calcDensity(xyz : Vector, cell : TerrainMapCell, dist_percent : float, noise2d : any, generator_options : any, result : DensityParams) : DensityParams {
 
         if(cell.mountains_max_height === undefined) {
-            const max_height = this.max_height
+            const max_height = this.calcMaxHeight(xyz)
             const HEIGHT_SCALE = max_height * dist_percent;
-            cell.mountains_height =  generator_options.WATER_LEVEL +
-                this.mountainFractalNoise(
-                    noise2d,
-                    xyz.x/3, xyz.z/3,
-                    4, // -- Octaves (Integer that is >1)
-                    3, // -- Lacunarity (Number that is >1)
-                    0.35, // -- Persistence (Number that is >0 and <1)
-                    this.noise_scale,
-                ) * HEIGHT_SCALE;
+
+            let mfn = this.mfn
+            if(mfn === null || this.prev_x != xyz.x || this.prev_z != xyz.z) {
+                this.prev_x = xyz.x
+                this.prev_z = xyz.z
+                mfn = this.mfn = this.mountainFractalNoise(noise2d, xyz.x/3, xyz.z/3, 4, 3, 0.35, this.noise_scale)
+            }
+
+            cell.mountains_height =  generator_options.WATER_LEVEL + mfn * HEIGHT_SCALE
         }
 
         const density = Mth.clamp(DENSITY_AIR_THRESHOLD + (cell.mountains_height - xyz.y) / 64, 0, 1)
@@ -41,19 +48,21 @@ export class MapCellPreset_Mountains extends MapCellPreset {
         // add some roughness
         result.density = density + result.d3 / 7.5
 
-        // cheese holes
-        // if(result.density > .7) {
-        //     if((result.d2 + result.d3 * .1 + result.d4 * .2) > .5) {
-        //         result.density = DENSITY_AIR_THRESHOLD;
-        //     }
-        // }
-
         return result
 
     }
 
-    // Шум для гор
-    mountainFractalNoise(noise2d, x, y, octaves, lacunarity, persistence, scale) {
+    /**
+     * Шум для гор
+     * @param noise2d 
+     * @param x 
+     * @param y 
+     * @param octaves Octaves (Integer that is >1)
+     * @param lacunarity Lacunarity (Number that is >1)
+     * @param persistence Persistence (Number that is >0 and <1)
+     * @param scale 
+     */
+    mountainFractalNoise(noise2d, x, y, octaves, lacunarity, persistence, scale) : float {
         // The sum of our octaves
         let value = 0
         // These coordinates will be scaled the lacunarity

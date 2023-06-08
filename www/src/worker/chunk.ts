@@ -628,7 +628,7 @@ export class ChunkWorkerChunk implements IChunk {
 
         const block = this.tblocks.get(new Vector(0, 0, 0), null);
 
-        const matBuf = new MaterialBuf()
+        const tempMatBuf = new MaterialBuf()
         const neibIDs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         // Process drop item
@@ -690,10 +690,10 @@ export class ChunkWorkerChunk implements IChunk {
             buf.touch()
             buf.skipCache(0)
 
-            matBuf.buf = buf
-            matBuf.matId = matId
+            tempMatBuf.buf = buf
+            tempMatBuf.matId = matId
 
-            return matBuf
+            return tempMatBuf
 
         }
 
@@ -701,6 +701,8 @@ export class ChunkWorkerChunk implements IChunk {
             const matBuf = getMaterialBuf(fv.material_key)
             matBuf.buf.vertices.pushMany(fv.vertices)
         }
+
+        let matBuf = null
 
         // Process block
         const processBlock = (block, neighbours, biome, dirt_color, matrix, pivot, useCache) => {
@@ -711,7 +713,9 @@ export class ChunkWorkerChunk implements IChunk {
                 return
             }
 
-            const matBuf = getMaterialBuf(material.material_key)
+            if(!matBuf || matBuf.buf.material_key != material.material_key) {
+                matBuf = getMaterialBuf(material.material_key)
+            }
 
             const {buf, matId} = matBuf
             const last = buf.vertices.filled
