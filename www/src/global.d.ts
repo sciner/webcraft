@@ -271,18 +271,9 @@ interface IBlockMaterial {
     group: string
     passable: number
     power: number
+    protection: number
     can_auto_drop: boolean
     is_dummy: boolean
-    /**
-     * @deprecated
-     */
-    next_part: {
-        id: int
-        offset_pos: IVector
-    }
-    /**
-     * @deprecated
-     */
     previous_part: {
         id: int
         offset_pos: IVector
@@ -398,6 +389,7 @@ interface IBlockMaterial {
     random_rotate_up: boolean // Need to random rotate top texture
     can_rotate: boolean
     has_oxygen: boolean
+    has_powerbar: boolean
     draw_only_down: boolean
     is_fluid: boolean
     is_button: boolean
@@ -451,6 +443,7 @@ interface IBlockMaterial {
     inventory_icon_id?: number
     max_in_stack: number
     is_powered: boolean
+    multiblock?: {x : int, y : int, z : int, w : int, h : int, d : int}
 }
 
 interface INetworkMessage<DataT = any> {
@@ -555,6 +548,6 @@ declare type IAddMeshArgs = {
     hide_groups?:       string[]
     rotate?:            IVector
     animation_name?:    string
-    extra_data?:        any
+    item_block?:        any
     matrix?:            imat4
 }

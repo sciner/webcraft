@@ -855,6 +855,7 @@ export class ServerWorld implements IWorld {
                 let postponedActions = null; // WorldAction containing a subset of actions.blocks, postponed until the current chunk loads
                 const previous_item = {id: 0}
                 let cps = null;
+                let destroy_particles_count = 0
                 for (let params of actions.blocks.list) {
                     const block_pos = new Vector(params.pos).flooredSelf()
                     params.pos = block_pos;
@@ -894,18 +895,21 @@ export class ServerWorld implements IWorld {
                         if (!ignore_check_air) {
                             if (params.action_id == BLOCK_ACTION.DESTROY) {
                                 if (params.destroy_block.id > 0) {
-                                    const except_players = [];
-                                    if(server_player) except_players.push(server_player)
-                                    cps.custom_packets.push({
-                                        except_players,
-                                        packets: [{
-                                            name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
-                                            data: {
-                                                pos: params.pos.clone().addScalarSelf(.5, .5, .5),
-                                                item: params.destroy_block
-                                            }
-                                        }]
-                                    });
+                                    if(destroy_particles_count < 3 || destroy_particles_count % 3 == 0) {
+                                        const except_players = [];
+                                        if(server_player) except_players.push(server_player)
+                                        cps.custom_packets.push({
+                                            except_players,
+                                            packets: [{
+                                                name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
+                                                data: {
+                                                    pos: params.pos.clone().addScalarSelf(.5, .5, .5),
+                                                    item: params.destroy_block
+                                                }
+                                            }]
+                                        })
+                                    }
+                                    destroy_particles_count++
                                 }
                             }
                         }
@@ -1067,17 +1071,17 @@ export class ServerWorld implements IWorld {
             }
         }
         // Put in bucket
-        if(actions.put_in_backet) {
+        if(actions.put_in_bucket) {
             const inventory = server_player.inventory;
             const currentInventoryItem = inventory.current_item;
             if(currentInventoryItem && currentInventoryItem.id == this.block_manager.BUCKET.id) {
                 // replace item in inventory
-                inventory.items[inventory.current.index] = actions.put_in_backet;
+                inventory.items[inventory.current.index] = actions.put_in_bucket;
                 // send new inventory state to player
                 inventory.refresh(true);
                 /*
                 server_player.inventory.decrement(actions.decrement);
-                console.log(server_player, actions.put_in_backet);
+                console.log(server_player, actions.put_in_bucket);
                 */
             }
         }

@@ -1573,7 +1573,7 @@ export class SimpleBlockSlot extends Window {
             }
 
             // draw instrument life
-            this.bar.visible = (mat.item?.instrument_id && item.power < mat.power) || power_in_percent
+            this.bar.visible = (mat.has_powerbar && item.power < mat.power) || power_in_percent
             if(this.bar.visible) {
                 const percent = Math.max(Math.min(item.power / mat.power, 1), 0)
                 const sprites = ['tooldmg_3', 'tooldmg_2', 'tooldmg_1']

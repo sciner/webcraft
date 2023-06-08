@@ -78,6 +78,10 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
         for(let bbmodel of this.conf.bbmodels) {
             const model_json = bbmodel.json
             const id = bbmodel.name
+            if(!model_json) {
+                console.error(id, model_json)
+                throw '^^^'
+            }
             if('textures' in model_json) {
                 const {spritesheet, places} = await this.prepareModel(model_json, id, this.options)
                 model_json._properties.texture_id = spritesheet.id

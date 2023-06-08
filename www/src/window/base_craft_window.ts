@@ -149,8 +149,8 @@ export class CraftTableSlot extends SimpleBlockSlot {
                 if (block.extra_data?.hotbar) {
                     resp += '\r' + Lang['slots'] + ': ' + block.extra_data.hotbar
                 }
-                if (block.extra_data?.protection) {
-                    resp += '\r' + Lang['protection'] + ': ' + block.extra_data.protection
+                if (block?.protection) {
+                    resp += '\r' + Lang['protection'] + ': ' + block.protection
                 }
                 if (block?.power && item?.power) {
                     const bonus = Upgrade.getValueById(item, block.power, Upgrade.POWER)

@@ -483,10 +483,11 @@ export class Player implements IPlayer {
                             }
                         }
                     })
-                    this.state.attack = {title: 'attack', speed: speed}
+                    this.state.attack = {title: 'strike', speed: speed}
                     setTimeout(() => {
+                        Qubatch.sounds.play('madcraft:block.player', 'hit');
                         this.state.attack = false
-                    }, ATTACK_COOLDOWN / speed)
+                    }, (ATTACK_COOLDOWN / speed) + 300)
                 }
             } else {
                 const instrument = this.getCurrentInstrument()
@@ -745,7 +746,13 @@ export class Player implements IPlayer {
         if(type == MOUSE.DOWN) {
             this.pickAt.setEvent(this, {button_id, shiftKey});
             if(e.button_id == MOUSE.BUTTON_LEFT) {
-                this.startArmSwingProgress();
+                const cur_mat_id = this.inventory.current_item?.id
+                if (cur_mat_id) {
+                    const cur_mat = BLOCK.fromId(cur_mat_id)
+                    if (cur_mat?.item?.name == 'instrument') {
+                        this.startArmSwingProgress() // @todo визуальная времянка
+                    }
+                }
             }
         } else if (type == MOUSE.UP) {
             this.resetMouseActivity();
@@ -780,11 +787,10 @@ export class Player implements IPlayer {
 
     // onPickAtTarget
     async onPickAtTarget(e : IPickatEvent, times : float, number : int): Promise<boolean> {
-
-        this.inMiningProcess = true;
-        this.inhand_animation_duration = (e.destroyBlock ? 1 : 2.5) * RENDER_DEFAULT_ARM_HIT_PERIOD;
-
-        let bPos = e.pos;
+        if(this.state.sitting || this.state.sleep) {
+            console.log('Stand up first');
+            return false
+        }
         // create block
         if(e.createBlock) {
             if(e.number > 1 && times < .02) {
@@ -797,6 +803,7 @@ export class Player implements IPlayer {
             }
         // destroy block
         } else if(e.destroyBlock) {
+            const bPos = e.pos;
             const world_block = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block       = BLOCK.fromId(world_block.id);
             const mul         = getMulSpeedDestroy(this, this.eyes_in_block?.is_water)
@@ -807,7 +814,7 @@ export class Player implements IPlayer {
                 if(typeof this.hitIndexO === undefined || hitIndex > this.hitIndexO) {
                     this.render.destroyBlock(block, new Vector(bPos as IVector).addScalarSelf(.5, .5, .5), true);
                     Qubatch.sounds.play(block.sound, 'hit');
-                    this.startArmSwingProgress();
+                    this.startArmSwingProgress(true);
                 }
                 this.hitIndexO = hitIndex;
             }
@@ -825,17 +832,13 @@ export class Player implements IPlayer {
         }
         //
         if(!this.limitBlockActionFrequency(e) && this.game_mode.canBlockAction()) {
-            if(this.state.sitting || this.state.sleep) {
-                console.log('Stand up first');
-                return false;
-            }
             this.mineTime = 0;
             const e_orig: ICmdPickatData = ObjectHelpers.deepClone(e);
             const action_player_info = this.getActionPlayerInfo()
             const [actions, pos] = await doBlockAction(e, this.world, action_player_info, this.currentInventoryItem);
             if (actions) {
                 e_orig.snapshotId = pos && this.world.history.makeSnapshot(pos);
-                if(e.createBlock && actions.blocks.list.length > 0) {
+                if(e.createBlock && (actions.blocks.list.length > 0 || actions.decrement)) {
                     this.startArmSwingProgress();
                 }
                 await this.world.applyActions(actions, this);
@@ -1238,7 +1241,9 @@ export class Player implements IPlayer {
     }
 
     // Start arm swing progress
-    startArmSwingProgress() {
+    startArmSwingProgress(destroy: boolean = false) {
+        this.inMiningProcess = true;
+        this.inhand_animation_duration = (destroy ? 1 : 2.5) * RENDER_DEFAULT_ARM_HIT_PERIOD;
         const itsme = this.getModel()
         if(itsme) {
             itsme.startArmSwingProgress();
@@ -1300,6 +1305,9 @@ export class Player implements IPlayer {
         switch(item_name) {
             case 'bottle':
             case 'food': {
+                if (this.indicators.food >= 20 && item_name == 'food') {
+                    return false
+                }
                 const itsme = this.getModel()
                 this.world.server.Send({name: ServerClient.CMD_USE_ITEM});
                 this.inhand_animation_duration = RENDER_EAT_FOOD_DURATION;
