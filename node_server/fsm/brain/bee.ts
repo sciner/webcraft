@@ -3,9 +3,9 @@ import { Vector } from "@client/helpers.js";
 import { WorldAction } from "@client/world_action.js";
 import { BeeNest } from "../../block_type/bee_nest.js";
 import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
-import { Effect } from "@client/block_type/effect.js";
 import type { EnumDamage } from "@client/enums/enum_damage.js";
 import { DEFAULT_STYLE_NAME, MOB_TYPE } from "@client/constant.js";
+import {MobControlParams, MOB_CONTROL} from "@client/control/player_control.js";
 
 const MAX_POLLEN = 4;
 const POLLEN_PER_TICK = 0.02;
@@ -13,9 +13,6 @@ const POLLEN_PER_TICK = 0.02;
 export class Brain extends FSMBrain {
     ticks_pollination: number;
     ticks_anger: number;
-    ticks_attack: number;
-    distance_attack: number;
-    interval_attack: number;
     follow_distance: number;
     back_distance: number;
     anger_time: number;
@@ -29,11 +26,8 @@ export class Brain extends FSMBrain {
 
         this.ticks_pollination = 0;
         this.ticks_anger = 0;
-        this.ticks_attack = 0;
 
         //consts
-        this.distance_attack = 1.5;
-        this.interval_attack = 16;
         this.follow_distance = 10;
         this.back_distance = 10;
         this.anger_time = 300;
@@ -79,7 +73,7 @@ export class Brain extends FSMBrain {
     }
 
     // возвращение в улей
-    doReturnToHome(delta): boolean {
+    doReturnToHome(delta): MobControlParams | null {
         const mob = this.mob;
         const block = this.getFlightBlocks(false);
 
@@ -89,12 +83,11 @@ export class Brain extends FSMBrain {
            mob.rotate.z = Math.round(((mob.rotate.z + Math.random() * Math.PI / 4) % 6.28) * 1000) / 1000;
         }
 
-        this.updateControl({
+        this.applyControl(delta, {
             jump: block.jump,
             forward: true,
             sneak: block.sneak
-        });
-        this.applyControl(delta);
+        })
         this.sendState();
 
         // check if near nest
@@ -108,17 +101,19 @@ export class Brain extends FSMBrain {
                 nest.appendMob(mob);
             }
         }
-        return false // уже выполнили физику выше
+        return null // уже выполнили физику выше
     }
 
     // сбор пыльцы
-    doPollen(delta: float): boolean {
+    doPollen(delta: float): MobControlParams | null {
         const mob = this.mob;
+        /* этот код был раньше (лететь вниз), но физика не вызывалась. Похоже, надо не лететь вниз (без sneak)
         this.updateControl({
             jump: false,
             forward: false,
             sneak: true
         });
+        */
         if (mob.extra_data.pollen >= MAX_POLLEN) {
             mob.extra_data.pollen = MAX_POLLEN;
             // console.log("[AI] doReturnToHome");
@@ -127,11 +122,11 @@ export class Brain extends FSMBrain {
         } else {
             mob.extra_data.pollen += POLLEN_PER_TICK;
         }
-        return true
+        return MOB_CONTROL.STAND // висеть в воздухе
     }
 
     // просто полет
-    doForward(delta: float): boolean {
+    doForward(delta: float): MobControlParams | null {
         const mob = this.mob;
 
         const block = this.getFlightBlocks(true);
@@ -145,12 +140,11 @@ export class Brain extends FSMBrain {
             mob.rotate.z = this.angleTo(mob.pos_spawn);
         }
 
-        this.updateControl({
+        this.applyControl(delta, {
             jump: block.jump,
             forward: true,
             sneak: block.sneak
         });
-        this.applyControl(delta);
         this.sendState();
 
         // если на уровне ног есть цветок
@@ -175,16 +169,16 @@ export class Brain extends FSMBrain {
         mob.extra_data.pollen -= POLLEN_PER_TICK / 10;
         mob.extra_data.pollen = Math.max(mob.extra_data.pollen, 0);
 
-        return false // уже выполнили физику выше
+        return null // уже выполнили физику выше
     }
 
     // преследование игрока
-    doFollow(delta: float): boolean {
+    doFollow(delta: float): MobControlParams | null {
         const mob = this.mob;
 
         if (!this.target) {
             this.stack.replaceState(this.doForward);
-            return false
+            return null
         }
 
         const player = this.target;
@@ -193,62 +187,41 @@ export class Brain extends FSMBrain {
         if (!player || mob.playerCanBeAtacked(player) || difficulty == EnumDifficulty.PEACEFUL) {
             this.target = null;
             this.stack.replaceState(this.doForward);
-            return false
+            return null
         }
 
         const distance = mob.pos.horizontalDistance(player.state.pos);
         if (distance > this.follow_distance) {
             this.target = null;
             this.stack.replaceState(this.doForward);
-            return false
+            return null
         }
 
         mob.rotate.z = this.angleTo(player.state.pos);
 
         if (this.ticks_anger <= this.anger_time) {
-            if (Math.abs(player.state.pos.y + 2 - mob.pos.y) < 0.5 && this.ticks_attack > this.interval_attack && distance < this.distance_attack) {
-                this.ticks_attack = 0;
-                switch(difficulty) {
-                    case EnumDifficulty.EASY: {
-                        this.target.setDamage(2);
-                        break;
-                    }
-                    case EnumDifficulty.NORMAL: {
-                        this.target.effects.addEffects([{id: Effect.POISON, level: 1, time: 10}]);
-                        this.target.setDamage(2);
-                        break;
-                    }
-                    case EnumDifficulty.HARD: {
-                        this.target.effects.addEffects([{id: Effect.POISON, level: 2, time: 18}]);
-                        this.target.setDamage(3);
-                        break;
-                    }
-                }
-                const actions = new WorldAction();
-                actions.addPlaySound({ tag: 'madcraft:block.player', action: 'hit', pos: player.state.pos.clone() }); // Звук получения урона
-                world.actions_queue.add(player, actions);
+            const attack = mob.config.attack
+            if (Math.abs(player.state.pos.y + 2 - mob.pos.y) < 0.5 && this.timer_attack > attack.interval && distance < attack.distance) {
+                this.attack(difficulty)
             }
-            this.ticks_attack++;
+            this.timer_attack++;
             this.ticks_anger++;
             if (this.ticks_anger == this.anger_time) {
                 this.target = null;
                 this.stack.replaceState(this.doForward);
-                return false
+                return null
             }
         }
-
-        const block = this.getFlightBlocks(true);
-        const forward = (distance > 1.5) ? true : false;
-        this.updateControl({
-            jump: block.jump,
-            forward: forward,
-            sneak: block.sneak
-        });
 
         this.ticks_pollination++;
         mob.extra_data.pollen -= POLLEN_PER_TICK / 10;
 
-        return true
+        const block = this.getFlightBlocks(true);
+        return {
+            jump: block.jump,
+            forward: distance > 1.5,
+            sneak: block.sneak
+        }
     }
 
     onDamage(val : number, type_damage : EnumDamage, actor) {

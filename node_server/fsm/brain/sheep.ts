@@ -2,6 +2,7 @@ import { FSMBrain } from "../brain.js";
 import { WorldAction } from "@client/world_action.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
 import { BLOCK_ACTION } from "@client/server_client.js";
+import {MobControlParams, MOB_CONTROL} from "@client/control/player_control.js";
 
 export class Brain extends FSMBrain {
     count_grass: number;
@@ -24,7 +25,7 @@ export class Brain extends FSMBrain {
     }
     
     // просто стоит и кушает траву, если голодная
-    doStand(delta: float): boolean {
+    doStand(delta: float): MobControlParams | null {
         const result = super.doStand(delta);
         if (this.is_sheared && Math.random() < 0.8) {
             this.stack.replaceState(this.doEat);
@@ -33,7 +34,7 @@ export class Brain extends FSMBrain {
     }
     
     // ест траву
-    doEat(delta: float): boolean {
+    doEat(delta: float): MobControlParams | null {
         const mob = this.mob;
         const world = mob.getWorld();
         const bm = world.block_manager
@@ -69,7 +70,7 @@ export class Brain extends FSMBrain {
             }
         }
         this.stack.replaceState(this.doForward);
-        return false
+        return MOB_CONTROL.STAND
     }
     
     // Если убили моба
