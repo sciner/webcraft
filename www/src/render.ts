@@ -5,7 +5,7 @@ import { INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON
 import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
-import {BLOCK} from "./blocks.js";
+import {BLOCK, DBItemBlock} from "./blocks.js";
 
 // Particles
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
@@ -405,7 +405,7 @@ export class Renderer {
                 if(!block.spawnable && !NOT_SPAWNABLE_BUT_INHAND_BLOCKS.includes(block.name)) {
                     return null;
                 }
-                const drop = new Mesh_Object_Block_Drop(this.world, this.gl, null, [{id: block.id}], ZERO);
+                const drop = new Mesh_Object_Block_Drop(this.world, this.gl, null, [{id: block.id, extra_data: block.extra_data}], ZERO);
                 drop.block_material.inventory_icon_id = inventory_icon_id++;
                 addAtlasSprite(drop.block_material)
                 return drop;
@@ -1199,21 +1199,13 @@ export class Renderer {
 
     /**
      * Create mesh object and retrn it or null if unrecognize bbname
-     * @param pos : Vector
-     * @param bbname : string
-     * @param rotate : Vector
-     * @param animation_name : string
-     * @param hide_groups? : string[]
-     * @param key : string
-     * @param doubleface : boolean
-     * @returns string
      */
-    addBBModelForChunk(pos : Vector, bbname : string, rotate : Vector, animation_name : string, hide_groups? : any, key? : string, doubleface : boolean = false, matrix?: imat4) : Mesh_Object_BBModel | null {
+    addBBModelForChunk(pos : Vector, bbname : string, rotate : Vector, animation_name : string, hide_groups? : any, key? : string, doubleface : boolean = false, matrix?: imat4, item_block? : DBItemBlock) : Mesh_Object_BBModel | null {
         const model = Resources._bbmodels.get(bbname)
         if(!model) {
             return null
         }
-        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name, doubleface, matrix, hide_groups)
+        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name, doubleface, matrix, hide_groups, item_block)
         const chunk_addr = this.world.chunkManager.grid.getChunkAddr(pos.x, pos.y, pos.z)
         return this.meshes.addForChunk(chunk_addr, bbmodel, key)
     }
@@ -1406,7 +1398,7 @@ export class Renderer {
                         if(!block?.material?.can_take_shadow) {
                             continue;
                         }
-                        const block_shapes = BLOCK.getShapes(vec, block, world, false, false);
+                        const block_shapes = BLOCK.getShapes(block, world, false, false);
                         for(let i = 0; i < block_shapes.length; i++) {
                             const s = [...block_shapes[i]];
                             if(s[0] < 0) s[0] = 0;
@@ -1468,7 +1460,7 @@ export class Renderer {
     // createShadowBuffer...
     createShadowVertices(vertices : float[], shapes : tupleFloat6[], pos : Vector, c : tupleFloat4) {
         let lm          = new IndexedColor(0, 0, Math.round((performance.now() / 1000) % 1 * 255));
-        let flags       = QUAD_FLAGS.QUAD_FLAG_OPACITY, sideFlags = 0, upFlags = QUAD_FLAGS.NO_FOG;
+        let flags       = QUAD_FLAGS.FLAG_QUAD_OPACITY, sideFlags = 0, upFlags = QUAD_FLAGS.FLAG_NO_FOG;
         for (let i = 0; i < shapes.length; i++) {
             const shape = shapes[i];
             let x1 = shape[0];

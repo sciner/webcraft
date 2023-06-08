@@ -113,6 +113,9 @@
         {"name": "titanium_ore"},
         {"name": "poor_titanium_ore"},
         {"name": "amethyst_cluster"},
+        {"name": "brewing_stand"},
+        {"name": "pointed_dripstone"},
+        {"name": "lever"},
 
         {"name": "tool/primitive_axe"},
         {"name": "tool/sunglasses"},
@@ -251,7 +254,7 @@
                 "model": "chest",
                 "behavior": "chest",
                 "rotate": {"type": "cardinal_direction"},
-                "animated": {
+                "_animated": {
                     "name": "idle"
                 }
             }
@@ -1215,7 +1218,7 @@
                 "model": "cactus",
                 "aabb_stylename": "cactus",
                 "set_state": [
-                    {"name": "side_top",
+                    {"name": "top",
                         "when": {
                             "extra_data.into_pot": true
                         }
@@ -2008,6 +2011,211 @@
             "name": "MECHANISM_ASSEMBLER",
             "bb": {
                 "model": "tool/mechanism_assembler"
+            }
+        },
+        {
+            "id": 117,
+            "name": "BREWING_STAND",
+            "aabb": [5, 0, 5, 11, 16, 11],
+            "bb": {
+                "model": "brewing_stand"
+            }
+        },
+        {
+            "id": 285,
+            "name": "GOLDEN_CHESTPLATE",
+            "bb": {
+                "model": "armor/scrap_armor",
+                "set_state": [
+                    {"name": "preview/preview_chestplate"}
+                ],
+                "select_texture": [
+                    {"name": "scrap_armor_gold"}
+                ]
+            }
+        },
+        {
+            "id": 593,
+            "name": "POINTED_DRIPSTONE",
+            "bb": {
+                "model": "pointed_dripstone",
+                "set_state": [
+                    {"name": "base", "when": {"extra_data.base": true}},
+                    {"name": "frustum", "when": {"extra_data.frustum": true}},
+                    {"name": "middle", "when": {"extra_data.middle": true}},
+                    {"name": "tip_merge", "when": {"extra_data.merge": true}},
+                    {"name": "tip"}
+                ],
+                "rotate": [
+                    {"type": "flipx", "when": {"extra_data.up": true}}
+                ]
+            }
+        },
+        {
+            "id": 309,
+            "name": "LEVER",
+            "bb": {
+                "model": "lever",
+                "rotate": {"type": "six"},
+                "set_animation": [
+                    {"name": "on", "when": {"extra_data.powered": true}},
+                    {"name": "off", "when": {"extra_data.powered": false}}
+                ]
+            }
+        },
+        {
+            "id": 3000,
+            "name": "BILLBOARD7X3",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "extra_data": {
+                "relindex": -1,
+                "calculated": [
+                    {"type": "random_item", "name": "texture", "items": [{"url": "/media/demo/banner1.png"}, {"url": "/media/demo/banner2.png"}, {"url": "/media/demo/banner3.png"}]}
+                ]
+            },
+            "multiblock": {"x": -3, "y": 0, "z": 0, "w": 7, "h": 4, "d": 1},
+            "bb": {
+                "import_anyway": true,
+                "behavior": "billboard",
+                "rotate": {"type": "cardinal_direction"},
+                "set_state": [
+                    {"name": "default"}
+                ]
+            }
+        },
+        {
+            "id": 3001,
+            "name": "BILLBOARD1X2",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "invisible_for_cam",
+                "no_drop_ao"
+            ],
+            "aabb": [4, 0, 4, 12, 8, 12],
+            "multiblock": {"x": 0, "y": 0, "z": 0, "w": 1, "h": 3, "d": 1},
+            "extra_data": {
+                "relindex": -1,
+                "calculated": [
+                    {"type": "random_item", "name": "texture", "items": [{"url": "/media/demo/rollup1.png"}, {"url": "/media/demo/rollup2.png"}]}
+                ]
+            },
+            "bb": {
+                "import_anyway": true,
+                "behavior": "billboard",
+                "animated": {
+                    "name": "idle"
+                }
+            }
+        },
+        {
+            "id": 3002,
+            "name": "ROOF_HOR",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "extra_data": {
+                "relindex": -1
+            },
+            "multiblock": {"x": 0, "y": 0, "z": 0, "w": 1, "h": 1, "d": 2},
+            "bb": {
+                "import_anyway": true,
+                "model": "roof2",
+                "rotate": {"type": "cardinal_direction"},
+                "set_state": [
+                    {"name": "hor"}
+                ]
+            }
+        },
+        {
+            "id": 3003,
+            "name": "ROOF_VER",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "extra_data": {
+                "relindex": -1
+            },
+            "multiblock": {"x": 0, "y": 0, "z": 0, "w": 1, "h": 2, "d": 1},
+            "bb": {
+                "import_anyway": true,
+                "model": "roof2",
+                "rotate": {"type": "cardinal_direction"},
+                "set_state": [
+                    {"name": "ver"}
+                ]
+            }
+        },
+        {
+            "id": 310,
+            "name": "BLUE_CLAY_SHINGLES",
+            "can_rotate": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "clay_shingles"
+            ],
+            "bb": {
+                "model": "clay_shingles",
+                "import_anyway": true,
+                "rotate": {"type": "cardinal_direction"},
+                "set_state": [
+                    {"name": "outer", "when": {"extra_data.outer": true}},
+                    {"name": "inner", "when": {"extra_data.inner": true}},
+                    {"name": "normal"}
+                ],
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 311,
+            "name": "RED_CLAY_SHINGLES",
+            "can_rotate": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "clay_shingles"
+            ],
+            "bb": {
+                "extends": "BLUE_CLAY_SHINGLES"
+            }
+        },
+        {
+            "id": 312,
+            "name": "GREEN_CLAY_SHINGLES",
+            "can_rotate": true,
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "clay_shingles"
+            ],
+            "bb": {
+                "extends": "BLUE_CLAY_SHINGLES"
             }
         }
     ]

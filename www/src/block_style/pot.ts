@@ -13,6 +13,8 @@ const WIDTH =  6 / 16;
 const HEIGHT = 6 / 16;
 const WIDTH_INNER = 4/16;
 const HEIGHT_INNER = 1/16;
+const _pot_tags = ['no_random_pos', 'into_pot']
+const _pot_extra_data = {'into_pot': true}
 
 // Горшок
 export default class style {
@@ -130,44 +132,59 @@ export default class style {
 
     }
 
-    /**
-     * @param {int} x
-     * @param {int} y
-     * @param {int} z
-     * @param {TBlock} tblock
-     * @param {*} pivot
-     * @param {*} matrix
-     * @param {*} biome
-     * @param {IndexedColor} dirt_color
-     * @returns
-     */
-    static emmitInpotBlock(x, y, z, tblock, pivot, matrix, biome, dirt_color) {
+    //
+    static emmitInpotBlock(x : int, y : int, z : int, tblock : TBlock | FakeTBlock, pivot, matrix, biome, dirt_color : IndexedColor) {
 
         let flower_block_id = null;
         if(tblock.extra_data && tblock.extra_data?.item?.id) {
             flower_block_id = tblock.extra_data?.item.id;
         }
 
-		matrix = mat4.create()
-        mat4.scale(matrix, matrix, [.3, .5, .3])
-        mat4.translate(matrix, matrix, [0, -2/16, 0])
-        //mat4.rotateZ(matrix, matrix, Math.PI/2)
-
         if(flower_block_id) {
-            const fb = new FakeTBlock(
-                flower_block_id,
-                {
-                    'into_pot': true
-                },
-                new Vector(x, y + 3/16, z),
-                new Vector(0, 1, 0),
-                pivot,
-                matrix,
-                ['no_random_pos', 'into_pot'],
-                biome,
-                dirt_color
-            );
-            return [fb];
+            const flower_block = style.block_manager.fromId(flower_block_id)
+            if(flower_block) {
+                let shift_y = 0
+                let scale = 1
+                matrix = mat4.create()
+                let m = flower_block.has_head ? 1 : .5
+                mat4.translate(matrix, matrix, [0, 5/16, 0])
+                mat4.translate(matrix, matrix, [0, -m, 0])
+                if(flower_block.style == 'cube') {
+                    // do nothing
+                } else if(flower_block.style_name == 'cactus') {
+                    scale = .25
+                    if(flower_block.bb) {
+                        m += 1.5
+                    }
+                } else {
+                    if(flower_block.is_flower || flower_block.is_grass) {
+                        scale = .5
+                        if(flower_block.has_head) {
+                            m += .5
+                        }
+                    } else {
+                        scale = .3
+                    }
+                    if(flower_block.bb) {
+                        scale = .5
+                        m += .5
+                    }
+                }
+                mat4.scale(matrix, matrix, [scale, scale, scale])
+                mat4.translate(matrix, matrix, [0, m, 0])
+                const fb = new FakeTBlock(
+                    flower_block_id,
+                    _pot_extra_data,
+                    new Vector(x, y + shift_y, z),
+                    Vector.YP,
+                    pivot,
+                    matrix,
+                    _pot_tags,
+                    biome,
+                    dirt_color
+                )
+                return [fb]
+            }
         }
 
         return []

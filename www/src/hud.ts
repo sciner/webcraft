@@ -507,9 +507,6 @@ export class HUD {
                 if (desc.block.entity_id) {
                     this.block_text += '\nentity_id: ' + desc.block.entity_id;
                 }
-                if (desc.block.power) {
-                    this.block_text += '\npower: ' + desc.block.power;
-                }
                 if (desc.material.is_solid) {
                     this.block_text += ' is_solid ';
                 }
@@ -534,6 +531,17 @@ export class HUD {
                         this.block_text += ' lava';
                     }
                 }
+            }
+
+            if (this.draw_block_info) {
+                this.block_text += '\n\nPlayer info: '
+                const state = player.controlManager.prismarine.player_state
+                this.block_text += '\nvel: ' + state.vel
+                this.block_text += '\nGround: ' + state.onGround
+                this.block_text += '\nisCollidedHorizontally: ' + state.isCollidedHorizontally
+                this.block_text += '\nisCollidedVertically: ' + state.isCollidedVertically
+                this.block_text += '\nsubmergedHeight: ' + state.submergedHeight
+                this.block_text += '\nLava: ' + state.isInLava + ' Water: ' + state.isInWater + ' Liquid: ' + state.isInLiquid
             }
         }
 

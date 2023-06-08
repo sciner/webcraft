@@ -1,7 +1,7 @@
 import { BLOCK, DBItemBlock } from "../../blocks.js";
-import { Schematic } from "@server/node_modules/prismarine-schematic/index.js";
+import { Schematic } from "@server/node_modules/madcraft-schematic-reader/index.js";
 import { promises as fs } from 'fs';
-import { DIRECTION_BIT, SIX_VECS, Vector, VectorCollector } from "../../helpers.js";
+import { DIRECTION_BIT, ObjectHelpers, SIX_VECS, Vector, VectorCollector } from "../../helpers.js";
 import { RailShape } from "../../block_type/rail_shape.js";
 import * as FLUID from '../../fluid/FluidConst.js';
 
@@ -10,12 +10,34 @@ const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
 const dripstone_stages = ['tip', 'frustum', 'middle', 'base'];
 const NO_IMPORT_BLOCKS = ['NETHER_PORTAL'];
 
+declare type IMCBlock = {
+    type:              int
+    name:              string
+    _properties:       any
+    entities:          any
+    signText:          any
+    on_wall:           any
+}
+
+declare type IParseBlockResult = {
+    b? : IBlockMaterial,
+    name? : string
+}
+
+declare type IStateBlock = {
+    new_block:          IMCBlock,
+    fluidValue:         int,
+    b:                  IBlockMaterial,
+    read_entity_props:  boolean,
+}
+
 // const {Schematic} = await import("prismarine-schematic" as any)
 
 // SchematicReader...
 export class SchematicReader {
-    blocks: VectorCollector;
-    fluids: any[];
+    blocks: VectorCollector
+    fluids: any[]
+    entity_pos: Vector
     replaced_names: {
         [key: string]: string
     };
@@ -23,6 +45,8 @@ export class SchematicReader {
     constructor() {
         this.blocks = new VectorCollector();
         this.fluids = [];
+
+        this.entity_pos = new Vector(0, 0, 0)
         this.replaced_names = {
             BARRIER:                'AIR',
             CAVE_AIR:               'AIR',
@@ -36,6 +60,40 @@ export class SchematicReader {
             SKELETON_SKULL:         'SKULL_DESERT',
             CARROTS:                'CARROT_SEEDS',
             LAVA_CAULDRON:          'CAULDRON',
+            // Old version block names
+            GRASS_PATH:             'DIRT_PATH',
+            STONEBRICK:             'STONE_BRICKS',
+            WATERLILY:              'LILY_PAD',
+            SAPLING:                'OAK_SAPLING',
+            LEAVES:                 'OAK_LEAVES',
+            RED_FLOWER:             'RED_TULIP',
+            POTATO:                 'POTATOES',
+            QUARTZ:                 'QUARTZ_BLOCK',
+            MAGMA:                  'MAGMA_BLOCK',
+            DIAMOND_SHOVEL:         'TITANIUM_SHOVEL',
+            DIAMOND_SWORD:          'TITANIUM_SWORD',
+            DIAMOND_AXE:            'TITANIUM_AXE',
+            DIAMOND_PICKAXE:        'TITANIUM_PICKAXE',
+            WOOL:                   'WHITE_WOOL',
+            LOG:                    'OAK_LOG',
+            LOG2:                   'BIRCH_LOG',
+            PLANKS:                 'OAK_PLANKS',
+            WOODEN_SLAB:            'OAK_SLAB',
+            BANNER:                 'WHITE_BANNER',
+            BRICK_BLOCK:            'BRICKS',
+            POTION:                 'WATER_BOTTLE',
+            BOOK:                   'ENCHANTED_BOOK',
+            WOODEN_BUTTON:          'OAK_BUTTON',
+            FENCE:                  'OAK_FENCE',
+            TRAPDOOR:               'OAK_TRAPDOOR',
+            WOODEN_DOOR:            'OAK_DOOR',
+            WOODEN_PRESSURE_PLATE:  'OAK_PRESSURE_PLATE',
+            DYE:                    'WHITE_DYE',
+            DOUBLE_PLANT:           'PEONY',
+            TALLGRASS:              'TALL_GRASS',
+            YELLOW_FLOWER:          'DANDELION',
+            CARVED_PUMPKIN:         'LIT_PUMPKIN',
+            LAPIS_ORE:              'LAPIS_LAZULI_ORE',
         }
     }
 
@@ -44,7 +102,7 @@ export class SchematicReader {
 
         orig_file_name += ''
 
-        let file_name = `./data/schematics/${orig_file_name}`;
+        let file_name = `../data/schematics/${orig_file_name}`;
         console.log(file_name)
 
         // Check schem file exists and try extension append
@@ -68,7 +126,7 @@ export class SchematicReader {
         }
 
         // read schematic
-        const schematic = await Schematic.read(await fs.readFile(file_name));
+        const schematic : Schematic = await Schematic.read(await fs.readFile(file_name))
 
         // Prepare BlockEntities for fast search
         const BlockEntities = new VectorCollector();
@@ -82,19 +140,23 @@ export class SchematicReader {
             console.error('schematic reader not support read chests and other block entities')
         }
 
-        const not_found_blocks = new Map();
-        const bpos = new Vector(0, 0, 0);
-        const AIR_BLOCK = new DBItemBlock(0)
-        const TEST_BLOCK = {id: BLOCK.fromName('TEST').id};
-        const FLOWER_POT_BLOCK_ID = BLOCK.fromName('FLOWER_POT').id;
-        const STILL_WATER_BLOCK = {id: BLOCK.fromName('STILL_WATER').id};
-        const STILL_LAVA_BLOCK = {id: BLOCK.fromName('STILL_LAVA').id};
+        let min_y = Infinity
+
+        const not_found_blocks                  = new Map()
+        const cached_blocks                     = new Map()
+        const states : Map<int, IStateBlock>    = new Map()
+        const bpos                              = new Vector(0, 0, 0)
+        const eb_pos                            = new Vector(0, 0, 0)
+        const FLOWER_POT_BLOCK_ID               = BLOCK.fromName('FLOWER_POT').id
+        const AIR_BLOCK                         = new DBItemBlock(0)
+        const TEST_BLOCK                        = new DBItemBlock(BLOCK.fromName('TEST').id)
+        const STILL_WATER_BLOCK                 = new DBItemBlock(BLOCK.fromName('STILL_WATER').id)
+        const STILL_LAVA_BLOCK                  = new DBItemBlock(BLOCK.fromName('STILL_LAVA').id)
+        const result : IParseBlockResult        = {b: null, name: null};
+
         // each all blocks
-        const ep = new Vector(0, 0, 0);
-        let min_y = Infinity;
-        const cached_blocks = new Map();
-        (schematic as any).forEachFast((block, pos) => {
-            bpos.copyFrom(pos);
+        (schematic as any).forEachFast((block : IMCBlock, pos : IVector, stateId : int) => {
+            bpos.copyFrom(pos)
             bpos.z *= -1;
             if(bpos.y < min_y) {
                 min_y = bpos.y;
@@ -103,86 +165,102 @@ export class SchematicReader {
                 this.blocks.set(bpos, AIR_BLOCK)
                 return
             }
-            const name = this.parseBlockName(block);
-            if(NO_IMPORT_BLOCKS.includes(name)) {
-                return;
-            }
-            const b = BLOCK[name];
-            let new_block = null;
-            if(b) {
-                // speed optimization
-                if(b.is_simple_qube) {
-                    new_block = cached_blocks.get(b.id);
-                }
-                if(!new_block) {
-                    // read entity props
-                    let readEntityProps = false;
-                    if(b.chest) {
-                        readEntityProps = true;
-                    } else if(b.is_sign) {
-                        readEntityProps = true;
-                    } else if(b.name == 'ITEM_FRAME') {
-                        readEntityProps = true;
-                    } else if(b.name == 'LECTERN') {
-                        readEntityProps = true;
-                    } else if(b.is_banner) {
-                        readEntityProps = true;
-                    }
-                    if(readEntityProps) {
-                        ep.copyFrom(pos).subSelf(schematic.offset);
-                        block.entities = BlockEntities.get(ep);
-                    }
-                    new_block = this.createBlockFromSchematic(block, b);
-                    if(b.is_simple_qube) {
-                        cached_blocks.set(b.id, new_block);
-                    }
+            let new_block = null
+            let fluidValue = 0
+            let read_entity_props = false
+            const st = states.get(stateId)
+            if(st) {
+                new_block = st.new_block
+                fluidValue = st.fluidValue
+                if(st.read_entity_props) {
+                    new_block = this.createBlockFromSchematic(block, st.b, schematic, BlockEntities, pos as Vector, st.read_entity_props)
                 }
             } else {
-                if(name.indexOf('POTTED_') === 0) {
-                    // POTTED_PINK_TULIP - ALLIUM
-                    // POTTED_WITHER_ROSE - LILY OF THE VALEY
-                    const in_pot_block_name = name.substring(7);
-                    const in_pot_block = BLOCK.fromName(in_pot_block_name);
-                    if(in_pot_block && in_pot_block.id > 0) {
-                        new_block = new DBItemBlock(FLOWER_POT_BLOCK_ID, {item: new DBItemBlock(in_pot_block.id)})
+                const {name, b} = this.parseBlockName(block, result)
+                if(b && NO_IMPORT_BLOCKS.includes(name)) {
+                    return
+                }
+                if(b) {
+                    // speed optimization
+                    if(b.is_simple_qube) {
+                        new_block = cached_blocks.get(b.id)
                     }
-                } else if(name.indexOf('INFESTED_') === 0) {
-                    // e.g. INFESTED_STONE_BRICKS
-                    const name2 = name.substring(9);
-                    const b2 = BLOCK.fromName(name2);
-                    if(!b2.is_dummy) {
-                        new_block = new DBItemBlock(b2.id, {infested: true})
+                    if(!new_block) {
+                        // read entity props
+                        if(b.chest) {
+                            read_entity_props = true
+                        } else if(b.is_sign) {
+                            read_entity_props = true
+                        } else if(b.name == 'ITEM_FRAME') {
+                            read_entity_props = true
+                        } else if(b.name == 'LECTERN') {
+                            read_entity_props = true
+                        } else if(b.is_banner) {
+                            read_entity_props = true
+                        } else if(b.name == 'FLOWER_POT') {
+                            read_entity_props = true
+                        }
+                        new_block = this.createBlockFromSchematic(block, b, schematic, BlockEntities, pos as Vector, read_entity_props)
+                        if(!new_block) {
+                            return
+                        }
+                        if(b.is_simple_qube) {
+                            cached_blocks.set(b.id, new_block);
+                        }
                     }
+                } else {
+                    if(name.indexOf('POTTED_') === 0) {
+                        // POTTED_PINK_TULIP - ALLIUM
+                        // POTTED_WITHER_ROSE - LILY OF THE VALEY
+                        const in_pot_block_name = name.substring(7);
+                        const in_pot_block = BLOCK.fromName(in_pot_block_name);
+                        if(in_pot_block && in_pot_block.id > 0) {
+                            new_block = new DBItemBlock(FLOWER_POT_BLOCK_ID, {item: new DBItemBlock(in_pot_block.id)})
+                        }
+                    } else if(name.indexOf('INFESTED_') === 0) {
+                        // e.g. INFESTED_STONE_BRICKS
+                        const name2 = name.substring(9);
+                        const b2 = BLOCK.fromName(name2);
+                        if(!b2.is_dummy) {
+                            new_block = new DBItemBlock(b2.id, {infested: true})
+                        }
+                    }
+                }
+                // If not implemented block
+                if(!new_block) {
+                    not_found_blocks.set(name, (not_found_blocks.get(name) ?? 0) + 1);
+                    // replace with TEST block and store original to his extra_data
+                    new_block = DBItemBlock.cloneFrom(TEST_BLOCK)
+                    new_block.extra_data = {n: name}
+                    if(block._properties) {
+                        // fast check if object not empty
+                        for(let _ in block._properties) {
+                            new_block.extra_data.p = block._properties;
+                            break;
+                        }
+                    }
+                }
+                if (b?.is_fluid || b?.always_waterlogged || new_block.waterlogged) {
+                    const lvl = new_block.extra_data?.level ?? 0;
+                    if (new_block.id === STILL_WATER_BLOCK.id) {
+                        fluidValue = FLUID.FLUID_WATER_ID + lvl;
+                    }
+                    if (new_block.id === STILL_LAVA_BLOCK.id) {
+                        fluidValue = FLUID.FLUID_LAVA_ID + lvl;
+                    }
+                    if(b?.is_fluid) {
+                        new_block = AIR_BLOCK;
+                    }
+                }
+                states.set(stateId, {fluidValue, new_block, b, read_entity_props})
+            }
+            this.blocks.set(bpos, new_block)
+            // Некоторые блоки могут создавать другие блоки (двери, высокие растения и прочее)
+            if(new_block.emmit_blocks) {
+                for(const eb of new_block.emmit_blocks) {
+                    this.blocks.set(eb_pos.copyFrom(bpos).addSelf(eb.move), eb)
                 }
             }
-            // If not implemented block
-            if(!new_block) {
-                not_found_blocks.set(name, (not_found_blocks.get(name) ?? 0) + 1);
-                // replace with TEST block and store original to his extra_data
-                new_block = DBItemBlock.cloneFrom(TEST_BLOCK)
-                new_block.extra_data = {n: name}
-                if(block._properties) {
-                    // fast check if object not empty
-                    for(let _ in block._properties) {
-                        new_block.extra_data.p = block._properties;
-                        break;
-                    }
-                }
-            }
-            let fluidValue = 0;
-            if (b?.is_fluid || b?.always_waterlogged || new_block.waterlogged) {
-                const lvl = new_block.extra_data?.level ?? 0;
-                if (new_block.id === STILL_WATER_BLOCK.id) {
-                    fluidValue = FLUID.FLUID_WATER_ID + lvl;
-                }
-                if (new_block.id === STILL_LAVA_BLOCK.id) {
-                    fluidValue = FLUID.FLUID_LAVA_ID + lvl;
-                }
-                if(b?.is_fluid) {
-                    new_block = AIR_BLOCK;
-                }
-            }
-            this.blocks.set(bpos, new_block);
             if (fluidValue) {
                 this.fluids.push(bpos.x, bpos.y, bpos.z, fluidValue);
             }
@@ -205,7 +283,7 @@ export class SchematicReader {
     }
 
     //
-    parseBlockName(block) {
+    parseBlockName(block : IMCBlock, out : IParseBlockResult) : any {
         if(block.name == 'wall_sign') {
             block.name = 'oak_wall_sign';
         }
@@ -229,19 +307,28 @@ export class SchematicReader {
             block.name = 'anvil';
         }
         //
-        let name = block.name.toUpperCase();
-        if(name in this.replaced_names) {
-            name = this.replaced_names[name];
+        let name = block.name.toUpperCase()
+        if(name != 'AIR') {
+            const rn = this.replaced_names[name]
+            if(rn) {
+                name = rn
+            }
         }
-        return name;
+        out.b = BLOCK[name]
+        out.name = name
+        return out
     }
 
     //
-    createBlockFromSchematic(block, b : IBlockMaterial) {
+    createBlockFromSchematic(block : IMCBlock, b : IBlockMaterial, schematic : Schematic, BlockEntities : VectorCollector, pos : Vector, read_entity_props : boolean) : DBItemBlock | null {
         const props = block._properties;
         let new_block = new DBItemBlock(b.id)
         if(new_block.id == 0) {
             return new_block;
+        }
+        if(read_entity_props) {
+            this.entity_pos.copyFrom(pos).subSelf(schematic.offset)
+            block.entities = BlockEntities.get(this.entity_pos)
         }
         if(b.item || b.style_name == 'extruder' || b.style_name == 'text') {
             if(b.item && !b.tags.includes('can_set_as_block')) {
@@ -257,12 +344,13 @@ export class SchematicReader {
             new_block.rotate = new Vector(0, 1, 0);
         }
         //
-        const setExtraData = (k, v) => {
-            if(!new_block.extra_data) {
-                new_block.extra_data = {};
+        const setExtraData = (k : string, v : any, obj? : {[key: string]: any}) => {
+            obj = obj ?? new_block
+            if(!obj.extra_data) {
+                obj.extra_data = {}
             }
-            new_block.extra_data[k] = v;
-        };
+            obj.extra_data[k] = v
+        }
         // block entities
         if(block.entities) {
             if(b.chest) {
@@ -301,6 +389,24 @@ export class SchematicReader {
             } else if(b.is_banner) {
                 if('Patterns' in block.entities) {
                     setExtraData('patterns', block.entities.Color);
+                }
+            } else if(b.name == 'FLOWER_POT') {
+                // old versions format
+                let potted_block_name = block.entities.Item
+                if(potted_block_name) {
+                    if(potted_block_name.indexOf(':') >= 0) {
+                        potted_block_name = potted_block_name.split(':')[1].toUpperCase()
+                        let in_pot_block = BLOCK[potted_block_name]
+                        if(!in_pot_block) {
+                            let nn = this.replaced_names[potted_block_name]
+                            if(nn) {
+                                in_pot_block = BLOCK[nn]
+                            }
+                        }
+                        if(in_pot_block) {
+                            setExtraData('item', new DBItemBlock(in_pot_block.id))
+                        }
+                    }
                 }
             } else if(b.name == 'LECTERN') {
                 if(block.entities.Book) {
@@ -350,11 +456,12 @@ export class SchematicReader {
         if(props) {
             // button
             if(b.is_button) {
+                setExtraData('powered', props?.powered ?? false)
                 if(b.tags.includes('rotate_by_pos_n_12')) {
                     if('face' in props && 'facing' in props) {
                         // ceiling wall floor
                         if(props.face == 'ceiling') {
-                            new_block.rotate.x = Math.max(facings4.indexOf(props.facing), 0);
+                            new_block.rotate.x = (Math.max(facings4.indexOf(props.facing), 0) + 2)  % 4
                             new_block.rotate.y = -1;
                         } else if(props.face == 'floor') {
                             new_block.rotate.x = Math.max(facings4.indexOf(props.facing), 0);
@@ -440,33 +547,7 @@ export class SchematicReader {
                     } else if(b.tags.includes('rotate_x16')) {
                         new_block.rotate.x = Math.round(props.rotation / 16 * 360) % 360
                     } else if(b.tags.includes('rotate_sign')) {
-                        new_block.rotate.x = Math.round(props.rotation / 16 * 360) % 360
-                    }
-                }
-            }
-            // trapdoors and doors
-            // top|bottom|lower|upper
-            if('half' in props) {
-                switch(props.half) {
-                    case 'top': {
-                        setExtraData('point', {x: 0, y: 0.9, z: 0});
-                        break;
-                    }
-                    case 'bottom': {
-                        if(b.has_head) {
-                            //
-                        } else {
-                            setExtraData('point', {x: 0, y: 0.1, z: 0});
-                        }
-                        break;
-                    }
-                    case 'upper': {
-                        if(b.has_head) {
-                            setExtraData('is_head', true);
-                        } else {
-                            setExtraData('point', {x: 0, y: 0.9, z: 0});
-                        }
-                        break;
+                        new_block.rotate.x = (props.rotation / 16 * 4 + 2) % 4
                     }
                 }
             }
@@ -591,8 +672,43 @@ export class SchematicReader {
             if('waterlogged' in props && props.waterlogged) {
                 new_block.waterlogged = props.waterlogged;
             }
+            // trapdoors and doors
+            // top|bottom|lower|upper
+            if('half' in props) {
+                const has_point = !!b.extra_data?.point
+                switch(props.half) {
+                    case 'top': {
+                        setExtraData('point', {x: 0, y: 0.9, z: 0})
+                        break
+                    }
+                    case 'lower':
+                    case 'bottom': {
+                        if(b.has_head) {
+                            if(has_point) {
+                                setExtraData('point', {x: 0, y: 0.1, z: 0})
+                            }
+                            new_block.emmit_blocks = []
+                            const eb = ObjectHelpers.deepClone(new_block)
+                            setExtraData('is_head', true, eb)
+                            eb.move = b.has_head.pos
+                            new_block.emmit_blocks = [eb]
+                        } else {
+                            setExtraData('point', {x: 0, y: 0.1, z: 0});
+                        }
+                        break
+                    }
+                    case 'upper': {
+                        if(b.has_head) {
+                            return null
+                        } else if(has_point) {
+                            setExtraData('point', {x: 0, y: 0.9, z: 0});
+                        }
+                        break
+                    }
+                }
+            }
         }
-        return new_block;
+        return new_block
     }
 
     parseChestPropsExtraData(props) {
@@ -616,7 +732,13 @@ export class SchematicReader {
             if(chest_item_name) {
                 const slot_index = item.Slot;
                 chest_item_name = chest_item_name.toUpperCase();
-                const chest_item_block = BLOCK.fromName(chest_item_name);
+                let chest_item_block = BLOCK[chest_item_name]
+                if(!chest_item_block) {
+                    if(chest_item_name in this.replaced_names) {
+                        chest_item_name = this.replaced_names[chest_item_name]
+                    }
+                    chest_item_block = BLOCK.fromName(chest_item_name)
+                }
                 if(!chest_item_block.is_dummy) {
                     const count = item.Count;
                     if(count > 0) {

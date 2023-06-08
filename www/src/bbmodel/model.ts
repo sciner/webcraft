@@ -8,9 +8,9 @@ import type { Renderer } from "../render.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { getEuler } from "../components/Transform.js";
 import { BBMODEL_ATLAS_SIZE } from "../constant.js";
+import type { BBModel_Child } from "./child.js";
 
 const VEC_2 = new Vector(2, 2, 2)
-const FIX_POS = new Vector(-8, -8, 8)
 const EMPTY_ARGS = []
 
 const {quat} = glMatrix
@@ -29,6 +29,7 @@ export class BBModel_Model {
     root:           BBModel_Group
     bone_groups:    Map<string, BBModel_Group> = new Map()
     groups:         Map<string, BBModel_Group> = new Map()
+    private _groups_by_path: Map<string, BBModel_Group> = new Map()
     all_textures?:  Map<string, any> = null
     animations?:    Map<string, any>
 
@@ -68,7 +69,7 @@ export class BBModel_Model {
         //
         if(group_name) {
             //
-            const processGroup = (group, group_path) => {
+            const processGroup = (group : BBModel_Group, group_path : string) => {
                 if(group_path) {
                     group_path += '/'
                 }
@@ -148,8 +149,8 @@ export class BBModel_Model {
     /**
      * Draw
      */
-    draw(vertices: float[], pos : Vector, lm : IndexedColor, matrix : imat4, emmit_particles_func? : Function) {
-        this.root.pushVertices(vertices, pos, lm, matrix, emmit_particles_func)
+    draw(vertices: float[], pos : Vector, lm : IndexedColor, matrix : imat4, emmit_particles_func? : Function, mesh?: Mesh_Object_BBModel, emmited_blocks? : any[]) {
+        this.root.pushVertices(vertices, pos, lm, matrix, emmit_particles_func, mesh)
     }
 
     drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, matrix : float[], emmit_particles_func? : Function) {
@@ -273,23 +274,19 @@ export class BBModel_Model {
                 //
                 for(const [channel_name, keyframes] of channels) {
 
-                    if(keyframes.length == 0) continue;
+                    if(keyframes.length == 0) continue
 
                     const {current_keyframe, next_keyframe, percent} = calcKeyFrame(keyframes, time)
 
                     if(!current_keyframe || !next_keyframe) continue
-                    const current_point = current_keyframe.data_points[0];
-                    const next_point = next_keyframe.data_points[0];
+                    const current_point = current_keyframe.data_points[0]
+                    const next_point = next_keyframe.data_points[0]
 
-                    // TODO: Need to optimize
-                    // const point : Vector = current_keyframe.point || (current_keyframe.point = new Vector(0, 0, 0))
-                    const point = new Vector()
-
-                    let args;
-                    let func_name;
+                    let args : any
+                    let func_name : string
 
                     if(next_keyframe.easing) {
-                        args = next_keyframe.easingArgs;
+                        args = next_keyframe.easingArgs
                         func_name = next_keyframe.easing
                     } else {
                         func_name = next_keyframe.interpolation
@@ -301,6 +298,9 @@ export class BBModel_Model {
                         continue
                     }
 
+                    // TODO: Need to optimize
+                    // const point : Vector = current_keyframe.point || (current_keyframe.point = new Vector(0, 0, 0))
+                    const point = new Vector()
                     const t = func(percent, args || EMPTY_ARGS)
                     point.lerpFrom(current_point, next_point, t)
                     mesh.animations.get(group.name).set(channel_name, point)
@@ -323,7 +323,7 @@ export class BBModel_Model {
                 //
                 for(const item of mesh.trans_animations.all.values()) {
                     const {group, list} = item
-                    for(const [channel_name, current_point] of list.entries()) {
+                    for(const [channel_name, prev_point] of list.entries()) {
                         const group_animations = mesh.animations.get(group.name)
                         const exist_point = group_animations.get(channel_name)
                         if(exist_point) {
@@ -338,20 +338,20 @@ export class BBModel_Model {
                         }
 
                         if(channel_name == 'rotation') {
-                            const q_cur = quat.create()
+                            const q_prev = quat.create()
                             const q_next = quat.create()
-                            quat.fromEuler(q_cur, current_point.x, current_point.y, current_point.z, 'zyx');
+                            quat.fromEuler(q_prev, prev_point.x, prev_point.y, prev_point.z, 'zyx')
                             quat.fromEuler(q_next, next_point.x, next_point.y, next_point.z, 'zyx')
-                            quat.slerp(q_cur, q_cur, q_next, t2)
-                            getEuler(current_point, q_cur)
-                            let temp = current_point.x;
-                            current_point.x = 180 - current_point.y;
-                            current_point.y = -temp;
+                            quat.slerp(q_prev, q_prev, q_next, t2)
+                            getEuler(prev_point, q_prev)
+                            const temp = prev_point.x
+                            prev_point.x = 180 - prev_point.y
+                            prev_point.y = -temp
                         } else {
-                            current_point.lerpFrom(current_point, next_point, t2)
+                            prev_point.lerpFrom(prev_point, next_point, t2)
                         }
 
-                        group_animations.set(channel_name, exist_point ? exist_point.copyFrom(current_point) : current_point.clone())
+                        group_animations.set(channel_name, exist_point ? exist_point.copyFrom(prev_point) : prev_point.clone())
                         group.animation_changed = false
                     }
                 }
@@ -394,7 +394,7 @@ export class BBModel_Model {
 
     //
     parse() {
-        const origin = new Vector(0, 0, 0);
+        const origin = new Vector(8, 0, 8);
         const model_json = this.json;
         //
         if(model_json.elements) {
@@ -417,10 +417,17 @@ export class BBModel_Model {
                 }
             }
         } else if(model_json.outliner) {
+            const need_shift = model_json.meta.model_format != 'animated_entity_model' // java_block | animated_entity_model
             for(let group of model_json.outliner) {
                 if(isScalar(group)) {
+                    if(need_shift) {
+                        this.json._properties.shift = new Vector(8, 0, 8).mulScalarSelf(-1)
+                    }
                     this.addElement(origin, this.getElement(group));
                 } else {
+                    if(need_shift) {
+                        this.json._properties.shift = new Vector().set(group.origin[0], 0, group.origin[2]).mulScalarSelf(-1)
+                    }
                     this.addGroup(origin, group);
                 }
             }
@@ -531,9 +538,8 @@ export class BBModel_Model {
 
     /**
      * Add new group into parent group
-     * @param {BBModel_Child} child
      */
-    addChildToCurrentGroup(child) {
+    addChildToCurrentGroup(child : BBModel_Child) {
         if(this._group_stack.length > 0) {
             const parent = this._group_stack[this._group_stack.length - 1];
             parent.addChild(child);
@@ -556,6 +562,8 @@ export class BBModel_Model {
 
         // add new group into parent group
         this.addChildToCurrentGroup(bbGroup);
+
+        this._groups_by_path.set(bbGroup.path, bbGroup)
 
         // add new group to stack
         this._group_stack.push(bbGroup);
@@ -590,19 +598,18 @@ export class BBModel_Model {
 
         const from  = new Vector().copy(el.from)
         const to    = new Vector().copy(el.to)
+        const size = to.subSelf(from)
 
-        //
         const shift = this.json._properties?.shift
         if(shift) {
             from.addSelf(shift)
-            to.addSelf(shift)
         }
 
-        const size = to.subSelf(from);
-        const translate = from.addSelf(FIX_POS).addSelf(size.div(VEC_2))
+        const translate = from.addSelf(size.div(VEC_2))
         translate.z = -translate.z
+        translate.addScalarSelf(-8, -8, -8)
 
-        let child
+        let child : BBModel_Child
 
         switch(el.type) {
             case 'cube': {
@@ -611,7 +618,7 @@ export class BBModel_Model {
             }
             case 'locator': {
                 child = new BBModel_Locator(this, el, size, translate)
-                this.addParticleLocator(child)
+                this.addParticleLocator(child as BBModel_Locator)
                 break
             }
             default: {
@@ -703,18 +710,6 @@ export class BBModel_Model {
 
     }
 
-    hideGroups(names : string[]) {
-        for(let group of this.root.children) {
-            if(group instanceof BBModel_Group) {
-                // if(names.includes(group.name)) {
-                if(names.some(item => item.toLowerCase() ==
-                group.name.toLowerCase())) {
-                    group.visibility = false
-                }
-            }
-        }
-    }
-
     resetBehaviorChanges() {
         // 1. reset state name
         this.state = null
@@ -730,10 +725,52 @@ export class BBModel_Model {
         this.state = name
     }
 
-    hideAllExcept(except_list : string[]) {
+    hideGroups(names : string[]) {
+        let found_count = 0
         for(let group of this.root.children) {
-            // group.visibility = except_list.includes(group.name)
-            group.visibility = except_list.some(item => item.toLowerCase() == group.name.toLowerCase())
+            if(group instanceof BBModel_Group) {
+                // if(names.includes(group.name)) {
+                if(names.some(item => item.toLowerCase() == group.name.toLowerCase())) {
+                    group.visibility = false
+                    found_count++
+                }
+            }
+        }
+        if(found_count < names.length) {
+            for(let path of names) {
+                if(path.includes('/')) {
+                    path = path.toLowerCase()
+                    for(let group of this.groups.values()) {
+                        if(group.path == path) {
+                            group.visibility = false
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    hideAllExcept(except_list : string[]) {
+        let found_count = 0
+        for(let group of this.root.children) {
+            if(group.visibility = except_list.some(item => item.toLowerCase() == group.name.toLowerCase())) {
+                found_count++
+            }
+        }
+        if(found_count < except_list.length) {
+            for(let path of except_list) {
+                if(path.includes('/')) {
+                    path = path.toLowerCase()
+                    for(let group of this.groups.values()) {
+                        if(group.path == path) {
+                            while(group instanceof BBModel_Group) {
+                                group.visibility = true
+                                group = group.parent
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -746,6 +783,10 @@ export class BBModel_Model {
             }
         }
         return resp
+    }
+
+    getGroupByPath(path : string) : BBModel_Group | null {
+        return this._groups_by_path.get(path) ?? null
     }
 
 }

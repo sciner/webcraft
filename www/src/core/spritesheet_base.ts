@@ -92,7 +92,7 @@ export class Spritesheet_Base {
         //
         for(let i = 0; i < this.options.texture_pack_dir.length; i++) {
             const dir = this.options.texture_pack_dir[i];
-            let fn = (value.indexOf('.') == 0 ? '' : dir + '/') + value;
+            let fn = (value.indexOf('.') == 0 ? '../../data/assets/' : dir + '/') + value;
             temp = fn.split(';');
             fn = temp.shift();
             try {

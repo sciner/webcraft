@@ -27,11 +27,11 @@ export class Brain extends FSMBrain {
 
     }
 
-    doStand(delta : float) {
+    doStand(delta : float): boolean {
         const mob = this.mob
         if (this.pc.player_state.isCollidedVertically || this.pc.player_state.isCollidedHorizontally) {
             this.onKill(null, null)
-            return
+            return false
         }
         const rotate = this._rotate.setScalar(Math.sin(mob.rotate.z), 0, Math.cos(mob.rotate.z))
         const rotate2 = this._rotate2.copyFrom(rotate).mulScalarSelf(.4)
@@ -41,18 +41,17 @@ export class Brain extends FSMBrain {
         if (ray?.mob) {
             ray.mob.setDamage(1, EnumDamage.SNOWBALL, mob)
             this.onKill(null, null)
-            return
+            return false
         }
         // если на пути встретился игрок
         if (ray?.player) {
             ray.player.setDamage(1, EnumDamage.SNOWBALL, mob)
             this.onKill(null, null)
-            return
+            return false
         }
         this.velocity.y -= .3 * delta
         this.pc.player_state.vel = new Vector(this.velocity.x, this.velocity.y, this.velocity.z)
-        this.applyControl(delta)
-        this.sendState()
+        return true
     }
    
     // Если убили моба

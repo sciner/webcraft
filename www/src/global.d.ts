@@ -259,6 +259,10 @@ interface IBlockMaterial {
     name: string
     title: string
     style: string
+    /**
+     * Имя стиля, не зависящего от BB модели - для игровой логики и физики. Заполняется автоматически.
+     * Если блок переопределялся несколко раз - то в нем хранится имя последнего стиля без BB модели.
+     */
     style_name: string
     support_style: string
     sham_block_name: string
@@ -270,16 +274,6 @@ interface IBlockMaterial {
     protection: number
     can_auto_drop: boolean
     is_dummy: boolean
-    /**
-     * @deprecated
-     */
-    next_part: {
-        id: int
-        offset_pos: IVector
-    }
-    /**
-     * @deprecated
-     */
     previous_part: {
         id: int
         offset_pos: IVector
@@ -347,19 +341,25 @@ interface IBlockMaterial {
         }
         select_texture?:    any
         set_state?:         any
+        set_animation:      any
         particles?:         any
         rotate?:            any
     }
     flags: int // BLOCK_FLAG enum
     planes: IPlane[]
     tx_cnt: number
-    overlay_textures_weight: number
     material: IBlockMiningMaterial
     material_key: string
+    // Textures
     texture: any
-    texture_overlays: any
+    texture_overlays: any // overlay-текстуры (песок, снег, земля, гравий и т.д., которые "высыпаются" на соседние блоки)
+    overlay_textures_weight: number // Определяет порядок наслоения overlay-текстур друг на друга
     connected_sides: any
+    stage_textures?: string[]
+    texture_variants?: {}[]
+    hanging_textures?: {ripe: string[], noripe: string[]}[]
     texture_animations: any
+    //
     multiply_color: IColor
     mask_color: IColor
     has_head: {pos: IVector}
@@ -403,12 +403,14 @@ interface IBlockMaterial {
     is_cap_block: boolean
     is_leaves: int // LEAVES_TYPE
     is_entity: boolean
+    is_opaque_for_fluid: boolean
     is_portal: boolean
     is_glass: boolean
     is_grass: boolean
     is_flower: boolean
     is_battery: boolean
     is_log: boolean
+    always_waterlogged: boolean
     // boolean values that are automatically calculated by BLOCK, not from JSON
     has_window: boolean
     is_jukebox: boolean
@@ -440,6 +442,8 @@ interface IBlockMaterial {
     sound: string
     inventory_icon_id?: number
     max_in_stack: number
+    is_powered: boolean
+    multiblock?: {x : int, y : int, z : int, w : int, h : int, d : int}
 }
 
 interface INetworkMessage<DataT = any> {
@@ -527,6 +531,12 @@ declare type IUpdateBlock = {
     action_id: int
 }
 
+declare type IChunkCell = {
+    dirt_color: IColor
+    water_color: IColor
+    biome_id: int
+}
+
 declare type IBBModelHideLists = {
     list?: string[],
     except?: string[]
@@ -538,6 +548,6 @@ declare type IAddMeshArgs = {
     hide_groups?:       string[]
     rotate?:            IVector
     animation_name?:    string
-    extra_data?:        any
+    item_block?:        any
     matrix?:            imat4
 }

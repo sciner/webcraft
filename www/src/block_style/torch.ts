@@ -75,10 +75,10 @@ export default class style {
     static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
         const c_up_top          = style.block_manager.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
-        const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
+        const flag              = QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_NORMAL_UP;
         const pos               = new Vector(0, 0, 0);
         const rotate            = block.rotate;
-        const rot               = [0, 0, 0];
+        const rot               = [0, 0, 0] as tupleFloat3
         const torch_pos         = block.posworld.clone();
 
         // Geometries

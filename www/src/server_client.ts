@@ -32,7 +32,7 @@ export class ServerClient {
 	static CMD_ERROR                    = 7; // server -> player (some error)
     static CMD_LOG_CONSOLE              = 118 // s->p. Шлет текст с сервера в консоль браузера
     static CMD_CHANGE_RENDER_DIST       = 10; // player -> server
-    static CMD_CONNECT                  = 34; // player -> server
+    static CMD_CONNECT                  = 34; // player -> server, см. CmdConnectData
     static CMD_CONNECTED                = 62; // server -> player
 
     // Cnunks and blocks

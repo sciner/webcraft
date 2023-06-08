@@ -18,16 +18,16 @@ export enum CAMERA_MODE {
 }
 
 export enum QUAD_FLAGS {
-    NORMAL_UP                   = 1 << 0,
-    MASK_BIOME                  = 1 << 1,
-    NO_AO                       = 1 << 2,
-    NO_FOG                      = 1 << 3,
+    FLAG_NORMAL_UP              = 1 << 0,
+    FLAG_MASK_BIOME             = 1 << 1,
+    FLAG_NO_AO                  = 1 << 2,
+    FLAG_NO_FOG                 = 1 << 3,
     FLAG_ANIMATED               = 1 << 5,
     FLAG_TEXTURE_SCROLL         = 1 << 6,
-    NO_CAN_TAKE_AO              = 1 << 7,
-    QUAD_FLAG_OPACITY           = 1 << 8,
-    QUAD_FLAG_SDF               = 1 << 9,
-    NO_CAN_TAKE_LIGHT           = 1 << 10,
+    FLAG_NO_CAN_TAKE_AO         = 1 << 7,
+    FLAG_QUAD_OPACITY           = 1 << 8,
+    FLAG_QUAD_SDF               = 1 << 9,
+    FLAG_NO_CAN_TAKE_LIGHT      = 1 << 10,
     FLAG_MULTIPLY_COLOR         = 1 << 11,
     FLAG_LEAVES                 = 1 << 12,
     FLAG_ENCHANTED_ANIMATION    = 1 << 13,
@@ -35,15 +35,17 @@ export enum QUAD_FLAGS {
     FLAG_MASK_COLOR_ADD         = 1 << 15,
     FLAG_TORCH_FLAME            = 1 << 16,
     FLAG_FLUID_ERASE            = 1 << 17,
+    FLAG_LIGHT_GRID             = 1 << 18,
+    FLAG_BILLBOARD_DISPLAY      = 1 << 19,
     // all below are vertex-only flags!
-    DELIMITER_VERTEX            = (1 << 18) - 1,
-    FLAG_WAVES_VERTEX           = 1 << 18,
-    LOOK_AT_CAMERA              = 1 << 19,
-    LOOK_AT_CAMERA_HOR          = 1 << 20,
-    FLAG_TRIANGLE               = 1 << 21,
-    FLAG_MIR2_TEX               = 1 << 22,
+    DELIMITER_VERTEX            = (1 << 20) - 1,
+    FLAG_WAVES_VERTEX           = 1 << 20,
+    FLAG_LOOK_AT_CAMERA         = 1 << 21,
+    FLAG_LOOK_AT_CAMERA_HOR     = 1 << 22,
+    FLAG_TRIANGLE               = 1 << 23,
+    FLAG_MIR2_TEX               = 1 << 24,
     // unused
-    NEXT_UNUSED_FLAG            = 1 << 23,
+    NEXT_UNUSED                 = 1 << 25,
 }
 
 // Direction enumeration

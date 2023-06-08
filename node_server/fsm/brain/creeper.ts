@@ -48,18 +48,18 @@ export class Brain extends FSMBrain {
     }
 
     // Chasing a player
-    doCatch(delta : float) {
+    doCatch(delta : float): boolean {
         const mob = this.mob;
         const world = mob.getWorld();
         const difficulty = world.rules.getValue('difficulty');
         if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
             this.lostTarget();
-            return;
+            return false
         }
         const dist = mob.pos.distance(this.target.state.pos);
         if (mob.playerCanBeAtacked(this.target) || dist > this.distance_view) {
             this.lostTarget();
-            return;
+            return false
         }
         if (dist < DISTANCE_DETONATION && !this.is_wall) {
             this.detonationTime = performance.now();
@@ -68,15 +68,14 @@ export class Brain extends FSMBrain {
             actions.addPlaySound({ tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(mob.pos) });
             world.actions_queue.add(null, actions);
             this.stack.replaceState(this.doTimerDetonation);
-            return;
+            return false
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
         this.updateControl({
             forward: !(this.ahead.is_abyss || this.is_well),
             jump: this.in_water
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
     lostTarget() {
@@ -87,19 +86,19 @@ export class Brain extends FSMBrain {
     }
 
     //
-    doTimerDetonation(delta) {
+    doTimerDetonation(delta: float): boolean {
         const mob = this.mob;
         const world = mob.getWorld();
         const difficulty = world.rules.getValue('difficulty');
         if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
             this.lostTarget();
-            return;
+            return false
         }
         const dist = mob.pos.distance(this.target.state.pos);
         // если игрока нет, он умер или сменил игровой режим на безопасный, то теряем к нему интерес
         if (mob.playerCanBeAtacked(this.target) || dist > this.distance_view) {
             this.lostTarget();
-            return;
+            return false
         }
         if (dist < DISTANCE_DETONATION) {
             const time = performance.now() - this.detonationTime;
@@ -109,15 +108,14 @@ export class Brain extends FSMBrain {
         } else {
             mob.extra_data.detonation_started = false;
             this.stack.replaceState(this.doCatch);
-            return;
+            return false
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
         this.updateControl({
             forward: false,
             jump: false
         });
-        this.applyControl(delta);
-        this.sendState();
+        return true
     }
 
     //

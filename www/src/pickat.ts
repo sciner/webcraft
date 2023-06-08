@@ -322,13 +322,14 @@ export class PickAt {
         const lineWidth = 100 / Qubatch.render.HUD.height * 1.5 // .25
 
         const aabbConfig = {isLocal: true, lineWidth, colorABGR: 0xFF000000};
+        // const aabbConfig = {isLocal: true, lineWidth: lineWidth * 10, colorABGR: 0xFFFF00FF};
         let vertices    = [];
         geom.clear();
         geom.pos.copyFrom(pos);
         // let pp = 0;
         // let flags       = 0, sideFlags = 0, upFlags = 0;
         let block       = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-        let shapes      = BLOCK.getShapes(pos, block, this.world, false, false);
+        let shapes      = BLOCK.getShapes(block, this.world, false, false);
         let aabb = new AABB();
         for (let i = 0; i < shapes.length; i++) {
             aabb.set(...shapes[i]);
@@ -343,7 +344,7 @@ export class PickAt {
         let pp = 0;
         let flags       = 0, sideFlags = 0, upFlags = 0;
         let block       = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-        let shapes      = BLOCK.getShapes(pos, block, this.world, false, false);
+        let shapes      = BLOCK.getShapes(block, this.world, false, false);
         for (let i = 0; i < shapes.length; i++) {
             const shape = shapes[i];
             let x1 = shape[0];

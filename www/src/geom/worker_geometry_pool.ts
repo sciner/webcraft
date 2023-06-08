@@ -76,8 +76,17 @@ export class WorkerSubGeometry {
         this.touch = 0;
     }
 
+    pushMany(arr) {
+        for (let i = 0; i < arr.length; i += 15) {
+            this.push(arr[i], arr[i + 1], arr[i + 2], arr[i + 3], arr[i + 4],
+                arr[i + 5], arr[i + 6], arr[i + 7], arr[i + 8], arr[i + 9],
+                arr[i + 10], arr[i + 11], arr[i + 12], arr[i + 13], arr[i + 14],
+            )
+        }
+    }
+
     push(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9,
-         arg10, arg11, arg12, arg13, arg14/*, arg15*/) {
+         arg10, arg11, arg12, arg13, arg14) {
         if (!this.lastPage || this.lastPage.filled === this.lastPage.sizeQuads) {
             this.pages.push(this.lastPage = this.pool.allocPage());
         }

@@ -4,7 +4,6 @@ import {BulkSelectQuery, runBulkQuery} from "../db_helpers.js";
 import { FluidWorld } from "@client/fluid/FluidWorld.js";
 import type { ServerWorld } from "../../server_world.js";
 import { WorldTickStat } from "../../world/tick_stat.js";
-import { ChunkGrid } from "@client/core/ChunkGrid.js";
 
 export class DBWorldFluid {
     conn: DBConnection;
@@ -152,7 +151,7 @@ export class DBWorldFluid {
     async flushWorldFluidsList(fluids, world : ServerWorld) {
         const chunkManager = this.world.chunks;
         const fluidWorld = chunkManager?.fluidWorld;
-        const grid = chunkManager?.dataWorld?.grid ?? new ChunkGrid({chunkSize: new Vector(world.info.tech_info.chunk_size)})
+        const grid = this.world.grid;
         const fluidByChunk = FluidWorld.separateWorldFluidByChunks(fluids, grid);
         const saveRows = [];
         for (let [chunk_addr, fluids] of fluidByChunk) {

@@ -1,5 +1,5 @@
-import { BLOCK, POWER_NO, DropItemVertices, FakeVertices } from "../blocks.js";
-import { PerformanceTimer, Vector } from "../helpers.js";
+import { BLOCK, DBItemBlock, DropItemVertices, FakeVertices } from "../blocks.js";
+import { ObjectHelpers, PerformanceTimer, Vector } from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK, TypedBlocks3 } from "../typed_blocks3.js";
 import { AABB } from '../core/AABB.js';
 import { WorkerGeometryPool } from "../geom/worker_geometry_pool.js";
@@ -20,6 +20,23 @@ import type { Biome3LayerBase } from "../terrain_generator/biome3/layers/base.js
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
 
+export declare type IParsedChunkModifyList = {
+    [key: int]: DBItemBlock
+}
+
+export declare type IChunkModifyList = {
+    compressed: string
+    obj: any
+}
+
+export declare type IWorkerChunkCreateArgs = {
+    addr:           Vector
+    seed:           string
+    dataId:         int
+    uniqId:         int | null
+    modify_list:    IChunkModifyList | null
+}
+
 class MaterialBuf {
     [key: string]: any;
 
@@ -33,7 +50,7 @@ class MaterialBuf {
 // ChunkManager
 export class ChunkWorkerChunkManager {
 
-    DUMMY:          { id: any; shapes: any[]; properties: any; material: any; getProperties: () => any; canReplace: () => boolean; }
+    DUMMY:          { id: any; properties: any; material: any; getProperties: () => any; canReplace: () => boolean; }
     block_manager:  BLOCK
     world:          WorkerWorld
     destroyed:      boolean
@@ -51,7 +68,6 @@ export class ChunkWorkerChunkManager {
         this.tech_info = world.tech_info
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
-            shapes: [],
             properties: BLOCK.DUMMY,
             material: BLOCK.DUMMY,
             getProperties: function() {
@@ -61,8 +77,8 @@ export class ChunkWorkerChunkManager {
                 return false;
             }
         };
+        this.grid = world.grid
         this.dataWorld = new DataWorld(this);
-        this.grid = this.dataWorld.grid
         this.fluidWorld = new FluidWorld(this);
         this.verticesPool = new WorkerGeometryPool(null, {});
     }
@@ -129,14 +145,14 @@ export class ChunkWorkerChunk implements IChunk {
     gravity_blocks:             any[]
     map:                        any
     key:                        any
-    modify_list:                any
+    modify_list:                IChunkModifyList | null | IParsedChunkModifyList
     tm:                         number
     destroyed:                  boolean
 
     static neibMat = [null, null, null, null, null, null];
     static removedEntries = [];
 
-    constructor(chunkManager : ChunkWorkerChunkManager, args) {
+    constructor(chunkManager : ChunkWorkerChunkManager, args : IWorkerChunkCreateArgs) {
         this.chunkManager   = chunkManager;
         Object.assign(this, args);
         this.addr           = new Vector(this.addr.x, this.addr.y, this.addr.z);
@@ -239,42 +255,49 @@ export class ChunkWorkerChunk implements IChunk {
 
     //
     applyModifyList() {
-        let ml = this.modify_list;
-        if(!ml) {
-            return;
+        if(!this.modify_list) {
+            return
         }
-        const {fromFlatChunkIndex, relativePosToChunkIndex} = this.chunkManager.grid.math;
+        const bm = this.chunkManager.block_manager
+        const ml = this.modify_list as IChunkModifyList
+        const {fromFlatChunkIndex, relativePosToChunkIndex} = this.chunkManager.grid.math
+        let parsed_modify_list = null
         // uncompress
         if(ml.obj) {
-            ml = ml.obj;
+            parsed_modify_list = ml.obj
         } else if(ml.compressed) {
             // It's ok to not use ml.private_compressed here, because on the server
             // there is always ml.obj, and on the client there is no ml.private_compressed.
-            ml = decompressWorldModifyChunk(Uint8Array.from(atob(ml.compressed), c => c.charCodeAt(0)));
+            parsed_modify_list = decompressWorldModifyChunk(Uint8Array.from(atob(ml.compressed), c => c.charCodeAt(0)))
         } else {
-            ml = {};
+            parsed_modify_list = {}
         }
-        this.modify_list = ml;
+        this.modify_list = parsed_modify_list
         //
         const pos = new Vector(0, 0, 0);
         const ids = this.tblocks.id
-        for(let k in ml) {
+        for(let k in parsed_modify_list) {
             const flatIndex = parseInt(k)
-            const m = ml[flatIndex];
-            if(!m) continue;
+            const m = parsed_modify_list[flatIndex]
+            if(!m) continue
+            const block = bm.BLOCK_BY_ID[m.id]
+            if(!block) {
+                m.extra_data = ObjectHelpers.deepCloneObject(m)
+                m.id = 199
+            }
             fromFlatChunkIndex(pos, flatIndex);
             if(m.id < 1) {
                 const index = relativePosToChunkIndex(pos)
                 ids[index] = 0
                 this.tblocks.deleteExtraInGenerator(index)
-                continue;
+                continue
             }
             // setBlock
-            this.setBlockIndirect(pos.x, pos.y, pos.z, m.id, m.rotate, m.extra_data);
-            this.emitted_blocks.delete(flatIndex);
+            this.setBlockIndirect(pos.x, pos.y, pos.z, m.id, m.rotate, m.extra_data)
+            this.emitted_blocks.delete(flatIndex)
 
         }
-        this.modify_list = null;
+        this.modify_list = null
     }
 
     scanTickingBlocks(): TScannedTickers | null {
@@ -362,7 +385,8 @@ export class ChunkWorkerChunk implements IChunk {
     }
 
     // setBlock
-    setBlock(x, y, z, orig_type, is_modify, power, rotate, entity_id, extra_data) {
+    setBlock(x: int, y: int, z: int, orig_type: IBlockItem,
+             is_modify: boolean, rotate: IVector | null, entity_id: string | null, extra_data: Dict | null) {
         const {getFlatIndexInChunk, getBlockIndex} = this.chunkManager.grid.math;
         //TODO: take liquid into account
         // fix rotate
@@ -371,19 +395,11 @@ export class ChunkWorkerChunk implements IChunk {
         } else {
             rotate = null;
         }
-        // fix power
-        if(typeof power === 'undefined' || power === null) {
-            power = POWER_NO;
-        }
-        if(power === 0) {
-            power = null;
-        }
         this.temp_vec.set(x, y, z);
         //
         if(is_modify) {
             const modify_item = {
                 id:     orig_type.id,
-                power:  power,
                 rotate: rotate
             };
             this.modify_list[getFlatIndexInChunk(this.temp_vec)] = modify_item;
@@ -411,7 +427,6 @@ export class ChunkWorkerChunk implements IChunk {
             }
         }
         tblock.id         = orig_type.id;
-        tblock.power      = power;
         tblock.rotate     = rotate;
         tblock.entity_id  = entity_id;
         tblock.texture    = null;
@@ -613,7 +628,7 @@ export class ChunkWorkerChunk implements IChunk {
 
         const block = this.tblocks.get(new Vector(0, 0, 0), null);
 
-        const matBuf = new MaterialBuf()
+        const tempMatBuf = new MaterialBuf()
         const neibIDs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         // Process drop item
@@ -675,17 +690,19 @@ export class ChunkWorkerChunk implements IChunk {
             buf.touch()
             buf.skipCache(0)
 
-            matBuf.buf = buf
-            matBuf.matId = matId
+            tempMatBuf.buf = buf
+            tempMatBuf.matId = matId
 
-            return matBuf
+            return tempMatBuf
 
         }
 
         const processFakeVertices = (fv : FakeVertices) => {
             const matBuf = getMaterialBuf(fv.material_key)
-            matBuf.buf.vertices.push(...fv.vertices)
+            matBuf.buf.vertices.pushMany(fv.vertices)
         }
+
+        let matBuf = null
 
         // Process block
         const processBlock = (block, neighbours, biome, dirt_color, matrix, pivot, useCache) => {
@@ -696,7 +713,9 @@ export class ChunkWorkerChunk implements IChunk {
                 return
             }
 
-            const matBuf = getMaterialBuf(material.material_key)
+            if(!matBuf || matBuf.buf.material_key != material.material_key) {
+                matBuf = getMaterialBuf(material.material_key)
+            }
 
             const {buf, matId} = matBuf
             const last = buf.vertices.filled
@@ -777,6 +796,7 @@ export class ChunkWorkerChunk implements IChunk {
                                 const properties = neibMat[i];
                                 if (!properties || properties.transparent) {
                                     pcnt--;
+                                    break
                                 }
                             }
                             empty = pcnt === 6;

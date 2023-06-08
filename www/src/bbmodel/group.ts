@@ -5,8 +5,10 @@ import GeometryTerrain from '../geometry_terrain.js';
 import { BBModel_Cube } from './cube.js';
 import type { Renderer } from '../render.js';
 import type { BBModel_Model } from './model.js';
-import { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
+import { MeshObjectCustomReplace, Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 import { Mesh_Object_Base } from '../mesh/object/base.js';
+import Mesh_Object_Block_Drop from '../mesh/object/block_drop.js';
+import type { WebGLMaterial } from '../renders/webgl/WebGLMaterial.js';
 
 const {mat4, vec3} = glMatrix;
 
@@ -18,7 +20,6 @@ export class BBModel_Group extends BBModel_Child {
     _mx:                imat4 = mat4.create()
     update:             boolean = true
     children:           any[] = []
-    name:               string
     rot_orig:           Vector
     axe:                Mesh_Object_BBModel
     animation_changed: boolean;
@@ -38,20 +39,20 @@ export class BBModel_Group extends BBModel_Child {
         this.children.push(child)
     }
 
-    pushVertices(vertices : float[], pos : Vector, lm : IndexedColor, parent_matrix, emmit_particles_func? : Function) {
+    pushVertices(vertices : float[], pos : Vector, lm : IndexedColor, parent_matrix : imat4, emmit_particles_func? : Function, mesh?: Mesh_Object_BBModel) {
 
         const mx = this._mx
         mat4.identity(mx)
 
         mat4.copy(mx, parent_matrix)
-        this.playAnimations(mx)
+        this.playAnimations(mx, mesh)
         mat4.multiply(mx, mx, this.matrix)
 
         for(let part of this.children) {
             if(!part.visibility) {
                 continue
             }
-            part.pushVertices(vertices, pos, lm, mx, emmit_particles_func)
+            part.pushVertices(vertices, pos, lm, mx, emmit_particles_func, mesh)
         }
     }
 
@@ -121,9 +122,13 @@ export class BBModel_Group extends BBModel_Child {
         // Replace with mesh
         if(group_modifiers.replace_with_mesh) {
             const {mesh, matrix} = group_modifiers.replace_with_mesh
-            mat4.translate(mx, mx, vec3.set(tempVec3, this.pivot.x/16, this.pivot.y/16 + .5, this.pivot.z/16))
-            mat4.multiply(mx, mx, matrix);
-            mesh.drawBuffer(render, pos, mx)
+            if(mesh instanceof Mesh_Object_Block_Drop) {
+                mat4.translate(mx, mx, vec3.set(tempVec3, this.pivot.x/16, this.pivot.y/16 + .5, this.pivot.z/16))
+                mat4.multiply(mx, mx, matrix)
+                mesh.drawBuffer(render, pos, mx)
+            } else if(mesh instanceof MeshObjectCustomReplace) {
+                render.renderBackend.drawMesh(mesh.buffer as GeometryTerrain, mesh.gl_material as WebGLMaterial, pos, mx)
+            }
             return
         }
 

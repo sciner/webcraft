@@ -149,7 +149,7 @@ export class ServerWorld implements IWorld {
         this.db.removeDeadDrops();
         await newTitlePromise;
         this.info           = await this.db.getWorld(world_guid);
-
+        this.grid           = new ChunkGrid({chunkSize: new Vector().copyFrom(this.info.tech_info.chunk_size)})
         this.worldChunkFlags = new WorldChunkFlags(this);
         this.dbActor        = new WorldDBActor(this);
 
@@ -242,7 +242,7 @@ export class ServerWorld implements IWorld {
         // flush database
         await this.db.flushWorld()
 
-        const grid = new ChunkGrid({chunkSize: new Vector(info.tech_info.chunk_size)})
+        const grid = this.grid
         const blocks = [];
         const chunks_addr = new VectorCollector()
         const block_air = {id: 0}
@@ -308,7 +308,7 @@ export class ServerWorld implements IWorld {
 
         // store modifiers in db
         let t = performance.now()
-        await this.db.chunks.bulkInsertWorldModify(blocks, undefined, null, grid)
+        await this.db.chunks.bulkInsertWorldModify(blocks, undefined, null)
         console.log('Building: store modifiers in db ...', performance.now() - t)
 
         // compress chunks in db
@@ -855,8 +855,9 @@ export class ServerWorld implements IWorld {
                 let postponedActions = null; // WorldAction containing a subset of actions.blocks, postponed until the current chunk loads
                 const previous_item = {id: 0}
                 let cps = null;
+                let destroy_particles_count = 0
                 for (let params of actions.blocks.list) {
-                    const block_pos = new Vector(params.pos).flooredSelf();
+                    const block_pos = new Vector(params.pos).flooredSelf()
                     params.pos = block_pos;
                     //
                     if(!(params.item instanceof DBItemBlock)) {
@@ -894,18 +895,21 @@ export class ServerWorld implements IWorld {
                         if (!ignore_check_air) {
                             if (params.action_id == BLOCK_ACTION.DESTROY) {
                                 if (params.destroy_block.id > 0) {
-                                    const except_players = [];
-                                    if(server_player) except_players.push(server_player)
-                                    cps.custom_packets.push({
-                                        except_players,
-                                        packets: [{
-                                            name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
-                                            data: {
-                                                pos: params.pos.clone().addScalarSelf(.5, .5, .5),
-                                                item: params.destroy_block
-                                            }
-                                        }]
-                                    });
+                                    if(destroy_particles_count < 3 || destroy_particles_count % 3 == 0) {
+                                        const except_players = [];
+                                        if(server_player) except_players.push(server_player)
+                                        cps.custom_packets.push({
+                                            except_players,
+                                            packets: [{
+                                                name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
+                                                data: {
+                                                    pos: params.pos.clone().addScalarSelf(.5, .5, .5),
+                                                    item: params.destroy_block
+                                                }
+                                            }]
+                                        })
+                                    }
+                                    destroy_particles_count++
                                 }
                             }
                         }

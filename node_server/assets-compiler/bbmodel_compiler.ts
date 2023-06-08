@@ -25,6 +25,27 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
             assert: { type: 'json' }
         })).default;
         //
+
+        // auto init model list
+        if(this.conf.blocks) {
+            const models = []
+            for(let model of this.conf.bbmodels) {
+                models.push(model.name)
+            }
+            for(let block of this.conf.blocks) {
+                const bb = block.bb
+                if(block.id && bb) {
+                    if(!bb.model && !bb.extends) {
+                        bb.model = block.name.toLowerCase()
+                    }
+                    const name = bb.model
+                    if(name && !models.includes(name)) {
+                        this.conf.bbmodels.push({name})
+                    }
+                }
+            }
+        }
+
         // const list = [];
         for(let bb of this.conf.bbmodels) {
             const path = `${this.options.model_dir}/${bb.name}.bbmodel`;
@@ -57,6 +78,10 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
         for(let bbmodel of this.conf.bbmodels) {
             const model_json = bbmodel.json
             const id = bbmodel.name
+            if(!model_json) {
+                console.error(id, model_json)
+                throw '^^^'
+            }
             if('textures' in model_json) {
                 const {spritesheet, places} = await this.prepareModel(model_json, id, this.options)
                 model_json._properties.texture_id = spritesheet.id
@@ -131,7 +156,7 @@ export class BBModel_Compiler extends BBModel_Compiler_Base {
         }
 
         // Compile blocks
-        fs.writeFileSync(`${this.options.output_dir}/blocks.json`, JSON.stringify(await compiler.compileBlocks(blocks, this), null, 4))
+        fs.writeFileSync(`${this.options.output_dir}/blocks.json`, JSON.stringify(await compiler.compileBlocks(blocks, null, this), null, 4))
         delete(this.conf.blocks)
 
         // Export spritesheets

@@ -84,7 +84,7 @@ const DEFAULT_OPTIONS = {
         "title": "Chunk size",
         "type": "select",
         "strict_type": "int",
-        "default_value": "16",
+        "default_value": "24",
         "options": [
             {"value": "16", "title": "16×16"},
             {"value": "24", "title": "24×24"},
@@ -203,24 +203,6 @@ export class WorldGenerators {
     //
     static list = [
         {
-            "id": "biome2",
-            "title": "Standard",
-            "pos_spawn": {"x": 0, "y": 120, "z": 0},
-            "rules": {
-                "portals": true
-            },
-            "cluster_size": {"x": 128, "y": 256, "z": 128},
-            "options": {
-                "generate_bottom_caves_lava": {
-                    "title": "Generate lava in bottom caves",
-                    "default_value": false,
-                    "type": "checkbox",
-                    "strict_type": "boolean"
-                },
-                ...DEFAULT_OPTIONS
-            }
-        },
-        {
             "id": "biome3",
             "title": "Improved 3d-noise",
             "pos_spawn": {"x": 0, "y": 120, "z": 0},
@@ -246,6 +228,24 @@ export class WorldGenerators {
                 "generate_natural_slabs": {
                     "title": "Generate natural slabs",
                     "default_value": true,
+                    "type": "checkbox",
+                    "strict_type": "boolean"
+                },
+                ...DEFAULT_OPTIONS
+            }
+        },
+        {
+            "id": "biome2",
+            "title": "Standard",
+            "pos_spawn": {"x": 0, "y": 120, "z": 0},
+            "rules": {
+                "portals": true
+            },
+            "cluster_size": {"x": 128, "y": 256, "z": 128},
+            "options": {
+                "generate_bottom_caves_lava": {
+                    "title": "Generate lava in bottom caves",
+                    "default_value": false,
                     "type": "checkbox",
                     "strict_type": "boolean"
                 },

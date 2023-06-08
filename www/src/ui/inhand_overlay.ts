@@ -396,7 +396,7 @@ export class InHandOverlay {
                 // 2. pivot
                 // 3. rotation (в градусах -180...180)
                 if(bbmodel_hand.rotation) {
-                    base.rotation[0] -= bbmodel_hand.rotation[0]
+                    base.rotation[0] += bbmodel_hand.rotation[0]
                     base.rotation[1] += bbmodel_hand.rotation[1]
                     base.rotation[2] += bbmodel_hand.rotation[2]
                 }

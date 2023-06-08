@@ -102,7 +102,7 @@ export default class style {
             }
         }
 
-        const flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.FLAG_ANIMATED
+        const flag = QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_ANIMATED
         const pos = new Vector(x, y, z)
         const lm = IndexedColor.WHITE.clone()
         lm.b = bm.getAnimations(material, 'west')
