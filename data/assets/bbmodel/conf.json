@@ -2217,6 +2217,44 @@
             "bb": {
                 "extends": "BLUE_CLAY_SHINGLES"
             }
+        },
+        {
+            "id": 313,
+            "name": "THATCH_ROOFING",
+            "can_rotate": true,
+            "material": {
+                "id": "leaves"
+            },
+            "tags": [
+                "clay_shingles"
+            ],
+            "bb": {
+                "model": "thatch_roofing",
+                "import_anyway": true,
+                "rotate": {"type": "cardinal_direction"},
+                "set_state": [
+                    {"name": "outer", "when": {"extra_data.outer": true}},
+                    {"name": "inner", "when": {"extra_data.inner": true}},
+                    {"name": "normal"}
+                ],
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 314,
+            "name": "OLD_THATCH_ROOFING",
+            "can_rotate": true,
+            "material": {
+                "id": "leaves"
+            },
+            "tags": [
+                "clay_shingles"
+            ],
+            "bb": {
+                "extends": "THATCH_ROOFING"
+            }
         }
     ]
 }
