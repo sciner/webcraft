@@ -1,3 +1,5 @@
+// ///<reference types='vauxcel'/>
+
 import {IvanArray, Mth, Vector} from '../helpers.js';
 import {BatchSystem} from "./batch/BatchSystem.js";
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
@@ -5,7 +7,7 @@ import type GeometryTerrain from '../geometry_terrain.js';
 import type {WebGLMaterial} from './webgl/WebGLMaterial.js';
 import type {GeomCopyOperation} from "../geom/big_geom_batch_update.js";
 import * as VAUX from 'vauxcel';
-import {BLEND_MODES} from 'vauxcel';
+import {BLEND_MODES, Geometry} from 'vauxcel';
 import {GlobalUniformGroup, LightUniformGroup} from "./uniform_groups.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 
@@ -323,40 +325,41 @@ export class CubeMesh {
     }
 }
 
-export class BaseCubeGeometry {
+export class BaseCubeGeometry extends Geometry {
     [key: string]: any;
 
+    context: BaseRenderer;
+    options: any;
+    vertex: VAUX.Buffer;
     constructor(context, options) {
+        super();
         this.context = context;
         this.options = options;
 
-        this.index = context.createBuffer({
-            data: new Uint16Array([
-                0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4,
-                1, 5, 6, 6, 2, 1, 0, 4, 7, 7, 3, 0,
-                3, 2, 6, 6, 7, 3, 0, 1, 5, 5, 4, 0
-            ]),
-            index: true
-        });
-
-        this.vertex = context.createBuffer({
-            data: new Float32Array([
-                -1, -1, 1,
-                1, -1, 1,
-                1, 1, 1,
-                -1, 1, 1,
-                -1, -1, -1,
-                1, -1, -1,
-                1, 1, -1,
-                -1, 1, -1
-            ])
-        });
-
-        this.buffers = [
-            this.vertex, this.index
-        ];
+        this.initBuffers();
     }
 
+    initBuffers()
+    {
+        this.vertex = new VAUX.Buffer(new Float32Array([
+            -1, -1, 1,
+            1, -1, 1,
+            1, 1, 1,
+            -1, 1, 1,
+            -1, -1, -1,
+            1, -1, -1,
+            1, 1, -1,
+            -1, 1, -1
+        ]), true);
+
+        this.addAttribute('a_vertex', this.vertex, 3);
+
+        this.addIndex(new VAUX.Buffer(new Uint16Array([
+            0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4,
+            1, 5, 6, 6, 2, 1, 0, 4, 7, 7, 3, 0,
+            3, 2, 6, 6, 7, 3, 0, 1, 5, 5, 4, 0
+        ]), true, true));
+    }
 }
 
 export class BaseRenderer {

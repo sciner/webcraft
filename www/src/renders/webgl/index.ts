@@ -79,35 +79,6 @@ export class WebGLCubeShader extends WebGLUniversalShader {
 }
 
 export class WebGLCubeGeometry extends BaseCubeGeometry {
-    [key: string]: any;
-    constructor(context, options) {
-        super(context, options);
-
-        this.vao = null;
-    }
-
-    bind(shader) {
-        const { gl } = this.context;
-
-        if (this.vao) {
-            this.context.gl.bindVertexArray(this.vao);
-            return;
-        }
-
-        this.vao = gl.createVertexArray();
-        gl.bindVertexArray(this.vao);
-
-        this.vertex.bind();
-        this.index.bind();
-
-        gl.vertexAttribPointer(shader.getAttribLocation('a_vertex'), 3, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shader.getAttribLocation('a_vertex'));
-    }
-
-    unbind() {
-        this.context.gl.bindVertexArray(null);
-    }
-
 }
 
 export class WebGLTexture extends BaseTexture {
