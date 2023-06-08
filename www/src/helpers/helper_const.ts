@@ -4,10 +4,10 @@ import {CubeSym} from "../core/CubeSym.js";
 export const TX_CNT = DEFAULT_TX_CNT;
 
 export enum ROTATE {
-    S = CubeSym.ROT_Y2, // front, z decreases
-    W = CubeSym.ROT_Y,  // left, x decreases
-    N = CubeSym.ID,     // back, z increases
-    E = CubeSym.ROT_Y3, // right, x increases
+    S = CubeSym.ROT_Y2, // 2, front, z decreases
+    W = CubeSym.ROT_Y,  // 1, left, x decreases
+    N = CubeSym.ID,     // 0, back, z increases
+    E = CubeSym.ROT_Y3, // 3, right, x increases
 }
 
 export enum CAMERA_MODE {

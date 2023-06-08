@@ -619,6 +619,13 @@ export class DBWorld {
         });
     }
 
+    async setWorldGenerator(world_guid: string, generator: TGeneratorInfo) {
+        return this.conn.run('UPDATE world SET generator = :generator WHERE guid = :guid', {
+            ':guid':        world_guid,
+            ':generator':   JSON.stringify(generator)
+        })
+    }
+
     //
     async setWorldSpawn(world_guid : string, pos_spawn : Vector) {
         await this.conn.run('UPDATE world SET pos_spawn = :pos_spawn WHERE guid = :world_guid', {

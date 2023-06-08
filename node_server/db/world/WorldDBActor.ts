@@ -101,6 +101,8 @@ export class WorldDBActor {
     cleanupWorldModifyPerTransaction: int;
     asyncStats: WorldTickStat;
     _worldSavingResolve: Function;
+    // флаги - что надо сохранить в мире
+    worldGeneratorDirty = false
 
     constructor(world : ServerWorld) {
         this.world = world;
@@ -321,6 +323,11 @@ export class WorldDBActor {
                 db.driving.bulkUpdate(uc.updateDriving),
                 db.driving.bulkDelete(uc.deleteDriving)
             )
+
+            if (this.worldGeneratorDirty) {
+                this.worldGeneratorDirty = false
+                uc.pushPromises(world.db.setWorldGenerator(world.info.guid, world.info.generator))
+            }
 
             this.writeRecoveryBlob(uc);
         } catch(e) {

@@ -296,6 +296,22 @@
     ],
     "treasure_chests": [
         {
+            "name": "initial_bonus",
+            "exact": true,
+            "items": [
+                { "name": "COPPER_PICKAXE", "count": [1] },
+                { "name": "COPPER_SWORD",   "count": [1] },
+                { "name": "WHEAT_SEEDS",    "count": [8] },
+                { "name": "BREAD",          "count": [5] },
+                { "name": "CRAFTING_TABLE", "count": [1] },
+                { "name": "FURNACE",        "count": [1] },
+                { "name": "COAL",           "count": [5] },
+                { "name": "FLINT_AND_STEEL","count": [1] },
+                { "name": "TORCH",          "count": [3] },
+                { "name": "BUCKET",         "count": [1] }
+            ]
+        },
+        {
             "name": "default",
             "items": [
                 {

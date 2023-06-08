@@ -62,7 +62,10 @@ interface TSideSet {}
 type TGeneratorInfo = {
     id:             string
     cluster_size?:  IVector
-    options:        any
+    options: {
+        [key: string]:  any
+        bonus_chest?:   boolean
+    }
     pos_spawn:      any
     rules:          any
 }
