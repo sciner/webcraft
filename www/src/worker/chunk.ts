@@ -674,6 +674,12 @@ export class ChunkWorkerChunk implements IChunk {
 
         const getMaterialBuf = (material_key : string) => {
 
+            if(tempMatBuf.buf && tempMatBuf.buf.material_key === material_key) {
+                tempMatBuf.buf.touch()
+                tempMatBuf.buf.skipCache(0)
+                return tempMatBuf
+            }
+
             // material.group, material.material_key
             if (!materialToId.has(material_key)) {
                 materialToId.set(material_key, materialToId.size);
@@ -702,8 +708,6 @@ export class ChunkWorkerChunk implements IChunk {
             matBuf.buf.vertices.pushMany(fv.vertices)
         }
 
-        let matBuf = null
-
         // Process block
         const processBlock = (block, neighbours, biome, dirt_color, matrix, pivot, useCache) => {
 
@@ -713,9 +717,7 @@ export class ChunkWorkerChunk implements IChunk {
                 return
             }
 
-            if(!matBuf || matBuf.buf.material_key != material.material_key) {
-                matBuf = getMaterialBuf(material.material_key)
-            }
+            const matBuf = getMaterialBuf(material.material_key)
 
             const {buf, matId} = matBuf
             const last = buf.vertices.filled
