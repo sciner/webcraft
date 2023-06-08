@@ -389,6 +389,7 @@ interface IBlockMaterial {
     random_rotate_up: boolean // Need to random rotate top texture
     can_rotate: boolean
     has_oxygen: boolean
+    has_powerbar: boolean
     draw_only_down: boolean
     is_fluid: boolean
     is_button: boolean
