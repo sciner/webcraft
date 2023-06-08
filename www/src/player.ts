@@ -486,6 +486,11 @@ export class Player implements IPlayer {
                     setTimeout(() => {
                         this.state.attack = false
                     }, ATTACK_COOLDOWN / speed)
+                    // анимация удара
+                    if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
+                        this.inAttackProcess = ATTACK_PROCESS_ONGOING
+                        this.inhand_animation_duration = Math.min(RENDER_DEFAULT_ARM_HIT_PERIOD, ATTACK_COOLDOWN) / speed
+                    }
                 }
             } else {
                 const instrument = this.getCurrentInstrument()
