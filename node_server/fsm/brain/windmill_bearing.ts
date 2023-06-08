@@ -1,6 +1,7 @@
 import { FSMBrain } from "../brain.js"
 import { Vector } from "@client/helpers.js"
 import type { Mob } from "mob.js"
+import {MOB_CONTROL, MobControlParams} from "@client/control/player_control.js";
 
 export class Brain extends FSMBrain {
 
@@ -34,21 +35,16 @@ export class Brain extends FSMBrain {
 
     onLive() {}
 
-    doStand(delta : float): boolean {
+    doStand(delta : float): MobControlParams | null {
         const mob = this.mob
         if(mob.rotate.z != 0) {
             mob.rotate.z = 0
-            this.updateControl({
-                forward: false,
-                jump: false,
-                sneak: false
-            })
-            return true
+            return MOB_CONTROL.STAND
         }
-        return false
+        return null
     }
 
-    doRotate(delta : float): boolean {
+    doRotate(delta : float): MobControlParams | null {
         const mob = this.mob
         const tblock = this.world.getBlock(this._bpos, this._tblock)
         if(tblock) {
@@ -58,14 +54,9 @@ export class Brain extends FSMBrain {
                 const elapsed_from_rotate_start = performance.now() - this.rotate_time_start
                 const angle = (((elapsed_from_rotate_start / period) * 360) % 360) / 360 * (Math.PI * 2)
                 mob.rotate.z = angle
-                this.updateControl({
-                    forward: false,
-                    jump: false,
-                    sneak: false
-                })
             }
         }
-        return true
+        return MOB_CONTROL.STAND
     }
    
     // Если убили моба

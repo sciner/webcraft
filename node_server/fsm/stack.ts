@@ -1,8 +1,10 @@
+import type {MobControlParams} from "@client/control/player_control.js";
 
 /**
- * @returns true если посл евызова нужно промоделировать физику и выслать состояние
+ * @returns не null если посл евызова нужно установить параметры управления, промоделировать физику
+ *   и выслать состояние. null - если не нужно.
  */
-type FSMFunction = (context: any, delta: float, args: any) => boolean
+type FSMFunction = (context: any, delta: float, args: any) => MobControlParams | null
 
 declare type FSMState = {
     func : FSMFunction
@@ -12,14 +14,10 @@ declare type FSMState = {
 export class FSMStack {
     list: FSMState[] = []
 
-    /** @returns true, если нужно моделировать физику */
-    tick(delta : float, context : any) : boolean {
+    /** @returns не null, если нужно изменить параметры управления, моделировать физику и выслать состояние */
+    tick(delta : float, context : any) : MobControlParams | null {
         const current = this.getCurrentState()
-        if(current) {
-            const func = current.func
-            return func.call(context, delta, current.args) ?? false
-        }
-        return false
+        return current?.func.call(context, delta, current.args)
     }
     
     pushState(func : FSMFunction, args? : any) {
