@@ -401,7 +401,7 @@ export class FSMBrain {
             // сперва нужно к нему повернуться
             this.mob.rotate.z = angle_to_player;
         } else if (++this.timer_attack > attack.interval) {
-            mob.extra_data.attack = true
+            mob.extra_data.attack = {title: 'attack', speed: 1}
             this.attack(difficulty)
         }
         return MOB_CONTROL.STAND
