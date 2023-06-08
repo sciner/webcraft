@@ -251,45 +251,6 @@
         "grass_block",
         "algae"
     ],
-    "before_block_change_listeners": [
-        [
-            [
-                "soul_sand",
-                "bubble_column"
-            ],
-            "bubbles:ManageBubblesAbove"
-        ],
-        [
-            "bubble_column",
-            "bubbles:ManageBubbles"
-        ]
-    ],
-    "after_block_change_listeners": [
-        [
-            [
-                "soul_sand",
-                "bubble_column"
-            ],
-            "bubbles:ManageBubblesAbove"
-        ]
-    ],
-    "fluid_change_listeners": [],
-    "fluid_remove_listeners": [
-        [
-            "bubble_column",
-            "bubbles:ManageBubbles"
-        ]
-    ],
-    "fluid_above_change_listeners": [
-        [
-            [
-                "soul_sand",
-                "bubble_column"
-            ],
-            "bubbles:ManageBubblesAbove"
-        ]
-    ],
-    "fluid_above_remove_listeners": [],
     "chat_plugins": [
         "chat_teleport",
         "chat_time",
@@ -334,6 +295,22 @@
         "cmd_use_weapon"
     ],
     "treasure_chests": [
+        {
+            "name": "initial_bonus",
+            "exact": true,
+            "items": [
+                { "name": "COPPER_PICKAXE", "count": [1] },
+                { "name": "COPPER_SWORD",   "count": [1] },
+                { "name": "WHEAT_SEEDS",    "count": [8] },
+                { "name": "BREAD",          "count": [5] },
+                { "name": "CRAFTING_TABLE", "count": [1] },
+                { "name": "FURNACE",        "count": [1] },
+                { "name": "COAL",           "count": [5] },
+                { "name": "FLINT_AND_STEEL","count": [1] },
+                { "name": "TORCH",          "count": [3] },
+                { "name": "BUCKET",         "count": [1] }
+            ]
+        },
         {
             "name": "default",
             "items": [

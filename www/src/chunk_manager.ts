@@ -17,9 +17,9 @@ import type { ChunkGrid } from "./core/ChunkGrid.js";
 import { AABB } from "./core/AABB.js";
 import type { Renderer } from "./render.js";
 import { Resources } from "./resources.js";
-import type { BaseResourcePack } from "base_resource_pack.js";
+import type { BaseResourcePack } from "./base_resource_pack.js";
 import { FastCompiller } from "./bbmodel/compiler_base.js";
-import type { WebGLTexture } from "renders/webgl/index.js";
+import type { WebGLTexture } from "./renders/webgl/index.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];

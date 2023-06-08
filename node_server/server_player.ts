@@ -1,7 +1,7 @@
-import {Mth, ObjectHelpers, Vector} from "@client/helpers.js";
+import {Mth, ObjectHelpers, ROTATE, Vector} from "@client/helpers.js";
 import {Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps} from "@client/player.js";
 import {GAME_MODE, GameMode} from "@client/game_mode.js";
-import { ServerClient } from "@client/server_client.js";
+import {BLOCK_ACTION, ServerClient} from "@client/server_client.js";
 import {Raycaster, RaycasterResult} from "@client/Raycaster.js";
 import { PlayerEvent } from "./player_event.js";
 import { QuestPlayer } from "./quest/player.js";
@@ -27,6 +27,7 @@ import type {ServerDriving} from "./control/server_driving.js";
 import { ServerPlayerCombat } from "player/combat.js";
 import type {TChestSlots} from "@client/block_helpers.js";
 import type {PrismarinePlayerState} from "@client/prismarine-physics/index.js";
+import {WorldAction} from "@client/world_action.js";
 
 export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
     time?: number;
@@ -689,6 +690,54 @@ export class ServerPlayer extends Player {
         const initialUndergroundAllowed = initialPos.equal(this.state.pos_spawn); // can't use === here, it may be a clone with the same value
         const safePos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin, initialUndergroundAllowed);
         this.sendTeleport(safePos, 'spawn');
+
+        // создать бонусный сундук возле игрока-хозяина мира при первом входе
+        const world = this.world
+        if (world.info.generator.options.bonus_chest && this.userId === world.info.user_id) {
+            // Найти лучшую позицию для сундука рядом с игроком. Это грубая проверка, но сойдет.
+            // Если не найдется - не страшно, поставить в любую.
+            let bestQuality = 0 // насколько "хороша" лучшая позиция
+            let bestDir = 0
+            let bestDY = 0
+            for(let dy = -1; dy <= 2; dy++) {
+                for(let dir = 0; dir < 4; dir++) {
+                    const pos = safePos.floored().addSelf(Vector.DIRECTIONS_BY_ROTATE[dir]).addScalarSelf(0, dy, 0)
+                    // оценить насколько "хоррша" позиция
+                    let quality = 0
+                    if (dy >= 0 && dy <= 1) quality++  // лучше на одном уровне с игроком, чтобы он заметил
+                    const block = world.getBlock(pos)
+                    if (block.id === 0) quality += 4    // не заменять существующий блок и не ставить в воду
+                    if (block.fluid === 0) quality += 4
+                    if (world.getMaterial(pos.addScalarSelf(0, 1, 0)).id === 0) quality++ // над сундуком пусто
+                    if (world.getMaterial(pos.addScalarSelf(0, -2, 0)).is_solid) quality += 2 // под сундуком есть опора
+                    if (bestQuality < quality) {
+                        bestQuality = quality
+                        bestDir = dir
+                        bestDY = dy
+                    }
+                }
+            }
+            // создать сундук
+            const pos = safePos.floored().addSelf(Vector.DIRECTIONS_BY_ROTATE[bestDir]).addScalarSelf(0, bestDY, 0)
+            const action = new WorldAction()
+            action.addBlock({
+                pos,
+                item: {
+                    id: world.block_manager.CHEST.id,
+                    rotate: new Vector((bestDir + 2) % 4, 1, 0), // повернут к игроку
+                    extra_data: {
+                        generate: true,
+                        params: {source: "initial_bonus"}
+                    }
+                },
+                action_id: BLOCK_ACTION.CREATE
+            })
+            action.addParticles([{ type: 'villager_happy', pos }])
+            world.actions_queue.add(null, action)
+            // сохранить что сундук уже создан
+            world.info.generator.options.bonus_chest = false
+            world.dbActor.worldGeneratorDirty = true
+        }
     }
 
     // Check player visible chunks

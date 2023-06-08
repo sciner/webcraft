@@ -53,13 +53,13 @@ export const NEW_CHUNKS_PER_TICK = 50;
 export class ServerWorld implements IWorld {
     temp_vec: Vector;
     block_manager: typeof BLOCK;
-    updatedBlocksByListeners: any[];
+    blocksUpdatedByListeners: TActionBlock[] = []
     shuttingDown: any;
     game: ServerGame;
     tickers: Map<string, TTickerFunction>;
     random_tickers: Map<string, TRandomTickerFunction>;
     blockListeners: BlockListeners;
-    blockCallees: any;
+    blockCallees: Dict<Function>
     brains: Brains;
     raycaster: Raycaster
     db: DBWorld;
@@ -104,7 +104,6 @@ export class ServerWorld implements IWorld {
 
         this.block_manager = block_manager;
         this.raycaster = new Raycaster(this)
-        this.updatedBlocksByListeners = [];
 
         // An object with fields { resolve, gentle }. Gentle means to wait unil the action queue is empty
         this.shuttingDown = null;
@@ -132,8 +131,8 @@ export class ServerWorld implements IWorld {
             });
         }
         // Block listeners & callees
-        this.blockListeners = new BlockListeners();
-        await this.blockListeners.loadAll(config);
+        this.blockListeners = new BlockListeners(this)
+        await this.blockListeners.loadAll()
         this.blockCallees = this.blockListeners.calleesById;
         // Brains
         const mobConfigs: Dict<TMobConfig> = config.mobs
@@ -725,9 +724,9 @@ export class ServerWorld implements IWorld {
         return chunk ? chunk.getBlock(pos, null, null, resultBlock) : this.chunks.DUMMY;
     }
 
-    getMaterial(pos : Vector) {
+    getMaterial(pos : Vector): IBlockMaterial {
         const chunk = this.chunks.getByPos(pos);
-        return chunk ? chunk.getMaterial(pos) : null;
+        return chunk ? chunk.getMaterial(pos) : this.chunks.DUMMY.material;
     }
 
     /**
@@ -842,7 +841,6 @@ export class ServerWorld implements IWorld {
         }
         // Modify blocks
         if(actions.blocks?.list) {
-            this.updatedBlocksByListeners.length = 0;
             // trick for worldedit plugin
             const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
             const can_ignore_air = (actions.blocks.options && 'can_ignore_air' in actions.blocks.options) ? !!actions.blocks.options.can_ignore_air : false;
@@ -919,21 +917,6 @@ export class ServerWorld implements IWorld {
                             continue
                         }
                         previous_item.id = oldId
-                        // call block change listeners
-                        if (on_block_set) {
-                            const listeners = this.blockListeners.beforeBlockChangeListeners[oldId];
-                            if (listeners) {
-                                for(let listener of listeners) {
-                                    const newMaterial = bm.BLOCK_BY_ID[params.item.id];
-                                    var res = listener.onBeforeBlockChange(chunk, tblock, newMaterial, true);
-                                    if (typeof res === 'number') {
-                                        chunk.addDelayedCall(listener.onBeforeBlockChangeCalleeId, res, [block_pos]);
-                                    } else {
-                                        TickerHelpers.pushBlockUpdates(this.updatedBlocksByListeners, res);
-                                    }
-                                }
-                            }
-                        }
 
                         // 4. Store in chunk tblocks
                         const oldLight = tblock.lightSource;
@@ -950,24 +933,20 @@ export class ServerWorld implements IWorld {
 
                         if (on_block_set) {
                             // a.
-                            chunk.onBlockSet(block_pos.clone(), params.item, previous_item);
+                            chunk.onBlockSet(block_pos.clone(), tblock, params.item, previous_item);
                             // b. check destroy block near uncertain stones
                             if (params.action_id == BLOCK_ACTION.DESTROY) {
                                 // Check uncertain stones
                                 chunk.checkDestroyNearUncertainStones(block_pos.clone(), params.item, previous_item, actions.blocks.options.on_block_set_radius)
                             }
-                            // c.
-                            const listeners = this.blockListeners.afterBlockChangeListeners[tblock.id];
+                            // c. обработчики изменения блока
+                            let listeners = this.blockListeners.onChange_delete[oldId]
+                            if (listeners && oldId !== params.item.id) {
+                                chunk.callBlockListeners(listeners, block_pos, tblock, oldId, this.blocksUpdatedByListeners)
+                            }
+                            listeners = this.blockListeners.onChange_set[params.item.id]
                             if (listeners) {
-                                for(let listener of listeners) {
-                                    const oldMaterial = bm.BLOCK_BY_ID[oldId];
-                                    const res = listener.onAfterBlockChange(chunk, tblock, oldMaterial, true);
-                                    if (typeof res === 'number') {
-                                        chunk.addDelayedCall(listener.onAfterBlockChangeCalleeId, res, [block_pos, oldMaterial.id]);
-                                    } else {
-                                        TickerHelpers.pushBlockUpdates(this.updatedBlocksByListeners, res);
-                                    }
-                                }
+                                chunk.callBlockListeners(listeners, block_pos, tblock, oldId, this.blocksUpdatedByListeners)
                             }
                         }
                         // 6. Trigger player
@@ -1000,8 +979,9 @@ export class ServerWorld implements IWorld {
             } catch(e) {
                 console.error('error', e);
                 throw e;
+            } finally {
+                this.addUpdatedBlocksActions(this.blocksUpdatedByListeners)
             }
-            this.addUpdatedBlocksActions(this.updatedBlocksByListeners);
         }
         if (actions.fluids.length > 0) {
             if (actions.fluidFlush) {
@@ -1071,17 +1051,17 @@ export class ServerWorld implements IWorld {
             }
         }
         // Put in bucket
-        if(actions.put_in_backet) {
+        if(actions.put_in_bucket) {
             const inventory = server_player.inventory;
             const currentInventoryItem = inventory.current_item;
             if(currentInventoryItem && currentInventoryItem.id == this.block_manager.BUCKET.id) {
                 // replace item in inventory
-                inventory.items[inventory.current.index] = actions.put_in_backet;
+                inventory.items[inventory.current.index] = actions.put_in_bucket;
                 // send new inventory state to player
                 inventory.refresh(true);
                 /*
                 server_player.inventory.decrement(actions.decrement);
-                console.log(server_player, actions.put_in_backet);
+                console.log(server_player, actions.put_in_bucket);
                 */
             }
         }
@@ -1344,6 +1324,7 @@ export class ServerWorld implements IWorld {
             const action = new WorldAction(null, this, false, true);
             action.addBlocks(updated_blocks);
             this.actions_queue.add(null, action);
+            updated_blocks.length = 0
         }
     }
 

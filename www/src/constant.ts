@@ -67,6 +67,8 @@ export const DEFAULT_LIGHT_TYPE_ID          = LIGHT_TYPE.SMOOTH
 export const MAGIC_ROTATE_DIV               = 900;
 
 export enum BLOCK_IDS {
+    SOUL_SAND = 88,
+    BUBBLE_COLUMN = 415,
     BACKPACK_BASIC = 1094,
     TOOLBELT_BASIC = 1095,
 }
@@ -295,6 +297,7 @@ export enum MOB_TYPE {
     SNOWBALL            = 'mob/snowball',
     SNOW_GOLEM          = 'mob/snow_golem',
     ZOMBIE              = 'mob/zombie',
+    COMBAT              = 'mob/combat_dummy',
     BOAT                = 'transport/boat',
     RAFT                = 'transport/raft',
     WINDMILL_BEARING    = 'mechanism/windmill_bearing'

@@ -3,7 +3,7 @@ import { BBModel_Child } from "./child.js";
 import { IndexedColor, QUAD_FLAGS, Vector } from "../helpers.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { BBModel_Model } from './model.js';
-import type { Mesh_Object_BBModel } from 'mesh/object/bbmodel.js';
+import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 
 const {mat4} = glMatrix;
 const tempMat = mat4.create();

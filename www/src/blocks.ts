@@ -503,7 +503,7 @@ export class BLOCK {
     }
 
     // Return new simplified item
-    static convertItemToInventoryItem(item? : DBItemBlock, b?, no_copy_extra_data : boolean = false) : IInventoryItem {
+    static convertItemToInventoryItem(item? : DBItemBlock, b? : IBlockMaterial, no_copy_extra_data : boolean = false) : IInventoryItem {
         if(!item || !('id' in item) || item.id < 0) {
             return null;
         }
@@ -1569,6 +1569,7 @@ export class BLOCK {
         for(const block of BLOCK.list.values()) {
             block.is_dummy = !!block.is_dummy
             block.visible_for_ao = BLOCK.visibleForAO(block.id)
+            block.has_powerbar = !!(block.item?.instrument_id || block.armor)
             block.light_power_number = BLOCK.getLightPower(block)
             block.interact_water = block.tags.includes('interact_water') || !!block.layering?.slab
             block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab || !!block.is_leaves || !!block.tags.includes('trapdoor')
