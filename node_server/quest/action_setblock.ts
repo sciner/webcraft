@@ -3,7 +3,6 @@ import {QuestActionBase} from "./action_base.js";
 // QuestActionSetBlock
 export class QuestActionSetBlock extends QuestActionBase {
     cnt: int;
-    block_id: int;
 
     constructor(quest, params) {
         super(quest, params);
@@ -21,7 +20,7 @@ export class QuestActionSetBlock extends QuestActionBase {
             id: e.data.block.id,
             count: 1
         };
-        if(item.id == this.block_id) {
+        if (this.blockIdMatches(item.id)) {
             this.value = (this.value | 0) + item.count;
             this.update();
             console.log(`Action changed: ${quest.title} ${this.value}/${this.cnt} ... ${this.ok}`);

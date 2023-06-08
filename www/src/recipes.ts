@@ -285,11 +285,6 @@ export class Recipe {
 
 export class RecipeManager implements IRecipeManager<Recipe> {
     bm: typeof BLOCK
-
-
-    //all
-
-
     crafting_shaped : {
         list        : Recipe[]
         grouped     : Recipe[]
@@ -299,11 +294,6 @@ export class RecipeManager implements IRecipeManager<Recipe> {
 
     constructor() {
         this.bm = BLOCK
-
-
-        //this.all = [];
-
-
         this.crafting_shaped = {
             list: [],
             grouped: [],

@@ -52,7 +52,10 @@ export class DBWorldQuest {
         for (let action of actionsRows) {
             const quest = quests.get(action.quest_id);
             delete action.quest_id;
-            quest.actions.push({ ...action });
+            const params = JSON.parse(action.params)
+            delete action.params
+            Object.assign(action, params)
+            quest.actions.push(action);
         }
 
         // Rewards
@@ -62,7 +65,7 @@ export class DBWorldQuest {
         for (let reward of rewardsRows) {
             const quest = quests.get(reward.quest_id);
             delete reward.quest_id;
-            quest.rewards.push({ ...reward });
+            quest.rewards.push(reward);
         }
 
         this.groups = groups;
