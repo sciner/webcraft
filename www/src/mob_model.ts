@@ -349,6 +349,7 @@ export class MobModel extends NetworkPhysicObject {
             }
         }
         this.setArmor()
+        const attack = this?.extra_data?.attack ? this.extra_data.attack : this.attack
         if (this.sleep) {
             const rot = this.sleep.rotate.z * 2 * Math.PI
             mesh.rotation[2] = rot % Math.PI ? rot : rot + Math.PI

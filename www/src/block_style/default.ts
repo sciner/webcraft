@@ -75,6 +75,27 @@ export class QuadPlane implements IPlane {
     translate: Vector 
 }
 
+export class QuadPart {
+    size : IVector
+    pos : Vector
+    translate : IVector
+    matrix : imat4
+    aabb? : AABB
+    rot? : tupleFloat3
+    inflate? : float
+    flag? : int
+    _faces_compilled? : object
+    lm? : IndexedColor
+    faces : {
+        up?: any
+        down?: any
+        north?: any
+        west?: any
+        south?: any
+        east?: any
+    }
+}
+
 //
 export default class {
 
@@ -139,12 +160,13 @@ export default class {
     }
 
     //
-    static pushPART(vertices, part, pivot = null) {
+    static pushPART(vertices : float[], part : QuadPart, pivot = null) {
 
         const width = part.size.x / TX_SIZE;
         const height = part.size.y / TX_SIZE;
         const depth = part.size.z / TX_SIZE;
         const inflate = part.inflate ? (part.inflate / TX_SIZE) : 0
+        const part_flag = part.flag | 0
 
         // AABB
         // const aabb = new AABB();
@@ -213,7 +235,7 @@ export default class {
                     tex[3] = face.uv[3] / tx_size;
                 }
 
-                faces[k] = new AABBSideParams(tex, face.flag, anim, part.lm, null, face.autoUV)
+                faces[k] = new AABBSideParams(tex, face.flag | part_flag, anim, part.lm, null, face.autoUV)
 
             }
             part._faces_compilled = faces;

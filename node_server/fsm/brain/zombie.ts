@@ -15,11 +15,11 @@ export class Brain extends FSMBrain {
         this.resistance_light = false; // загорается при свете
         mob.extra_data.attack = false
     }
-    
+
     onLive() {
         super.onLive();
     }
-    
+
     // поиск игрока для атаки
     onFind() {
         if (this.target || this.distance_view < 1) {
@@ -27,7 +27,7 @@ export class Brain extends FSMBrain {
         }
         const mob = this.mob;
         const world = mob.getWorld();
-        const difficulty = world.rules.getValue('difficulty'); 
+        const difficulty = world.rules.getValue('difficulty');
         const players = world.getPlayersNear(mob.pos, this.distance_view, true);
         if (players.length > 0 && difficulty != EnumDifficulty.PEACEFUL) {
             for (const player of players) {
@@ -49,7 +49,7 @@ export class Brain extends FSMBrain {
             }
         }
     }
-    
+
     // просто стоит на месте
     doStand(delta: float): MobControlParams | null {
         // нашел цель
@@ -65,7 +65,7 @@ export class Brain extends FSMBrain {
         mob.extra_data.attack = false
         return MOB_CONTROL.STAND
     }
-    
+
     // просто ходит
     doForward(delta: float): MobControlParams | null {
         // нашел цель
@@ -92,7 +92,7 @@ export class Brain extends FSMBrain {
             sneak: false
         }
     }
-    
+
     // преследование игрока
     doCatch(delta: float): MobControlParams | null {
         const mob = this.mob
@@ -121,7 +121,7 @@ export class Brain extends FSMBrain {
             jump: this.in_water
         }
     }
-    
+
     // Если убили моба
     onKill(actor, type_damage) {
         const mob = this.mob;
@@ -147,9 +147,9 @@ export class Brain extends FSMBrain {
         actions.addPlaySound({ tag: 'madcraft:block.zombie', action: 'death', pos: mob.pos.clone() });
         world.actions_queue.add(actor, actions);
     }
-    
+
     onPanic() {
-        
+
     }
-    
+
 }

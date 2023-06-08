@@ -894,7 +894,7 @@ export default class WorldEdit {
             const b = item.name ? bm.fromName(item.name) : bm.fromId(item.block_id)
             if(b.is_dummy) throw 'error_invalid_block'
             if(b.deprecated) throw 'error_block_is_deprecated'
-            if(b.item || b.next_part || b.previous_part || ['extruder', 'text', 'painting'].indexOf(b.style_name) >= 0) throw 'error_this_block_cannot_be_setted';
+            if(b.item || b.previous_part || ['extruder', 'text', 'painting'].indexOf(b.style_name) >= 0) throw 'error_this_block_cannot_be_setted';
             //
             const block_id = b.id;
             const extra_data = bm.makeExtraData(b, fake_pos, fake_orientation, null);

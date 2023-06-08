@@ -276,45 +276,6 @@
         "grass_block",
         "algae"
     ],
-    "before_block_change_listeners": [
-        [
-            [
-                "soul_sand",
-                "bubble_column"
-            ],
-            "bubbles:ManageBubblesAbove"
-        ],
-        [
-            "bubble_column",
-            "bubbles:ManageBubbles"
-        ]
-    ],
-    "after_block_change_listeners": [
-        [
-            [
-                "soul_sand",
-                "bubble_column"
-            ],
-            "bubbles:ManageBubblesAbove"
-        ]
-    ],
-    "fluid_change_listeners": [],
-    "fluid_remove_listeners": [
-        [
-            "bubble_column",
-            "bubbles:ManageBubbles"
-        ]
-    ],
-    "fluid_above_change_listeners": [
-        [
-            [
-                "soul_sand",
-                "bubble_column"
-            ],
-            "bubbles:ManageBubblesAbove"
-        ]
-    ],
-    "fluid_above_remove_listeners": [],
     "chat_plugins": [
         "chat_teleport",
         "chat_time",
