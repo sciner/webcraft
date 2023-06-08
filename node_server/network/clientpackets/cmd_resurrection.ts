@@ -23,6 +23,7 @@ export default class packet_reader {
         player.sendPackets([{name: ServerClient.CMD_SET_STATUS_WAITING_DATA, data: {}}]);
         player.teleport({
             place_id: 'spawn',
+            safe: true
         });
         return true;
     }

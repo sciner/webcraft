@@ -725,9 +725,9 @@ export class ServerWorld implements IWorld {
         return chunk ? chunk.getBlock(pos, null, null, resultBlock) : this.chunks.DUMMY;
     }
 
-    getMaterial(pos : Vector) {
+    getMaterial(pos : Vector): IBlockMaterial {
         const chunk = this.chunks.getByPos(pos);
-        return chunk ? chunk.getMaterial(pos) : null;
+        return chunk ? chunk.getMaterial(pos) : this.chunks.DUMMY.material;
     }
 
     /**

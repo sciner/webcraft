@@ -20,6 +20,7 @@ export class Vector implements IVector {
 
     static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
     static DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP]
+    static DIRECTIONS_BY_ROTATE = [this.ZP, this.XN, this.ZN, this.XP]
     static SHAPE_PIVOT = new Vector(.5, .5, .5);
     // Ading these values sequentially to the same Vector is the same as setting it to each of SIX_DIRECTIONS
     static SIX_DIRECTIONS_CUMULATIVE = [this.XN];
@@ -38,6 +39,7 @@ export class Vector implements IVector {
         Object.freeze(Vector.ZERO)
         Object.freeze(Vector.SIX_DIRECTIONS)
         Object.freeze(Vector.DIRECTIONS)
+        Object.freeze(Vector.DIRECTIONS_BY_ROTATE)
         Object.freeze(Vector.SHAPE_PIVOT)
         Object.freeze(Vector.SIX_DIRECTIONS_CUMULATIVE)
     }
