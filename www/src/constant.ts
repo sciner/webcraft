@@ -295,6 +295,7 @@ export enum MOB_TYPE {
     SNOWBALL            = 'mob/snowball',
     SNOW_GOLEM          = 'mob/snow_golem',
     ZOMBIE              = 'mob/zombie',
+    COMBAT              = 'mob/combat_dummy',
     BOAT                = 'transport/boat',
     RAFT                = 'transport/raft',
     WINDMILL_BEARING    = 'mechanism/windmill_bearing'

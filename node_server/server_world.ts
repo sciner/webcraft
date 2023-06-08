@@ -1071,17 +1071,17 @@ export class ServerWorld implements IWorld {
             }
         }
         // Put in bucket
-        if(actions.put_in_backet) {
+        if(actions.put_in_bucket) {
             const inventory = server_player.inventory;
             const currentInventoryItem = inventory.current_item;
             if(currentInventoryItem && currentInventoryItem.id == this.block_manager.BUCKET.id) {
                 // replace item in inventory
-                inventory.items[inventory.current.index] = actions.put_in_backet;
+                inventory.items[inventory.current.index] = actions.put_in_bucket;
                 // send new inventory state to player
                 inventory.refresh(true);
                 /*
                 server_player.inventory.decrement(actions.decrement);
-                console.log(server_player, actions.put_in_backet);
+                console.log(server_player, actions.put_in_bucket);
                 */
             }
         }
