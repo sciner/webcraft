@@ -2,10 +2,15 @@ import {QueuePagePool} from "../light/MultiQueue.js";
 import {FluidChunkQueue} from "./FluidChunkQueue.js";
 import {SimpleQueue} from "../helpers.js";
 import {FluidChunkEvents} from "./FluidChunkEvents.js";
+import type {TActionBlock} from "../world_action.js";
+import type {FluidWorld} from "./FluidWorld.js";
 
 export class FluidWorldQueue {
     [key: string]: any;
-    constructor(fluidWorld) {
+    private updatedBlocks: TActionBlock[] = []
+    world: FluidWorld
+
+    constructor(fluidWorld: FluidWorld) {
         this.world = fluidWorld;
         this.pool = new QueuePagePool({
             pageSize: 256,
@@ -81,12 +86,13 @@ export class FluidWorldQueue {
                 continue;
             }
             chunkEvents.process((pos, isFluidChangeAbove) => {
-                parentChunk.onFluidEvent(pos, isFluidChangeAbove);
+                parentChunk.onFluidEvent(pos, isFluidChangeAbove, this.updatedBlocks);
             });
-            parentChunk.applyChangesByListeners();
             if (performance.now() - start >= msLimit) {
                 break;
             }
         }
+        // добавить действия по изменению блоков в мир
+        this.world.world.addUpdatedBlocksActions(this.updatedBlocks)
     }
 }

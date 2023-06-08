@@ -290,6 +290,8 @@ interface IBlockMaterial {
     compile: any
     redstone: any
     random_ticker: string
+    /** Слушатели событий этого блока. См. BlockListeners */
+    listeners?: string[]
     resource_pack: any
     extra_data: any
     aabb: tupleFloat6
