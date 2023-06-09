@@ -15,18 +15,10 @@ export class FluidBigGeometry extends BaseBigGeometry {
     }
 
     upload(shader) {
-        super.upload(shader);
-        if (!this.indexBuffer) {
-            this.indexBuffer = new Buffer(this.indexData, true, true)
-            this.staticDraw.addIndex(this.indexBuffer);
-            if (this.staticCopy) {
-                this.staticCopy.addIndex(this.indexBuffer);
-            }
-            this.dynamicDraw.addIndex(this.indexBuffer);
-        }
         if (this.dynamicDraw.size * 6 > this.indexData.length) {
             this.createIndex();
         }
+        super.upload(shader);
     }
 
     createIndex() {
@@ -45,7 +37,9 @@ export class FluidBigGeometry extends BaseBigGeometry {
             indexData[i * 6 + 5] = i * 4 + 3;
         }
 
-        if (this.indexBuffer) {
+        if (!this.indexBuffer) {
+            this.indexBuffer = new Buffer(this.indexData, true, true);
+        } else {
             this.indexBuffer.update(this.indexData);
         }
     }

@@ -56,6 +56,10 @@ export class BaseBigGeometry {
             // when WebGL
             staticDraw.init(this.context);
             dynamicDraw.init(this.context);
+            if (this.indexBuffer) {
+                staticDraw.addIndex(this.indexBuffer);
+                dynamicDraw.addIndex(this.indexBuffer);
+            }
         }
         const { pixiRender } = this.context;
 
