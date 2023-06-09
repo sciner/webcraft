@@ -2946,8 +2946,10 @@ function prePlaceRail(world, pos, new_item, actions) {
 
 // Set upholstery
 function setUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+    let resp = false
     for(const [type, block_types] of Object.entries(upholstery_types)) {
         if(mat_block.tags.includes(type)) {
+            resp = true
             if(block_types.includes(world_material.style_name)) {
                 if(extra_data.is_head) {
                     pos = new Vector(0, -1, 0).add(pos)
@@ -2974,11 +2976,11 @@ function setUpholstery(e, world, pos, player, world_block, world_material, mat_b
                 }])
                 actions.addPlaySound({tag: mat_block.sound, action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]})
                 actions.decrement = true
-                return true
+                return resp
             }
         }
     }
-    return false
+    return resp
 }
 
 // Remove upholstery
