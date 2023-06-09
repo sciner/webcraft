@@ -2174,6 +2174,7 @@
                 "id": "stone"
             },
             "tags": [
+                "#decore",
                 "clay_shingles"
             ],
             "bb": {
@@ -2198,6 +2199,7 @@
                 "id": "stone"
             },
             "tags": [
+                "#decore",
                 "clay_shingles"
             ],
             "bb": {
@@ -2212,6 +2214,7 @@
                 "id": "stone"
             },
             "tags": [
+                "#decore",
                 "clay_shingles"
             ],
             "bb": {
@@ -2226,6 +2229,7 @@
                 "id": "leaves"
             },
             "tags": [
+                "#decore",
                 "clay_shingles"
             ],
             "bb": {
@@ -2250,6 +2254,7 @@
                 "id": "leaves"
             },
             "tags": [
+                "#decore",
                 "clay_shingles"
             ],
             "bb": {
