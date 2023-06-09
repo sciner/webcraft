@@ -61,8 +61,9 @@ export type ActivateMobParams = {
 }
 
 export type TActionBlock = {
-    pos             : Vector
-    action_id       : int
+    posi?           : int
+    pos?            : Vector
+    action_id?      : int
     item            : IBlockItem
     destroy_block ? : { id: int }
 }
@@ -74,6 +75,7 @@ type ActionBlocks = {
         ignore_check_air    : boolean
         on_block_set        : boolean
         on_block_set_radius : number
+        chunk_addr          : Vector
     }
 }
 
@@ -655,6 +657,10 @@ export class WorldAction {
     // Add play sound
     addPlaySound(item: PlaySoundParams) {
         this.play_sound.push(item);
+    }
+
+    importBlock(item: TActionBlock): void {
+        this.blocks.list.push(item)
     }
 
     addBlock(item: TActionBlock): void {

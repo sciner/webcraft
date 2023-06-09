@@ -756,8 +756,9 @@ export class ServerWorld implements IWorld {
     async applyActions(actor : ServerPlayer | Mob | null, actions : WorldAction) {
         const server_player = (actor as ServerPlayer)?.session ? (actor as ServerPlayer) : null
         const chunks_packets = new VectorCollector();
-        const bm = this.block_manager
+        // const bm = this.block_manager
         const grid = this.chunkManager.grid
+        const math = grid.math
         //
         const getChunkPackets = (pos : Vector, chunk_addr? : Vector) => {
             if(!chunk_addr) {
@@ -824,7 +825,6 @@ export class ServerWorld implements IWorld {
         }
         // @Warning Must be check before actions.blocks
         if(actions.generate_tree.length > 0) {
-            const grid = this.chunkManager.grid
             for(let i = 0; i < actions.generate_tree.length; i++) {
                 const params = actions.generate_tree[i];
                 const treeGenerator = await TreeGenerator.getInstance(this.info.seed);
@@ -845,6 +845,8 @@ export class ServerWorld implements IWorld {
             const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
             const can_ignore_air = (actions.blocks.options && 'can_ignore_air' in actions.blocks.options) ? !!actions.blocks.options.can_ignore_air : false;
             const on_block_set = actions.blocks.options && 'on_block_set' in actions.blocks.options ? !!actions.blocks.options.on_block_set : true;
+            const blocks_chunk_addr = (actions.blocks.options && ('chunk_addr' in actions.blocks.options)) ? new Vector().copyFrom(actions.blocks.options.chunk_addr) : null
+            const blocks_chunk_coord = blocks_chunk_addr ? blocks_chunk_addr.clone().multiplyVecSelf(grid.chunkSize) : null
             try {
                 const block_pos_in_chunk = new Vector(Infinity, Infinity, Infinity);
                 const chunk_addr = new Vector(0, 0, 0);
@@ -855,7 +857,18 @@ export class ServerWorld implements IWorld {
                 let cps = null;
                 let destroy_particles_count = 0
                 for (let params of actions.blocks.list) {
-                    const block_pos = new Vector(params.pos).flooredSelf()
+                    const action_id = params.action_id ?? BLOCK_ACTION.CREATE
+                    const block_pos = new Vector()
+                    if(params.posi !== undefined) {
+                        if(!blocks_chunk_coord) {
+                            throw 'error_pos_not_presents'
+                        }
+                        math.fromFlatChunkIndex(block_pos, params.posi).addSelf(blocks_chunk_coord)
+                    } else if(params.pos) {
+                        block_pos.copyFrom(params.pos).flooredSelf()
+                    } else {
+                        throw 'error_pos_not_presents'
+                    }
                     params.pos = block_pos;
                     //
                     if(!(params.item instanceof DBItemBlock)) {
@@ -891,7 +904,7 @@ export class ServerWorld implements IWorld {
                         });
                         // 0. Play particle animation on clients
                         if (!ignore_check_air) {
-                            if (params.action_id == BLOCK_ACTION.DESTROY) {
+                            if (action_id == BLOCK_ACTION.DESTROY) {
                                 if (params.destroy_block.id > 0) {
                                     if(destroy_particles_count < 3 || destroy_particles_count % 3 == 0) {
                                         const except_players = [];
@@ -935,7 +948,7 @@ export class ServerWorld implements IWorld {
                             // a.
                             chunk.onBlockSet(block_pos.clone(), tblock, params.item, previous_item);
                             // b. check destroy block near uncertain stones
-                            if (params.action_id == BLOCK_ACTION.DESTROY) {
+                            if (action_id == BLOCK_ACTION.DESTROY) {
                                 // Check uncertain stones
                                 chunk.checkDestroyNearUncertainStones(block_pos.clone(), params.item, previous_item, actions.blocks.options.on_block_set_radius)
                             }
@@ -951,13 +964,13 @@ export class ServerWorld implements IWorld {
                         }
                         // 6. Trigger player
                         if (server_player) {
-                            if (params.action_id == BLOCK_ACTION.DESTROY) {
+                            if (action_id == BLOCK_ACTION.DESTROY) {
                                 PlayerEvent.trigger({
                                     type: PlayerEvent.DESTROY_BLOCK,
                                     player: server_player,
                                     data: { pos: params.pos, block: params.destroy_block }
                                 });
-                            } else if (params.action_id == BLOCK_ACTION.CREATE) {
+                            } else if (action_id == BLOCK_ACTION.CREATE) {
                                 PlayerEvent.trigger({
                                     type: PlayerEvent.SET_BLOCK,
                                     player: server_player,
