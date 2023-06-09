@@ -301,11 +301,6 @@ void main() {
         color.a *= u_rain_strength;
     }
 
-    // if(checkFlag(FLAG_BILLBOARD_DISPLAY)) {
-    //     color.rgb += vec3((noise((v_world_pos + getCamPeriod()) * 2. + u_time / 500.) - .5) / 1.) / 2.;
-    //     #include<caustic1_pass>
-    // }
-
     // _include<swamp_fog>
 
     // float dist = distance(vec3(0., 0., 1.4), v_world_pos);

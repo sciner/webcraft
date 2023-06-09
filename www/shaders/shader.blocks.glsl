@@ -34,13 +34,12 @@
     #define FLAG_TORCH_FLAME            16
     #define FLAG_FLUID_ERASE            17
     #define FLAG_LIGHT_GRID             18
-    #define FLAG_BILLBOARD_DISPLAY      19
-    #define DELIMITER_VERTEX     ((1 << 20) - 1)
-    #define FLAG_WAVES_VERTEX           20
-    #define FLAG_LOOK_AT_CAMERA         21
-    #define FLAG_LOOK_AT_CAMERA_HOR     22
-    #define FLAG_TRIANGLE               23
-    #define FLAG_MIR2_TEX               24
+    #define DELIMITER_VERTEX     ((1 << 19) - 1)
+    #define FLAG_WAVES_VERTEX           19
+    #define FLAG_LOOK_AT_CAMERA         20
+    #define FLAG_LOOK_AT_CAMERA_HOR     21
+    #define FLAG_TRIANGLE               22
+    #define FLAG_MIR2_TEX               23
 
 #endif
 
