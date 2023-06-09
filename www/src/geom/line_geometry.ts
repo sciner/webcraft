@@ -202,7 +202,7 @@ export class LineGeometry extends Geometry {
     }
 
     draw(render : BaseRenderer) {
-        render.batch.setObjectDrawer(render.line);
+        render.batch.setObjectRenderer(render.line);
         render.line.draw(this);
     }
 

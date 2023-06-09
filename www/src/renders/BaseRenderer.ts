@@ -1,7 +1,6 @@
 // ///<reference types='vauxcel'/>
 
 import {IvanArray, Mth, Vector} from '../helpers.js';
-import {BatchSystem} from "./batch/BatchSystem.js";
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
 import type {GeometryTerrain} from '../geometry_terrain.js';
 import type {WebGLMaterial} from './webgl/WebGLMaterial.js';
@@ -305,7 +304,7 @@ export class BaseCubeGeometry extends Geometry {
 export class BaseRenderer {
     [key: string]: any;
 
-    batch : BatchSystem
+    batch : VAUX.BatchSystem = null;
     preprocessor = new ShaderPreprocessor();
     pixiRender: VAUX.Renderer = null;
 
@@ -391,8 +390,6 @@ export class BaseRenderer {
         this.state3d.blendMode = VAUX.BLEND_MODES.NORMAL_NPM;
         this.state3d.depthTest = true;
         this.state3d.cullFace = true;
-
-        this.batch = new BatchSystem(this);
 
         this.multidrawExt = null;
     }
@@ -607,12 +604,12 @@ export class BaseRenderer {
         if (geom.size === 0) {
             return;
         }
-        this.batch.setObjectDrawer(this.mesh);
+        this.batch.setObjectRenderer(this.mesh);
         this.mesh.draw(geom, material, a_pos, modelMatrix, draw_type);
     }
 
     drawCube(cube) {
-        this.batch.setObjectDrawer(this.cube);
+        this.batch.setObjectRenderer(this.cube);
         this.cube.draw(cube);
     }
 

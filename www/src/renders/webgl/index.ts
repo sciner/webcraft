@@ -41,6 +41,8 @@ const TEXTURE_MODE = {
     'cube': 'TEXTURE_CUBE_MAP'
 }
 
+VAUX.extensions.add(GLChunkDrawer, GLLineDrawer, GLMeshDrawer, GLCubeDrawer);
+
 export class WebGLCubeShader extends WebGLUniversalShader {
     constructor(context, options) {
 
@@ -271,11 +273,6 @@ export default class WebGLRenderer extends BaseRenderer {
             write: true,
             test: true,
         }
-
-        this.mesh = new GLMeshDrawer(this);
-        this.cube = new GLCubeDrawer(this);
-        this.chunk = new GLChunkDrawer(this);
-        this.line = new GLLineDrawer(this);
     }
 
     async init(args) {
@@ -286,6 +283,16 @@ export default class WebGLRenderer extends BaseRenderer {
             view: this.view, width: this.view.width, height: this.view.height});
 
         this.pixiRender.geometry.copier = new VAUX.TFBufferCopier(16);
+
+        for (let key in this.pixiRender.plugins) {
+            let val = this.pixiRender.plugins[key];
+            if (val.initQubatch) {
+                this[key] = val;
+                val.initQubatch(this);
+            }
+        }
+
+        this.batch = this.pixiRender.batch;
 
         const gl = this.gl = this.pixiRender.gl;
         this.resetBefore();

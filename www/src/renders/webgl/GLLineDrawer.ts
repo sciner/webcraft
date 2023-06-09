@@ -1,5 +1,6 @@
 import {WebGLLineShader} from "./WebGLLineShader.js";
 import {ObjectDrawer} from "../batch/ObjectDrawer.js";
+import {ExtensionType} from 'vauxcel';
 
 const vertex = `#version 300 es
 precision highp float;
@@ -85,6 +86,12 @@ void main() {
  */
 export class GLLineDrawer extends ObjectDrawer {
     [key: string]: any;
+
+    static extension = {
+        name: 'line',
+        type: ExtensionType.RendererPlugin,
+    };
+
     constructor(context) {
         super(context);
     }

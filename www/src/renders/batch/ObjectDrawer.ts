@@ -1,33 +1,14 @@
-export class ObjectDrawer
+import {ObjectRenderer} from "vauxcel";
+
+export class ObjectDrawer extends ObjectRenderer
 {
     [key: string]: any;
-    constructor(context)
-    {
+
+    constructor(renderer) {
+        super(renderer);
+    }
+
+    initQubatch(context) {
         this.context = context;
-    }
-
-    flush()
-    {
-        // flush!
-    }
-
-    destroy()
-    {
-        this.context = null;
-    }
-
-    start()
-    {
-        // set the shader..
-    }
-
-    stop()
-    {
-        this.flush();
-    }
-
-    draw(obj)
-    {
-        // render the object
     }
 }

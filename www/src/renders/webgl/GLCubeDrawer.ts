@@ -1,7 +1,11 @@
 import {ObjectDrawer} from "../batch/ObjectDrawer.js";
-import {DRAW_MODES} from "vauxcel";
+import {DRAW_MODES, ExtensionType} from "vauxcel";
 
 export class GLCubeDrawer extends ObjectDrawer {
+    static extension = {
+        name: 'cube',
+        type: ExtensionType.RendererPlugin,
+    };
     draw(cube) {
         const { context } = this;
         const { pixiRender } = context;

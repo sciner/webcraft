@@ -1,6 +1,5 @@
-import {ObjectDrawer} from "./ObjectDrawer.js";
-import {ChunkBatch} from "./ChunkBatch.js";
 import {ViewableBuffer} from "./ViewableBuffer.js";
+import {ObjectDrawer} from "./ObjectDrawer.js";
 
 /**
  * util
@@ -23,8 +22,9 @@ export function nextPow2(v)
  */
 export class ChunkDrawer extends ObjectDrawer {
     [key: string]: any;
-    constructor(context) {
-        super(context);
+
+    constructor(renderer) {
+        super(renderer);
 
         this.elements = [];
         this.elementCount = 0;

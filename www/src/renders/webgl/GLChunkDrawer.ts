@@ -1,8 +1,13 @@
 import {ChunkDrawer} from "../batch/ChunkDrawer.js";
-import {DRAW_MODES} from "vauxcel";
+import {DRAW_MODES, ExtensionType} from "vauxcel";
 
 export class GLChunkDrawer extends ChunkDrawer {
     [key: string]: any;
+
+    static extension = {
+        name: 'chunk',
+        type: ExtensionType.RendererPlugin,
+    };
     constructor(context) {
         super(context);
 

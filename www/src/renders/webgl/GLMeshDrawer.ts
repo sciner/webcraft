@@ -1,7 +1,13 @@
 import {ObjectDrawer} from "../batch/ObjectDrawer.js";
+import {ExtensionType} from "vauxcel";
 
 export class GLMeshDrawer extends ObjectDrawer {
     [key: string]: any;
+
+    static extension = {
+        name: 'mesh',
+        type: ExtensionType.RendererPlugin,
+    };
     draw(geom, material?, a_pos = null, modelMatrix = null, draw_type = 'triangles') {
         const { context } = this;
         if (geom.size === 0) {
