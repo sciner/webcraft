@@ -93,7 +93,7 @@ export class BaseMaterial implements Required<ITerrainMaterialOptions> {
 
     initPixiShader() {
         this.pixiShader = new VAUX.Shader(this.shader.program,
-            {...this.shader.options.uniforms, terrain: this.terrainUniformGroup});
+            {...this.shader.options.uniforms, globalUniforms: this.context.globalUniforms, terrain: this.terrainUniformGroup});
     }
 
     get blendMode() {
