@@ -241,7 +241,7 @@ export class ChunkRenderList {
                 const shaderName = mat_shader === 'fluid' ? 'fluidShader' : 'shader';
                 const mat = resource_pack[shaderName].materials[group];
 
-                if (!mat.opaque && mat.shader.fluidFlags) {
+                if (!mat.opaque && mat.shader.fluidStatic) {
                     // REVERSED!!!
                     for (let i = count - 1; i >= 0; i--) {
                         arr[i].draw(render.renderBackend, resource_pack, group, mat);

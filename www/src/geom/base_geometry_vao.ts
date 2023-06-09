@@ -101,11 +101,6 @@ export class BaseGeometryVao extends Geometry {
     bindForDraw() {
         this.drawBindCount++;
         this.context.pixiRender.geometry.bind(this);
-        if (this.indexBuffer)
-        {
-            // first update the index buffer if we have one..
-            this.context.pixiRender.buffer.bind(this.indexBuffer);
-        }
     }
 
     bind() {

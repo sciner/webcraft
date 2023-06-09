@@ -67,7 +67,7 @@ export class BaseMaterial implements Required<ITerrainMaterialOptions> {
     beforeBind()
     {
         const {terrainUniforms} = this;
-        this.state.depthMask = this.opaque || !(this.shader as any).fluidFlags;
+        this.state.depthMask = this.opaque || !(this.shader as any).fluidStatic;
         terrainUniforms.u_opaqueThreshold = this.opaque ? 0.5 : 0.0;
 
         const tex = this.texture || (this.shader as any).texture;
