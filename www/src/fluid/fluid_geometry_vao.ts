@@ -23,6 +23,6 @@ export class FluidGeometryVao extends BaseGeometryVao {
         this.addAttribute('a_blockId', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 0 * 4);
         this.addAttribute('a_fluidId', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 1 * 4);
         this.addAttribute('a_color', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 2 * 4);
-        this.addAttribute('a_height', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 3 * 4);
+        this.addAttribute('a_height', this.buffer, 1, false, TYPES.FLOAT, stride, 3 * 4);
     }
 }

@@ -31,9 +31,6 @@ export class BaseShader {
         this.code = options.code;
     }
 
-    getAttribLocation(attrName) {
-        return this.program.attributeData[attrName].location;
-    }
     initProgram()
     {
         const { context, options } = this;

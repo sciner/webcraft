@@ -10,10 +10,8 @@ export class WebGLMaterial extends BaseMaterial {
 
     bind() {
         const { pixiRender } = this.context;
-        const { shader } = this;
 
         this.beforeBind();
-        shader.bind();
         pixiRender.shader.bind(this.pixiShader);
 
         pixiRender.state.set(this.state);

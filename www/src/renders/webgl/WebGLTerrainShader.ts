@@ -62,26 +62,11 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.modelUniforms = modelUniforms;
         this.modelUniformGroup = modelUniformGroup;
 
-        this.locateAttribs();
-
         this.hasModelMatrix = false;
 
         this._material = null;
         this.globalID = -1;
     }
-
-    locateAttribs() {
-        this.a_chunkId          = this.getAttribLocation('a_chunkId');
-        this.a_position         = this.getAttribLocation('a_position');
-        this.a_axisX            = this.getAttribLocation('a_axisX');
-        this.a_axisY            = this.getAttribLocation('a_axisY');
-        this.a_uvCenter         = this.getAttribLocation('a_uvCenter');
-        this.a_uvSize           = this.getAttribLocation('a_uvSize');
-        this.a_color            = this.getAttribLocation('a_color');
-        this.a_flags            = this.getAttribLocation('a_flags' );
-        this.a_quad             = this.getAttribLocation('a_quad');
-    }
-
 
     bind(force = false) {
         this.context.pixiRender.shader.bind(this.defShader);

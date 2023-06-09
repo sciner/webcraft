@@ -49,7 +49,7 @@ export class BaseMaterial implements Required<ITerrainMaterialOptions> {
 
         const terr = {...defaultTerrainMaterial};
         this.terrainUniforms = terr;
-        this.terrainUniformGroup = new UniformGroup(terr, true);
+        this.terrainUniformGroup = new UniformGroup(terr, false);
 
         this.texture_n = options.texture_n || null;
         this.opaque = options.opaque || false;
@@ -66,13 +66,13 @@ export class BaseMaterial implements Required<ITerrainMaterialOptions> {
 
     beforeBind()
     {
+        const {terrainUniforms} = this;
         this.state.depthMask = this.opaque || !(this.shader as any).fluidFlags;
-        this.terrainUniforms.u_opaqueThreshold = this.opaque ? 0.5 : 0.0;
+        terrainUniforms.u_opaqueThreshold = this.opaque ? 0.5 : 0.0;
 
         const tex = this.texture || (this.shader as any).texture;
         if (tex && tex !== this._texture) {
             this._texture = tex;
-            const {terrainUniforms} = this;
             const style = tex.style || TerrainTextureUniforms.default;
             terrainUniforms.u_blockSize = style.blockSize;
             terrainUniforms.u_pixelSize = style.pixelSize;

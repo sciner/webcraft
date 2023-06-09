@@ -45,11 +45,4 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         ]);
         fluidStatic.uniforms.u_fluidFrames = new Int32Array([32, 32]);
     }
-
-    locateAttribs() {
-        this.a_blockId       = this.getAttribLocation('a_blockId');
-        this.a_fluidId       = this.getAttribLocation('a_fluidId');
-        this.a_height        = this.getAttribLocation('a_height');
-        this.a_color         = this.getAttribLocation('a_color');
-    }
 }
