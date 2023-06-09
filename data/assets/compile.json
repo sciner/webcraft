@@ -4974,16 +4974,17 @@
         },
         {
             "id": 604,
-            "name": "CAVE_VINE",
+            "name": "CAVE_VINES",
             "passable": 1,
             "transparent": true,
-            "spawnable": false,
+            "_spawnable": false,
             "style": "planting",
             "sound": "madcraft:block.cave_vine",
             "material": {
                 "id": "plant"
             },
             "tags": [
+                "no_need_dirt",
                 "is_hanging_plant",
                 "destroy_to_down"
             ],
@@ -4995,6 +4996,10 @@
             },
             "texture": {
                 "side": "./textures/cave_vines_plant.png"
+            },
+            "extra_data": {
+                "part": 1,
+                "ripe": false
             },
             "hanging_textures": [
                 {
@@ -12257,13 +12262,14 @@
             "name": "GLOWING_HANGING_LIANA",
             "passable": 1,
             "transparent": true,
-            "spawnable": false,
+            "_spawnable": false,
             "style": "planting",
             "sound": "madcraft:block.cave_vine",
             "material": {
                 "id": "plant"
             },
             "tags": [
+                "no_need_dirt",
                 "is_hanging_plant",
                 "destroy_to_down"
             ],
@@ -12275,6 +12281,10 @@
             },
             "texture": {
                 "side": "block/glowing_hanging_liana/glowingplant_base.png"
+            },
+            "extra_data": {
+                "part": 2,
+                "ripe": false
             },
             "hanging_textures": [
                 {

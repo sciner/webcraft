@@ -2439,8 +2439,9 @@ function restrictPlanting(e, world, pos, player, world_block, world_material, ma
     if(!mat_block.planting) {
         return false;
     }
-    const underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
-    if(!underBlock) {
+    const check_y = mat_block.tags.includes('is_hanging_plant') ? 1 : -1
+    const bamement_block = world.getBlock(new Vector(pos.x, pos.y + check_y, pos.z))
+    if(!bamement_block) {
         return true;
     }
     // водное растение
@@ -2449,22 +2450,28 @@ function restrictPlanting(e, world, pos, player, world_block, world_material, ma
         if (!block || (block.fluid & FLUID_TYPE_MASK) != FLUID_WATER_ID) {
             return true
         }
-        if(![BLOCK.DIRT.id, BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id].includes(underBlock.id)) {
+        if(![BLOCK.DIRT.id, BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id].includes(bamement_block.id)) {
             return true
         }
     }
     // дикие семена
-    if(mat_block.id == BLOCK.SWEET_BERRY_BUSH.id && [BLOCK.PODZOL.id, BLOCK.COARSE_DIRT.id, BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
+    if(mat_block.id == BLOCK.SWEET_BERRY_BUSH.id && [BLOCK.PODZOL.id, BLOCK.COARSE_DIRT.id, BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(bamement_block.id)) {
         return false
     }
-    if(![BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
-        return true;
+    if(mat_block.tags.includes('no_need_dirt')) {
+        if(!bamement_block.material.is_solid) {
+            return true
+        }
+    } else {
+        if(![BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(bamement_block.id)) {
+            return true
+        }
+        // Посадить семена можно только на вспаханную землю
+        if(mat_block.seeds && ![BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(bamement_block.id)) {
+            return true
+        }
     }
-    // Посадить семена можно только на вспаханную землю
-    if(mat_block.seeds && ![BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
-        return true;
-    }
-    return false;
+    return false
 }
 
 //
