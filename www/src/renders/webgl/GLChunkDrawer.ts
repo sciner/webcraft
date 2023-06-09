@@ -88,7 +88,7 @@ export class GLChunkDrawer extends ChunkDrawer {
             if (geom.batchStatus > 0) {
                 offsets[sz] = geom.batchStart;
                 counts[sz] = geom.sizeQuads;
-                if ((offsets[sz] + counts[sz]) * curVao.stride > curVao.buffer.glLength) {
+                if ((offsets[sz] + counts[sz]) * curVao.stride > curVao.buffer.byteLength) {
                     console.log("glOffsets problem");
                 }
                 sz++;
@@ -96,7 +96,7 @@ export class GLChunkDrawer extends ChunkDrawer {
                 for (let j = 0; j < len; j++) {
                     offsets[sz] = geom.glOffsets[j];
                     counts[sz] = geom.glCounts[j];
-                    if ((offsets[sz] + counts[sz]) * curVao.stride > curVao.buffer.glLength) {
+                    if ((offsets[sz] + counts[sz]) * curVao.stride > curVao.buffer.byteLength) {
                         console.log("glOffsets problem");
                     }
                     sz++;
@@ -143,6 +143,7 @@ export class GLChunkDrawer extends ChunkDrawer {
                         offsetsInt, 0,
                         sz,
                     );
+                    // pixiRender.geometry.draw(DRAW_MODES.TRIANGLES, 3, 0);
                 } else {
                     md.multiDrawArraysWEBGL(
                         gl.TRIANGLES,

@@ -487,6 +487,8 @@ export class BaseRenderer {
         target = null,
         viewport = null
     }) {
+        this.batch.flush();
+        this.resetState();
         if (target && !target.valid) {
             throw 'Try bound invalid RenderTarget';
         }
