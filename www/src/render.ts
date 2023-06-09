@@ -1070,7 +1070,6 @@ export class Renderer {
                 }
             }
         }
-        renderList.checkFence();
         this.lightUniforms.popOverride();
 
         if(this._debug_aabb.length > 0) {

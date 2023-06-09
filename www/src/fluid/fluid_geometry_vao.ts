@@ -1,7 +1,6 @@
 import type {GeometryVaoOptions} from "../geom/base_geometry_vao.js";
 import {BaseGeometryVao} from "../geom/base_geometry_vao.js";
 import {TYPES} from "vauxcel";
-import {GeometryTerrain} from "../geometry_terrain";
 
 export class FluidGeometryVao extends BaseGeometryVao {
     static strideFloats = 16;

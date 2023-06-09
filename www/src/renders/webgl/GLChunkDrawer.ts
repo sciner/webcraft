@@ -1,4 +1,5 @@
 import {ChunkDrawer} from "../batch/ChunkDrawer.js";
+import {DRAW_MODES} from "vauxcel";
 
 export class GLChunkDrawer extends ChunkDrawer {
     [key: string]: any;
@@ -34,7 +35,7 @@ export class GLChunkDrawer extends ChunkDrawer {
         if (geom.size === 0 || geom.glCounts && geom.glCounts.length === 0) {
             return;
         }
-        let gl = context.gl;
+        const {pixiRender} = context;
 
         const baseGeom = geom.baseGeometry;
         if (baseGeom) {
@@ -54,8 +55,7 @@ export class GLChunkDrawer extends ChunkDrawer {
             material.shader.updatePos(chunk.coord, null);
             material.bind();
             geom.bind(material.shader);
-            //TODO: find why some chunks are using chunkID = -1, remove this line
-            gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, geom.size);
+            pixiRender.geometry.draw(DRAW_MODES.TRIANGLES, 6, 0, geom.size);
             // stat
             context.stat.drawquads += geom.size;
             context.stat.drawcalls++;
@@ -67,6 +67,7 @@ export class GLChunkDrawer extends ChunkDrawer {
             return;
         }
         let {elements, context, offsets, offsetsInt, counts} = this;
+        const {pixiRender} = context;
         let sz = 0;
         let curVao = this.curVao;
         for (let i = 0; i < this.count; i++) {
@@ -107,23 +108,12 @@ export class GLChunkDrawer extends ChunkDrawer {
         const {arrZeros, arrSixes} = this;
 
         if (curVao.hasInstance) {
+            pixiRender.geometry.multiDrawArraysBVBI(DRAW_MODES.TRIANGLES,
+                arrZeros, arrSixes, counts, offsets, sz);
             if (mdb) {
-                mdb.multiDrawArraysInstancedBaseInstanceWEBGL(
-                    gl.TRIANGLES,
-                    arrZeros, 0,
-                    arrSixes, 0,
-                    counts, 0,
-                    offsets, 0,
-                    sz,
-                );
                 context.stat.multidrawcalls++;
             } else {
-                //Instance fetch requires 2910, but attribs only supply 0.
-                for (let i = 0; i < sz; i++) {
-                    curVao.attribBufferPointers(offsets[i]);
-                    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, counts[i]);
-                    context.stat.drawcalls++;
-                }
+                context.stat.drawcalls += sz;
             }
         } else {
             // multi draw arrays

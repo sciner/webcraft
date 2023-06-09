@@ -105,18 +105,6 @@ export class ChunkRenderList {
         }
     }
 
-    checkFence() {
-        let baseGeom = (this.bufferPool as any)?.baseGeometry;
-        if (baseGeom) {
-            baseGeom.checkFence();
-        }
-        baseGeom = (this.chunkManager.fluidWorld.mesher.renderPool as any)?.baseGeometry;
-        if (baseGeom) {
-            baseGeom.checkFence();
-        }
-    }
-
-
     /**
      * highly optimized
      */

@@ -42,7 +42,8 @@ export class BaseGeometryVao extends Geometry {
         }
     }
 
-    init() {
+    init(context: BaseRenderer) {
+        this.context = context;
         this.initBuffer();
         this.initAttributes();
     }
@@ -65,7 +66,7 @@ export class BaseGeometryVao extends Geometry {
             return;
         }
         pixiRender.geometry.swapAndCopyBuffer(this, 0, this.newBuffer);
-        this.staticDraw.buffer = this.staticDraw.newBuffer;
+        this.buffer = this.newBuffer;
     }
 
     resize(instances) {
@@ -96,9 +97,6 @@ export class BaseGeometryVao extends Geometry {
     bindForDraw() {
         this.drawBindCount++;
         this.context.pixiRender.geometry.bind(this);
-        if (this.buffer.bigResize) {
-            // this.buffer.bigResize = false;
-        }
     }
 
     bind() {

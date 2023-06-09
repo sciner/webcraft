@@ -45,9 +45,6 @@ export class BaseBigGeometry {
     bind() {
         const geom = this.staticDraw;
         geom.bindForDraw();
-        if (geom.hasInstance && !this.context.multidrawBaseExt) {
-            geom.buffer.bind();
-        }
     }
 
     upload(shader) {
@@ -57,8 +54,8 @@ export class BaseBigGeometry {
         if (!this.context) {
             this.context = shader.context;
             // when WebGL
-            staticDraw.init();
-            dynamicDraw.init();
+            staticDraw.init(this.context);
+            dynamicDraw.init(this.context);
         }
         const { pixiRender } = this.context;
 
@@ -71,17 +68,10 @@ export class BaseBigGeometry {
             batch.updDynamic();
         }
 
-        //TODO: batch copy here
-        // if (this.useTransformFeedback) {
-        //     batch.preFlip();
-        //     sillyDraw.batchUpdate(batch.vao.buffer, staticDraw.buffer, batch.copyOps, staticDraw.stride);
-        //     batch.reset();
-        // }
-        // else {
-        //     batch.preFlip();
-        //     staticDraw.buffer.batchUpdate(batch.vao.buffer, batch.copyOps, staticDraw.stride);
-        //     batch.reset();
-        // }
+        batch.preFlip();
+        pixiRender.geometry.copier.doCopy(pixiRender, dynamicDraw.buffer,
+            staticDraw.buffer, staticDraw.stride, batch.copyOps.arr, batch.copyOps.count)
+        batch.reset();
     }
 
     resize(newSize) {

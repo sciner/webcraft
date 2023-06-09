@@ -18,11 +18,6 @@ export class WebGLLineShader extends BaseLineShader {
     }
 
     locateAttribs() {
-        this.a_point1           = this.getAttribLocation('aPoint1');
-        this.a_point2           = this.getAttribLocation('aPoint2');
-        this.a_lineWidth        = this.getAttribLocation('aLineWidth');
-        this.a_color            = this.getAttribLocation('aColor');
-        this.a_quad             = this.getAttribLocation('aQuad');
     }
 
     bind(force = false) {

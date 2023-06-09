@@ -1,13 +1,15 @@
 import {Vector} from "../helpers.js";
 import type { BaseRenderer } from "../renders/BaseRenderer.js";
+import {Buffer, Geometry, TYPES} from 'vauxcel';
 
 const MIN_LINES_COUNT = 12
 const STRIDE_FLOATS = 8
 
-export class LineGeometry {
+export class LineGeometry extends Geometry {
     [key: string]: any;
 
     constructor() {
+        super();
         // убрал, для уменьшения объема оперативной памяти
         // this.vertices = vertices;
         this.updateID = 0;
@@ -16,24 +18,12 @@ export class LineGeometry {
         this.stride = this.strideFloats * 4;
 
         this.resize(MIN_LINES_COUNT);
-        /**
-         *
-         * @type {BaseBuffer}
-         */
-        this.buffer = null;
-        /**
-         *
-         * @type {BaseBuffer}
-         */
-        this.quad = null;
-        this.vao = null;
+        this.buffer = new Buffer(this.data, true);
         /**
          *
          * @type {BaseRenderer}
          */
         this.context = null;
-
-        this.buffers = [];
 
         this.pos = new Vector();
 
@@ -44,6 +34,8 @@ export class LineGeometry {
         this.defLineWidth = .5;
         this.defAABBWidth = .5;
         this.defGridWidth = .3;
+
+        this.initGeom();
     }
 
     resize(cnt : int) {
@@ -53,79 +45,24 @@ export class LineGeometry {
         this.uint32View = new Uint32Array(this.data.buffer);
         if (oldData) {
             this.data.set(oldData, 0);
+            this.buffer?.update(this.data);
         }
     }
 
-    createVao() {
-        const {attribs, gl, stride} = this;
-        this.vao = gl.createVertexArray();
-        gl.bindVertexArray(this.vao);
-
-        gl.enableVertexAttribArray(attribs.a_point1);
-        gl.enableVertexAttribArray(attribs.a_point2);
-        gl.enableVertexAttribArray(attribs.a_lineWidth);
-        gl.enableVertexAttribArray(attribs.a_color);
-        gl.enableVertexAttribArray(attribs.a_quad);
-
-        this.buffer.bind();
-        gl.vertexAttribPointer(attribs.a_point1, 3, gl.FLOAT, false, stride, 0);
-        gl.vertexAttribPointer(attribs.a_point2, 3, gl.FLOAT, false, stride, 3 * 4);
-        gl.vertexAttribPointer(attribs.a_lineWidth,  1, gl.FLOAT, false, stride, 6 * 4);
-        gl.vertexAttribPointer(attribs.a_color, 4, gl.UNSIGNED_BYTE, true, stride, 7 * 4);
-
-        gl.vertexAttribDivisor(attribs.a_point1, 1);
-        gl.vertexAttribDivisor(attribs.a_point2, 1);
-        gl.vertexAttribDivisor(attribs.a_lineWidth, 1);
-        gl.vertexAttribDivisor(attribs.a_color, 1);
-
-        this.quad.bind();
-        gl.vertexAttribPointer(attribs.a_quad, 2, gl.FLOAT, false, 2 * 4, 0);
+    initGeom() {
+        const {stride, buffer} = this;
+        this.addAttribute('a_point1', buffer, 3, false,undefined, stride, 0, 1);
+        this.addAttribute('a_point2', buffer, 3, false, undefined, stride, 3 * 4, 1);
+        this.addAttribute('a_lineWidth', buffer, 1, false, undefined, stride, 6 * 4, 1);
+        this.addAttribute('a_color', buffer, 4, true, TYPES.UNSIGNED_BYTE, stride, 7 * 4, 1);
+        this.addAttribute('a_quad', LineGeometry.quadBuf, 2);
     }
 
     bind(shader) {
         if (shader) {
-            this.attribs = shader;
             this.context = shader.context;
-            // when WebGL
-            this.gl = shader.context.gl;
         }
-
-        if (!this.buffer) {
-            this.buffer = this.context.createBuffer({
-                data: this.data,
-                usage: 'static',
-            });
-            // this.data = null;
-            this.quad = LineGeometry.bindQuad(this.context, true);
-            this.buffers = [
-                this.buffer,
-                this.quad
-            ];
-        }
-
-        const {gl} = this;
-
-        if (gl) {
-            if (!this.vao) {
-                this.createVao();
-                this.uploadID = this.updateID;
-                return;
-            }
-
-            gl.bindVertexArray(this.vao);
-        }
-
-        if (this.uploadID === this.updateID) {
-            return;
-        }
-
-        this.uploadID = this.updateID;
-
-        this.buffer.data = this.data;
-
-        if (gl) {
-            this.buffer.updatePartial(this.instances * this.strideFloats);
-        }
+        this.context.pixiRender.geometry.bind(this);
     }
 
     clear() {
@@ -159,7 +96,7 @@ export class LineGeometry {
         }
         data[ind++] = lineWidth;
         uint32View[ind++] = colorABGR;
-        this.updateID++;
+        this.buffer?.update();
     }
 
     addLine(vec1, vec2, {
@@ -261,17 +198,7 @@ export class LineGeometry {
 
     destroy() {
         // we not destroy it, it shared
-        this.quad = null;
-
-        if (this.buffer) {
-            this.buffer.destroy();
-            this.buffer = null;
-        }
-
-        if (this.vao) {
-            this.gl.deleteVertexArray(this.vao);
-            this.vao = null;
-        }
+        super.destroy();
     }
 
     draw(render : BaseRenderer) {
@@ -279,26 +206,12 @@ export class LineGeometry {
         render.line.draw(this);
     }
 
-    static bindQuad(context, noBind = false) {
-        const {globalBufs} = context;
-        if (globalBufs.lineGeom) {
-            globalBufs.lineGeom.bind();
-            return globalBufs.lineGeom;
-        }
-
-        const quadBuf = globalBufs.lineGeom = context.createBuffer({
-            data: new Float32Array([
-                0., -1.,
-                1., -1.,
-                1., 1.,
-                0., -1.,
-                1., 1.,
-                0., 1.]
-            ),
-            usage: 'static'
-        });
-
-        !noBind && quadBuf.bind();
-        return quadBuf;
-    }
+    static quadBuf = new Buffer(new Float32Array([
+        0., -1.,
+        1., -1.,
+        1., 1.,
+        0., -1.,
+        1., 1.,
+        0., 1.]
+    ), true);
 }

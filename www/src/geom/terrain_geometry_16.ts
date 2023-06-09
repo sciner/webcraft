@@ -1,5 +1,6 @@
 import {GeometryTerrain, QuadAttr} from "../geometry_terrain.js";
 import {Geometry, TYPES} from "vauxcel";
+import type {BaseShader} from "../renders/BaseShader.js";
 
 export class GeometryTerrain16 extends Geometry {
     [key: string]: any;
@@ -73,10 +74,13 @@ export class GeometryTerrain16 extends Geometry {
         this.addAttribute('a_quad', GeometryTerrain.quadBuf, 2, false, undefined, 2 * 4, 0);
     }
 
-    bind() {
+    bind(shader: BaseShader) {
+        if (shader) {
+            this.context = shader.context;
+        }
         if (this.uploadID !== this.updateID) {
             this.uploadID = this.updateID;
-            this.buffer.update();
+            this.buffer.update(this.data);
         }
         this.context.pixiRender.geometry.bind(this);
     }

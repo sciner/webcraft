@@ -1,5 +1,6 @@
 import {IndexedColor} from './helpers.js';
 import {Buffer, Geometry, TYPES} from 'vauxcel';
+import type {BaseShader} from "./renders/BaseShader.js";
 
 export class QuadAttr {
     [key: string]: any;
@@ -62,8 +63,8 @@ export class GeometryTerrain extends Geometry {
          *
          * @type {BaseBuffer}
          */
-        this.buffer = null;
-        this.bufferChunkIds = null;
+        this.buffer = new Buffer(this.data, true);
+        this.bufferChunkIds = new Buffer(this.chunkIds, true);
         /**
          *
          * @type {BaseBuffer}
@@ -149,10 +150,13 @@ export class GeometryTerrain extends Geometry {
         this.addAttribute('a_quad', GeometryTerrain.quadBuf, 2, false, undefined, 2 * 4, 0);
     }
 
-    bind() {
+    bind(shader: BaseShader) {
+        if (shader) {
+            this.context = shader.context;
+        }
         if (this.uploadID !== this.updateID) {
             this.uploadID = this.updateID;
-            this.buffer.update();
+            this.buffer.update(this.data);
         }
         this.context.pixiRender.geometry.bind(this);
     }

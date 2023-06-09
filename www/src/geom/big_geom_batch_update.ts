@@ -1,6 +1,6 @@
-import type { BaseBigGeometry } from "./base_big_geometry";
-import type {BaseGeometryVao} from "./base_geometry_vao";
-import type {TerrainSubGeometry} from "./terrain_sub_geometry";
+import type { BaseBigGeometry } from "./base_big_geometry.js";
+import type {BaseGeometryVao} from "./base_geometry_vao.js";
+import type {TerrainSubGeometry} from "./terrain_sub_geometry.js";
 import {IvanArray} from "../helpers.js";
 import {SimplePool} from "../helpers/simple_pool.js";
 import {BufferCopyOperation} from "vauxcel";
@@ -127,7 +127,11 @@ export class BigGeomBatchUpdate {
             }
             let pos = copy.batchStart;
             for (let j = 0; j < copy.glCounts.length; j++) {
-                copyOps.push(bufferCopyOpPool.alloc().set(pos, copy.glOffsets[j], copy.glCounts[j]));
+                const op = bufferCopyOpPool.alloc();
+                copyOps.push(op);
+                op.src = pos;
+                op.dst = copy.glOffsets[j];
+                op.count = copy.glCounts[j];
                 pos += copy.glCounts[j];
             }
         }
