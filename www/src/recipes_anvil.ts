@@ -107,9 +107,9 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
 
                 const result = ObjectHelpers.deepClone(first_item)
                 result.count = 1
-                // @todo небольшой костыль
-                const first_block = BLOCK.fromId(result.id)
-                result.power += first_block.power * .3 
+                // @todo отключено изменение power
+                //const first_block = BLOCK.fromId(result.id)
+                //result.power += first_block.power * .3 
                 ItemHelpers.setExtraDataField(result, 'upgrades', upgrades)
                 ItemHelpers.setLabel(result, 'Diamond Coating')
                 return result
@@ -172,7 +172,7 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                 }
                 // удаляем все модификации
                 ItemHelpers.deleteExtraDataField(result, 'upgrades')
-                //ItemHelpers.incrementExtraDataField(result, 'age', 1);
+                ItemHelpers.incrementExtraDataField(result, 'age', 1);
                 return result;
             }
         );
