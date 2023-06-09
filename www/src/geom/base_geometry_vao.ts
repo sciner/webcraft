@@ -70,13 +70,14 @@ export class BaseGeometryVao extends Geometry {
         pixiRender.geometry.swapAndCopyBuffer(this, 0, this.newBuffer);
         this.buffer.dispose();
         this.buffer = this.newBuffer;
+        this.newBuffer = null;
     }
 
     resize(instances) {
         if (this.bufferType === VAO_BUFFER_TYPE.BIG) {
             if (Object.keys(this.buffer._glBuffers).length > 0) {
                 if (!this.newBuffer) {
-                    this.newBuffer = new Buffer(null, false);
+                    this.newBuffer = new Buffer(null, true);
                 }
                 this.newBuffer.byteLength = instances * this.stride;
             } else {
@@ -86,7 +87,7 @@ export class BaseGeometryVao extends Geometry {
             const oldData = this.data;
             this.data = new Float32Array(instances * this.strideFloats);
             this.data.set(oldData, 0);
-            this.buffer.data = this.data;
+            this.buffer.update(this.data);
         }
         this.size = instances;
     }
