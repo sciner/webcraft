@@ -1,5 +1,5 @@
 import {GeometryTerrain, QuadAttr} from "../geometry_terrain.js";
-import {Geometry, TYPES} from "vauxcel";
+import {Geometry, TYPES, Buffer} from "vauxcel";
 import type {BaseShader} from "../renders/BaseShader.js";
 
 export class GeometryTerrain16 extends Geometry {
@@ -29,7 +29,7 @@ export class GeometryTerrain16 extends Geometry {
          *
          * @type {BaseBuffer}
          */
-        this.buffer = null;
+        this.buffer = new Buffer(this.data, true);
         /**
          *
          * @type {BaseBuffer}
