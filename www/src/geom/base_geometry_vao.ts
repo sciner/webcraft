@@ -30,6 +30,7 @@ export class BaseGeometryVao extends Geometry {
     buffer: Buffer = null;
     hasInstance = false;
     newBuffer: Buffer = null;
+    dataDirty = false;
 
     constructor({size = 128, strideFloats = 0, bufferType = VAO_BUFFER_TYPE.BIG}: GeometryVaoOptions) {
         super();
@@ -50,10 +51,11 @@ export class BaseGeometryVao extends Geometry {
 
     initBuffer() {
         if (this.bufferType == VAO_BUFFER_TYPE.BIG) {
-            this.buffer = new Buffer(null, false);
+            this.buffer = new Buffer(null, true);
+            this.buffer.data = null;
             this.buffer.byteLength = this.size * this.stride;
         } else {
-            this.buffer = new Buffer(this.data, true);
+            this.buffer = new Buffer(this.data, false);
         }
     }
 
@@ -66,6 +68,7 @@ export class BaseGeometryVao extends Geometry {
             return;
         }
         pixiRender.geometry.swapAndCopyBuffer(this, 0, this.newBuffer);
+        this.buffer.dispose();
         this.buffer = this.newBuffer;
     }
 

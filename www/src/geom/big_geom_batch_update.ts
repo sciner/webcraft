@@ -39,9 +39,7 @@ export class BigGeomBatchUpdate {
         const f32 = new Float32Array(ab);
         this.data.set(f32, this.instCount * this.strideFloats);
         this.instCount += f32.length / this.strideFloats;
-        if (this.vao.buffer) {
-            this.vao.buffer.dirty = true;
-        }
+        this.vao.dataDirty = true;
     }
 
     reset() {
@@ -175,6 +173,7 @@ export class BigGeomBatchUpdate {
     }
 
     updDynamic() {
-        this.vao.buffer.data = this.data.slice(0, this.instCount * this.strideFloats);
+        this.vao.buffer.update(this.data.slice(0, this.instCount * this.strideFloats));
+        this.vao.dataDirty = false;
     }
 }

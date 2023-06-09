@@ -64,7 +64,7 @@ export class BaseBigGeometry {
         if (batch.instCount === 0) {
             return;
         }
-        if (dynamicDraw.buffer?.dirty) {
+        if (dynamicDraw.dataDirty) {
             batch.updDynamic();
         }
 
