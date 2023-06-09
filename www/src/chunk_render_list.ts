@@ -58,6 +58,7 @@ export class ChunkRenderList {
             if (geomMode === CHUNK_GEOMETRY_MODE.BIG_NO_MULTIDRAW) {
                 // testing mode, act like there's no multidraw support
                 render.renderBackend.multidrawBaseExt = null;
+                render.renderBackend.pixiRender.context.extensions.md_bvbi = null;
             }
         }
 
