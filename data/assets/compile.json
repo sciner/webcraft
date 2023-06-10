@@ -4910,7 +4910,7 @@
                 "down": "./textures/pointed_dripstone_base.png"
             },
             "extra_data": {
-                "up": true,
+                "up": false,
                 "base": false,
                 "merge": false,
                 "middle": false,

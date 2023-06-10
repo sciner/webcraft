@@ -49,9 +49,9 @@ type DropItemParams = {
 
 const upholstery_types = {
     // черепица для скосов
-    'clay_shingles': ['slope'],
+    'clay_shingles': {list: ['slope'], can_set_as_block: false},
     // шерсть для стульев и табуреток
-    'wool': ['chair', 'stool'],
+    'wool': {list: ['chair', 'stool'], can_set_as_block: true},
 }
 
 export type ActivateMobParams = {
@@ -2956,8 +2956,8 @@ function setUpholstery(e, world, pos, player, world_block, world_material, mat_b
     let resp = false
     for(const [type, block_types] of Object.entries(upholstery_types)) {
         if(mat_block.tags.includes(type)) {
-            resp = true
-            if(block_types.includes(world_material.style_name)) {
+            resp = !block_types.can_set_as_block
+            if(block_types.list.includes(world_material.style_name)) {
                 if(extra_data.is_head) {
                     pos = new Vector(0, -1, 0).add(pos)
                     world_block = world.getBlock(pos)
@@ -2993,7 +2993,7 @@ function setUpholstery(e, world, pos, player, world_block, world_material, mat_b
 // Remove upholstery
 function removeUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     for(const [type, block_types] of Object.entries(upholstery_types)) {
-        if(world_material && block_types.includes(world_material.style_name)) {
+        if(world_material && block_types.list.includes(world_material.style_name)) {
             if(extra_data.is_head) {
                 pos = new Vector(0, -1, 0).addSelf(pos)
                 world_block = world.getBlock(pos)
