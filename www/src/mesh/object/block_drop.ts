@@ -7,6 +7,7 @@ import { MAX_DIST_FOR_PICKUP } from '../../constant.js';
 import type { Player } from '../../player.js';
 import type { World } from '../../world.js';
 import type { Renderer } from '../../render.js';
+import {Enchantments} from "../../enchantments.js";
 
 const MAX_FLY_TIME              = 200; // ms
 const MAX_FLY_SPEED             = 12; // m/s
@@ -117,7 +118,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
             // mat4.rotateZ(matrix, matrix, Math.PI / 6)
             this.mesh_group.buildVertices(x, y, z, true, matrix, pivot)
 
-            if(block?.extra_data?.enchantments) {
+            if(Enchantments.getVisualEffect(block)) {
                 for(const mesh of this.mesh_group.meshes.values()) {
                     mesh.buffer.changeFlags(QUAD_FLAGS.FLAG_ENCHANTED_ANIMATION, 'or')
                 }

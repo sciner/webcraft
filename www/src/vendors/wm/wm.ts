@@ -13,6 +13,7 @@ import { Lang } from "../../lang.js";
 import { Resources } from "../../resources.js";
 import { KEY } from "../../constant.js";
 import type { SpriteAtlas } from "../../core/sprite_atlas.js";
+import {Enchantments} from "../../enchantments.js";
 
 /**
  * catchEvents = true
@@ -1557,7 +1558,8 @@ export class SimpleBlockSlot extends Window {
         if(item) {
 
             const mat = BLOCK.fromId(item.id)
-            const tintMode = item.extra_data?.enchantments ? 1 : 0
+            const tintMode = Enchantments.getVisualEffect(item) ? 1 : 0
+            const maxPower = Enchantments.getMaxPower(mat, item)
 
             this.setBackground(hud_atlas.getSpriteFromMap(this.slot_full))
             this.setIcon(getBlockImage(item), 'centerstretch', 1.0, tintMode)
@@ -1566,16 +1568,16 @@ export class SimpleBlockSlot extends Window {
             label = item.count > 1 ? item.count : null
             if(!label && 'power' in item) {
                 if(power_in_percent) {
-                    label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%'
+                    label = Mth.round(item.power / maxPower * 100, 2) + '%'
                 } else {
                     label = null
                 }
             }
 
             // draw instrument life
-            this.bar.visible = (mat.has_powerbar && item.power < mat.power) || power_in_percent
+            this.bar.visible = (mat.has_powerbar && item.power < maxPower) || power_in_percent
             if(this.bar.visible) {
-                const percent = Math.max(Math.min(item.power / mat.power, 1), 0)
+                const percent = Math.max(Math.min(item.power / maxPower, 1), 0)
                 const sprites = ['tooldmg_3', 'tooldmg_2', 'tooldmg_1']
                 const index = Math.round(Math.min(sprites.length * percent, .999))
                 const bar_value_sprite = hud_atlas.getSpriteFromMap(sprites[index])

@@ -11,6 +11,7 @@ import type {BaseResourcePack} from "./base_resource_pack.js";
 import { MASK_SRC_AO, MASK_SRC_BLOCK, MASK_SRC_DAYLIGHT, MASK_SRC_NONE } from './worker-light/LightConst.js';
 import { MASK_SRC_FILTER } from './worker-light/LightConst.js';
 import {AABB} from "./core/AABB.js";
+import {Enchantments} from "./enchantments.js";
 
 export const TRANS_TEX                      = [4, 12]
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64
@@ -451,19 +452,20 @@ export class BLOCK {
                 return null;
             }
         }
-        // power
+        // extra_data (only type)
+        if (item.extra_data && typeof item.extra_data === 'object') {
+            // copy it even if (b.extra_data == null) to allow naming any item.
+            resp.extra_data = item.extra_data;
+        }
+        // power - после extra_data, чтобы учесть зачарования
         if (b.power) {
             if (typeof item.power !== 'number' || !item.power) {
                 // fix old invalid instruments power
                 resp.power = b.power;
             } else {
-                resp.power = Math.min(b.power, Math.max(1, Math.floor(item.power)));
+                const maxPower = Enchantments.getMaxPower(b, resp)
+                resp.power = Math.min(maxPower, Math.max(1, Math.floor(item.power)));
             }
-        }
-        // extra_data (only type)
-        if (item.extra_data && typeof item.extra_data === 'object') {
-            // copy it even if (b.extra_data == null) to allow naming any item.
-            resp.extra_data = item.extra_data;
         }
         return resp;
     }

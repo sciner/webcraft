@@ -3,7 +3,6 @@ import { ItemHelpers } from "./block_helpers.js";
 import { ObjectHelpers } from "./helpers.js";
 import { Enchantments } from "./enchantments.js"
 import type { IRecipeManager } from "./inventory_comparator.js";
-import  Upgrade  from "./enums/upgrade.js";
 
 const REPAIR_PER_INGREDIENT = 0.25;
 const REPAIR_PER_COMBINE_BONUS = 0.12;
@@ -55,6 +54,15 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
     private recipes = new Map<string, TAnvilRecipe>()
 
     constructor() {
+
+        function updatePower(block: IBlockMaterial, item: IInventoryItem, oldItem: IInventoryItem): void {
+            if (block.power) {
+                const oldMaxPower = Enchantments.getMaxPower(block, oldItem)
+                const maxPower = Enchantments.getMaxPower(block, item)
+                item.power = Math.min(maxPower, Math.round(item.power * maxPower / oldMaxPower))
+            }
+        }
+
         this.addRecipe('rename',
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
                      label: string | null, outUsedCount: int[]): IInventoryItem | null
@@ -76,42 +84,32 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
             }
         );
 
-        this.addRecipe('craft',
+        this.addRecipe('upgrade',
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
                      label: string | null, outUsedCount: int[]): IInventoryItem | null
             {
-                if (first_item == null || second_item == null || second_item.id != BLOCK.DIAMOND_DUST.id) {
+                // проверить можно ли улучшить
+                if (first_item == null || second_item == null) {
                     return null
                 }
-                // покрывать можно только один раз, на каких предметах можно использовать
-                if (first_item?.extra_data?.upgrades || !Upgrade.isCompatible(first_item)) {
+                const secondBlock = BLOCK.fromId(second_item.id)
+                const enchantment = Enchantments.upgradeByBlock[secondBlock.name]
+                if (enchantment == null ||
+                    !Enchantments.isCompatibleType(first_item, enchantment) ||
+                    Enchantments.hasIncompatible(first_item, enchantment)
+                ) {
                     return null
                 }
-                const upgrades = [
-                    {
-                        lvl: .3,
-                        id: Upgrade.SPEED
-                    },
-                    {
-                        lvl: .3,
-                        id: Upgrade.POWER
-                    },
-                    {
-                        lvl: .3,
-                        id: Upgrade.DAMAGE
-                    }
-                ]
 
                 outUsedCount[0] = 1
                 outUsedCount[1] = 1
 
+                // создать результат
+                const firstBlock = BLOCK.fromId(first_item.id)
                 const result = ObjectHelpers.deepClone(first_item)
                 result.count = 1
-                // @todo небольшой костыль
-                const first_block = BLOCK.fromId(result.id)
-                result.power += first_block.power * .3 
-                ItemHelpers.setExtraDataField(result, 'upgrades', upgrades)
-                ItemHelpers.setLabel(result, 'Diamond Coating')
+                Enchantments.setLevelById(result, enchantment.id, 1)
+                updatePower(firstBlock, result, first_item)
                 return result
             }
         );
@@ -126,8 +124,8 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                 }
                 const power = first_item.power;
                 const firstBlock = BLOCK.fromId(first_item.id);
-                const maxPower = firstBlock.power;
-                if (!power || !maxPower || power >= maxPower) {
+                const maxPower = Enchantments.getMaxPower(firstBlock, first_item)
+                if (power == null || !maxPower || power >= maxPower) {
                     return null;
                 }
                 if (label !== ItemHelpers.LABEL_NO_CHANGE && label !== null) {
@@ -170,8 +168,8 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                 if (label !== ItemHelpers.LABEL_NO_CHANGE) {
                     ItemHelpers.setLabel(result, label);
                 }
-                // удаляем все модификации
-                ItemHelpers.deleteExtraDataField(result, 'upgrades')
+                Enchantments.remove(result, ench => ench.upgrade_by_block)  // удаляем все модификации
+                updatePower(firstBlock, result, first_item)
                 //ItemHelpers.incrementExtraDataField(result, 'age', 1);
                 return result;
             }
@@ -182,7 +180,6 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
             function(first_item: IInventoryItem | null, second_item: IInventoryItem | null,
                      label: string | null, outUsedCount: int[]): IInventoryItem | null
             {
-                return null // отключено
                 if (first_item == null || second_item == null) {
                     return null;
                 }
@@ -197,24 +194,14 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                 const result = ObjectHelpers.deepClone(first_item);
                 let changed = false;
 
-                // check if we can repair
-                const power = first_item.power;
-                const firstBlock = BLOCK.fromId(first_item.id);
-                const maxPower = firstBlock.power;
-                if (power && maxPower && power < maxPower && second_item.power) {
-                    const increment = second_item.power + Math.floor(maxPower * REPAIR_PER_COMBINE_BONUS);
-                    result.power = Math.min(maxPower, power + increment);
-                    changed = true;
-                }
-
                 // check if we can add enchantments
                 const first_enchantments = result.extra_data?.enchantments ?? {};
                 const second_enchantments = second_item.extra_data?.enchantments;
                 if (second_enchantments) {
                     for(const id in second_enchantments) {
                         const enchantment = Enchantments.byId[id];
-                        if (!enchantment) {
-                            continue; // skip invalid id
+                        if (!enchantment || enchantment.upgrade_by_block) {
+                            continue; // пропустить несуществующие id и апгрейды
                         }
                         const first_level = first_enchantments[id] ?? 0;
 
@@ -243,6 +230,16 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                     }
                 }
 
+                // check if we can repair
+                const power = first_item.power;
+                const firstBlock = BLOCK.fromId(first_item.id);
+                const maxPower = Enchantments.getMaxPower(firstBlock, result)
+                if (power != null && maxPower && power < maxPower && second_item.power) {
+                    const increment = second_item.power + Math.floor(maxPower * REPAIR_PER_COMBINE_BONUS);
+                    result.power = Math.min(maxPower, power + increment);
+                    changed = true;
+                }
+
                 // get the result
                 if (!changed) {
                     return null;
@@ -255,6 +252,8 @@ export class AnvilRecipeManager implements IRecipeManager<TAnvilRecipe> {
                 if (label !== ItemHelpers.LABEL_NO_CHANGE) {
                     ItemHelpers.setLabel(result, label);
                 }
+                Enchantments.remove(result, ench => ench.upgrade_by_block) // удаляем все модификации
+                updatePower(firstBlock, result, first_item)
                 ItemHelpers.incrementExtraDataField(result, 'age', 1);
                 return result;
             }

@@ -1,4 +1,4 @@
-import {Helpers, Vector, ObjectHelpers, CAMERA_MODE, getMulSpeedDestroy} from "./helpers.js";
+import {Helpers, Vector, ObjectHelpers, CAMERA_MODE, Mth} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
@@ -24,7 +24,7 @@ import { MechanismAssembler } from "./mechanism_assembler.js";
 import { BBModel_Model } from "./bbmodel/model.js";
 import { AABB } from "./core/AABB.js";
 import type {PrismarinePlayerState} from "./prismarine-physics/index.js";
-import Upgrade from "./enums/upgrade.js";
+import {Enchantments} from "./enchantments.js";
 
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
@@ -806,7 +806,7 @@ export class Player implements IPlayer {
             const bPos = e.pos;
             const world_block = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block       = BLOCK.fromId(world_block.id);
-            const mul         = getMulSpeedDestroy(this, this.eyes_in_block?.is_water)
+            const mul         = this.getMulSpeedDestroy(this.eyes_in_block?.is_water)
             const mining_time = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative()) / mul;
             // arm animation + sound effect + destroy particles
             if(e.destroyBlock) {
@@ -1538,6 +1538,15 @@ export class Player implements IPlayer {
                 this.debugValues.set(arg, value)
             }
         }
+    }
+
+    /** Возвращает множитель скорости разрушения блока */
+    getMulSpeedDestroy(in_water: boolean): float {
+        let mul = in_water ? 0.2 : 1
+        mul *= 1 + Enchantments.sum(this.currentInventoryItem, 'speed'); // скорость от апдейта
+        mul *= 1 + 0.2 * this.getEffectLevel(Effect.HASTE); // Ускоренная разбивка блоков
+        mul *= 1 - 0.2 * this.getEffectLevel(Effect.MINING_FATIGUE); // усталость
+        return Mth.round(mul, 1)
     }
 
 }

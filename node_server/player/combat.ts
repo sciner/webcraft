@@ -1,7 +1,7 @@
 import { ATTACK_COOLDOWN } from "@client/constant.js";
 import type { ServerPlayer } from "../server_player.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
-import Upgrade from "@client/enums/upgrade.js";
+import {Enchantments} from "@client/enchantments.js";
 
 const TIME_CRIT_DELAY = 1000
 
@@ -43,8 +43,7 @@ export class ServerPlayerCombat {
             const speed = block?.speed ? block.speed : 1
             const time = (performance.now() - this.#time) * speed
             if (time >= ATTACK_COOLDOWN) {
-                let damage = block?.damage ? block.damage : 1
-                damage += Upgrade.getValueById(this.#item, damage, Upgrade.DAMAGE)
+                let damage = Enchantments.getDamage(block, this.#item)
                 let enum_damage = EnumDamage.PUNCH
                 //if (player.controlManager.prismarine.player_state.control.jump && time < (TIME_1_SEC + TIME_CRIT_DELAY)) {
                 if (Math.random() < .2) {  

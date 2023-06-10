@@ -366,7 +366,7 @@ interface IBlockMaterial {
     window?: string
     spawn_egg?: {type, skin}
     damage?: number
-    speed?: number
+    speed?: number  // 10.06.2023: не влияет на разрушение блоков, испольуется только в бою
     food?: {
         amount: number,
         saturation: number

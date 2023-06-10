@@ -1,4 +1,4 @@
-import {Mth, ObjectHelpers, Vector, getMulSpeedDestroy} from "@client/helpers.js";
+import {Mth, ObjectHelpers, Vector} from "@client/helpers.js";
 import {Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps} from "@client/player.js";
 import {GAME_MODE, GameMode} from "@client/game_mode.js";
 import { ServerClient } from "@client/server_client.js";
@@ -27,7 +27,6 @@ import type {ServerDriving} from "./control/server_driving.js";
 import { ServerPlayerCombat } from "player/combat.js";
 import type {TChestSlots} from "@client/block_helpers.js";
 import type {PrismarinePlayerState} from "@client/prismarine-physics/index.js";
-import Upgrade from "@client/enums/upgrade.js";
 
 export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
     time?: number;
@@ -1019,7 +1018,7 @@ export class ServerPlayer extends Player {
         }
         const instrument = bm.fromId(this?.currentInventoryItem?.id);
         const is_water = (head.id == 0 && (head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID)
-        const mul = getMulSpeedDestroy(this, is_water)
+        const mul = this.getMulSpeedDestroy(is_water)
         const mining_time_server = block.material.getMiningTime({material: instrument}, false) / mul
         const mining_time_client = performance.now() - this.mining_time_old
         this.mining_time_old = performance.now()

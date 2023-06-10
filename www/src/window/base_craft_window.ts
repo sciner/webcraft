@@ -1,5 +1,5 @@
 import {BLOCK} from "../blocks.js";
-import {ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers} from "../helpers.js";
+import {ArrayHelpers, ObjectHelpers, ArrayOrScalar, StringHelpers, Mth} from "../helpers.js";
 import {INVENTORY_DRAG_SLOT_INDEX, MOUSE, HOTBAR_LENGTH_MAX, INVENTORY_CRAFT_INDEX_MIN, BAG_END, PAPERDOLL_CONTAINERS_SLOTS} from "../constant.js";
 import {InventorySize} from "../inventory.js";
 import { Label, SimpleBlockSlot, Window, Button, ToggleButton } from "../ui/wm.js";
@@ -17,7 +17,6 @@ import type {TMouseEvent} from "../vendors/wm/wm.js";
 import type {GameClass} from "../game.js";
 import type {AnvilResultSlot} from "./anvil.js";
 import {CHEST_CHANGE} from "../chest.js";
-import Upgrade from "../enums/upgrade.js";
 
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED = '#ffffff55'
 const ARMOR_SLOT_BACKGROUND_HIGHLIGHTED_OPAQUE = '#929292FF'
@@ -137,7 +136,9 @@ export class CraftTableSlot extends SimpleBlockSlot {
                     : `${block.title} (#${item.id})`;
                 if (item?.extra_data?.enchantments) {
                     for(const [e, lvl] of Enchantments.ofItem(item)) {
-                        resp += '\r' + e.name + ' ' + StringHelpers.romanize(lvl);
+                        resp += e.max_level > 1
+                            ? '\r' + e.name + ' ' + StringHelpers.romanize(lvl)
+                            : '\r' + e.name
                     }
                 }
                 if (item.extra_data?.age) {
@@ -152,25 +153,25 @@ export class CraftTableSlot extends SimpleBlockSlot {
                 if (block?.protection) {
                     resp += '\r' + Lang['protection'] + ': ' + block.protection
                 }
-                if (block?.power && item?.power) {
-                    const bonus = Upgrade.getValueById(item, block.power, Upgrade.POWER)
-                    resp += '\r' + Lang['durability'] + ': ' + Math.round(item.power) + '/' + block.power
+                if (item.power != null) {
+                    const bonus = Enchantments.sum(item, 'power')
+                    resp += '\r' + Lang['durability'] + ': ' + Math.round(item.power) + '/' + Enchantments.getMaxPower(block, item)
                     if (bonus) {
-                        resp += '+' + Math.round(bonus)
+                        resp += ` (+${Math.round(bonus * 100)}%)`
                     } 
                 }
                 if (block.damage) {
-                    const bonus = Upgrade.getValueById(item, block.damage, Upgrade.DAMAGE )
-                    resp += '\r' + Lang['damage'] + ': ' + (block.damage + bonus)
+                    const bonus = Enchantments.sum(item, 'damage')
+                    resp += '\r' + Lang['damage'] + ': ' + Enchantments.getDamage(block, item)
                     if (bonus) {
-                        resp += '+' + bonus
+                        resp += ` (+${Math.round(bonus * 100)}%)`
                     } 
                 }
                 if (block.speed) {
-                    const bonus = Upgrade.getValueById(item, block.speed, Upgrade.SPEED )
-                    resp += '\r' + Lang['speed'] + ': ' + (block.speed + bonus)
+                    const bonus = Enchantments.sum(item, 'speed')
+                    resp += '\r' + Lang['speed'] + ': ' + Mth.round(block.speed * (1 + bonus), 1)
                     if (bonus) {
-                        resp += '+' + bonus
+                        resp += ` (+${Math.round(bonus * 100)}%)`
                     } 
                 }
             }

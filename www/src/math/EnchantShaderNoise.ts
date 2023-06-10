@@ -1,4 +1,5 @@
 import glMatrix from '@vendors/gl-matrix-3.3.min.js';
+import {Enchantments} from "../enchantments.js";
 
 const {mat3, vec3} = glMatrix;
 
@@ -56,8 +57,8 @@ export class EnchantShaderNoise {
 
     processEnchantedIcon(slot, item, image, icon) {
 
-        // if has enchantments
-        if(!item?.extra_data?.enchantments) {
+        // если зачарования не имеют визуальный эффект
+        if(!Enchantments.getVisualEffect(item)) {
             return image
         }
 
