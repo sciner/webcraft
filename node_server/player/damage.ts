@@ -275,7 +275,8 @@ export class ServerPlayerDamage {
         damage = Math.round((damage * (MAX_DAMAGE_ABSORPTION - armor_level)) / MAX_DAMAGE_ABSORPTION)
         if (damage > 0) {
             if (this.pos) {
-                const velocity = player.state.pos.sub(this.pos).normSelf()
+                const velocity = player.state.pos.clone()
+                velocity.subSelf(this.pos).normSelf().mulScalarSelf(.75)
                 velocity.y = .2
                 player.controlManager.prismarine.player_state.vel.addSelf(velocity)
             }

@@ -790,14 +790,15 @@ export class WorldAction {
 
         // const p = performance.now();
         // Наносим урон игрокам и мобам
-        if (Qubatch.is_server) { 
+        if (Qubatch.is_server) {
+            const pos = vec_center.offset(.5, 0, .5)
             const players = world.getPlayersNear(vec_center, distance, true)
             for (const player of players) {
-                player.setDamage(strength, EnumDamage.EXPLOSION, vec_center)
+                player.setDamage(strength, EnumDamage.EXPLOSION, pos)
             }
             const mobs = world.getMobsNear(vec_center, distance)
             for (const mob of mobs) {
-                mob.setDamage(strength, EnumDamage.EXPLOSION, null, vec_center)
+                mob.setDamage(strength, EnumDamage.EXPLOSION, null, pos)
             }
         }
 
@@ -893,7 +894,7 @@ export class WorldAction {
                             }
                         ]);
                     }
-                } else {
+                } else if (5 == 6) {
                     this.addBlocks([
                         {
                             pos: pos.clone(),

@@ -513,7 +513,8 @@ export class FSMBrain {
         const mob = this.mob;
         const world = mob.getWorld();
         if (pos && mob.config.damagePushes && this.enabled) {
-            const velocity = mob.pos.sub(pos).normSelf()
+            const velocity = mob.pos.clone()
+            velocity.subSelf(pos).normSelf().mulScalarSelf(.75)
             velocity.y = .2
             mob.addVelocity(velocity)
         }
