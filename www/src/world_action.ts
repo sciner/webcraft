@@ -894,7 +894,7 @@ export class WorldAction {
                             }
                         ]);
                     }
-                } else if (5 == 6) {
+                } else {
                     this.addBlocks([
                         {
                             pos: pos.clone(),
