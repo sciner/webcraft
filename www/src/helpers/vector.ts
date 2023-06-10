@@ -635,11 +635,15 @@ export class Vector implements IVector {
         return (angle >= 0) ? angle : angle + Mth.PI_MUL2
     }
 
-    //
-    moveToSelf(rotate, dist) {
-        this.x += dist * Math.cos(rotate.x) * Math.sin(rotate.z - Math.PI);
-        this.y += dist * Math.sin(-rotate.x);
-        this.z += dist * Math.cos(rotate.x) * Math.cos(rotate.z - Math.PI);
+    /**
+     * Перемещает на расстояние {@link dist} в направлении, заданном углами {@link pitch} (угол над
+     * горизонтом) и {@link yaw} (азимут).
+     */
+    movePolarSelf(dist: float, pitch: float, yaw: float): this {
+        const distCosX = dist * Math.cos(pitch)
+        this.x += distCosX * Math.sin(yaw)
+        this.y += dist * Math.sin(pitch)
+        this.z += distCosX * Math.cos(yaw)
         return this;
     }
 
