@@ -6,7 +6,6 @@ import type { BlockManager, FakeTBlock } from '../blocks.js';
 import { BlockStyleRegInfo } from './default.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 
-
 const _aabb = new AABB();
 const _center = new Vector(0, 0, 0);
 const dirs_name = ['NORTH', 'WEST', 'SOUTH', 'EAST'];
@@ -146,13 +145,11 @@ export default class style {
             }
         }
 
+        let stairs_info = null
+
         if(neighbours && neighbours.UP instanceof TBlock) {
-            const info = stairs_style.calculate(block, pos, neighbours);
-            const ne = info.sides[0];
-            const wn = info.sides[1];
-            const sw = info.sides[2];
-            const es = info.sides[3];
-            const top_parts_count = (ne?1:0) + (wn?1:0) + (sw?1:0) + (es?1:0);
+            stairs_info = stairs_style.calculate(block, pos, neighbours)
+            const {ne, wn, sw, es, top_parts_count} = stairs_info
             if(top_parts_count == 3) {
                 // inner corner
                 const n = neighbours[dirs_name[cd]];
@@ -262,7 +259,16 @@ export default class style {
             delete(_sides[k]);
         }
 
-        pushAABB(vertices, _aabb, pivot, matrix, _sides, _center);
+        pushAABB(vertices, _aabb, pivot, matrix, _sides, _center)
+
+        if(stairs_info) {
+            const resp = stairs_style.drawUpholstery(block, stairs_info, x, y, z, pivot, matrix, biome, dirt_color)
+            if(resp) {
+                return resp
+            }
+        }
+
+        return null
 
     }
 

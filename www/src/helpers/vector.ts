@@ -2,6 +2,8 @@ import {CubeSym} from "../core/CubeSym.js";
 import {Mth} from "./mth.js";
 import { DIRECTION } from "./helper_const.js";
 
+const RELINDEX_MARGIN = 32
+
 export class Vector implements IVector {
     // static cnt = 0;
     // static traces = new Map();
@@ -18,6 +20,7 @@ export class Vector implements IVector {
 
     static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
     static DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP]
+    static DIRECTIONS_BY_ROTATE = [this.ZP, this.XN, this.ZN, this.XP]
     static SHAPE_PIVOT = new Vector(.5, .5, .5);
     // Ading these values sequentially to the same Vector is the same as setting it to each of SIX_DIRECTIONS
     static SIX_DIRECTIONS_CUMULATIVE = [this.XN];
@@ -36,6 +39,7 @@ export class Vector implements IVector {
         Object.freeze(Vector.ZERO)
         Object.freeze(Vector.SIX_DIRECTIONS)
         Object.freeze(Vector.DIRECTIONS)
+        Object.freeze(Vector.DIRECTIONS_BY_ROTATE)
         Object.freeze(Vector.SHAPE_PIVOT)
         Object.freeze(Vector.SIX_DIRECTIONS_CUMULATIVE)
     }
@@ -709,4 +713,24 @@ export class Vector4 {
         this.width = width;
         this.height = height;
     }
+}
+
+export function relPosToIndex(vec : Vector) : int {
+    const mg : int = RELINDEX_MARGIN
+    const sz : int = mg * 2 + 1
+    let {x, y, z} = vec
+    x += mg
+    z += mg
+    return sz * (sz * y + z) + x
+}
+
+export function relIndexToPos(index : int, out : Vector) : Vector {
+    const mg : int = RELINDEX_MARGIN
+    const sz : int = mg * 2 + 1
+    out.x = index % sz
+    out.y = index / (sz * sz) | 0
+    out.z = (index % (sz * sz) - out.x) / sz
+    out.x -= mg
+    out.z -= mg
+    return out
 }

@@ -51,7 +51,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         const block = items[0]
         this.pn             = performance.now() + Math.random() * 2000 // рандом, чтобы одновременно сгенерированные дропы крутились не одинаково
         this.posFact        = this.pos.clone()
-        this.block          = new FakeTBlock(block.id)
+        this.block          = new FakeTBlock(block.id, block.extra_data)
         this.block_material = this.block.material
         this.items          = items
 
@@ -98,19 +98,6 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
             // 2. Add couples block
             if(['fence', 'wall'].includes(this.block_material.style_name)) {
                 this.mesh_group.addBlock(Vector.XP, new FakeTBlock(block.id))
-            }
-
-            // 3. Add all block parts
-            if(!('inventory' in this.block_material)) {
-                let pos = new Vector(0, 0, 0)
-                let next_part = this.block.material.next_part
-                while(next_part) {
-                    const next = new FakeTBlock(next_part.id)
-                    pos = pos.add(next_part.offset_pos)
-                    this.mesh_group.addBlock(pos, next)
-                    next_part = next.material.next_part
-                    this.mesh_group.multipart = true
-                }
             }
 
             // 4. Finalize mesh group (recalculate aabb and find blocks neighbours)

@@ -60,6 +60,7 @@ export class SchematicReader {
             SKELETON_SKULL:         'SKULL_DESERT',
             CARROTS:                'CARROT_SEEDS',
             LAVA_CAULDRON:          'CAULDRON',
+            CAVE_VINES_PLANT:       'CAVE_VINES',
             // Old version block names
             GRASS_PATH:             'DIRT_PATH',
             STONEBRICK:             'STONE_BRICKS',
@@ -411,7 +412,7 @@ export class SchematicReader {
             } else if(b.name == 'LECTERN') {
                 if(block.entities.Book) {
                     const ent = block.entities;
-                    console.log(JSON.stringify(ent, null, 4));
+                    // console.log(JSON.stringify(ent, null, 4));
                     if('Page' in ent && 'Book' in ent) {
                         setExtraData('page', ent.Page);
                         const book = {
@@ -668,6 +669,10 @@ export class SchematicReader {
                     }
                     setExtraData('stage', index);
                 }
+            } else if(b.name == 'CAVE_VINES') {
+                // console.log(block, props)
+                setExtraData('part', block.name == 'cave_vines' ? 1 : 0)
+                setExtraData('ripe', !!props.berries)
             }
             if('waterlogged' in props && props.waterlogged) {
                 new_block.waterlogged = props.waterlogged;

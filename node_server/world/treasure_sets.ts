@@ -62,7 +62,15 @@ export class Treasure_Sets {
     /**
      * Generate chest slots
      */
-    generateSlots(xyz: IVector, source: string, count: int) {
+    generateSlots(xyz: IVector, source: string, count: int): Dict<IInventoryItem> {
+
+        function generateSlot(slot_index: int, kit_index: int): void {
+            const item = {...items_kit[kit_index]};
+            item.count = item.count[Math.floor(rnd.double() * item.count.length)];
+            if(item.count > 0) {
+                slots[slot_index] = item;
+            }
+        }
 
         const rnd = new alea(this.#world.info.seed + new Vector(xyz).toHash());
 
@@ -73,15 +81,20 @@ export class Treasure_Sets {
         //
         const slots = {};
 
-        for(let i = 0; i < count; i++) {
-            if(rnd.double() > .8) {
-                continue;
+        if (kit.exact) {
+            // дан точный список предметов
+            count = Math.min(count, items_kit.length)
+            for(let i = 0; i < count; i++) {
+                generateSlot(i, i)
             }
-            const kit_index = Math.floor(rnd.double() * items_kit.length);
-            const item = {...items_kit[kit_index]};
-            item.count = item.count[Math.floor(rnd.double() * item.count.length)];
-            if(item.count > 0) {
-                slots[i] = item;
+        } else {
+            // для каждого слота сундука выбирается случайный предмет
+            for(let i = 0; i < count; i++) {
+                if(rnd.double() > .8) {
+                    continue;
+                }
+                const kit_index = Math.floor(rnd.double() * items_kit.length);
+                generateSlot(i, kit_index)
             }
         }
 

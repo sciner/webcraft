@@ -1,5 +1,5 @@
 import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth,
-    SpatialDeterministicRandom, ObjectHelpers, getValidPosition } from "./helpers.js";
+    SpatialDeterministicRandom, ObjectHelpers, getValidPosition, relPosToIndex, relIndexToPos } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CD_ROT, CubeSym} from './core/CubeSym.js';
 import { BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT, NO_DESTRUCTABLE_BLOCKS } from "./blocks.js";
@@ -48,6 +48,13 @@ type DropItemParams = {
     force ? : boolean
 }
 
+const upholstery_types = {
+    // черепица для скосов
+    'clay_shingles': {list: ['slope'], can_set_as_block: false},
+    // шерсть для стульев и табуреток
+    'wool': {list: ['chair', 'stool'], can_set_as_block: true},
+}
+
 export type ActivateMobParams = {
     id          : int
     spawn_pos   : IVector
@@ -55,8 +62,9 @@ export type ActivateMobParams = {
 }
 
 export type TActionBlock = {
-    pos             : Vector
-    action_id       : int
+    posi?           : int
+    pos?            : Vector
+    action_id?      : int
     item            : IBlockItem
     destroy_block ? : { id: int }
 }
@@ -68,6 +76,7 @@ type ActionBlocks = {
         ignore_check_air    : boolean
         on_block_set        : boolean
         on_block_set_radius : number
+        chunk_addr          : Vector
     }
 }
 
@@ -485,16 +494,41 @@ class DestroyBlocks {
                 }
             }
         }
-        // Destroy connected blocks
-        for(let cn of ['next_part', 'previous_part']) {
-            let part = tblock.material[cn];
-            if(part) {
-                const connected_pos = tblock.posworld.add(part.offset_pos);
-                if(!cv.has(connected_pos)) {
-                    let block_connected = world.getBlock(connected_pos);
-                    if(block_connected.id == part.id) {
-                        this.add(block_connected, pos);
+        // mega block
+        if(tblock.material.multiblock) {
+            const destroyer = this
+            function destroyMultiBlock() : void {
+                const del_mat = tblock.material
+                const bd = del_mat.multiblock
+                const {x, y, z, w, h, d} = bd
+                const move = new Vector(0, 0, 0)
+                const shift = new Vector(0, 0, 0)
+                const relindex = tblock.extra_data.relindex
+                if(relindex == -1) {
+                    relIndexToPos(relPosToIndex(Vector.ZERO), shift)
+                } else {
+                    relIndexToPos(relindex, shift)
+                }
+                for(move.x = x; move.x < x + w; move.x++) {
+                    for(move.y = y; move.y < y + h; move.y++) {
+                        for(move.z = z; move.z < z + d; move.z++) {
+                            const connected_pos = tblock.posworld.addByCardinalDirectionSelf(move.sub(shift), tblock.rotate.x + 2)
+                            const block_connected = world.getBlock(connected_pos)
+                            destroyer.add(block_connected, pos)
+                        }
                     }
+                }
+            }
+            destroyMultiBlock()
+        }
+        // Destroy connected blocks
+        const part = tblock.material.previous_part
+        if(part) {
+            const connected_pos = tblock.posworld.add(part.offset_pos);
+            if(!cv.has(connected_pos)) {
+                let block_connected = world.getBlock(connected_pos);
+                if(block_connected.id == part.id) {
+                    this.add(block_connected, pos);
                 }
             }
         }
@@ -575,7 +609,7 @@ export class WorldAction {
             create_chest:               null,
             load_chest:                 null,
             open_window:                null,
-            put_in_backet:              null,
+            put_in_bucket:              null,
             put_in_bottle:              null,
             clone_block:                false,
             reset_mouse_actions:        false,
@@ -626,6 +660,10 @@ export class WorldAction {
         this.play_sound.push(item);
     }
 
+    importBlock(item: TActionBlock): void {
+        this.blocks.list.push(item)
+    }
+
     addBlock(item: TActionBlock): void {
         if(!item.action_id) {
             throw 'error_undefined_action_id';
@@ -669,10 +707,10 @@ export class WorldAction {
 
     //
     putInBucket(item) {
-        if(this.put_in_backet) {
+        if(this.put_in_bucket) {
             throw 'error_put_already';
         }
-        this.put_in_backet = item;
+        this.put_in_bucket = item;
     }
     //
     putInBottle(item) {
@@ -975,7 +1013,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
     // set radius for onBlockSet method
     actions.blocks.options.on_block_set_radius = 2;
 
-    let pos                 = e.pos;
+    let pos                 = e.pos
     let world_block         = world.getBlock(pos);
     if (!world_block || world_block.id < 0) { // if it's a DUMMY, the chunk is not loaded
         return [null, null];
@@ -1005,7 +1043,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
     // 2. Destroy
     if(e.destroyBlock) {
         // 1. Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.destroyBlock ??= [removeFromPot, deletePortal, removeFurnitureUpholstery]) {
+        for(let func of FUNCS.destroyBlock ??= [removeFromPot, deletePortal, removeUpholstery]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
@@ -1069,7 +1107,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setFurnitureUpholstery, setPointedDripstone]) {
+        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setUpholstery, setPointedDripstone]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 const affectedPos = (func === chSpawnMob) ? null : pos // мобы не меняют блок. И chSpawnMob также портит pos
                 return [actions, affectedPos]
@@ -1129,7 +1167,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
 
             // Check if replace
             if(replaceBlock) {
-                if(world_material.previous_part || world_material.next_part || current_inventory_item.style_name == 'ladder') {
+                if(world_material.previous_part || current_inventory_item.style_name == 'ladder') {
                     return [actions, pos];
                 }
                 pos.n.x = 0;
@@ -1347,37 +1385,35 @@ function calcBlockOrientation(mat_block, rotate, n) {
 };
 
 // Set action block
-function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
-    const pushed_blocks = [];
-    const pushed_poses = new VectorCollector();
+function setActionBlock(actions, world, pos, orientation, mat_block, new_item) : boolean {
+    if(mat_block.multiblock) {
+        if (!Qubatch.is_server) {
+            return false
+        }
+    }
+    const pushed_blocks = []
+    const pushed_poses = new VectorCollector()
+    //
+    const optimizePushedItem = (item) => {
+        if('extra_data' in item && !item.extra_data) {
+            delete(item.extra_data);
+        }
+        if('rotate' in item) {
+            const block = BLOCK.fromId(item.id);
+            if(!block.can_rotate) {
+                delete(item.rotate);
+            }
+        }
+    }
+    //
     const pushBlock = (params) => {
         if(pushed_poses.has(params.pos)) {
-            return false;
+            return false
         }
-        const optimizePushedItem = (item) => {
-            if('extra_data' in item && !item.extra_data) {
-                delete(item.extra_data);
-            }
-            if('rotate' in item) {
-                const block = BLOCK.fromId(item.id);
-                if(!block.can_rotate) {
-                    delete(item.rotate);
-                }
-            }
-        };
-        optimizePushedItem(params.item);
-        pushed_blocks.push(params);
-        pushed_poses.set(params.pos, true);
-        const block = BLOCK.fromId(params.item.id);
-        if(block.next_part) {
-            // Если этот блок имеет "пару"
-            const next_params = JSON.parse(JSON.stringify(params));
-            next_params.item.id = block.next_part.id;
-            optimizePushedItem(next_params.item);
-            next_params.pos = new Vector(next_params.pos).add(block.next_part.offset_pos);
-            pushBlock(next_params);
-        }
-    };
+        optimizePushedItem(params.item)
+        pushed_blocks.push(params)
+        pushed_poses.set(params.pos, true)
+    }
     //
     pushBlock({pos: new Vector(pos), item: new_item, action_id: BLOCK_ACTION.CREATE});
     // Установить головной блок, если устанавливаемый блок двух-блочный
@@ -1394,6 +1430,33 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) {
             action_id: BLOCK_ACTION.CREATE
         };
         pushBlock(next_block);
+    }
+    //
+    if(mat_block.multiblock) {
+        function makeMultiBlock() : void {
+            const {x, y, z, w, h, d} = mat_block.multiblock
+            const move = new Vector(0, 0, 0)
+            for(move.x = x; move.x < x + w; move.x++) {
+                for(move.y = y; move.y < y + h; move.y++) {
+                    for(move.z = z; move.z < z + d; move.z++) {
+                        pushBlock({
+                            pos: pos.clone().addByCardinalDirectionSelf(move, orientation.x + 2),
+                            item: {
+                                id:         mat_block.id,
+                                rotate:     orientation.clone(),
+                                extra_data: {relindex: relPosToIndex(move)}
+                            },
+                            action_id: BLOCK_ACTION.CREATE
+                        })
+                    }
+                }
+            }
+            if(!new_item.extra_data) {
+                new_item.extra_data = {}
+            }
+            new_item.extra_data.relindex = -1
+        }
+        makeMultiBlock()
     }
     // Проверяем, что все блоки можем установить
     for(let pb of pushed_blocks) {
@@ -2388,8 +2451,9 @@ function restrictPlanting(e, world, pos, player, world_block, world_material, ma
     if(!mat_block.planting) {
         return false;
     }
-    const underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
-    if(!underBlock) {
+    const check_y = mat_block.tags.includes('is_hanging_plant') ? 1 : -1
+    const bamement_block = world.getBlock(new Vector(pos.x, pos.y + check_y, pos.z))
+    if(!bamement_block) {
         return true;
     }
     // водное растение
@@ -2398,22 +2462,28 @@ function restrictPlanting(e, world, pos, player, world_block, world_material, ma
         if (!block || (block.fluid & FLUID_TYPE_MASK) != FLUID_WATER_ID) {
             return true
         }
-        if(![BLOCK.DIRT.id, BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id].includes(underBlock.id)) {
+        if(![BLOCK.DIRT.id, BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id].includes(bamement_block.id)) {
             return true
         }
     }
     // дикие семена
-    if(mat_block.id == BLOCK.SWEET_BERRY_BUSH.id && [BLOCK.PODZOL.id, BLOCK.COARSE_DIRT.id, BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
+    if(mat_block.id == BLOCK.SWEET_BERRY_BUSH.id && [BLOCK.PODZOL.id, BLOCK.COARSE_DIRT.id, BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(bamement_block.id)) {
         return false
     }
-    if(![BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
-        return true;
+    if(mat_block.tags.includes('no_need_dirt')) {
+        if(!bamement_block.material.is_solid) {
+            return true
+        }
+    } else {
+        if(![BLOCK.DIRT.id, BLOCK.GRASS_BLOCK.id, BLOCK.GRASS_BLOCK_SLAB.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(bamement_block.id)) {
+            return true
+        }
+        // Посадить семена можно только на вспаханную землю
+        if(mat_block.seeds && ![BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(bamement_block.id)) {
+            return true
+        }
     }
-    // Посадить семена можно только на вспаханную землю
-    if(mat_block.seeds && ![BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].includes(underBlock.id)) {
-        return true;
-    }
-    return false;
+    return false
 }
 
 //
@@ -2893,57 +2963,78 @@ function prePlaceRail(world, pos, new_item, actions) {
     return RailShape.place(world, pos, new_item, actions);
 }
 
-// Set furniture upholstery
-function setFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
-    if(mat_block.tags.includes('wool')) {
-        if(['chair', 'stool'].includes(world_material.style_name)) {
-            if(extra_data.is_head) {
-                pos = new Vector(0, -1, 0).add(pos);
-                world_block = world.getBlock(pos);
-                extra_data = world_block?.extra_data;
+// Set upholstery
+function setUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+    let resp = false
+    for(const [type, block_types] of Object.entries(upholstery_types)) {
+        if(mat_block.tags.includes(type)) {
+            resp = !block_types.can_set_as_block
+            if(block_types.list.includes(world_material.style_name)) {
+                if(extra_data.is_head) {
+                    pos = new Vector(0, -1, 0).add(pos)
+                    world_block = world.getBlock(pos)
+                    extra_data = world_block?.extra_data
+                }
+                // Create drop item
+                if(extra_data.upholstery) {
+                    const drop_material = BLOCK.fromName(extra_data.upholstery)
+                    if(drop_material) {
+                        const drop_item = {
+                            id: BLOCK.fromName(extra_data.upholstery).id,
+                            count: 1
+                        }
+                        actions.addDropItem({pos: world_block.posworld.clone().addScalarSelf(.5, .5, .5), items: [drop_item], force: true})
+                    }
+                }
+                //
+                extra_data.upholstery = mat_block.name
+                actions.addBlocks([{
+                    pos: new Vector(pos),
+                    item: {id: world_material.id, rotate, extra_data},
+                    action_id: BLOCK_ACTION.MODIFY
+                }])
+                actions.addPlaySound({tag: mat_block.sound, action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]})
+                actions.decrement = true
+                return resp
             }
-            extra_data.upholstery = mat_block.name;
-            actions.addBlocks([{
-                pos: new Vector(pos),
-                item: {id: world_material.id, rotate, extra_data},
-                action_id: BLOCK_ACTION.MODIFY
-            }]);
-            actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
-            actions.decrement = true;
-            return true;
         }
     }
-    return false;
+    return resp
 }
 
-// Remove furniture upholstery
-function removeFurnitureUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
-    if(world_material && ['chair', 'stool'].includes(world_material.style_name)) {
-        if(extra_data.is_head) {
-            pos = new Vector(0, -1, 0).add(pos);
-            world_block = world.getBlock(pos);
-            extra_data = world_block?.extra_data;
-            rotate = world_block.rotate;
-        }
-        //
-        if(extra_data?.upholstery) {
-            const drop_item = {
-                id: BLOCK.fromName(extra_data?.upholstery).id,
-                count: 1
-            };
-            delete(extra_data.upholstery);
-            actions.addBlocks([{
-                pos: new Vector(pos),
-                item: {id: world_block.id, rotate, extra_data},
-                action_id: BLOCK_ACTION.MODIFY
-            }]);
-            actions.addPlaySound({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]});
-            // Create drop item
-            actions.addDropItem({pos: world_block.posworld.clone().addScalarSelf(.5, .5, .5), items: [drop_item], force: true});
-            return true;
+// Remove upholstery
+function removeUpholstery(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+    for(const [type, block_types] of Object.entries(upholstery_types)) {
+        if(world_material && block_types.list.includes(world_material.style_name)) {
+            if(extra_data.is_head) {
+                pos = new Vector(0, -1, 0).addSelf(pos)
+                world_block = world.getBlock(pos)
+                extra_data = world_block?.extra_data
+                rotate = world_block.rotate
+            }
+            if(extra_data?.upholstery) {
+                // Create drop item
+                const drop_material = BLOCK.fromName(extra_data.upholstery)
+                if(drop_material) {
+                    const drop_item = {
+                        id: drop_material.id,
+                        count: 1
+                    }
+                    actions.addDropItem({pos: world_block.posworld.clone().addScalarSelf(.5, .5, .5), items: [drop_item], force: true})
+                    actions.addPlaySound({tag: drop_material.sound, action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]})
+                }
+                //
+                delete(extra_data.upholstery)
+                actions.addBlocks([{
+                    pos: new Vector(pos),
+                    item: {id: world_block.id, rotate, extra_data},
+                    action_id: BLOCK_ACTION.MODIFY
+                }])
+                return true
+            }
         }
     }
-    return false;
+    return false
 }
 
 function setPointedDripstone(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {

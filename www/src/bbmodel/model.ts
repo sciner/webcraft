@@ -29,6 +29,7 @@ export class BBModel_Model {
     root:           BBModel_Group
     bone_groups:    Map<string, BBModel_Group> = new Map()
     groups:         Map<string, BBModel_Group> = new Map()
+    private _groups_by_path: Map<string, BBModel_Group> = new Map()
     all_textures?:  Map<string, any> = null
     animations?:    Map<string, any>
 
@@ -68,7 +69,7 @@ export class BBModel_Model {
         //
         if(group_name) {
             //
-            const processGroup = (group, group_path) => {
+            const processGroup = (group : BBModel_Group, group_path : string) => {
                 if(group_path) {
                     group_path += '/'
                 }
@@ -148,7 +149,7 @@ export class BBModel_Model {
     /**
      * Draw
      */
-    draw(vertices: float[], pos : Vector, lm : IndexedColor, matrix : imat4, emmit_particles_func? : Function, mesh?: Mesh_Object_BBModel) {
+    draw(vertices: float[], pos : Vector, lm : IndexedColor, matrix : imat4, emmit_particles_func? : Function, mesh?: Mesh_Object_BBModel, emmited_blocks? : any[]) {
         this.root.pushVertices(vertices, pos, lm, matrix, emmit_particles_func, mesh)
     }
 
@@ -562,6 +563,8 @@ export class BBModel_Model {
         // add new group into parent group
         this.addChildToCurrentGroup(bbGroup);
 
+        this._groups_by_path.set(bbGroup.path, bbGroup)
+
         // add new group to stack
         this._group_stack.push(bbGroup);
 
@@ -707,18 +710,6 @@ export class BBModel_Model {
 
     }
 
-    hideGroups(names : string[]) {
-        for(let group of this.root.children) {
-            if(group instanceof BBModel_Group) {
-                // if(names.includes(group.name)) {
-                if(names.some(item => item.toLowerCase() ==
-                group.name.toLowerCase())) {
-                    group.visibility = false
-                }
-            }
-        }
-    }
-
     resetBehaviorChanges() {
         // 1. reset state name
         this.state = null
@@ -732,6 +723,31 @@ export class BBModel_Model {
 
     setState(name : string) {
         this.state = name
+    }
+
+    hideGroups(names : string[]) {
+        let found_count = 0
+        for(let group of this.root.children) {
+            if(group instanceof BBModel_Group) {
+                // if(names.includes(group.name)) {
+                if(names.some(item => item.toLowerCase() == group.name.toLowerCase())) {
+                    group.visibility = false
+                    found_count++
+                }
+            }
+        }
+        if(found_count < names.length) {
+            for(let path of names) {
+                if(path.includes('/')) {
+                    path = path.toLowerCase()
+                    for(let group of this.groups.values()) {
+                        if(group.path == path) {
+                            group.visibility = false
+                        }
+                    }
+                }
+            }
+        }
     }
 
     hideAllExcept(except_list : string[]) {
@@ -767,6 +783,10 @@ export class BBModel_Model {
             }
         }
         return resp
+    }
+
+    getGroupByPath(path : string) : BBModel_Group | null {
+        return this._groups_by_path.get(path) ?? null
     }
 
 }

@@ -69,8 +69,8 @@ export class BBModel_Compiler_Base {
                 tex = await spritesheet.loadTex(texture, []);
             */
             throw 'error_texture_from_external_file_denied'
-        } else if('source' in texture) {
-            const image = await this.loadImage(texture.source)
+        } else if('source' in texture || 'image' in texture) {
+            const image = texture.image ?? await this.loadImage(texture.source)
             const fixTextureName = (name : string) => {
                 name = name.replace('.png', '')
                 name = name.replace('.PNG', '')
@@ -129,7 +129,6 @@ export class BBModel_Compiler_Base {
 
         const tx_sz = options.resolution
         const tx_cnt = options.tx_cnt
-
         const {places, spritesheet} = await this.findPlaces(model.textures, true, tx_sz, tx_cnt, options)
         const textures = new Map()
 
@@ -243,6 +242,16 @@ export class BBModel_Compiler_Base {
 
         return {spritesheet, places}
 
+    }
+
+}
+
+export class FastCompiller extends BBModel_Compiler_Base {
+    [key: string]: any;
+
+    createTextureID() {
+        const resp = randomUUID()
+        return resp
     }
 
 }

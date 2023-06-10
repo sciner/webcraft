@@ -2,6 +2,7 @@ import type {TPrismarineOptions} from "@client/prismarine-physics/using.js";
 import {addDefaultPhysicsOptions} from "@client/prismarine-physics/using.js";
 import type {TDrivingConfig} from "@client/control/driving.js";
 import type {TMobAnimations} from "@client/mob_manager.js";
+import {Effect} from "@client/block_type/effect.js";
 
 export const DEFAULT_DRIVING_SOUND = {tag: 'madcraft:block.cloth', action: 'hit'}
 
@@ -20,6 +21,18 @@ export type TMobConfig = {
     damagePushes ?  : boolean   // если true, то при нанесении урона актером, моба отбрасывает назад
     can_asphyxiate? : boolean   // если true, то может задохнуться под водой
     timer_panic ?   : number    // занчение FSMBrain.timer_panic при ударе. 0 отключает режим паники
+    attack?: {
+        distance ?      : number
+        interval ?      : int
+        sound ?         : { tag: string, action: string }
+        // для каждой сложности - мин. и макс. урон атаки
+        damage_easy     : [int, int]
+        damage_normal   : [int, int]
+        damage_hard     : [int, int]
+        effect_easy ?   : { id: string, level: int, time: int }
+        effect_normal ? : { id: string, level: int, time: int }
+        effect_hard ?   : { id: string, level: int, time: int }
+    }
 
     /**
      * Если это true то левый клик на мобе имеет эфеект независимо от предмета в руке.
@@ -38,7 +51,7 @@ export type TMobConfig = {
 /** Производит препроцесинг конфигов мобов, добавлет им значения свойств по умолчанию. */
 export function preprocessMobConfigs(configs: Dict<TMobConfig>): void {
     for(const [name, conf] of Object.entries(configs)) {
-        const physics = conf.physics
+        const {physics, driving, attack} = conf
         physics.stepHeight      ??= 1
         addDefaultPhysicsOptions(physics)
 
@@ -48,7 +61,6 @@ export function preprocessMobConfigs(configs: Dict<TMobConfig>): void {
         conf.damagePushes       ??= true
         conf.can_asphyxiate     ??= true
 
-        const driving = conf.driving
         if (driving) {
             if (conf.hasUse) {
                 throw `Mob ${name}: driving and hasUse are incompatible`
@@ -58,6 +70,21 @@ export function preprocessMobConfigs(configs: Dict<TMobConfig>): void {
             }
             if (driving.sound === undefined) {
                 driving.sound = DEFAULT_DRIVING_SOUND
+            }
+        }
+
+        if (attack) {
+            attack.distance ??= 1.5
+            attack.interval ??= 16
+            for(const key in ["easy", "normal", "hard"]) {
+                const effect = attack["effect_" + key]
+                if (effect) {
+                    const id = Effect[effect.id]
+                    if (id == null) {
+                        throw `Mob ${name}: unknown attack effect ${effect.id}`
+                    }
+                    effect.id = id
+                }
             }
         }
     }

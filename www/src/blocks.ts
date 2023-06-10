@@ -1,4 +1,4 @@
-import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar, IndexedColor, ArrayHelpers, ObjectHelpers } from './helpers.js';
+import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4, isScalar, IndexedColor, ArrayHelpers, ObjectHelpers, relIndexToPos } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
@@ -10,7 +10,7 @@ import type { World } from "./world.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
 import { MASK_SRC_AO, MASK_SRC_BLOCK, MASK_SRC_DAYLIGHT, MASK_SRC_NONE } from './worker-light/LightConst.js';
 import { MASK_SRC_FILTER } from './worker-light/LightConst.js';
-import type {AABB} from "./core/AABB.js";
+import {AABB} from "./core/AABB.js";
 
 export const TRANS_TEX                      = [4, 12]
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64
@@ -277,7 +277,7 @@ export class BLOCK {
 
     static settings : TBlocksSettings       = null
 
-    static MAX_BLOCK_ID                     = 2048
+    static MAX_BLOCK_ID                     = 9999
 
     static list                             = new Map();
     static styles                           = new Map();
@@ -503,7 +503,7 @@ export class BLOCK {
     }
 
     // Return new simplified item
-    static convertItemToInventoryItem(item? : DBItemBlock, b?, no_copy_extra_data : boolean = false) : IInventoryItem {
+    static convertItemToInventoryItem(item? : DBItemBlock, b? : IBlockMaterial, no_copy_extra_data : boolean = false) : IInventoryItem {
         if(!item || !('id' in item) || item.id < 0) {
             return null;
         }
@@ -549,11 +549,11 @@ export class BLOCK {
         const is_door = block.tags.includes('door');
         const is_slab = block.is_layering && block.layering.slab;
         //
-        let extra_data = null;
-        const setExtra = (k, v) => {
-            extra_data = extra_data || {};
-            extra_data[k] = v;
-        };
+        let extra_data = null
+        const setExtra = (k : string, v : any) => {
+            extra_data = extra_data || {}
+            extra_data[k] = v
+        }
         //
         if(orientation.y == 1 && pos.point) {
             pos.point.y = 0;
@@ -1147,6 +1147,7 @@ export class BLOCK {
     static invisibleForCam(block : IBlockMaterial) : boolean {
         return  block.is_portal ||
                 (block.passable > 0) ||
+                (block.tags.includes('invisible_for_cam')) ||
                 (block.material.id == 'plant' && (block.style_name == 'planting' || block.planting)) ||
                 (block.style_name == 'ladder') ||
                 (block?.material?.id == 'glass')
@@ -1462,6 +1463,19 @@ export class BLOCK {
         /** Проверка что блок - препятствие. Она должна совпадать с проверкой в {@link PhysicsBlockAccessor.getObstacleAABBs} */
         if(!for_physic || (!material.passable && !material.planting)) {
 
+            if(material.multiblock) {
+                const fbd = material.multiblock
+                const relindex = tblock.extra_data?.relindex
+                const move = relindex == -1 ? Vector.ZERO : relIndexToPos(relindex, new Vector())
+                const aabb = new AABB()
+                aabb.set(0, 0, 0, fbd.w, fbd.h, fbd.d)
+                const dir = CubeSym.dirAdd(tblock.rotate.x, CubeSym.ROT_Y2)
+                aabb.translate(-move.x + fbd.x, -move.y, -move.z + fbd.z)
+                aabb.rotate(dir, new Vector(.5, 0, .5))
+                shapes.push(aabb.toArray() as tupleFloat6)
+                return shapes
+            }
+
             const styleVariant = BLOCK.styles.get(for_physic ? material.style_name : material.style);
             if (styleVariant && styleVariant.aabb) {
                 shapes = styleVariant.aabb(tblock, for_physic, world, neighbours, expanded)
@@ -1555,6 +1569,7 @@ export class BLOCK {
         for(const block of BLOCK.list.values()) {
             block.is_dummy = !!block.is_dummy
             block.visible_for_ao = BLOCK.visibleForAO(block.id)
+            block.has_powerbar = !!(block.item?.instrument_id || block.armor)
             block.light_power_number = BLOCK.getLightPower(block)
             block.interact_water = block.tags.includes('interact_water') || !!block.layering?.slab
             block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab || !!block.is_leaves || !!block.tags.includes('trapdoor')
