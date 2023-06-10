@@ -261,7 +261,6 @@ export default class WebGLRenderer extends BaseRenderer {
          */
         this.gl = null;
         this._activeTextures = {};
-        this._shader = null;
 
         // test only
         /**
@@ -305,13 +304,10 @@ export default class WebGLRenderer extends BaseRenderer {
     resetBefore() {
         WebGLMaterial.texState = this._emptyTex;
         // WebGLMaterial.lightState = null;
-        this._shader = null;
         super.resetBefore();
     }
 
     resetAfter() {
-        this._shader?.unbind();
-        this._shader = null;
         super.resetAfter();
         // for (let i = 0; i < 16; i++) {
         //     this.gl.bindTexture();

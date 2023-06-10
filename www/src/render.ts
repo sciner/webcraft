@@ -1719,9 +1719,7 @@ export class Renderer {
         this.resetAfter();
 
         lu.popOverride();
-        pixiRender.shader.program = null;
-        pixiRender.shader.bind(pixiRender.plugins.batch._shader, true);
-        pixiRender.reset();
+        pixiRender.texture.reset();
         pixiRender.texture.bind(null, 3);
         pixiRender.texture.bind(null, 6);
         pixiRender.texture.bind(null, 7);

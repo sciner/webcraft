@@ -1758,9 +1758,7 @@ export class WindowManager extends Window {
             return;
         }
         // reset pixi state
-        this.pixiRender.shader.program = null;
-        this.pixiRender.shader.bind(this.pixiRender.plugins.batch._shader, true);
-        this.pixiRender.reset();
+        this.pixiRender.texture.reset();
         this.pixiRender.texture.bind(null, 3);
         this.pixiRender.texture.bind(null, 6);
         this.pixiRender.texture.bind(null, 7);
