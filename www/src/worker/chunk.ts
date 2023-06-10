@@ -628,7 +628,7 @@ export class ChunkWorkerChunk implements IChunk {
 
         const block = this.tblocks.get(new Vector(0, 0, 0), null);
 
-        const matBuf = new MaterialBuf()
+        const tempMatBuf = new MaterialBuf()
         const neibIDs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         // Process drop item
@@ -674,6 +674,12 @@ export class ChunkWorkerChunk implements IChunk {
 
         const getMaterialBuf = (material_key : string) => {
 
+            if(tempMatBuf.buf && tempMatBuf.buf.material_key === material_key) {
+                tempMatBuf.buf.touch()
+                tempMatBuf.buf.skipCache(0)
+                return tempMatBuf
+            }
+
             // material.group, material.material_key
             if (!materialToId.has(material_key)) {
                 materialToId.set(material_key, materialToId.size);
@@ -690,16 +696,16 @@ export class ChunkWorkerChunk implements IChunk {
             buf.touch()
             buf.skipCache(0)
 
-            matBuf.buf = buf
-            matBuf.matId = matId
+            tempMatBuf.buf = buf
+            tempMatBuf.matId = matId
 
-            return matBuf
+            return tempMatBuf
 
         }
 
         const processFakeVertices = (fv : FakeVertices) => {
             const matBuf = getMaterialBuf(fv.material_key)
-            matBuf.buf.vertices.push(...fv.vertices)
+            matBuf.buf.vertices.pushMany(fv.vertices)
         }
 
         // Process block

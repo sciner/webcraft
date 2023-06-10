@@ -1,9 +1,8 @@
-import { calcRotateMatrix, DIRECTION, FastRandom, Helpers, IndexedColor, mat4ToRotate, StringHelpers, Vector } from '../helpers.js';
+import { calcRotateMatrix, DIRECTION, FastRandom, Helpers, IndexedColor, mat4ToRotate, QUAD_FLAGS, StringHelpers, Vector } from '../helpers.js';
 import { AABB } from '../core/AABB.js';
 import { BlockManager, FakeTBlock, FakeVertices } from '../blocks.js';
 import { TBlock } from '../typed_blocks3.js';
-import { CubeSym } from '../core/CubeSym.js';
-import { BlockStyleRegInfo, TX_SIZE } from '../block_style/default.js';
+import { BlockStyleRegInfo } from '../block_style/default.js';
 import { default as stairs_style } from '../block_style/stairs.js';
 import { default as cube_style } from '../block_style/cube.js';
 import { default as pot_style } from '../block_style/pot.js';
@@ -18,6 +17,10 @@ import type { Biome } from '../terrain_generator/biome3/biomes.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { World } from '../world.js';
 import type { Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
+import { BBModel_Cube } from '../bbmodel/cube.js';
+import { BBModel_Group } from '../bbmodel/group.js';
+import { default as default_style } from '../block_style/default.js';
+import { CubeSym } from '../core/CubeSym.js';
 
 const { mat4, vec3 } = glMatrix;
 const lm = IndexedColor.WHITE;
@@ -30,6 +33,10 @@ const aabb_xyz = new Vector()
 const randoms = new FastRandom('bbmodel', MAX_CHUNK_SQUARE)
 const DEFAULT_SIX_ROTATE = Vector.YP.clone()
 let aabb_chunk = null
+
+function checkNot(value : boolean, not : boolean) : boolean {
+    return value ? !not : not
+}
 
 class BBModel_TextureRule {
     /**
@@ -99,7 +106,14 @@ export default class style {
         const model : BBModel_Model = bb.model
 
         if(!model) {
-            return;
+            return
+        }
+
+        // Not draw metablock blocks
+        if(block instanceof TBlock && block.material.multiblock) {
+            if(block.extra_data.relindex != -1) {
+                return
+            }
         }
 
         if(block.material.style_name == 'tall_grass') {
@@ -165,6 +179,20 @@ export default class style {
                     model.playAnimation(animation_name, 999999, mesh as Mesh_Object_BBModel)
                 }
             }
+
+            if(block.material.multiblock) {
+                const addCubesFlag = (group : BBModel_Group, flag : int) => {
+                    for(const child of group.children) {
+                        if(child instanceof BBModel_Cube) {
+                            child.flag |= flag
+                        } else if(child instanceof BBModel_Group) {
+                            addCubesFlag(child, flag)
+                        }
+                    }
+                }
+                addCubesFlag(model.root, QUAD_FLAGS.FLAG_LIGHT_GRID)
+            }
+
         }
 
         // if(block instanceof TBlock) {
@@ -197,7 +225,7 @@ export default class style {
                     model:              model.name,
                     animation_name:     animation_name,
                     hide_groups:        model.getHiddenGroupNames(),
-                    extra_data:         block.extra_data,
+                    item_block:         (block instanceof TBlock) ? block.convertToDBItem() : null,
                     matrix:             matrix,
                     rotate:             mat4ToRotate(matrix),
                 }
@@ -398,6 +426,52 @@ export default class style {
 
         // 2.
         switch(behavior) {
+            case 'billboard': {
+                if(tblock instanceof TBlock) {
+                    // if(tblock.extra_data.relindex == -1) {
+                    if(tblock.extra_data.texture) {
+                        // const group = model.getGroupByPath('default/display')
+                        const group = model.groups.get('display')
+                        const cube = group?.children[0]
+                        if(cube && cube instanceof BBModel_Cube) {
+                            if(bb.animated && (typeof QubatchChunkWorker != 'undefined')) {
+                                const extra_data = tblock.extra_data ?? {}
+                                if(!extra_data.texture?.uv) {
+                                    const item = tblock.convertToDBItem()
+                                    const pos = tblock.posworld
+                                    item.extra_data = extra_data
+                                    QubatchChunkWorker.postMessage(['create_billboard_texture', {pos, item}])
+                                }
+                            } else {
+                                // create callback for cube
+                                cube.callback = (part) : boolean => {
+                                    const extra_data = tblock.extra_data ?? {}
+                                    if(extra_data.texture?.url) {
+                                        if(extra_data.texture?.uv) {
+                                            const verts = []
+                                            const {material_key, uv, tx_size} = extra_data.texture
+                                            for(const fk in part.faces) {
+                                                const face = part.faces[fk]
+                                                face.tx_size = tx_size
+                                                face.uv = [...uv]
+                                            }
+                                            default_style.pushPART(verts, part, Vector.ZERO)
+                                            emmited_blocks.push(new FakeVertices(material_key, verts))
+                                            return true
+                                        }
+                                        const item = tblock.convertToDBItem()
+                                        const pos = tblock.posworld
+                                        item.extra_data = extra_data
+                                        QubatchChunkWorker.postMessage(['create_billboard_texture', {pos, item}])
+                                    }
+                                    return false
+                                }
+                            }
+                        }
+                    }
+                }
+                break
+            }
             case 'jukebox': {
                 cube_style.playJukeboxDisc(chunk, tblock, xyz.x, xyz.y, xyz.z)
                 break
@@ -557,7 +631,9 @@ export default class style {
     }
 
     static rotateByCardinal4sides(model : BBModel_Model, matrix : imat4, cardinal_direction : int) {
-        switch(cardinal_direction) {
+        CubeSym.applyToMat4(matrix, matrix, cardinal_direction);
+
+        /*switch(cardinal_direction) {
             case DIRECTION.SOUTH:
                 mat4.rotateY(matrix, matrix, Math.PI);
                 break;
@@ -567,7 +643,7 @@ export default class style {
             case DIRECTION.EAST:
                 mat4.rotateY(matrix, matrix, Math.PI / 2);
                 break;
-        }
+        }*/
     }
 
     static addParticles(model : BBModel_Model, tblock : TBlock | FakeTBlock, matrix : imat4, particles) {
@@ -599,22 +675,26 @@ export default class style {
             return true
         }
         for(let k in when) {
+            const not = k.startsWith('!')
             const condition_value = when[k]
+            if(not) {
+                k = k.substring(1)
+            }
             switch(k) {
                 case 'state': {
-                    if(Array.isArray(condition_value) ? !condition_value.includes(model.state) : (model.state !== condition_value)) {
+                    if(checkNot(Array.isArray(condition_value) ? !condition_value.includes(model.state) : (model.state !== condition_value), not)) {
                         return false
                     }
                     break
                 }
                 case 'rotate.y': {
-                    if(tblock.rotate?.y !== condition_value) {
+                    if(checkNot(tblock.rotate?.y !== condition_value, not)) {
                         return false
                     }
                     break
                 }
                 case 'sign:samerot': {
-                    if(sign_style.same_rot_with_up_neighbour(tblock, neighbours.UP) != condition_value) {
+                    if(checkNot(sign_style.same_rot_with_up_neighbour(tblock, neighbours.UP) != condition_value, not)) {
                         return false
                     }
                     break
@@ -634,18 +714,18 @@ export default class style {
                         }
                         const property_name = temp[3]
                         const nmat = n.material
-                        if(!nmat || n.material[property_name] != when[k]) {
+                        if(checkNot((!nmat || n.material[property_name] != condition_value), not)) {
                             return false
                         }
                     } else if(k.startsWith('extra_data.')) {
                         const key = k.substring(11)
                         const value = tblock.extra_data ? (tblock.extra_data[key] ?? null) : null
                         if(Array.isArray(condition_value)) {
-                            if(!condition_value.includes(value)) {
+                            if(checkNot(!condition_value.includes(value), not)) {
                                 return false
                             }
                         } else {
-                            if(condition_value != value) {
+                            if(checkNot(condition_value != value, not)) {
                                 return false
                             }
                         }

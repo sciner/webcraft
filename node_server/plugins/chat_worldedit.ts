@@ -403,23 +403,25 @@ export default class WorldEdit {
         const pn_set = performance.now();
         //
         const actions_list = new VectorCollector();
-        const createwWorldActions = () => {
+        const createwWorldActions = (chunk_addr : Vector) : WorldAction => {
             const resp = new WorldAction(null, null, true, false)
+            resp.blocks.options.chunk_addr = new Vector().copyFrom(chunk_addr)
             resp.blocks.options.can_ignore_air = true
-            return resp;
+            return resp
         };
         //
         const grid = chat.world.chunkManager.grid
+        const math = grid.math
         const player_pos : Vector = player.state.pos.floored();
         let affected_count = 0;
         //
         const data = copy_data ?? player._world_edit_copy;
         const chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
-        const action_id = BLOCK_ACTION.CREATE;
+        // const action_id = BLOCK_ACTION.CREATE;
         let chunk_addr = null;
-        let actions = null;
+        let actions : WorldAction = null
         //
-        const getChunkActions = (chunk_addr : Vector) => {
+        const getChunkActions = (chunk_addr : Vector) : WorldAction => {
             if(chunk_addr_o.equal(chunk_addr)) {
                 return actions
             }
@@ -428,18 +430,22 @@ export default class WorldEdit {
             if(actions) {
                 return actions
             }
-            actions = createwWorldActions()
+            actions = createwWorldActions(chunk_addr)
             actions_list.set(chunk_addr, actions)
             return actions
         }
         // blocks
         const AIR_BLOCK = new DBItemBlock(0)
+        const _pos = new Vector()
         for(const [bpos, item] of data.blocks.entries()) {
-            const clone : DBItemBlock = item.id ? ObjectHelpers.deepCloneObject(item, 100, new DBItemBlock(item.id)) as DBItemBlock : AIR_BLOCK
-            const pos = player_pos.add(bpos)
-            chunk_addr = grid.toChunkAddr(pos, chunk_addr)
+            _pos.copyFrom(player_pos).addSelf(bpos)
+            chunk_addr = grid.toChunkAddr(_pos, chunk_addr)
             actions = getChunkActions(chunk_addr)
-            actions.addBlock({pos, item: clone, action_id})
+            let clone : DBItemBlock = item.id ? item : AIR_BLOCK
+            if(item.id != 0 && Object.keys(clone).length > 1) {
+                clone = ObjectHelpers.deepCloneObject(item, 100, new DBItemBlock(item.id)) as DBItemBlock
+            }
+            actions.importBlock({posi: math.getFlatIndexInChunk(_pos), item: clone})
             affected_count++
         }
         // fluids
@@ -480,6 +486,9 @@ export default class WorldEdit {
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
         console.log(`world_edit: ${msg}`);
         console.log(`world_edit: cmd_paste time: ${pn} ms, chunks: ${actions_list.size}; blocks_per_sec: ${blocks_per_sec}`);
+        const used3 = process.memoryUsage().heapUsed / 1024 / 1024
+        console.log(`The script uses approximately ${Math.round(used3 * 100) / 100} MB`)
+        console.log(process.memoryUsage())
     }
 
     // осушить
@@ -894,7 +903,7 @@ export default class WorldEdit {
             const b = item.name ? bm.fromName(item.name) : bm.fromId(item.block_id)
             if(b.is_dummy) throw 'error_invalid_block'
             if(b.deprecated) throw 'error_block_is_deprecated'
-            if(b.item || b.next_part || b.previous_part || ['extruder', 'text', 'painting'].indexOf(b.style_name) >= 0) throw 'error_this_block_cannot_be_setted';
+            if(b.item || b.previous_part || ['extruder', 'text', 'painting'].indexOf(b.style_name) >= 0) throw 'error_this_block_cannot_be_setted';
             //
             const block_id = b.id;
             const extra_data = bm.makeExtraData(b, fake_pos, fake_orientation, null);

@@ -1,5 +1,5 @@
 import { unixTime, Vector, VectorCollector } from "@client/helpers.js";
-import { Transaction } from "../db_helpers.js";
+import { TransactionMutex } from "../db_helpers.js";
 import { ChunkDBActor, BLOCK_DIRTY, DirtyBlock } from "./ChunkDBActor.js";
 import { WORLD_TRANSACTION_PERIOD, CLEANUP_WORLD_MODIFY_PER_TRANSACTION,
     WORLD_MODIFY_CHUNKS_PER_TRANSACTION } from "../../server_constant.js";
@@ -77,7 +77,13 @@ export class WorldTransactionUnderConstruction {
     }
 }
 
-/** It manages DB queries of all things in the world that must be saved in one trascaction as a "world state". */
+/**
+ * Управляет периодическим сохранением "состояния мира" в одной транзакции.
+ * Реализует логику:
+ *  - когда и как выполнять транзакцию
+ *  - как восстановиться после сбоя
+ * Управляет всеми {@link ChunkDBActor}, каждый из котрых реализует логику сохранения одного чанка.
+ */
 export class WorldDBActor {
 
     /** It fullfills when the next (scheduled) world-saving transaction finishes. */
@@ -86,7 +92,7 @@ export class WorldDBActor {
     db: DBWorld;
     dirtyActors: Set<ChunkDBActor>;
     chunklessActors: VectorCollector;
-    _transactionPromise: Promise<any>;
+    transactionMutex: TransactionMutex
     savingWorldNow: Promise<any>;
     underConstruction: WorldTransactionUnderConstruction;
     lastWorldTransactionStartTime: number;
@@ -95,19 +101,18 @@ export class WorldDBActor {
     cleanupWorldModifyPerTransaction: int;
     asyncStats: WorldTickStat;
     _worldSavingResolve: Function;
+    // флаги - что надо сохранить в мире
+    worldGeneratorDirty = false
 
     constructor(world : ServerWorld) {
         this.world = world;
         this.db = world.db;
+        this.transactionMutex = new TransactionMutex(this.db.conn)
 
         // ChunkDBActor that have any changes to be saved. It's managed by ChunkDBActor.
         this.dirtyActors = new Set();
 
         this.chunklessActors = new VectorCollector();
-
-        // It fullfills when the last ongoing transaction commits or rolls back.
-        // (it includes any transactions, not only world-saving)
-        this._transactionPromise = Promise.resolve();
 
         this._createWorldSavingPromise();
         /**
@@ -140,28 +145,6 @@ export class WorldDBActor {
             return actor;
         }
         return new ChunkDBActor(this.world, addr, chunk);
-    }
-
-    /**
-     * Begins a new transaction.
-     * Completes after the previous transaction has completed.
-     * Multiple requests for a transaction can be waiting. They'll be completed in their creation order.
-     * @return {Transaction} a handler to the transaction that must be used to complete it.
-     */
-    async beginTransaction() {
-        const prevTransactionPromise = this._transactionPromise;
-        let transaction;
-        this._transactionPromise = new Promise( resolve => {
-            transaction = new Transaction(this.db, resolve);
-        });
-        // Wait for the completion of the previous transaction (successful or not).
-        // Rollback of a failed transaction is responsibility of the caller.
-        try {
-            await prevTransactionPromise;
-        } finally {
-            await this.db.TransactionBegin();
-            return transaction;
-        }
     }
 
     async saveWorldIfNecessary() {
@@ -202,7 +185,7 @@ export class WorldDBActor {
         const speedup = shutdown || world.shuttingDown;
 
         // await for the previous ongoing transaction, then start a new one
-        const transaction = await this.beginTransaction();
+        const transaction = await this.transactionMutex.beginTransaction()
 
         let resolveSavingWorldNow;
         this.savingWorldNow = new Promise(resolve => {
@@ -340,6 +323,11 @@ export class WorldDBActor {
                 db.driving.bulkUpdate(uc.updateDriving),
                 db.driving.bulkDelete(uc.deleteDriving)
             )
+
+            if (this.worldGeneratorDirty) {
+                this.worldGeneratorDirty = false
+                uc.pushPromises(world.db.setWorldGenerator(world.info.guid, world.info.generator))
+            }
 
             this.writeRecoveryBlob(uc);
         } catch(e) {

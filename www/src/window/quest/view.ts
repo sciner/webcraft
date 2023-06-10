@@ -109,7 +109,7 @@ export class QuestView extends Window {
         for(const item of quest.rewards) {
             const block = BLOCK.fromId(item.block_id)
             if(!block.is_dummy) {
-                rewards.push((rewards.length + 1) + '. ' + block.name.replaceAll('_', ' ') + ' × ' + item.cnt)
+                rewards.push((rewards.length + 1) + '. ' + block.title + ' × ' + item.cnt)
             }
         }
         lblRewards.text = rewards.join('\r\n\r\n')

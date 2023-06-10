@@ -406,9 +406,6 @@ export default class style {
                 } else {
                     axes_up = UP_AXES[rv % 4];
                 }
-                if(material.tags.includes('mask_biome')) {
-                    flags |= QUAD_FLAGS.FLAG_MASK_BIOME
-                }
                 autoUV = false;
             }
 

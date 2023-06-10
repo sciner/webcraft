@@ -1,5 +1,6 @@
 import { FSMBrain } from "../brain.js";
 import { Vector } from "@client/helpers.js";
+import type {MobControlParams} from "@client/control/player_control.js";
 
 export class Brain extends FSMBrain {
     rth_max_distance: number;
@@ -50,7 +51,7 @@ export class Brain extends FSMBrain {
     }
 
     // просто полет
-    doForward(delta: float): boolean {
+    doForward(delta: float): MobControlParams | null {
         const mob = this.mob;
         
         const block = this.getFlightBlocks();
@@ -80,13 +81,11 @@ export class Brain extends FSMBrain {
             }
         }
 
-        this.updateControl({
+        return {
             jump: jump,
             forward: true,
             sneak: block.sneak
-        });
-        return true
-
+        }
     }
 
     onPanic() {

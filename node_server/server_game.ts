@@ -23,8 +23,8 @@ class FakeHotbar {
 export class ServerGame {
     dt_started: Date;
     is_server: boolean;
-    worlds: Map<string, ServerWorld>;
-    worlds_loading: Map<string, boolean>;
+    worlds          = new Map<string, ServerWorld>()
+    worlds_loading  = new Map<string, [Promise<ServerWorld | null>, Function]>() // 2-й член - resolve от этого промиса
     shutdownPromise: Promise<any>;
     shutdownGentle: boolean;
     hud: FakeHUD;
@@ -38,8 +38,6 @@ export class ServerGame {
         this.dt_started = new Date();
         this.is_server = true;
         // Worlds
-        this.worlds = new Map();
-        this.worlds_loading = new Map();
         this.shutdownPromise = null;
         this.shutdownGentle = false;
         // Placeholder
@@ -101,30 +99,48 @@ export class ServerGame {
             return // don't load new worlds when shutting down
         }
         for(const world_guid of this.worlds_loading.keys()) {
-            console.log(`>>>>>>> BEFORE LOAD WORLD ${world_guid} <<<<<<<`);
-            const p = performance.now();
-            const worldTitlePromise = this.db.getWorld(world_guid);
-            const conn = await SQLiteServerConnector.connect(`../world/${world_guid}/world.sqlite`);
-            const world = new ServerWorld(BLOCK);
-            const db_world = await DBWorld.openDB(conn, world);
-            const title = (await worldTitlePromise).title;
-            await world.initServer(world_guid, db_world, title, this);
-            this.worlds.set(world_guid, world);
-            this.worlds_loading.delete(world_guid);
-            console.log('World started', (Math.round((performance.now() - p) * 1000) / 1000) + 'ms');
+            const worlds_loading_resolve = this.worlds_loading.get(world_guid)[1]
+            try {
+                console.log(`>>>>>>> BEFORE LOAD WORLD ${world_guid} <<<<<<<`);
+                const p = performance.now();
+                const [worldRow, conn] = await Promise.all([
+                    this.db.getWorld(world_guid),
+                    SQLiteServerConnector.connect(`../world/${world_guid}/world.sqlite`)
+                ])
+                const world = new ServerWorld(BLOCK);
+                const db_world = await DBWorld.openDB(conn, world);
+                await world.initServer(world_guid, db_world, worldRow.title, this);
+                this.worlds.set(world_guid, world);
+                console.log('World started', (Math.round((performance.now() - p) * 1000) / 1000) + 'ms');
+                worlds_loading_resolve(world)
+            } catch(e) { // чтобы не было unhandled rejection
+                console.error(`World ${world_guid} can't start: ${e}`)
+                worlds_loading_resolve(null)
+            }
+            this.worlds_loading.delete(world_guid)
             break;
         }
         clearTimeout(this.timerLoadWorld);
         this.timerLoadWorld = setTimeout(this.processWorldQueue.bind(this), 10);
     }
 
-    //
-    getLoadedWorld(world_guid : string) : ServerWorld | null {
-        const world = this.worlds.get(world_guid);
-        if(world) return world;
-        if(this.worlds_loading.has(world_guid)) return null;
-        this.worlds_loading.set(world_guid, true);
-        return null;
+    /** @returns существующий мир или null */
+    async getWorld(world_guid : string) : Promise<ServerWorld | null> {
+        // если мир уже загружен
+        const world = this.worlds.get(world_guid)
+        if (world) {
+            return world
+        }
+        // если грузится сейчас
+        const promiseTuple = this.worlds_loading.get(world_guid)
+        if (promiseTuple) {
+            return promiseTuple[0]
+        }
+        // не загружен и не грузится - начать грузить
+        let resolve: Function
+        const promise = new Promise<ServerWorld>(  res => resolve = res )
+        this.worlds_loading.set(world_guid, [promise, resolve])
+        return promise
     }
 
     // Start websocket server
@@ -220,30 +236,25 @@ export class ServerGame {
             const world_guid    = Array.isArray(query.world_guid) ? query.world_guid[0] : query.world_guid;
             const skin_id       = Array.isArray(query.skin_id) ? query.skin_id[0] : query.skin_id;
             // Get loaded world
-            let world = this.getLoadedWorld(world_guid);
-            const onWorld = async (world) => {
+            this.getWorld(world_guid).then(async (world: ServerWorld | null) => {
                 if (this.shutdownPromise) {
                     return // don't join players when shutting down
                 }
+                if (world == null) {
+                    // TODO как-то лучше ответить игрокку что мир не найден
+                    conn.close(1000)
+                    return
+                }
                 Log.append('WsConnected', {world_guid, session_id: query.session_id});
                 const player = new ServerPlayer();
-                player.onJoin(query.session_id as string, skin_id, conn, world);
+                await player.onJoin(query.session_id as string, skin_id, conn, world);
                 const game_world = await this.db.getWorld(world_guid);
                 await this.db.IncreasePlayCount(game_world.id, query.session_id);
-            };
-            if(world) {
-                onWorld(world);
-            } else {
-                new Promise(resolve => {
-                    const hInterval = setInterval(() => {
-                        world = this.getLoadedWorld(world_guid);
-                        if(world) {
-                            clearInterval(hInterval);
-                            resolve(world);
-                        }
-                    }, 10);
-                }).then(onWorld);
-            }
+            }).catch((e) => { // чтобы не было unhandled rejection
+                console.error(e)
+                conn.close(1000)
+                return
+            })
         });
 
     }

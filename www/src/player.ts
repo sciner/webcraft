@@ -4,7 +4,7 @@ import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
 import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE, MIN_STEP_PLAY_SOUND, MIN_HEIGHT_PLAY_SOUND, PLAYER_BURNING_TIME} from "./constant.js";
-import {ClientPlayerControlManager} from "./control/player_control_manager.js";
+import {ClientPlayerControlManager, PlayerControlManager} from "./control/player_control_manager.js";
 import {PlayerControl, PlayerControls} from "./control/player_control.js";
 import {PlayerInventory} from "./player_inventory.js";
 import { PlayerWindowManager } from "./player_window_manager.js";
@@ -61,6 +61,16 @@ export type PlayerSkin = {
     can_select_by_player?:  boolean
     model_name:             string
     texture_name:           string
+}
+
+/** Опции клиентского игрока */
+export type PlayerOptions = {
+    use_light?
+    chunk_geometry_mode?
+    chunk_geometry_alloc?
+    forced_joystick_control?
+    /** Если true, то игрок - тестовый бот, использующий только spectator. */
+    is_spectator_bot? : boolean
 }
 
 type PlayerHand = {
@@ -132,6 +142,13 @@ export type PlayerStateUpdate = PlayerStateDynamicPart & {
     running     : boolean
 }
 
+/** Клиент отправляет на сервер чтобы войчти в мир */
+export type CmdConnectData = {
+    world_guid:         string
+    is_spectator_bot?:  boolean
+}
+
+/** Высылается клиенту */
 export type PlayerConnectData = {
     session     : PlayerSession
     state       : PlayerState
@@ -166,7 +183,7 @@ export class Player implements IPlayer {
     chat :                      Chat
     render:                     Renderer;
     world:                      World
-    options:                    any;
+    options:                    PlayerOptions;
     game_mode:                  GameMode;
     inventory:                  PlayerInventory;
     controls:                   PlayerControls;
@@ -208,6 +225,7 @@ export class Player implements IPlayer {
     onGround:                   boolean = false;
     onGroundO:                  boolean = false;
     sneak:                      boolean;
+    is_spectator_bot:           boolean = false // если true, то это специальный отладочный бот, который только летает
 
     //
     headBlock:                  any = null;
@@ -322,7 +340,11 @@ export class Player implements IPlayer {
             }
         })
         //
-        this.world.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: world.info.guid}});
+        const data: CmdConnectData = {
+            world_guid: world.info.guid,
+            is_spectator_bot: this.options.is_spectator_bot ?? false
+        }
+        this.world.server.Send({name: ServerClient.CMD_CONNECT, data})
     }
 
     // playerConnectedToWorld...
@@ -348,7 +370,7 @@ export class Player implements IPlayer {
         this.world.chunkManager.setRenderDist(data.state.chunk_render_dist);
         // Position
         this._height                = PLAYER_HEIGHT;
-        this.pos                    = new Vector(data.state.pos.x, data.state.pos.y, data.state.pos.z);
+        this.pos                    = new Vector(data.state.pos);
         this.lerpPos                = new Vector(this.pos);
         this._block_pos             = new Vector(0, 0, 0);
         this._eye_pos               = new Vector(0, 0, 0);
@@ -460,10 +482,16 @@ export class Player implements IPlayer {
                             }
                         }
                     })
-                    this.state.attack = {title: 'attack', speed: speed}
+                    this.state.attack = {title: 'strike', speed: speed}
                     setTimeout(() => {
+                        Qubatch.sounds.play('madcraft:block.player', 'hit');
                         this.state.attack = false
                     }, ATTACK_COOLDOWN / speed)
+                    // анимация удара
+                    if (this.inAttackProcess === ATTACK_PROCESS_NONE) {
+                        this.inAttackProcess = ATTACK_PROCESS_ONGOING
+                        this.inhand_animation_duration = Math.min(RENDER_DEFAULT_ARM_HIT_PERIOD, ATTACK_COOLDOWN) / speed
+                    }
                 }
             } else {
                 const instrument = this.getCurrentInstrument()
@@ -605,20 +633,13 @@ export class Player implements IPlayer {
     /** Добавляет вращение к свободной камере либо к повороту игроку */
     addRotate(vec3: IVector): void {
         const dst = this.controlManager.getCamRotation().addSelf(vec3)
-        this.setRotate(dst, dst)
+        PlayerControlManager.fixRotation(dst)
     }
 
-    /**
-     * Добавляет {@link src} к {@link dst} (по умолчанию к повороту игрока) и приводит углы к нормальным значениям для камеры
-     * @param src (0 ... PI)
-     */
-    setRotate(src: IVector, dst: Vector = this.rotate): void {
-        dst.copyFrom(src);
-        if(dst.z < 0) {
-            dst.z = (Math.PI * 2) + dst.z;
-        }
-        dst.x = Helpers.clamp(dst.x, -Math.PI / 2, Math.PI / 2);
-        dst.z = dst.z % (Math.PI * 2);
+    /** Устанавливает поворот игрока */
+    setRotate(src: IVector): void {
+        this.rotate.copyFrom(src)
+        PlayerControlManager.fixRotation(this.rotate)
     }
 
     // Rad to degree
@@ -729,7 +750,13 @@ export class Player implements IPlayer {
         if(type == MOUSE.DOWN) {
             this.pickAt.setEvent(this, {button_id, shiftKey});
             if(e.button_id == MOUSE.BUTTON_LEFT) {
-                this.startArmSwingProgress();
+                const cur_mat_id = this.inventory.current_item?.id
+                if (cur_mat_id) {
+                    const cur_mat = BLOCK.fromId(cur_mat_id)
+                    if (cur_mat?.item?.name == 'instrument') {
+                        this.startArmSwingProgress() // @todo визуальная времянка
+                    }
+                }
             }
         } else if (type == MOUSE.UP) {
             this.resetMouseActivity();
@@ -764,11 +791,10 @@ export class Player implements IPlayer {
 
     // onPickAtTarget
     async onPickAtTarget(e : IPickatEvent, times : float, number : int): Promise<boolean> {
-
-        this.inMiningProcess = true;
-        this.inhand_animation_duration = (e.destroyBlock ? 1 : 2.5) * RENDER_DEFAULT_ARM_HIT_PERIOD;
-
-        let bPos = e.pos;
+        if(this.state.sitting || this.state.sleep) {
+            console.log('Stand up first');
+            return false
+        }
         // create block
         if(e.createBlock) {
             if(e.number > 1 && times < .02) {
@@ -781,6 +807,7 @@ export class Player implements IPlayer {
             }
         // destroy block
         } else if(e.destroyBlock) {
+            const bPos = e.pos;
             const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             const block         = BLOCK.fromId(world_block.id);
             let mul             = Qubatch.world.info.generator.options.tool_mining_speed ?? 1;
@@ -794,7 +821,7 @@ export class Player implements IPlayer {
                 if(typeof this.hitIndexO === undefined || hitIndex > this.hitIndexO) {
                     this.render.destroyBlock(block, new Vector(bPos as IVector).addScalarSelf(.5, .5, .5), true);
                     Qubatch.sounds.play(block.sound, 'hit');
-                    this.startArmSwingProgress();
+                    this.startArmSwingProgress(true);
                 }
                 this.hitIndexO = hitIndex;
             }
@@ -812,17 +839,13 @@ export class Player implements IPlayer {
         }
         //
         if(!this.limitBlockActionFrequency(e) && this.game_mode.canBlockAction()) {
-            if(this.state.sitting || this.state.sleep) {
-                console.log('Stand up first');
-                return false;
-            }
             this.mineTime = 0;
             const e_orig: ICmdPickatData = ObjectHelpers.deepClone(e);
             const action_player_info = this.getActionPlayerInfo()
             const [actions, pos] = await doBlockAction(e, this.world, action_player_info, this.currentInventoryItem);
             if (actions) {
                 e_orig.snapshotId = pos && this.world.history.makeSnapshot(pos);
-                if(e.createBlock && actions.blocks.list.length > 0) {
+                if(e.createBlock && (actions.blocks.list.length > 0 || actions.decrement)) {
                     this.startArmSwingProgress();
                 }
                 await this.world.applyActions(actions, this);
@@ -1225,7 +1248,9 @@ export class Player implements IPlayer {
     }
 
     // Start arm swing progress
-    startArmSwingProgress() {
+    startArmSwingProgress(destroy: boolean = false) {
+        this.inMiningProcess = true;
+        this.inhand_animation_duration = (destroy ? 1 : 2.5) * RENDER_DEFAULT_ARM_HIT_PERIOD;
         const itsme = this.getModel()
         if(itsme) {
             itsme.startArmSwingProgress();
@@ -1287,6 +1312,9 @@ export class Player implements IPlayer {
         switch(item_name) {
             case 'bottle':
             case 'food': {
+                if (this.indicators.food >= 20 && item_name == 'food') {
+                    return false
+                }
                 const itsme = this.getModel()
                 this.world.server.Send({name: ServerClient.CMD_USE_ITEM});
                 this.inhand_animation_duration = RENDER_EAT_FOOD_DURATION;

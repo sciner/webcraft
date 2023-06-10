@@ -93,6 +93,7 @@
             "material": {
                 "id": "water"
             },
+            "listeners": ["bubbles"],
             "texture_animations": {
                 "up": null,
                 "side": 0
@@ -2807,6 +2808,7 @@
             "material": {
                 "id": "sand"
             },
+            "listeners": ["bubbles"],
             "texture": "block/soul_sand.png"
         },
         {
@@ -4972,16 +4974,17 @@
         },
         {
             "id": 604,
-            "name": "CAVE_VINE",
+            "name": "CAVE_VINES",
             "passable": 1,
             "transparent": true,
-            "spawnable": false,
+            "_spawnable": false,
             "style": "planting",
             "sound": "madcraft:block.cave_vine",
             "material": {
                 "id": "plant"
             },
             "tags": [
+                "no_need_dirt",
                 "is_hanging_plant",
                 "destroy_to_down"
             ],
@@ -4993,6 +4996,10 @@
             },
             "texture": {
                 "side": "./textures/cave_vines_plant.png"
+            },
+            "extra_data": {
+                "part": 1,
+                "ripe": false
             },
             "hanging_textures": [
                 {
@@ -6384,7 +6391,7 @@
             "texture": "block/large_fern.png",
             "inventory": {
                 "style": "extruder",
-                "texture": "block/large_fern_top.png"
+                "texture": "block/large_fern.png"
             },
             "material": {
                 "id": "plant"
@@ -10210,21 +10217,16 @@
             "style": "extruder",
             "texture": "item/turtle_helmet.png",
             "item": {"name": "armor"},
+            "power": 276,
             "material": {
                 "id": "powder"
             },
             "armor": {
-                "slot": 89,
-                "durability": 276,
-                "damage": 0
+                "slot": 89
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_copper"
-            },
-            "extra_data": {
-                "durability": 276,
-                "protection": 0
             }
         },
         {
@@ -10465,18 +10467,14 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 89,
-                "durability": 55,
-                "damage": 1
+                "slot": 89
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_leather"
             },
-            "extra_data": {
-                "durability": 55,
-                "protection": 1
-            }
+            "protection": 1,
+            "power": 55
         },
         {
             "id": 1100,
@@ -10489,18 +10487,14 @@
                 "id": "copper"
             },
             "armor": {
-                "slot": 89,
-                "durability": 55,
-                "damage": 1
+                "slot": 89
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_copper"
             },
-            "extra_data": {
-                "durability": 55,
-                "protection": 1
-            }
+            "protection": 1,
+            "power": 55
         },
         {
             "id": 276,
@@ -10513,18 +10507,14 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 89,
-                "durability": 165,
-                "damage": 2
+                "slot": 89
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
             },
-            "extra_data": {
-                "durability": 165,
-                "protection": 2
-            }
+            "protection": 2,
+            "power": 165
         },
         {
             "id": 277,
@@ -10537,18 +10527,14 @@
                 "id": "iron"
             },
             "armor": {
-                "slot": 89,
-                "durability": 165,
-                "damage": 2
+                "slot": 89
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
             },
-            "extra_data": {
-                "durability": 165,
-                "protection": 2
-            }
+            "protection": 2,
+            "power": 165
         },
         {
             "id": 278,
@@ -10561,18 +10547,14 @@
                 "id": "titanium"
             },
             "armor": {
-                "slot": 89,
-                "durability": 363,
-                "damage": 3
+                "slot": 89
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_titanium"
             },
-            "extra_data": {
-                "durability": 363,
-                "protection": 3
-            }
+            "protection": 3,
+            "power": 363
         },
         {
             "id": 279,
@@ -10585,18 +10567,14 @@
                 "id": "gold"
             },
             "armor": {
-                "slot": 89,
-                "durability": 77,
-                "damage": 2
+                "slot": 89
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_gold"
             },
-            "extra_data": {
-                "durability": 77,
-                "protection": 2
-            }
+            "protection": 2,
+            "power": 77
         },
         {
             "id": 280,
@@ -10609,18 +10587,14 @@
                 "id": "netherite"
             },
             "armor": {
-                "slot": 89,
-                "durability": 407,
-                "damage": 3
+                "slot": 89
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_netherite"
             },
-            "extra_data": {
-                "durability": 407,
-                "protection": 3
-            }
+            "protection": 3,
+            "power": 407
         },
         {
             "id": 281,
@@ -10633,18 +10607,14 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 88,
-                "durability": 80,
-                "damage": 3
+                "slot": 88
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_leather"
             },
-            "extra_data": {
-                "durability": 80,
-                "protection": 3
-            }
+            "protection": 3,
+            "power": 80
         },
         {
             "id": 1101,
@@ -10657,18 +10627,14 @@
                 "id": "copper"
             },
             "armor": {
-                "slot": 88,
-                "durability": 80,
-                "damage": 3
+                "slot": 88
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_copper"
             },
-            "extra_data": {
-                "durability": 80,
-                "protection": 3
-            }
+            "protection": 3,
+            "power": 80
         },
         {
             "id": 282,
@@ -10681,18 +10647,14 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 88,
-                "durability": 240,
-                "damage": 5
+                "slot": 88
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
             },
-            "extra_data": {
-                "durability": 240,
-                "protection": 5
-            }
+            "protection": 5,
+            "power": 240
         },
         {
             "id": 283,
@@ -10705,18 +10667,14 @@
                 "id": "iron"
             },
             "armor": {
-                "slot": 88,
-                "durability": 240,
-                "damage": 6
+                "slot": 88
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
             },
-            "extra_data": {
-                "durability": 240,
-                "protection": 6
-            }
+            "protection": 6,
+            "power": 240
         },
         {
             "id": 284,
@@ -10729,18 +10687,14 @@
                 "id": "titanium"
             },
             "armor": {
-                "slot": 88,
-                "durability": 528,
-                "damage": 8
+                "slot": 88
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_titanium"
             },
-            "extra_data": {
-                "durability": 528,
-                "protection": 8
-            }
+            "protection": 8,
+            "power": 528
         },
         {
             "id": 285,
@@ -10753,18 +10707,14 @@
                 "id": "gold"
             },
             "armor": {
-                "slot": 88,
-                "durability": 112,
-                "damage": 5
+                "slot": 88
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_gold"
             },
-            "extra_data": {
-                "durability": 112,
-                "protection": 5
-            }
+            "protection": 5,
+            "power": 112
         },
         {
             "id": 286,
@@ -10777,18 +10727,14 @@
                 "id": "netherite"
             },
             "armor": {
-                "slot": 88,
-                "durability": 592,
-                "damage": 8
+                "slot": 88
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_netherite"
             },
-            "extra_data": {
-                "durability": 592,
-                "protection": 8
-            }
+            "protection": 8,
+            "power": 592
         },
         {
             "id": 287,
@@ -10801,18 +10747,14 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 87,
-                "durability": 80,
-                "damage": 2
+                "slot": 87
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_leather"
             },
-            "extra_data": {
-                "durability": 80,
-                "protection": 2
-            }
+            "protection": 2,
+            "power": 80
         },
         {
             "id": 1102,
@@ -10825,18 +10767,14 @@
                 "id": "copper"
             },
             "armor": {
-                "slot": 87,
-                "durability": 80,
-                "damage": 2
+                "slot": 87
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_copper"
             },
-            "extra_data": {
-                "durability": 80,
-                "protection": 2
-            }
+            "protection": 2,
+            "power": 80
         },
         {
             "id": 288,
@@ -10849,18 +10787,14 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 87,
-                "durability": 240,
-                "damage": 4
+                "slot": 87
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
             },
-            "extra_data": {
-                "durability": 240,
-                "protection": 4
-            }
+            "protection": 4,
+            "power": 240
         },
         {
             "id": 289,
@@ -10873,18 +10807,14 @@
                 "id": "iron"
             },
             "armor": {
-                "slot": 87,
-                "durability": 240,
-                "damage": 5
+                "slot": 87
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
             },
-            "extra_data": {
-                "durability": 240,
-                "protection": 5
-            }
+            "protection": 5,
+            "power": 240
         },
         {
             "id": 290,
@@ -10897,18 +10827,14 @@
                 "id": "titanium"
             },
             "armor": {
-                "slot": 87,
-                "durability": 528,
-                "damage": 6
+                "slot": 87
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_titanium"
             },
-            "extra_data": {
-                "durability": 528,
-                "protection": 6
-            }
+            "protection": 6,
+            "power": 528
         },
         {
             "id": 291,
@@ -10921,18 +10847,14 @@
                 "id": "gold"
             },
             "armor": {
-                "slot": 87,
-                "durability": 112,
-                "damage": 3
+                "slot": 87
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_gold"
             },
-            "extra_data": {
-                "durability": 112,
-                "protection": 3
-            }
+            "protection": 3,
+            "power": 112
         },
         {
             "id": 292,
@@ -10945,18 +10867,14 @@
                 "id": "netherite"
             },
             "armor": {
-                "slot": 87,
-                "durability": 592,
-                "damage": 6
+                "slot": 87
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_netherite"
             },
-            "extra_data": {
-                "durability": 592,
-                "protection": 6
-            }
+            "protection": 6,
+            "power": 592
         },
         {
             "id": 293,
@@ -10969,18 +10887,14 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 86,
-                "durability": 65,
-                "damage": 1
+                "slot": 86
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_leather"
             },
-            "extra_data": {
-                "durability": 65,
-                "protection": 1
-            }
+            "protection": 1,
+            "power": 65
         },
         {
             "id": 1103,
@@ -10993,18 +10907,14 @@
                 "id": "copper"
             },
             "armor": {
-                "slot": 86,
-                "durability": 65,
-                "damage": 1
+                "slot": 86
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_copper"
             },
-            "extra_data": {
-                "durability": 65,
-                "protection": 1
-            }
+            "protection": 1,
+            "power": 65
         },
         {
             "id": 294,
@@ -11017,18 +10927,14 @@
                 "id": "leather"
             },
             "armor": {
-                "slot": 86,
-                "durability": 195,
-                "damage": 1
+                "slot": 86
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
             },
-            "extra_data": {
-                "durability": 195,
-                "protection": 1
-            }
+            "protection": 1,
+            "power": 195
         },
         {
             "id": 295,
@@ -11041,18 +10947,14 @@
                 "id": "iron"
             },
             "armor": {
-                "slot": 86,
-                "durability": 195,
-                "damage": 2
+                "slot": 86
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_iron"
             },
-            "extra_data": {
-                "durability": 195,
-                "protection": 2
-            }
+            "protection": 2,
+            "power": 195
         },
         {
             "id": 296,
@@ -11065,18 +10967,14 @@
                 "id": "titanium"
             },
             "armor": {
-                "slot": 86,
-                "durability": 429,
-                "damage": 3
+                "slot": 86
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_titanium"
             },
-            "extra_data": {
-                "durability": 429,
-                "protection": 3
-            }
+            "protection": 3,
+            "power": 429
         },
         {
             "id": 297,
@@ -11089,18 +10987,14 @@
                 "id": "gold"
             },
             "armor": {
-                "slot": 86,
-                "durability": 91,
-                "damage": 1
+                "slot": 86
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_gold"
             },
-            "extra_data": {
-                "durability": 91,
-                "protection": 1
-            }
+            "protection": 1,
+            "power": 91
         },
         {
             "id": 298,
@@ -11113,18 +11007,14 @@
                 "id": "netherite"
             },
             "armor": {
-                "slot": 86,
-                "durability": 481,
-                "damage": 3
+                "slot": 86
             },
             "model": {
                 "name": "armor/scrap_armor",
                 "texture": "scrap_armor_netherite"
             },
-            "extra_data": {
-                "durability": 481,
-                "protection": 3
-            }
+            "protection": 3,
+            "power": 481
         },
         {
             "id": 417,
@@ -12372,13 +12262,14 @@
             "name": "GLOWING_HANGING_LIANA",
             "passable": 1,
             "transparent": true,
-            "spawnable": false,
+            "_spawnable": false,
             "style": "planting",
             "sound": "madcraft:block.cave_vine",
             "material": {
                 "id": "plant"
             },
             "tags": [
+                "no_need_dirt",
                 "is_hanging_plant",
                 "destroy_to_down"
             ],
@@ -12390,6 +12281,10 @@
             },
             "texture": {
                 "side": "block/glowing_hanging_liana/glowingplant_base.png"
+            },
+            "extra_data": {
+                "part": 2,
+                "ripe": false
             },
             "hanging_textures": [
                 {

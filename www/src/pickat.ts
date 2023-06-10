@@ -322,6 +322,7 @@ export class PickAt {
         const lineWidth = 100 / Qubatch.render.HUD.height * 1.5 // .25
 
         const aabbConfig = {isLocal: true, lineWidth, colorABGR: 0xFF000000};
+        // const aabbConfig = {isLocal: true, lineWidth: lineWidth * 10, colorABGR: 0xFFFF00FF};
         let vertices    = [];
         geom.clear();
         geom.pos.copyFrom(pos);

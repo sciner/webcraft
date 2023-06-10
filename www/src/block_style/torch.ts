@@ -78,7 +78,7 @@ export default class style {
         const flag              = QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_NORMAL_UP;
         const pos               = new Vector(0, 0, 0);
         const rotate            = block.rotate;
-        const rot               = [0, 0, 0];
+        const rot               = [0, 0, 0] as tupleFloat3
         const torch_pos         = block.posworld.clone();
 
         // Geometries

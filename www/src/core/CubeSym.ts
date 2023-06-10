@@ -1,6 +1,6 @@
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 
-const {mat3} = glMatrix;
+const {mat3, mat4} = glMatrix;
 
 export enum CD_ROT {
     NORTH   = 7,
@@ -9,11 +9,34 @@ export enum CD_ROT {
     EAST    = 22,
 }
 
+const tempMat4 = mat4.create();
+
+function fromMat3(out : imat4, b : imat3) : imat4 {
+    // transponse too!
+    out[ 0] = b[ 0];
+    out[ 1] = b[ 3];
+    out[ 2] = b[ 6];
+
+    out[ 4] = b[ 1];
+    out[ 5] = b[ 4];
+    out[ 6] = b[ 7];
+
+    out[ 8] = b[ 2];
+    out[ 9] = b[ 5];
+    out[10] = b[ 8];
+
+    out[ 3] = out[ 7] = out[11] =
+    out[12] = out[13] = out[14] = 0;
+    out[15] = 1.0;
+
+    return out;
+}
+
 export const CubeSym = {
     ID: 0,
     ROT_Y: 1,
     ROT_Y2: 2,
-    ROT_Y3: 3,
+    ROT_Y3: 3, 
     ROT_Z: 4,
     ROT_Z2: 5,
     ROT_Z3: 6,
@@ -72,6 +95,10 @@ export const CubeSym = {
     },
     inv(sym) {
         return CubeSym._inv[sym];
+    },
+    applyToMat4(out, matrix: imat4, sym: number) {
+        fromMat3(tempMat4, this.matrices[sym]);
+        mat4.multiply(out, matrix, tempMat4);
     }
 }
 
