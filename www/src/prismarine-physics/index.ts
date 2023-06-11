@@ -206,14 +206,16 @@ export class Physics {
     }
 
     /**
-     * Возвращает AABB препятствий.
+     * Возвращает AABB _возможных_ препятствий.
+     * Не анализирует форму блоков (реальный размер блоков может быть меньше и они не пересекаются).
      * Результат действительне до повторного вызова - повторно использует один и тот же массив.
+     * @param extendDown - дополнительное число проверяемых блоков под {@link queryBB}
      */
-    private getSurroundingBBs(queryBB: AABB, findFirst?: boolean): AABB[] {
+    private getSurroundingBBs(queryBB: AABB, extendDown: int = 1, findFirst?: boolean): AABB[] {
         const surroundingBBs = this.tmpSurroundingBBs
         surroundingBBs.length = 0
         let acc = this.blockAccessor
-        for (let y = Math.floor(queryBB.y_min) - 1; y <= Math.floor(queryBB.y_max); y++) { // если findFirst == true, начинать с y  быстрее
+        for (let y = Math.floor(queryBB.y_min) - extendDown; y <= Math.floor(queryBB.y_max); y++) { // если findFirst == true, начинать с y  быстрее
             acc.y = y
             for (let z = Math.floor(queryBB.z_min); z <= Math.floor(queryBB.z_max); z++) {
                 acc.z = z
@@ -230,9 +232,23 @@ export class Physics {
     }
 
     private moveEntity(entity: PrismarinePlayerState, dx: float, dy: float, dz: float): void {
-        const options = entity.options
-        const vel = entity.vel
-        const pos = entity.pos
+
+        function canStep(dx: int, dz: int): boolean {
+            tmpBB.copyFrom(playerBB).translate(dx, 0, dz)
+            // настроить AABB чтобы он пересекал только слой высотой 0.4 непосредственно под ногами: 1) быстрее
+            // 2) нельзя спрыгнуть с полублоков, но можно спрыгуть с блоков неполной высоты.
+            tmpBB.y_max = tmpBB.y_min - 0.001
+            tmpBB.y_min -= 0.4
+            if (entity.control.sneak) {
+                // не разрешать спускаться даже с полублоков
+                return that.getSurroundingBBs(tmpBB, 0, false).some(aabb => aabb.intersect(tmpBB))
+            }
+            // это повтор выполнения. Главное - не упасть в пропасть. Можно падать максимум на 1.5 блока вниз. Быстрая, грубая проверка.
+            return that.getSurroundingBBs(tmpBB, 1, true).length !== 0
+        }
+
+        const that = this
+        const {options, vel, pos} = entity
         let playerBB = this.getPlayerBB(entity, pos, this.tmpPlayerBB)
         const tmpBB = this.tmpBB
         const acc = this.blockAccessor
@@ -241,23 +257,15 @@ export class Physics {
             dx *= entity.passable; // 0.25
             dy *= entity.passable / 5; // 0.05
             dz *= entity.passable; // 0.25
-            vel.x = 0
-            vel.y = 0
-            vel.z = 0
+            vel.zero()
             entity.isInWeb = false
         } else if (entity.isInTina) {
             dx *= entity.passable;
             dy *= entity.passable;
             dz *= entity.passable;
-            vel.x = 0
-            vel.y = 0
-            vel.z = 0
+            vel.zero()
             entity.isInTina = false
         }
-
-        let oldVelX = dx
-        const oldVelY = dy
-        let oldVelZ = dz
 
         // не допустить падения с блока
         // Очень медленно (куча лишних вычислений AABB), но редко выполняется - можно не оптимизировать.
@@ -265,21 +273,19 @@ export class Physics {
             const step = 0.05
 
             // In the 3 loops bellow, y offset should be -1, but that doesnt reproduce vanilla behavior.
-            while (dx !== 0 && this.getSurroundingBBs(tmpBB.copyFrom(playerBB).translate(dx, 0, 0), true).length === 0) {
+            while (dx !== 0 && !canStep(dx, 0)) {
                 if (dx < step && dx >= -step) dx = 0
                 else if (dx > 0) dx -= step
                     else dx += step
-                oldVelX = dx
             }
 
-            while (dz !== 0 && this.getSurroundingBBs(tmpBB.copyFrom(playerBB).translate(0, 0, dz), true).length === 0) {
+            while (dz !== 0 && !canStep(0, dz)) {
                 if (dz < step && dz >= -step) dz = 0
                 else if (dz > 0) dz -= step
                     else dz += step
-                oldVelZ = dz
             }
 
-            while (dx !== 0 && dz !== 0 && this.getSurroundingBBs(tmpBB.copyFrom(playerBB).translate(dx, 0, dz), true).length === 0) {
+            while (dx !== 0 && dz !== 0 && !canStep(dx, dz)) {
                 if (dx < step && dx >= -step) dx = 0
                 else if (dx > 0) dx -= step
                     else dx += step
@@ -287,11 +293,12 @@ export class Physics {
                 if (dz < step && dz >= -step) dz = 0
                 else if (dz > 0) dz -= step
                 else dz += step
-
-                oldVelX = dx
-                oldVelZ = dz
             }
         }
+
+        const oldVelX = dx
+        const oldVelY = dy
+        const oldVelZ = dz
 
         const queryBB = playerBB.clone().extend(dx, dy, dz)
         const surroundingBBs = this.getSurroundingBBs(queryBB)
@@ -315,7 +322,9 @@ export class Physics {
         // Step on block if height < stepHeight
         if (options.stepHeight * this.scale > 0 &&
             (entity.onGround || (dy !== oldVelY && oldVelY < 0)) &&
-            (dx !== oldVelX || dz !== oldVelZ)) {
+            (dx !== oldVelX || dz !== oldVelZ) &&
+            !entity.control.sneak
+        ) {
             const oldVelXCol = dx
             const oldVelYCol = dy
             const oldVelZCol = dz
@@ -822,14 +831,33 @@ export class Physics {
     }
 
     /**
+     * @return координаты блоков, на которых реально стоит игрок (с учетом формы блоков).
+     * Нельзя вызывать из {@link simulatePlayer} (т.к. очищает пулы). Этот метод - только для внешнего АПИ).
+     */
+    getUnderLegs(entity: PrismarinePlayerState): Vector[] {
+        const result: Vector[] = []
+        this.blockAccessor.reset(entity.pos)
+        const queryBB = this.getPlayerBB(entity, entity.pos, this.tmpPlayerBB)
+        queryBB.y_max = queryBB.y_min -= 0.001 // получить только блоки, пересекающие узкий слой под ногами
+        const surroundingBBs = this.getSurroundingBBs(queryBB, 0)
+        for(const aabb of surroundingBBs) {
+            if (aabb.intersect(queryBB)) {
+                const pos = aabb.center.floored()
+                // если передыдущий AABB не относился к тому же блоку
+                if (result.length === 0 || !result[result.length - 1].equal(pos)) {
+                    result.push(pos)
+                }
+            }
+        }
+        return result
+    }
+
+    /**
      * @param repeated - true если это повтор симляции.
      */
     simulatePlayer(entity: PrismarinePlayerState, repeated = false): void {
-        const options = entity.options
-        const vel = entity.vel
-        const pos = entity.pos
-        const control = entity.control
-        const acc = this.blockAccessor.reset(entity.pos)
+        const {vel, pos, control, options} = entity
+        const acc = this.blockAccessor.reset(pos)
 
         this.repeated = repeated
 
