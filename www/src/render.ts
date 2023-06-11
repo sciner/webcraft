@@ -52,15 +52,15 @@ export const DEFAULT_FOV_NORMAL = 70;
 const FOV_FLYING_FACTOR         = 1.075;
 const FOV_WIDE_FACTOR           = 1.15;
 const FOV_ZOOM                  = DEFAULT_FOV_NORMAL * ZOOM_FACTOR;
-const NEAR_DISTANCE             = (1 / 16) * PLAYER_ZOOM; // было (2 / 16) * PLAYER_ZOOM. Уменьшено чтобы не видеть "лысниу" при приближении
+const NEAR_DISTANCE             = (1 / 256) * PLAYER_ZOOM; // было (2 / 16) * PLAYER_ZOOM. Уменьшено чтобы не заглядывать в препятствия и внутрь головы
 const RENDER_DISTANCE           = 800;
 const NIGHT_SHIFT_RANGE         = 16;
 // Shake camera on damage
 const DAMAGE_TIME               = 250;
 const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 // авто-камера в режиме 3-го лица
-const CAMERA_3P_MARGIN_HEIGHT   = 0.08 // насколько широко расставлять 4 луча для поиска препятствия (по вертикали), при FOV 70 градусов
-const CAMERA_3P_MIN_DISTANCE    = 0.5
+const CAMERA_3P_MARGIN_HEIGHT   = 0.03 // насколько широко расставлять 4 луча для поиска препятствия (по вертикали), при FOV 70 градусов
+const CAMERA_3P_MIN_DISTANCE    = 0.32
 
 const tmpOrthoVec1              = new Vector()
 const tmpOrthoVec2              = new Vector()
