@@ -4,27 +4,22 @@ import { EnumDamage } from "@client/enums/enum_damage.js";
 import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
 import { MOB_TYPE } from "@client/constant.js";
 import { BaseRenderTarget } from "@client/renders/BaseRenderer.js";
+import {MOB_CONTROL, MobControlParams} from "@client/control/player_control.js";
 
 export class Brain extends FSMBrain {
-    distance_attack: number;
-    timer_attack: number;
-    interval_attack: number;
 
     constructor(mob) {
         super(mob);
         //
         this.stack.pushState(this.doStand);
-        this.distance_attack = 1.5; // дистанция для атаки
-        this.timer_attack = 0;
-        this.interval_attack = 16;
         this.resistance_light = false; // загорается при свете
         mob.extra_data.attack = false
     }
-    
+
     onLive() {
         super.onLive();
     }
-    
+
     // поиск игрока для атаки
     onFind() {
         if (this.target || this.distance_view < 1) {
@@ -32,7 +27,7 @@ export class Brain extends FSMBrain {
         }
         const mob = this.mob;
         const world = mob.getWorld();
-        const difficulty = world.rules.getValue('difficulty'); 
+        const difficulty = world.rules.getValue('difficulty');
         const players = world.getPlayersNear(mob.pos, this.distance_view, true);
         if (players.length > 0 && difficulty != EnumDifficulty.PEACEFUL) {
             for (const player of players) {
@@ -54,34 +49,29 @@ export class Brain extends FSMBrain {
             }
         }
     }
-    
+
     // просто стоит на месте
-    doStand(delta: float): boolean {
+    doStand(delta: float): MobControlParams | null {
         // нашел цель
         if (this.target) {
             this.stack.replaceState(this.doCatch);
-            return false
+            return MOB_CONTROL.STAND
         }
         if (Math.random() < 0.05) {
             this.stack.replaceState(this.doForward);
-            return false
+            return MOB_CONTROL.STAND
         }
         const mob = this.mob;
         mob.extra_data.attack = false
-        this.updateControl({
-            forward: false,
-            jump: false,
-            sneak: false
-        });
-        return true
+        return MOB_CONTROL.STAND
     }
-    
+
     // просто ходит
-    doForward(delta: float): boolean {
+    doForward(delta: float): MobControlParams | null {
         // нашел цель
         if (this.target) {
             this.stack.replaceState(this.doCatch);
-            return false
+            return MOB_CONTROL.NO_CHANGE
         }
         // обход препятсвия
         const mob = this.mob;
@@ -89,85 +79,49 @@ export class Brain extends FSMBrain {
         if (this.is_wall || this.ahead.is_fire || this.ahead.is_lava || this.ahead.is_abyss) {
             mob.rotate.z = mob.rotate.z + (Math.PI / 2) + Math.random() * Math.PI / 2;
             this.stack.replaceState(this.doStand);
-            return false
+            return MOB_CONTROL.STAND
         }
         if (Math.random() < 0.05) {
             mob.rotate.z = mob.rotate.z + Math.random() * Math.PI;
             this.stack.replaceState(this.doStand);
-            return false
+            return MOB_CONTROL.STAND
         }
-        this.updateControl({
+        return {
             forward: true,
             jump: false,
             sneak: false
-        });
-        return true
+        }
     }
-    
+
     // преследование игрока
-    doCatch(delta: float): boolean {
-        const mob = this.mob;
-        mob.extra_data.attack = false
+    doCatch(delta: float): MobControlParams | null {
+        const mob = this.mob
+        const attack = mob.config.attack
         const world = mob.getWorld();
+        mob.extra_data.attack = false
         const difficulty = world.rules.getValue('difficulty');
         if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
             this.target = null;
             this.stack.replaceState(this.doStand);
-            return false
+            return MOB_CONTROL.STAND
         }
         const dist = mob.pos.distance(this.target.state.pos);
         if (mob.playerCanBeAtacked(this.target) || dist > this.distance_view) {
             this.target = null;
             this.stack.replaceState(this.doStand);
-            return false
+            return MOB_CONTROL.STAND
         }
-        if (dist < this.distance_attack) {
+        if (dist < attack.distance) {
             this.stack.replaceState(this.doAttack);
-            return false
+            return MOB_CONTROL.NO_CHANGE
         }
         mob.rotate.z = this.angleTo(this.target.state.pos);
-        this.updateControl({
+        return {
             forward: true, //!(this.is_abyss | this.is_well),
             jump: this.in_water
-        });
-        return true
+        }
     }
-    
-    doAttack(delta: float): boolean {
-        const mob = this.mob;
-        const world = mob.getWorld();
-        const difficulty = world.rules.getValue('difficulty');
-        if (!this.target || difficulty == EnumDifficulty.PEACEFUL) {
-            this.target = null;
-            this.stack.replaceState(this.doStand);
-            return false
-        }
-        const dist = mob.pos.distance(this.target.state.pos);
-        if (mob.playerCanBeAtacked(this.target) || dist > this.distance_attack || this.is_wall) {
-            this.stack.replaceState(this.doCatch);
-            return false
-        }
-        const angle_to_player = this.angleTo(this.target.state.pos);
-        // моб должен примерно быть направлен на игрока
-        if (Math.abs(mob.rotate.z - angle_to_player) > Math.PI / 2) {
-            // сперва нужно к нему повернуться
-            this.mob.rotate.z = angle_to_player;
-            this.sendState();
-        } else {
-            if (this.timer_attack++ >= this.interval_attack) {
-                this.timer_attack = 0;
-                mob.extra_data.attack = true
-                switch(difficulty) {
-                    case EnumDifficulty.EASY: this.target.setDamage(Math.random() < 0.5 ? 2 : 3); break;
-                    case EnumDifficulty.NORMAL: this.target.setDamage(3); break;
-                    case EnumDifficulty.HARD: this.target.setDamage(Math.random() < 0.5 ? 4 : 5); break;
-                }
-                this.sendState()
-            }
-        }
-        return false
-    }
-    
+
     // Если убили моба
     onKill(actor, type_damage) {
         const mob = this.mob;
@@ -193,9 +147,9 @@ export class Brain extends FSMBrain {
         actions.addPlaySound({ tag: 'madcraft:block.zombie', action: 'death', pos: mob.pos.clone() });
         world.actions_queue.add(actor, actions);
     }
-    
+
     onPanic() {
-        
+
     }
-    
+
 }

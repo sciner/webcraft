@@ -2,6 +2,7 @@ import { FSMBrain } from "../brain.js";
 import { WorldAction } from "@client/world_action.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
 import { BLOCK_ACTION } from "@client/server_client.js";
+import {MobControlParams, MOB_CONTROL} from "@client/control/player_control.js";
 
 const TIME_IN_NEST = 12000;
 const LAY_INTERVAL = 100000;
@@ -28,8 +29,8 @@ export class Brain extends FSMBrain {
     }
 
     // если нашли гнездо
-    doForward(delta: float): boolean {
-        const result = super.doForward(delta)
+    doForward(delta: float): MobControlParams | null {
+        let result = super.doForward(delta)
         if ((performance.now() - this.egg_timer) > LAY_INTERVAL) {
             const mob = this.mob;
             const world = mob.getWorld();
@@ -39,16 +40,17 @@ export class Brain extends FSMBrain {
                 this.nest_timer = performance.now();
                 this.nest = this.legs;
                 this.stack.replaceState(this.doLay);
+                result = MOB_CONTROL.DO_NOTHING // если несем яйцо, надо остановиться
             }
         }
         return result
     }
 
     // Процесс сноса яйца
-    doLay(delta: float): boolean {
+    doLay(delta: float): MobControlParams | null {
         if (!this.nest || this.nest.extra_data.eggs >= COUNT_EGGS_IN_NEST) {
             this.stack.replaceState(this.doForward);
-            return false
+            return MOB_CONTROL.NO_CHANGE
         }
         const mob = this.mob;
         const nest_pos = this.nest.posworld.offset(0.5, 0.5, 0.5);
@@ -70,17 +72,16 @@ export class Brain extends FSMBrain {
                 world.actions_queue.add(null, actions);
                 this.stack.replaceState(this.doForward);
             }
-            return false
+            return MOB_CONTROL.NO_CHANGE
         }
 
         mob.rotate.z = this.angleTo(nest_pos);
 
-        this.updateControl({
+        return {
             forward: true,
             jump: false,
             sneak: true
-        });
-        return true
+        }
     }
 
     onKill(actor, type_damage) {

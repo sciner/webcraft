@@ -893,11 +893,19 @@ export class TBlock {
         return this.tb.chunk;
     }
 
-    initFrom(block: TBlock) {
+    initFrom(block: TBlock): this {
         this.tb = block.tb;
         this.vec = block.vec;
         this.index = block.index;
         return this;
+    }
+
+    /** Устанавливает относительную позицию внутри текущего чанка */
+    setRelativePos(x: int, y: int, z: int): this {
+        const { cx, cy, cz, cw } = this.tb.dataChunk
+        this.vec.setScalar(x, y, z)
+        this.index = cx * x + cy * y + cz * z + cw
+        return this
     }
 
     // Clones essential data as POJO.
@@ -1127,7 +1135,7 @@ export class TBlock {
     /**
      * Возвращает всех 6-х соседей блока
      */
-    getNeighbours(world, cache) {
+    getNeighbours(world, cache: TBlock[]): BlockNeighbours {
         return this.tb.getNeighbours(this, world, cache);
     }
 

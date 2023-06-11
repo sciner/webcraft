@@ -4,7 +4,7 @@ import type { ServerWorld } from "../../server_world.js";
 import { OLD_CHUNK_SIZE } from "@client/chunk_const.js";
 import { Vector } from "@client/helpers.js";
 import type {TInventoryState} from "@client/inventory.js";
-import {preprocessSQL} from "../db_helpers.js";
+import {preprocessSQL, run} from "../db_helpers.js";
 
 /* Как делать миграцию блоков.
 
@@ -18,6 +18,12 @@ import {preprocessSQL} from "../db_helpers.js";
   WHERE block_id = 999;
 
 Если нужно делать миграцию предметов, то нужно менять еще инвентари игроков и содержимое сундуков.
+
+TODO: удалить устаревшие поля. Они остаются на некоторое время чтобы старые версии могли открывать БД.
+Устарели 05.06.2023 в quest_action (включены в params): block_id, cnt, pos.
+Устарели до 05.06.2023 в user (включены в state), но возможно где-то еще используются, надо проверить код: indicators,
+  pos_spawn, pos, rotate, chunk_render_dist, game_mode, stats.
+Есть дублирующиеся поля в таблице world_modify.
 */
 
 // Migrations
@@ -1046,18 +1052,55 @@ export class DBWorldMigration {
             `DELETE from world_modify_chunks;`
         ]});
 
+        migrations.push({version: 103, queries: [
+            `ALTER TABLE quest_action ADD COLUMN params TEXT NOT NULL DEFAULT '{}'`,
+
+            // квест на дубовые бревна => любые бревна
+            `UPDATE quest_action SET params = '{"block_suffixes":["_LOG"],"cnt":5}', description = '{"ru":"Добыть 5 брёвен","en":"Mine 5 logs"}' WHERE id = 1`,
+            `UPDATE quest_action SET params = '{"block_id":18,"cnt":20}' WHERE id = 2`,
+            `UPDATE quest_action SET params = '{"block_id":58,"cnt":1}' WHERE id = 3`,
+            `UPDATE quest_action SET params = '{"block_id":58,"cnt":1}' WHERE id = 4`,
+            // тут только удалено слово дубовые/oak по сравнению с врсией 51
+            `UPDATE quest SET title = '{"ru":"Добыть брёвна","en":"Get logs"}', description = '{"ru":"Необходимо добыть бревна. После этого вы сможете скрафтить орудия, для дальнейшего развития.\\r\\n\\r\\n1-й шаг — Найдите дерево\\r\\nНайдите любое дерево, подойдите к нему так близко, чтобы вокруг блока древесины, на которую вы нацелены появилась тонкая обводка. Зажмите левую кнопку мыши и не отпускайте, пока не будет добыто бревно.\\r\\nЧтобы сломать бревно рукой нужно примерно 6 секунд.\\r\\n\\r\\n2-й шаг — Подберите блок\\r\\nПодойдите ближе к выпавшему блоку, он попадёт в ваш инвентарь.","en":"You need to get logs. After that, you can craft weapons for further development.\\r\\n\\r\\n1st step - Find a tree\\r\\nFind any tree, get close enough to it so that a thin outline appears around the block of wood you are aiming at. Hold down the left mouse button and do not release until the log is mined.\\r\\nIt takes about 6 seconds to break a log by hand.\\r\\n\\r\\n2nd step - Pick up a block\\r\\nGet closer to the dropped block, it will go into your inventory."}'  WHERE id = 1`,
+
+            // квест на создание примитивного топора - после крафт стола, параллельно с квестом на копание земли, после него - камни
+            `INSERT INTO quest (id, quest_group_id, title, description, next_quests) VALUES (4, 1, '{"ru":"Создать примитивный топор","en":"Craft a primitive axe"}', ` +
+            `'{"ru":"Чтобы добыть большие камни, нужен инструмент. Для начала и примитивный топор сойдет.\\r\\n\\r\\n` +
+            `1-й шаг - Найдите любые блоки камней или руды. Разбив их, получите маленькие камни.\\r\\n` +
+            `2-й шаг - Из палки и меленького камня, создайте примитивный топор. Если нужно, палку можно получить из досок.\\r\\n\\r\\n` +
+            `Попробуйте разбить те же блоки камней или руды, но уже топором - результат будет отличаться.\\r\\n\\r\\n` +
+            `Чтобы добыть редкие руды и разрушать блоки быстрее, нужны инструменты из лучших материалов или другой формы.",` +
+            `"en":"To mine big stones, you need tools. For starters, a primitive axe would do.\\r\\n\\r\\n` +
+            `1st step - Find any ore or stone blocks. Break it to get small rocks.\\r\\n` +
+            `2nd step - Craft a primitive axe from a small rock and a stick. A stick can be crafted from planks if needed.\\r\\n\\r\\n` +
+            `Try to break the same ore or stone blocks with the axe - the result will be different.\\r\\n\\r\\n` +
+            `To mine rare ores, or to break blocks faster, better tools or different shape tools are needed."}', '[5]')`,
+            `UPDATE quest SET next_quests = '[2, 4]' WHERE id = 3`,
+            `INSERT INTO quest_action (quest_id, quest_action_type_id, block_id, cnt, params, description) VALUES
+                (4, 1, 1087, 1, '{"block_id":1087,"cnt":1}', '{"ru":"Добыть маленькие камни","en":"Mine small rocks"}'),
+                (4, 2, 798, 1, '{"block_id":798,"cnt":1}', '{"ru":"Создать примитивный топор","en":"Craft a primitive axe"}')`,
+            `INSERT INTO quest_reward (quest_id, block_id, cnt) VALUES (4, 798, 2)`, // награда - еще 2 примитивных топора
+
+            // квест на добычу камней
+            `INSERT INTO quest (id, quest_group_id, title, description) VALUES (5, 1, '{"ru":"Добыть камни","en":"Mine stones"}', ` +
+            `'{"ru":"Имея примитивный топор, пришло время добыть камни!", "en":"Having a primitive axe, it''s time to mine some stones!"}')`,
+            `INSERT INTO quest_action (quest_id, quest_action_type_id, block_id, cnt, params, description) VALUES
+                (5, 1, 9, 5, '{"block_id":9,"cnt":5}', '{"ru":"Добыть камни","en":"Mine stones"}')`,
+            `INSERT INTO quest_reward (quest_id, block_id, cnt) VALUES (5, 9, 8)`
+        ]})
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
                 for(let query of m.queries) {
                     if (typeof query === 'string') {
-                        await this.db.get(query);
+                        await run(this.db, query);
                     } else if(query instanceof Function) {
                         for(let sub_query of await query(this.db)) {
-                            await this.db.run(sub_query)
+                            await run(this.db, sub_query)
                         }
                     } else {
-                        await this.db.run(query.sql, query.placeholders);
+                        await run(this.db, query.sql, query.placeholders);
                     }
                 }
                 await this.db.get('UPDATE options SET version = ' + (++version));

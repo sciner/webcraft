@@ -9,7 +9,7 @@ import { compressWorldModifyChunk } from "@client/compress/world_modify_chunk.js
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID, FLUID_WATER_ID, PACKED_CELL_LENGTH, PACKET_CELL_DIRT_COLOR_R, PACKET_CELL_DIRT_COLOR_G, PACKET_CELL_WATER_COLOR_R, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_BIOME_ID } from "@client/fluid/FluidConst.js";
 import { DelayedCalls } from "./server_helpers.js";
 import { MobGenerator } from "./mob/generator.js";
-import { TickerHelpers } from "./ticker/ticker_helpers.js";
+import {IBlockListener, TickerHelpers} from "./ticker/ticker_helpers.js";
 import { ChunkLight } from "@client/light/ChunkLight.js";
 import type { ServerWorld } from "./server_world.js";
 import type { ServerPlayer } from "./server_player.js";
@@ -22,8 +22,12 @@ import type { ChunkDBActor } from "./db/world/ChunkDBActor.js";
 
 const _rnd_check_pos            = new Vector(0, 0, 0);
 const tmpRandomTickerTBlock     = new TBlock()
+const tmpListenerNeighbourTBlock= new TBlock()
 const tmp_posVector             = new Vector()
 const tmp_onFluidEvent_TBlock   = new TBlock()
+const neighboursCache           = Array.from({length: 6}, _ => new TBlock(null, new Vector()))
+const tmp_onNeighbourLoaded_block1  = new TBlock(null, new Vector())
+const tmp_onNeighbourLoaded_block2  = new TBlock(null, new Vector())
 
 export interface ServerModifyList {
     compressed?         : BLOB
@@ -211,7 +215,6 @@ export class ServerChunk {
     randomTickingBlockCount:            int                         = 0;
     dataChunk:                          any                         = null;
     fluid:                              any                         = null;
-    blocksUpdatedByListeners:           any[]                       = [];
     safeTeleportMarker:                 number                      = 0;
     spiralMarker:                       number                      = 0;
     options:                            {}                          = {};
@@ -638,8 +641,32 @@ export class ServerChunk {
         this.onMobsLoadedOrRestored();
     }
 
-    private onMobsLoadedOrRestored() {
-        const chunkManager = this.getChunkManager();
+    private onMobsLoadedOrRestored(): void {
+
+        const processBorderY = (chunkLow: ServerChunk, chunkHigh: ServerChunk) => {
+            block1.tb = chunkLow.tblocks
+            block2.tb = chunkHigh.tblocks
+            for(let x = 0; x < size.x; x++) {
+                block1.setRelativePos(x, size.y - 1, 0)
+                block2.setRelativePos(x, 0, 0)
+                for(let z = 0; z < size.z; z++) {
+                    let listeners = onChange_loadBelow[block2.id]
+                    if (listeners) {
+                        this.callBlockListeners(listeners, block2.posworld, block2, block2.id, world.blocksUpdatedByListeners)
+                    }
+                    listeners = onNeighbour_loadAbove[block1.id]
+                    if (listeners) {
+                        this.callNeighbourListeners(listeners, block1.posworld, block1, block2, Vector.YP, world.blocksUpdatedByListeners)
+                    }
+                    block1.index += cz
+                    block1.vec.z++
+                    block2.index += cz
+                    block2.vec.z++
+                }
+            }
+        }
+
+        const {size, chunkManager, world} = this
         // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
         if(this.connections.size > 0) {
             this.sendMobs()
@@ -665,8 +692,26 @@ export class ServerChunk {
         }
         if (this.shouldUnload()) {
             // TODO : wait a bit, dont unload yet?
-            chunkManager.invalidate(this);
+            chunkManager.invalidate(this)
+            return
         }
+
+        // Вызвать обработчики для блоков возле границ чанка (в этом и соседних чанках).
+        // После установки CHUNK_STATE.READY - на случай если это важно обработчикам.
+        const {onChange_loadBelow, onNeighbour_loadAbove} = world.blockListeners
+        const {cz}      = chunkManager.grid.math
+        const block1    = tmp_onNeighbourLoaded_block1
+        const block2    = tmp_onNeighbourLoaded_block2
+
+        const up = chunkManager.getChunk(this.addr.offset(0, 1, 0))
+        if (up?.isReady()) {
+            processBorderY(this, up)
+        }
+        const down = chunkManager.getChunk(this.addr.offset(0, -1, 0))
+        if (down?.isReady()) {
+            processBorderY(down, this)
+        }
+        world.addUpdatedBlocksActions(world.blocksUpdatedByListeners)
     }
 
     shouldUnload() : boolean {
@@ -852,20 +897,24 @@ export class ServerChunk {
     }
 
     // On block set
-    async onBlockSet(item_pos : Vector, item, previous_item : IBlockItem) {
+    onBlockSet(item_pos : Vector, tblock: TBlock, item: IBlockItem, previous_item : IBlockItem): void {
 
-        const bm = this.world.block_manager
-        const tblock = this.world.getBlock(item_pos);
+        const {world} = this
+        const bm = world.block_manager
 
-        if(tblock) {
-            const cache = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)));
-            const neighbours = tblock.getNeighbours(this.world, cache);
-            for(let side in neighbours) {
-                const nb = neighbours[side];
-                if(nb.id > 0) {
-                    this.onNeighbourChanged(nb, tblock, previous_item);
-                }
-            }
+        // вызывать обработчики изменения соседей
+        const neighbours = tblock.getNeighbours(world, neighboursCache)
+        for(let side in neighbours) {
+             const nb = neighbours[side];
+             if(nb.id > 0) {
+                 this.onNeighbourChanged(nb, tblock, previous_item);
+             }
+        }
+        // вызывать обработчики изменения соседей (тип, используемый для пузырей)
+        let nb = neighbours.DOWN
+        let listeners = world.blockListeners.onNeighbour_above[nb?.id ?? -1]
+        if (listeners) {
+            this.callNeighbourListeners(listeners, nb.posworld, nb, tblock, Vector.YP, world.blocksUpdatedByListeners)
         }
 
         switch(item.id) {
@@ -873,9 +922,9 @@ export class ServerChunk {
             case bm.LIT_PUMPKIN.id: {
                 const pos = item_pos.clone();
                 pos.y--;
-                let under1 = this.world.getBlock(pos.clone());
+                let under1 = world.getBlock(pos.clone());
                 pos.y--;
-                let under2 = this.world.getBlock(pos.clone());
+                let under2 = world.getBlock(pos.clone());
                 if(under1?.id == bm.POWDER_SNOW.id && under2?.id == bm.POWDER_SNOW.id) {
                     pos.addSelf(new Vector(.5, 0, .5));
                     const params: MobSpawnParams = {
@@ -884,14 +933,14 @@ export class ServerChunk {
                         pos_spawn:  pos.clone(),
                         rotate:     item.rotate ? new Vector(item.rotate).toAngles() : null
                     }
-                    this.world.mobs.create(params);
-                    const actions = new WorldAction(null, this.world, false, false);
+                    world.mobs.create(params);
+                    const actions = new WorldAction(null, world, false, false);
                     actions.addBlocks([
                         {pos: item_pos, item: {id: bm.AIR.id}, destroy_block: {id: item.id}, action_id: BLOCK_ACTION.DESTROY},
                         {pos: under1.posworld, item: {id: bm.AIR.id}, destroy_block: {id: under1?.id}, action_id: BLOCK_ACTION.DESTROY},
                         {pos: under2.posworld, item: {id: bm.AIR.id}, destroy_block: {id: under2?.id}, action_id: BLOCK_ACTION.DESTROY}
                     ])
-                    this.world.actions_queue.add(null, actions);
+                    world.actions_queue.add(null, actions);
                 }
                 break;
             }
@@ -899,7 +948,7 @@ export class ServerChunk {
 
     }
 
-    onNeighbourChanged(tblock : TBlock, neighbour : TBlock, previous_neighbour) {
+    onNeighbourChanged(tblock : TBlock, neighbour : TBlock, previous_neighbour : IBlockItem): void {
 
         const world = this.world;
         const bm = world.block_manager
@@ -1292,8 +1341,6 @@ export class ServerChunk {
             }
         }
 
-        return false;
-
     }
 
     // Store in modify list
@@ -1371,7 +1418,48 @@ export class ServerChunk {
 
     }
 
-    addDelayedCall(calleeId, delay, args) {
+    /**
+     * Вызывает обработчиков изменения блоков {@link listeners}, см. {@link BlockListeners}.
+     * @param oldId - id бдлока до изенения (только если вызывается сразу после изменения блока), иначе - id текущего блока
+     * @param updatedBlocks - в этот массив будут добавлены блоки, измененные обработчиками
+     * @param param - паарметр, передаваемый в обработчиков
+     */
+    callBlockListeners(listeners: IBlockListener[], pos: Vector, block: TBlock,
+                      oldId: int, updatedBlocks: TActionBlock[], param?: any): void {
+        for(const listener of listeners) {
+            const result = listener.onChange(this, pos, block, oldId, param)
+            if (result?.blocks) {
+                TickerHelpers.pushBlockUpdates(updatedBlocks, result.blocks)
+            }
+            if (result?.callAgainDelay) {
+                const args = [block.posworld]
+                if (result.callAgainParam) {
+                    args.push(result.callAgainParam)
+                }
+                this.addDelayedCall(listener._onChangeCalleeId, result?.callAgainDelay, args)
+            }
+        }
+    }
+
+    /** Аналогично {@link callBlockListeners}, но вызывает обработчики изменения соседнего блока. */
+    callNeighbourListeners(listeners: IBlockListener[], pos: Vector, block: TBlock,
+                          neighbour: TBlock, dir: IVector, updatedBlocks: TActionBlock[], param?: any): void {
+        for(const listener of listeners) {
+            const result = listener.onNeighbour(this, pos, block, neighbour, dir, param)
+            if (result?.blocks) {
+                TickerHelpers.pushBlockUpdates(updatedBlocks, result.blocks)
+            }
+            if (result?.callAgainDelay) {
+                const args = [block.posworld, dir]
+                if (result.callAgainParam) {
+                    args.push(result.callAgainParam)
+                }
+                this.addDelayedCall(listener._onNeighbourChangeCalleeId, result?.callAgainDelay, args)
+            }
+        }
+    }
+
+    private addDelayedCall(calleeId: string, delay: int, args: any[]): void {
         this.delayedCalls.add(calleeId, delay, args);
         // If we just aded the 1st call, we know the chunk is not in the set
         if (this.delayedCalls.length === 1) {
@@ -1379,60 +1467,39 @@ export class ServerChunk {
         }
     }
 
-    onFluidEvent(pos, isFluidChangeAbove) {
-        const that = this;
-        function processResult(res, calleeId) {
-            if (typeof res === 'number') {
-                that.addDelayedCall(calleeId, res, [pos.clone()]);
-            } else {
-                TickerHelpers.pushBlockUpdates(that.blocksUpdatedByListeners, res);
-            }
-        }
-
+    onFluidEvent(pos: Vector, isFluidChangeAbove: boolean, updatedBlocks: TActionBlock[]): void {
         const tblock = this.getBlock(pos, null, null, tmp_onFluidEvent_TBlock);
         const fluidY = isFluidChangeAbove ? pos.y + 1 : pos.y;
         const fluidValue = this.getFluidValue(pos.x, fluidY, pos.z);
 
         if (isFluidChangeAbove) {
-            var listeners = this.world.blockListeners.fluidAboveChangeListeners[tblock.id];
+            let listeners = this.world.blockListeners.onNeighbour_fluidChangeAbove[tblock.id]
+            let blockAbove: TBlock | null = null
             if (listeners) {
-                for(let listener of listeners) {
-                    var res = listener.onFluidAboveChange(this, tblock, fluidValue, true);
-                    processResult(res, listener.onFluidAboveChangeCalleeId);
-                }
+                blockAbove = this.getBlock(pos.x, fluidY, pos.z, tmpListenerNeighbourTBlock, true)
+                this.callNeighbourListeners(listeners, pos, tblock, blockAbove, Vector.YP, updatedBlocks)
             }
             if ((fluidValue & FLUID_TYPE_MASK) === 0) {
-                listeners = this.world.blockListeners.fluidAboveRemoveListeners[tblock.id];
+                listeners = this.world.blockListeners.onNeighbour_fluidRemoveAbove[tblock.id]
                 if (listeners) {
-                    for(let listener of listeners) {
-                        var res = listener.onFluidAboveRemove(this, tblock, true);
-                        processResult(res, listener.onFluidAboveRemoveCalleeId);
-                    }
+                    blockAbove ??= this.getBlock(pos.x, fluidY, pos.z, tmpListenerNeighbourTBlock, true)
+                    this.callNeighbourListeners(listeners, pos, tblock, blockAbove, Vector.YP, updatedBlocks)
                 }
             }
         } else {
-            var listeners = this.world.blockListeners.fluidChangeListeners[tblock.id];
+            let listeners = this.world.blockListeners.onChange_fluidChange[tblock.id]
             if (listeners) {
-                for(let listener of listeners) {
-                    var res = listener.onFluidChange(this, tblock, fluidValue, true);
-                    processResult(res, listener.onFluidChangeCalleeId);
-                }
+                const material = tblock.material
+                this.callBlockListeners(listeners, pos, tblock, material, material, updatedBlocks)
             }
             if ((fluidValue & FLUID_TYPE_MASK) === 0) {
-                listeners = this.world.blockListeners.fluidRemoveListeners[tblock.id];
+                listeners = this.world.blockListeners.onChange_fluidRemove[tblock.id];
                 if (listeners) {
-                    for(let listener of listeners) {
-                        var res = listener.onFluidRemove(this, tblock, true);
-                        processResult(res, listener.onFluidRemoveCalleeId);
-                    }
+                    const material = tblock.material
+                    this.callBlockListeners(listeners, pos, tblock, material, material, updatedBlocks)
                 }
             }
         }
-    }
-
-    applyChangesByListeners() {
-        this.world.addUpdatedBlocksActions(this.blocksUpdatedByListeners);
-        this.blocksUpdatedByListeners.length = 0;
     }
 
     executeDelayedCalls() {
@@ -1444,7 +1511,8 @@ export class ServerChunk {
         if (this.delayedCalls.length === 0) {
             this.getChunkManager().chunks_with_delayed_calls.delete(this);
         }
-        this.applyChangesByListeners();
+        // добавить действия по изменению блоков в мир
+        this.world.addUpdatedBlocksActions(this.world.blockListeners.blocksUpdatedByDelayedCalls)
     }
 
     // Before unload chunk

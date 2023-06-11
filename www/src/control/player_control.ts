@@ -14,11 +14,26 @@ export enum PLAYER_CONTROL_TYPE {
 
 /** Fields used to update both controls and state by mobs. */
 export type MobControlParams = {
-    yaw ?       : float
-    forward     : boolean
-    jump        : boolean
+    forward ?   : boolean
+    jump ?      : boolean
     sneak ?     : boolean
     pitch ?     : boolean // индикатор паники. Это не угол pitch!
+}
+
+/** Часто используемые значения {@link MobControlParams} */
+export const MOB_CONTROL = {
+    NO_CHANGE: {},      // не меняет параметры управления
+    STAND: {            // стоять на месте, но не отменят панику
+        forward : false,
+        jump    : false,
+        sneak   : false
+    },
+    DO_NOTHING: {       // останавливает любые действия
+        forward : false,
+        jump    : false,
+        sneak   : false,
+        pitch   : false
+    }
 }
 
 /** A common interface for {@link PlayerControl.player_state} for all subclasses of {@link PlayerControl} */
@@ -150,9 +165,9 @@ export abstract class PlayerControl<TState extends IPlayerControlState = IPlayer
     }
 
     /** @param mob - типа Mob (на сервере) */
-    updateControlsFromMob(params: MobControlParams, defaultYaw: float): void {
+    updateControlsFromMob(params: MobControlParams, yaw: float): void {
         const controls = this.controls
-        this.player_state.yaw = params.yaw ?? defaultYaw
+        this.player_state.yaw = yaw
         if (params.forward != null) {
             controls.forward = params.forward
         }

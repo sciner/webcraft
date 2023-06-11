@@ -12,6 +12,7 @@ export class ChunkGridMath {
 
     }
 
+    // convert global pos to local index in chunk
     getFlatIndexInChunk(vec: Vector): int {
         return 0;
     }

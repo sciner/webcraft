@@ -24,6 +24,7 @@ const PLANTING_LOST_TICKS = 10
 const PLANTING_PADDING_DAMAGE = 0.3
 const MAX_UNDAMAGED_HEIGHT = 3
 const LILY_PAD_BREAK_HEIGHT = 1.5 // падение с этой высоты разрушает кувшинку и защищает от урона. Должно быть <= MAX_UNDAMAGED_HEIGHT
+const MAX_DAMAGE_ABSORPTION = 32
 
 const tmpBlockLegs = new TBlock()
 const tmpBlockHead = new TBlock()
@@ -300,7 +301,11 @@ export class ServerPlayerDamage {
         const res_lvl = effects.getEffectLevel(Effect.RESISTANCE)
         damage -= damage * res_lvl * 0.2
         // армор
-        damage = Math.round((damage * (32 - this.player.inventory.getArmorLevel())) / 32)
+        const armor_level = this.player.inventory.getArmorLevel()
+        if (armor_level > 0 && damage > 0) {
+            this.player.inventory.setArmorDecrement()
+        }
+        damage = Math.round((damage * (MAX_DAMAGE_ABSORPTION - armor_level)) / MAX_DAMAGE_ABSORPTION)
         if (damage > 0) {
             if (this.actor && [EnumDamage.CRIT, EnumDamage.SNOWBALL].includes(this.type_damage)) {
                 const pos = this.actor?.state?.pos ? this.actor.state.pos : this.actor.pos
@@ -318,7 +323,7 @@ export class ServerPlayerDamage {
         }
 
         // анимация горения
-        this.player.state.fire = (this.#timer_fire > 0) ? true : false 
+        this.player.state.fire = (this.#timer_fire > 0) ? true : false
     }
 
     /*

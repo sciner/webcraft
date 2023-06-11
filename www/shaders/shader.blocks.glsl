@@ -16,16 +16,16 @@
     #define CHUNK_SIZE vec3(18.0, 18.0, 84.0)
 
     // bit shifts
-    #define FLAG_NORMAL_UP                   0
-    #define FLAG_MASK_BIOME                  1
-    #define FLAG_NO_AO                       2
-    #define FLAG_NO_FOG                      3
+    #define FLAG_NORMAL_UP              0
+    #define FLAG_MASK_BIOME             1
+    #define FLAG_NO_AO                  2
+    #define FLAG_NO_FOG                 3
     #define FLAG_ANIMATED               5
     #define FLAG_TEXTURE_SCROLL         6
-    #define FLAG_NO_CAN_TAKE_AO              7
+    #define FLAG_NO_CAN_TAKE_AO         7
     #define FLAG_QUAD_OPACITY           8
     #define FLAG_QUAD_SDF               9
-    #define FLAG_NO_CAN_TAKE_LIGHT           10
+    #define FLAG_NO_CAN_TAKE_LIGHT      10
     #define FLAG_MULTIPLY_COLOR         11
     #define FLAG_LEAVES                 12
     #define FLAG_ENCHANTED_ANIMATION    13
@@ -36,8 +36,8 @@
     #define FLAG_LIGHT_GRID             18
     #define DELIMITER_VERTEX     ((1 << 19) - 1)
     #define FLAG_WAVES_VERTEX           19
-    #define FLAG_LOOK_AT_CAMERA              20
-    #define FLAG_LOOK_AT_CAMERA_HOR          21
+    #define FLAG_LOOK_AT_CAMERA         20
+    #define FLAG_LOOK_AT_CAMERA_HOR     21
     #define FLAG_TRIANGLE               22
     #define FLAG_MIR2_TEX               23
 

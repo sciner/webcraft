@@ -2,17 +2,18 @@ import {QuestActionType} from "./action_type.js";
 import {QuestActionPickup} from "./action_pickup.js";
 import {QuestActionSetBlock} from "./action_setblock.js";
 import {QuestActionCraft} from "./action_craft.js";
-import { BLOCK } from "@client/blocks.js";
 import {DBWorldQuest} from "../db/world/quest.js"
 import {ServerPlayer} from "../server_player.js"
 
 // Quest
 export class Quest {
 
+    // эти поля должны быть приватными из-за JSON.stringify
     #quest_player;
     #player: ServerPlayer
     #next_quests;
     #dirtyFlags : int;
+
     id: int;
     title: string;
     description: string;
@@ -77,6 +78,9 @@ export class Quest {
         }
     }
 
+    /** #player обязан быть приватным из-за JSON.stringify, но он нужен в конструкторе действий квеста */
+    getPlayer(): ServerPlayer { return this.#player }
+
     /**
      * Before the world transaction, quests wered and loaded for each change.
      * When they were loaded, it was like this:
@@ -122,26 +126,24 @@ export class Quest {
     // Quest completed
     complete() {
         const server_player = this.#player;
+        const bm = server_player.world.block_manager
         //
         console.log(`Quest ${this.id} completed by ${server_player.session.username}`);
         //
         this.is_completed = true;
         // Выдать приз
         for(let reward of this.rewards) {
-            const reward_item = {
-               id: reward.block_id,
-               count: reward.cnt
-            };
-            //
-            const block = BLOCK.fromId(reward_item.id)
+            const block = bm.fromId(reward.block_id)
             if(!block.is_dummy) {
+                const reward_item = bm.convertItemToInventoryItem({id: reward.block_id, count: reward.cnt},
+                    block, true)
                 server_player.inventory.increment(reward_item, false, true);
                 // если не все поместилось - бросить на землю
                 if (reward_item.count) {
                     server_player.inventory.createDropItem([reward_item])
                 }
                 // отправить сообщение
-                this.#quest_player.sendMessage(`You have got reward ${block.name}x${reward.cnt}`);
+                this.#quest_player.sendMessage(`You have got reward ${block.title}x${reward.cnt}`);
             }
         }
         this.markDirty();

@@ -2,6 +2,7 @@ import { FSMBrain } from "../brain.js"
 import { Vector } from "@client/helpers.js"
 import { EnumDamage } from "@client/enums/enum_damage.js"
 import { WorldAction } from "@client/world_action.js"
+import {MOB_CONTROL, MobControlParams} from "@client/control/player_control.js";
 
 export class Brain extends FSMBrain {
 
@@ -27,11 +28,11 @@ export class Brain extends FSMBrain {
 
     }
 
-    doStand(delta : float): boolean {
+    doStand(delta : float): MobControlParams | null {
         const mob = this.mob
         if (this.pc.player_state.isCollidedVertically || this.pc.player_state.isCollidedHorizontally) {
             this.onKill(null, null)
-            return false
+            return null
         }
         const rotate = this._rotate.setScalar(Math.sin(mob.rotate.z), 0, Math.cos(mob.rotate.z))
         const rotate2 = this._rotate2.copyFrom(rotate).mulScalarSelf(.4)
@@ -41,17 +42,17 @@ export class Brain extends FSMBrain {
         if (ray?.mob) {
             ray.mob.setDamage(1, EnumDamage.SNOWBALL, mob)
             this.onKill(null, null)
-            return false
+            return null
         }
         // если на пути встретился игрок
         if (ray?.player) {
             ray.player.setDamage(1, EnumDamage.SNOWBALL, mob)
             this.onKill(null, null)
-            return false
+            return null
         }
         this.velocity.y -= .3 * delta
         this.pc.player_state.vel = new Vector(this.velocity.x, this.velocity.y, this.velocity.z)
-        return true
+        return MOB_CONTROL.NO_CHANGE
     }
    
     // Если убили моба

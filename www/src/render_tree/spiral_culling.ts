@@ -371,7 +371,7 @@ export class SpiralCulling {
             filterLines(linesBottom, Y_bottom, Z_bottom);
 
             const left = Math.min(Z_bottom.left, Z_top.left);
-            const right = Math.min(Z_bottom.right, Z_top.right);
+            const right = Math.max(Z_bottom.right, Z_top.right);
             if (left > right) {
                 // no intersection at all
                 continue;

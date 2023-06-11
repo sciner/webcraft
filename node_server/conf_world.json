@@ -104,6 +104,11 @@
                 "playerHeight": 1.6,
                 "playerHalfWidth": 0.45
             },
+            "attack": {
+                "damage_easy":   [2, 3],
+                "damage_normal": [3, 3],
+                "damage_hard":   [4, 5]
+            },
             "hasUse": true,
             "health": 20,
             "distance_view": 40
@@ -122,6 +127,21 @@
                 "canFly": true,
                 "unloads": true,
                 "offsets": [ { "x": 0, "y": 0.25, "z": -0.1 } ]
+            },
+            "attack": {
+                "damage_easy":   [2, 2],
+                "damage_normal": [2, 2],
+                "damage_hard":   [2, 3],
+                "effect_normal": {
+                    "id": "POISON",
+                    "level": 1,
+                    "time": 10
+                },
+                "effect_hard": {
+                    "id": "POISON",
+                    "level": 2,
+                    "time": 18
+                }
             },
             "animations": {
                 "fly": "walk",
@@ -143,6 +163,11 @@
                 "baseSpeed": 0.8,
                 "playerHeight": 1.95,
                 "playerHalfWidth": 0.3
+            },
+            "attack": {
+                "damage_easy":   [2, 2],
+                "damage_normal": [2, 3],
+                "damage_hard":   [3, 3]
             },
             "hasUse": true,
             "health": 20,
@@ -251,45 +276,6 @@
         "grass_block",
         "algae"
     ],
-    "before_block_change_listeners": [
-        [
-            [
-                "soul_sand",
-                "bubble_column"
-            ],
-            "bubbles:ManageBubblesAbove"
-        ],
-        [
-            "bubble_column",
-            "bubbles:ManageBubbles"
-        ]
-    ],
-    "after_block_change_listeners": [
-        [
-            [
-                "soul_sand",
-                "bubble_column"
-            ],
-            "bubbles:ManageBubblesAbove"
-        ]
-    ],
-    "fluid_change_listeners": [],
-    "fluid_remove_listeners": [
-        [
-            "bubble_column",
-            "bubbles:ManageBubbles"
-        ]
-    ],
-    "fluid_above_change_listeners": [
-        [
-            [
-                "soul_sand",
-                "bubble_column"
-            ],
-            "bubbles:ManageBubblesAbove"
-        ]
-    ],
-    "fluid_above_remove_listeners": [],
     "chat_plugins": [
         "chat_teleport",
         "chat_time",
@@ -334,6 +320,22 @@
         "cmd_use_weapon"
     ],
     "treasure_chests": [
+        {
+            "name": "initial_bonus",
+            "exact": true,
+            "items": [
+                { "name": "COPPER_PICKAXE", "count": [1] },
+                { "name": "COPPER_SWORD",   "count": [1] },
+                { "name": "WHEAT_SEEDS",    "count": [8] },
+                { "name": "BREAD",          "count": [5] },
+                { "name": "CRAFTING_TABLE", "count": [1] },
+                { "name": "FURNACE",        "count": [1] },
+                { "name": "COAL",           "count": [5] },
+                { "name": "FLINT_AND_STEEL","count": [1] },
+                { "name": "TORCH",          "count": [3] },
+                { "name": "BUCKET",         "count": [1] }
+            ]
+        },
         {
             "name": "default",
             "items": [

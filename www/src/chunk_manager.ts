@@ -8,7 +8,7 @@ import { decompressNearby, NEARBY_FLAGS } from "./packet_compressor.js";
 import { Mesh_Object_BeaconRay } from "./mesh/object/bn_ray.js";
 import { FluidWorld } from "./fluid/FluidWorld.js";
 import { FluidMesher } from "./fluid/FluidMesher.js";
-import { LIGHT_TYPE, WORKER_MESSAGE } from "./constant.js";
+import { DEFAULT_TX_SIZE, LIGHT_TYPE, WORKER_MESSAGE } from "./constant.js";
 import {ChunkExporter} from "./geom/chunk_exporter.js";
 import { Biomes } from "./terrain_generator/biome3/biomes.js";
 import {ChunkRenderList} from "./chunk_render_list.js";
@@ -16,12 +16,17 @@ import type { World } from "./world.js";
 import type { ChunkGrid } from "./core/ChunkGrid.js";
 import { AABB } from "./core/AABB.js";
 import type { Renderer } from "./render.js";
+import { Resources } from "./resources.js";
+import type { BaseResourcePack } from "./base_resource_pack.js";
+import { FastCompiller } from "./bbmodel/compiler_base.js";
+import type { WebGLTexture } from "./renders/webgl/index.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface', 'decal1', 'decal2'];
 
 const tmpAddr = new Vector()
+let billboard_tex_compiler : FastCompiller
 
 export class ChunkManagerState {
 
@@ -287,12 +292,95 @@ export class ChunkManager {
                     Qubatch.render.meshes.effects.createBlockEmitter(args);
                     break;
                 }
+                case 'create_billboard_texture': {
+                    const process = async (args) => {
+                        //TODO: move to chunk_render_list , this.render_list
+                        const item = args.item
+                        const extra_data = item.extra_data
+                        const url = extra_data.texture.url
+                        const render = Qubatch.render as Renderer
+                        const resource_pack : BaseResourcePack = render.world.block_manager.resource_pack_manager.get('bbmodel')
+                        //
+                        if(!billboard_tex_compiler) {
+                            const options = {
+                                resolution: DEFAULT_TX_SIZE,
+                                tx_cnt: resource_pack.conf.textures.bbmodel_texture_1.tx_cnt
+                            }
+                            billboard_tex_compiler = new FastCompiller(options)
+                            billboard_tex_compiler.billboard_textures = new Map()
+                        }
+                        //
+                        let billboard_texture_info = billboard_tex_compiler.billboard_textures.get(url)
+                        if (!billboard_texture_info) {
+                            billboard_texture_info = Resources.loadImage(url, false).then(async (image) => {
+                                const textures = [{
+                                    id: url,
+                                    name: url,
+                                    image
+                                }]
+                                const tx_size = 1
+                                const options = billboard_tex_compiler.options
+                                const {places, spritesheet} = await billboard_tex_compiler.findPlaces(textures, true, options.resolution, options.tx_cnt, options)
+                                const place = places[0]
+                                const spritesheet_id = spritesheet.id
+                                const {x, y, image_width, image_height} = place
+                                const doubleface = false
+                                const material_key = `bbmodel/${doubleface ? 'doubleface_transparent' : 'transparent'}/terrain/${spritesheet_id}`
+                                await spritesheet.drawTexture(image, place.x, place.y)
+                                if(!resource_pack.materials.has(material_key)) {
+                                    const spritesheet_canvas = spritesheet.ctx.canvas
+                                    const settings_for_canvas = {
+                                        mipmap: false
+                                    }
+                                    const renderBackend = render.renderBackend
+                                    const texture = renderBackend.createTexture({
+                                        source:     spritesheet_canvas,
+                                        style:      resource_pack.genTextureStyle(spritesheet_canvas, settings_for_canvas, DEFAULT_TX_SIZE),
+                                        minFilter:  'nearest',
+                                        magFilter:  'nearest',
+                                    })
+                                    const textureInfo = {
+                                        texture:    texture,
+                                        width:      spritesheet.width,
+                                        height:     spritesheet.height,
+                                        texture_n:  null
+                                    }
+                                    resource_pack.textures.set(spritesheet_id, textureInfo)
+                                    resource_pack.getMaterial(material_key)
+                                } else {
+                                    const tex = resource_pack.textures.get(spritesheet_id)
+                                    if(tex) {
+                                        //TODO: switch upload() to updateID++
+                                        (tex.texture as WebGLTexture).upload()
+                                        // Helpers.downloadImage(spritesheet.canvases.get('').cnv, 'banner.png')
+                                    }
+                                }
+                                const uv = [
+                                    (x * spritesheet.tx_sz + image_width / 2) / spritesheet.width,
+                                    (y * spritesheet.tx_sz + image_height / 2) / spritesheet.height,
+                                    image_width / spritesheet.width,
+                                    image_height / spritesheet.height,
+                                ]
+                                return {spritesheet_id, tx_size, w: image_width, h: image_height, material_key, uv}
+                            })
+                            
+                            billboard_tex_compiler.billboard_textures.set(url, billboard_texture_info)
+                        }
+                        
+                        const info = await billboard_texture_info
+                        extra_data.texture = {...extra_data.texture, ...info}
+                        world.chunkManager.setBlock(args.pos, item)
+                    
+                    }
+                    process(args)
+                    break
+                }
                 case 'add_bbmesh': {
                     const a = args as IAddMeshArgs
                     const pos = new Vector().copyFrom(a.block_pos)
                     const key = `block_bbmesh_${pos.toHash()}`
                     const render = Qubatch.render as Renderer
-                    render.addBBModelForChunk(pos.addScalarSelf(.5, 0, .5), a.model, new Vector().copyFrom(a.rotate), a.animation_name, a.hide_groups, key, true, a.matrix)
+                    render.addBBModelForChunk(pos.addScalarSelf(.5, 0, .5), a.model, new Vector().copyFrom(a.rotate), a.animation_name, a.hide_groups, key, true, a.matrix, a.item_block)
                     break
                 }
                 case 'remove_bbmesh': {
@@ -639,7 +727,7 @@ export class ChunkManager {
         let all_blocks = BLOCK.getAll();
         const set_block_list = [];
         for(let mat of all_blocks) {
-            if(mat.deprecated || !mat.spawnable || mat.item || mat.is_fluid || mat.next_part || mat.previous_part || ['extruder', 'text'].includes(mat.style_name)) {
+            if(mat.deprecated || !mat.spawnable || mat.item || mat.is_fluid || mat.previous_part || ['extruder', 'text'].includes(mat.style_name)) {
                 if(mat.name != 'BEDROCK') {
                     continue;
                 }
