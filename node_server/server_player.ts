@@ -687,8 +687,8 @@ export class ServerPlayer extends Player {
             // teleport
         let initialPos = this.vision.safePosInitialOverride || this.state.pos_spawn;
         this.vision.safePosInitialOverride = null;
-        const initialUndergroundAllowed = initialPos.equal(this.state.pos_spawn); // can't use === here, it may be a clone with the same value
-        const safePos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin, initialUndergroundAllowed);
+        const isSpawnPoint = initialPos.equal(this.state.pos_spawn); // can't use === here, it may be a clone with the same value
+        const safePos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin, isSpawnPoint);
         this.sendTeleport(safePos, 'spawn');
 
         // создать бонусный сундук возле игрока-хозяина мира при первом входе
