@@ -420,7 +420,13 @@
 
     // special effect for sunrise
     outColor.rgb = mix(outColor.rgb, u_fogColor.rgb, u_fogColor.a);
-    outColor.rgb = mix(outColor.rgb, u_tintColor.rgb, u_tintColor.a);
+
+    float opacity = u_tintColor.a;
+    if(opacity >= 0.0) {
+        outColor.rgb = mix(outColor.rgb, u_tintColor.rgb, u_tintColor.a);
+    } else {
+        outColor.a = -opacity;
+    }
 
 #endif
 

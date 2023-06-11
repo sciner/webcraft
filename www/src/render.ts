@@ -58,7 +58,7 @@ export const DEFAULT_FOV_NORMAL = 70;
 const FOV_FLYING_FACTOR         = 1.075;
 const FOV_WIDE_FACTOR           = 1.15;
 const FOV_ZOOM                  = DEFAULT_FOV_NORMAL * ZOOM_FACTOR;
-const NEAR_DISTANCE             = (1 / 256) * PLAYER_ZOOM; // было (2 / 16) * PLAYER_ZOOM. Уменьшено чтобы не заглядывать в препятствия и внутрь головы
+const NEAR_DISTANCE             = (1 / 24) * PLAYER_ZOOM; // было (2 / 16) * PLAYER_ZOOM. Уменьшено чтобы не заглядывать в препятствия и внутрь головы
 const RENDER_DISTANCE           = 800;
 const NIGHT_SHIFT_RANGE         = 16;
 // Shake camera on damage
@@ -1633,6 +1633,10 @@ export class Renderer {
                     }
                 }
                 cam_pos = pos.clone().movePolarSelf(-distToCamera, cam_rotate.x, cam_rotate.z);
+                const model = this.player.getModel()
+                if(model) {
+                    model.opacity = distToCamera < .75 ? Math.pow(distToCamera / .75, 4) : 1
+                }
             }
 
         }

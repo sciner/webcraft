@@ -20,6 +20,8 @@ const MAX_BOOTS_COUNT = 10
 
 const {mat4, vec3} = glMatrix
 
+const color_trnsparent = new Color(0, 0, 0, 0)
+
 // Анимация повороа говоры отдельно от тела, нужно перенести в bbmodel
 // head({part, index, delta, animable, camPos}) {
 //     let {
@@ -104,6 +106,7 @@ export class MobModel extends NetworkPhysicObject {
     hasSwimAnim:        boolean
     hasFastSwimAnim:    boolean
     hasIdleSwim:        boolean
+    opacity:            float = 1
 
     #health: number = 100
     #timer_demage: number
@@ -198,7 +201,9 @@ export class MobModel extends NetworkPhysicObject {
             if (this.#timer_demage > performance.now()) {
                 mesh.gl_material.tintColor = new Color(1, 0, 0, .3)
             } else {
-                mesh.gl_material.tintColor = new Color(0, 0, 0, 0)
+                // Negative alpha is specially processed in the shader
+                // It is used to set the opacity for the material
+                mesh.gl_material.tintColor = this.opacity ? new Color(0, 0, 0, -this.opacity) : color_trnsparent
             }
 
         }
@@ -270,10 +275,10 @@ export class MobModel extends NetworkPhysicObject {
         // }
 
         let mx = null
+        const mesh = this._mesh
 
         // hide invisible mobs
         if(this.extra_data && 'invisible' in this.extra_data) {
-            const mesh = this._mesh
             if(this.extra_data.invisible) {
                 mesh.destroyBlockDrawer()
                 return false
@@ -322,8 +327,6 @@ export class MobModel extends NetworkPhysicObject {
             this.aabb.draw(render, this.pos, delta, true /*this.raycasted*/ );
         }
 
-        const mesh = this._mesh
-
         if(mesh) {
             this.doAnims();
             if(!mesh.apos) {
@@ -333,6 +336,7 @@ export class MobModel extends NetworkPhysicObject {
             mesh.drawBuffered(render, delta, mx)
             if(mesh.gl_material.tintColor) {
                 mesh.gl_material.tintColor.set(0, 0, 0, 0)
+                mesh.gl_material.tintColor = mesh.gl_material.tintColor
             }
         }
 
