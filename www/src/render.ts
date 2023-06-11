@@ -62,6 +62,7 @@ const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 const CAMERA_3P_MARGIN_HEIGHT   = 0.03 // насколько широко расставлять 4 луча для поиска препятствия (по вертикали), при FOV 70 градусов
 const CAMERA_3P_MIN_DISTANCE    = 0.32
 
+const tmpVec                    = new Vector()
 const tmpOrthoVec1              = new Vector()
 const tmpOrthoVec2              = new Vector()
 const tmpShiftedEyePos          = new Vector()
@@ -1605,6 +1606,7 @@ export class Renderer {
                     const width = height * Math.min( 2, this.camera.width / this.camera.height)
                     const orthoVec1 = tmpOrthoVec1.zero().movePolarSelf(width, 0, cam_rotate.z + Mth.PI_DIV2)
                     const orthoVec2 = tmpOrthoVec2.zero().movePolarSelf(height, cam_rotate.x + Mth.PI_DIV2, cam_rotate.z)
+                    const posFloored = pos.floored()
                     for(let [sign1, sign2] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
                         tmpShiftedEyePos.set(
                             pos.x + sign1 * orthoVec1.x + sign2 * orthoVec2.x,
@@ -1612,7 +1614,7 @@ export class Renderer {
                             pos.z + sign1 * orthoVec1.z + sign2 * orthoVec2.z
                         )
                         const bPos = raycaster.get(tmpShiftedEyePos, view_vector, THIRD_PERSON_CAMERA_DISTANCE + 1, null, true, false, myPlayerModel)
-                        if(bPos?.point && player._block_pos.distance(bPos) >= 1) {
+                        if(bPos?.point && !posFloored.equal(tmpVec.copyFrom(bPos).flooredSelf())) {
                             this.obstacle_pos.copyFrom(bPos).addSelf(bPos.point)
                             const dist = tmpShiftedEyePos.distance(this.obstacle_pos)
                             distToCamera = Math.max(Math.min(distToCamera, dist), CAMERA_3P_MIN_DISTANCE)
