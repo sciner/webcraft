@@ -590,20 +590,26 @@ export class ServerChunkManager {
         }
     }
 
-    // Returns the horizontally closest safe position for a player.
-    // If there are no such positions, returns initialPos.
-    findSafePos(initialPos : Vector, chunk_render_dist : int, initialUndergroundAllowed: boolean) : Vector {
+    /**
+     * Возвращает ближайшую по горизонтли безопасную позицию к {@link initialPos}.
+     * Если таких позиций нет, возвращает {@link initialPos}
+     * @param isSpawnPoint - если true, то проверки менее жесткие, например:
+     *  - над игрокм может быть сплошной потолок
+     *  - блок в ногах вообще не проверяется (например, если он частично проходимый)
+     */
+    findSafePos(initialPos : Vector, chunk_render_dist : int, isSpawnPoint: boolean) : Vector {
         let startTime = performance.now();
         var bestPos = initialPos;
         var bestDistSqr = Infinity;
         const _this = this;
-        const pos = initialPos.floored();
-        const initialChunk = this.getReady(this.world.chunkManager.grid.toChunkAddr(pos));
+        const initialPosFloored = initialPos.floored();
+        const initialChunk = this.getReady(this.world.chunkManager.grid.toChunkAddr(initialPosFloored));
         if (initialChunk == null) {
             return initialPos;
         }
+        const pos = new Vector()
         const chunks: ServerChunk[] = [];
-        for(let chunk of this.getAround(pos, chunk_render_dist)) {
+        for(let chunk of this.getAround(initialPosFloored, chunk_render_dist)) {
             chunks.push(chunk);
         }
         // Gathers chunks with the same (x, z) together.
@@ -630,7 +636,7 @@ export class ServerChunkManager {
         function findSafeFloor(chunkIndex: int, x: int, z: int, topY: int | null): void {
             var chunk = chunks[chunkIndex];
             var topChunkAddr = chunk.addr;
-            const pos = new Vector(x, 0, z);
+            pos.setScalar(x, 0, z);
             // 2 blocks above the floor must be passable
             var matPlus2 = _this.DUMMY.material;
             var matPlus1 = _this.DUMMY.material;
@@ -660,24 +666,23 @@ export class ServerChunkManager {
                     if (WorldPortal.suitablePortalFloorMaterial(mat) &&
                         (matPlus1.passable || matPlus1.transparent)
                     ) {
-                        // check if it's a suitable floor
-                        if (matPlus1.passable != 1 ||
-                            matPlus2.passable != 1 ||
+                        // проверить что 2 блока над игроком безопасны
+                        if ((isSpawnPoint || matPlus1.passable === 1 || matPlus1.height <= 0.5) &&
+                            (isSpawnPoint && matPlus2.passable || matPlus2.passable === 1) &&
                             // can spawn in 1-block-deep water
-                            _this.fluidWorld.isFluid(pos.x, pos.y + 2, pos.z) ||
-                            _this.fluidWorld.isLava(pos.x, pos.y + 1, pos.z)
+                            !_this.fluidWorld.isFluid(pos.x, pos.y + 2, pos.z) &&
+                            !_this.fluidWorld.isLava(pos.x, pos.y + 1, pos.z)
                         ) {
-                            return;
-                        }
-                        // looks safe
-                        const dist = pos.horizontalDistanceSqr(initialPos);
-                        if (bestDistSqr > dist) {
-                            bestDistSqr = dist;
-                            bestPos = pos;
-                            // spawn in the middle of a block
-                            pos.x += 0.5;
-                            pos.y += 1;
-                            pos.z += 0.5;
+                            const distSqr = pos.horizontalDistanceSqr(initialPos);
+                            if (bestDistSqr > distSqr) {
+                                bestDistSqr = distSqr;
+                                pos.y++ // блок ног
+                                if (!isSpawnPoint || !pos.equal(initialPosFloored)) {
+                                    const slabHeight = (!matPlus1.passable && matPlus1.height) || 0
+                                    // spawn in the middle of a block
+                                    bestPos = pos.offset(0.5, slabHeight, 0.5)
+                                }
+                            }
                         }
                         return;
                     }
@@ -692,9 +697,8 @@ export class ServerChunkManager {
             }
         }
         // check the initial pos
-        pos.copyFrom(initialPos).flooredSelf();
-        const initialTopY = initialUndergroundAllowed ? pos.y : null
-        findSafeFloor(0, pos.x, pos.z, initialTopY);
+        const initialTopY = isSpawnPoint ? initialPosFloored.y : null
+        findSafeFloor(0, initialPosFloored.x, initialPosFloored.z, initialTopY);
         if (bestDistSqr < Infinity) {
             // Don't log fast calls, they take a few ms.
             return bestPos;
