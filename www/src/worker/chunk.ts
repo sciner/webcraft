@@ -4,7 +4,7 @@ import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MA
 import { AABB } from '../core/AABB.js';
 import { WorkerGeometryPool } from "../geom/worker_geometry_pool.js";
 import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
-import GeometryTerrain from "../geometry_terrain.js";
+import { GeometryTerrain } from "../geometry_terrain.js";
 import { pushTransformed } from '../block_style/extruder.js';
 import { decompressWorldModifyChunk } from "../compress/world_modify_chunk.js";
 import {FluidWorld} from "../fluid/FluidWorld.js";

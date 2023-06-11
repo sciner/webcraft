@@ -1,10 +1,13 @@
-import {Color, IvanArray, Mth, Vector} from '../helpers.js';
-import glMatrix from "@vendors/gl-matrix-3.3.min.js";
-import {BatchSystem} from "./batch/BatchSystem.js";
+// ///<reference types='vauxcel'/>
+
+import {IvanArray, Mth, Vector} from '../helpers.js';
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
-import type GeometryTerrain from '../geometry_terrain.js';
-import type { WebGLMaterial } from './webgl/WebGLMaterial.js';
-import type {GeomCopyOperation} from "../geom/big_geom_batch_update.js";
+import type {GeometryTerrain} from '../geometry_terrain.js';
+import type {WebGLMaterial} from './webgl/WebGLMaterial.js';
+import * as VAUX from 'vauxcel';
+import {BLEND_MODES, Geometry} from 'vauxcel';
+import {GlobalUniformGroup, LightUniformGroup} from "./uniform_groups.js";
+import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 
 const {mat4} = glMatrix;
 
@@ -142,65 +145,6 @@ export class BaseRenderTarget {
     }
 }
 
-interface BufferOptions {data?: ArrayBufferLike, index?: boolean, bigLength?: number, usage?: 'static' | 'dynamic' }
-
-export class BaseBuffer {
-    index: boolean;
-    _data: Float32Array | Uint16Array | Int32Array;
-    context: BaseRenderer;
-    options: BufferOptions;
-    bigLength: number;
-    dirty: boolean;
-    /**
-     * notify VAO of big resize
-     */
-    bigResize = false;
-
-    constructor(context, options: BufferOptions= {}) {
-        this.context = context;
-        this.options = options;
-        this._data = options.data as any;
-        this.index = !!options.index;
-        this.bigLength = options.bigLength || 0;
-
-        this.dirty = true;
-    }
-    /**
-     *
-     * @param {Float32Array | Uint16Array} v
-     */
-    set data(v) {
-        this.dirty = true;
-        this._data = v;
-    }
-
-    get data() {
-        return this._data;
-    }
-
-    bind(loc?: number) {
-    }
-
-    update(loc?: number) {
-        this.dirty = false;
-    }
-
-    updatePartial(len: number) {
-
-    }
-
-    multiUpdate(updates) {
-
-    }
-
-    batchUpdate(updBuffer: BaseBuffer, copies: IvanArray<GeomCopyOperation>, stride: number) {
-    }
-
-    destroy() {
-
-    }
-}
-
 export class BaseTexture {
     [key: string]: any;
     /**
@@ -282,106 +226,16 @@ export class BaseTexture {
     }
 }
 
-export const BLEND_MODES = {
-    NORMAL: 0,
-    ADD: 1,
-    MULTIPLY: 2,
-    SCREEN: 3
-}
-
-export class BaseMaterial {
-    [key: string]: any;
-    decalOffset: number;
-    constructor(context, options) {
-        this.context = context;
-        this.options = options;
-        this.shader = options.shader;
-        this.texture = options.texture || null;
-        this.texture_n = options.texture_n || null;
-        this.lightTex = options.lightTex || null;
-        this.cullFace = options.cullFace || false;
-        this.opaque = options.opaque || false;
-        this.ignoreDepth = options.ignoreDepth || false;
-        this.mipmap = options.mipmap || false;
-        this.blendMode = options.blendMode || BLEND_MODES.NORMAL;
-        this.tintColor = options.tintColor || new Color(0, 0, 0, 0);
-        this.decalOffset = options.decalOffset || 0;
-    }
-
-    changeLighTex(light) {
-        this.lightTex = light;
-    }
-
-    getSubMat() {
-        return null;
-    }
-
-    destroy() {
-        this.shader = null;
-        this.context = null;
-        this.texture = null;
-        this.options = null;
-    }
-}
-
-export class GlobalUniformGroup {
-    [key: string]: any;
-
-    constructor(options ? : any) {
-        this.projMatrix         = mat4.create();
-        this.viewMatrix         = mat4.create();
-
-        this.chunkBlockDist = 1;
-        this.brightness = 1;
-        this.resolution = [1, 1];
-        this.fogAddColor = [0,0,0,0];
-        this.fogColor = [1,1,1,1];
-        this.time = performance.now();
-
-        this.testLightOn = 0;
-        this.crosshairOn = true;
-
-        this.sunDir = [0, 0, 0];
-        this.useSunDir = false;
-
-        this.updateID = 0;
-        this.camPos = new Vector();
-        this.useNormalMap = false;
-        this.gridChunkSize = new Vector();
-        this.gridTexSize = new Vector();
-
-        this.localLigthRadius = 0;
-        this.rainStrength = 0;
-    }
-
-    update() {
-        this.updateID++;
-    }
-
-}
-
-export class LightUniformGroup {
-    stack: Array<int> = [0x100ff];
-    override = 0x100ff;
-
-    pushOverride(val: number) {
-        this.stack.push(val);
-        this.override = val;
-    }
-
-    popOverride() {
-        this.stack.pop();
-        this.override = this.stack[this.stack.length - 1];
-    }
-}
-
 export class CubeMesh {
     shader: any;
     geom: any;
+    state: VAUX.State;
 
     constructor(shader, geom) {
         this.shader = shader;
         this.geom = geom;
+        this.state = new VAUX.State();
+        this.state.blendMode = BLEND_MODES.NORMAL_NPM;
     }
 
     get lookAt() {
@@ -397,62 +251,62 @@ export class CubeMesh {
             lookAt, proj
         } = this;
 
-        proj.set(projMatrix);
-        lookAt.set(lookAtMatrix);
-        mat4.rotate(lookAt, lookAt, Math.PI / 2, [1, 0, 0]);
+        mat4.copy(proj, projMatrix);
+        mat4.copy(lookAt, lookAtMatrix);
+        // mat4.rotate(lookAt, lookAt, Math.PI / 2, [1, 0, 0]);
 
         lookAt[12] = 0;
         lookAt[13] = 0;
         lookAt[14] = 0;
 
         this.shader.resolution = [width, height];
-
         this.shader.context.drawCube(this);
     }
 }
 
-export class BaseCubeGeometry {
+export class BaseCubeGeometry extends Geometry {
     [key: string]: any;
 
+    context: BaseRenderer;
+    options: any;
+    vertex: VAUX.Buffer;
     constructor(context, options) {
+        super();
         this.context = context;
         this.options = options;
 
-        this.index = context.createBuffer({
-            data: new Uint16Array([
-                0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4,
-                1, 5, 6, 6, 2, 1, 0, 4, 7, 7, 3, 0,
-                3, 2, 6, 6, 7, 3, 0, 1, 5, 5, 4, 0
-            ]),
-            index: true
-        });
-
-        this.vertex = context.createBuffer({
-            data: new Float32Array([
-                -1, -1, 1,
-                1, -1, 1,
-                1, 1, 1,
-                -1, 1, 1,
-                -1, -1, -1,
-                1, -1, -1,
-                1, 1, -1,
-                -1, 1, -1
-            ])
-        });
-
-        this.buffers = [
-            this.vertex, this.index
-        ];
+        this.initBuffers();
     }
 
+    initBuffers()
+    {
+        this.vertex = new VAUX.Buffer(new Float32Array([
+            -1, -1, 1,
+            1, -1, 1,
+            1, 1, 1,
+            -1, 1, 1,
+            -1, -1, -1,
+            1, -1, -1,
+            1, 1, -1,
+            -1, 1, -1
+        ]), true);
+
+        this.addAttribute('a_vertex', this.vertex, 3);
+
+        this.addIndex(new VAUX.Buffer(new Uint16Array([
+            0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4,
+            1, 5, 6, 6, 2, 1, 0, 4, 7, 7, 3, 0,
+            3, 2, 6, 6, 7, 3, 0, 1, 5, 5, 4, 0
+        ]), true, true));
+    }
 }
 
-export default class BaseRenderer {
+export class BaseRenderer {
     [key: string]: any;
 
-    batch : BatchSystem
+    batch : VAUX.BatchSystem = null;
     preprocessor = new ShaderPreprocessor();
-    globalBufs: Dict<BaseBuffer> = {};
+    pixiRender: VAUX.Renderer = null;
 
     /**
      *
@@ -532,7 +386,10 @@ export default class BaseRenderer {
             this.preprocessor.global_defines = Object.assign({}, options.defines);
         }
 
-        this.batch = new BatchSystem(this);
+        this.state3d = new VAUX.State();
+        this.state3d.blendMode = VAUX.BLEND_MODES.NORMAL_NPM;
+        this.state3d.depthTest = true;
+        this.state3d.cullFace = true;
 
         this.multidrawExt = null;
     }
@@ -590,6 +447,11 @@ export default class BaseRenderer {
         return block;
     }
 
+    resetState()
+    {
+        this.pixiRender.state.set(this.state3d);
+    }
+
     /**
      * @deprecated
      * @see beginPass
@@ -625,6 +487,8 @@ export default class BaseRenderer {
         target = null,
         viewport = null
     }) {
+        this.batch.flush();
+        this.resetState();
         if (target && !target.valid) {
             throw 'Try bound invalid RenderTarget';
         }
@@ -742,12 +606,12 @@ export default class BaseRenderer {
         if (geom.size === 0) {
             return;
         }
-        this.batch.setObjectDrawer(this.mesh);
+        this.batch.setObjectRenderer(this.mesh);
         this.mesh.draw(geom, material, a_pos, modelMatrix, draw_type);
     }
 
     drawCube(cube) {
-        this.batch.setObjectDrawer(this.cube);
+        this.batch.setObjectRenderer(this.cube);
         this.cube.draw(cube);
     }
 
@@ -768,18 +632,19 @@ export default class BaseRenderer {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
-    createBuffer(options): BaseBuffer {
-        throw new TypeError('Illegal invocation, must be overridden by subclass');
-    }
-
     createCubeMap(options) {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
     resetBefore() {
+        this.pixiRender.shader.reset();
+        this.pixiRender.state.reset();
+        this.resetState();
     }
 
     resetAfter() {
+        this.pixiRender.shader.reset();
+        this.pixiRender.geometry.reset();
     }
 
     destroy() {

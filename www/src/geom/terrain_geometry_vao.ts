@@ -1,5 +1,7 @@
 import type {GeometryVaoOptions} from "./base_geometry_vao.js";
 import {BaseGeometryVao} from "./base_geometry_vao.js";
+import {TYPES} from "vauxcel";
+import {GeometryTerrain} from "../geometry_terrain.js";
 
 export class TerrainGeometryVao extends BaseGeometryVao {
     static strideFloats = 16;
@@ -10,50 +12,16 @@ export class TerrainGeometryVao extends BaseGeometryVao {
         this.hasInstance = true;
     }
 
-    createVao() {
-        const {attribs, gl} = this;
-        this.vao = gl.createVertexArray();
-        gl.bindVertexArray(this.vao);
-
-        gl.enableVertexAttribArray(attribs.a_position);
-        gl.enableVertexAttribArray(attribs.a_axisX);
-        gl.enableVertexAttribArray(attribs.a_axisY);
-        gl.enableVertexAttribArray(attribs.a_uvCenter);
-        gl.enableVertexAttribArray(attribs.a_uvSize);
-        gl.enableVertexAttribArray(attribs.a_color);
-        gl.enableVertexAttribArray(attribs.a_flags);
-        gl.enableVertexAttribArray(attribs.a_chunkId);
-
-        gl.enableVertexAttribArray(attribs.a_quad);
-
-        gl.vertexAttribDivisor(attribs.a_position, 1);
-        gl.vertexAttribDivisor(attribs.a_axisX, 1);
-        gl.vertexAttribDivisor(attribs.a_axisY, 1);
-        gl.vertexAttribDivisor(attribs.a_uvCenter, 1);
-        gl.vertexAttribDivisor(attribs.a_uvSize, 1);
-        gl.vertexAttribDivisor(attribs.a_color, 1);
-        gl.vertexAttribDivisor(attribs.a_flags, 1);
-        gl.vertexAttribDivisor(attribs.a_chunkId, 1);
-
-        this.buffer.bind();
-
-        this.attribBufferPointers();
-
-        this.quad.bind();
-
-        gl.vertexAttribPointer(attribs.a_quad, 2, gl.FLOAT, false, 2 * 4, 0);
-    }
-
-    attribBufferPointers(offsetInstances= 0) {
-        const {attribs, gl, stride} = this;
-        let offset = offsetInstances * stride;
-        gl.vertexAttribPointer(attribs.a_position, 3, gl.FLOAT, false, stride, offset + 0);
-        gl.vertexAttribPointer(attribs.a_axisX, 3, gl.FLOAT, false, stride, offset + 3 * 4);
-        gl.vertexAttribPointer(attribs.a_axisY, 3, gl.FLOAT, false, stride, offset + 6 * 4);
-        gl.vertexAttribPointer(attribs.a_uvCenter, 2, gl.FLOAT, false, stride, offset + 9 * 4);
-        gl.vertexAttribPointer(attribs.a_uvSize, 2, gl.FLOAT, false, stride, offset + 11 * 4);
-        gl.vertexAttribIPointer(attribs.a_color, 1, gl.UNSIGNED_INT, stride, offset + 13 * 4);
-        gl.vertexAttribIPointer(attribs.a_flags, 1, gl.UNSIGNED_INT, stride, offset + 14 * 4);
-        gl.vertexAttribPointer(attribs.a_chunkId, 1, gl.FLOAT, false, stride, offset + 15 * 4);
+    initAttributes() {
+        const { stride } = this;
+        this.addAttribute('a_position', this.buffer, 3, false, undefined, stride, 0, 1);
+        this.addAttribute('a_axisX', this.buffer, 3, false, undefined, stride, 3 * 4, 1);
+        this.addAttribute('a_axisY', this.buffer, 3, false, undefined, stride, 6 * 4, 1);
+        this.addAttribute('a_uvCenter', this.buffer, 2, false, undefined, stride, 9 * 4, 1);
+        this.addAttribute('a_uvSize', this.buffer, 2, false, undefined, stride, 11 * 4, 1);
+        this.addAttribute('a_color', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 13 * 4, 1);
+        this.addAttribute('a_flags', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 14 * 4, 1);
+        this.addAttribute('a_chunkId', this.buffer, 1, false, undefined, stride, 15 * 4, 1);
+        this.addAttribute('a_quad', GeometryTerrain.quadBuf, 2, false, undefined, 2 * 4, 0);
     }
 }

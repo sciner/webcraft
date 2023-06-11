@@ -286,7 +286,7 @@ void main() {
         if(!checkFlag(FLAG_NO_CAN_TAKE_AO)) {
             #include<sun_light_pass>
         }
-        if (cavePart > 0.0 && u_useNormalMap > 0.5 && u_SunDir.w < 0.5) {
+        if (cavePart > 0.0 && u_useNormalMap > 0.5 && u_sunDir.w < 0.5) {
             #include<normal_light_pass>
         }
         if(u_eyeinwater > 0. && !checkFlag(FLAG_NO_FOG)) {

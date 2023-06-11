@@ -61,7 +61,7 @@
     uniform vec2 u_resolution;
     uniform float u_eyeinwater;
     uniform vec3 u_shift;
-    uniform vec4 u_SunDir;
+    uniform vec4 u_sunDir;
     uniform float u_localLightRadius;
     uniform float u_aoDisaturateFactor;
 
@@ -97,10 +97,10 @@
 
 #ifdef global_uniforms_vert
     // global uniforms vertex part
-    uniform mat4 uProjMatrix;
-    uniform mat4 u_worldView;
-    uniform mat4 uModelMatrix;
-    uniform int uModelMatrixMode;
+    uniform mat4 u_projMatrix;
+    uniform mat4 u_viewMatrix;
+    uniform mat4 u_modelMatrix;
+    uniform int u_modelMatrixMode;
     uniform vec3 u_add_pos;
     uniform float u_pixelSize;
     uniform highp isampler2D u_chunkDataSampler;
@@ -436,14 +436,14 @@
 
 #ifdef sun_light_pass
     // sun light pass
-    if (u_SunDir.w < 0.5) {
+    if (u_sunDir.w < 0.5) {
         float lighter = (1. - v_lightMode);
         vec3 minecraftSun = vec3(0.6 + lighter * .2, 0.8 + lighter * .1, 1.0);
         if (v_normal.z < 0.0) minecraftSun.z = 0.5 + lighter * .25;
         sunNormalLight = dot(minecraftSun, v_normal * v_normal);
     } else {
         // limit brightness to 0.2
-        sunNormalLight = 1.0 + max(0., dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness;
+        sunNormalLight = 1.0 + max(0., dot(v_normal, normalize(u_sunDir.xyz))) * u_brightness;
         combinedLight = vec3(1.0);
     }
     //--
@@ -470,8 +470,8 @@
     ivec4 chunkData1 = ivec4(1 << 16, 1 << 16, 1 << 16, 0);
     if (a_chunkId < -0.5) {
         vec3 localPos = a_position;
-        if (uModelMatrixMode > 0) {
-            localPos = (uModelMatrix *  vec4(localPos.xzy, 1.0)).xzy;
+        if (u_modelMatrixMode > 0) {
+            localPos = (u_modelMatrix *  vec4(localPos.xzy, 1.0)).xzy;
         }
         vec3 chunkCoord = floor((localPos - u_gridChunkOffset) / u_gridChunkSize);
         chunk_corner = chunkCoord * u_gridChunkSize + u_gridChunkOffset;

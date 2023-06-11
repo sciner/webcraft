@@ -58,6 +58,7 @@ export class ChunkRenderList {
             if (geomMode === CHUNK_GEOMETRY_MODE.BIG_NO_MULTIDRAW) {
                 // testing mode, act like there's no multidraw support
                 render.renderBackend.multidrawBaseExt = null;
+                render.renderBackend.pixiRender.context.extensions.md_bvbi = null;
             }
         }
 
@@ -104,18 +105,6 @@ export class ChunkRenderList {
             baseGeom.upload(render.defaultFluidShader);
         }
     }
-
-    checkFence() {
-        let baseGeom = (this.bufferPool as any)?.baseGeometry;
-        if (baseGeom) {
-            baseGeom.checkFence();
-        }
-        baseGeom = (this.chunkManager.fluidWorld.mesher.renderPool as any)?.baseGeometry;
-        if (baseGeom) {
-            baseGeom.checkFence();
-        }
-    }
-
 
     /**
      * highly optimized
@@ -253,7 +242,7 @@ export class ChunkRenderList {
                 const shaderName = mat_shader === 'fluid' ? 'fluidShader' : 'shader';
                 const mat = resource_pack[shaderName].materials[group];
 
-                if (!mat.opaque && mat.shader.fluidFlags) {
+                if (!mat.opaque && mat.shader.fluidStatic) {
                     // REVERSED!!!
                     for (let i = count - 1; i >= 0; i--) {
                         arr[i].draw(render.renderBackend, resource_pack, group, mat);

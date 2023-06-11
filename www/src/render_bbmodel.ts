@@ -155,6 +155,11 @@ export class RendererBBModel {
         })
         this.blockDayLightTex.bind(2)
 
+        this.renderBackend._emptyTexInt.bind(3);
+        this.renderBackend._emptyTex3DInt.bind(6);
+        this.renderBackend._emptyTex3DInt.bind(7);
+        this.renderBackend._emptyTex3DInt.bind(8);
+
         // this.debugGeom = new LineGeometry()
         // this.debugGeom.pos = this.camPos
 

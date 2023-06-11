@@ -30,11 +30,11 @@ void main() {
     vec3 axisY = a_axisY;
 
     if (checkFlag(FLAG_LOOK_AT_CAMERA)) {
-        mat3 lookAtMat = inverse(mat3(u_worldView));
+        mat3 lookAtMat = inverse(mat3(u_viewMatrix));
         axisX = lookAtMat * axisX.xzy;
         axisY = lookAtMat * axisY.xzy;
     } else if (checkFlag(FLAG_LOOK_AT_CAMERA_HOR)) {
-        // mat3 lookAtMat = inverse(mat3(u_worldView));
+        // mat3 lookAtMat = inverse(mat3(u_viewMatrix));
         axisX = vec3(normalize((a_position + add_pos).yx) * length(a_axisX), 0.0);
         axisX.y = -axisX.y;
     }
@@ -88,9 +88,9 @@ void main() {
         }
     }
 
-    if (uModelMatrixMode > 0) {
-        v_chunk_pos = (uModelMatrix *  vec4(pos.xzy, 1.0)).xzy;
-        v_normal = normalize((uModelMatrix * vec4(v_normal.xzy, 0.0)).xzy);
+    if (u_modelMatrixMode > 0) {
+        v_chunk_pos = (u_modelMatrix *  vec4(pos.xzy, 1.0)).xzy;
+        v_normal = normalize((u_modelMatrix * vec4(v_normal.xzy, 0.0)).xzy);
     } else {
         v_chunk_pos = pos;
     }
@@ -113,8 +113,8 @@ void main() {
     }
     v_chunk_pos = v_chunk_pos - chunk_corner;
 
-    v_position = (u_worldView * vec4(v_world_pos, 1.0)). xyz;
-    gl_Position = uProjMatrix * vec4(v_position, 1.0);
+    v_position = (u_viewMatrix * vec4(v_world_pos, 1.0)). xyz;
+    gl_Position = u_projMatrix * vec4(v_position, 1.0);
 
     if(checkFlag(FLAG_TRIANGLE) && gl_VertexID > 2) {
         gl_Position = vec4(0.0, 0.0, -2.0, 1.0);

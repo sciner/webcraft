@@ -1,18 +1,40 @@
-import {Color} from '../helpers.js';
+import {Color, Vector} from '../helpers.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
+import {Program, Shader, BLEND_MODES, State, UniformGroup} from "vauxcel";
+import type {BaseRenderer} from "./BaseRenderer.js";
+import type {GlobalUniformGroup} from "./uniform_groups";
 
 const {mat4} = glMatrix;
 
 export class BaseShader {
-    [key: string]: any;
+    state: State = null;
+    program: Program;
+    context: BaseRenderer;
+    options: any;
+    defShader: Shader;
+    code: any;
+    globalUniforms: GlobalUniformGroup;
+
     constructor(context, options) {
+        if (!options.uniforms) {
+            options = {...options, uniforms: {}}
+        }
         this.context = context;
         this.options = options;
+        // context.createProgram({vertex, fragment,
+        this.initProgram();
+        this.globalUniforms = context.globalUniforms;
+        this.defShader = new Shader(this.program, { globalUniforms: context.globalUniforms, ...options.uniforms });
         /**
          * @type {{vertex: string, fragment: string}}
          */
         this.code = options.code;
-        this.bindings = [];
+    }
+
+    initProgram()
+    {
+        const { context, options } = this;
+        this.program = context.createProgram(options.code, options.defines || {});
     }
 
     bind() {
@@ -105,7 +127,6 @@ export class BaseTerrainShader extends BaseShader {
     constructor(context, options) {
         super(context, options);
 
-        this.globalUniforms = context.globalUniforms;
         this.lightUniforms = context.lightUniforms;
         this.modelMatrix        = mat4.create();
 
@@ -121,7 +142,6 @@ export class BaseTerrainShader extends BaseShader {
     bind() {
     }
     unbind() {
-
     }
 
     update() {
@@ -132,10 +152,38 @@ export class BaseTerrainShader extends BaseShader {
 }
 
 export class BaseLineShader extends BaseShader {
-    [key: string]: any;
+    posUniforms: { u_add_pos: Float32Array }
+    posUniformGroup: UniformGroup;
     constructor(context, options) {
+
+        const posUniforms = { u_add_pos: new Float32Array(3) };
+        const posUniformGroup = new UniformGroup(posUniforms);
+        if (!options.uniforms) {
+            options = {...options, uniforms: {}}
+        }
+        options.uniforms = {...options.uniforms, pos: posUniformGroup}
+
         super(context, options);
 
+        this.posUniforms = posUniforms;
+        this.posUniformGroup = posUniformGroup;
         this.globalUniforms = context.globalUniforms;
+
+        this.state = new State();
+        this.state.blendMode = BLEND_MODES.NORMAL_NPM;
+        this.state.depthTest = true;
+        this.state.cullFace = true;
+        this.state.polygonOffsetValue = -2;
+        this.state.polygonOffsetScale = -4;
+    }
+
+    updatePos(pos) {
+        const { camPos } = this.globalUniforms;
+        const { u_add_pos } = this.posUniforms;
+        this.posUniformGroup.update();
+        pos = pos || Vector.ZERO;
+        u_add_pos[0] = pos.x - camPos.x;
+        u_add_pos[1] = pos.z - camPos.z;
+        u_add_pos[2] = pos.y - camPos.y;
     }
 }

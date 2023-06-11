@@ -1,7 +1,13 @@
 import {ObjectDrawer} from "../batch/ObjectDrawer.js";
+import {ExtensionType} from "vauxcel";
 
 export class GLMeshDrawer extends ObjectDrawer {
     [key: string]: any;
+
+    static extension = {
+        name: 'mesh',
+        type: ExtensionType.RendererPlugin,
+    };
     draw(geom, material?, a_pos = null, modelMatrix = null, draw_type = 'triangles') {
         const { context } = this;
         if (geom.size === 0) {
@@ -18,9 +24,9 @@ export class GLMeshDrawer extends ObjectDrawer {
                 break;
             }
         }
+        material.shader.updatePos(a_pos, modelMatrix);
         material.bind();
         geom.bind(material.shader);
-        material.shader.updatePos(a_pos, modelMatrix);
         gl.drawArraysInstanced(draw_type, 0, 6, geom.size);
         // stat
         context.stat.drawquads += geom.size;

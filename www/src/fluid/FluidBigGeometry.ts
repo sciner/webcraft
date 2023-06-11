@@ -1,5 +1,6 @@
 import {BaseBigGeometry, BigGeometryOptions} from "../geom/base_big_geometry.js";
 import {FluidGeometryVao} from "./fluid_geometry_vao.js";
+import {Buffer} from 'vauxcel';
 
 export class FluidBigGeometry extends BaseBigGeometry {
 
@@ -14,22 +15,10 @@ export class FluidBigGeometry extends BaseBigGeometry {
     }
 
     upload(shader) {
-        super.upload(shader);
-        if (!this.indexBuffer) {
-            this.indexBuffer = this.context.createBuffer({
-                data: this.indexData,
-                usage: 'static',
-                index: true
-            });
-            this.staticDraw.indexBuffer = this.indexBuffer;
-            if (this.staticCopy) {
-                this.staticCopy.indexBuffer = this.indexBuffer;
-            }
-            this.dynamicDraw.indexBuffer = this.indexBuffer;
-        }
         if (this.dynamicDraw.size * 6 > this.indexData.length) {
             this.createIndex();
         }
+        super.upload(shader);
     }
 
     createIndex() {
@@ -48,8 +37,10 @@ export class FluidBigGeometry extends BaseBigGeometry {
             indexData[i * 6 + 5] = i * 4 + 3;
         }
 
-        if (this.indexBuffer) {
-            this.indexBuffer.data = this.indexData;
+        if (!this.indexBuffer) {
+            this.indexBuffer = new Buffer(this.indexData, true, true);
+        } else {
+            this.indexBuffer.update(this.indexData);
         }
     }
 

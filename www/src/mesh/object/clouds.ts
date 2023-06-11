@@ -1,6 +1,6 @@
 import {QUAD_FLAGS, Vector} from '../../helpers.js';
 import { default as push_cube_style } from '../../block_style/cube.js';
-import GeometryTerrain from "../../geometry_terrain.js";
+import { GeometryTerrain } from "../../geometry_terrain.js";
 import {Resources} from "../../resources.js";
 import {BLOCK, FakeTBlock} from "../../blocks.js";
 import { AABB } from '../../core/AABB.js';
@@ -147,12 +147,14 @@ export default class Mesh_Object_Clouds {
         const context = render.renderBackend
         const gl = context.gl
         const geom = this.buffer
+        material.shader.updatePos(this.pos, this.modelMatrix)
         material.bind()
         geom.bind(material.shader)
         for(let mx = -2; mx <= 2; mx++) {
             for(let mz = -2; mz <= 2; mz++) {
                 this.pos.set(x + mx * size + 1/2, cam_pos.y, z + mz * size + 1/2)
-                material.shader.updatePos(this.pos, this.modelMatrix)
+                material.shader.updatePosOnly(this.pos)
+                material.bind()
                 gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, geom.size)
                 context.stat.drawquads += geom.size
                 context.stat.drawcalls++

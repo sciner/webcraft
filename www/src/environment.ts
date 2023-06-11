@@ -4,6 +4,7 @@ import { Resources } from "./resources.js";
 import { Weather } from "./block_type/weather.js";
 import type { Renderer } from "./render.js";
 import type { CubeMesh } from "./renders/BaseRenderer.js";
+import {MIN_BRIGHTNESS} from "./constant.js";
 
 export declare type IFogPreset = {
     color:          [number,number, number, number ] | Gradient | Color | IAnyColorRecordMap,
@@ -958,7 +959,7 @@ export class Environment {
 
         gu.fogAddColor          = this.rawInterpolatedFogAdd;
         gu.fogColor             = this.rawInterpolatedFog;
-        gu.brightness           = this.fullBrightness;
+        gu.brightness           = Math.max(this.fullBrightness, MIN_BRIGHTNESS);
 
         gu.time                 = this.time;
         //gu.fogDensity           = this.fogDensity * fogPreset.density;
@@ -977,8 +978,8 @@ export class Environment {
         for(let i = 0; i < 3; i++) {
             this._skyColor[i] = this.lerpWeatherValue(weather => Weather.SKY_COLOR[weather][i]) * this.nightshift;
         }
-        uniforms['u_baseColor'].value = this._skyColor
-        uniforms['u_nightshift'].value = this.nightshift;
+        uniforms['u_baseColor'] = this._skyColor
+        uniforms['u_nightshift'] = this.nightshift;
 
         this.skyBox.draw(render.viewMatrix, render.projMatrix, width, height);
     }

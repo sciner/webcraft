@@ -1,5 +1,5 @@
 import { IndexedColor, QUAD_FLAGS, Vector } from '../../helpers.js';
-import GeometryTerrain from '../../geometry_terrain.js';
+import { GeometryTerrain } from '../../geometry_terrain.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { Mesh_Object_Base } from './base.js';
 import { Resources } from '../../resources.js';

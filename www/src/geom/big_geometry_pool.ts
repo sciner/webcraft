@@ -46,7 +46,7 @@ export class BigGeometryPool extends BaseGeometryPool {
     }
 
     get bufferSizeBytes() {
-        return this.baseGeometry.staticDraw.buffer.bigLength;
+        return this.baseGeometry.staticDraw.buffer.byteLength;
     }
 
     grow() {

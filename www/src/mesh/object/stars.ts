@@ -1,6 +1,6 @@
 import { DIRECTION, IndexedColor, QUAD_FLAGS } from '../../helpers.js';
 import { BLOCK } from '../../blocks.js';
-import GeometryTerrain from '../../geometry_terrain.js';
+import { GeometryTerrain } from '../../geometry_terrain.js';
 import { GAME_DAY_SECONDS } from '../../constant.js';
 import {impl as alea} from "@vendors/alea.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
