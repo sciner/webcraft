@@ -7,6 +7,7 @@ import { EnumDamage } from "@client/enums/enum_damage.js";
 import {TBlock} from "@client/typed_blocks3.js";
 import {WorldAction} from "@client/world_action.js";
 import {BLOCK_ACTION} from "@client/server_client.js";
+import {IMMUNITY_DAMAGE_TIME} from "../server_player.js";
 
 const MUL_1_SEC = 20
 const INSTANT_DAMAGE_TICKS = 10
@@ -60,11 +61,12 @@ export class ServerPlayerDamage {
         this.#protectFallDamage = 2
     }
 
-    /**
-     * Метод подсчитывает колличество урона и применяет его.
-     */
-    getDamage(tick: int): void {
+    /** Подсчитывает колличество урона и применяет его к игроку. */
+    checkDamage(): void {
         const player = this.player
+        if (!player.game_mode.mayGetDamaged() || player.timer_immunity + IMMUNITY_DAMAGE_TIME >= performance.now()) {
+            return
+        }
         const world = player.world
         const legsPos = player.state.pos.floored()
         const eyePos = player.getEyePos()
@@ -213,8 +215,6 @@ export class ServerPlayerDamage {
                 this.#timer_fire--
             }
         }
-
-
 
         // отравление
         const poison_lvl = effects.getEffectLevel(Effect.POISON);
