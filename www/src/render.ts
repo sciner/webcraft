@@ -58,12 +58,20 @@ export const DEFAULT_FOV_NORMAL = 70;
 const FOV_FLYING_FACTOR         = 1.075;
 const FOV_WIDE_FACTOR           = 1.15;
 const FOV_ZOOM                  = DEFAULT_FOV_NORMAL * ZOOM_FACTOR;
-const NEAR_DISTANCE             = (2 / 16) * PLAYER_ZOOM;
+const NEAR_DISTANCE             = (1 / 256) * PLAYER_ZOOM; // было (2 / 16) * PLAYER_ZOOM. Уменьшено чтобы не заглядывать в препятствия и внутрь головы
 const RENDER_DISTANCE           = 800;
 const NIGHT_SHIFT_RANGE         = 16;
 // Shake camera on damage
 const DAMAGE_TIME               = 250;
 const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
+// авто-камера в режиме 3-го лица
+const CAMERA_3P_MARGIN_HEIGHT   = 0.03 // насколько широко расставлять 4 луча для поиска препятствия (по вертикали), при FOV 70 градусов
+const CAMERA_3P_MIN_DISTANCE    = 0.32
+
+const tmpVec                    = new Vector()
+const tmpOrthoVec1              = new Vector()
+const tmpOrthoVec2              = new Vector()
+const tmpShiftedEyePos          = new Vector()
 
 class DrawMobsStat {
     count: int = 0
@@ -1555,7 +1563,7 @@ export class Renderer {
     }
 
     // Moves the camera to the specified orientation.
-    // pos - Position in world coordinates.
+    // pos - позиция глаз либо свободной камеры в мировых координатах
     // ang - Pitch, yaw and roll.
     setCamera(player : Player, pos : Vector, rotate : Vector, force : boolean = false) {
 
@@ -1590,8 +1598,6 @@ export class Renderer {
             if(this.camera_mode === CAMERA_MODE.SHOOTER) {
                 // do nothing
             } else {
-                const cam_pos_new = pos.clone();
-                cam_pos = pos.clone();
                 cam_rotate = rotate.clone();
                 // back
                 if(this.camera_mode == CAMERA_MODE.THIRD_PERSON_FRONT) {
@@ -1602,23 +1608,31 @@ export class Renderer {
                 const view_vector = player.forward.clone();
                 view_vector.multiplyScalarSelf(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
                 //
-                const d = THIRD_PERSON_CAMERA_DISTANCE; // - 1/4 + Math.sin(performance.now() / 5000) * 1/4;
-                cam_pos_new.moveToSelf(cam_rotate, d);
-                if(!player.game_mode.isSpectator()) {
-                    // raycast from eyes to cam
-                    const bPos = player.pickAt.get(player.getEyePos(), null, Math.max(player.game_mode.getPickatDistance() * 2, d), view_vector, true)
-                    if(bPos?.point && player._block_pos.distance(bPos) >= 1) {
-                        this.obstacle_pos.set(bPos.x, bPos.y, bPos.z).addSelf(bPos.point);
-                        let dist1 = pos.distance(cam_pos_new);
-                        let dist2 = pos.distance(this.obstacle_pos);
-                        if(dist2 < dist1) {
-                            cam_pos_new.copyFrom(this.obstacle_pos);
+                let distToCamera = THIRD_PERSON_CAMERA_DISTANCE; // - 1/4 + Math.sin(performance.now() / 5000) * 1/4;
+                if(!player.game_mode.isSpectator() && !player.controlManager.isFreeCam) {
+                    // Выпускаем 4 параллельные луча от глаз в обратную сторону к камере
+                    const raycaster = player.pickAt.raycaster
+                    const myPlayerModel = this.world.players.getMyself()
+                    const height = (this.camera.fov ?? 70) / 70 * CAMERA_3P_MARGIN_HEIGHT // FOV задан по вертикали
+                    const width = height * Math.min( 2, this.camera.width / this.camera.height)
+                    const orthoVec1 = tmpOrthoVec1.zero().movePolarSelf(width, 0, cam_rotate.z + Mth.PI_DIV2)
+                    const orthoVec2 = tmpOrthoVec2.zero().movePolarSelf(height, cam_rotate.x + Mth.PI_DIV2, cam_rotate.z)
+                    const posFloored = pos.floored()
+                    for(let [sign1, sign2] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+                        tmpShiftedEyePos.set(
+                            pos.x + sign1 * orthoVec1.x + sign2 * orthoVec2.x,
+                            pos.y + sign1 * orthoVec1.y + sign2 * orthoVec2.y,
+                            pos.z + sign1 * orthoVec1.z + sign2 * orthoVec2.z
+                        )
+                        const bPos = raycaster.get(tmpShiftedEyePos, view_vector, THIRD_PERSON_CAMERA_DISTANCE + 1, null, true, false, myPlayerModel)
+                        if(bPos?.point && !posFloored.equal(tmpVec.copyFrom(bPos).flooredSelf())) {
+                            this.obstacle_pos.copyFrom(bPos).addSelf(bPos.point)
+                            const dist = tmpShiftedEyePos.distance(this.obstacle_pos)
+                            distToCamera = Math.max(Math.min(distToCamera, dist), CAMERA_3P_MIN_DISTANCE)
                         }
                     }
-                    const safe_margin = -.1;
-                    cam_pos_new.addScalarSelf(view_vector.x * safe_margin, view_vector.y * safe_margin, view_vector.z * safe_margin);
                 }
-                cam_pos.copyFrom(cam_pos_new);
+                cam_pos = pos.clone().movePolarSelf(-distToCamera, cam_rotate.x, cam_rotate.z);
             }
 
         }
