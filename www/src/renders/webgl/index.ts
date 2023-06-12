@@ -4,7 +4,6 @@ import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
 import {Resources} from "../../resources.js";
 import {WebGLTexture3D} from "./WebGLTexture3D.js";
-import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
 import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
 import {GLMeshDrawer} from "./GLMeshDrawer.js";
 import {GLCubeDrawer} from "./GLCubeDrawer.js";
@@ -14,6 +13,7 @@ import {WebGLFluidShader} from "./WebGLFluidShader.js";
 import * as VAUX from 'vauxcel';
 
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
+import {LayerPass} from "vauxcel";
 const {mat4} = glMatrix;
 
 const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
@@ -338,28 +338,6 @@ export default class WebGLRenderer extends BaseRenderer {
         */
     }
 
-    clear({clearDepth = true, clearColor = true} = {})
-    {
-        const {
-            gl, _clearColor
-        } = this;
-
-        const mask = (~~clearDepth * (gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)) | (~~clearColor * gl.COLOR_BUFFER_BIT);
-
-        mask && gl.clearColor(
-            _clearColor[0],
-            _clearColor[1],
-            _clearColor[2],
-            _clearColor[3]
-        );
-
-        mask && gl.clear(mask);
-    }
-
-    createRenderTarget(options) {
-        return new WebGLRenderTarget(this, options);
-    }
-
     createMaterial(options) {
         return new WebGLMaterial(this, options);
     }
@@ -410,43 +388,6 @@ export default class WebGLRenderer extends BaseRenderer {
             return new WebGLFluidShader(this, shaderCode);
         }
         return this.createShader(shaderCode);
-    }
-
-    /**
-     *
-     * @param {import("../BaseRenderer.js").PassOptions} options
-     */
-    beginPass(options = {}) {
-        super.beginPass(options);
-
-        const {
-            gl, _target, _viewport
-        } = this;
-
-        gl.bindFramebuffer(
-            gl.FRAMEBUFFER,
-            _target ? _target.framebuffer : null
-        );
-
-        gl.viewport(..._viewport);
-
-        this.clear(options);
-    }
-
-    /**
-     * @deprecated
-     * @param {} fogColor
-     */
-    beginFrame(fogColor) {
-        this.beginPass({fogColor})
-    }
-
-    /**
-     * @deprecated
-     */
-    endFrame() {
-        // this.blitRenderTarget();
-        // reset framebufer
     }
 
     /**

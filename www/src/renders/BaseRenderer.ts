@@ -1,11 +1,11 @@
 // ///<reference types='vauxcel'/>
 
-import {IvanArray, Mth, Vector} from '../helpers.js';
+import type {Vector} from '../helpers.js';
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
 import type {GeometryTerrain} from '../geometry_terrain.js';
 import type {WebGLMaterial} from './webgl/WebGLMaterial.js';
 import * as VAUX from 'vauxcel';
-import {BLEND_MODES, Geometry} from 'vauxcel';
+import {BLEND_MODES, Geometry, LayerPass, RenderTexture} from 'vauxcel';
 import {GlobalUniformGroup, LightUniformGroup} from "./uniform_groups.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 
@@ -15,134 +15,8 @@ export interface PassOptions {
     fogColor?: [number, number, number, number]
     clearColor?: boolean
     clearDepth?: boolean
-    target?: BaseRenderTarget
+    target: RenderTexture
     viewport?: [number, number, number, number]
-}
-
-/**
- * BaseRenderTarget
- */
-export class BaseRenderTarget {
-    [key: string]: any;
-    constructor (context, options = {width: 1, height: 1, depth: true}) {
-        this.context = context;
-        this.options = options;
-        /**
-         * @type {BaseTexture}
-         */
-        this.texture = null;
-        /**
-         * @type {BaseTexture}
-         */
-        this.depthTexture = null;
-        this.valid = false;
-    }
-
-    get width() {
-        return this.options.width;
-    }
-
-    get height() {
-        return this.options.height;
-    }
-
-    resize(w, h) {
-        this.destroy();
-        this.options.width = w;
-        this.options.height = h;
-
-        this.init();
-    }
-
-    init() {
-        this.texture = this.context.createTexture(this.options);
-        if (this.options.depth) {
-            this.depthTexture = this.context.createTexture({ ...this.options, type: 'depth24stencil8' });
-        }
-        this.valid = true;
-    }
-
-    flush() {
-
-    }
-
-    /**
-     * Read pixels from framebuffer
-     * @returns {Uint8Array | Promise<Uint8Array>}
-     */
-    toRawPixels(): any {
-        throw new TypeError('Illegal invocation, must be overridden by subclass');
-    }
-
-    /**
-     * @param {'image' | 'bitmap' | 'canvas'} mode
-     * @returns {Promise<Image | ImageBitmap | HTMLCanvasElement>}
-     */
-    async toImage(mode = 'image') {
-        let buffer = this.toRawPixels();
-
-        if (buffer instanceof Promise) {
-            buffer = await buffer;
-        }
-
-        for (let i = 0; i < buffer.length; i += 4) {
-            const a = buffer[i + 3] / 0xff;
-
-            if (!a) {
-                continue;
-            }
-
-            buffer[i + 0] = Math.round(buffer[i + 0] / a);
-            buffer[i + 1] = Math.round(buffer[i + 1] / a);
-            buffer[i + 2] = Math.round(buffer[i + 2] / a);
-        }
-
-        const data = new ImageData(this.width, this.height);
-
-        for(let i = 0; i < this.height; i ++) {
-            const invi = this.height - i - 1;
-            data.data.set(
-                buffer.subarray(invi * this.width * 4, (invi + 1) * this.width * 4),
-                i * this.width * 4);
-        }
-
-        if (mode === 'bitmap') {
-            return self.createImageBitmap(data);
-        }
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        ctx.canvas.width = this.width;
-        ctx.canvas.height = this.height;
-        ctx.putImageData(data, 0, 0);
-
-        if (mode === 'canvas') {
-            return Promise.resolve(canvas);
-        }
-
-        const img = new Image(this.width, this.height);
-
-        return new Promise(res => {
-            img.onload = () => res(img);
-            img.src = ctx.canvas.toDataURL();
-
-            ctx.canvas.width = ctx.canvas.height = 0;
-        });
-    }
-
-    destroy() {
-        this.valid = false;
-        if (this.texture) {
-            this.texture.destroy();
-        }
-
-        if (this.depthTexture) {
-            this.depthTexture.destroy();
-        }
-
-        this.texture = null;
-        this.depthTexture = null;
-    }
 }
 
 export class BaseTexture {
@@ -452,19 +326,6 @@ export class BaseRenderer {
         this.pixiRender.state.set(this.state3d);
     }
 
-    /**
-     * @deprecated
-     * @see beginPass
-     * @param {BaseRenderTarget} target
-     */
-    setTarget(target) {
-        if (target && !target.valid) {
-            throw 'Try bound invalid RenderTarget';
-        }
-
-        this._target = target;
-    }
-
     resize(width : number, height : number) {
         this.size = {
             width, height
@@ -476,87 +337,27 @@ export class BaseRenderer {
 
     }
 
-    /**
-     * Begin render pass to specific target
-     * @param {PassOptions} param0
-     */
-    beginPass({
-        fogColor = [0,0,0,0],
-        clearDepth = true,
-        clearColor = true,
-        target = null,
-        viewport = null
-    }) {
-        this.batch.flush();
+    beginPass(layerPassOrOptions: any) {
+        this.pixiRender.batch.flush();
         this.resetState();
-        if (target && !target.valid) {
-            throw 'Try bound invalid RenderTarget';
+
+        let layerPass: VAUX.LayerPass;
+        if (layerPassOrOptions instanceof VAUX.LayerPass) {
+            layerPass = layerPassOrOptions;
+        } else {
+            layerPass = new LayerPass(layerPassOrOptions);
         }
 
-        this._target = target;
+        this.pixiRender.pass.begin(layerPass);
 
-        const { size } = this;
-
-        const limit = target
-            ? target
-            : size;
-
-        const x = viewport
-            ? Mth.clamp(0, limit.width, viewport[0] || 0)
-            : 0;
-
-        const y = viewport
-            ? Mth.clamp(0, limit.height, viewport[1] || 0)
-            : 0;
-
-        const width = viewport
-            ? Mth.clamp(0, limit.width, viewport[2] || limit.width)
-            : limit.width;
-
-
-        const height = viewport
-            ? Mth.clamp(0, limit.height, viewport[3] || limit.height)
-            : limit.height;
-
-        this._viewport[0] = x;
-        this._viewport[1] = y;
-        this._viewport[2] = width;
-        this._viewport[3] = height;
-
-        this._clearColor[0] = fogColor[0] || 0;
-        this._clearColor[1] = fogColor[1] || 0;
-        this._clearColor[2] = fogColor[2] || 0;
-        this._clearColor[3] = fogColor[3] || 0;
+        return layerPass;
     }
 
-    /**
-     * Execute render and close current pass
-     */
-    endPass() {
-        this.batch.flush();
-    }
+    endPass(layerPass?: VAUX.LayerPass)
+    {
+        this.pixiRender.batch.flush();
 
-    /**
-     * @deprecated
-     * @see beginPass
-     * @param {} fogColor
-     */
-    beginFrame(fogColor) {
-
-    }
-
-    /**
-     * @deprecated
-     * @see endPass
-     */
-    endFrame() {
-
-    }
-
-    clear({
-        clearDepth, clearColor
-    }) {
-
+        this.pixiRender.pass.end(layerPass);
     }
 
     /**
@@ -574,15 +375,6 @@ export class BaseRenderer {
      */
     blitActiveTo(toTarget) {
         this.blit(this._target, toTarget);
-    }
-
-    /**
-     * Create render target
-     * @param options
-     * @return {BaseRenderTarget}
-     */
-    createRenderTarget(options) {
-        throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
     /**
@@ -649,6 +441,74 @@ export class BaseRenderer {
 
     destroy() {
 
+    }
+
+    rtToRawPixels(rt: VAUX.RenderTexture) {
+        /**
+         * @type {WebGL2RenderingContext}
+         */
+        const gl = this.gl
+        const buffer = new Uint8Array(rt.width * rt.height * 4);
+
+        this.pixiRender.renderTexture.bind(rt);
+        gl.readPixels(0,0,rt.width, rt.height, gl.RGBA, gl.UNSIGNED_BYTE, buffer);
+        this.pixiRender.renderTexture.bind(null);
+
+        return buffer;
+    }
+
+    async rtToImage(rt: VAUX.RenderTexture, mode = 'image') {
+        let buffer = this.rtToRawPixels(rt);
+
+        if (buffer instanceof Promise) {
+            buffer = await buffer;
+        }
+
+        for (let i = 0; i < buffer.length; i += 4) {
+            const a = buffer[i + 3] / 0xff;
+
+            if (!a) {
+                continue;
+            }
+
+            buffer[i + 0] = Math.round(buffer[i + 0] / a);
+            buffer[i + 1] = Math.round(buffer[i + 1] / a);
+            buffer[i + 2] = Math.round(buffer[i + 2] / a);
+        }
+
+        const data = new ImageData(rt.width, rt.height);
+
+        for(let i = 0; i < rt.height; i ++) {
+            const invi = rt.height - i - 1;
+            data.data.set(
+                buffer.subarray(invi * rt.width * 4, (invi + 1) * rt.width * 4),
+                i * rt.width * 4);
+        }
+
+        if (mode === 'bitmap') {
+            return self.createImageBitmap(data);
+        }
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.canvas.width = rt.width;
+        ctx.canvas.height = rt.height;
+        ctx.putImageData(data, 0, 0);
+
+        if (mode === 'canvas') {
+            return canvas;
+        }
+
+        const img = new Image(rt.width, rt.height);
+
+        return new Promise(res => {
+            img.onload = () => res(img);
+            img.src = ctx.canvas.toDataURL();
+
+            ctx.canvas.width = ctx.canvas.height = 0;
+
+            return img;
+        });
     }
 
     static ID = 0;
