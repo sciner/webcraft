@@ -29,7 +29,7 @@ export default function randomTicker(world: ServerWorld, actions: WorldAction, w
         ]);
     } else if (world_light >= 9) {
         // возможность распространеия 3х5х3. Сгенерировать 1 случайное число, получить из его битов 3 числа
-        const rndInt = Math.random() * 0xffff | 0
+        const rndInt = Math.random() * 65536 | 0 // все биты равновероятны
         _rnd_pos
             .copyFrom(posworld)
             .addScalarSelf(
