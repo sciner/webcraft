@@ -23,7 +23,7 @@ export default class packet_reader {
 
     // Pickat action
     static async read(player: ServerPlayer, packet: INetworkMessage<ICmdPickatData>) {
-
+        
         // ВАЖНО: нужно гарантировать что во всех возможных случаях или вызовется player.controlManager.syncWithEvent(data),
         // или data.controlEventId будет перенесен куда-то еще (например, в WorldAction), и с ним позже вызовется синхронизация управления.
 

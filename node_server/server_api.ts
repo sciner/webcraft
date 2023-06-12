@@ -129,6 +129,24 @@ export class ServerAPI {
                 }
                 return resp;
             }
+            case '/api/Game/Billboard': {
+                const session = await ServerAPI.getDb().GetPlayerSession(session_id)
+                if (req.files && session) {
+                    const path = `../www/upload/${session.user_guid}/`
+                    if (!fs.existsSync(path)) {
+                        fs.mkdirSync(path, {recursive: true})
+                    }
+                    const name = req.files.file.name.replace(/[^a-zа-я0-9\s\.\-_]/gi, '').substr(0, 36)
+                    await req.files.file.mv(path + name)
+                    //const params = req.body
+                    //const pos = new Vector(params.x, params.y, params.z)
+                    //const world_id = params.world_id.replace(/[^a-z0-9-]/gi, '').substr(0, 36)
+                    //const world = Qubatch.worlds.get(world_id)
+                    //world.changeImageBillboard(pos, file)
+                    return {'result':'ok'}
+                }
+                return {'result':'error'}
+            }
             case '/api/Game/Screenshot': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);
                 const params = req.body;

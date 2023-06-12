@@ -1402,4 +1402,26 @@ export class ServerWorld implements IWorld {
 
     }
 
+    changeImageBillboard(pos: Vector, file: string) {
+        const block = this.getBlock(pos)
+        console.log(pos)
+        console.log(block.id)
+        if (!block || block.id != this.block_manager.BILLBOARD1X2.id) {
+            return
+        }
+        const action = new WorldAction(null, this, false, true);
+        action.addBlocks([{pos: block.posworld, item: {
+            id: block.id, 
+            rotate: block.rotate, 
+            extra_data: {
+                relindex: -1,
+                texture: {
+                    url: '/media/demo/' + file
+                }
+            }
+        }, action_id: BLOCK_ACTION.REPLACE}])
+        console.log({pos: block.posworld, item: {id: block.id, rotate: block.rotate, extra_data: {relindex: -1,texture: {url: '/media/demo/' + file}}}})
+        this.actions_queue.add(null, action)
+    }
+
 }

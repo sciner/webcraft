@@ -1095,7 +1095,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setUpholstery, setPointedDripstone]) {
+        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setUpholstery, setPointedDripstone, setBillboard]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 const affectedPos = (func === chSpawnMob) ? null : pos // мобы не меняют блок. И chSpawnMob также портит pos
                 return [actions, affectedPos]
@@ -1535,6 +1535,15 @@ function needOpenWindow(e, world, pos, player, world_block, world_material, mat_
                 };
                 break;
             }
+            case BLOCK.BILLBOARD1X2.id: {
+                actions.open_window = {
+                    id: 'frmBillboard',
+                    args: {
+                        pos: new Vector(pos)
+                    }
+                };
+                break;
+            }
         }
     }
     actions.reset_mouse_actions = true;
@@ -1826,6 +1835,14 @@ function editBeacon(e, world, pos, player, world_block, world_material, mat_bloc
         return true
     }
     return true // @todo false error server
+}
+
+// Set bilboard and open file select
+function setBillboard(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if (!Qubatch.is_server && mat_block.id == BLOCK.BILLBOARD1X2.id) {
+        //Qubatch.App.OpenSelectFile(pos) 
+    }
+    return false
 }
 
 // Edit sign

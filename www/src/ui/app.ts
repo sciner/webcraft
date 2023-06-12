@@ -3,6 +3,7 @@ import {Helpers, MonotonicUTCDate, TApiSyncTimeRequest, TApiSyncTimeResponse} fr
 
 export class UIApp {
 
+    #pos // @todo временно
     api: API_Client
     session: any
     onLogin: (any) => void
@@ -161,6 +162,41 @@ export class UIApp {
     async Screenshot(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = [];
         await this.api.call(this, '/api/Game/Screenshot', form, (resp) => {
+            result = resp;
+            if(callback) {
+                callback(result);
+            }
+        }, callback_error, callback_progress, callback_final);
+        return result;
+    }
+
+    OpenSelectFile(pos) {
+        this.#pos = pos
+        console.log(pos)
+        document.getElementById('test').click()
+    }
+
+    test(files) {
+        const form = new FormData();
+        form.append('file', files[0]);
+        form.append('world_id', Qubatch.world.info.guid);
+        form.append('x', this.#pos.x)
+        form.append('y', this.#pos.y)
+        form.append('z', this.#pos.z)
+        console.log(this.#pos)
+        this.Billboard(form, function(result) {
+            if (result.result == "ok") {
+                vt.success("Image uploaded to server");
+            } else {
+                vt.error("Error upload screenshot");
+            }
+        })
+    }
+
+    // Send image to billboard
+    async Billboard(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
+        let result = [];
+        await this.api.call(this, '/api/Game/Billboard', form, (resp) => {
             result = resp;
             if(callback) {
                 callback(result);

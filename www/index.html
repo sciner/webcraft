@@ -71,9 +71,9 @@
             <li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li>
         </ul>
     </div>
-
+    <input type="file" onchange="Qubatch.App.test(event.target.files)" id="test" accept="image/png">
+    
     <div id="qubatch-canvas-container">
-
         <canvas id="qubatchRenderSurface" ng-click="Qubatch.setupMousePointer(true)" width="800" height="600"></canvas>
         <!-- <canvas id="qubatchHUD" width="800" height="600"></canvas> -->
 
@@ -666,6 +666,7 @@
                     <div class="flex-row items-center">
                         <div class="open-file-div">
                             <button class="secondary" for="new-skin-input">{{Lang.open_file}}</label>
+                           
                             <input type="file" id="new-skin-input" accept="image/png" ng-upload-change="skin.newSkinFileChanged($event)">
                         </div>
                         &nbsp;&nbsp;&nbsp;

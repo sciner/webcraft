@@ -2116,7 +2116,8 @@
                 "animated": {
                     "name": "idle"
                 }
-            }
+            },
+            "window": "frmBillboard"
         },
         {
             "id": 3002,

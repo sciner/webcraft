@@ -317,7 +317,8 @@
         "cmd_modify_indicator_request",
         "cmd_use_item",
         "cmd_play_anim",
-        "cmd_use_weapon"
+        "cmd_use_weapon",
+        "cmd_media_files"
     ],
     "treasure_chests": [
         {
