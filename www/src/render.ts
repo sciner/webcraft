@@ -65,8 +65,7 @@ const NIGHT_SHIFT_RANGE         = 16;
 const DAMAGE_TIME               = 250;
 const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 // авто-камера в режиме 3-го лица
-const CAMERA_3P_MARGIN_HEIGHT   = 0.03 // насколько широко расставлять 4 луча для поиска препятствия (по вертикали), при FOV 70 градусов
-const CAMERA_3P_MIN_DISTANCE    = 0.32
+const CAMERA_3P_MARGIN_HEIGHT   = 0.04 // насколько широко расставлять 4 луча для поиска препятствия (по вертикали), при FOV 70 градусов
 
 const tmpVec                    = new Vector()
 const tmpOrthoVec1              = new Vector()
@@ -1628,7 +1627,7 @@ export class Renderer {
                         if(bPos?.point && !posFloored.equal(tmpVec.copyFrom(bPos).flooredSelf())) {
                             this.obstacle_pos.copyFrom(bPos).addSelf(bPos.point)
                             const dist = tmpShiftedEyePos.distance(this.obstacle_pos)
-                            distToCamera = Math.max(Math.min(distToCamera, dist), CAMERA_3P_MIN_DISTANCE)
+                            distToCamera = Math.max(Math.min(distToCamera, dist), 0)
                         }
                     }
                 }
