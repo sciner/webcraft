@@ -13,6 +13,7 @@ import { BuildingTemplate } from "@client/terrain_generator/cluster/building_tem
 import type { ServerWorld } from "./server_world.js";
 import { PLAYER_STATUS, WORKER_MESSAGE } from "@client/constant.js";
 import type { ChunkGrid } from "@client/core/ChunkGrid.js";
+import type {RandomTickingBlocks} from "./ticker/random/random_ticking_blocks.js";
 
 /**
  * Each tick (unloaded_chunks_total * UNLOADED_CHUNKS_SUBSETS) is unloaded
@@ -52,7 +53,7 @@ export class ServerChunkManager {
     worker_inited: boolean;
     worker: any;
     lightWorker: any;
-    random_chunks: ServerChunk[];
+    random_chunks: RandomTickingBlocks[] = []       // готовые чанки, в которых есть рандомные тикеры
     random_tickers: Map<string, TRandomTickerFunction>;
     block_random_tickers: TRandomTickerFunction[]; // TRandomTickerFunction by block id
     tech_info: TWorldTechInfo
@@ -241,6 +242,7 @@ export class ServerChunkManager {
                 this.unloading_state_count++;
                 break;
         }
+        chunk.randomTickingBlocks?.updateRandomChunks()
     }
 
     async tick(tick_number) {
@@ -328,24 +330,13 @@ export class ServerChunkManager {
             return
         }
 
-        if(!this.random_chunks || tick_number % 20 == 0)  {
-            this.random_chunks = [];
-            for(let chunk of this.all) {
-                if(!chunk.isReady() || !chunk.tblocks || chunk.randomTickingBlockCount <= 0) {
-                    continue;
-                }
-                this.random_chunks.push(chunk);
-            }
-        }
-
-        for(let i = 0; i < this.random_chunks.length; i++) {
-            if((tick_number % 2) != (i % 2)) {
-                continue;
-            }
-            const chunk = this.random_chunks[i];
-            if(chunk.randomTick(tick_number, world_light, check_count * 2)) {
-                rtc++;
-            }
+        let {random_chunks} = this
+        const perTicks = 2 // в каждом тике перебираем в среднем (1 / perTicks) чанков
+        const minIndex = random_chunks.length * (tick_number % perTicks) / perTicks | 0
+        const maxIndex = random_chunks.length * ((tick_number % perTicks) + 1) / perTicks | 0
+        for(let i = minIndex; i < maxIndex; i++) {
+            random_chunks[i].tick(world_light, check_count * perTicks)
+            rtc++;
         }
         if(globalThis.modByRandomTickingBlocks != globalThis.modByRandomTickingBlocks_o) {
             globalThis.modByRandomTickingBlocks_o = globalThis.modByRandomTickingBlocks;

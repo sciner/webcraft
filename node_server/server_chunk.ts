@@ -19,6 +19,7 @@ import type { ServerChunkManager } from "./server_chunk_manager.js";
 import { FluidChunkQueue } from "@client/fluid/FluidChunkQueue.js";
 import type { DBItemBlock } from "@client/blocks";
 import type { ChunkDBActor } from "./db/world/ChunkDBActor.js";
+import {RandomTickingBlocks} from "./ticker/random/random_ticking_blocks.js";
 
 const _rnd_check_pos            = new Vector(0, 0, 0);
 const tmpRandomTickerTBlock     = new TBlock()
@@ -212,7 +213,6 @@ export class ServerChunk {
     /** Мобы в чанке. Только {@link Mob.moveToChunk} может менять это поле, совместно с {@link Mob.inChunk}. */
     mobs:                               Map<int, Mob>               = new Map();
     drop_items:                         Map<string, DropItem>       = new Map();
-    randomTickingBlockCount:            int                         = 0;
     dataChunk:                          any                         = null;
     fluid:                              any                         = null;
     safeTeleportMarker:                 number                      = 0;
@@ -220,6 +220,7 @@ export class ServerChunk {
     options:                            {}                          = {};
     tblocks:                            TypedBlocks3;
     ticking_blocks:                     TickingBlockManager;
+    randomTickingBlocks?:               RandomTickingBlocks         // инициализируется когда приходят блоки из воркера
     mobGenerator:                       MobGenerator;
     delayedCalls:                       DelayedCalls;
     dbActor:                            ChunkDBActor;
@@ -236,7 +237,6 @@ export class ServerChunk {
     light:                              ChunkLight;
     load_state:                         CHUNK_STATE;
     _preloadFluidBuf:                   any;
-    _random_tick_actions:               any;
     waitingToUnloadWater:               boolean;
     waitingToUnloadWorldTransaction:    boolean;
     packedCells:                        Int16Array;
@@ -565,7 +565,7 @@ export class ServerChunk {
             this.tblocks.restoreState(args.tblocks);
         }
         if (args.tickers) {
-            this.randomTickingBlockCount = args.tickers.randomTickersCount
+            this.randomTickingBlocks = new RandomTickingBlocks(this, args.tickers)
             this.ticking_blocks.init(args.tickers)
         }
         if(this._preloadFluidBuf) {
@@ -1349,23 +1349,27 @@ export class ServerChunk {
         const bm = this.world.block_manager
         if(!ml.obj) ml.obj = {};
         pos = Vector.vectorify(pos);
-        ml.obj[this.chunkManager.grid.math.getFlatIndexInChunk(pos as Vector)] = item;
+        const flatIndex = this.chunkManager.grid.math.getFlatIndexInChunk(pos)
+        ml.obj[flatIndex] = item;
         ml.compressed = null;
         ml.private_compressed = null;
         if(item) {
-            // calculate random ticked blocks
-            if(bm.BLOCK_BY_ID[previousId]?.random_ticker) {
-                this.randomTickingBlockCount--;
-            }
+            let randomTicker = null
             //
             if(item.id) {
                 const block = bm.fromId(item.id);
-                if(block.random_ticker) {
-                    this.randomTickingBlockCount++;
-                }
+                randomTicker = block.random_ticker
                 if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
                     this.ticking_blocks.add(pos as Vector);
                 }
+            }
+            // добавить/удалить рандомный тикер, если его наличие изменилось
+            if (bm.BLOCK_BY_ID[previousId]?.random_ticker) { // если тикер был
+                if (!randomTicker) { // если тикер исчез
+                    this.randomTickingBlocks.delete(flatIndex)
+                }
+            } else if (randomTicker) { // если тикера не было, но появился
+                this.randomTickingBlocks.add(flatIndex)
             }
         }
     }
@@ -1375,47 +1379,6 @@ export class ServerChunk {
         if (this.load_state === CHUNK_STATE.READY) {
             this.ticking_blocks.tick(tick_number);
         }
-    }
-
-    getActions() : WorldAction {
-        if(!this._random_tick_actions) {
-            this._random_tick_actions = new WorldAction(null, this.world, false, false);
-        }
-        return this._random_tick_actions;
-    }
-
-    // Random tick
-    randomTick(tick_number : int, world_light : int , check_count : int): boolean {
-        const {fromFlatChunkIndex, CHUNK_SIZE} = this.chunkManager.grid.math;
-
-        if(this.load_state !== CHUNK_STATE.READY || !this.tblocks || this.randomTickingBlockCount <= 0) {
-            return false;
-        }
-
-        const block_random_tickers = this.chunkManager.block_random_tickers;
-
-        for (let i = 0; i < check_count; i++) {
-            fromFlatChunkIndex(_rnd_check_pos, Math.floor(Math.random() * CHUNK_SIZE));
-            const block_id = this.tblocks.getBlockId(_rnd_check_pos.x, _rnd_check_pos.y, _rnd_check_pos.z);
-            if(block_id > 0) {
-                const ticker = block_random_tickers[block_id];
-                if(ticker) {
-                    const tblock = this.tblocks.get(_rnd_check_pos, tmpRandomTickerTBlock);
-                    ticker.call(this, this.world, this.getActions(), world_light, tblock);
-                }
-            }
-        }
-
-        //
-        const actions = this._random_tick_actions;
-        if(actions && actions.blocks.list.length > 0) {
-            globalThis.modByRandomTickingBlocks = (globalThis.modByRandomTickingBlocks | 0) + actions.blocks.list.length;
-            this.world.actions_queue.add(null, actions);
-            this._random_tick_actions = null;
-        }
-
-        return true;
-
     }
 
     /**

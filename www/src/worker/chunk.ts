@@ -13,7 +13,7 @@ import type { BaseResourcePack } from "../base_resource_pack.js";
 import type { Default_Terrain_Map_Cell } from "../terrain_generator/default.js"
 import type { WorkerWorld } from "./world.js";
 import type { FluidChunk } from "../fluid/FluidChunk.js";
-import {BLOCK_FLAG, NO_TICK_BLOCKS} from "../constant.js";
+import {BLOCK_FLAG, FAST_RANDOM_TICKERS_PERCENT, NO_TICK_BLOCKS} from "../constant.js";
 import { ChunkGrid, dx, dy, dz } from "../core/ChunkGrid.js";
 import type { Biome3LayerBase } from "../terrain_generator/biome3/layers/base.js";
 
@@ -312,8 +312,10 @@ export class ChunkWorkerChunk implements IChunk {
         const ANY_TICKER_FLAGS = BLOCK_FLAG.TICKING | BLOCK_FLAG.RANDOM_TICKER
         const pos = new Vector()
         const length = blockIds.length // accessing array length in the loop is slow!
+        const maxRandomTickers = FAST_RANDOM_TICKERS_PERCENT * this.world.chunkManager.grid.math.CHUNK_SIZE
         // the result
         const tickerFlatIndices: int[] = []
+        const randomTickerFlatIndices: int[] = []
         let randomTickersCount = 0
 
         for(let index = 0; index < length; index++) {
@@ -332,6 +334,9 @@ export class ChunkWorkerChunk implements IChunk {
 
             if ((flags & BLOCK_FLAG.RANDOM_TICKER) !== 0) {
                 randomTickersCount++;
+                if (randomTickerFlatIndices.length < maxRandomTickers) {
+                    randomTickerFlatIndices.push(getFlatIndexInChunk(pos))
+                }
             }
 
             if ((flags & BLOCK_FLAG.TICKING) !== 0) {
@@ -344,7 +349,11 @@ export class ChunkWorkerChunk implements IChunk {
             }
         }
         this.timers.stop()
-        return { randomTickersCount, tickerFlatIndices }
+        return {
+            randomTickersCount,
+            randomTickerFlatIndices: randomTickerFlatIndices.length < maxRandomTickers ? randomTickerFlatIndices : null,
+            tickerFlatIndices
+        }
     }
 
     /** Returns the index of the bottom of a column of blocks */
