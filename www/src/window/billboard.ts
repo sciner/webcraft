@@ -16,7 +16,7 @@ class FileSlot extends Window {
     setFile(file) {
         this.file = file
         this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot'))
-        this.setIcon(file, 'none', 3.5)
+        this.setIcon(file)
     }
 
     getFile() {
@@ -51,10 +51,6 @@ class FilesCollection extends Window {
 
         this.container = new Window(0, 0, this.w, this.h, this.id + '_container')
         this.add(this.container)
-
-        // create clip mask
-        //this.clip()
-
     }
 
     _wheel(e) {
@@ -92,12 +88,6 @@ class FilesCollection extends Window {
 
     // Init collection
     initCollection(all_blocks) {
-
-        // remove all childrens
-        for(let i = 0; i < this.slots.length; i++) {
-            this.slots[i].visible = false
-        }
-
         this.slots_count        = all_blocks.length
         this.scrollY            = 0
         this.container.y        = 0
@@ -107,7 +97,7 @@ class FilesCollection extends Window {
         let sz                  = this.cell_size
         let szm                 = sz + this.slot_margin
         let xcnt                = this.xcnt
-        const parent =          this.untypedParent
+        const parent            = this.untypedParent
 
         const onMouseDownFunc = function(e) {
             parent.sendChangeExtraData(this.getFile())
@@ -123,23 +113,16 @@ class FilesCollection extends Window {
             let lblSlot = this.slots[i]
             if(!lblSlot) {
                 lblSlot = this.slots[i] = new FileSlot(0, 0, sz, sz, 'lblFile' + (i), null, null)
-                //lblSlot.setBackground(this.hud_atlas.getSpriteFromMap('window_slot'))
-                //lblSlot.setIcon(all_blocks[i], 'cover', 3.5)
-                //lblSlot.style.border.style = 'inset'
-                //lblSlot.style.border.shadow_color = '#00000000'
-                //lblSlot.style.border.color = '#00000055'
                 lblSlot.onMouseDown = onMouseDownFunc
                 this.container.add(lblSlot)
             }
                 
-
+            lblSlot.w = sz
+            lblSlot.h = sz
             lblSlot.x = sx + (i % xcnt) * szm
             lblSlot.y = sy + Math.floor(i / xcnt) * szm
 
             lblSlot.setFile(all_blocks[i])
-
-           // lblSlot.setItem(all_blocks[i])
-
         }
 
         this.max_height = Math.ceil(all_blocks.length / xcnt) * szm - (szm - sz)
@@ -175,7 +158,7 @@ export class BillboardWindow extends BlankWindow {
         this.addCollection()
 
         this.addButtonLoad(true, 25, ()=>{
-            Qubatch.App.OpenSelectFile(this.args.pos)
+            Qubatch.App.OpenSelectFile()
         })
         
         // listener
@@ -193,7 +176,7 @@ export class BillboardWindow extends BlankWindow {
         }
         this.ycnt = 4
         this.xcnt = 5 // количество в ряду
-        let szm = this.w / ((this.xcnt + 1.3) * this.zoom)  // размер ячейки
+        let szm = this.w / (2 * this.xcnt)  // размер ячейки
         szm += (szm - szm / 1.1) / this.xcnt
         const sz = szm / 1.1
         this.cell_size = sz
@@ -214,27 +197,11 @@ export class BillboardWindow extends BlankWindow {
 
     // Обработчик открытия формы
     onHide() {
-        //const pos = this.args.pos;
-        //Qubatch.App.OpenSelectFile(pos)
-
-        //Qubatch.world.changeBlockExtraData(pos, this.args.extra_data)
-        /*//const fileFromBlob = new File([blob], 'image.webp', {type: 'image/webp'});
-        const form = new FormData();
-        form.append('file', 'test.png');
-        form.append('file_preview', 'dfgdfg');
-        form.append('world_id', Qubatch.world.info.guid);
-        form.append('as_cover', 'dfg')
-        Qubatch.App.Billboard(form, function(result) {
-            if (result.result == "ok") {
-                vt.success("Screenshot uploaded to server");
-            } else {
-                vt.error("Error upload screenshot");
-            }
-        });*/
     }
 
     sendChangeExtraData(file) {
         const extra_data = {
+            'relindex': -1,
             'texture': {
                 'url': file
             }

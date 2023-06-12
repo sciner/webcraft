@@ -1021,7 +1021,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
 
     // 1. Change extra data
     if(e.changeExtraData) {
-        for(let func of FUNCS.changeExtraData ??= [editSign, editBeacon]) {
+        for(let func of FUNCS.changeExtraData ??= [editBillboard, editSign, editBeacon]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
@@ -1095,7 +1095,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setUpholstery, setPointedDripstone, setBillboard]) {
+        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setUpholstery, setPointedDripstone]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 const affectedPos = (func === chSpawnMob) ? null : pos // мобы не меняют блок. И chSpawnMob также портит pos
                 return [actions, affectedPos]
@@ -1838,11 +1838,14 @@ function editBeacon(e, world, pos, player, world_block, world_material, mat_bloc
 }
 
 // Set bilboard and open file select
-function setBillboard(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
-    if (!Qubatch.is_server && mat_block.id == BLOCK.BILLBOARD1X2.id) {
-        //Qubatch.App.OpenSelectFile(pos) 
+function editBillboard(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if (world_material.window != 'frmBillboard') {
+        return false
     }
-    return false
+    console.log({pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data: e.extra_data}})
+    console.log(e.extra_data)
+    actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data: e.extra_data}, action_id: BLOCK_ACTION.MODIFY}])
+    return true
 }
 
 // Edit sign

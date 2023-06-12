@@ -171,24 +171,17 @@ export class UIApp {
     }
 
     OpenSelectFile(pos) {
-        this.#pos = pos
-        console.log(pos)
-        document.getElementById('test').click()
+        document.getElementById('upload').click()
     }
 
-    test(files) {
+    UploadImage(files) {
         const form = new FormData();
         form.append('file', files[0]);
-        form.append('world_id', Qubatch.world.info.guid);
-        form.append('x', this.#pos.x)
-        form.append('y', this.#pos.y)
-        form.append('z', this.#pos.z)
-        console.log(this.#pos)
         this.Billboard(form, function(result) {
             if (result.result == "ok") {
                 vt.success("Image uploaded to server");
             } else {
-                vt.error("Error upload screenshot");
+                vt.error("Error upload image");
             }
         })
     }
