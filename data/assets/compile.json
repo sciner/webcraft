@@ -12775,6 +12775,28 @@
                 "button"
             ],
             "support_style": "item_frame"
+        },
+        {
+            "id": 315,
+            "name": "LIGHT",
+            "passable": 1,
+            "transparent": true,
+            "style": "sprite",
+            "inventory_style": "extruder",
+            "sound": "madcraft:block.glass",
+            "material": {
+                "id": "glass"
+            },
+            "mining_time": 0,
+            "extra_data": {"light": 10},
+            "aabb": [0, 0, 0, 1, 1, 1],
+            "light_power": {
+                "r": 253,
+                "g": 241,
+                "b": 131,
+                "a": 224
+            },
+            "texture": "item/light_10.png"
         }
     ]
 }
