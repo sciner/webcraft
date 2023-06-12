@@ -65,32 +65,18 @@ export class ServerPlayerDamage {
     /** Подсчитывает колличество урона и применяет его к игроку. */
     checkDamage(): void {
         const player = this.player
-        if (!player.game_mode.mayGetDamaged() || player.timer_immunity + IMMUNITY_DAMAGE_TIME >= performance.now()) {
+        if (player.game_mode.isSpectator()) {
             return
         }
-        const world = player.world
-        const legsPos = player.state.pos.floored()
-        const eyePos = player.getEyePos()
-        const head = world.getBlock(eyePos.floored(), tmpBlockHead)
-        const legs = world.getBlock(legsPos, tmpBlockLegs)
-        const legsId = legs.id  // добсуп к id медленный, лучше 1 раз запомнить в переменной
-        if (head.id < 0 || legsId < 0) {
-            return;
-        }
-        const legsFluid = legs.fluid
-        const legsNeighbours = legs.getNeighbours(player.world, blockCache)
+        const mayGetDamaged = player.game_mode.mayGetDamaged() && player.timer_immunity + IMMUNITY_DAMAGE_TIME < performance.now()
+        const {world, effects} = player
         const bm = world.block_manager
-        const effects = player.effects
-        const ind_def = world.defaultPlayerIndicators
-        let max_live = ind_def.live
-
-        // эффект прилив здоровья
-        const health_boost_lvl = effects.getEffectLevel(Effect.HEALTH_BOOST);
-        max_live += 2 * health_boost_lvl;
-
+        const legsPos = player.state.pos.floored()
+        const legs = world.getBlock(legsPos, tmpBlockLegs)
+        const legsFluid = legs.fluid
         let damage = this.damage
 
-        // Урон от падения
+        // Урон от падения. Этот код выполняется даже в креативном режиме, чтобы ломать кувшинки
         const {onGround, isOnLadder, flying} = player.controlManager.prismarine.player_state
         // если до этого был на земле, или сейчас в месте из/в/через которое безопасно падать
         if (this.#ground || isOnLadder || flying || player.in_portal || (legsFluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
@@ -114,7 +100,7 @@ export class ServerPlayerDamage {
                         })
                         action.addDropItem({
                             pos: blockPos,
-                            items: [{id: mat.id}],
+                            items: [{id: mat.id, count: 1}],
                             force: true
                         })
                     }
@@ -124,7 +110,7 @@ export class ServerPlayerDamage {
                     world.actions_queue.add(player, action)
                 }
             }
-            const power = height - MAX_UNDAMAGED_HEIGHT - player.effects.getEffectLevel(Effect.JUMP_BOOST)
+            const power = height - MAX_UNDAMAGED_HEIGHT - effects.getEffectLevel(Effect.JUMP_BOOST)
             if (power > 0 && this.#protectFallDamage <= 0) {
                 damage += power
             }
@@ -136,6 +122,23 @@ export class ServerPlayerDamage {
             this.#last_height = Math.max(this.#last_height, legsPos.y)
         }
         this.#ground = onGround
+
+        if (!mayGetDamaged) {
+            return
+        }
+        const eyePos = player.getEyePos()
+        const head = world.getBlock(eyePos.floored(), tmpBlockHead)
+        const legsId = legs.id  // добсуп к id медленный, лучше 1 раз запомнить в переменной
+        if (head.id < 0 || legsId < 0) {
+            return;
+        }
+        const legsNeighbours = legs.getNeighbours(player.world, blockCache)
+        const ind_def = world.defaultPlayerIndicators
+        let max_live = ind_def.live
+
+        // эффект прилив здоровья
+        const health_boost_lvl = effects.getEffectLevel(Effect.HEALTH_BOOST);
+        max_live += 2 * health_boost_lvl;
 
         // Урон от голода
         if (this.food_exhaustion_level > 4) {
@@ -331,7 +334,9 @@ export class ServerPlayerDamage {
     */
     addDamage(val : number, type_damage? : EnumDamage, actor?) {
         const player = this.player
-        if(player.status !== PLAYER_STATUS.ALIVE || !player.game_mode.mayGetDamaged()) {
+        if(player.status !== PLAYER_STATUS.ALIVE || !player.game_mode.mayGetDamaged() ||
+            player.timer_immunity + IMMUNITY_DAMAGE_TIME >= performance.now()
+        ) {
             return false
         }
         this.type_damage = type_damage
