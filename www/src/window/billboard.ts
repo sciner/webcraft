@@ -3,11 +3,24 @@ import { Lang } from "../lang.js";
 import { BlankWindow } from "./blank.js";
 import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, UI_THEME } from "../constant.js";
 import {Button, Label, Window, Slider, SimpleBlockSlot} from "../ui/wm.js";
+import { Resources } from "../resources.js";
 
 
-class FileSlot extends SimpleBlockSlot {
+class FileSlot extends Window {
+    private file: string
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
         super(x, y, w, h, id, title, text)
+        this.hud_atlas = Resources.atlas.get('hud')
+    }
+
+    setFile(file) {
+        this.file = file
+        this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot'))
+        this.setIcon(file, 'none', 3.5)
+    }
+
+    getFile() {
+        return this.file
     }
 }
 
@@ -37,12 +50,10 @@ class FilesCollection extends Window {
         this.style.border.hidden        = true
 
         this.container = new Window(0, 0, this.w, this.h, this.id + '_container')
-        this.container.style.border.style = 'inset'
-        this.container.style.border.color = '#ff000055'
         this.add(this.container)
 
         // create clip mask
-        this.clip()
+        //this.clip()
 
     }
 
@@ -96,9 +107,10 @@ class FilesCollection extends Window {
         let sz                  = this.cell_size
         let szm                 = sz + this.slot_margin
         let xcnt                = this.xcnt
+        const parent =          this.untypedParent
 
         const onMouseDownFunc = function(e) {
-            console.log('fzxfdsf')
+            parent.sendChangeExtraData(this.getFile())
             return false
         }
 
@@ -110,17 +122,21 @@ class FilesCollection extends Window {
 
             let lblSlot = this.slots[i]
             if(!lblSlot) {
-                lblSlot = this.slots[i] = new FileSlot(0, 0, sz, sz, 'lblCollectionSlot' + (i), null, null)
-                lblSlot.setBackground('/upload/7ec17770-af94-4608-8649-670c5e535e51/test.png')
-                lblSlot.style.border.style = 'inset'
-                lblSlot.style.border.shadow_color = '#00000000'
-                lblSlot.style.border.color = '#00000055'
+                lblSlot = this.slots[i] = new FileSlot(0, 0, sz, sz, 'lblFile' + (i), null, null)
+                //lblSlot.setBackground(this.hud_atlas.getSpriteFromMap('window_slot'))
+                //lblSlot.setIcon(all_blocks[i], 'cover', 3.5)
+                //lblSlot.style.border.style = 'inset'
+                //lblSlot.style.border.shadow_color = '#00000000'
+                //lblSlot.style.border.color = '#00000055'
                 lblSlot.onMouseDown = onMouseDownFunc
                 this.container.add(lblSlot)
             }
+                
 
             lblSlot.x = sx + (i % xcnt) * szm
             lblSlot.y = sy + Math.floor(i / xcnt) * szm
+
+            lblSlot.setFile(all_blocks[i])
 
            // lblSlot.setItem(all_blocks[i])
 
@@ -176,14 +192,14 @@ export class BillboardWindow extends BlankWindow {
             return
         }
         this.ycnt = 4
-        this.xcnt = 4 // количество в ряду
-        let szm = 120 // размер ячейки
+        this.xcnt = 5 // количество в ряду
+        let szm = this.w / ((this.xcnt + 1.3) * this.zoom)  // размер ячейки
         szm += (szm - szm / 1.1) / this.xcnt
         const sz = szm / 1.1
         this.cell_size = sz
         this.slot_margin = szm - sz
         this.szm = this.cell_size + this.slot_margin
-        this.collection = new FilesCollection(16 * this.zoom, 45 * this.zoom, this.w / 2, this.h - 50 * this.zoom, 'wCollectionFiles', this.xcnt, this.ycnt, this.cell_size, this.slot_margin, this)
+        this.collection = new FilesCollection(this.w / 2, 45 * this.zoom, this.w / 2, this.h - 50 * this.zoom, 'wCollectionFiles', this.xcnt, this.ycnt, this.cell_size, this.slot_margin, this)
         this.add(this.collection)
         return this.collection
     }
@@ -217,8 +233,13 @@ export class BillboardWindow extends BlankWindow {
         });*/
     }
 
-    private sendChangeExtraData(file) {
-
+    sendChangeExtraData(file) {
+        const extra_data = {
+            'texture': {
+                'url': file
+            }
+        }
+        Qubatch.world.changeBlockExtraData(this.args.pos, extra_data)
     }
 
     private addButtonLoad(alignRight: boolean, dy: number, onMouseDown: () => void): Button {

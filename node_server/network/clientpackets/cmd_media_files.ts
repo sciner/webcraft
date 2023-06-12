@@ -14,8 +14,15 @@ export default class packet_reader {
 
     static async read(player, packet) {
         const guid = player.session.user_guid
-        const files = await fs.promises.readdir(`../www/upload/${guid}/`) // get filenames
-    
+        const upload = await fs.promises.readdir(`../www/upload/${guid}/`)
+        const demo = await fs.promises.readdir(`../www/media/demo/`)
+        const files = []
+        for (const file of demo) {
+            files.push(`/media/demo/${file}`)
+        }
+        for (const file of upload) {
+            files.push(`/upload/${guid}/${file}`)
+        }
         const packets = [{
             name: ServerClient.CMD_MEDIA_FILES,
             data: {
