@@ -16,6 +16,7 @@ export class Vector implements IVector {
     static ZN = new Vector(0.0, 0.0, -1.0);
     static ZP = new Vector(0.0, 0.0, 1.0);
     static ZERO = new Vector(0.0, 0.0, 0.0);
+    static ONE = new Vector(1, 1, 1);
     static INFINITY = new Vector(Infinity, Infinity, Infinity);
 
     static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
@@ -521,7 +522,7 @@ export class Vector implements IVector {
         return this;
     }
 
-    volume(vec : IVector) : number {
+    volume(vec : IVector = Vector.ONE) : number {
         const volx = Math.abs(this.x - vec.x) + 1;
         const voly = Math.abs(this.y - vec.y) + 1;
         const volz = Math.abs(this.z - vec.z) + 1;
