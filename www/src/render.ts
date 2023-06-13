@@ -819,6 +819,8 @@ export class Renderer {
                 preset = PRESET_NAMES.LAVA;
                 chunkBlockDist = 4; //
             }
+        } else if (this.clouds.isCameraInCloud(this)) {
+            preset = PRESET_NAMES.CLOUD
         } else {
             const biome_id = player.getOverChunkBiomeId()
             const biome = biome_id > 0 ? this.world.chunkManager.biomes.byID.get(biome_id) : null;
