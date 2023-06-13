@@ -31,6 +31,7 @@ import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { Vector } from "./helpers/vector.js";
 import {Color} from "./helpers/color.js";
 import type { World } from "./world.js";
+import  fs  from "fs";
 
 const {mat4, quat} = glMatrix;
 
@@ -410,36 +411,57 @@ export class IvanArray<T=any> {
 }
 
 
+/**
+ * Возравщает спискок файлов игрока (медия)
+ */
 
-    /**
-     * Возвращает позицию, на которой можно стоять вокруг точки pos или null
-     * @param pos - позиция
-     * @param world - ссылка на world
-     */
-    export function getValidPosition(pos : Vector, world: IWorld) : Vector | null {
-        let block = world.getBlock(pos.offset(0, 2, 0))
-        if (block.id == 0) {
-            return pos.offset(.5, 1, .5)
+export async function getPlayerFiles(guid: string) {
+    const DEMO_PATH = `../www/media/demo/`
+    const demo = await fs.promises.readdir(DEMO_PATH)
+    const files = []
+    for (const file of demo) {
+        files.push(`/media/demo/${file}`)
+    }
+    const path = `../www/upload/${guid}/`
+    if (fs.existsSync(path)) {
+        const upload = await fs.promises.readdir(path)
+        for (const file of upload) {
+            files.push(path + file)
         }
-        for (let i = -1; i <= 1; i++) {
-            for (let j = -1; j <= 1; j++) {
-                if (j == 0 && i == 0) {
-                    continue
-                }
-                block = world.getBlock(pos.offset(i, -1, j))
-                if (block.material.is_solid) {
-                    block = world.getBlock(pos.offset(i, 0, j))
-                    if (block.id == 0 || block?.material?.height < .5) {
-                        block = world.getBlock(pos.offset(i, 1, j))
-                        if (block.id == 0) {
-                            return pos.offset(i + .5, .5, j + .5)
-                        }
+    }
+    return files
+}
+
+/**
+ * Возвращает позицию, на которой можно стоять вокруг точки pos или null
+ * @param pos - позиция
+ * @param world - ссылка на world
+ */
+export function getValidPosition(pos: Vector, world: IWorld): Vector | null {
+    let block = world.getBlock(pos.offset(0, 2, 0))
+    if (block.id == 0) {
+        return pos.offset(.5, 1, .5)
+    }
+    for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+            if (j == 0 && i == 0) {
+                continue
+            }
+            block = world.getBlock(pos.offset(i, -1, j))
+            if (block.material.is_solid) {
+                block = world.getBlock(pos.offset(i, 0, j))
+                if (block.id == 0 || block?.material?.height < .5) {
+                    block = world.getBlock(pos.offset(i, 1, j))
+                    if (block.id == 0) {
+                        return pos.offset(i + .5, .5, j + .5)
                     }
                 }
             }
         }
-        return null
-    }//
+    }
+    return null
+}//
+
 export function makeChunkEffectID(chunk_addr : Vector, material_key : string) : string {
     let resp = `particles_effects/${chunk_addr.toHash()}/`;
     if(material_key) {
