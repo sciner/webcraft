@@ -3,7 +3,6 @@ import {Helpers, MonotonicUTCDate, TApiSyncTimeRequest, TApiSyncTimeResponse} fr
 
 export class UIApp {
 
-    #pos // @todo временно
     api: API_Client
     session: any
     onLogin: (any) => void
@@ -170,7 +169,7 @@ export class UIApp {
         return result;
     }
 
-    OpenSelectFile(pos) {
+    OpenSelectFile() {
         document.getElementById('upload').click()
     }
 

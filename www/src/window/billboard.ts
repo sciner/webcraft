@@ -42,14 +42,14 @@ class FilesCollection extends Window {
 
         this.max_height                 = 0
         this.slots_count                = 0
-        this.style.background.color     = '#ff000055'
+        this.style.background.color     = '#00000000'
         this.style.border.hidden        = true
 
         this.container = new Window(0, 0, this.w - 22 * this.zoom, this.h, this.id + '_container')
         this.add(this.container)
 
         // Ширина / высота слота
-        this.cell_size = (this.container.w / this.xcnt) - slot_margin
+        this.cell_size = Math.ceil(this.container.w / this.xcnt) - slot_margin
         this.slot_margin = slot_margin
 
         this.scrollbar = new Slider((this.w - 22 * this.zoom), 0, 22 * this.zoom, this.h, 'scroll')
@@ -67,6 +67,7 @@ class FilesCollection extends Window {
         this.scrollY += Math.sign(e.original_event.wheelDeltaY) * szm
         this.scrollY = Math.min(this.scrollY, 0)
         this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
+        this.scrollY = Math.round(this.scrollY / szm) * szm
         this.container.y = this.scrollY
         this.scrollbar.value = -this.scrollY
         this.updateVisibleSlots()
@@ -108,6 +109,7 @@ class FilesCollection extends Window {
         const parent            = this.untypedParent
 
         const onMouseDownFunc = function(e) {
+            parent.setPreview(this.getFile())
             parent.sendChangeExtraData(this.getFile())
             return false
         }
@@ -168,7 +170,18 @@ export class BillboardWindow extends BlankWindow {
         player.world.server.AddCmdListener([ServerClient.CMD_MEDIA_FILES], (packet) => {
             this.collection.initCollection(packet.data.files)
         })
+        // preview() 
+        this.preview = new Window(UI_THEME.window_padding, 36 * this.zoom, 0, 0, 'wndPreview')
+        this.add(this.preview)
+    }
 
+    setPreview(file) {
+        const small = this.args.small
+        this.preview.w = ((small) ? 230 : 350) * this.zoom
+        this.preview.h = ((small) ? 400 : 150) * this.zoom
+        this.preview.x = (this.w /2 - this.preview.w) / 2
+        this.preview.y = (this.h - this.preview.h) / 2
+        this.preview.setBackground(file)
     }
 
     //
@@ -190,6 +203,7 @@ export class BillboardWindow extends BlankWindow {
         Qubatch.releaseMousePointer()
         super.onShow(args)
         this.player.world.server.Send({name: ServerClient.CMD_MEDIA_FILES})
+        this.setPreview(args.file)
     }
 
     sendChangeExtraData(file) {
@@ -205,7 +219,7 @@ export class BillboardWindow extends BlankWindow {
     private addButtonLoad() {
         const height = 22
         const width = 180
-        const btn = new Button(this.w / 2, this.h - (height + UI_THEME.window_padding) * this.zoom, width, height, 'btnOpenDialog', 'Загрузить изображение')
+        const btn = new Button(this.w / 2, this.h - (height + UI_THEME.window_padding) * this.zoom, width  * this.zoom, height  * this.zoom, 'btnOpenDialog', 'Загрузить изображение')
         btn.onMouseDown = () => {
             Qubatch.App.OpenSelectFile()
         }

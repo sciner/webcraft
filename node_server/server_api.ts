@@ -131,12 +131,12 @@ export class ServerAPI {
             }
             case '/api/Game/Billboard': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id)
+                console.log(session)
                 if (req.files && session) {
                     const path = `../www/upload/${session.user_guid}/`
                     if (!fs.existsSync(path)) {
                         fs.mkdirSync(path, {recursive: true})
                     }
-                    console.log(req.files.file)
                     const name = req.files.file.name 
                     const ext = name.substr(name.lastIndexOf('.'))
                     const md5 = req.files.file.md5 // name = req.files.file.name.replace(/[^a-zа-я0-9\s\.\-_]/gi, '')

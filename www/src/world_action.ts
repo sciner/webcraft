@@ -1541,7 +1541,9 @@ function needOpenWindow(e, world, pos, player, world_block, world_material, mat_
                     actions.open_window = {
                         id: 'frmBillboard',
                         args: {
-                            pos: new Vector(pos)
+                            pos: new Vector(pos),
+                            small: (world_material.id == BLOCK.BILLBOARD1X2.id),
+                            file: extra_data.texture.url
                         }
                     }
                 }
