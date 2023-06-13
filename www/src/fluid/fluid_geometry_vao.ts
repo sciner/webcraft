@@ -7,8 +7,8 @@ export class FluidGeometryVao extends BaseGeometryVao {
     static vertexPerInstance = 4;
     static indexPerInstance = 6;
 
-    vertexPerInstance: number;
-    indexPerInstance: number;
+    declare vertexPerInstance: number;
+    declare indexPerInstance: number;
 
     constructor(options: GeometryVaoOptions) {
         options.strideFloats = options.strideFloats ?? 16;

@@ -21,6 +21,9 @@ export class Camera {
     static ORTHO_CAMERA = 'ortho';
 
     private _horizontalFovRad: float
+    fov     : float
+    width   : number
+    height  : number
 
     constructor (options: ICameraOptions = {
         type: 'perspective', // | 'ortho',

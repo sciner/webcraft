@@ -326,10 +326,7 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
                 this.updateLastData(newData)
                 simulatedSuccessfully = true
                 needResponse = true
-            } else if (this.current === this.spectator ||
-                !simulatePhysics ||
-                this.knownPhysicsTicks <= this.maxUnvalidatedPhysicsTick
-            ) {
+            } else if (this.current === this.spectator || !simulatePhysics) {
                 simulatedSuccessfully = false
             } else {
                 simulatedSuccessfully = this.simulate(this.lastData, newData)
@@ -346,6 +343,9 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
                     if (ACCEPT_SMALL_CLIENT_ERRORS) {
                         newData.copyOutputFrom(clientData)
                     }
+                } else if (this.knownPhysicsTicks <= this.maxUnvalidatedPhysicsTick) { // еще действует таймер "не проверять результат"
+                    correctionReason = null
+                    newData.copyOutputFrom(clientData)
                 } else if (clientData.inputEventIds) {
                     // Клиент ожидал серверного действия. В зависимости от типа действия результат должен был совпасть или нет.
                     // Мы не различаем такие ситуации (не видно нужды в этом). Это ок, что не совпало.
@@ -597,7 +597,10 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
     protected onSimulation(prevPos: Vector, data: PlayerTickData): void {
         super.onSimulation(prevPos, data)
 
-        const ps = this.player.state
+        const player = this.serverPlayer
+        player.damage.checkDamage()
+
+        const ps = player.state
         const sitsOrSleeps = ps.sitting || ps.sleep
         const moved = !prevPos.equal(data.outPos)
         if (!moved) {
@@ -627,7 +630,6 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
         this.accumulatedExhaustionDistance += distance
         let accumulatedIntDistance = Math.floor(this.accumulatedExhaustionDistance)
         if (accumulatedIntDistance) {
-            const player = this.serverPlayer
             player.state.stats.distance += accumulatedIntDistance
             this.accumulatedExhaustionDistance -= accumulatedIntDistance
             player.addExhaustion(PLAYER_EXHAUSTION_PER_BLOCK * accumulatedIntDistance)
