@@ -139,14 +139,14 @@ export class GeometryTerrain extends Geometry {
 
     initGeom() {
         const { stride } = this;
-        this.addAttribute('a_chunkId', this.bufferChunkIds, 1, false, undefined, 4, 0, 1);
-        this.addAttribute('a_position', this.buffer, 3, false, undefined, stride, 0, 1);
-        this.addAttribute('a_axisX', this.buffer, 3, false, undefined, stride, 3 * 4, 1);
-        this.addAttribute('a_axisY', this.buffer, 3, false, undefined, stride, 6 * 4, 1);
-        this.addAttribute('a_uvCenter', this.buffer, 2, false, undefined, stride, 9 * 4, 1);
-        this.addAttribute('a_uvSize', this.buffer, 2, false, undefined, stride, 11 * 4, 1);
-        this.addAttribute('a_color', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 13 * 4, 1);
-        this.addAttribute('a_flags', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 14 * 4, 1);
+        this.addAttribute('a_chunkId', this.bufferChunkIds, 1, false, undefined, 4, 0, true);
+        this.addAttribute('a_position', this.buffer, 3, false, undefined, stride, 0, true);
+        this.addAttribute('a_axisX', this.buffer, 3, false, undefined, stride, 3 * 4, true);
+        this.addAttribute('a_axisY', this.buffer, 3, false, undefined, stride, 6 * 4, true);
+        this.addAttribute('a_uvCenter', this.buffer, 2, false, undefined, stride, 9 * 4, true);
+        this.addAttribute('a_uvSize', this.buffer, 2, false, undefined, stride, 11 * 4, true);
+        this.addAttribute('a_color', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 13 * 4, true);
+        this.addAttribute('a_flags', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 14 * 4, true);
         this.addAttribute('a_quad', GeometryTerrain.quadBuf, 2, false, undefined, 2 * 4, 0);
     }
 

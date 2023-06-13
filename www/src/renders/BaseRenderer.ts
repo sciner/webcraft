@@ -4,10 +4,10 @@ import type {Vector} from '../helpers.js';
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
 import type {GeometryTerrain} from '../geometry_terrain.js';
 import type {WebGLMaterial} from './webgl/WebGLMaterial.js';
-import * as VAUX from 'vauxcel';
-import {BLEND_MODES, Geometry, LayerPass, RenderTexture} from 'vauxcel';
+import {BLEND_MODES, Geometry, LayerPass, RenderTexture, Buffer, Renderer, State, BatchSystem} from 'vauxcel';
 import {GlobalUniformGroup, LightUniformGroup} from "./uniform_groups.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
+import {BufferBaseTexture, BufferBaseTexture3D} from "./BufferBaseTexture.js";
 
 const {mat4} = glMatrix;
 
@@ -19,96 +19,15 @@ export interface PassOptions {
     viewport?: [number, number, number, number]
 }
 
-export class BaseTexture {
-    [key: string]: any;
-    /**
-     *
-     * @param {BaseRenderer} context
-     * @param {number} width
-     * @param {number} height
-     * @param {'linear' | 'nearest'} magFilter
-     * @param {'linear' | 'nearest'} minFilter
-     * @param {TerrainTextureUniforms} style
-     * @param {'rgba8u' | 'depth24stencil8'} type
-     * @param { HTMLCanvasElement | HTMLImageElement | ImageBitmap | Array<HTMLCanvasElement | HTMLImageElement | ImageBitmap> } source
-     */
-    constructor(context, {
-        width = 1,
-        height = 1,
-        magFilter = 'linear',
-        minFilter = 'linear',
-        style = null,
-        source = null,
-        type = 'rgba8u',
-        textureWrapMode = null
-    } = {}) {
-        this.width = width;
-        this.height = height;
-        this.magFilter = magFilter;
-        this.minFilter = minFilter;
-        this.source = source;
-        this.style = style;
-        this.context = context;
-        this.type = type;
-        this.textureWrapMode = textureWrapMode;
-
-        this.id = BaseRenderer.ID++;
-        this.usage = 0;
-        this.isEmpty = false;
-
-        if (source && !source.byteLength) {
-            this.width = Array.isArray(source) ? source[0].width : source.width;
-            this.height = Array.isArray(source) ? source[0].height : source.height;
-        }
-
-        this.dirty = true;
-
-        context._textures.push(this);
-    }
-
-    get isUsed() {
-        return this.usage > 1;
-    }
-
-    upload() {
-        this.context._activeTextures[this.id] = this;
-        this.dirty = false;
-    }
-
-    destroy() {
-        this.usage --;
-
-        if (this.usage > 0) {
-            return;
-        }
-
-        delete this.context._activeTextures[this.id];
-        this.context._textures = this.context._textures.filter((e) => e !== this);
-    }
-
-    bind() {
-
-    }
-
-    isSimilar({
-        magFilter = 'linear',
-        minFilter = 'linear',
-        style = null,
-        source = null,
-    }) {
-        return magFilter === this.magFilter && this.minFilter === minFilter && this.source === source;
-    }
-}
-
 export class CubeMesh {
     shader: any;
     geom: any;
-    state: VAUX.State;
+    state: State;
 
     constructor(shader, geom) {
         this.shader = shader;
         this.geom = geom;
-        this.state = new VAUX.State();
+        this.state = new State();
         this.state.blendMode = BLEND_MODES.NORMAL_NPM;
     }
 
@@ -143,7 +62,7 @@ export class BaseCubeGeometry extends Geometry {
 
     context: BaseRenderer;
     options: any;
-    vertex: VAUX.Buffer;
+    vertex: Buffer;
     constructor(context, options) {
         super();
         this.context = context;
@@ -154,7 +73,7 @@ export class BaseCubeGeometry extends Geometry {
 
     initBuffers()
     {
-        this.vertex = new VAUX.Buffer(new Float32Array([
+        this.vertex = new Buffer(new Float32Array([
             -1, -1, 1,
             1, -1, 1,
             1, 1, 1,
@@ -167,7 +86,7 @@ export class BaseCubeGeometry extends Geometry {
 
         this.addAttribute('a_vertex', this.vertex, 3);
 
-        this.addIndex(new VAUX.Buffer(new Uint16Array([
+        this.addIndex(new Buffer(new Uint16Array([
             0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4,
             1, 5, 6, 6, 2, 1, 0, 4, 7, 7, 3, 0,
             3, 2, 6, 6, 7, 3, 0, 1, 5, 5, 4, 0
@@ -178,9 +97,9 @@ export class BaseCubeGeometry extends Geometry {
 export class BaseRenderer {
     [key: string]: any;
 
-    batch : VAUX.BatchSystem = null;
+    batch : BatchSystem = null;
     preprocessor = new ShaderPreprocessor();
-    pixiRender: VAUX.Renderer = null;
+    pixiRender: Renderer = null;
 
     /**
      *
@@ -223,33 +142,15 @@ export class BaseRenderer {
         this._textures = [];
 
         this._buffers = {};
-        this._emptyTex = this.createTexture({
-            source: new Uint8Array(4)
-        });
-        this._emptyTex.isEmpty = true;
-        this._emptyTexInt = this.createTexture({
-            type: 'rgba32sint',
-            source: new Int32Array(4)
-        });
-        this._emptyTexInt.isEmpty = true;
 
-        this._emptyTex3D = this.createTexture3D({
-            data: new Uint8Array(4)
-        })
-        this._emptyTex3D.isEmpty = true;
-        this._emptyTex3D.emptyRegion = this._emptyTex3D;
-
-        this._emptyTex3DInt = this.createTexture3D({
-            data: new Int32Array(1), type: 'r32sint'
-        });
-        this._emptyTex3DInt.isEmpty = true;
-        this._emptyTex3DInt.emptyRegion = this._emptyTex3DInt;
-
-        this._emptyTex3DUint = this.createTexture3D({
-            data: new Uint8Array(4), type: 'rgba8uint'
-        });
-        this._emptyTex3DUint.isEmpty = true;
-        this._emptyTex3DUint.emptyRegion = this._emptyTex3DUint;
+        this._emptyTex = new BufferBaseTexture({ data: new Uint8Array(4),
+            width: 1, height: 1});
+        this._emptyTexInt = new BufferBaseTexture( { data: new Int32Array(4),
+            width: 1, height: 1});
+        this._emptyTex3D = new BufferBaseTexture3D({ data: new Uint8Array(4),
+            width: 1, height: 1, depth: 1});
+        this._emptyTex3DInt = new BufferBaseTexture3D({ data: new Int32Array(4),
+            width: 1, height: 1, depth: 1});
 
         this.globalUniforms = new GlobalUniformGroup();
         this.lightUniforms = new LightUniformGroup();
@@ -260,12 +161,17 @@ export class BaseRenderer {
             this.preprocessor.global_defines = Object.assign({}, options.defines);
         }
 
-        this.state3d = new VAUX.State();
-        this.state3d.blendMode = VAUX.BLEND_MODES.NORMAL_NPM;
-        this.state3d.depthTest = true;
-        this.state3d.cullFace = true;
+        this.state3d = BaseRenderer.create3dState();
 
         this.multidrawExt = null;
+    }
+
+    static create3dState() {
+        const state = new State();
+        state.blendMode = BLEND_MODES.NORMAL_NPM;
+        state.depthTest = true;
+        state.culling = true;
+        return state;
     }
 
     get kind() {
@@ -341,8 +247,8 @@ export class BaseRenderer {
         this.pixiRender.batch.flush();
         this.resetState();
 
-        let layerPass: VAUX.LayerPass;
-        if (layerPassOrOptions instanceof VAUX.LayerPass) {
+        let layerPass: LayerPass;
+        if (layerPassOrOptions instanceof LayerPass) {
             layerPass = layerPassOrOptions;
         } else {
             layerPass = new LayerPass(layerPassOrOptions);
@@ -353,7 +259,7 @@ export class BaseRenderer {
         return layerPass;
     }
 
-    endPass(layerPass?: VAUX.LayerPass)
+    endPass(layerPass?: LayerPass)
     {
         this.pixiRender.batch.flush();
 
@@ -375,19 +281,6 @@ export class BaseRenderer {
      */
     blitActiveTo(toTarget) {
         this.blit(this._target, toTarget);
-    }
-
-    /**
-     * Create texture unit
-     * @param options
-     * @return {BaseTexture}
-     */
-    createTexture(options) {
-        throw new TypeError('Illegal invocation, must be overridden by subclass');
-    }
-
-    createTexture3D(options) {
-        throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
     createMaterial(options) {
@@ -443,7 +336,7 @@ export class BaseRenderer {
 
     }
 
-    rtToRawPixels(rt: VAUX.RenderTexture) {
+    rtToRawPixels(rt: RenderTexture) {
         /**
          * @type {WebGL2RenderingContext}
          */
@@ -457,7 +350,7 @@ export class BaseRenderer {
         return buffer;
     }
 
-    async rtToImage(rt: VAUX.RenderTexture, mode = 'image') {
+    async rtToImage(rt: RenderTexture, mode = 'image') {
         let buffer = this.rtToRawPixels(rt);
 
         if (buffer instanceof Promise) {

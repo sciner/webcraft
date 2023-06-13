@@ -1,9 +1,8 @@
 //@ts-check
-import {BaseRenderer, BaseCubeGeometry, BaseTexture, CubeMesh} from "../BaseRenderer.js";
+import {BaseRenderer, BaseCubeGeometry, CubeMesh} from "../BaseRenderer.js";
 import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
 import {Resources} from "../../resources.js";
-import {WebGLTexture3D} from "./WebGLTexture3D.js";
 import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
 import {GLMeshDrawer} from "./GLMeshDrawer.js";
 import {GLCubeDrawer} from "./GLCubeDrawer.js";
@@ -13,33 +12,9 @@ import {WebGLFluidShader} from "./WebGLFluidShader.js";
 import * as VAUX from 'vauxcel';
 
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
-import {LayerPass} from "vauxcel";
 const {mat4} = glMatrix;
 
 const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
-
-const TEXTURE_TYPE_FORMAT = {
-    'rgba8u': {
-        format: 'RGBA', type : 'UNSIGNED_BYTE'
-    },
-    'rgba32sint': {
-        format: 'RGBA_INTEGER', internal: 'RGBA32I', type: 'INT'
-    },
-    'depth24stencil8': {
-        format: 'DEPTH_STENCIL', internal: 'DEPTH24_STENCIL8' , type : 'UNSIGNED_INT_24_8'
-    }
-}
-
-const TEXTURE_FILTER_GL = {
-    'linear': 'LINEAR',
-    'nearest': 'NEAREST',
-    'linear_mipmap_linear': 'LINEAR_MIPMAP_LINEAR',
-}
-
-const TEXTURE_MODE = {
-    '2d': 'TEXTURE_2D',
-    'cube': 'TEXTURE_CUBE_MAP'
-}
 
 VAUX.extensions.add(GLChunkDrawer, GLLineDrawer, GLMeshDrawer, GLCubeDrawer);
 
@@ -77,177 +52,6 @@ export class WebGLCubeShader extends WebGLUniversalShader {
 }
 
 export class WebGLCubeGeometry extends BaseCubeGeometry {
-}
-
-export class WebGLTexture extends BaseTexture {
-    [key: string]: any;
-    constructor(context, options) {
-        super(context, options);
-
-        this._prevWidth = 0;
-        this._prevHeight = 0
-        this._lastMinFilter = 0;
-        this._lastMagFilter = 0;
-    }
-    _applyStyle() {
-        const {
-            gl
-        } = this.context;
-
-        const type = gl[TEXTURE_MODE[this.mode]] || gl.TEXTURE_2D;
-
-        if (this.minFilter !== this._lastMinFilter) {
-            this._lastMinFilter = this.minFilter;
-            gl.texParameteri(type, gl.TEXTURE_MIN_FILTER, gl[TEXTURE_FILTER_GL[this.minFilter]] || gl.LINEAR);
-        }
-
-        if (this.magFilter !== this._lastMagFilter) {
-            this._lastMagFilter = this.magFilter;
-            gl.texParameteri(type, gl.TEXTURE_MAG_FILTER, gl[TEXTURE_FILTER_GL[this.magFilter]] || gl.LINEAR);
-        }
-
-        if(this.textureWrapMode == 'clamp_to_edge') {
-            gl.texParameteri(type, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(type, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        }
-    }
-
-    bind(location = 0) {
-        const {
-            gl
-        } = this.context;
-
-        gl.activeTexture(gl.TEXTURE0 + location);
-
-        if (this.dirty) {
-            return this.upload();
-        }
-
-        const {
-            texture
-        } = this;
-
-        const type = gl[TEXTURE_MODE[this.mode]] || gl.TEXTURE_2D;
-
-        gl.bindTexture(type, texture);
-
-        this._applyStyle();
-    }
-
-    upload() {
-        /**
-         * @type {WebGL2RenderingContext}
-         */
-        const gl = this.context.gl;
-        const mode = Array.isArray(this.source) ? 'cube' : '2d';
-
-        this.mode = mode;
-
-        const t = this.texture = this.texture || gl.createTexture();
-        const type = gl[TEXTURE_MODE[mode]] || gl.TEXTURE_2D;
-        const formats = TEXTURE_TYPE_FORMAT[this.type] || TEXTURE_TYPE_FORMAT.rgba8u;
-
-        gl.bindTexture(type, t);
-        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-
-        if (mode === '2d') {
-            if (this.source) {
-                if (this.source.byteLength) {
-                    if (this._prevWidth !== this.width || this._prevHeight !== this.height) {
-                        this._prevWidth = this.width;
-                        this._prevHeight = this.height;
-
-                        gl.texImage2D(
-                            type,
-                            0,
-                            gl[formats.internal || formats.format],
-                            this.width,
-                            this.height,
-                            0,
-                            gl[formats.format],
-                            gl[formats.type],
-                            this.source
-                        );
-                    } else {
-                        gl.texSubImage2D(
-                            type,
-                            0,
-                            0, 0,
-                            this.width,
-                            this.height,
-                            gl[formats.format],
-                            gl[formats.type],
-                            this.source
-                        )
-                    }
-                } else {
-                    gl.texImage2D(
-                        type,
-                        0,
-                        gl[formats.internal || formats.format],
-                        gl[formats.format],
-                        gl[formats.type],
-                        this.source
-                    );
-                }
-            } else {
-                gl.texImage2D(
-                    type,
-                    0,
-                    gl[formats.internal || formats.format],
-                    this.width,
-                    this.height,
-                    0,
-                    gl[formats.format],
-                    gl[formats.type],
-                    null
-                );
-            }
-
-            if (this.minFilter && this.minFilter.indexOf('mipmap') > -1) {
-                gl.generateMipmap(type);
-            }
-
-            this._applyStyle();
-            super.upload();
-            return;
-        }
-
-        // cube is only RGBA
-        for(let i = 0; i < 6; i ++) {
-            const start = gl.TEXTURE_CUBE_MAP_POSITIVE_X;
-            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-            if (this.source) {
-                gl.texImage2D(start + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.source[i]);
-            } else {
-                gl.texImage2D(start + i, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-            }
-        }
-
-        gl.generateMipmap(type);
-        gl.texParameteri(type, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        super.upload();
-    }
-
-    destroy() {
-        if (!this.texture) {
-            return;
-        }
-
-        super.destroy();
-
-        // not destroy shared texture that used
-        if(this.isUsed) {
-            return;
-        }
-
-        const  { gl } = this.context;
-        gl.deleteTexture(this.texture);
-        this.texture = null;
-        this.source = null;
-        this.width = this.height = 0;
-    }
-
 }
 
 export default class WebGLRenderer extends BaseRenderer {
@@ -294,24 +98,15 @@ export default class WebGLRenderer extends BaseRenderer {
         this.batch = this.pixiRender.batch;
 
         const gl = this.gl = this.pixiRender.gl;
+
+        this.pixiRender.texture.bind(this._emptyTex3D, 0);
+        (this.pixiRender.texture as any).emptyTextures[gl.TEXTURE_3D] = this._emptyTex3D._glTextures[this.pixiRender.CONTEXT_UID];
+
         this.resetBefore();
         this.multidrawExt = gl.getExtension('WEBGL_multi_draw');
         this.multidrawBaseExt = gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
 
         this.line.init();
-    }
-
-    resetBefore() {
-        WebGLMaterial.texState = this._emptyTex;
-        // WebGLMaterial.lightState = null;
-        super.resetBefore();
-    }
-
-    resetAfter() {
-        super.resetAfter();
-        // for (let i = 0; i < 16; i++) {
-        //     this.gl.bindTexture();
-        // }
     }
 
     resize(w, h) {
@@ -342,23 +137,6 @@ export default class WebGLRenderer extends BaseRenderer {
         return new WebGLMaterial(this, options);
     }
 
-    createTexture(options) {
-        let texture;
-
-        if (options.shared) {
-            // can use exist texture
-            texture = this._textures.find(t => t && t.isSimilar && t.isSimilar(options));
-        }
-
-        if (!texture) {
-            texture = new WebGLTexture(this, options);
-        }
-
-        texture.usage ++;
-
-        return texture;
-    }
-
     createProgram({vertex, fragment, tfVaryings}, preprocessArgs = {}) {
         const program = new VAUX.Program({
             vertex: this.preprocessor.applyBlocks(vertex, preprocessArgs),
@@ -372,10 +150,6 @@ export default class WebGLRenderer extends BaseRenderer {
         this.pixiRender.shader.bind(shader, true);
 
         return program;
-    }
-
-    createTexture3D(options) {
-        return new WebGLTexture3D(this, options);
     }
 
     createShader(options) {

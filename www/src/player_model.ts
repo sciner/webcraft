@@ -11,6 +11,7 @@ import type { PlayerHands, TAnimState, TSittingState, TSleepState} from "./playe
 import type { NetworkPhysicObjectState } from "./network_physic_object.js";
 import type { World } from "./world.js";
 import type { TMobProps } from "./mob_manager.js";
+import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
 
 const { quat, mat4 } = glMatrix
 const SWING_DURATION = 6
@@ -299,7 +300,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         ctx.fillText(username, 10, 12)
 
         // abstraction
-        const texture = render.renderBackend.createTexture({
+        const texture = new TerrainBaseTexture({
             source: canvas,
         })
 

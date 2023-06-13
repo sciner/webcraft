@@ -13,6 +13,7 @@ import type { World } from "./world.js";
 import type { Renderer } from "./render.js";
 import type { ChunkGrid } from "./core/ChunkGrid.js";
 import type { ChunkManager } from "./chunk_manager.js";
+import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
 
 const {mat4} = glMatrix;
 
@@ -448,7 +449,7 @@ export class PickAt {
             decalOffset: 6,
         });
         // Material (target)
-        this.material_target = this.material_damage.getSubMat(this.render.renderBackend.createTexture({
+        this.material_target = this.material_damage.getSubMat(new TerrainBaseTexture({
             source: Resources.pickat.target,
             minFilter: 'nearest',
             magFilter: 'nearest'

@@ -17,12 +17,9 @@ export class WebGLMaterial extends BaseMaterial {
         pixiRender.state.set(this.state);
         const tex = this.texture || this.shader.texture;
         const texN = this.texture_n || this.shader.texture_n;
-        if (WebGLMaterial.texState !== this.texture) {
-            tex.bind(4);
-            WebGLMaterial.texState = this.texture;
-            if (texN) {
-                texN.bind(5);
-            }
+        pixiRender.texture.bind(tex, 4);
+        if (texN) {
+            pixiRender.texture.bind(texN, 5);
         }
     }
 
@@ -32,7 +29,8 @@ export class WebGLMaterial extends BaseMaterial {
     getSubMat(texture = null) {
         // nothing
         return this.context.createMaterial({texture: texture || this.texture, shader: this.shader,
-            cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth, decalOffset: this.decalOffset });
+            cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth, decalOffset: this.decalOffset,
+            blendMode: this.blendMode});
     }
 
     /**
@@ -43,6 +41,4 @@ export class WebGLMaterial extends BaseMaterial {
     updatePos(addPos, modelMatrix = null) {
         this.shader.updatePos(addPos, modelMatrix);
     }
-
-    static texState = null;
 }

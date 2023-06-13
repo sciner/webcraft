@@ -1,7 +1,7 @@
 import {Color, Vector} from '../helpers.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
-import {Program, Shader, BLEND_MODES, State, UniformGroup} from "vauxcel";
-import type {BaseRenderer} from "./BaseRenderer.js";
+import {Program, Shader, State, UniformGroup} from "vauxcel";
+import {BaseRenderer} from "./BaseRenderer.js";
 import type {GlobalUniformGroup} from "./uniform_groups";
 
 const {mat4} = glMatrix;
@@ -56,15 +56,6 @@ export class BaseCubeShader extends BaseShader {
     constructor(context, options) {
 
         super(context, options);
-
-        /**
-         *
-         * @type {BaseTexture}
-         */
-        this.texture = context.createTexture({
-            source: options.sides
-        });
-        this.texture.bind();
 
         // Default values
         this.resolution_value   = [1, 1];
@@ -169,10 +160,7 @@ export class BaseLineShader extends BaseShader {
         this.posUniformGroup = posUniformGroup;
         this.globalUniforms = context.globalUniforms;
 
-        this.state = new State();
-        this.state.blendMode = BLEND_MODES.NORMAL_NPM;
-        this.state.depthTest = true;
-        this.state.cullFace = true;
+        this.state = BaseRenderer.create3dState();
         this.state.polygonOffsetValue = -2;
         this.state.polygonOffsetScale = -4;
     }

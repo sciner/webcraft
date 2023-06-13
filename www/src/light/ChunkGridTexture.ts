@@ -1,6 +1,6 @@
 import {Vector} from "../helpers/vector.js";
-import type {BaseTexture3D} from "../renders/BaseTexture3D.js";
 import type {ChunkLight} from "./ChunkLight";
+import {BufferBaseTexture3D} from "../renders/BufferBaseTexture.js";
 
 const SIZE_X = 32;
 const SIZE_Y = 8;
@@ -10,7 +10,7 @@ const SIZE_X_1 = SIZE_X - 1;
 const SIZE_Y_1 = SIZE_Y - 1;
 
 export class ChunkGridTexture {
-    tex: BaseTexture3D = null;
+    tex: BufferBaseTexture3D = null;
     data = new Int32Array(LEN);
     spiralMoveID: number = -1;
     size = new Vector(SIZE_X, SIZE_Y, SIZE_X);
@@ -18,12 +18,12 @@ export class ChunkGridTexture {
     constructor() {
     }
 
-    getTexture(render) {
+    getTexture() {
         if (this.tex) {
             return this.tex;
         }
-        this.tex = render.createTexture3D({
-            type: 'r32sint',
+        this.tex = new BufferBaseTexture3D({
+            format: 'r32sint',
             data: this.data,
             width: SIZE_X,
             height: SIZE_X,
@@ -45,6 +45,6 @@ export class ChunkGridTexture {
             return;
         }
         this.data[chunkLight.gridPos] = chunkLight.packedLightCoord;
-        this.tex.dirty = true;
+        this.tex.update();
     }
 }
