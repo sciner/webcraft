@@ -12790,6 +12790,9 @@
             "mining_time": 0,
             "extra_data": {"light": 10},
             "aabb": [0, 0, 0, 1, 1, 1],
+            "tags": [
+                "no_drop_ao"
+            ],
             "light_power": {
                 "r": 253,
                 "g": 241,

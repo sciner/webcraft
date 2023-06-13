@@ -31,27 +31,19 @@ export default class style {
     
     static func(block : TBlock | FakeTBlock, vertices, chunk : ChunkWorkerChunk, x : number, y : number, z : number, neighbours, biome? : any, dirt_color? : IndexedColor, unknown : any = null, matrix? : imat4, pivot? : number[] | IVector, force_tex ? : tupleFloat4 | IBlockTexture) {
 
-        // const bm = style.block_manager
-
-        let texture     = block.material.texture
-        let height      = 1
-        let width       = 0
-        let lm          = IndexedColor.WHITE;
-        let c           = null;
-        let flags       = QUAD_FLAGS.FLAG_LOOK_AT_CAMERA
-
-        // Texture color multiplier
-        c = style.block_manager.calcTexture(texture, DIRECTION.BACK);
-        let pp = IndexedColor.packLm(lm);
+        const texture   = block.material.texture
+        const c         = style.block_manager.calcTexture(texture, DIRECTION.BACK)
+        const flags     = QUAD_FLAGS.FLAG_LOOK_AT_CAMERA | QUAD_FLAGS.FLAG_NORMAL_UP | QUAD_FLAGS.FLAG_NO_AO
+        const pp        = 0
 
         pushSym(vertices, CubeSym.ID,
             x + .5, z + .5, y + .5,
             0, 0, 0,
             1, 0, 0,
-            0, 0, height,
+            0, 0, 1,
             c[0], c[1], c[2], -c[3],
-            pp, flags);
-        
+            pp, flags)
+
     }
     
 }
