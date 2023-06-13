@@ -169,6 +169,27 @@ export class DelayedCalls {
     }
 }
 
+/**
+ * Возравщает спискок файлов игрока (медия)
+ */
+
+export async function getPlayerFiles(guid: string) {
+    const DEMO_PATH = `../www/media/demo/`
+    const demo = await fs.promises.readdir(DEMO_PATH)
+    const files = []
+    for (const file of demo) {
+        files.push(`/media/demo/${file}`)
+    }
+    const path = `../www/upload/${guid}/`
+    if (fs.existsSync(path)) {
+        const upload = await fs.promises.readdir(path)
+        for (const file of upload) {
+            files.push(path + file)
+        }
+    }
+    return files
+}
+
 export class PacketHelpers {
 
     /**

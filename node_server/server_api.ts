@@ -4,6 +4,7 @@ import { WorldGenerators } from "./world/generators.js";
 import { Vector } from "@client/helpers.js";
 import {MonotonicUTCDate, TApiSyncTimeRequest, TApiSyncTimeResponse} from "@client/helpers/monotonic_utc_date.js";
 import type { DBGame } from "db/game.js";
+import { getPlayerFiles } from "./server_helpers.js";
 
 const FLAG_SYSTEM_ADMIN = 256;
 
@@ -131,7 +132,6 @@ export class ServerAPI {
             }
             case '/api/Game/Billboard': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id)
-                console.log(session)
                 if (req.files && session) {
                     const path = `../www/upload/${session.user_guid}/`
                     if (!fs.existsSync(path)) {
@@ -141,14 +141,20 @@ export class ServerAPI {
                     const ext = name.substr(name.lastIndexOf('.'))
                     const md5 = req.files.file.md5 // name = req.files.file.name.replace(/[^a-zа-я0-9\s\.\-_]/gi, '')
                     const file = path + md5 + ext
-                    fs.stat(file, async function(err, stats){
+                    fs.stat(file, async function(err, stats) {
                         if (err) {
                             await req.files.file.mv(path + md5 + ext)
+                            const files = await getPlayerFiles(session.user_guid)
+                            return {
+                                'result':'ok',
+                                'files': files
+                            }
+                        } else {
+                            return {'result':'error'}
                         }
                     })
-                    return {'result':'ok'}
                 }
-                return {'result':'error'}
+                
             }
             case '/api/Game/Screenshot': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);

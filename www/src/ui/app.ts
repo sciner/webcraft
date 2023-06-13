@@ -179,6 +179,9 @@ export class UIApp {
         this.Billboard(form, function(result) {
             if (result.result == "ok") {
                 vt.success("Image uploaded to server");
+                console.log(Qubatch.hud.getWindow('frmBillboard'))
+
+                Qubatch.hud.getWindow('frmBillboard').collection.initCollection(result.files)
             } else {
                 vt.error("Error upload image");
             }

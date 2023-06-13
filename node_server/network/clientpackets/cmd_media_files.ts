@@ -1,5 +1,5 @@
-import { getPlayerFiles } from "@client/helpers";
 import { ServerClient } from "@client/server_client.js";
+import { getPlayerFiles } from "../../server_helpers.js";
 
 export default class packet_reader {
 

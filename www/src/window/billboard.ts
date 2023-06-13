@@ -97,6 +97,7 @@ class FilesCollection extends Window {
 
     // Init collection
     initCollection(all_blocks) {
+        console.log(all_blocks)
         this.slots_count        = all_blocks.length
         this.scrollY            = 0
         this.container.y        = 0
