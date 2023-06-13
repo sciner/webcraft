@@ -136,13 +136,16 @@ export class ServerAPI {
                     if (!fs.existsSync(path)) {
                         fs.mkdirSync(path, {recursive: true})
                     }
-                    const name = req.files.file.name.replace(/[^a-zа-я0-9\s\.\-_]/gi, '').substr(0, 36)
-                    await req.files.file.mv(path + name)
-                    //const params = req.body
-                    //const pos = new Vector(params.x, params.y, params.z)
-                    //const world_id = params.world_id.replace(/[^a-z0-9-]/gi, '').substr(0, 36)
-                    //const world = Qubatch.worlds.get(world_id)
-                    //world.changeImageBillboard(pos, file)
+                    console.log(req.files.file)
+                    const name = req.files.file.name 
+                    const ext = name.substr(name.lastIndexOf('.'))
+                    const md5 = req.files.file.md5 // name = req.files.file.name.replace(/[^a-zа-я0-9\s\.\-_]/gi, '')
+                    const file = path + md5 + ext
+                    fs.stat(file, async function(err, stats){
+                        if (err) {
+                            await req.files.file.mv(path + md5 + ext)
+                        }
+                    })
                     return {'result':'ok'}
                 }
                 return {'result':'error'}

@@ -31,15 +31,11 @@ class FilesCollection extends Window {
     ycnt : int = 13
 
     //
-    constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, cell_size : float, slot_margin: float, parent: Window) {
+    constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, slot_margin: float, parent: Window) {
 
         super(x, y, w, h, id)
 
         this.untypedParent = parent
-
-        // Ширина / высота слота
-        this.cell_size = cell_size
-        this.slot_margin = slot_margin
 
         this.xcnt   = xcnt
         this.ycnt   = ycnt
@@ -49,8 +45,20 @@ class FilesCollection extends Window {
         this.style.background.color     = '#ff000055'
         this.style.border.hidden        = true
 
-        this.container = new Window(0, 0, this.w, this.h, this.id + '_container')
+        this.container = new Window(0, 0, this.w - 22 * this.zoom, this.h, this.id + '_container')
         this.add(this.container)
+
+        // Ширина / высота слота
+        this.cell_size = (this.container.w / this.xcnt) - slot_margin
+        this.slot_margin = slot_margin
+
+        this.scrollbar = new Slider((this.w - 22 * this.zoom), 0, 22 * this.zoom, this.h, 'scroll')
+        this.scrollbar.min = 0
+        this.scrollbar.max = this.max_height - this.h
+        this.scrollbar.onScroll = (value) => {
+            this.updateScroll(-value / this.cell_size)
+        }
+        this.add(this.scrollbar)
     }
 
     _wheel(e) {
@@ -60,7 +68,7 @@ class FilesCollection extends Window {
         this.scrollY = Math.min(this.scrollY, 0)
         this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
         this.container.y = this.scrollY
-        //this.untypedParent.scrollbar.value = -this.scrollY
+        this.scrollbar.value = -this.scrollY
         this.updateVisibleSlots()
     }
 
@@ -127,6 +135,7 @@ class FilesCollection extends Window {
 
         this.max_height = Math.ceil(all_blocks.length / xcnt) * szm - (szm - sz)
         this.container.h = this.max_height
+        this.scrollbar.max = this.max_height - this.h
 
         this.updateVisibleSlots()
 
@@ -147,20 +156,14 @@ export class BillboardWindow extends BlankWindow {
         // Get window by ID
         const ct = this
         ct.setBackground('./media/gui/form-quest.png')
-
         // Add labels to window
         this.addWindowTitle(Lang.sign_edit)
-
         // Add close button
         this.addCloseButton()
-
         // Add collection
         this.addCollection()
-
-        this.addButtonLoad(true, 25, ()=>{
-            Qubatch.App.OpenSelectFile()
-        })
-        
+        // add button upload
+        this.addButtonLoad()
         // listener
         player.world.server.AddCmdListener([ServerClient.CMD_MEDIA_FILES], (packet) => {
             this.collection.initCollection(packet.data.files)
@@ -174,15 +177,9 @@ export class BillboardWindow extends BlankWindow {
             console.error('error_create_collection_slots_already_created')
             return
         }
-        this.ycnt = 4
+        this.ycnt = 6 // количество по высоте
         this.xcnt = 5 // количество в ряду
-        let szm = this.w / (2 * this.xcnt)  // размер ячейки
-        szm += (szm - szm / 1.1) / this.xcnt
-        const sz = szm / 1.1
-        this.cell_size = sz
-        this.slot_margin = szm - sz
-        this.szm = this.cell_size + this.slot_margin
-        this.collection = new FilesCollection(this.w / 2, 45 * this.zoom, this.w / 2, this.h - 50 * this.zoom, 'wCollectionFiles', this.xcnt, this.ycnt, this.cell_size, this.slot_margin, this)
+        this.collection = new FilesCollection(this.w / 2, 36 * this.zoom, this.w / 2 - UI_THEME.window_padding * this.zoom, this.h - 75 * this.zoom, 'wCollectionFiles', this.xcnt, this.ycnt, UI_THEME.slot_margin, this)
         this.add(this.collection)
         return this.collection
     }
@@ -195,10 +192,6 @@ export class BillboardWindow extends BlankWindow {
         this.player.world.server.Send({name: ServerClient.CMD_MEDIA_FILES})
     }
 
-    // Обработчик открытия формы
-    onHide() {
-    }
-
     sendChangeExtraData(file) {
         const extra_data = {
             'relindex': -1,
@@ -209,25 +202,14 @@ export class BillboardWindow extends BlankWindow {
         Qubatch.world.changeBlockExtraData(this.args.pos, extra_data)
     }
 
-    private addButtonLoad(alignRight: boolean, dy: number, onMouseDown: () => void): Button {
-        const fontScale = 1
-        const title = Lang['upload']
-        const width = (title.length + 1.5) * 8 * this.zoom * fontScale
-        const height = 18 * this.zoom
-        const x = alignRight
-            ? this.w - width - UI_THEME.window_padding * this.zoom
-            : UI_THEME.window_padding * this.zoom
-        const y = (dy + UI_THEME.window_padding) * this.zoom
-        const btnSort = new Button(x, y, width, height, 'btnSort', title)
-        btnSort.z = 1
-        btnSort.style.font.size = UI_THEME.button.font.size * fontScale
-        btnSort.onMouseDown = () => {
-            if (btnSort.enabled) {
-                onMouseDown()
-            }
+    private addButtonLoad() {
+        const height = 22
+        const width = 180
+        const btn = new Button(this.w / 2, this.h - (height + UI_THEME.window_padding) * this.zoom, width, height, 'btnOpenDialog', 'Загрузить изображение')
+        btn.onMouseDown = () => {
+            Qubatch.App.OpenSelectFile()
         }
-        this.add(btnSort)
-        return btnSort
+        this.add(btn)
     }
 
 }

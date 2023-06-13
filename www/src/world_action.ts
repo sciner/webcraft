@@ -1535,14 +1535,17 @@ function needOpenWindow(e, world, pos, player, world_block, world_material, mat_
                 };
                 break;
             }
+            case BLOCK.BILLBOARD7X3.id:
             case BLOCK.BILLBOARD1X2.id: {
-                actions.open_window = {
-                    id: 'frmBillboard',
-                    args: {
-                        pos: new Vector(pos)
+                if (extra_data?.relindex == -1){
+                    actions.open_window = {
+                        id: 'frmBillboard',
+                        args: {
+                            pos: new Vector(pos)
+                        }
                     }
-                };
-                break;
+                }
+                break
             }
         }
     }
@@ -1842,8 +1845,6 @@ function editBillboard(e, world, pos, player, world_block, world_material, mat_b
     if (world_material.window != 'frmBillboard') {
         return false
     }
-    console.log({pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data: e.extra_data}})
-    console.log(e.extra_data)
     actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data: e.extra_data}, action_id: BLOCK_ACTION.MODIFY}])
     return true
 }

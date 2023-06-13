@@ -2088,7 +2088,8 @@
                 "set_state": [
                     {"name": "default"}
                 ]
-            }
+            },
+            "window": "frmBillboard"
         },
         {
             "id": 3001,
