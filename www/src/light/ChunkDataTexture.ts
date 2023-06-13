@@ -23,9 +23,8 @@ export class ChunkDataTexture {
         this.chunks.length = newSize * (newSize / this.pixelsPerChunk);
         this.keepAlive.length = this.chunks.length;
         if (this.tex) {
-            this.tex.source = this.data;
-            this.tex.width = newSize;
-            this.tex.height = newSize;
+            this.tex.resource.data = this.data;
+            this.tex.setSize(newSize, newSize, 1);
         }
 
         if (oldData) {
@@ -85,13 +84,13 @@ export class ChunkDataTexture {
         this.total--;
     }
 
-    getTexture(render) {
+    getTexture(BufferBaseTexture: any) {
         if (this.tex) {
             return this.tex;
         }
-        this.tex = render.createTexture({
-            type: 'rgba32sint',
-            source: this.data,
+        this.tex = new BufferBaseTexture({
+            format: 'rgba32sint',
+            data: this.data,
             width: this.size,
             height: this.size,
             magFilter: 'nearest',
@@ -114,17 +113,18 @@ export class ChunkDataTexture {
         const { lightTex } = chunkLight;
 
         if (lightTex) {
+            const { layout } = lightTex;
             const base = lightTex.baseTexture || lightTex;
-            data[ind + 4] = (lightTex.width << 16) + lightTex.offset.x;
-            data[ind + 5] = (lightTex.height << 16) + lightTex.offset.y;
-            data[ind + 6] = (lightTex.depth << 16) + lightTex.offset.z;
+            data[ind + 4] = (layout.width << 16) + layout.x;
+            data[ind + 5] = (layout.height << 16) + layout.y;
+            data[ind + 6] = (layout.depth << 16) + layout.z;
             data[ind + 7] = base._poolLocation;
         } else{
             data[ind + 4] = data[ind + 5] = data[ind + 6] = 1;
             data[ind + 7] = 0;
         }
         if (this.tex) {
-            this.tex.dirty = true;
+            this.tex.update();
         }
     }
 }

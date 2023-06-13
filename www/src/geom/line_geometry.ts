@@ -51,10 +51,10 @@ export class LineGeometry extends Geometry {
 
     initGeom() {
         const {stride, buffer} = this;
-        this.addAttribute('a_point1', buffer, 3, false,undefined, stride, 0, 1);
-        this.addAttribute('a_point2', buffer, 3, false, undefined, stride, 3 * 4, 1);
-        this.addAttribute('a_lineWidth', buffer, 1, false, undefined, stride, 6 * 4, 1);
-        this.addAttribute('a_color', buffer, 4, true, TYPES.UNSIGNED_BYTE, stride, 7 * 4, 1);
+        this.addAttribute('a_point1', buffer, 3, false,undefined, stride, 0, true);
+        this.addAttribute('a_point2', buffer, 3, false, undefined, stride, 3 * 4, true);
+        this.addAttribute('a_lineWidth', buffer, 1, false, undefined, stride, 6 * 4, true);
+        this.addAttribute('a_color', buffer, 4, true, TYPES.UNSIGNED_BYTE, stride, 7 * 4, true);
         this.addAttribute('a_quad', LineGeometry.quadBuf, 2);
     }
 

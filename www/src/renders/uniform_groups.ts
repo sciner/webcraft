@@ -236,7 +236,7 @@ export class LightUniformGroup extends VAUX.UniformGroup<{ u_lightOverride: tupl
     declare uniforms: { u_lightOverride: tupleFloat3 };
 
     constructor() {
-        super({u_lightOverride: new Float32Array(3)}, true);
+        super({u_lightOverride: new Float32Array(3) as any}, true);
     }
 
     update()

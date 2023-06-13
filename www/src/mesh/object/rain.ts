@@ -10,6 +10,7 @@ import type { ChunkGrid } from '../../core/ChunkGrid.js';
 import { MAX_CHUNK_SQUARE } from '../../chunk_const.js';
 import type { World } from '../../world.js';
 import type { Player } from '../../player.js';
+import {TerrainTextureSource} from "../../renders/TerrainBaseTexture.js";
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
 const RAIN_SPEED        = 1023; // 1023 pixels per second scroll . 1024 too much for our IndexedColor
@@ -79,12 +80,12 @@ export default class Mesh_Object_Rain {
 
         // Material
         const mat = this.render.defaultShader.materials.doubleface_transparent;
-        this.material = mat.getSubMat(this.render.renderBackend.createTexture({
+        this.material = mat.getSubMat(new TerrainTextureSource({
             source: Resources.weather.image,
-            blendMode: BLEND_MODES.MULTIPLY,
             minFilter: 'nearest',
-            magFilter: 'nearest'
+            magFilter: 'nearest',
         }));
+        // this.material.blendMode = BLEND_MODES.MULTIPLY;
 
         // if this weather has an associted soundtrack, start it
         this.defaultVolume = Qubatch.sounds.getTrackProps('madcraft:environment', this.type)?.volume

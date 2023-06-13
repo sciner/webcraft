@@ -1,5 +1,6 @@
 import {Vector} from '../helpers.js';
-import {BaseTexture3D, RegionTexture3D} from "../renders/BaseTexture3D.js";
+import {BufferBaseTexture3D} from "../renders/BufferBaseTexture.js";
+import {Texture3D, Texture3DLayout} from "vauxcel";
 
 export class GridCubeTexture {
     [key: string]: any;
@@ -15,25 +16,23 @@ export class GridCubeTexture {
     init() {
         const {dims, context} = this;
         const to = this.textureOptions;
-        const baseTexture = this.baseTexture = this.context.createTexture3D({
+        const baseTexture = this.baseTexture = new BufferBaseTexture3D({
             width: dims.x * to.width,
             height: dims.y * to.height,
             depth: dims.z * to.depth,
             pixelSize: to.pixelSize,
-            filter: to.filter,
-            type: to.type
+            minFilter: to.filter,
+            format: to.type,
+            useSubRegions: true
         });
-        baseTexture.useSubRegions = true;
         const hasEmpty = baseTexture.hasEmpty = dims.x + dims.y + dims.z > 3;
 
         for (let i = 0; i < dims.x; i++)
             for (let j = 0; j < dims.y; j++)
                 for (let k = 0; k < dims.z; k++) {
-
-                    const tex = new RegionTexture3D(context, {
-                        baseTexture,
-                        ...to,
-                        offset: new Vector(i * to.width, j * to.height, k * to.depth),
+                    const tex = new Texture3D({
+                        source: baseTexture,
+                        layout: new Texture3DLayout({offset: new Vector(i * to.width, j * to.height, k * to.depth), size: to}),
                         data: null
                     })
                     if (i + j + k === 0 && hasEmpty) {
@@ -91,10 +90,10 @@ export class CubeTexturePool {
         const {defTex} = this;
         if (width !== this.defTex.width || height !== this.defTex.height || depth !== this.defTex.depth) {
             // create a single
-            const tex = this.context.createTexture3D(
-                {width, height, depth, type, filter, data})
+            const tex = new BufferBaseTexture3D(
+                {width, height, depth, format: type, minFilter: filter, data})
             tex.ownerPool = this;
-            this.singles.push(tex);
+            this.singles.push(new Texture3D({source: tex}));
             this.totalRegions++;
             return tex;
         } else {
@@ -209,7 +208,7 @@ export class CubeTexturePool {
 
     destroy() {
         for (let i = 0; i < this.singles.length; i++) {
-            this.singles[i].destroy();
+            this.singles[i].destroy({baseTexture: true});
         }
     }
 }

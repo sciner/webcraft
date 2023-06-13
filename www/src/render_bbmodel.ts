@@ -14,6 +14,7 @@ import type { World } from "./world.js";
 import type {Player} from "./player.js";
 import type WebGLRenderer from "./renders/webgl/index.js";
 import {LayerPass} from "vauxcel";
+import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
 
 export const ZOOM_FACTOR        = 0.25;
 export const DEFAULT_FOV_NORMAL = 70;
@@ -96,6 +97,7 @@ export class RendererBBModel {
         this.meshes = new MeshManager(world)
 
         const {renderBackend} = this
+        const {pixiRender} = renderBackend;
 
         // if (renderBackend.gl) {
         //     if (settings.use_light === LIGHT_TYPE.RTX) {
@@ -149,17 +151,16 @@ export class RendererBBModel {
 
         this.updateViewport()
 
-        this.blockDayLightTex = renderBackend.createTexture({
+        this.blockDayLightTex = new TerrainBaseTexture({
             source: Resources.blockDayLight,
             minFilter: 'linear',
             magFilter: 'linear'
         })
-        this.blockDayLightTex.bind(2)
-
-        this.renderBackend._emptyTexInt.bind(3);
-        this.renderBackend._emptyTex3DInt.bind(6);
-        this.renderBackend._emptyTex3DInt.bind(7);
-        this.renderBackend._emptyTex3DInt.bind(8);
+        pixiRender.texture.bind(this.blockDayLightTex, 2);
+        pixiRender.texture.bind(renderBackend._emptyTexInt, 3);
+        pixiRender.texture.bind(renderBackend._emptyTex3DInt, 6);
+        pixiRender.texture.bind(renderBackend._emptyTex3DInt, 7);
+        pixiRender.texture.bind(renderBackend._emptyTex3DInt, 8);
 
         // this.debugGeom = new LineGeometry()
         // this.debugGeom.pos = this.camPos

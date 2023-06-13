@@ -1746,7 +1746,7 @@ export class WindowManager extends Window {
 
     loadFont() {
         const baseRp = Qubatch.world.block_manager.resource_pack_manager.list.get('base');
-        const res = new VAUX.ImageBitmapResource(baseRp.textures.get('alphabet').texture.source);
+        const res = new VAUX.ImageBitmapResource(baseRp.textures.get('alphabet').texture.resource.source);
         this.bfTextures[0].baseTexture.setResource(res);
     }
 

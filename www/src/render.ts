@@ -6,7 +6,7 @@ import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
 import {BLOCK, DBItemBlock} from "./blocks.js";
-import {BLEND_MODES, RenderTexture, LayerPass} from 'vauxcel';
+import {BLEND_MODES, LayerPass} from 'vauxcel';
 
 // Particles
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
@@ -41,6 +41,8 @@ import type { MobModel } from "./mob_model.js";
 import type { HUD } from "./hud.js";
 import type {Player} from "./player.js";
 import type WebGLRenderer from "./renders/webgl/index.js";
+import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
+import {BufferBaseTexture} from "./renders/BufferBaseTexture.js";
 
 const {mat3, mat4, quat, vec3} = glMatrix;
 
@@ -203,6 +205,7 @@ export class Renderer {
         this.meshes = new MeshManager(world);
 
         const {renderBackend} = this;
+        const {pixiRender} = renderBackend;
 
         const renderList = world.chunkManager.renderList;
         if (renderBackend.gl) {
@@ -281,12 +284,12 @@ export class Renderer {
 
         //
         const mci = Resources.maskColor;
-        this.maskColorTex = renderBackend.createTexture({
+        this.maskColorTex = new TerrainBaseTexture({
             source:         mci,
             minFilter:      'linear',
             magFilter:      'linear'
         });
-        this.maskColorTex.bind(1);
+        pixiRender.texture.bind(this.maskColorTex, 1);
 
         // Add getColorAt() for maskColorTex
         const canvas        = document.createElement('canvas');
@@ -318,15 +321,13 @@ export class Renderer {
 
         world.chunkManager.postWorkerMessage(['setDropItemMeshes', this.drop_item_meshes]);
 
-        this.blockDayLightTex = renderBackend.createTexture({
+        this.blockDayLightTex = new TerrainBaseTexture({
             source: Resources.blockDayLight,
             minFilter: 'linear',
             magFilter: 'linear'
         });
-        this.blockDayLightTex.bind(2);
 
-        // Restore binding
-        this.maskColorTex.bind(1);
+        this.checkLightTextures();
 
         this.debugGeom = new LineGeometry();
         this.debugGeom.pos = this.camPos;
@@ -374,7 +375,7 @@ export class Renderer {
                 height: INVENTORY_ICON_TEX_HEIGHT,
             },
             useRenderTexture: true,
-            depth: true,
+            useDepth: true,
             clearColor: true,
             clearDepth: true,
         });
@@ -479,8 +480,7 @@ export class Renderer {
         this.defaultShader.bind(true);
 
         renderBackend.beginPass(inventoryPass);
-
-        this.maskColorTex.bind(1);
+        this.checkLightTextures();
 
         regular.forEach((drop, i) => {
             const pos = drop.block_material.inventory_icon_id;
@@ -887,17 +887,20 @@ export class Renderer {
 
     checkLightTextures(bindLights = true) {
         const {renderBackend} = this;
+        const {pixiRender} = renderBackend;
+
+        (pixiRender.texture as any).hasIntegerTextures = true;
         if (!this.world) {
-            renderBackend._emptyTexInt.bind(3);
-            renderBackend._emptyTex3DInt.bind(6);
-            renderBackend._emptyTex3DInt.bind(7);
-            renderBackend._emptyTex3DInt.bind(8);
+            pixiRender.texture.bind(renderBackend._emptyTexInt, 3);
+            pixiRender.texture.bind(renderBackend._emptyTex3DInt, 6);
+            pixiRender.texture.bind(renderBackend._emptyTex3DInt, 7);
+            pixiRender.texture.bind(renderBackend._emptyTex3DInt, 8);
             return;
         }
         const cm = this.world.chunkManager;
         // TODO: move to batcher
-        cm.chunkDataTexture.getTexture(renderBackend).bind(3);
-        cm.renderList.chunkGridTex.getTexture(renderBackend).bind(6);
+        pixiRender.texture.bind(cm.chunkDataTexture.getTexture(BufferBaseTexture), 3);
+        pixiRender.texture.bind(cm.renderList.chunkGridTex.getTexture(), 6);
         const lp = cm.renderList.lightPool;
 
         // webgl bind all texture-3d-s
@@ -906,7 +909,7 @@ export class Renderer {
             for (let i = 1; i <= 2; i++) {
                 const tex = (bindLights && lp.boundTextures[i]) || renderBackend._emptyTex3DInt;
                 if (tex) {
-                    tex.bind(6 + i);
+                    pixiRender.texture.bind(tex, 6 + i);
                 }
             }
         }
@@ -1306,12 +1309,10 @@ export class Renderer {
                 shader: this.defaultShader,
             });
             // Material
-            this.material_shadow = mat.getSubMat(this.renderBackend.createTexture({
+            this.material_shadow = mat.getSubMat(new TerrainBaseTexture({
                 source: Resources.shadow.main,
-                blendMode: BLEND_MODES.MULTIPLY,
                 minFilter: 'nearest',
-                magFilter: 'nearest',
-                textureWrapMode: 'clamp_to_edge'
+                magFilter: 'nearest'
             }));
         }
         //
@@ -1433,10 +1434,9 @@ export class Renderer {
     resetBefore(bindLights = true) {
         // webgl state was reset, we have to re-bind textures
         this.renderBackend.resetBefore();
-        const defTex = this.env.skyBox?.shader.texture || this.renderBackend._emptyTex;
-        defTex.bind(0);
-        this.maskColorTex?.bind(1);
-        this.blockDayLightTex?.bind(2);
+        const {pixiRender}  = this.renderBackend;
+        pixiRender.texture.bind(this.maskColorTex, 1);
+        pixiRender.texture.bind(this.blockDayLightTex, 2);
         this.checkLightTextures(bindLights);
         this.defaultShader?.bind();
     }
@@ -1651,11 +1651,6 @@ export class Renderer {
         this.resetAfter();
 
         lu.popOverride();
-        pixiRender.texture.reset();
-        pixiRender.texture.bind(null, 3);
-        pixiRender.texture.bind(null, 6);
-        pixiRender.texture.bind(null, 7);
-        pixiRender.texture.bind(null, 8);
     }
 
     // getVideoCardInfo...

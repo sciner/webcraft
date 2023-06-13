@@ -1,16 +1,16 @@
 import {Vector} from "../helpers.js";
 import {FLUID_TYPE_MASK, fluidLightPower} from "../fluid/FluidConst.js";
 import {BLOCK} from "../blocks.js";
-import type {RegionTexture3D} from "../renders/BaseTexture3D";
 import type {ChunkDataTexture} from "./ChunkDataTexture";
 import type {ChunkGridTexture} from "./ChunkGridTexture.js";
 import type {TypedBlocks3} from "../typed_blocks3";
+import type {Texture3D} from "vauxcel";
 
 export class ChunkLight {
     parentAddr: Vector;
     parentChunk: any;
     tblocks: TypedBlocks3 = null;
-    lightTex: RegionTexture3D = null;
+    lightTex: Texture3D = null;
     _dataTexture: ChunkDataTexture = null;
     _dataTextureOffset = -1;
     _dataTextureDirty = false;
@@ -42,6 +42,7 @@ export class ChunkLight {
             this._gridTextureDirty = true;
             if (this.lightTex !== null) {
                 this.lightTex.update(int32)
+                this.lightTex.source.update();
             } else {
                 this.lightTexData = int32;
             }
@@ -103,8 +104,8 @@ export class ChunkLight {
         this._dataTextureDirty = true;
         this._gridTextureDirty = true;
         if (this.lightTex) {
-            const base: any = this.lightTex.baseTexture || this.lightTex;
-            const {offset} = this.lightTex;
+            const base: any = this.lightTex.source;
+            const offset = this.lightTex.layout;
             //offset is XZY, and packedLightCoord is XZY
             this.packedLightCoord = (offset.x) | (offset.y << 9) | (offset.z << 18) | (base._poolLocation << 27);
         } else {
