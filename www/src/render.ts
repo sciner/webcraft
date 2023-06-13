@@ -6,7 +6,7 @@ import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
 import {BLOCK, DBItemBlock} from "./blocks.js";
-import {BLEND_MODES} from 'vauxcel';
+import {BLEND_MODES, RenderTexture, LayerPass} from 'vauxcel';
 
 // Particles
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
@@ -365,11 +365,20 @@ export class Renderer {
     //
     async generatePrev(callback) {
         this.resetBefore();
-        const target = this.renderBackend.createRenderTarget({
-            width: INVENTORY_ICON_TEX_WIDTH,
-            height: INVENTORY_ICON_TEX_HEIGHT,
-            depth: true
+
+        const { renderBackend } = this;
+
+        const inventoryPass = new LayerPass({
+            screenSize: {
+                width: INVENTORY_ICON_TEX_WIDTH,
+                height: INVENTORY_ICON_TEX_HEIGHT,
+            },
+            useRenderTexture: true,
+            depth: true,
+            clearColor: true,
+            clearDepth: true,
         });
+        const target = inventoryPass.getRenderTexture();
 
         const ASPECT = target.height / target.width;
         const ZERO = new Vector();
@@ -469,9 +478,7 @@ export class Renderer {
         gu.update();
         this.defaultShader.bind(true);
 
-        this.renderBackend.beginPass({
-            target
-        });
+        renderBackend.beginPass(inventoryPass);
 
         this.maskColorTex.bind(1);
 
@@ -586,12 +593,10 @@ export class Renderer {
 
         });
 
-        this.renderBackend.endPass()
+        renderBackend.endPass(inventoryPass);
 
         return new Promise((resolve, reject) => {
-
-            // render target to Canvas
-            target.toImage('canvas').then((data : any) => {
+            this.renderBackend.rtToImage(target, 'canvas').then((data : any) => {
                 /**
                  * @type {CanvasRenderingContext2D}
                  */
@@ -729,107 +734,15 @@ export class Renderer {
                     resolve(Resources.inventory)
                 }, 'image/png')
 
+                inventoryPass.destroy();
             })
-
-            this.renderBackend.endPass();
 
             // disable
             gu.useSunDir = false;
 
-            target.destroy()
             this.resetAfter();
 
         })
-
-    }
-
-    //
-    async drawPlayerPreview(callback) {
-
-        this.resetBefore()
-
-        const target = this.renderBackend.createRenderTarget({
-            width: 320 * 2,
-            height: 480 * 2,
-            depth: true
-        })
-
-        //
-        const camera = new Camera({
-            type:       Camera.PERSP_CAMERA, // Camera.ORTHO_CAMERA
-            max:        100,
-            min:        0.01,
-            fov:        60,
-            renderType: this.renderBackend.gl ? 'webgl' : 'webgpu',
-            width:      target.width,
-            height:     target.height,
-        })
-
-        //
-        const gu = this.globalUniforms
-
-        // larg for valid render results
-        gu.fogColor         = [0, 0, 0, 0]
-        // gu.fogDensity       = 100
-        gu.chunkBlockDist   = 100
-        gu.resolution       = [target.width, target.height]
-        gu.brightness       = MIN_BRIGHTNESS; // 0.55 * 1.0; // 1.3
-        gu.sunDir           = [-1, -1, 1]
-        gu.useSunDir        = true
-
-        //
-        camera.set(new Vector(0, 0, 0), new Vector(0, 0, Math.PI))
-        camera.use(gu, true)
-        gu.update()
-
-        this.defaultShader.bind(true);
-        this.renderBackend.beginPass({
-            target
-        })
-
-        const player_model = this.player.getModel()
-        const player_mesh = player_model._mesh
-        const pos = new Vector(0, -1, -2)
-
-        const player_matrix = mat4.create()
-        mat4.rotateY(player_matrix, player_matrix, Math.PI * .9)
-
-        const orig_animation = player_mesh.parsed_animation
-        player_mesh.parsed_animation = null
-        player_mesh.setAnimation('idle')
-        player_mesh.redraw(0)
-
-        player_model.setArmor()
-        player_mesh.model.drawBuffered(this, player_mesh, pos, IndexedColor.WHITE, player_matrix)
-
-        // this.renderBackend.drawMesh(player_mesh.buffer, player_mesh.gl_material, pos, player_matrix)
-
-        player_mesh.parsed_animation = orig_animation
-
-        this.renderBackend.endPass()
-
-        return new Promise((resolve, reject) => {
-
-            // render target to Canvas
-            target.toImage('canvas').then(async (data : any) => {
-                data.toBlob(async (blob : Blob) => {
-                    const image = await blobToImage(blob) as HTMLImageElement
-                    Helpers.downloadImage(image, 'inventory.png');
-                    resolve(image)
-                }, 'image/png')
-
-            })
-
-            this.renderBackend.endPass()
-
-            // disable
-            gu.useSunDir = false
-
-            target.destroy()
-            this.resetAfter()
-
-        })
-
     }
 
     /**
@@ -1028,8 +941,10 @@ export class Renderer {
 
         this.debugGeom.clear();
 
-        renderBackend.beginPass({
-            fogColor : this.env.interpolatedClearValue
+        const framePass = renderBackend.beginPass({
+            bgColor: this.env.interpolatedClearValue,
+            clearColor: true,
+            clearDepth: true,
         });
 
         this.env.draw(this);
@@ -1177,7 +1092,7 @@ export class Renderer {
             this.renderBackend.screenshot('image/webp', callback);
         }
 
-        renderBackend.endPass();
+        renderBackend.endPass(framePass);
 
         this.resetAfter();
     }
