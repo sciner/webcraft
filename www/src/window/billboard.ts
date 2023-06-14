@@ -11,12 +11,14 @@ class FileSlot extends Window {
     constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
         super(x, y, w, h, id, title, text)
         this.hud_atlas = Resources.atlas.get('hud')
+        this.setIcon(this.hud_atlas.getSpriteFromMap('plus'))
+        this.setBackground(this.hud_atlas.getSpriteFromMap('slot_selection'))
     }
 
     setFile(file) {
         this.file = file
-        this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot'))
         this.setIcon(file, 'centerstretch', 1.0)
+        this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot'))
     }
 
     getFile() {
@@ -89,7 +91,7 @@ class FilesCollection extends Window {
         const szm           = sz + this.slot_margin
         const start_index   = Math.round((-this.scrollY / szm) * this.xcnt)
         const end_index     = start_index + (this.xcnt * this.ycnt)
-        for(let i = 0; i < this.slots_count; i++) {
+        for(let i = 0; i < this.slots_count + 1; i++) {
             const child = this.slots[i]
             child.visible = i >= start_index && i < end_index
         }
@@ -108,22 +110,11 @@ class FilesCollection extends Window {
         let xcnt                = this.xcnt
         const parent            = this.untypedParent
 
-        const onMouseDownFunc = function(e) {
-            parent.setPreview(this.getFile())
-            parent.sendChangeExtraData(this.getFile())
-            return false
-        }
-
-        for(let i = 0; i < all_blocks.length; i++) {
-
-            if(i >= this.slots.length) {
-                this.slots.push(null)
-            }
+        for(let i = 0; i < all_blocks.length + 1; i++) {
 
             let lblSlot = this.slots[i]
             if(!lblSlot) {
                 lblSlot = this.slots[i] = new FileSlot(0, 0, sz, sz, 'lblFile' + (i), null, null)
-                lblSlot.onMouseDown = onMouseDownFunc
                 this.container.add(lblSlot)
             }
                 
@@ -131,11 +122,21 @@ class FilesCollection extends Window {
             lblSlot.h = sz
             lblSlot.x = sx + (i % xcnt) * szm
             lblSlot.y = sy + Math.floor(i / xcnt) * szm
-
-            lblSlot.setFile(all_blocks[i])
+            if (i == all_blocks.length) {
+                lblSlot.onMouseDown = (e) => {
+                    Qubatch.App.OpenSelectFile()
+                }
+            } else {
+                lblSlot.setFile(all_blocks[i])
+                lblSlot.onMouseDown = (e) => {
+                    parent.setPreview(lblSlot.getFile())
+                    parent.sendChangeExtraData(lblSlot.getFile())
+                }
+            }
+            
         }
 
-        this.max_height = Math.ceil(all_blocks.length / xcnt) * szm - (szm - sz)
+        this.max_height = Math.ceil((all_blocks.length + 1) / xcnt) * szm - (szm - sz)
         this.container.h = this.max_height
         this.scrollbar.max = this.max_height - this.h
 
@@ -159,13 +160,11 @@ export class BillboardWindow extends BlankWindow {
         const ct = this
         ct.setBackground('./media/gui/form-quest.png')
         // Add labels to window
-        this.addWindowTitle(Lang.sign_edit)
+        this.addWindowTitle(Lang.displayed_image)
         // Add close button
         this.addCloseButton()
         // Add collection
         this.addCollection()
-        // add button upload
-        this.addButtonLoad()
         // listener
         player.world.server.AddCmdListener([ServerClient.CMD_MEDIA_FILES], (packet) => {
             this.upadateCollection(packet.data.files)
@@ -218,16 +217,6 @@ export class BillboardWindow extends BlankWindow {
             }
         }
         Qubatch.world.changeBlockExtraData(this.args.pos, extra_data)
-    }
-
-    private addButtonLoad() {
-        const height = 22
-        const width = 180
-        const btn = new Button(this.w / 2, this.h - (height + UI_THEME.window_padding) * this.zoom, width  * this.zoom, height  * this.zoom, 'btnOpenDialog', 'Загрузить изображение')
-        btn.onMouseDown = () => {
-            Qubatch.App.OpenSelectFile()
-        }
-        this.add(btn)
     }
 
 }

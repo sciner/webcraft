@@ -174,6 +174,9 @@ export class UIApp {
     }
 
     UploadImage(files) {
+        if (!files) {
+            return
+        }
         const reader = new FileReader()
         const self = this
         reader.onload = function (e) {

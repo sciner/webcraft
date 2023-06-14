@@ -175,7 +175,7 @@ Config.init().then(async (config) => {
 
     app.use('/api/Game/Billboard', fileUpload({
         debug: true,
-        limits: { fileSize: 50 * 1024 * 1024 },
+        limits: { fileSize: 10 * 1024 * 1024 },
         useTempFiles : true,
         abortOnLimit: true
     }));
