@@ -69,28 +69,6 @@ export class ShaderPreprocessor {
 
         const postLines: Dict<string[]> = {};
 
-        if (this.fallbackProvoke) {
-            const decode = postLines['flat_decode'] = [];
-            const encode = postLines['flat_encode'] = [];
-            const pattern_flat = /flat (in|out) (int|ivec3|float|vec2|vec3|vec4) (\w+);/g;
-
-            //flat out int v_flags;
-            includesApplied = includesApplied.replaceAll(pattern_flat, (_, inout, type, name, offset, string) => {
-                const type2 = intToFloat[type];
-                const name2 = name + '_fallback';
-                if (type2) {
-                    if (inout === 'in') {
-                        decode.push(`${name} = ${type}(round(${name2}));`);
-                    } else {
-                        encode.push(`${name2} = ${type2}(${name});`);
-                    }
-                    return `${type} ${name}; ${inout} ${type2} ${name2};`;
-                } else {
-                    return `${inout} ${type} ${name};`
-                }
-            });
-        }
-
         const pattern_post = /#include_post<([^>]+)>/g;
         let out = includesApplied
             .replaceAll(pattern_post, (_, r, offset, string) => {

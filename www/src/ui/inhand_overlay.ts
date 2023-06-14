@@ -6,6 +6,7 @@ import {Helpers, Mth, Vector} from "../helpers.js";
 import Mesh_Object_Block_Drop from "../mesh/object/block_drop.js";
 import type { World } from "../world.js";
 import type {Renderer} from "../render.js";
+import {LayerPass} from "vauxcel";
 
 class ItemUseAnimation {
     [key: string]: any;
@@ -194,6 +195,7 @@ export class InHandOverlay {
         const {
             player, globalUniforms, lightUniforms, renderBackend
         } = render;
+        const { pixiRender } = renderBackend;
 
         this.player = player;
 
@@ -228,11 +230,15 @@ export class InHandOverlay {
                 | (Math.max(lightOverride & 0x00ff, inHandLight & 0xff))
                 | 0x10000;
         }
-        lightUniforms.pushOverride(lightOverride);
+        lightUniforms.pushOverride(render.nightVision ? 0xff : lightOverride);
 
         globalUniforms.update();
 
-        renderBackend.beginPass({clearDepth: true, clearColor: false});
+        render.defaultShader.bind(true);
+
+        const inhandPass = renderBackend.beginPass({
+            clearDepth: true
+        });
 
         if(inHandItemMesh) {
 
@@ -294,7 +300,7 @@ export class InHandOverlay {
             inHandItemMesh.drawDirectly(render);
 
         }
-        renderBackend.endPass();
+        renderBackend.endPass(inhandPass);
 
         lightUniforms.popOverride();
     }

@@ -1,27 +1,21 @@
 import {ObjectDrawer} from "../batch/ObjectDrawer.js";
+import {DRAW_MODES, ExtensionType} from "vauxcel";
 
 export class GLCubeDrawer extends ObjectDrawer {
-    [key: string]: any;
+    static extension = {
+        name: 'cube',
+        type: ExtensionType.RendererPlugin,
+    };
     draw(cube) {
         const { context } = this;
-        if (context._mat) {
-            context._mat.unbind();
-            context._mat = null;
-        }
+        const { pixiRender } = context;
         cube.shader.bind();
-        cube.geom.bind(cube.shader);
-
-        const  {
-            gl
-        } = context;
-
-        gl.disable(gl.CULL_FACE);
-        gl.disable(gl.DEPTH_TEST);
-        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
-        gl.enable(gl.CULL_FACE);
-        gl.enable(gl.DEPTH_TEST);
+        pixiRender.geometry.bind(cube.geom);
+        context.pixiRender.state.set(cube.state);
+        pixiRender.geometry.draw(DRAW_MODES.TRIANGLES);
         // stat
         context.stat.drawquads += 6;
         context.stat.drawcalls++;
+        pixiRender.geometry.reset();
     }
 }

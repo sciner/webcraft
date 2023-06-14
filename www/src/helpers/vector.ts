@@ -16,6 +16,7 @@ export class Vector implements IVector {
     static ZN = new Vector(0.0, 0.0, -1.0);
     static ZP = new Vector(0.0, 0.0, 1.0);
     static ZERO = new Vector(0.0, 0.0, 0.0);
+    static ONE = new Vector(1, 1, 1);
     static INFINITY = new Vector(Infinity, Infinity, Infinity);
 
     static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
@@ -521,7 +522,7 @@ export class Vector implements IVector {
         return this;
     }
 
-    volume(vec : IVector) : number {
+    volume(vec : IVector = Vector.ONE) : number {
         const volx = Math.abs(this.x - vec.x) + 1;
         const voly = Math.abs(this.y - vec.y) + 1;
         const volz = Math.abs(this.z - vec.z) + 1;
@@ -637,11 +638,15 @@ export class Vector implements IVector {
         return (angle >= 0) ? angle : angle + Mth.PI_MUL2
     }
 
-    //
-    moveToSelf(rotate, dist) {
-        this.x += dist * Math.cos(rotate.x) * Math.sin(rotate.z - Math.PI);
-        this.y += dist * Math.sin(-rotate.x);
-        this.z += dist * Math.cos(rotate.x) * Math.cos(rotate.z - Math.PI);
+    /**
+     * Перемещает на расстояние {@link dist} в направлении, заданном углами {@link pitch} (угол над
+     * горизонтом) и {@link yaw} (азимут).
+     */
+    movePolarSelf(dist: float, pitch: float, yaw: float): this {
+        const distCosX = dist * Math.cos(pitch)
+        this.x += distCosX * Math.sin(yaw)
+        this.y += dist * Math.sin(pitch)
+        this.z += distCosX * Math.cos(yaw)
         return this;
     }
 

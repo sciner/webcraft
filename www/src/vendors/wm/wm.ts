@@ -1758,9 +1758,7 @@ export class WindowManager extends Window {
             return;
         }
         // reset pixi state
-        this.pixiRender.shader.program = null;
-        this.pixiRender.shader.bind(this.pixiRender.plugins.batch._shader, true);
-        this.pixiRender.reset();
+        this.pixiRender.texture.reset();
         this.pixiRender.texture.bind(null, 3);
         this.pixiRender.texture.bind(null, 6);
         this.pixiRender.texture.bind(null, 7);
@@ -1773,13 +1771,7 @@ export class WindowManager extends Window {
         if (qubatchRender) {
             this.qubatchRender = qubatchRender;
             this.canvas = qubatchRender.canvas;
-            this.pixiRender = new VAUX.Renderer({
-                context: qubatchRender.renderBackend.gl,
-                view: this.canvas,
-                width: this.canvas.width,
-                height: this.canvas.height,
-                clearBeforeRender: false
-            })
+            this.pixiRender = qubatchRender.renderBackend.pixiRender;
         } else {
             this.pixiRender = new VAUX.Renderer({
                 view: this.canvas,

@@ -229,6 +229,12 @@ export class Mth {
         return Math.round(value * decimals) / decimals
     }
 
+    /** Случайно округляет вверх или вниз так, что мат. ожидание результата равно исходному числу. */
+    static roundRandom(value: float): int {
+        const floor = Math.floor(value)
+        return Math.random() >= value - floor ? floor : floor + 1
+    }
+
     static roundUpToPowerOfTwo(v: int): int {
         v--
         v |= v >> 1

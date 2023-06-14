@@ -1,5 +1,5 @@
 import {IndexedColor, Vector, VectorCollector} from '../helpers.js';
-import GeometryTerrain from "../geometry_terrain.js";
+import { GeometryTerrain } from "../geometry_terrain.js";
 import {BLOCK, FakeTBlock} from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 import type { BaseResourcePack } from '../base_resource_pack.js';

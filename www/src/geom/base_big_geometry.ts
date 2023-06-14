@@ -1,9 +1,8 @@
 import {BigGeomBatchUpdate} from "./big_geom_batch_update.js";
-import type {BaseBuffer} from "../renders/BaseRenderer.js";
 import type WebGLRenderer from "../renders/webgl";
 import type {BaseGeometryVao} from "./base_geometry_vao.js";
-import {SillyGeometryVao} from "./silly_geometry_vao.js";
 import {VAO_BUFFER_TYPE} from "./base_geometry_vao.js";
+import type {Buffer} from 'vauxcel';
 
 export interface BigGeometryOptions {
     staticSize?: number;
@@ -18,10 +17,9 @@ export class BaseBigGeometry {
     useTransformFeedback: boolean;
 
     indexData: Int32Array = null;
-    indexBuffer: BaseBuffer = null;
+    indexBuffer: Buffer = null;
 
     context: WebGLRenderer;
-    gl: WebGL2RenderingContext = null;
 
     geomClass: new (options: any) => BaseGeometryVao;
 
@@ -35,13 +33,11 @@ export class BaseBigGeometry {
     strideFloats: number;
     staticDraw: BaseGeometryVao;
     dynamicDraw: BaseGeometryVao;
-    sillyDraw: SillyGeometryVao;
     batch: BigGeomBatchUpdate;
 
     createGeom() {
         this.staticDraw = new this.geomClass({size: this.staticSize, bufferType: VAO_BUFFER_TYPE.BIG});
         this.dynamicDraw = new this.geomClass({size: this.dynamicSize, bufferType: VAO_BUFFER_TYPE.DYNAMIC});
-        this.sillyDraw = new SillyGeometryVao();
         this.strideFloats = this.staticDraw.strideFloats;
         this.batch = new BigGeomBatchUpdate(this);
     }
@@ -49,43 +45,37 @@ export class BaseBigGeometry {
     bind() {
         const geom = this.staticDraw;
         geom.bindForDraw();
-        if (geom.hasInstance && !this.context.multidrawBaseExt) {
-            geom.buffer.bind();
-        }
     }
 
     upload(shader) {
-        const {batch, staticDraw, dynamicDraw, sillyDraw} = this;
+
+        const { batch, staticDraw, dynamicDraw} = this;
+
         if (!this.context) {
             this.context = shader.context;
             // when WebGL
-            this.gl = shader.context.gl;
-            staticDraw.init(shader);
-            dynamicDraw.init(shader);
-            sillyDraw?.init(this.context);
+            staticDraw.init(this.context);
+            dynamicDraw.init(this.context);
+            if (this.indexBuffer) {
+                staticDraw.addIndex(this.indexBuffer);
+                dynamicDraw.addIndex(this.indexBuffer);
+            }
         }
+        const { pixiRender } = this.context;
+
+        this.staticDraw.validateResize(pixiRender);
+
         if (batch.instCount === 0) {
             return;
         }
-        if (dynamicDraw.buffer?.dirty) {
+        if (dynamicDraw.dataDirty) {
             batch.updDynamic();
         }
-        if (this.useTransformFeedback) {
-            batch.preFlip();
-            sillyDraw.batchUpdate(batch.vao.buffer, staticDraw.buffer, batch.copyOps, staticDraw.stride);
-            batch.reset();
-        }
-        else {
-            batch.preFlip();
-            staticDraw.buffer.batchUpdate(batch.vao.buffer, batch.copyOps, staticDraw.stride);
-            batch.reset();
-        }
-        if (this.indexBuffer) {
-            this.indexBuffer.bind();
-        }
-    }
 
-    checkFence() {
+        batch.preFlip();
+        pixiRender.geometry.copier.doCopy(pixiRender, dynamicDraw.buffer,
+            staticDraw.buffer, staticDraw.stride, batch.copyOps.arr, batch.copyOps.count)
+        batch.reset();
     }
 
     resize(newSize) {

@@ -4,6 +4,7 @@ import { Resources } from "./resources.js";
 import { Weather } from "./block_type/weather.js";
 import type { Renderer } from "./render.js";
 import type { CubeMesh } from "./renders/BaseRenderer.js";
+import {MIN_BRIGHTNESS} from "./constant.js";
 
 export declare type IFogPreset = {
     color:          [number,number, number, number ] | Gradient | Color | IAnyColorRecordMap,
@@ -17,7 +18,8 @@ export const PRESET_NAMES = {
     NORMAL: 'normal',
     WATER: 'water',
     LAVA: 'lava',
-    NETHER_PORTAL: 'nether_portal'
+    NETHER_PORTAL: 'nether_portal',
+    CLOUD: 'cloud',
 }
 
 const HORIZON_BRIGHTNESS_MIN_DEPTH = 2;
@@ -536,8 +538,15 @@ export const FOG_PRESETS = {
         addColor: [70 / 255, 30 / 255, 150 / 255, 0.45],
         density: 0.5,
         illuminate: 0.5,
-    }
+    },
 
+    [PRESET_NAMES.CLOUD]: {
+        color: [180 / 255, 180 / 255, 180 / 255, 0.92],
+        addColor: [0, 0, 0, 0],
+        density: 0.1,       // не знаю что деает, случайное значение
+        illuminate: 0.1,    // не знаю что деает, случайное значение
+        interpolationTime: 30   // быстро включить туман до исчезновения видимой грани
+    }
 };
 
 export const SETTINGS = {
@@ -545,7 +554,7 @@ export const SETTINGS = {
     fogDensity:             1, // multiplication
     fogDensityUnderWater:   0.1,
     chunkBlockDist:         8,
-    interpoateTime:         300,
+    interpolationTime:      300,
 };
 
 export class Environment {
@@ -789,7 +798,7 @@ export class Environment {
         const task = new taskCtor({
             from,
             to,
-            duration: SETTINGS.interpoateTime,
+            duration: to.preset?.interpolationTime ?? SETTINGS.interpolationTime,
             ease: easeOutCubic,
             name: key,
             context: this
@@ -818,7 +827,7 @@ export class Environment {
     }
 
     updateDeepHorizon() {
-        const groundLevelEastimtion = Qubatch.world.chunkManager.groundLevelEastimtion;
+        const groundLevelEstimation = Qubatch.world.chunkManager.groundLevelEstimation;
         const player = Qubatch.player;
 
         var disabled = player.eyes_in_block?.is_water;
@@ -827,7 +836,7 @@ export class Environment {
         } else if (this.deepDarkMode === 'off') {
             disabled = true;
         }
-        if (disabled || groundLevelEastimtion == null) {
+        if (disabled || groundLevelEstimation == null) {
             this.horizonBrightness = 1.0;
             if (disabled) {
                 // when it becomes enabled, it's instant.
@@ -837,7 +846,7 @@ export class Environment {
         }
         // calculate brightness based on depth
         const playerPos = player.pos;
-        var elevation = playerPos.y - groundLevelEastimtion;
+        var elevation = playerPos.y - groundLevelEstimation;
         var newHorizonBrightness = Mth.lerpAny(elevation,
             -HORIZON_BRIGHTNESS_MIN_DEPTH, 1,
             -HORIZON_BRIGHTNESS_MAX_DEPTH, 0);
@@ -958,7 +967,7 @@ export class Environment {
 
         gu.fogAddColor          = this.rawInterpolatedFogAdd;
         gu.fogColor             = this.rawInterpolatedFog;
-        gu.brightness           = this.fullBrightness;
+        gu.brightness           = Math.max(this.fullBrightness, MIN_BRIGHTNESS);
 
         gu.time                 = this.time;
         //gu.fogDensity           = this.fogDensity * fogPreset.density;
@@ -977,8 +986,8 @@ export class Environment {
         for(let i = 0; i < 3; i++) {
             this._skyColor[i] = this.lerpWeatherValue(weather => Weather.SKY_COLOR[weather][i]) * this.nightshift;
         }
-        uniforms['u_baseColor'].value = this._skyColor
-        uniforms['u_nightshift'].value = this.nightshift;
+        uniforms['u_baseColor'] = this._skyColor
+        uniforms['u_nightshift'] = this.nightshift;
 
         this.skyBox.draw(render.viewMatrix, render.projMatrix, width, height);
     }

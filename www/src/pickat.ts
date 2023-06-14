@@ -1,6 +1,6 @@
 import { Vector } from "./helpers.js";
-import {BLEND_MODES} from "./renders/BaseRenderer.js";
-import GeometryTerrain from "./geometry_terrain.js";
+import {BLEND_MODES} from 'vauxcel';
+import { GeometryTerrain } from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import {Raycaster, RaycasterResult} from "./Raycaster.js";
@@ -445,6 +445,7 @@ export class PickAt {
             opaque: false,
             blendMode: BLEND_MODES.MULTIPLY,
             shader: this.render.defaultShader,
+            decalOffset: 6,
         });
         // Material (target)
         this.material_target = this.material_damage.getSubMat(this.render.renderBackend.createTexture({

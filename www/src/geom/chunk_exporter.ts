@@ -176,7 +176,7 @@ export class ChunkExporter {
                 alphaMode: mat.opaque ? "MASK" : "BLEND",
             },
             index: this.outJson.materials.length,
-            isFluid: !!mat.shader.fluidFlags,
+            isFluid: !!mat.shader.fluidStatic,
         }
         if (matData.isFluid) {
             tex = this.fluidExporter.createFluidTexture(mat.opaque, tex.source);

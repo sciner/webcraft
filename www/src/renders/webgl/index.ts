@@ -1,20 +1,20 @@
 //@ts-check
-import BaseRenderer, {BaseCubeGeometry, BaseTexture, CubeMesh} from "../BaseRenderer.js";
-import { BaseCubeShader } from "../BaseShader.js";
+import {BaseRenderer, BaseCubeGeometry, BaseTexture, CubeMesh} from "../BaseRenderer.js";
 import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
-import {WebGLBuffer} from "./WebGLBuffer.js";
-import {Helpers, Mth} from "../../helpers.js";
 import {Resources} from "../../resources.js";
 import {WebGLTexture3D} from "./WebGLTexture3D.js";
-import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
 import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
 import {GLMeshDrawer} from "./GLMeshDrawer.js";
 import {GLCubeDrawer} from "./GLCubeDrawer.js";
 import {GLChunkDrawer} from "./GLChunkDrawer.js";
 import {GLLineDrawer} from "./GLLineDrawer.js";
 import {WebGLFluidShader} from "./WebGLFluidShader.js";
-import {GLSillyDrawer} from "./GLSillyDrawer.js";
+import * as VAUX from 'vauxcel';
+
+import glMatrix from "@vendors/gl-matrix-3.3.min.js";
+import {LayerPass} from "vauxcel";
+const {mat4} = glMatrix;
 
 const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
 
@@ -41,92 +41,42 @@ const TEXTURE_MODE = {
     'cube': 'TEXTURE_CUBE_MAP'
 }
 
+VAUX.extensions.add(GLChunkDrawer, GLLineDrawer, GLMeshDrawer, GLCubeDrawer);
+
 export class WebGLCubeShader extends WebGLUniversalShader {
-    [key: string]: any;
-
     constructor(context, options) {
+
+        if (!options.uniforms) {
+            options = {...options, uniforms: {}}
+        }
+        Object.assign(options.uniforms, {
+            u_viewMatrix2: mat4.create(),
+            u_projMatrix2: mat4.create(),
+        });
         super(context, options);
-
-        /**
-         *
-         * @type {WebGLTexture}
-         */
-        this.texture = context.createTexture({
-            source: options.sides
-        });
-
-        this.texture.bind();
-        // we already can use uniforms
-        // make only set default values
-        this._makeUniforms({
-            // 'u_texture': this.texture, // load default texture to 0 slot
-            'u_viewMatrix': new Float32Array(16),
-            'u_projMatrix': new Float32Array(16),
-            'u_resolution': [1, 1],
-        });
-
-    }
-
-    set resolution(v) {
-        this.uniforms['u_resolution'].value = v;
-    }
-
-    get resolution() {
-        return this.uniforms['u_resolution'];
     }
 
     /**
      * @deprecated
      */
     get lookAt() {
-        return this.uniforms['u_viewMatrix'].value;
+        return this.uniforms['u_viewMatrix2']
     }
 
     /**
      * @deprecated
      */
     get proj() {
-        return this.uniforms['u_projMatrix'].value;
+        return this.uniforms['u_projMatrix2'];
     }
 
     bind(force = false) {
-        this.texture.bind(0);
-
         super.bind(force);
     }
 
 }
 
 export class WebGLCubeGeometry extends BaseCubeGeometry {
-    [key: string]: any;
-    constructor(context, options) {
-        super(context, options);
-
-        this.vao = null;
-    }
-
-    bind(shader) {
-        const { gl } = this.context;
-
-        if (this.vao) {
-            this.context.gl.bindVertexArray(this.vao);
-            return;
-        }
-
-        this.vao = gl.createVertexArray();
-        gl.bindVertexArray(this.vao);
-
-        this.vertex.bind();
-        this.index.bind();
-
-        gl.vertexAttribPointer(shader.attrs['a_vertex'].location, 3, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shader.attrs['a_vertex'].location);
-    }
-
-    unbind() {
-        this.context.gl.bindVertexArray(null);
-    }
-
 }
 
 export class WebGLTexture extends BaseTexture {
@@ -311,7 +261,6 @@ export default class WebGLRenderer extends BaseRenderer {
          */
         this.gl = null;
         this._activeTextures = {};
-        this._shader = null;
 
         // test only
         /**
@@ -323,51 +272,43 @@ export default class WebGLRenderer extends BaseRenderer {
             write: true,
             test: true,
         }
-
-        this.mesh = new GLMeshDrawer(this);
-        this.cube = new GLCubeDrawer(this);
-        this.chunk = new GLChunkDrawer(this);
-        this.line = new GLLineDrawer(this);
-        this.silly = new GLSillyDrawer(this);
     }
 
     async init(args) {
         await super.init(args);
 
-        const gl = this.gl = this.view.getContext('webgl2', {...this.options, stencil: true});
+        this.pixiRender = new VAUX.Renderer({...this.options,
+            clearBeforeRender: false,
+            view: this.view, width: this.view.width, height: this.view.height});
+
+        this.pixiRender.geometry.copier = new VAUX.TFBufferCopier(16);
+
+        for (let key in this.pixiRender.plugins) {
+            let val = this.pixiRender.plugins[key];
+            if (val.initQubatch) {
+                this[key] = val;
+                val.initQubatch(this);
+            }
+        }
+
+        this.batch = this.pixiRender.batch;
+
+        const gl = this.gl = this.pixiRender.gl;
         this.resetBefore();
         this.multidrawExt = gl.getExtension('WEBGL_multi_draw');
         this.multidrawBaseExt = gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
 
-        const provokeExt = gl.getExtension('WEBGL_provoking_vertex');
-
-        if (provokeExt) {
-            provokeExt.provokingVertexWEBGL(provokeExt.FIRST_VERTEX_CONVENTION_WEBGL);
-        } else {
-            this.preprocessor.fallbackProvoke = true;
-        }
-
         this.line.init();
-        this.silly.init();
     }
 
     resetBefore() {
-        const {gl} = this;
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.CULL_FACE);
-        gl.enable(gl.BLEND);
-        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-
         WebGLMaterial.texState = this._emptyTex;
         // WebGLMaterial.lightState = null;
-
-        this._shader = null;
+        super.resetBefore();
     }
 
     resetAfter() {
-        this.gl.bindVertexArray(null);
-        this._shader?.unbind();
-        this._shader = null;
+        super.resetAfter();
         // for (let i = 0; i < 16; i++) {
         //     this.gl.bindTexture();
         // }
@@ -397,28 +338,6 @@ export default class WebGLRenderer extends BaseRenderer {
         */
     }
 
-    clear({clearDepth = true, clearColor = true} = {})
-    {
-        const {
-            gl, _clearColor
-        } = this;
-
-        const mask = (~~clearDepth * (gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)) | (~~clearColor * gl.COLOR_BUFFER_BIT);
-
-        mask && gl.clearColor(
-            _clearColor[0],
-            _clearColor[1],
-            _clearColor[2],
-            _clearColor[3]
-        );
-
-        mask && gl.clear(mask);
-    }
-
-    createRenderTarget(options) {
-        return new WebGLRenderTarget(this, options);
-    }
-
     createMaterial(options) {
         return new WebGLMaterial(this, options);
     }
@@ -441,11 +360,18 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     createProgram({vertex, fragment, tfVaryings}, preprocessArgs = {}) {
-        return Helpers.createGLProgram(this.gl, {
+        const program = new VAUX.Program({
             vertex: this.preprocessor.applyBlocks(vertex, preprocessArgs),
             fragment: this.preprocessor.applyBlocks(fragment, preprocessArgs),
-            tfVaryings: tfVaryings,
-        });
+        }, tfVaryings ? { transformFeedbackVaryings : {
+            names: tfVaryings,
+            bufferMode: 'interleaved'
+        }} : null );
+
+        const shader = new VAUX.Shader(program);
+        this.pixiRender.shader.bind(shader, true);
+
+        return program;
     }
 
     createTexture3D(options) {
@@ -462,47 +388,6 @@ export default class WebGLRenderer extends BaseRenderer {
             return new WebGLFluidShader(this, shaderCode);
         }
         return this.createShader(shaderCode);
-    }
-
-    createBuffer(options) {
-        return new WebGLBuffer(this, options);
-    }
-
-    /**
-     *
-     * @param {import("../BaseRenderer.js").PassOptions} options
-     */
-    beginPass(options = {}) {
-        super.beginPass(options);
-
-        const {
-            gl, _target, _viewport
-        } = this;
-
-        gl.bindFramebuffer(
-            gl.FRAMEBUFFER,
-            _target ? _target.framebuffer : null
-        );
-
-        gl.viewport(..._viewport);
-
-        this.clear(options);
-    }
-
-    /**
-     * @deprecated
-     * @param {} fogColor
-     */
-    beginFrame(fogColor) {
-        this.beginPass({fogColor})
-    }
-
-    /**
-     * @deprecated
-     */
-    endFrame() {
-        // this.blitRenderTarget();
-        // reset framebufer
     }
 
     /**

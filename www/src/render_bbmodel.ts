@@ -13,6 +13,7 @@ import type { Vector } from "./helpers.js";
 import type { World } from "./world.js";
 import type {Player} from "./player.js";
 import type WebGLRenderer from "./renders/webgl/index.js";
+import {LayerPass} from "vauxcel";
 
 export const ZOOM_FACTOR        = 0.25;
 export const DEFAULT_FOV_NORMAL = 70;
@@ -155,6 +156,11 @@ export class RendererBBModel {
         })
         this.blockDayLightTex.bind(2)
 
+        this.renderBackend._emptyTexInt.bind(3);
+        this.renderBackend._emptyTex3DInt.bind(6);
+        this.renderBackend._emptyTex3DInt.bind(7);
+        this.renderBackend._emptyTex3DInt.bind(8);
+
         // this.debugGeom = new LineGeometry()
         // this.debugGeom.pos = this.camPos
 
@@ -199,8 +205,9 @@ export class RendererBBModel {
 
         // this.debugGeom.clear()
 
-        renderBackend.beginPass({
-            fogColor : [0, 0, 0, 0]// this.env.interpolatedClearValue
+        const modelPass = renderBackend.beginPass({
+            clearColor: true,
+            clearDepth: true
         });
 
         this.env.draw(this as any)
@@ -209,7 +216,7 @@ export class RendererBBModel {
         this.meshes.draw(this as any, delta, player.lerpPos)
         // this.debugGeom.draw(renderBackend)
         // this.defaultShader.bind()
-        renderBackend.endPass()
+        renderBackend.endPass(modelPass);
 
         // this.resetAfter()
     }

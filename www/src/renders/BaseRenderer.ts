@@ -1,10 +1,13 @@
-import {Color, IvanArray, Mth, Vector} from '../helpers.js';
-import glMatrix from "@vendors/gl-matrix-3.3.min.js";
-import {BatchSystem} from "./batch/BatchSystem.js";
+// ///<reference types='vauxcel'/>
+
+import type {Vector} from '../helpers.js';
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
-import type GeometryTerrain from '../geometry_terrain.js';
-import type { WebGLMaterial } from './webgl/WebGLMaterial.js';
-import type {GeomCopyOperation} from "../geom/big_geom_batch_update.js";
+import type {GeometryTerrain} from '../geometry_terrain.js';
+import type {WebGLMaterial} from './webgl/WebGLMaterial.js';
+import * as VAUX from 'vauxcel';
+import {BLEND_MODES, Geometry, LayerPass, RenderTexture} from 'vauxcel';
+import {GlobalUniformGroup, LightUniformGroup} from "./uniform_groups.js";
+import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 
 const {mat4} = glMatrix;
 
@@ -12,193 +15,8 @@ export interface PassOptions {
     fogColor?: [number, number, number, number]
     clearColor?: boolean
     clearDepth?: boolean
-    target?: BaseRenderTarget
+    target: RenderTexture
     viewport?: [number, number, number, number]
-}
-
-/**
- * BaseRenderTarget
- */
-export class BaseRenderTarget {
-    [key: string]: any;
-    constructor (context, options = {width: 1, height: 1, depth: true}) {
-        this.context = context;
-        this.options = options;
-        /**
-         * @type {BaseTexture}
-         */
-        this.texture = null;
-        /**
-         * @type {BaseTexture}
-         */
-        this.depthTexture = null;
-        this.valid = false;
-    }
-
-    get width() {
-        return this.options.width;
-    }
-
-    get height() {
-        return this.options.height;
-    }
-
-    resize(w, h) {
-        this.destroy();
-        this.options.width = w;
-        this.options.height = h;
-
-        this.init();
-    }
-
-    init() {
-        this.texture = this.context.createTexture(this.options);
-        if (this.options.depth) {
-            this.depthTexture = this.context.createTexture({ ...this.options, type: 'depth24stencil8' });
-        }
-        this.valid = true;
-    }
-
-    flush() {
-
-    }
-
-    /**
-     * Read pixels from framebuffer
-     * @returns {Uint8Array | Promise<Uint8Array>}
-     */
-    toRawPixels(): any {
-        throw new TypeError('Illegal invocation, must be overridden by subclass');
-    }
-
-    /**
-     * @param {'image' | 'bitmap' | 'canvas'} mode
-     * @returns {Promise<Image | ImageBitmap | HTMLCanvasElement>}
-     */
-    async toImage(mode = 'image') {
-        let buffer = this.toRawPixels();
-
-        if (buffer instanceof Promise) {
-            buffer = await buffer;
-        }
-
-        for (let i = 0; i < buffer.length; i += 4) {
-            const a = buffer[i + 3] / 0xff;
-
-            if (!a) {
-                continue;
-            }
-
-            buffer[i + 0] = Math.round(buffer[i + 0] / a);
-            buffer[i + 1] = Math.round(buffer[i + 1] / a);
-            buffer[i + 2] = Math.round(buffer[i + 2] / a);
-        }
-
-        const data = new ImageData(this.width, this.height);
-
-        for(let i = 0; i < this.height; i ++) {
-            const invi = this.height - i - 1;
-            data.data.set(
-                buffer.subarray(invi * this.width * 4, (invi + 1) * this.width * 4),
-                i * this.width * 4);
-        }
-
-        if (mode === 'bitmap') {
-            return self.createImageBitmap(data);
-        }
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        ctx.canvas.width = this.width;
-        ctx.canvas.height = this.height;
-        ctx.putImageData(data, 0, 0);
-
-        if (mode === 'canvas') {
-            return Promise.resolve(canvas);
-        }
-
-        const img = new Image(this.width, this.height);
-
-        return new Promise(res => {
-            img.onload = () => res(img);
-            img.src = ctx.canvas.toDataURL();
-
-            ctx.canvas.width = ctx.canvas.height = 0;
-        });
-    }
-
-    destroy() {
-        this.valid = false;
-        if (this.texture) {
-            this.texture.destroy();
-        }
-
-        if (this.depthTexture) {
-            this.depthTexture.destroy();
-        }
-
-        this.texture = null;
-        this.depthTexture = null;
-    }
-}
-
-interface BufferOptions {data?: ArrayBufferLike, index?: boolean, bigLength?: number, usage?: 'static' | 'dynamic' }
-
-export class BaseBuffer {
-    index: boolean;
-    _data: Float32Array | Uint16Array | Int32Array;
-    context: BaseRenderer;
-    options: BufferOptions;
-    bigLength: number;
-    dirty: boolean;
-    /**
-     * notify VAO of big resize
-     */
-    bigResize = false;
-
-    constructor(context, options: BufferOptions= {}) {
-        this.context = context;
-        this.options = options;
-        this._data = options.data as any;
-        this.index = !!options.index;
-        this.bigLength = options.bigLength || 0;
-
-        this.dirty = true;
-    }
-    /**
-     *
-     * @param {Float32Array | Uint16Array} v
-     */
-    set data(v) {
-        this.dirty = true;
-        this._data = v;
-    }
-
-    get data() {
-        return this._data;
-    }
-
-    bind(loc?: number) {
-    }
-
-    update(loc?: number) {
-        this.dirty = false;
-    }
-
-    updatePartial(len: number) {
-
-    }
-
-    multiUpdate(updates) {
-
-    }
-
-    batchUpdate(updBuffer: BaseBuffer, copies: IvanArray<GeomCopyOperation>, stride: number) {
-    }
-
-    destroy() {
-
-    }
 }
 
 export class BaseTexture {
@@ -282,106 +100,16 @@ export class BaseTexture {
     }
 }
 
-export const BLEND_MODES = {
-    NORMAL: 0,
-    ADD: 1,
-    MULTIPLY: 2,
-    SCREEN: 3
-}
-
-export class BaseMaterial {
-    [key: string]: any;
-    decalOffset: number;
-    constructor(context, options) {
-        this.context = context;
-        this.options = options;
-        this.shader = options.shader;
-        this.texture = options.texture || null;
-        this.texture_n = options.texture_n || null;
-        this.lightTex = options.lightTex || null;
-        this.cullFace = options.cullFace || false;
-        this.opaque = options.opaque || false;
-        this.ignoreDepth = options.ignoreDepth || false;
-        this.mipmap = options.mipmap || false;
-        this.blendMode = options.blendMode || BLEND_MODES.NORMAL;
-        this.tintColor = options.tintColor || new Color(0, 0, 0, 0);
-        this.decalOffset = options.decalOffset || 0;
-    }
-
-    changeLighTex(light) {
-        this.lightTex = light;
-    }
-
-    getSubMat() {
-        return null;
-    }
-
-    destroy() {
-        this.shader = null;
-        this.context = null;
-        this.texture = null;
-        this.options = null;
-    }
-}
-
-export class GlobalUniformGroup {
-    [key: string]: any;
-
-    constructor(options ? : any) {
-        this.projMatrix         = mat4.create();
-        this.viewMatrix         = mat4.create();
-
-        this.chunkBlockDist = 1;
-        this.brightness = 1;
-        this.resolution = [1, 1];
-        this.fogAddColor = [0,0,0,0];
-        this.fogColor = [1,1,1,1];
-        this.time = performance.now();
-
-        this.testLightOn = 0;
-        this.crosshairOn = true;
-
-        this.sunDir = [0, 0, 0];
-        this.useSunDir = false;
-
-        this.updateID = 0;
-        this.camPos = new Vector();
-        this.useNormalMap = false;
-        this.gridChunkSize = new Vector();
-        this.gridTexSize = new Vector();
-
-        this.localLigthRadius = 0;
-        this.rainStrength = 0;
-    }
-
-    update() {
-        this.updateID++;
-    }
-
-}
-
-export class LightUniformGroup {
-    stack: Array<int> = [0x100ff];
-    override = 0x100ff;
-
-    pushOverride(val: number) {
-        this.stack.push(val);
-        this.override = val;
-    }
-
-    popOverride() {
-        this.stack.pop();
-        this.override = this.stack[this.stack.length - 1];
-    }
-}
-
 export class CubeMesh {
     shader: any;
     geom: any;
+    state: VAUX.State;
 
     constructor(shader, geom) {
         this.shader = shader;
         this.geom = geom;
+        this.state = new VAUX.State();
+        this.state.blendMode = BLEND_MODES.NORMAL_NPM;
     }
 
     get lookAt() {
@@ -397,62 +125,62 @@ export class CubeMesh {
             lookAt, proj
         } = this;
 
-        proj.set(projMatrix);
-        lookAt.set(lookAtMatrix);
-        mat4.rotate(lookAt, lookAt, Math.PI / 2, [1, 0, 0]);
+        mat4.copy(proj, projMatrix);
+        mat4.copy(lookAt, lookAtMatrix);
+        // mat4.rotate(lookAt, lookAt, Math.PI / 2, [1, 0, 0]);
 
         lookAt[12] = 0;
         lookAt[13] = 0;
         lookAt[14] = 0;
 
         this.shader.resolution = [width, height];
-
         this.shader.context.drawCube(this);
     }
 }
 
-export class BaseCubeGeometry {
+export class BaseCubeGeometry extends Geometry {
     [key: string]: any;
 
+    context: BaseRenderer;
+    options: any;
+    vertex: VAUX.Buffer;
     constructor(context, options) {
+        super();
         this.context = context;
         this.options = options;
 
-        this.index = context.createBuffer({
-            data: new Uint16Array([
-                0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4,
-                1, 5, 6, 6, 2, 1, 0, 4, 7, 7, 3, 0,
-                3, 2, 6, 6, 7, 3, 0, 1, 5, 5, 4, 0
-            ]),
-            index: true
-        });
-
-        this.vertex = context.createBuffer({
-            data: new Float32Array([
-                -1, -1, 1,
-                1, -1, 1,
-                1, 1, 1,
-                -1, 1, 1,
-                -1, -1, -1,
-                1, -1, -1,
-                1, 1, -1,
-                -1, 1, -1
-            ])
-        });
-
-        this.buffers = [
-            this.vertex, this.index
-        ];
+        this.initBuffers();
     }
 
+    initBuffers()
+    {
+        this.vertex = new VAUX.Buffer(new Float32Array([
+            -1, -1, 1,
+            1, -1, 1,
+            1, 1, 1,
+            -1, 1, 1,
+            -1, -1, -1,
+            1, -1, -1,
+            1, 1, -1,
+            -1, 1, -1
+        ]), true);
+
+        this.addAttribute('a_vertex', this.vertex, 3);
+
+        this.addIndex(new VAUX.Buffer(new Uint16Array([
+            0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4,
+            1, 5, 6, 6, 2, 1, 0, 4, 7, 7, 3, 0,
+            3, 2, 6, 6, 7, 3, 0, 1, 5, 5, 4, 0
+        ]), true, true));
+    }
 }
 
-export default class BaseRenderer {
+export class BaseRenderer {
     [key: string]: any;
 
-    batch : BatchSystem
+    batch : VAUX.BatchSystem = null;
     preprocessor = new ShaderPreprocessor();
-    globalBufs: Dict<BaseBuffer> = {};
+    pixiRender: VAUX.Renderer = null;
 
     /**
      *
@@ -532,7 +260,10 @@ export default class BaseRenderer {
             this.preprocessor.global_defines = Object.assign({}, options.defines);
         }
 
-        this.batch = new BatchSystem(this);
+        this.state3d = new VAUX.State();
+        this.state3d.blendMode = VAUX.BLEND_MODES.NORMAL_NPM;
+        this.state3d.depthTest = true;
+        this.state3d.cullFace = true;
 
         this.multidrawExt = null;
     }
@@ -590,17 +321,9 @@ export default class BaseRenderer {
         return block;
     }
 
-    /**
-     * @deprecated
-     * @see beginPass
-     * @param {BaseRenderTarget} target
-     */
-    setTarget(target) {
-        if (target && !target.valid) {
-            throw 'Try bound invalid RenderTarget';
-        }
-
-        this._target = target;
+    resetState()
+    {
+        this.pixiRender.state.set(this.state3d);
     }
 
     resize(width : number, height : number) {
@@ -614,85 +337,27 @@ export default class BaseRenderer {
 
     }
 
-    /**
-     * Begin render pass to specific target
-     * @param {PassOptions} param0
-     */
-    beginPass({
-        fogColor = [0,0,0,0],
-        clearDepth = true,
-        clearColor = true,
-        target = null,
-        viewport = null
-    }) {
-        if (target && !target.valid) {
-            throw 'Try bound invalid RenderTarget';
+    beginPass(layerPassOrOptions: any) {
+        this.pixiRender.batch.flush();
+        this.resetState();
+
+        let layerPass: VAUX.LayerPass;
+        if (layerPassOrOptions instanceof VAUX.LayerPass) {
+            layerPass = layerPassOrOptions;
+        } else {
+            layerPass = new LayerPass(layerPassOrOptions);
         }
 
-        this._target = target;
+        this.pixiRender.pass.begin(layerPass);
 
-        const { size } = this;
-
-        const limit = target
-            ? target
-            : size;
-
-        const x = viewport
-            ? Mth.clamp(0, limit.width, viewport[0] || 0)
-            : 0;
-
-        const y = viewport
-            ? Mth.clamp(0, limit.height, viewport[1] || 0)
-            : 0;
-
-        const width = viewport
-            ? Mth.clamp(0, limit.width, viewport[2] || limit.width)
-            : limit.width;
-
-
-        const height = viewport
-            ? Mth.clamp(0, limit.height, viewport[3] || limit.height)
-            : limit.height;
-
-        this._viewport[0] = x;
-        this._viewport[1] = y;
-        this._viewport[2] = width;
-        this._viewport[3] = height;
-
-        this._clearColor[0] = fogColor[0] || 0;
-        this._clearColor[1] = fogColor[1] || 0;
-        this._clearColor[2] = fogColor[2] || 0;
-        this._clearColor[3] = fogColor[3] || 0;
+        return layerPass;
     }
 
-    /**
-     * Execute render and close current pass
-     */
-    endPass() {
-        this.batch.flush();
-    }
+    endPass(layerPass?: VAUX.LayerPass)
+    {
+        this.pixiRender.batch.flush();
 
-    /**
-     * @deprecated
-     * @see beginPass
-     * @param {} fogColor
-     */
-    beginFrame(fogColor) {
-
-    }
-
-    /**
-     * @deprecated
-     * @see endPass
-     */
-    endFrame() {
-
-    }
-
-    clear({
-        clearDepth, clearColor
-    }) {
-
+        this.pixiRender.pass.end(layerPass);
     }
 
     /**
@@ -710,15 +375,6 @@ export default class BaseRenderer {
      */
     blitActiveTo(toTarget) {
         this.blit(this._target, toTarget);
-    }
-
-    /**
-     * Create render target
-     * @param options
-     * @return {BaseRenderTarget}
-     */
-    createRenderTarget(options) {
-        throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
     /**
@@ -742,12 +398,12 @@ export default class BaseRenderer {
         if (geom.size === 0) {
             return;
         }
-        this.batch.setObjectDrawer(this.mesh);
+        this.batch.setObjectRenderer(this.mesh);
         this.mesh.draw(geom, material, a_pos, modelMatrix, draw_type);
     }
 
     drawCube(cube) {
-        this.batch.setObjectDrawer(this.cube);
+        this.batch.setObjectRenderer(this.cube);
         this.cube.draw(cube);
     }
 
@@ -768,22 +424,91 @@ export default class BaseRenderer {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
-    createBuffer(options): BaseBuffer {
-        throw new TypeError('Illegal invocation, must be overridden by subclass');
-    }
-
     createCubeMap(options) {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
     resetBefore() {
+        this.pixiRender.shader.reset();
+        this.pixiRender.state.reset();
+        this.resetState();
     }
 
     resetAfter() {
+        this.pixiRender.shader.reset();
+        this.pixiRender.geometry.reset();
     }
 
     destroy() {
 
+    }
+
+    rtToRawPixels(rt: VAUX.RenderTexture) {
+        /**
+         * @type {WebGL2RenderingContext}
+         */
+        const gl = this.gl
+        const buffer = new Uint8Array(rt.width * rt.height * 4);
+
+        this.pixiRender.renderTexture.bind(rt);
+        gl.readPixels(0,0,rt.width, rt.height, gl.RGBA, gl.UNSIGNED_BYTE, buffer);
+        this.pixiRender.renderTexture.bind(null);
+
+        return buffer;
+    }
+
+    async rtToImage(rt: VAUX.RenderTexture, mode = 'image') {
+        let buffer = this.rtToRawPixels(rt);
+
+        if (buffer instanceof Promise) {
+            buffer = await buffer;
+        }
+
+        for (let i = 0; i < buffer.length; i += 4) {
+            const a = buffer[i + 3] / 0xff;
+
+            if (!a) {
+                continue;
+            }
+
+            buffer[i + 0] = Math.round(buffer[i + 0] / a);
+            buffer[i + 1] = Math.round(buffer[i + 1] / a);
+            buffer[i + 2] = Math.round(buffer[i + 2] / a);
+        }
+
+        const data = new ImageData(rt.width, rt.height);
+
+        for(let i = 0; i < rt.height; i ++) {
+            const invi = rt.height - i - 1;
+            data.data.set(
+                buffer.subarray(invi * rt.width * 4, (invi + 1) * rt.width * 4),
+                i * rt.width * 4);
+        }
+
+        if (mode === 'bitmap') {
+            return self.createImageBitmap(data);
+        }
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.canvas.width = rt.width;
+        ctx.canvas.height = rt.height;
+        ctx.putImageData(data, 0, 0);
+
+        if (mode === 'canvas') {
+            return canvas;
+        }
+
+        const img = new Image(rt.width, rt.height);
+
+        return new Promise(res => {
+            img.onload = () => res(img);
+            img.src = ctx.canvas.toDataURL();
+
+            ctx.canvas.width = ctx.canvas.height = 0;
+
+            return img;
+        });
     }
 
     static ID = 0;

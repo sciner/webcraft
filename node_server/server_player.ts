@@ -59,7 +59,7 @@ type TeleportParams = {
 
 const MAX_COORD                 = 2000000000;
 const MAX_RANDOM_TELEPORT_COORD = 2000000;
-const IMMUNITY_DAMAGE_TIME      = 3000 // 3 секунды
+export const IMMUNITY_DAMAGE_TIME   = 3000      // сколько миллисекунд длится неуязвимость после респауна
 
 async function waitPing() {
     return new Promise((res) => setTimeout(res, EMULATED_PING));
@@ -126,7 +126,7 @@ export class ServerPlayer extends Player {
     declare driving: ServerDriving | null = null
     /** См. комментарий к аналогичному полю {@link Mob.drivingId} */
     drivingId: int | null = null
-    #timer_immunity: number
+    timer_immunity: number      // performance.now() когда последний раз включался таймер неуязвимости
 
     // These flags show what must be saved to DB
     static DB_DIRTY_FLAG_INVENTORY     = 0x1;
@@ -178,7 +178,7 @@ export class ServerPlayer extends Player {
         this.timer_reload = performance.now()
         this._aabb = new AABB()
 
-        this.#timer_immunity = performance.now()
+        this.timer_immunity = performance.now()
     }
 
     init(init_info: PlayerInitInfo): void {
@@ -547,7 +547,7 @@ export class ServerPlayer extends Player {
         this.checkVisibleChunks();
         this.sendNearPlayersToMe();
         this.controlManager.tick();
-        this.checkIndicators(tick_number);
+        this.checkIndicators();
         this.combat.setDamage(tick_number)
         //this.damage.tick(delta, tick_number);
         this.checkCastTime();
@@ -687,8 +687,8 @@ export class ServerPlayer extends Player {
             // teleport
         let initialPos = this.vision.safePosInitialOverride || this.state.pos_spawn;
         this.vision.safePosInitialOverride = null;
-        const initialUndergroundAllowed = initialPos.equal(this.state.pos_spawn); // can't use === here, it may be a clone with the same value
-        const safePos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin, initialUndergroundAllowed);
+        const isSpawnPoint = initialPos.equal(this.state.pos_spawn); // can't use === here, it may be a clone with the same value
+        const safePos = this.world.chunks.findSafePos(initialPos, this.vision.safeTeleportMargin, isSpawnPoint);
         this.sendTeleport(safePos, 'spawn');
 
         // создать бонусный сундук возле игрока-хозяина мира при первом входе
@@ -800,18 +800,17 @@ export class ServerPlayer extends Player {
         }
     }
 
-    // check indicators
-    checkIndicators(tick) {
-
-        if(this.status !== PLAYER_STATUS.ALIVE || !this.game_mode.mayGetDamaged()) {
-            this.#timer_immunity = performance.now()
-            return false
+    /** Проверяет изменились ли индикаторы. Не меняет их - см. {@link ServerPlayerDamage.checkDamage} */
+    checkIndicators(): void {
+        if(this.status !== PLAYER_STATUS.ALIVE) { // мертв или ждет телепорта
+            this.timer_immunity = performance.now()
+            this.damage.protectFallDamage()
+            return
         }
-
-        if (this.#timer_immunity + IMMUNITY_DAMAGE_TIME < performance.now()) {
-            this.damage.getDamage(tick)
+        if (!this.game_mode.mayGetDamaged()) { // защитит от падения если в воздухе, но на земле флаг сразу снимется
+            this.damage.protectFallDamage()
+            return
         }
-
         if (this.live_level == 0 || this.state.indicators.live != this.live_level || this.state.indicators.food != this.food_level || this.state.indicators.oxygen != this.oxygen_level ) {
             const packets = [];
             if (this.state.indicators.live > this.live_level) {
@@ -903,7 +902,7 @@ export class ServerPlayer extends Player {
         if (this.state.sitting || this.state.sleep) {
             this.standUp()
         }
-        this.#timer_immunity = performance.now()
+        this.timer_immunity = performance.now()
         const world = this.world;
         let new_pos = null;
         let teleported_player = this;
@@ -981,6 +980,7 @@ export class ServerPlayer extends Player {
                 );
                 teleported_player.setPosition(new_pos);
                 teleported_player.vision.checkSpiralChunks();
+                teleported_player.damage.protectFallDamage()
             }
         }
     }

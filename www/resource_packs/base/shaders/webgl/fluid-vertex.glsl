@@ -140,7 +140,7 @@ void main() {
     // Waves
     v_world_pos.z += getWaveValue();
 
-    v_position = (u_worldView * vec4(v_world_pos, 1.0)).xyz;
-    gl_Position = uProjMatrix * vec4(v_position, 1.0);
+    v_position = (u_viewMatrix * vec4(v_world_pos, 1.0)).xyz;
+    gl_Position = u_projMatrix * vec4(v_position, 1.0);
     #include_post<flat_encode>
 }

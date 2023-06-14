@@ -45,7 +45,7 @@ export class ChunkMesh {
             this.texMat = texMat;
         }
         mat = texMat;
-        render.batch.setObjectDrawer(render.chunk);
+        render.batch.setObjectRenderer(render.chunk);
         render.chunk.draw(buffer, mat, chunk);
         return true;
     }
