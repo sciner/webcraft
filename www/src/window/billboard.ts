@@ -97,7 +97,6 @@ class FilesCollection extends Window {
 
     // Init collection
     initCollection(all_blocks) {
-        console.log(all_blocks)
         this.slots_count        = all_blocks.length
         this.scrollY            = 0
         this.container.y        = 0
@@ -169,11 +168,15 @@ export class BillboardWindow extends BlankWindow {
         this.addButtonLoad()
         // listener
         player.world.server.AddCmdListener([ServerClient.CMD_MEDIA_FILES], (packet) => {
-            this.collection.initCollection(packet.data.files)
+            this.upadateCollection(packet.data.files)
         })
         // preview() 
         this.preview = new Window(UI_THEME.window_padding, 36 * this.zoom, 0, 0, 'wndPreview')
         this.add(this.preview)
+    }
+
+    upadateCollection(files) {
+        this.collection.initCollection(files)
     }
 
     setPreview(file) {

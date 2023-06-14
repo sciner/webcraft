@@ -141,20 +141,12 @@ export class ServerAPI {
                     const ext = name.substr(name.lastIndexOf('.'))
                     const md5 = req.files.file.md5 // name = req.files.file.name.replace(/[^a-zа-я0-9\s\.\-_]/gi, '')
                     const file = path + md5 + ext
-                    fs.stat(file, async function(err, stats) {
-                        if (err) {
-                            await req.files.file.mv(path + md5 + ext)
-                            const files = await getPlayerFiles(session.user_guid)
-                            return {
-                                'result':'ok',
-                                'files': files
-                            }
-                        } else {
-                            return {'result':'error'}
-                        }
-                    })
+                    await req.files.file.mv(file)
+                    await req.files.preview.mv(path + md5 + 'preview' + ext)
+                    const files = await getPlayerFiles(session.user_guid)
+                    return {'result':'ok', 'files': files}
                 }
-                
+                return {'result':'error'}
             }
             case '/api/Game/Screenshot': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);

@@ -174,18 +174,63 @@ export class UIApp {
     }
 
     UploadImage(files) {
+        const reader = new FileReader()
+        const self = this
+        reader.onload = function (e) {
+            console.log('reander load')
+            const img = new Image()
+            img.src = e.target.result.toString()
+            img.onload = () => {
+                // generate preview
+                const MAX_PREVIEW_SIZE = 512
+                const w = Math.round(img.width > img.height ? MAX_PREVIEW_SIZE : img.width / (img.height / MAX_PREVIEW_SIZE))
+                const h = Math.round(img.height > img.width ? MAX_PREVIEW_SIZE : img.height / (img.width / MAX_PREVIEW_SIZE))
+                const canvas_preview = document.createElement('canvas')
+                canvas_preview.width = w
+                canvas_preview.height = h
+                const ctx_preview = canvas_preview.getContext('2d')
+                ctx_preview.drawImage(img, 0, 0, img.width, img.height, 0, 0, w, h)
+                canvas_preview.toBlob((previewBlob) => {
+                    const form = new FormData();
+                    form.append('file', files[0])
+                    form.append('preview', new File([previewBlob], 'preview.png', { type: 'image/png' }))
+                    self.Billboard(form, function(result) {
+                        if (result.result == "ok") {
+                            vt.success("Image uploaded to server");
+                            Qubatch.hud.wm.getWindow('frmBillboard').upadateCollection(result.files)
+                        } else {
+                            vt.error("Error upload image");
+                        }
+                    })
+                }, 'image/png')
+            }
+        }
+        reader.readAsDataURL(files[0])
+        /*const img = new Image()
+        img.onload = () => {
+            // generate preview
+            const MAX_PREVIEW_SIZE = 512
+            const w = Math.round(img.width > img.height ? MAX_PREVIEW_SIZE : img.width / (img.height / MAX_PREVIEW_SIZE))
+            const h = Math.round(img.height > img.width ? MAX_PREVIEW_SIZE : img.height / (img.width / MAX_PREVIEW_SIZE))
+            const canvas_preview = document.createElement('canvas')
+            canvas_preview.width = w
+            canvas_preview.height = h
+            const ctx_preview = canvas_preview.getContext('2d')
+            ctx_preview.drawImage(img, 0, 0, img.width, img.height, 0, 0, w, h)
+            canvas_preview.toBlob((previewBlob) => {
+                //this.screenshot_file_preview = new File([previewBlob], 'image-preview.webp', { type: 'image/webp' });
+            }, 'image/webp')
+        }
         const form = new FormData();
-        form.append('file', files[0]);
+        form.append('file', files[0])
         this.Billboard(form, function(result) {
             if (result.result == "ok") {
                 vt.success("Image uploaded to server");
-                console.log(Qubatch.hud.getWindow('frmBillboard'))
-
-                Qubatch.hud.getWindow('frmBillboard').collection.initCollection(result.files)
+                Qubatch.hud.wm.getWindow('frmBillboard').upadateCollection(result.files)
             } else {
                 vt.error("Error upload image");
             }
-        })
+        })*/
     }
 
     // Send image to billboard

@@ -755,13 +755,4 @@ export class HUD {
         }
     }
 
-    getWindow(id) {
-        for (const wnd of this.wm.children) {
-            if (wnd?.id == id) {
-                return wnd
-            }
-        }
-        return null
-    }
-
 }
