@@ -20,7 +20,7 @@ class FileSlot extends Window {
     }
 
     getFile() {
-        return this.file
+        return this.file.replace('_', '')
     }
 }
 

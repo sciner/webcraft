@@ -184,7 +184,9 @@ export async function getPlayerFiles(guid: string) {
     if (fs.existsSync(path)) {
         const upload = await fs.promises.readdir(path)
         for (const file of upload) {
-            files.push(path + file)
+            if (file.indexOf('_') != -1) {
+                files.push(path + file)
+            }
         }
     }
     return files

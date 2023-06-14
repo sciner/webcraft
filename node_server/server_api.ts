@@ -142,7 +142,7 @@ export class ServerAPI {
                     const md5 = req.files.file.md5 // name = req.files.file.name.replace(/[^a-zа-я0-9\s\.\-_]/gi, '')
                     const file = path + md5 + ext
                     await req.files.file.mv(file)
-                    await req.files.preview.mv(path + md5 + 'preview' + ext)
+                    await req.files.preview.mv(path + md5 + '_' + ext)
                     const files = await getPlayerFiles(session.user_guid)
                     return {'result':'ok', 'files': files}
                 }
