@@ -62,7 +62,13 @@ export class BufferBaseTexture3D extends BaseTexture<Buffer3DResource>
     constructor(options: IBuffer3DResourceOptionsWithData) {
         let format = options.format || detectBufferTextureFormat(options.data);
 
-        super(new Buffer3DResource(options.data, {...options, useFixedSize: true}), { format });
+        let ps = options.pixelSize || 1;
+        let width = options.width / ps;
+        let height = options.height / ps;
+        let depth = options.depth / ps;
+
+        super(new Buffer3DResource(options.data, {...options, width, height, depth,
+            useFixedSize: true}), { format });
         (this as any).scaleMode = options.minFilter === 'linear' ? SCALE_MODES.LINEAR : SCALE_MODES.NEAREST;
         (this as any).mipmap = 0;
         (this as any).alphaMode = 0;

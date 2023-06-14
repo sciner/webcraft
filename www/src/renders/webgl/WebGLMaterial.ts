@@ -17,6 +17,9 @@ export class WebGLMaterial extends BaseMaterial {
         pixiRender.state.set(this.state);
         const tex = this.texture || this.shader.texture;
         const texN = this.texture_n || this.shader.texture_n;
+        if (!tex.castToBaseTexture) {
+            console.log("WTF")
+        }
         pixiRender.texture.bind(tex, 4);
         if (texN) {
             pixiRender.texture.bind(texN, 5);
