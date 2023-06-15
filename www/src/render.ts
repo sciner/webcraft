@@ -374,7 +374,7 @@ export class Renderer {
                 height: INVENTORY_ICON_TEX_HEIGHT,
             },
             useRenderTexture: true,
-            depth: true,
+            useDepth: true,
             clearColor: true,
             clearDepth: true,
         });
