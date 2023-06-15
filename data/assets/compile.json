@@ -582,6 +582,23 @@
                 "all": "block/decals/grass_block/all.png",
                 "opposite": "block/decals/grass_block/opposite.png"
             },
+            "texture_variants": [
+                "./textures/grass_block/1.png",
+				"./textures/grass_block/1-1.png",
+				"./textures/grass_block/1-2.png",
+				"./textures/grass_block/1-3.png",
+				"./textures/grass_block/1-4.png",
+				"./textures/grass_block/1-5.png",
+				"./textures/grass_block/1-6.png",
+				"./textures/grass_block/1-7.png",
+                "./textures/grass_block/2.png",
+                "./textures/grass_block/3.png",
+                "./textures/grass_block/4.png",
+                "./textures/grass_block/5.png",
+                "./textures/grass_block/6.png",
+                "./textures/grass_block/7.png",
+                "./textures/grass_block/8.png"
+            ],
             "generator": {
                 "can_replace_to_slab": "GRASS_BLOCK_SLAB"
             }
@@ -606,6 +623,23 @@
                 "down": "block/dirt.png",
                 "side": "block/grass_block_side_overlay.png"
             },
+            "texture_variants": [
+                "./textures/grass_block/1.png",
+				"./textures/grass_block/1-1.png",
+				"./textures/grass_block/1-2.png",
+				"./textures/grass_block/1-3.png",
+				"./textures/grass_block/1-4.png",
+				"./textures/grass_block/1-5.png",
+				"./textures/grass_block/1-6.png",
+				"./textures/grass_block/1-7.png",
+                "./textures/grass_block/2.png",
+                "./textures/grass_block/3.png",
+                "./textures/grass_block/4.png",
+                "./textures/grass_block/5.png",
+                "./textures/grass_block/6.png",
+                "./textures/grass_block/7.png",
+                "./textures/grass_block/8.png"
+            ],
             "layering": {
                 "height": 0.5,
                 "slab": true,
@@ -1494,6 +1528,10 @@
                 "id": "stone"
             },
             "texture": "block/stone.png",
+            "texture_variants": [
+                "./textures/stone/stone1.png",
+                "./textures/stone/stone2.png"
+            ],
             "drop_item": [
                 {
                     "name": "STONE",
@@ -2061,7 +2099,8 @@
                 "block/grass/grass4.png",
                 "block/grass/grass5.png",
                 "block/grass/grass6.png",
-                "block/grass/grass7.png"
+                "block/grass/grass7.png",
+                "block/grass/grass8.png"
             ],
             "material": {
                 "id": "plant"
