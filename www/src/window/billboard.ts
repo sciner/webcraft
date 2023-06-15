@@ -2,7 +2,7 @@ import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
 import { BlankWindow } from "./blank.js";
 import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, UI_THEME } from "../constant.js";
-import {Button, Window, Slider} from "../ui/wm.js";
+import { Window, Slider} from "../ui/wm.js";
 import { Resources } from "../resources.js";
 
 

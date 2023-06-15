@@ -1537,14 +1537,17 @@ function needOpenWindow(e, world, pos, player, world_block, world_material, mat_
             }
             case BLOCK.BILLBOARD7X3.id:
             case BLOCK.BILLBOARD1X2.id: {
-                if (extra_data?.relindex == -1){
-                    actions.open_window = {
-                        id: 'frmBillboard',
-                        args: {
-                            pos: new Vector(pos),
-                            small: (world_material.id == BLOCK.BILLBOARD1X2.id),
-                            file: extra_data.texture.url
-                        }
+                const possworld = new Vector(pos)
+                const relindex = extra_data.relindex
+                const move = relindex == -1 ? Vector.ZERO : relIndexToPos(relindex, new Vector())
+                possworld.subSelf(move)
+                const block = world.getBlock(possworld)
+                actions.open_window = {
+                    id: 'frmBillboard',
+                    args: {
+                        pos: possworld,
+                        small: (block.id == BLOCK.BILLBOARD1X2.id),
+                        file: block?.extra_data?.texture?.url
                     }
                 }
                 break
