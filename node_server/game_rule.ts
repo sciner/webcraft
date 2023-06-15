@@ -1,6 +1,9 @@
 import { ObjectHelpers } from "@client/helpers.js";
 import type { ServerWorld } from "server_world";
 
+/** базовый размер чанка, для которого определена {@link GameRule.getRandomTickSpeedValue}*/
+export const RANDOM_TICK_SPEED_CHUNK_SIZE = 16 * 16 * 40
+
 export class GameRule {
 
     #world : ServerWorld;
@@ -23,7 +26,8 @@ export class GameRule {
             doWeatherCycle:     {default: true, type: 'boolean'},
             doMobSpawning:      {default: true, type: 'boolean'},
             pvp:                {default: true, type: 'boolean'},
-            randomTickSpeed:    {default: 3, type: 'int'},
+            /** См. {@link getRandomTickSpeedValue} */
+            randomTickSpeed:    {default: 3, type: 'float'},
             difficulty:         {default: 1, type: 'int'},
             fluidTickRate:      {default: 5, min: 1, max: 1000000, type: 'int'},
             lavaSpeed:          {default: 6, min: 1, max: 6, type: 'int'},
@@ -52,10 +56,12 @@ export class GameRule {
         throw 'error_incorrect_rule_code';
     }
 
+    /**
+     * @return сколько в среднем рандомных тикеров вызывается за 1 тик в чанке размером {@link RANDOM_TICK_SPEED_CHUNK_SIZE}.
+     * Если чанк другого размера - применяется поправка при вызове рандомных (и только рандомных) тикеров.
+     */
     getRandomTickSpeedValue() : float {
-        const chunkSize = this.#world.grid.chunkSize
-        const volume = chunkSize.x * chunkSize.y * chunkSize.z
-        return this.getValue('randomTickSpeed') / 10240 * volume // 10240 = 16х40х16
+        return this.getValue('randomTickSpeed')
     }
 
     // Set world game rule value
@@ -75,8 +81,9 @@ export class GameRule {
                 value = this.parseBoolValue(strValue);
                 break;
             }
+            case 'float':
             case 'int': {
-                value = this.parseIntValue(strValue);
+                value = default_rule.type === 'int' ? this.parseIntValue(strValue) : this.parseFloatValue(strValue)
                 if('min' in default_rule) {
                     if(value < default_rule.min) throw `error_invalid_rule_range_min|${default_rule.min}`;
                 }
@@ -146,6 +153,14 @@ export class GameRule {
     parseIntValue(strValue: string): int {
         const value = parseInt(strValue);
         if (isNaN(value) || !isFinite(value) || Math.round(value) !== value) {
+            throw 'error_invalid_value_type';
+        }
+        return value;
+    }
+
+    parseFloatValue(strValue: string): float {
+        const value = parseFloat(strValue);
+        if (isNaN(value) || !isFinite(value)) {
             throw 'error_invalid_value_type';
         }
         return value;
