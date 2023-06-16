@@ -119,7 +119,7 @@ export class ChunkManager {
     timer60fps = 0;
 
     chunk_modifiers = new VectorCollector();
-    groundLevelEastimtion: number | null = null;
+    groundLevelEstimation: number | null = null;
     rendered_chunks        = {fact: 0, total: 0};
     DUMMY: any;
     AIR: any;
@@ -434,7 +434,7 @@ export class ChunkManager {
                     break;
                 }
                 case 'ground_level_estimated': {
-                    that.groundLevelEastimtion = args;
+                    that.groundLevelEstimation = args;
                     break;
                 }
             }

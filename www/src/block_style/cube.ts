@@ -419,11 +419,13 @@ export default class style {
             x + .5 + width/2,
             y + height,
             z + .5 + depth/2
-        );
+        )
+
+        const random_index = z * 13 + x * 3 + y * 23
 
         // Push vertices
         if(canDrawUP) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'up', DIRECTION_UP, null, null);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'up', DIRECTION_UP, null, null, random_index)
             // connected_sides
             if(material.connected_sides) {
                 style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_UP)
@@ -748,7 +750,7 @@ export default class style {
 
     }
 
-    static calcSideParams(block : TBlock | FakeTBlock, material : IBlockMaterial, bm : BLOCK, no_anim : boolean, cavity_id : int, force_tex : any, lm : IndexedColor, flags : int, sideFlags : int, upFlags : int, side : string, dir : int | string, width? : float, height? : float) : TCalcSideParamsResult {
+    static calcSideParams(block : TBlock | FakeTBlock, material : IBlockMaterial, bm : BLOCK, no_anim : boolean, cavity_id : int, force_tex : any, lm : IndexedColor, flags : int, sideFlags : int, upFlags : int, side : string, dir : int | string, width? : float, height? : float, random_index?: int) : TCalcSideParamsResult {
         const is_side = side != 'up' && side != 'down'
         if(is_side && cavity_id === dir) {
             dir = 'cavity'
@@ -762,7 +764,11 @@ export default class style {
                 dir = 'north_on';
             }
         }
-        _sideParams.t = (force_tex as any) || bm.calcMaterialTexture(material, dir, width, height, block);
+        let random_double = undefined
+        if((block.id == bm.GRASS_BLOCK.id || block.id == bm.GRASS_BLOCK_SLAB.id) && side == 'up') {
+            random_double = (randoms.double(random_index) | 0) / 100
+        }
+        _sideParams.t = (force_tex as any) || bm.calcMaterialTexture(material, dir, width, height, block, undefined, random_double)
         if(is_side) {
             if(block.id == BLOCK.GRASS_BLOCK_SLAB.id || block.id == BLOCK.SNOW_DIRT_SLAB.id) {
                 _sideParams.t[1] -= .5 / material.tx_cnt

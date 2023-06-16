@@ -5,6 +5,7 @@ import {TBlock} from "@client/typed_blocks3.js";
 import {FAST_RANDOM_TICKERS_PERCENT} from "@client/constant.js";
 import {WorldAction} from "@client/world_action.js";
 import {CHUNK_STATE} from "@client/chunk_const.js";
+import {RANDOM_TICK_SPEED_CHUNK_SIZE} from "../../game_rule.js";
 
 const _rnd_check_pos = new Vector()
 const tmpRandomTickerTBlock = new TBlock()
@@ -62,6 +63,9 @@ export class RandomTickingBlocks {
             }
         } else {
             if (random_chunk_index != null) {   // если надо удалить из random_chunks
+                if (random_chunks[random_chunk_index] !== this) {
+                    throw new Error('random_chunks[random_chunk_index] !== this')
+                }
                 if (random_chunk_index != random_chunks.length - 1) { // перенести последний чанк на место этого
                     random_chunks[random_chunk_index] = random_chunks.pop()
                     random_chunks[random_chunk_index].random_chunk_index = random_chunk_index
@@ -73,7 +77,7 @@ export class RandomTickingBlocks {
         }   
     }
 
-    tick(world_light: int, check_count: int): void {
+    tick(world_light: int, check_count: float): void {
 
         const tickBlock = (flatIndex: int) => {
             fromFlatChunkIndex(_rnd_check_pos, flatIndex)
@@ -91,13 +95,17 @@ export class RandomTickingBlocks {
         const {fromFlatChunkIndex, CHUNK_SIZE} = chunk.chunkManager.grid.math
 
         if (this.heads) { // вызываем только для известных блоков
-            check_count = Mth.roundRandom(check_count * count / CHUNK_SIZE) // число вызовов пропорционально числу тикеров
+            check_count = Mth.roundRandom(check_count * count / RANDOM_TICK_SPEED_CHUNK_SIZE) // число вызовов пропорционально числу тикеров
+            if (!check_count) {
+                return
+            }
             let index = Mth.randomInt(count) // индекс случайного блока в arr
             for(let i = 0; i < check_count; i++) {
                 tickBlock(arr[2 * index])
                 index = (index + 100003) % count // добавляем простое число - перебирает индексы без повторения
             }
         } else { // старый метод - вызывем случайно для всех блоков
+            check_count = Mth.roundRandom(check_count * CHUNK_SIZE / RANDOM_TICK_SPEED_CHUNK_SIZE) // число вызовов пропорционально размеру чанка
             for (let i = 0; i < check_count; i++) {
                 tickBlock(Math.floor(Math.random() * CHUNK_SIZE))
             }
@@ -113,37 +121,37 @@ export class RandomTickingBlocks {
 
     add(flatIndex: int): void {
         let {heads, arr} = this
-        const arrIndex = this.count * 2
+        if (heads) { // если есть хеш-таблицы
+            // увеличить размер таблицы
+            if (this.count >= heads.length) {
+                if (this.count === this.maxCount) {
+                    this.heads = null   // освободить память, больше не хранить индексы
+                    this.arr = null
+                    this.count++
+                    return
+                }
+                // увеличить размер таблицы
+                this.createTable(this.count * 1.4 + 10)
+                for(let index of heads) { // перенести элементы старой таблицы в новую
+                    while (index != RandomTickingBlocks.EMPTY_INDEX) {
+                        this.add(arr[index])
+                        index = arr[index + 1]
+                    }
+                }
+                heads   = this.heads
+                arr     = this.arr
+            }
+            // добавили блок
+            const arrIndex = this.count * 2
+            const head = flatIndex % heads.length
+            arr[arrIndex] = flatIndex
+            arr[arrIndex + 1] = heads[head]
+            heads[head] = arrIndex
+        }
         this.count++
-        if (arrIndex === 0) {
+        if (this.count === 1) {
             this.updateRandomChunks()
         }
-        if (!heads) { // если нет хеш-таблицы
-            return
-        }
-        // увеличить размер таблицы
-        if (this.count > heads.length) {
-            if (this.count === this.maxCount) {
-                this.heads = null   // освободить память, больше не хранить индексы
-                this.arr = null
-                return
-            }
-            // увеличить размер таблицы
-            this.createTable(this.count * 1.4 + 10)
-            for(let index of heads) { // перенести элементы старой таблицы в новую
-                while (index != RandomTickingBlocks.EMPTY_INDEX) {
-                    this.add(arr[index])
-                    index = arr[index + 1]
-                }
-            }
-            heads   = this.heads
-            arr     = this.arr
-        }
-        // добавили блок
-        const head = flatIndex % heads.length
-        arr[arrIndex] = flatIndex
-        arr[arrIndex + 1] = heads[head]
-        heads[head] = arrIndex
     }
 
     delete(flatIndex: int): void {

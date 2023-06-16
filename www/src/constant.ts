@@ -47,10 +47,10 @@ export const HEAD_MAX_ROTATE_ANGLE          = 45; // in degree
 
 /**
  * Макимальная доля случайных тикеров от объема чанка, для которых хранятся индексы.
- * Меньше значение => меньше памяти, но медленнее. Разумные занчения 0.05-0.1. На храние 1 тикера тратится 6 байт.
+ * Меньше значение => меньше памяти, но медленнее. Разумные занчения 0.05-0.1. На храние 1 тикера тратится 6-7 байт.
  * Эта константа объявлена на клиенте потому что используется в воркере.
  */
-export const FAST_RANDOM_TICKERS_PERCENT = 0.1
+export const FAST_RANDOM_TICKERS_PERCENT = 0.07
 
 // Dirt and grass
 export const GRASS_PALETTE_OFFSET           = Object.freeze({x : 128, y : 0}) // (in px) offset in mask_color.png for grass palette
