@@ -236,6 +236,7 @@ export class Renderer {
         for(let rp of BLOCK.resource_pack_manager.list.values()) {
             rp.shader.materials = {
                 regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader}),
+                creative_regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader}),
                 doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader: rp.shader}),
                 decal1: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader, decalOffset: 1}),
                 decal2: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader, decalOffset: 2}),

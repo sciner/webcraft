@@ -12787,10 +12787,12 @@
             "material": {
                 "id": "glass"
             },
+            "group": "creative_regular",
             "mining_time": 0,
-            "extra_data": {"light": 10},
+            "extra_data": {"level": 15},
             "aabb": [0, 0, 0, 1, 1, 1],
             "tags": [
+                "hide_in_creative",
                 "no_drop_ao"
             ],
             "light_power": {
@@ -12799,7 +12801,25 @@
                 "b": 131,
                 "a": 224
             },
-            "texture": "item/light_10.png"
+            "texture": {
+                "side": "item/light_10.png",
+                "0": "item/light_00.png",
+                "1": "item/light_01.png",
+                "2": "item/light_02.png",
+                "3": "item/light_03.png",
+                "4": "item/light_04.png",
+                "5": "item/light_05.png",
+                "6": "item/light_06.png",
+                "7": "item/light_07.png",
+                "8": "item/light_08.png",
+                "9": "item/light_09.png",
+                "10": "item/light_10.png",
+                "11": "item/light_11.png",
+                "12": "item/light_12.png",
+                "13": "item/light_13.png",
+                "14": "item/light_14.png",
+                "15": "item/light_15.png"
+            }
         }
     ]
 }

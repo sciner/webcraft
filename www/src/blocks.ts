@@ -1460,6 +1460,14 @@ export class BLOCK {
             return shapes
         }
 
+        const player = world?.chunkManager?.renderList?.render?.player
+        if(player) {
+            const is_creative = player.game_mode.isCreative()
+            if(!is_creative && material.hide_in_creative) {
+                return shapes
+            }
+        }
+
         /** Проверка что блок - препятствие. Она должна совпадать с проверкой в {@link PhysicsBlockAccessor.getObstacleAABBs} */
         if(!for_physic || (!material.passable && !material.planting)) {
 
@@ -1572,6 +1580,7 @@ export class BLOCK {
             block.has_powerbar = !!(block.item?.instrument_id || block.armor)
             block.light_power_number = BLOCK.getLightPower(block)
             block.interact_water = block.tags.includes('interact_water') || !!block.layering?.slab
+            block.hide_in_creative = block.tags.includes('hide_in_creative')
             block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab || !!block.is_leaves || !!block.tags.includes('trapdoor')
             if(!block.support_style && block.planting) {
                 block.support_style = 'planting'
