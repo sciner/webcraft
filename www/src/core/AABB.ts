@@ -153,6 +153,16 @@ export class AABB {
         return this;
     }
 
+    setArray(arr: number[]): this {
+        this.x_min = arr[0]
+        this.y_min = arr[1]
+        this.z_min = arr[2]
+        this.x_max = arr[3]
+        this.y_max = arr[4]
+        this.z_max = arr[5]
+        return this
+    }
+
     setBottomHeightRadius(vec : IVector, height : number, radius : number) : this {
         return this.set(
             vec.x - radius,
@@ -390,6 +400,13 @@ export class AABB {
         this.z_min /= value;
         this.z_max /= value;
         return this;
+    }
+
+    distance(vec: IVector): float {
+        const dx = (vec.x < this.x_min) ? (this.x_min - vec.x) : (vec.x > this.x_max ? vec.x - this.x_max : 0)
+        const dy = (vec.y < this.y_min) ? (this.y_min - vec.y) : (vec.y > this.y_max ? vec.y - this.y_max : 0)
+        const dz = (vec.z < this.z_min) ? (this.z_min - vec.z) : (vec.z > this.z_max ? vec.z - this.z_max : 0)
+        return Math.sqrt(dx * dx + dy * dy + dz * dz)
     }
 
 }
