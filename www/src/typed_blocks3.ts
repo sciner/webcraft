@@ -932,6 +932,11 @@ export class TBlock {
         return this.vec.add(this.tb.coord);
     }
 
+    /** То же что {@link posworld}, но без создания нового объекта */
+    getPosWorld(vec: Vector): Vector {
+        return vec.copyFrom(this.vec).addSelf(this.tb.coord)
+    }
+
     get chunk_addr() {
         return this.tb.addr;
     }

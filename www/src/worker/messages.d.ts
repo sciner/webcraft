@@ -13,6 +13,7 @@ type TChunkWorkerMessageInit = {
 
 type TScannedTickers = {
     randomTickersCount: int
+    randomTickerFlatIndices: int[] | null // индексы случайных тикеров, если их не больше чем FAST_RANDOM_TICKERS_PERCENT * объем
     tickerFlatIndices: int[]
 }
 

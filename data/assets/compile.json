@@ -12820,6 +12820,33 @@
                 "14": "item/light_14.png",
                 "15": "item/light_15.png"
             }
+        },
+        {
+            "id": 317,
+            "name": "OXIDIZED_CUT_COPPER",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/oxidized_cut_copper.png"
+        },
+        {
+            "id": 318,
+            "name": "WAXED_OXIDIZED_CUT_COPPER",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/oxidized_cut_copper.png"
+        },
+        {
+            "id": 319,
+            "name": "CALCITE",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/calcite.png"
         }
     ]
 }

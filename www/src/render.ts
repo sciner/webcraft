@@ -6,7 +6,7 @@ import rendererProvider from "./renders/rendererProvider.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
 import {BLOCK, DBItemBlock} from "./blocks.js";
-import {BLEND_MODES} from 'vauxcel';
+import {BLEND_MODES, RenderTexture, LayerPass} from 'vauxcel';
 
 // Particles
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
@@ -41,6 +41,8 @@ import type { MobModel } from "./mob_model.js";
 import type { HUD } from "./hud.js";
 import type {Player} from "./player.js";
 import type WebGLRenderer from "./renders/webgl/index.js";
+import type {TBlock} from "./typed_blocks3.js";
+import {BlockAccessor} from "./block_accessor.js";
 
 const {mat3, mat4, quat, vec3} = glMatrix;
 
@@ -66,11 +68,13 @@ const DAMAGE_TIME               = 250;
 const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 // авто-камера в режиме 3-го лица
 const CAMERA_3P_MARGIN_HEIGHT   = 0.04 // насколько широко расставлять 4 луча для поиска препятствия (по вертикали), при FOV 70 градусов
+const BOB_VIEW_SAFE_DISTANCE    = 0.5   // если камера ближе этого расстояния до блока, амплитуда bobView уменьшается
 
 const tmpVec                    = new Vector()
 const tmpOrthoVec1              = new Vector()
 const tmpOrthoVec2              = new Vector()
 const tmpShiftedEyePos          = new Vector()
+const tmpAABB                   = new AABB()
 
 class DrawMobsStat {
     count: int = 0
@@ -126,6 +130,7 @@ export class Renderer {
     mobsDrawnLast:          MobModel[] = [] // список мобов, отложенных при 1-м вызове drawMobs, чтобы быть нарисованными на 2-м
     nightVision:            boolean = false;
     _debug_aabb:            AABB[] = []
+    private blockAccessor?: BlockAccessor
 
     constructor(qubatchRenderSurfaceId : string) {
         this.canvas             = document.getElementById(qubatchRenderSurfaceId);
@@ -366,11 +371,20 @@ export class Renderer {
     //
     async generatePrev(callback) {
         this.resetBefore();
-        const target = this.renderBackend.createRenderTarget({
-            width: INVENTORY_ICON_TEX_WIDTH,
-            height: INVENTORY_ICON_TEX_HEIGHT,
-            depth: true
+
+        const { renderBackend } = this;
+
+        const inventoryPass = new LayerPass({
+            screenSize: {
+                width: INVENTORY_ICON_TEX_WIDTH,
+                height: INVENTORY_ICON_TEX_HEIGHT,
+            },
+            useRenderTexture: true,
+            useDepth: true,
+            clearColor: true,
+            clearDepth: true,
         });
+        const target = inventoryPass.getRenderTexture();
 
         const ASPECT = target.height / target.width;
         const ZERO = new Vector();
@@ -470,9 +484,7 @@ export class Renderer {
         gu.update();
         this.defaultShader.bind(true);
 
-        this.renderBackend.beginPass({
-            target
-        });
+        renderBackend.beginPass(inventoryPass);
 
         this.maskColorTex.bind(1);
 
@@ -587,12 +599,10 @@ export class Renderer {
 
         });
 
-        this.renderBackend.endPass()
+        renderBackend.endPass(inventoryPass);
 
         return new Promise((resolve, reject) => {
-
-            // render target to Canvas
-            target.toImage('canvas').then((data : any) => {
+            this.renderBackend.rtToImage(target, 'canvas').then((data : any) => {
                 /**
                  * @type {CanvasRenderingContext2D}
                  */
@@ -730,107 +740,15 @@ export class Renderer {
                     resolve(Resources.inventory)
                 }, 'image/png')
 
+                inventoryPass.destroy();
             })
-
-            this.renderBackend.endPass();
 
             // disable
             gu.useSunDir = false;
 
-            target.destroy()
             this.resetAfter();
 
         })
-
-    }
-
-    //
-    async drawPlayerPreview(callback) {
-
-        this.resetBefore()
-
-        const target = this.renderBackend.createRenderTarget({
-            width: 320 * 2,
-            height: 480 * 2,
-            depth: true
-        })
-
-        //
-        const camera = new Camera({
-            type:       Camera.PERSP_CAMERA, // Camera.ORTHO_CAMERA
-            max:        100,
-            min:        0.01,
-            fov:        60,
-            renderType: this.renderBackend.gl ? 'webgl' : 'webgpu',
-            width:      target.width,
-            height:     target.height,
-        })
-
-        //
-        const gu = this.globalUniforms
-
-        // larg for valid render results
-        gu.fogColor         = [0, 0, 0, 0]
-        // gu.fogDensity       = 100
-        gu.chunkBlockDist   = 100
-        gu.resolution       = [target.width, target.height]
-        gu.brightness       = MIN_BRIGHTNESS; // 0.55 * 1.0; // 1.3
-        gu.sunDir           = [-1, -1, 1]
-        gu.useSunDir        = true
-
-        //
-        camera.set(new Vector(0, 0, 0), new Vector(0, 0, Math.PI))
-        camera.use(gu, true)
-        gu.update()
-
-        this.defaultShader.bind(true);
-        this.renderBackend.beginPass({
-            target
-        })
-
-        const player_model = this.player.getModel()
-        const player_mesh = player_model._mesh
-        const pos = new Vector(0, -1, -2)
-
-        const player_matrix = mat4.create()
-        mat4.rotateY(player_matrix, player_matrix, Math.PI * .9)
-
-        const orig_animation = player_mesh.parsed_animation
-        player_mesh.parsed_animation = null
-        player_mesh.setAnimation('idle')
-        player_mesh.redraw(0)
-
-        player_model.setArmor()
-        player_mesh.model.drawBuffered(this, player_mesh, pos, IndexedColor.WHITE, player_matrix)
-
-        // this.renderBackend.drawMesh(player_mesh.buffer, player_mesh.gl_material, pos, player_matrix)
-
-        player_mesh.parsed_animation = orig_animation
-
-        this.renderBackend.endPass()
-
-        return new Promise((resolve, reject) => {
-
-            // render target to Canvas
-            target.toImage('canvas').then(async (data : any) => {
-                data.toBlob(async (blob : Blob) => {
-                    const image = await blobToImage(blob) as HTMLImageElement
-                    Helpers.downloadImage(image, 'inventory.png');
-                    resolve(image)
-                }, 'image/png')
-
-            })
-
-            this.renderBackend.endPass()
-
-            // disable
-            gu.useSunDir = false
-
-            target.destroy()
-            this.resetAfter()
-
-        })
-
     }
 
     /**
@@ -907,6 +825,8 @@ export class Renderer {
                 preset = PRESET_NAMES.LAVA;
                 chunkBlockDist = 4; //
             }
+        } else if (this.clouds.isCameraInCloud(this)) {
+            preset = PRESET_NAMES.CLOUD
         } else {
             const biome_id = player.getOverChunkBiomeId()
             const biome = biome_id > 0 ? this.world.chunkManager.biomes.byID.get(biome_id) : null;
@@ -1029,8 +949,10 @@ export class Renderer {
 
         this.debugGeom.clear();
 
-        renderBackend.beginPass({
-            fogColor : this.env.interpolatedClearValue
+        const framePass = renderBackend.beginPass({
+            bgColor: this.env.interpolatedClearValue,
+            clearColor: true,
+            clearDepth: true,
         });
 
         this.env.draw(this);
@@ -1178,7 +1100,7 @@ export class Renderer {
             this.renderBackend.screenshot('image/webp', callback);
         }
 
-        renderBackend.endPass();
+        renderBackend.endPass(framePass);
 
         this.resetAfter();
     }
@@ -1567,6 +1489,7 @@ export class Renderer {
     // ang - Pitch, yaw and roll.
     setCamera(player : Player, pos : Vector, rotate : Vector, force : boolean = false) {
 
+        const {world} = this
         const tmp = mat4.create();
         const hotbar = Qubatch.hotbar;
 
@@ -1590,9 +1513,7 @@ export class Renderer {
 
         if(!force) {
 
-            if (player.hasBobView()) {
-                this.bobView(player, tmp);
-            }
+            let bobViewAmplitude = 1
             this.crosshairOn = ((this.camera_mode === CAMERA_MODE.SHOOTER) && Qubatch.hud.active); // && !player.game_mode.isSpectator();
 
             if(this.camera_mode === CAMERA_MODE.SHOOTER) {
@@ -1624,7 +1545,7 @@ export class Renderer {
                             pos.y + sign1 * orthoVec1.y + sign2 * orthoVec2.y,
                             pos.z + sign1 * orthoVec1.z + sign2 * orthoVec2.z
                         )
-                        const bPos = raycaster.get(tmpShiftedEyePos, view_vector, THIRD_PERSON_CAMERA_DISTANCE + 1, null, true, false, myPlayerModel)
+                        const bPos = raycaster.get(tmpShiftedEyePos, view_vector, THIRD_PERSON_CAMERA_DISTANCE + 1, null, true, false, myPlayerModel, false)
                         if(bPos?.point && !posFloored.equal(tmpVec.copyFrom(bPos).flooredSelf())) {
                             this.obstacle_pos.copyFrom(bPos).addSelf(bPos.point)
                             const dist = tmpShiftedEyePos.distance(this.obstacle_pos)
@@ -1637,8 +1558,36 @@ export class Renderer {
                 if(model) {
                     model.opacity = distToCamera < .75 ? Math.pow(distToCamera / .75, 4) : 1
                 }
+
+                // найти расстояние до ближайшего блока и уменьшить ампилтуду bobView
+                if (player.hasBobView()) {
+                    const camBlockPos = cam_pos.floored()
+                    const acc = this.blockAccessor ??= new BlockAccessor(world)
+                    acc.reset(camBlockPos)
+                    let minDist = Infinity
+                    for(let dx = -1; dx <= 1; dx++) {
+                        for(let dy = -1; dy <= 1; dy++) {
+                            for(let dz = -1; dz <= 1; dz++) {
+                                tmpVec.set(camBlockPos.x + dx, camBlockPos.y + dy, camBlockPos.z + dz)
+                                const block = acc.set(tmpVec).block
+                                const material = block.material
+                                if (material.id > 0 && !material.invisible_for_cam) {
+                                    const shapes = world.block_manager.getShapes(block, world, false, true)
+                                    for(const shape of shapes) {
+                                        const dist = tmpAABB.setArray(shape).translateByVec(tmpVec).distance(cam_pos)
+                                        minDist = Math.min(minDist, dist)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    bobViewAmplitude = Mth.lerpAny(minDist, 0, 0, BOB_VIEW_SAFE_DISTANCE, 1)
+                }
             }
 
+            if (player.hasBobView()) {
+                this.bobView(player, tmp, false, bobViewAmplitude);
+            }
         }
 
         this.camera.set(cam_pos, cam_rotate, tmp);
@@ -1647,7 +1596,7 @@ export class Renderer {
     }
 
     // Original bobView
-    bobView(player, viewMatrix, forDrop = false) {
+    bobView(player, viewMatrix, forDrop = false, amplitude: float = 1) {
 
         let p_109140_ = (player.walking_frame * 2) % 1;
 
@@ -1671,12 +1620,12 @@ export class Renderer {
                 0.0,
             ]);
         } else {
-            mat4.multiply(viewMatrix, viewMatrix, mat4.fromZRotation([], zmul * m));
-            mat4.multiply(viewMatrix, viewMatrix, mat4.fromXRotation([], xmul * m));
+            mat4.multiply(viewMatrix, viewMatrix, mat4.fromZRotation([], zmul * m)); // амплитуда не влияет, т.к. этот поворот не позволяет заглядывать за стенки
+            mat4.multiply(viewMatrix, viewMatrix, mat4.fromXRotation([], xmul * m * amplitude));
             mat4.translate(viewMatrix, viewMatrix, [
-                Mth.sin(f1 * Math.PI) * f2 * 0.5,
+                Mth.sin(f1 * Math.PI) * f2 * 0.5 * amplitude,
                 0.0,
-                -Math.abs(Mth.cos(f1 * Math.PI) * f2),
+                -Math.abs(Mth.cos(f1 * Math.PI) * f2) * amplitude,
             ]);
         }
         if(Math.sign(viewMatrix[1]) != Math.sign(this.step_side)) {

@@ -23,7 +23,7 @@ export class FastRandom {
             this.int32s[i] = a.int32() * mul
             this.doubles[i] = a.double() * mul
             if(round) {
-                this.doubles[i] = Math.round(this.doubles[i])
+                this.doubles[i] = Math.floor(this.doubles[i])
             }
         }
     }
