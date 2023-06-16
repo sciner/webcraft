@@ -199,7 +199,7 @@ export class UIApp {
                     self.Billboard(form, function(result) {
                         if (result.result == "ok") {
                             vt.success("Image uploaded to server");
-                            Qubatch.hud.wm.getWindow('frmBillboard').upadateCollection(result.files)
+                            Qubatch.hud.wm.getWindow('frmBillboard').upadateCollection(result.files, result.last)
                         } else {
                             vt.error("Error upload image");
                         }

@@ -129,7 +129,6 @@ class FilesCollection extends Window {
             } else {
                 lblSlot.setFile(all_blocks[i])
                 lblSlot.onMouseDown = (e) => {
-                    parent.setPreview(lblSlot.getFile())
                     parent.sendChangeExtraData(lblSlot.getFile())
                 }
             }
@@ -169,22 +168,13 @@ export class BillboardWindow extends BlankWindow {
         player.world.server.AddCmdListener([ServerClient.CMD_MEDIA_FILES], (packet) => {
             this.upadateCollection(packet.data.files)
         })
-        // preview() 
-        this.preview = new Window(UI_THEME.window_padding, 36 * this.zoom, 0, 0, 'wndPreview')
-        this.add(this.preview)
     }
 
-    upadateCollection(files) {
+    upadateCollection(files, last = null) {
         this.collection.initCollection(files)
-    }
-
-    setPreview(file) {
-        const small = this.args.small
-        this.preview.w = ((small) ? 230 : 350) * this.zoom
-        this.preview.h = ((small) ? 400 : 150) * this.zoom
-        this.preview.x = (this.w /2 - this.preview.w) / 2
-        this.preview.y = (this.h - this.preview.h) / 2
-        this.preview.setBackground(file)
+        if (last) {
+            this.sendChangeExtraData(last)
+        }
     }
 
     //
@@ -206,7 +196,6 @@ export class BillboardWindow extends BlankWindow {
         Qubatch.releaseMousePointer()
         super.onShow(args)
         this.player.world.server.Send({name: ServerClient.CMD_MEDIA_FILES})
-        this.setPreview(args.file)
     }
 
     sendChangeExtraData(file) {
