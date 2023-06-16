@@ -2262,6 +2262,29 @@
             "bb": {
                 "extends": "THATCH_ROOFING"
             }
+        },
+        {
+            "id": 316,
+            "name": "MINI_STREET_LIGHT",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "aabb": [5, 0, 5, 11, 16, 11],
+            "light_power": {
+                "r": 253,
+                "g": 200,
+                "b": 80,
+                "a": 255
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "bb": {
+                "import_anyway": true,
+                "rotate": {"type": "cardinal_direction"}
+            }
         }
     ]
 }

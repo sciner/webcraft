@@ -232,7 +232,13 @@ export class ChunkRenderList {
             return true;
         }
         let groups = transparent ? GROUPS_TRANSPARENT : GROUPS_NO_TRANSPARENT;
+        const player = render.player;
+        const is_creative = player.game_mode.isCreative()
+
         for (let group of groups) {
+            if(!is_creative && group == 'creative_regular') {
+                continue
+            }
             const groupList = rpList.get(group);
             if (!groupList) {
                 continue;

@@ -673,6 +673,8 @@ export class SchematicReader {
                 // console.log(block, props)
                 setExtraData('part', block.name == 'cave_vines' ? 1 : 0)
                 setExtraData('ripe', !!props.berries)
+            } else if(b.name == 'LIGHT') {
+                setExtraData('level', props.level | 0)
             }
             if('waterlogged' in props && props.waterlogged) {
                 new_block.waterlogged = props.waterlogged;

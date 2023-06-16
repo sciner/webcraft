@@ -41,6 +41,8 @@ import type { MobModel } from "./mob_model.js";
 import type { HUD } from "./hud.js";
 import type {Player} from "./player.js";
 import type WebGLRenderer from "./renders/webgl/index.js";
+import type {TBlock} from "./typed_blocks3.js";
+import {BlockAccessor} from "./block_accessor.js";
 
 const {mat3, mat4, quat, vec3} = glMatrix;
 
@@ -66,11 +68,13 @@ const DAMAGE_TIME               = 250;
 const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 // авто-камера в режиме 3-го лица
 const CAMERA_3P_MARGIN_HEIGHT   = 0.04 // насколько широко расставлять 4 луча для поиска препятствия (по вертикали), при FOV 70 градусов
+const BOB_VIEW_SAFE_DISTANCE    = 0.5   // если камера ближе этого расстояния до блока, амплитуда bobView уменьшается
 
 const tmpVec                    = new Vector()
 const tmpOrthoVec1              = new Vector()
 const tmpOrthoVec2              = new Vector()
 const tmpShiftedEyePos          = new Vector()
+const tmpAABB                   = new AABB()
 
 class DrawMobsStat {
     count: int = 0
@@ -126,6 +130,7 @@ export class Renderer {
     mobsDrawnLast:          MobModel[] = [] // список мобов, отложенных при 1-м вызове drawMobs, чтобы быть нарисованными на 2-м
     nightVision:            boolean = false;
     _debug_aabb:            AABB[] = []
+    private blockAccessor?: BlockAccessor
 
     constructor(qubatchRenderSurfaceId : string) {
         this.canvas             = document.getElementById(qubatchRenderSurfaceId);
@@ -236,6 +241,7 @@ export class Renderer {
         for(let rp of BLOCK.resource_pack_manager.list.values()) {
             rp.shader.materials = {
                 regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader}),
+                creative_regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader}),
                 doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader: rp.shader}),
                 decal1: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader, decalOffset: 1}),
                 decal2: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader, decalOffset: 2}),
@@ -374,7 +380,7 @@ export class Renderer {
                 height: INVENTORY_ICON_TEX_HEIGHT,
             },
             useRenderTexture: true,
-            depth: true,
+            useDepth: true,
             clearColor: true,
             clearDepth: true,
         });
@@ -1483,6 +1489,7 @@ export class Renderer {
     // ang - Pitch, yaw and roll.
     setCamera(player : Player, pos : Vector, rotate : Vector, force : boolean = false) {
 
+        const {world} = this
         const tmp = mat4.create();
         const hotbar = Qubatch.hotbar;
 
@@ -1506,9 +1513,7 @@ export class Renderer {
 
         if(!force) {
 
-            if (player.hasBobView()) {
-                this.bobView(player, tmp);
-            }
+            let bobViewAmplitude = 1
             this.crosshairOn = ((this.camera_mode === CAMERA_MODE.SHOOTER) && Qubatch.hud.active); // && !player.game_mode.isSpectator();
 
             if(this.camera_mode === CAMERA_MODE.SHOOTER) {
@@ -1540,7 +1545,7 @@ export class Renderer {
                             pos.y + sign1 * orthoVec1.y + sign2 * orthoVec2.y,
                             pos.z + sign1 * orthoVec1.z + sign2 * orthoVec2.z
                         )
-                        const bPos = raycaster.get(tmpShiftedEyePos, view_vector, THIRD_PERSON_CAMERA_DISTANCE + 1, null, true, false, myPlayerModel)
+                        const bPos = raycaster.get(tmpShiftedEyePos, view_vector, THIRD_PERSON_CAMERA_DISTANCE + 1, null, true, false, myPlayerModel, false)
                         if(bPos?.point && !posFloored.equal(tmpVec.copyFrom(bPos).flooredSelf())) {
                             this.obstacle_pos.copyFrom(bPos).addSelf(bPos.point)
                             const dist = tmpShiftedEyePos.distance(this.obstacle_pos)
@@ -1553,8 +1558,36 @@ export class Renderer {
                 if(model) {
                     model.opacity = distToCamera < .75 ? Math.pow(distToCamera / .75, 4) : 1
                 }
+
+                // найти расстояние до ближайшего блока и уменьшить ампилтуду bobView
+                if (player.hasBobView()) {
+                    const camBlockPos = cam_pos.floored()
+                    const acc = this.blockAccessor ??= new BlockAccessor(world)
+                    acc.reset(camBlockPos)
+                    let minDist = Infinity
+                    for(let dx = -1; dx <= 1; dx++) {
+                        for(let dy = -1; dy <= 1; dy++) {
+                            for(let dz = -1; dz <= 1; dz++) {
+                                tmpVec.set(camBlockPos.x + dx, camBlockPos.y + dy, camBlockPos.z + dz)
+                                const block = acc.set(tmpVec).block
+                                const material = block.material
+                                if (material.id > 0 && !material.invisible_for_cam) {
+                                    const shapes = world.block_manager.getShapes(block, world, false, true)
+                                    for(const shape of shapes) {
+                                        const dist = tmpAABB.setArray(shape).translateByVec(tmpVec).distance(cam_pos)
+                                        minDist = Math.min(minDist, dist)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    bobViewAmplitude = Mth.lerpAny(minDist, 0, 0, BOB_VIEW_SAFE_DISTANCE, 1)
+                }
             }
 
+            if (player.hasBobView()) {
+                this.bobView(player, tmp, false, bobViewAmplitude);
+            }
         }
 
         this.camera.set(cam_pos, cam_rotate, tmp);
@@ -1563,7 +1596,7 @@ export class Renderer {
     }
 
     // Original bobView
-    bobView(player, viewMatrix, forDrop = false) {
+    bobView(player, viewMatrix, forDrop = false, amplitude: float = 1) {
 
         let p_109140_ = (player.walking_frame * 2) % 1;
 
@@ -1587,12 +1620,12 @@ export class Renderer {
                 0.0,
             ]);
         } else {
-            mat4.multiply(viewMatrix, viewMatrix, mat4.fromZRotation([], zmul * m));
-            mat4.multiply(viewMatrix, viewMatrix, mat4.fromXRotation([], xmul * m));
+            mat4.multiply(viewMatrix, viewMatrix, mat4.fromZRotation([], zmul * m)); // амплитуда не влияет, т.к. этот поворот не позволяет заглядывать за стенки
+            mat4.multiply(viewMatrix, viewMatrix, mat4.fromXRotation([], xmul * m * amplitude));
             mat4.translate(viewMatrix, viewMatrix, [
-                Mth.sin(f1 * Math.PI) * f2 * 0.5,
+                Mth.sin(f1 * Math.PI) * f2 * 0.5 * amplitude,
                 0.0,
-                -Math.abs(Mth.cos(f1 * Math.PI) * f2),
+                -Math.abs(Mth.cos(f1 * Math.PI) * f2) * amplitude,
             ]);
         }
         if(Math.sign(viewMatrix[1]) != Math.sign(this.step_side)) {

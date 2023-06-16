@@ -5,6 +5,7 @@ import type {World} from "./world.js";
 import type {BLOCK} from "./blocks.js";
 import type {MobModel} from "./mob_model.js";
 import type {PlayerModel} from "./player_model.js";
+import {BlockAccessor} from "./block_accessor.js";
 
 const INF = 100000.0;
 const eps = 1e-3;
@@ -70,9 +71,9 @@ export class RaycasterResult {
 export class Raycaster {
     private world   : World
     private BLOCK   : typeof BLOCK
+    private blockAccessor: BlockAccessor
     private _dir    = new Vector(0, 0, 0)
     private _pos    = new Vector(0, 0, 0)
-    private _blk    = new Vector(0, 0, 0)
     private _block_vec: Vector
     origin
     direction
@@ -80,6 +81,7 @@ export class Raycaster {
     constructor(world) {
         this.world = world;
         this.BLOCK = world.block_manager;
+        this.blockAccessor = new BlockAccessor(world)
     }
 
     getFromView(pos: IVector, invViewMatrix: number[], distance: float,
@@ -206,7 +208,7 @@ export class Raycaster {
     get(origin : IVector, dir : IVector, pickat_distance : number,
         callback : ((res: RaycasterResult | null) => void) | null = null,
         ignore_transparent : boolean = false, return_fluid : boolean = false,
-        exceptPlayerOrMob?: any
+        exceptPlayerOrMob?: any, returnPlayerOrMob: boolean = true
     ) : RaycasterResult | null {
 
         // const origin_block_pos = new Vector(origin).flooredSelf();
@@ -217,6 +219,7 @@ export class Raycaster {
             Math.floor(pos.y) + 0.5,
             Math.floor(pos.z) + 0.5
         );
+        this.blockAccessor.reset(startBlock)
 
         side.zero();
         leftTop.zero();
@@ -251,7 +254,7 @@ export class Raycaster {
             }
 
             leftTop.copyFrom(block).flooredSelf();
-            let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
+            const b = this.blockAccessor.set(leftTop).block
 
             let hitShape = b.id > this.BLOCK.AIR.id; // && !origin_block_pos.equal(leftTop);
             if(ignore_transparent && b.material.invisible_for_cam ||
@@ -331,7 +334,7 @@ export class Raycaster {
             }
         }
 
-        const {mob_distance, mob} = this.intersectMob(origin, dir, pickat_distance, exceptPlayerOrMob);
+        const {mob_distance, mob} = returnPlayerOrMob && this.intersectMob(origin, dir, pickat_distance, exceptPlayerOrMob);
         if (mob) {
             if (res) {
                 const res_vec = new Vector(res.x + .5, res.y + .5, res.z + .5);
@@ -347,7 +350,7 @@ export class Raycaster {
             }
         }
 
-        const {player_distance, player} = this.intersectPlayer(origin, dir, pickat_distance, exceptPlayerOrMob);
+        const {player_distance, player} = returnPlayerOrMob && this.intersectPlayer(origin, dir, pickat_distance, exceptPlayerOrMob);
         if (player) {
             if(res) {
                 const res_vec = new Vector(res.x + .5, res.y + .5, res.z + .5);
