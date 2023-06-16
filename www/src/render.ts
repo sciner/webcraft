@@ -68,6 +68,7 @@ const DAMAGE_TIME               = 250;
 const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 // авто-камера в режиме 3-го лица
 const CAMERA_3P_MARGIN_HEIGHT   = 0.04 // насколько широко расставлять 4 луча для поиска препятствия (по вертикали), при FOV 70 градусов
+const BOB_VIEW_SAFE_DISTANCE    = 0.5   // если камера ближе этого расстояния до блока, амплитуда bobView уменьшается
 
 const tmpVec                    = new Vector()
 const tmpOrthoVec1              = new Vector()
@@ -1579,7 +1580,7 @@ export class Renderer {
                             }
                         }
                     }
-                    bobViewAmplitude = Mth.lerpAny(minDist, 0, 0, 0.5, 1)
+                    bobViewAmplitude = Mth.lerpAny(minDist, 0, 0, BOB_VIEW_SAFE_DISTANCE, 1)
                 }
             }
 
