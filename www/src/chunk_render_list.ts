@@ -233,10 +233,10 @@ export class ChunkRenderList {
         }
         let groups = transparent ? GROUPS_TRANSPARENT : GROUPS_NO_TRANSPARENT;
         const player = render.player;
-        const is_creative = player.game_mode.isCreative()
+        const hide_creative_mat = player.isHideCreativeMaterialBlocks()
 
         for (let group of groups) {
-            if(!is_creative && group == 'creative_regular') {
+            if(hide_creative_mat && group == 'creative_regular') {
                 continue
             }
             const groupList = rpList.get(group);
