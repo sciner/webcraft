@@ -2,27 +2,45 @@ import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
 import { BlankWindow } from "./blank.js";
 import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, UI_THEME } from "../constant.js";
-import { Window, Slider} from "../ui/wm.js";
+import { Window, Slider, Label} from "../ui/wm.js";
 import { Resources } from "../resources.js";
 
 
 class FileSlot extends Window {
     private file: string
-    constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
-        super(x, y, w, h, id, title, text)
+    #parent: Window
+    constructor(x : number, y : number, w : number, h : number, id : string, parent: Window) {
+        super(x, y, w, h, id, null, null)
         this.hud_atlas = Resources.atlas.get('hud')
         this.setIcon(this.hud_atlas.getSpriteFromMap('plus'))
         this.setBackground(this.hud_atlas.getSpriteFromMap('slot_selection'))
+        this.#parent = parent
     }
 
     setFile(file) {
         this.file = file
         this.setIcon(file, 'centerstretch', 1.0)
         this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot'))
+        this.addDeleteButton(file)
     }
 
     getFile() {
         return this.file.replace('_', '')
+    }
+
+    addDeleteButton(file) {
+        if (file.indexOf('demo/') != -1) {
+            return
+        }
+        const height = 16 * this.zoom
+        const width = 16 * this.zoom
+        const parent = this.#parent
+        const btnDel = new Label(this.w - width, 0, height, width, 'btnDel')
+        btnDel.setIcon(this.hud_atlas.getSpriteFromMap('trashbin'))
+        btnDel.onMouseDown = () => {
+            parent.delFile(file)
+        }
+        this.add(btnDel)
     }
 }
 
@@ -31,13 +49,14 @@ class FilesCollection extends Window {
     slots : FileSlot[] = []
     xcnt : int = 0
     ycnt : int = 13
+    #parent: Window
 
     //
     constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, slot_margin: float, parent: Window) {
 
         super(x, y, w, h, id)
 
-        this.untypedParent = parent
+        this.#parent = parent
 
         this.xcnt   = xcnt
         this.ycnt   = ycnt
@@ -91,7 +110,7 @@ class FilesCollection extends Window {
         const szm           = sz + this.slot_margin
         const start_index   = Math.round((-this.scrollY / szm) * this.xcnt)
         const end_index     = start_index + (this.xcnt * this.ycnt)
-        for(let i = 0; i < this.slots_count + 1; i++) {
+        for(let i = 0; i < this.slots_count; i++) {
             const child = this.slots[i]
             child.visible = i >= start_index && i < end_index
         }
@@ -99,7 +118,7 @@ class FilesCollection extends Window {
 
     // Init collection
     initCollection(all_blocks) {
-        this.slots_count        = all_blocks.length
+        this.slots_count        = all_blocks.length + 1
         this.scrollY            = 0
         this.container.y        = 0
 
@@ -108,13 +127,20 @@ class FilesCollection extends Window {
         let sz                  = this.cell_size
         let szm                 = sz + this.slot_margin
         let xcnt                = this.xcnt
-        const parent            = this.untypedParent
+        const parent            = this.#parent
 
-        for(let i = 0; i < all_blocks.length + 1; i++) {
+        if (all_blocks.length < this.slots.length) {
+            for (let i = 0; i < this.slots.length; i++) {
+                this.container.removeChild(this.slots[i])
+                this.slots[i] = null
+            }
+        }
+
+        for(let i = 0; i < this.slots_count; i++) {
 
             let lblSlot = this.slots[i]
             if(!lblSlot) {
-                lblSlot = this.slots[i] = new FileSlot(0, 0, sz, sz, 'lblFile' + (i), null, null)
+                lblSlot = this.slots[i] = new FileSlot(0, 0, sz, sz, 'lblFile' + (i), parent)
                 this.container.add(lblSlot)
             }
                 
@@ -122,6 +148,7 @@ class FilesCollection extends Window {
             lblSlot.h = sz
             lblSlot.x = sx + (i % xcnt) * szm
             lblSlot.y = sy + Math.floor(i / xcnt) * szm
+
             if (i == all_blocks.length) {
                 lblSlot.onMouseDown = (e) => {
                     Qubatch.App.OpenSelectFile()
@@ -135,7 +162,7 @@ class FilesCollection extends Window {
             
         }
 
-        this.max_height = Math.ceil((all_blocks.length + 1) / xcnt) * szm - (szm - sz)
+        this.max_height = Math.ceil((this.slots_count) / xcnt) * szm - (szm - sz)
         this.container.h = this.max_height
         this.scrollbar.max = this.max_height - this.h
 
@@ -206,6 +233,14 @@ export class BillboardWindow extends BlankWindow {
             }
         }
         Qubatch.world.changeBlockExtraData(this.args.pos, extra_data)
+    }
+
+    delFile(path: string) {
+        const file = path.split('/').at(-1)
+        this.player.world.server.Send({
+            name: ServerClient.CMD_MEDIA_FILES,
+            delete: file
+        })
     }
 
 }

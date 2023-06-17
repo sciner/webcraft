@@ -14,8 +14,10 @@ export default class packet_reader {
     }
 
     static async read(player, packet) {
-
         const guid = player.session.user_guid
+        if (packet?.delete && (packet.delete.indexOf('_') != -1)) {
+            fs.unlinkSync(`../www/upload/${guid}/${packet.delete}`)
+        }
         const files = await getPlayerFiles(guid)
         const packets = [{
             name: ServerClient.CMD_MEDIA_FILES,
