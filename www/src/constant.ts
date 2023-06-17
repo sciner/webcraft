@@ -24,6 +24,10 @@ export enum CHUNK_GEOMETRY_ALLOC {
     M_1000 = 1000,
 }
 
+export enum BLOCK_NAMES {
+    LIGHT = 'LIGHT'
+}
+
 export const FAST = false
 
 export const INGAME_MAIN_WIDTH              = 772
