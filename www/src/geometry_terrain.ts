@@ -171,6 +171,7 @@ export class GeometryTerrain extends Geometry {
                 chunkIds[i] = chunkId;
             }
         }
+        this.bufferChunkIds?.update(chunkIds);
     }
 
     updateInternal(data = null, chunkId = -1) {
