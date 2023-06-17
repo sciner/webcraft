@@ -1846,6 +1846,9 @@ function editBillboard(e, world, pos, player, world_block, world_material, mat_b
     if (world_material.window != 'frmBillboard') {
         return false
     }
+
+    const file = e.extra_data.file.replace(/\\|\/|\*|\?|/g, '')
+    console.log(world.isPlayerFile(player.session.user_id, file, e.extra_data.demo))
     /**
      * Проверка, что файл принадлежит игроку
      

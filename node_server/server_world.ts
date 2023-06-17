@@ -1424,4 +1424,9 @@ export class ServerWorld implements IWorld {
         this.actions_queue.add(null, action)
     }
 
+    isPlayerFile(id: number, file: string, demo: boolean) {
+        const DEMO_PATH = `../www/media/demo/`
+        return fs.statSync(demo ? DEMO_PATH + file : `../www/upload/${id}/${file}`)
+    }
+
 }
