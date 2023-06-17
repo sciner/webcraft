@@ -734,8 +734,6 @@ float calcAo(ivec4 aoNeib, ivec4 oriented, vec2 part,  int mask) {
 
     float caveSample = centerSample.x;
     daySample = 1.0 - centerSample.y;
-    caveSample = 0.0;
-    daySample = 1.0;
 
     float cavePart = max(caveSample, playerLight);
     float dayPart = daySample * u_brightness;

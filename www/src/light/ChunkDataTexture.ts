@@ -114,7 +114,7 @@ export class ChunkDataTexture {
 
         if (lightTex) {
             const { layout } = lightTex;
-            const base = lightTex.baseTexture || lightTex;
+            const base = lightTex.source || lightTex;
             data[ind + 4] = (layout.width << 16) + layout.x;
             data[ind + 5] = (layout.height << 16) + layout.y;
             data[ind + 6] = (layout.depth << 16) + layout.z;
