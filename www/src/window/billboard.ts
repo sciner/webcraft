@@ -32,8 +32,8 @@ class FileSlot extends Window {
         if (file.indexOf('demo/') != -1) {
             return
         }
-        const height = 16 * this.zoom
-        const width = 16 * this.zoom
+        const height = 32 * this.zoom
+        const width = 32 * this.zoom
         const parent = this.#parent
         const btnDel = new Label(this.w - width, 0, height, width, 'btnDel')
         btnDel.setIcon(this.hud_atlas.getSpriteFromMap('trashbin'))
