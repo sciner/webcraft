@@ -7,7 +7,7 @@ import { Resources } from "../resources.js";
 
 
 class FileSlot extends Window {
-    private file: string
+    #data: any
     #parent: Window
     constructor(x : number, y : number, w : number, h : number, id : string, parent: Window) {
         super(x, y, w, h, id, null, null)
@@ -15,30 +15,35 @@ class FileSlot extends Window {
         this.setIcon(this.hud_atlas.getSpriteFromMap('plus'))
         this.setBackground(this.hud_atlas.getSpriteFromMap('slot_selection'))
         this.#parent = parent
-    }
-
-    setFile(file) {
-        this.file = file
-        this.setIcon(file, 'centerstretch', 1.0)
-        this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot'))
-        this.addDeleteButton(file)
-    }
-
-    getFile() {
-        return this.file.replace('_', '')
-    }
-
-    addDeleteButton(file) {
-        if (file.indexOf('demo/') != -1) {
-            return
+        this.onMouseDown = function() {
+            if (this.#data) {
+                this.#parent.sendChangeExtraData(this.#data)
+            } else {
+                Qubatch.App.OpenSelectFile()
+            } 
         }
+    }
+
+    setFile(data) {
+        this.#data = data
+        if (this.#data.demo) {
+            this.setIcon(`/media/demo/${this.#data.file}`, 'centerstretch', 1.0)
+        } else {
+            const id = this.#parent.player.session.user_id
+            this.setIcon(`/upload/${id}/${this.#data.file}`, 'centerstretch', 1.0)
+            this.addDeleteButton(data)
+        }
+        this.setBackground(this.hud_atlas.getSpriteFromMap('window_slot'))
+    }
+
+    addDeleteButton(data) {
         const height = 32 * this.zoom
         const width = 32 * this.zoom
         const parent = this.#parent
         const btnDel = new Label(this.w - width, 0, height, width, 'btnDel')
         btnDel.setIcon(this.hud_atlas.getSpriteFromMap('trashbin'))
         btnDel.onMouseDown = () => {
-            parent.delFile(file)
+            //parent.delFile(file)
         }
         this.add(btnDel)
     }
@@ -95,8 +100,8 @@ class FilesCollection extends Window {
     }
 
     updateScroll(val) {
-        const sz    = this.cell_size
-        const szm   = sz + this.slot_margin
+        const sz     = this.cell_size
+        const szm    = sz + this.slot_margin
         this.scrollY = val * szm
         this.scrollY = Math.min(this.scrollY, 0)
         this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
@@ -149,15 +154,8 @@ class FilesCollection extends Window {
             lblSlot.x = sx + (i % xcnt) * szm
             lblSlot.y = sy + Math.floor(i / xcnt) * szm
 
-            if (i == all_blocks.length) {
-                lblSlot.onMouseDown = (e) => {
-                    Qubatch.App.OpenSelectFile()
-                }
-            } else {
+            if (i != all_blocks.length) {
                 lblSlot.setFile(all_blocks[i])
-                lblSlot.onMouseDown = (e) => {
-                    parent.sendChangeExtraData(lblSlot.getFile())
-                }
             }
             
         }
@@ -211,8 +209,8 @@ export class BillboardWindow extends BlankWindow {
             return
         }
         this.ycnt = 6 // количество по высоте
-        this.xcnt = 5 // количество в ряду
-        this.collection = new FilesCollection(this.w / 2, 36 * this.zoom, this.w / 2 - UI_THEME.window_padding * this.zoom, this.h - 75 * this.zoom, 'wCollectionFiles', this.xcnt, this.ycnt, UI_THEME.slot_margin, this)
+        this.xcnt = 10 // количество в ряду
+        this.collection = new FilesCollection(UI_THEME.window_padding * this.zoom, 36 * this.zoom, this.w - 2 * UI_THEME.window_padding * this.zoom, this.h - 75 * this.zoom, 'wCollectionFiles', this.xcnt, this.ycnt, UI_THEME.slot_margin, this)
         this.add(this.collection)
         return this.collection
     }
@@ -225,14 +223,8 @@ export class BillboardWindow extends BlankWindow {
         this.player.world.server.Send({name: ServerClient.CMD_MEDIA_FILES})
     }
 
-    sendChangeExtraData(file) {
-        const extra_data = {
-            'relindex': -1,
-            'texture': {
-                'url': file
-            }
-        }
-        Qubatch.world.changeBlockExtraData(this.args.pos, extra_data)
+    sendChangeExtraData(data) {
+        Qubatch.world.changeBlockExtraData(this.args.pos, data)
     }
 
     delFile(path: string) {

@@ -133,7 +133,7 @@ export class ServerAPI {
             case '/api/Game/Billboard': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id)
                 if (req.files && session) {
-                    const path = `../www/upload/${session.user_guid}/`
+                    const path = `../www/upload/${session.user_id}/`
                     if (!fs.existsSync(path)) {
                         fs.mkdirSync(path, {recursive: true})
                     }
@@ -143,7 +143,7 @@ export class ServerAPI {
                     const file = path + md5 + ext
                     await req.files.file.mv(file)
                     await req.files.preview.mv(path + md5 + '_' + ext)
-                    const files = await getPlayerFiles(session.user_guid)
+                    const files = await getPlayerFiles(session.user_id)
                     return {'result':'ok', 'files': files, 'last': file}
                 }
                 return {'result':'error'}

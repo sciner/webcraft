@@ -1503,6 +1503,19 @@ function needOpenWindow(e, world, pos, player, world_block, world_material, mat_
             pos:        new Vector(pos),
             entity_id:  entity_id
         };
+    } else if(world_material.window == 'frmBillboard') {
+        const posworld = new Vector(pos)
+        const relindex = extra_data.relindex
+        const move = relindex == -1 ? Vector.ZERO : relIndexToPos(relindex, new Vector())
+        const connected_pos = posworld.addByCardinalDirectionSelf(new Vector(-move.x, -move.y, -move.z), rotate.x + 2)
+        const block = world.getBlock(connected_pos)
+        actions.open_window = {
+            id: 'frmBillboard',
+            args: {
+                pos: connected_pos,
+                small: (block.id == BLOCK.BILLBOARD1X2.id),
+            }
+        }
     } else {
         switch(world_material.id) {
             case BLOCK.CRAFTING_TABLE.id: {
@@ -1534,23 +1547,6 @@ function needOpenWindow(e, world, pos, player, world_block, world_material, mat_
                     }
                 };
                 break;
-            }
-            case BLOCK.BILLBOARD7X3.id:
-            case BLOCK.BILLBOARD1X2.id: {
-                const posworld = new Vector(pos)
-                const relindex = extra_data.relindex
-                const move = relindex == -1 ? Vector.ZERO : relIndexToPos(relindex, new Vector())
-                const connected_pos = posworld.addByCardinalDirectionSelf(new Vector(-move.x, -move.y, -move.z), rotate.x + 2)
-                const block = world.getBlock(connected_pos)
-                actions.open_window = {
-                    id: 'frmBillboard',
-                    args: {
-                        pos: connected_pos,
-                        small: (block.id == BLOCK.BILLBOARD1X2.id),
-                        file: block?.extra_data?.texture?.url
-                    }
-                }
-                break
             }
         }
     }
@@ -1850,7 +1846,20 @@ function editBillboard(e, world, pos, player, world_block, world_material, mat_b
     if (world_material.window != 'frmBillboard') {
         return false
     }
-    actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data: e.extra_data}, action_id: BLOCK_ACTION.MODIFY}])
+    /**
+     * Проверка, что файл принадлежит игроку
+     
+    async isPlayerFile(file: string, demo: boolean) {
+        // \/:*?<>|
+        console.log(this)
+        const DEMO_PATH = `../www/media/demo/`
+        await fs.promises.stat((demo) ? DEMO_PATH + file : `../www/upload/`)
+    }
+    console.log(player.isPlayerFile('xer.png', true))
+    console.log(e)
+    
+    */
+    //actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data: e.extra_data}, action_id: BLOCK_ACTION.MODIFY}])
     return true
 }
 

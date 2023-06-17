@@ -14,11 +14,14 @@ export default class packet_reader {
     }
 
     static async read(player, packet) {
-        const guid = player.session.user_guid
-        if (packet?.delete && (packet.delete.indexOf('_') != -1)) {
-            fs.unlinkSync(`../www/upload/${guid}/${packet.delete}`)
+        const id = player.session.user_id
+        if (packet?.delete && (packet.delete.indexOf('/') == -1)) {
+            const small = packet.delete
+            const big = packet.delete.replace('_', '')
+            fs.unlinkSync(`../www/upload/${id}/${small}`)
+            fs.unlinkSync(`../www/upload/${id}/${big}`)
         }
-        const files = await getPlayerFiles(guid)
+        const files = await getPlayerFiles(id)
         const packets = [{
             name: ServerClient.CMD_MEDIA_FILES,
             data: {
