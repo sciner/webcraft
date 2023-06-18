@@ -1846,23 +1846,18 @@ function editBillboard(e, world, pos, player, world_block, world_material, mat_b
     if (world_material.window != 'frmBillboard') {
         return false
     }
-
-    const file = e.extra_data.file.replace(/\\|\/|\*|\?|/g, '')
-    console.log(world.isPlayerFile(player.session.user_id, file, e.extra_data.demo))
-    /**
-     * Проверка, что файл принадлежит игроку
-     
-    async isPlayerFile(file: string, demo: boolean) {
-        // \/:*?<>|
-        console.log(this)
-        const DEMO_PATH = `../www/media/demo/`
-        await fs.promises.stat((demo) ? DEMO_PATH + file : `../www/upload/`)
+    const url = world.getPlayerFile(player.session.user_id, e.extra_data.file, e.extra_data.demo)
+    if (!url) {
+        return false
     }
-    console.log(player.isPlayerFile('xer.png', true))
-    console.log(e)
-    
-    */
-    //actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, extra_data: e.extra_data}, action_id: BLOCK_ACTION.MODIFY}])
+    actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, 
+        extra_data: {
+            relindex: -1,
+            texture: {
+                url: e.extra_data.demo ? url : url.replace('_', '')
+            }
+        }
+    }, action_id: BLOCK_ACTION.MODIFY}])
     return true
 }
 

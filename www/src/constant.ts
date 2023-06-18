@@ -470,6 +470,9 @@ export const WORLD_TYPE_BUILDING_SCHEMAS    = 2;
 // attack
 export const ATTACK_COOLDOWN                = 500
 
+// demo media files
+export const DEMO_PATH                     = `../www/media/demo/`
+
 export const MOUSE = {
     DOWN: 1,
     UP: 2,

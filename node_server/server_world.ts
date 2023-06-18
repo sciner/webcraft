@@ -22,7 +22,7 @@ import { AIR_BLOCK_SIMPLE, BLOCK, DBItemBlock } from "@client/blocks.js";
 import { BLOCK_ACTION, ServerClient } from "@client/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { DEFAULT_MOB_TEXTURE_NAME, GAME_DAY_SECONDS, GAME_ONE_SECOND, MOB_TYPE, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
+import { DEFAULT_MOB_TEXTURE_NAME, DEMO_PATH, GAME_DAY_SECONDS, GAME_ONE_SECOND, MOB_TYPE, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
 import { Weather } from "@client/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
@@ -1424,9 +1424,15 @@ export class ServerWorld implements IWorld {
         this.actions_queue.add(null, action)
     }
 
-    isPlayerFile(id: number, file: string, demo: boolean) {
-        const DEMO_PATH = `../www/media/demo/`
-        return fs.statSync(demo ? DEMO_PATH + file : `../www/upload/${id}/${file}`)
+    getPlayerFile(id: number, file: string, demo: boolean) {
+        file = file.replace(/\\|\/|\*|\?|/g, '')
+        const path = demo ? DEMO_PATH + file : `../www/upload/${id}/${file}`
+        try {
+            fs.statSync(path)
+        } catch(e) {
+            return false
+        }
+        return path
     }
 
 }

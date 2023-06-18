@@ -15,11 +15,11 @@ export default class packet_reader {
 
     static async read(player, packet) {
         const id = player.session.user_id
-        if (packet?.delete && (packet.delete.indexOf('/') == -1)) {
-            const small = packet.delete
-            const big = packet.delete.replace('_', '')
-            fs.unlinkSync(`../www/upload/${id}/${small}`)
-            fs.unlinkSync(`../www/upload/${id}/${big}`)
+        if (packet?.delete && !packet.delete.demo) {
+            const small = player.world.getPlayerFile(id, packet.delete.file, false)
+            const big = small.replace('_', '')
+            fs.unlinkSync(small)
+            fs.unlinkSync(big)
         }
         const files = await getPlayerFiles(id)
         const packets = [{

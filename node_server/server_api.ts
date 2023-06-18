@@ -144,7 +144,14 @@ export class ServerAPI {
                     await req.files.file.mv(file)
                     await req.files.preview.mv(path + md5 + '_' + ext)
                     const files = await getPlayerFiles(session.user_id)
-                    return {'result':'ok', 'files': files, 'last': file}
+                    return {
+                        'result':'ok', 
+                        'files': files, 
+                        'last': {
+                            'file': md5 + ext,
+                            'demo': false
+                        }
+                    }
                 }
                 return {'result':'error'}
             }

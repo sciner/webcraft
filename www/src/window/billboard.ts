@@ -43,7 +43,7 @@ class FileSlot extends Window {
         const btnDel = new Label(this.w - width, 0, height, width, 'btnDel')
         btnDel.setIcon(this.hud_atlas.getSpriteFromMap('trashbin'))
         btnDel.onMouseDown = () => {
-            //parent.delFile(file)
+            parent.delFile(data)
         }
         this.add(btnDel)
     }
@@ -227,11 +227,10 @@ export class BillboardWindow extends BlankWindow {
         Qubatch.world.changeBlockExtraData(this.args.pos, data)
     }
 
-    delFile(path: string) {
-        const file = path.split('/').at(-1)
+    delFile(data) {
         this.player.world.server.Send({
             name: ServerClient.CMD_MEDIA_FILES,
-            delete: file
+            delete: data
         })
     }
 

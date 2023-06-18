@@ -1,5 +1,5 @@
+import { DEMO_PATH } from "@client/constant.js";
 import {ArrayHelpers, ObjectHelpers, StringHelpers} from "@client/helpers.js";
-import { statSync } from "fs";
 
 export function epochMillis() {
     return Date.now();
@@ -174,7 +174,6 @@ export class DelayedCalls {
  * Возравщает спискок файлов игрока (медия)
  */
 export async function getPlayerFiles(id: number) {
-    const DEMO_PATH = `../www/media/demo/`
     const demo = await fs.promises.readdir(DEMO_PATH)
     const files = []
     for (const file of demo) {
