@@ -2,8 +2,9 @@ import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
 import { BlankWindow } from "./blank.js";
 import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, UI_THEME } from "../constant.js";
-import { Window, Slider, Label} from "../ui/wm.js";
+import { Window, Slider, Label, Button} from "../ui/wm.js";
 import { Resources } from "../resources.js";
+import { SpriteAtlas } from "../core/sprite_atlas.js";
 
 
 class FileSlot extends Window {
@@ -189,6 +190,13 @@ export class BillboardWindow extends BlankWindow {
         this.addCloseButton()
         // Add collection
         this.addCollection()
+        //dialog
+        this.addDialog(Lang.delete_file + '?', Lang.lost_file, (data)=> {
+            player.world.server.Send({
+                name: ServerClient.CMD_MEDIA_FILES,
+                delete: data
+            })
+        })
         // listener
         player.world.server.AddCmdListener([ServerClient.CMD_MEDIA_FILES], (packet) => {
             this.upadateCollection(packet.data.files)
@@ -228,10 +236,44 @@ export class BillboardWindow extends BlankWindow {
     }
 
     delFile(data) {
-        this.player.world.server.Send({
-            name: ServerClient.CMD_MEDIA_FILES,
-            delete: data
+        this.confirm.data = data
+        this.confirm.show()
+    }
+
+    /** Создать слот удаления предметов из инвенторя */
+    protected addDialog(title_text:string, body_text: string, callback): void {
+        const width = 420
+        const height = 190
+        const form_atlas = new SpriteAtlas()
+        const confirm = this.confirm = new Window((this.w - width * this.zoom) / 2, (this.h - height * this.zoom) / 2, width * this.zoom, height * this.zoom, 'confirm_delete')
+        form_atlas.fromFile('./media/gui/popup.png').then(async (atlas : SpriteAtlas) => {
+            confirm.setBackground(await atlas.getSprite(0, 0, 1008, height * 3), 'none', this.zoom / 2.0)
         })
+        confirm.z = 1
+        confirm.hide()
+        this.add(confirm)
+
+        const title = new Label(38 * this.zoom, 25 * this.zoom, 0, 0, `lblConfirmTitle`, '', title_text)
+        title.style.font.size = UI_THEME.popup.title.font.size
+        title.style.font.color = UI_THEME.popup.title.font.color
+        confirm.add(title)
+
+        const text = new Label(38 * this.zoom, 60 * this.zoom, 0, 0, `lblConfirmText`, '', body_text)
+        text.style.font.size = UI_THEME.popup.text.font.size
+        text.style.font.color = UI_THEME.popup.text.font.color
+        confirm.add(text)
+
+        const btnYes = new Button(width * this.zoom / 4 - 90 * this.zoom / 2, 90 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
+        btnYes.onDrop = btnYes.onMouseDown = function() {
+            callback(confirm.data)
+            confirm.hide()
+        }
+        this.confirm.add(btnYes)
+        const btnNo = new Button(width * 3 * this.zoom / 4 - 90 * this.zoom / 2, 90 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
+        btnNo.onMouseDown = function() {
+            confirm.hide()
+        }
+        confirm.add(btnNo)
     }
 
 }

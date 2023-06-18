@@ -249,7 +249,9 @@
         "protection": {"en": "Protection", "ru": "Защита", "fr": "", "es": "", "man": "", "kk": ""},
         "durability": {"en": "Durability", "ru": "Прочность", "fr": "", "es": "", "man": "", "kk": ""},
         "placeholder_click_for_search": {"en": "Click for search", "ru": "Введите текст для поиска", "fr": "", "es": "", "man": "", "kk": ""},
-        "displayed_image": {"en": "Displayed Image", "ru": "Отображаемое изображение", "fr": "", "es": "", "man": "", "kk": ""}
+        "displayed_image": {"en": "Displayed Image", "ru": "Отображаемое изображение", "fr": "", "es": "", "man": "", "kk": ""},
+        "delete_file": {"en": "Delete file", "ru": "Удалить файл", "fr": "", "es": "", "man": ""},
+        "lost_file": {"en": "This image will be permanently sold with all billboards", "ru": "Это изображение будет навсегда уделено со всех билбордов", "fr": "", "es": "", "man": ""}
         
     }
 }
