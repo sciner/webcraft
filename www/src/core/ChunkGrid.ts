@@ -1,5 +1,5 @@
 import type {DataChunk} from "./DataChunk.js";
-import { VectorCollector, Vector } from "../helpers.js";
+import {VectorCollector, Vector, Mth} from "../helpers.js";
 import {AABB} from "./AABB.js";
 import {Portal} from "./BaseChunk.js";
 import {ChunkGridMath, getCachedChunkGridMath} from "./ChunkGridMath.js";
@@ -9,6 +9,9 @@ export const dy = [0, 0, 0, 0, 1, -1, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, 
 export const dz = [0, 0, 1, -1, 0, 0, /*|*/ 0, 0, 0, 0, 1, 1, -1, -1, 1, -1, 1, -1, /*|*/ 1, 1, 1, 1, -1, -1, -1, -1];
 
 export const dxdydzIndex: number[] = [];
+export const opposite_grid_neib_index: number[] = [];
+
+export const SAME_CHUNK = 26;
 
 function initDxDyDz() {
     for (let i = 0; i < 27; i++) {
@@ -17,6 +20,10 @@ function initDxDyDz() {
     for (let i = 0; i < 26; i++) {
         const ind = dx[i] + dz[i] * 3 + dy[i] * 9 + 13;
         dxdydzIndex[ind] = i;
+    }
+    for (let i = 0; i < 26; i++) {
+        const ind = -(dx[i] + dz[i] * 3 + dy[i] * 9) + 13;
+        opposite_grid_neib_index.push(dxdydzIndex[ind]);
     }
 }
 
@@ -133,12 +140,14 @@ export class ChunkGrid {
             const portal1 = new Portal({
                 aabb,
                 fromRegion: sub,
-                toRegion: neib
+                toRegion: neib,
+                grid_neib_index: i
             })
             const portal2 = new Portal({
                 aabb,
                 fromRegion: neib,
-                toRegion: sub
+                toRegion: sub,
+                grid_neib_index: opposite_grid_neib_index[i]
             })
             portal1.rev = portal2;
             portal2.rev = portal1;
@@ -183,5 +192,17 @@ export class ChunkGrid {
             arr[i].markDeleteId = 0;
             this.innerMap.delete(this.toChunkAddr(arr[i].pos, addr));
         }
+    }
+
+    getNeibChunkDeltaIndex(vec: IVector) {
+        //TODO: move dxdydzIndex and this method to ChunkGridMath
+        let dx = Mth.clamp(Math.floor(vec.x / this.chunkSize.x), -1, 1);
+        let dy = Mth.clamp(Math.floor(vec.y / this.chunkSize.y), -1, 1);
+        let dz = Mth.clamp(Math.floor(vec.z / this.chunkSize.z), -1, 1);
+        let ind = dx + dz * 3 + dy * 9 + 13;
+        if (ind === 13) {
+            return SAME_CHUNK;
+        }
+        return dxdydzIndex[ind];
     }
 }

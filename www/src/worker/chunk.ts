@@ -1,5 +1,5 @@
 import { BLOCK, DBItemBlock, DropItemVertices, FakeVertices } from "../blocks.js";
-import { ObjectHelpers, PerformanceTimer, Vector } from "../helpers.js";
+import {ObjectHelpers, PerformanceTimer, relIndexToPos, Vector} from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK, TypedBlocks3 } from "../typed_blocks3.js";
 import { AABB } from '../core/AABB.js';
 import { WorkerGeometryPool } from "../geom/worker_geometry_pool.js";
@@ -14,11 +14,12 @@ import type { Default_Terrain_Map_Cell } from "../terrain_generator/default.js"
 import type { WorkerWorld } from "./world.js";
 import type { FluidChunk } from "../fluid/FluidChunk.js";
 import {BLOCK_FLAG, FAST_RANDOM_TICKERS_PERCENT, NO_TICK_BLOCKS} from "../constant.js";
-import { ChunkGrid, dx, dy, dz } from "../core/ChunkGrid.js";
+import {ChunkGrid, dx, dy, dz, SAME_CHUNK} from "../core/ChunkGrid.js";
 import type { Biome3LayerBase } from "../terrain_generator/biome3/layers/base.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
+const tmpRelVector = new Vector();
 
 export declare type IParsedChunkModifyList = {
     [key: int]: DBItemBlock
@@ -151,6 +152,7 @@ export class ChunkWorkerChunk implements IChunk {
 
     static neibMat = [null, null, null, null, null, null];
     static removedEntries = [];
+    multiblock_neib_mask = 0;
 
     constructor(chunkManager : ChunkWorkerChunkManager, args : IWorkerChunkCreateArgs) {
         this.chunkManager   = chunkManager;
@@ -618,7 +620,8 @@ export class ChunkWorkerChunk implements IChunk {
         if (!this.dirty || !this.tblocks || !this.coord) {
             return false;
         }
-        const CHUNK_SIZE_X = this.chunkManager.grid.chunkSize.x;
+        const { grid } = this.chunkManager;
+        const CHUNK_SIZE_X = grid.chunkSize.x;
 
         // Create map of lowest blocks that are still lit
         let tm = performance.now();
@@ -767,6 +770,7 @@ export class ChunkWorkerChunk implements IChunk {
 
         }
 
+        this.multiblock_neib_mask = 0;
         // inline cycle
         // TODO: move it out later
         for (let y = 0; y < size.y; y++)
@@ -818,6 +822,19 @@ export class ChunkWorkerChunk implements IChunk {
                         // ???
                         if (this.emitted_blocks.has(block.index)) {
                             this.emitted_blocks.delete(block.index);
+                        }
+                    }
+
+                    if(material?.multiblock) {
+                        const relIndex = block.extra_data?.relindex
+                        if (relIndex >= 0) {
+                            relIndexToPos(relIndex, tmpRelVector);
+                            tmpRelVector.addScalarSelf(x, y, z);
+                            const ind = grid.getNeibChunkDeltaIndex(tmpRelVector);
+                            if (ind !== SAME_CHUNK)
+                            {
+                                this.multiblock_neib_mask |= (1 << ind);
+                            }
                         }
                     }
 
