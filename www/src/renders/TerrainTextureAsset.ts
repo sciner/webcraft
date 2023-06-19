@@ -1,4 +1,6 @@
 //TODO: move resource pack texture asset here!
+
+// THIS FILE IS NOT USED YET
 export interface TextureJsonInfo {
     image: string;
     image_n?: string;

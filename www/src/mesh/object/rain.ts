@@ -1,6 +1,6 @@
 import { IndexedColor, QUAD_FLAGS, Vector, VectorCollector, Mth, FastRandom } from '../../helpers.js';
 import { GeometryTerrain } from "../../geometry_terrain.js";
-import { BLEND_MODES } from 'vauxcel';
+import { WRAP_MODES } from 'vauxcel';
 import { Resources } from '../../resources.js';
 import { FLUID_TYPE_MASK, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "../../fluid/FluidConst.js";
 import { Weather } from '../../block_type/weather.js';
@@ -84,6 +84,7 @@ export default class Mesh_Object_Rain {
             source: Resources.weather.image,
             minFilter: 'nearest',
             magFilter: 'nearest',
+            wrapMode: WRAP_MODES.REPEAT
         }));
         //this.material.blendMode = BLEND_MODES.MULTIPLY;
 

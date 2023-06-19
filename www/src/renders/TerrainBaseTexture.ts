@@ -1,4 +1,4 @@
-import {BaseImageResource, SCALE_MODES, BaseTexture} from 'vauxcel';
+import {BaseImageResource, SCALE_MODES, BaseTexture, WRAP_MODES} from 'vauxcel';
 import {TerrainTextureUniforms} from "./common.js";
 
 export type GPUScaleMode = 'nearest' | 'linear';
@@ -8,6 +8,7 @@ export interface TerrainTextureSourceOptions {
     style?: TerrainTextureUniforms;
     minFilter?: GPUScaleMode;
     magFilter?: GPUScaleMode;
+    wrapMode?: WRAP_MODES;
 }
 export class TerrainTextureSource extends BaseImageResource {
     terrainStyle: TerrainTextureUniforms;
@@ -27,10 +28,12 @@ export class TerrainBaseTexture extends BaseTexture<TerrainTextureSource>
     declare width: number;
     declare height: number;
     constructor(options: TerrainTextureSourceOptions) {
-        super(new TerrainTextureSource(options));
+        super(new TerrainTextureSource(options), {
+            wrapMode: options.wrapMode || WRAP_MODES.CLAMP,
+            mipmap: 0,
+            alphaMode: 0,
+        });
         this.minFilter = this.resource.minFilter;
-        (this as any).mipmap = 0;
-        (this as any).alphaMode = 0;
     }
 
     get minFilter() {
