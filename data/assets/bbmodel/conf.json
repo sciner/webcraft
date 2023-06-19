@@ -2304,6 +2304,21 @@
                 "import_anyway": true,
                 "rotate": {"type": "cardinal_direction"}
             }
+        },
+        {
+            "id": 328,
+            "name": "JERSEY_BARRIER",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "style_name": "wall",
+            "material": {
+                "id": "stone"
+            },
+            "bb": {
+                "import_anyway": true,
+                "behavior": "wall",
+                "aabb_stylename": "wall"
+            }
         }
     ]
 }

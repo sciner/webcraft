@@ -562,6 +562,16 @@ export default class style {
                 style.selectTextureFromPalette(model, {name: mat.name}, tblock)
                 break
             }
+            case 'wall': {
+                const hide_group_names = [];
+                if(!bm.canWallConnect(neighbours.SOUTH)) hide_group_names.push('south')
+                if(!bm.canWallConnect(neighbours.NORTH)) hide_group_names.push('north')
+                if(!bm.canWallConnect(neighbours.WEST)) hide_group_names.push('west')
+                if(!bm.canWallConnect(neighbours.EAST)) hide_group_names.push('east')
+                model.hideGroups(hide_group_names)
+                // style.selectTextureFromPalette(model, {name: mat.name}, tblock)
+                break
+            }
             case 'pot': {
                 if(!(tblock instanceof FakeTBlock)) {
                     emmited_blocks.push(...pot_style.emmitInpotBlock(tblock.vec.x, tblock.vec.y, tblock.vec.z, tblock, null, matrix, biome, dirt_color))
