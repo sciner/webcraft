@@ -2,6 +2,7 @@
 www/js-gen
 www/js-bundles
 www/js-lib
+www/upload
 node_server/js_server
 *.obj
 *.mtl

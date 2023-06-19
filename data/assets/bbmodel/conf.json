@@ -498,7 +498,10 @@
             "name": "BROWN_MUSHROOM",
             "aabb": [5, 0, 5, 11, 6, 11],
             "bb": {
-                "model": "brown_mushroom"
+                "model": "brown_mushroom",
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ]
             }
         },
         {
@@ -1231,7 +1234,10 @@
             "id": 1004,
             "name": "SWEET_BERRY_BUSH",
             "bb": {
-                "model": "sweet_berry_bush"
+                "model": "sweet_berry_bush",
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ]
             }
         },
         {
@@ -1275,30 +1281,39 @@
             }
         },
         {
-            "_id": 992,
+            "id": 992,
             "name": "FERN",
             "bb": {
                 "model": "fern",
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ],
                 "set_state": [
                     {"name": "variant2", "_when": {"extra_data._": true}}
                 ]
             }
         },
         {
-            "_id": 498,
+            "id": 498,
             "name": "BURDOCK",
             "bb": {
                 "model": "burdock",
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ],
                 "set_state": [
                     {"name": "variant2", "_when": {"extra_data._": true}}
                 ]
             }
         },
         {
-            "_id": 499,
+            "id": 499,
             "name": "WINDFLOWERS",
             "bb": {
                 "model": "wildflowers",
+                "rotate": [
+                    {"type": "random", "axes": ["y"]}
+                ],
                 "_set_state": [
                     {"name": "variant2", "_when": {"extra_data._": true}}
                 ]
@@ -1378,7 +1393,7 @@
             "id": 607,
             "name": "STONE_SWORD",
             "bb": {
-                "model": "tool/sword",
+                "model": "tool/stone_sword",
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
@@ -1428,7 +1443,7 @@
             "id": 500,
             "name": "STONE_PICKAXE",
             "bb": {
-                "model": "tool/pickaxe",
+                "model": "tool/stone_pickaxe",
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
@@ -1488,7 +1503,7 @@
             "id": 561,
             "name": "STONE_SHOVEL",
             "bb": {
-                "model": "tool/shovel",
+                "model": "tool/stone_shovel",
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
@@ -1538,7 +1553,7 @@
             "id": 567,
             "name": "STONE_HOE",
             "bb": {
-                "model": "tool/hoe",
+                "model": "tool/stone_hoe",
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
@@ -1588,7 +1603,7 @@
             "id": 557,
             "name": "STONE_AXE",
             "bb": {
-                "model": "tool/axe",
+                "model": "tool/stone_axe",
                 "select_texture": [
                     {"name": "%block_name%"}
                 ]
@@ -2104,6 +2119,12 @@
             ],
             "aabb": [4, 0, 4, 12, 8, 12],
             "multiblock": {"x": 0, "y": 0, "z": 0, "w": 1, "h": 3, "d": 1},
+            "light_power": {
+                "r": 80,
+                "g": 200,
+                "b": 253,
+                "a": 128
+            },
             "extra_data": {
                 "relindex": -1,
                 "calculated": [
@@ -2259,6 +2280,29 @@
             ],
             "bb": {
                 "extends": "THATCH_ROOFING"
+            }
+        },
+        {
+            "id": 316,
+            "name": "MINI_STREET_LIGHT",
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "aabb": [5, 0, 5, 11, 16, 11],
+            "light_power": {
+                "r": 253,
+                "g": 200,
+                "b": 80,
+                "a": 255
+            },
+            "tags": [
+                "no_drop_ao"
+            ],
+            "bb": {
+                "import_anyway": true,
+                "rotate": {"type": "cardinal_direction"}
             }
         }
     ]

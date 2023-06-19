@@ -23,7 +23,7 @@ import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
-export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface', 'decal1', 'decal2'];
+export const GROUPS_NO_TRANSPARENT = ['regular', 'creative_regular', 'doubleface', 'decal1', 'decal2']
 
 const tmpAddr = new Vector()
 let billboard_tex_compiler : FastCompiller

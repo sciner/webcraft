@@ -434,6 +434,8 @@ interface IBlockMaterial {
     drop_if_unlinked: boolean
     visible_for_ao: boolean
     interact_water: boolean
+    hide_in_creative: boolean
+    can_replace: any
     //
     coocked_item: { count: number, name: string }
     fuel_time: number

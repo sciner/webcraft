@@ -22,6 +22,7 @@ export const ITEM_INVENTORY_PROPS           = ['power', 'count', 'entity_id', 'e
 export const NO_DESTRUCTABLE_BLOCKS         = ['BEDROCK', 'STILL_WATER']
 export const DIRT_BLOCK_NAMES               = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET']
 export const OK_FOR_PLANT_BLOCK_NAMES       = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET']
+export const REPLACEABLE_BLOCKS             = ['GRASS', 'STILL_WATER', 'FLOWING_WATER', 'STILL_LAVA', 'FLOWING_LAVA', 'CLOUD', 'TALL_GRASS', 'FIRE', 'LIGHT']
 export const LAYERING_MOVE_TO_DOWN_STYLES   = ['grass', 'tall_grass', 'wildflowers']
 
 export const AIR_BLOCK_SIMPLE = Object.freeze({id: 0})
@@ -738,21 +739,17 @@ export class BLOCK {
     // Can replace
     static canReplace(block_id : int, extra_data : any, replace_with_block_id? : int) : boolean {
         if(block_id == 0) {
-            return true;
+            return true
         }
-        if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id, BLOCK.STILL_LAVA.id,
-            BLOCK.FLOWING_LAVA.id, BLOCK.CLOUD.id, BLOCK.TALL_GRASS.id, BLOCK.FIRE.id].includes(block_id)) {
-            return true;
-        }
-        const mat = BLOCK.BLOCK_BY_ID[block_id];
-        if(mat.is_fluid) {
-            return true;
+        const mat = BLOCK.BLOCK_BY_ID[block_id]
+        if(mat.can_replace || mat.is_fluid) {
+            return true
         }
         if(mat.is_layering) {
             const height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : mat.height;
             return !isNaN(height) && (height == mat.height && block_id != replace_with_block_id && height < .5);
         }
-        return false;
+        return false
     }
 
     //
@@ -942,6 +939,7 @@ export class BLOCK {
         block.is_grass          = block.is_grass || ['GRASS', 'TALL_GRASS', 'BURDOCK', 'WINDFLOWERS'].includes(block.name);
         block.is_leaves         = block.tags.includes('leaves') ? LEAVES_TYPE.NORMAL : LEAVES_TYPE.NO;
         block.same              = this.calcBlockSame(block)
+        block.can_replace       = REPLACEABLE_BLOCKS.includes(block.name)
         block.is_dirt           = DIRT_BLOCK_NAMES.includes(block.name);
         block.is_glass          = block.tags.includes('glass') || (block.material.id == 'glass');
         block.is_sign           = block.tags.includes('sign');
@@ -1460,6 +1458,13 @@ export class BLOCK {
             return shapes
         }
 
+        const player = world?.chunkManager?.renderList?.render?.player
+        if(player) {
+            if(material.hide_in_creative && player.isHideCreativeMaterialBlocks(tblock.material)) {
+                return shapes
+            }
+        }
+
         /** Проверка что блок - препятствие. Она должна совпадать с проверкой в {@link PhysicsBlockAccessor.getObstacleAABBs} */
         if(!for_physic || (!material.passable && !material.planting)) {
 
@@ -1572,6 +1577,7 @@ export class BLOCK {
             block.has_powerbar = !!(block.item?.instrument_id || block.armor)
             block.light_power_number = BLOCK.getLightPower(block)
             block.interact_water = block.tags.includes('interact_water') || !!block.layering?.slab
+            block.hide_in_creative = block.tags.includes('hide_in_creative')
             block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab || !!block.is_leaves || !!block.tags.includes('trapdoor')
             if(!block.support_style && block.planting) {
                 block.support_style = 'planting'

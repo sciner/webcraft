@@ -1,6 +1,7 @@
 import {Vector} from "../helpers.js";
 import {FLUID_TYPE_MASK, fluidLightPower} from "../fluid/FluidConst.js";
 import {BLOCK} from "../blocks.js";
+import { BLOCK_NAMES } from "../constant.js";
 import type {ChunkDataTexture} from "./ChunkDataTexture";
 import type {ChunkGridTexture} from "./ChunkGridTexture.js";
 import type {TypedBlocks3} from "../typed_blocks3";
@@ -132,7 +133,7 @@ export class ChunkLight {
         let block_material = null;
 
         const {cx, cy, cz, cw} = chunk.dataChunk;
-        const {id} = chunk.tblocks;
+        const {id, extra_data} = chunk.tblocks;
         const fluid = chunk.fluid.uint16View;
 
         for (let y = 0; y < size.y; y++)
@@ -144,7 +145,11 @@ export class ChunkLight {
                     if (block_id !== prev_block_id || fluid_type !== prev_fluid) {
                         block_material = BLOCK.BLOCK_BY_ID[block_id]
                         if (block_material) {
-                            light_power_number = block_material.light_power_number;
+                            if(block_material.name == BLOCK_NAMES.LIGHT) {
+                                light_power_number = extra_data.getByIndex(index)?.level | 0
+                            } else {
+                                light_power_number = block_material.light_power_number;
+                            }
                         } /*else {
                             console.error(`Block not found ${block_id}`);
                         }*/

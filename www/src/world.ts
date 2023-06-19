@@ -33,7 +33,7 @@ export class World implements IWorld {
     players:                PlayerManager
     drivingManager:         ClientDrivingManager
     blockModifierListeners: Function[]
-    block_manager:          any
+    block_manager:          typeof BLOCK
     server?:                ServerClient
     hello?:                 IChatCommand
     history:                any = new WorldHistory(this)

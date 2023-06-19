@@ -1547,4 +1547,16 @@ export class Player implements IPlayer {
         }
     }
 
+    isHideCreativeMaterialBlocks(material? : IBlockMaterial) : boolean {
+        let hide_creative_mat = true
+        if(this.game_mode.isCreative()) {
+            const cur_mat_id = this.currentInventoryItem?.id ?? 0
+            if(cur_mat_id) {
+                const mat = this.world.block_manager.fromId(cur_mat_id)
+                hide_creative_mat = !mat.hide_in_creative
+            }
+        }
+        return hide_creative_mat
+    }
+
 }
