@@ -356,8 +356,10 @@ class BuildVerticesResult {
     tm:             number
     map:            Biome3TerrainMap
     dirt_colors:    Float32Array
+    multiblock_neib_mask: number
 
-    constructor(key: any, addr: Vector, vertices: any, gravity_blocks: any[], fluid_blocks: any[], timers: PerformanceTimer, tm: float) {
+    constructor(key: any, addr: Vector, vertices: any, gravity_blocks: any[], fluid_blocks: any[],
+                timers: PerformanceTimer, tm: float, multiblock_neib_mask: int) {
         this.key            = key
         this.addr           = addr
         this.vertices       = vertices
@@ -365,6 +367,7 @@ class BuildVerticesResult {
         this.fluid_blocks   = fluid_blocks
         this.timers         = Object.fromEntries(timers.result.entries())
         this.tm             = tm
+        this.multiblock_neib_mask = multiblock_neib_mask
     }
 }
 
@@ -405,6 +408,7 @@ function buildVertices(chunk : ChunkWorkerChunk, return_map : boolean = false) :
         chunk.fluid_blocks,
         chunk.timers,
         chunk.tm,
+        chunk.multiblock_neib_mask
     )
     if(return_map) {
         resp.map = chunk.map;

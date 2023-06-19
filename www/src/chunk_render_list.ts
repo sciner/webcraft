@@ -27,6 +27,7 @@ export class ChunkRenderList {
     spiral = new SpiralGrid();
     culling = new SpiralCulling(this.spiral);
     chunkGridTex = new ChunkGridTexture();
+    culling_multiblock = new IvanArray<Chunk>();
 
     constructor(chunkManager: ChunkManager) {
         this.chunkManager = chunkManager;
@@ -110,7 +111,8 @@ export class ChunkRenderList {
      * highly optimized
      */
     prepareRenderList() {
-        const {chunkManager, render, spiral, culling} = this;
+        const {chunkManager, render, spiral, culling,
+            culling_multiblock} = this;
 
         const player = render.player;
         const chunk_render_dist = player.state.chunk_render_dist;
@@ -166,6 +168,57 @@ export class ChunkRenderList {
             const chunk = entries[i].chunk as Chunk
             if (!chunk || !chunk.chunkManager) {
                 // destroyed!
+                continue;
+            }
+
+            //TODO: optimize it by using special material from neib chunks.
+            // Draw only big quads!
+
+        }
+
+        culling_multiblock.clear();
+
+        for (let i = 0; i < entries.length; i++) {
+            if (cullIDs[i] !== cullID) {
+                continue;
+            }
+            cnt++;
+            const chunk = entries[i].chunk as Chunk
+            if (!chunk || !chunk.chunkManager) {
+                // destroyed!
+                continue;
+            }
+            chunk.cullID = cullID;
+            // actualize light
+            if (use_light && entries[i].dist <= 16) {
+                chunk.light.checkGridTex(this.chunkGridTex);
+            }
+            chunk.prepareRender(render.renderBackend);
+            if (chunk.need_apply_vertices) {
+                if (this.bufferPool.checkHeuristicSize(chunk.vertices_args_size)) {
+                    this.bufferPool.prepareMem(chunk.vertices_args_size);
+                    chunk.vertices_args_size = 0;
+                    chunk.applyChunkWorkerVertices();
+                }
+            }
+            if (chunk.multiblock_neib_mask > 0)
+            {
+                chunk.uncull_neib_chunks(culling_multiblock);
+            }
+            if (chunk.vertices_length === 0) {
+                continue;
+            }
+            for (let i = 0; i < chunk.verticesList.length; i++) {
+                let v = chunk.verticesList[i];
+                v.rpl.push(v);
+                chunk.rendered = 0;
+            }
+        }
+
+        for (let i = 0; i < culling_multiblock.count; i++)
+        {
+            const chunk = culling_multiblock.arr[i];
+            if (chunk.cullID === cullID) {
                 continue;
             }
             chunk.cullID = cullID;
