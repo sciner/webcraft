@@ -1,5 +1,5 @@
 import { ServerClient } from "@client/server_client.js";
-import { getPlayerFiles } from "../../server_helpers.js";
+import Billboard from "player/billboard.js";
 
 export default class packet_reader {
 
@@ -10,7 +10,7 @@ export default class packet_reader {
 
     // which command can be parsed with this class
     static get command() {
-        return ServerClient.CMD_MEDIA_FILES;
+        return ServerClient.CMD_BILLBOARD_MEDIA;
     }
 
     static async read(player, packet) {
@@ -21,9 +21,9 @@ export default class packet_reader {
             fs.unlinkSync(small)
             fs.unlinkSync(big)
         }
-        const files = await getPlayerFiles(id)
+        const files = await Billboard.getPlayerFiles(id)
         const packets = [{
-            name: ServerClient.CMD_MEDIA_FILES,
+            name: ServerClient.CMD_BILLBOARD_MEDIA,
             data: {
                 'files': files
             }

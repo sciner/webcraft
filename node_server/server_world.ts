@@ -47,6 +47,7 @@ import {preprocessMobConfigs, TMobConfig} from "./mob/mob_config.js";
 import {Raycaster} from "@client/Raycaster.js";
 import type { ServerGame } from "server_game.js";
 import {ObjectUpdateType} from "./helpers/aware_players.js";
+import Billboard from "player/billboard.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -1403,14 +1404,7 @@ export class ServerWorld implements IWorld {
     }
 
     getPlayerFile(id: number, file: string, demo: boolean) {
-        file = file.replace(/\\|\/|\*|\?|/g, '')
-        const path = demo ? DEMO_PATH + file : `../www/upload/${id}/${file}`
-        try {
-            fs.statSync(path)
-        } catch(e) {
-            return false
-        }
-        return path
+        return Billboard.getPlayerFile(id, file, demo)
     }
 
 }

@@ -193,12 +193,12 @@ export class BillboardWindow extends BlankWindow {
         //dialog
         this.addDialog(Lang.delete_file + '?', Lang.lost_file, (data)=> {
             player.world.server.Send({
-                name: ServerClient.CMD_MEDIA_FILES,
+                name: ServerClient.CMD_BILLBOARD_MEDIA,
                 delete: data
             })
         })
         // listener
-        player.world.server.AddCmdListener([ServerClient.CMD_MEDIA_FILES], (packet) => {
+        player.world.server.AddCmdListener([ServerClient.CMD_BILLBOARD_MEDIA], (packet) => {
             this.upadateCollection(packet.data.files)
         })
     }
@@ -228,7 +228,7 @@ export class BillboardWindow extends BlankWindow {
         this.args = args
         Qubatch.releaseMousePointer()
         super.onShow(args)
-        this.player.world.server.Send({name: ServerClient.CMD_MEDIA_FILES})
+        this.player.world.server.Send({name: ServerClient.CMD_BILLBOARD_MEDIA})
     }
 
     sendChangeExtraData(data) {
@@ -242,18 +242,20 @@ export class BillboardWindow extends BlankWindow {
 
     /** Создать слот удаления предметов из инвенторя */
     protected addDialog(title_text:string, body_text: string, callback): void {
-        const width = 420
+        //const width = 420
+        //const height = 190
+        const width = 336
         const height = 190
         const form_atlas = new SpriteAtlas()
         const confirm = this.confirm = new Window((this.w - width * this.zoom) / 2, (this.h - height * this.zoom) / 2, width * this.zoom, height * this.zoom, 'confirm_delete')
         form_atlas.fromFile('./media/gui/popup.png').then(async (atlas : SpriteAtlas) => {
-            confirm.setBackground(await atlas.getSprite(0, 0, 1008, height * 3), 'none', this.zoom / 2.0)
+            confirm.setBackground(await atlas.getSprite(0, 0, 1008, 570), 'none', this.zoom / 2.0)
         })
         confirm.z = 1
         confirm.hide()
         this.add(confirm)
 
-        const title = new Label(38 * this.zoom, 25 * this.zoom, 0, 0, `lblConfirmTitle`, '', title_text)
+        const title = new Label(36 * this.zoom, 23 * this.zoom, 0, 0, `lblConfirmTitle`, '', title_text)
         title.style.font.size = UI_THEME.popup.title.font.size
         title.style.font.color = UI_THEME.popup.title.font.color
         confirm.add(title)
@@ -263,17 +265,24 @@ export class BillboardWindow extends BlankWindow {
         text.style.font.color = UI_THEME.popup.text.font.color
         confirm.add(text)
 
-        const btnYes = new Button(width * this.zoom / 4 - 90 * this.zoom / 2, 90 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
+        //const btnYes = new Button(width * this.zoom / 4 - 90 * this.zoom / 2, 90 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
+        const btnYes = new Button(50 * this.zoom, 115 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
         btnYes.onDrop = btnYes.onMouseDown = function() {
             callback(confirm.data)
             confirm.hide()
         }
         this.confirm.add(btnYes)
-        const btnNo = new Button(width * 3 * this.zoom / 4 - 90 * this.zoom / 2, 90 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
+        //const btnNo = new Button(width * 3 * this.zoom / 4 - 90 * this.zoom / 2, 90 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
+        const btnNo = new Button(185 * this.zoom, 115 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
         btnNo.onMouseDown = function() {
             confirm.hide()
         }
         confirm.add(btnNo)
+
+        const descr = new Label(38 * this.zoom, 80 * this.zoom, 0, 0, `lblConfirmDescr`, '', Lang.lost_file_descr)
+        descr.style.font.size = UI_THEME.popup.text.font.size
+        descr.style.font.color = UI_THEME.popup.text.font.color
+        confirm.add(descr)
     }
 
 }

@@ -4,7 +4,7 @@ import { WorldGenerators } from "./world/generators.js";
 import { Vector } from "@client/helpers.js";
 import {MonotonicUTCDate, TApiSyncTimeRequest, TApiSyncTimeResponse} from "@client/helpers/monotonic_utc_date.js";
 import type { DBGame } from "db/game.js";
-import { getPlayerFiles } from "./server_helpers.js";
+import Billboard from "player/billboard.js";
 
 const FLAG_SYSTEM_ADMIN = 256;
 
@@ -143,7 +143,7 @@ export class ServerAPI {
                     const file = path + md5 + ext
                     await req.files.file.mv(file)
                     await req.files.preview.mv(path + md5 + '_' + ext)
-                    const files = await getPlayerFiles(session.user_id)
+                    const files = await Billboard.getPlayerFiles(session.user_id)
                     return {
                         'result':'ok', 
                         'files': files, 

@@ -318,7 +318,7 @@
         "cmd_use_item",
         "cmd_play_anim",
         "cmd_use_weapon",
-        "cmd_media_files"
+        "cmd_billboard_files"
     ],
     "treasure_chests": [
         {
