@@ -169,45 +169,12 @@ export class UIApp {
         return result;
     }
 
-    OpenSelectFile() {
-        document.getElementById('upload').click()
-    }
-
-    UploadImage(files) {
-        if (!files) {
-            return
+    OpenSelectFileImage(callback: Function) {
+        const input = document.getElementById('form-upload-image')
+        input.onchange = function(event : any) {
+            callback(event.target.files)
         }
-        const reader = new FileReader()
-        const self = this
-        reader.onload = function (e) {
-            const img = new Image()
-            img.src = e.target.result.toString()
-            img.onload = () => {
-                // generate preview
-                const MAX_PREVIEW_SIZE = 200
-                const w = Math.round(img.width > img.height ? MAX_PREVIEW_SIZE : img.width / (img.height / MAX_PREVIEW_SIZE))
-                const h = Math.round(img.height > img.width ? MAX_PREVIEW_SIZE : img.height / (img.width / MAX_PREVIEW_SIZE))
-                const canvas_preview = document.createElement('canvas')
-                canvas_preview.width = w
-                canvas_preview.height = h
-                const ctx_preview = canvas_preview.getContext('2d')
-                ctx_preview.drawImage(img, 0, 0, img.width, img.height, 0, 0, w, h)
-                canvas_preview.toBlob((previewBlob) => {
-                    const form = new FormData();
-                    form.append('file', files[0])
-                    form.append('preview', new File([previewBlob], 'preview.png', { type: 'image/png' }))
-                    self.Billboard(form, function(result) {
-                        if (result.result == "ok") {
-                            vt.success("Image uploaded to server");
-                            Qubatch.hud.wm.getWindow('frmBillboard').upadateCollection(result.files, result.last)
-                        } else {
-                            vt.error("Error upload image");
-                        }
-                    })
-                }, 'image/png')
-            }
-        }
-        reader.readAsDataURL(files[0])
+        input.click()
     }
 
     // Send image to billboard
