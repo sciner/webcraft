@@ -39,15 +39,9 @@ export class BBModel_Cube extends BBModel_Child {
                 flag |= QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_LEAVES // | QUAD_FLAGS.FLAG_NORMAL_UP;
             }
             // another flags
-            if(name_lower.includes('#flag_')) {
-                const temp = name_lower.split('#flag_')
-                for(let flag_name of temp) {
-                    if(flag_name.length == 0) continue
-                    let i = flag_name.indexOf('#')
-                    if(i >= 0) {
-                        flag_name = flag_name.substring(0, i)
-                    }
-                    flag_name = `FLAG_${flag_name.toUpperCase()}`
+            const mc = this.json.madcraft
+            if(mc?.flags) {
+                for(let flag_name of mc.flags) {
                     const f = QUAD_FLAGS[flag_name]
                     switch(f as any) {
                         case QUAD_FLAGS.FLAG_TORCH_FLAME: {

@@ -441,10 +441,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
             const {item_block, model} = this
             const material = BLOCK.BLOCK_BY_ID[item_block.id]
             if(material.bb.behavior == 'billboard' && item_block.extra_data.texture) {
-                const group = model.groups.get('display')
-                const cube = group?.children[0]
-                if(cube && cube instanceof BBModel_Cube) {
-                    // cube.flag |= QUAD_FLAGS.FLAG_ENCHANTED_ANIMATION | QUAD_FLAGS.FLAG_LEAVES | QUAD_FLAGS.FLAG_LOOK_AT_CAMERA
+                for(const cube of model.displays) {
                     // create callback for cube
                     cube.callback = (part) : boolean => {
                         const extra_data = item_block.extra_data ?? {}
@@ -461,6 +458,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
                                 const buffer = new GeometryTerrain(verts)
                                 const gl_material = material.resource_pack.getMaterial(material_key)
                                 const replace_mesh = new MeshObjectCustomReplace(buffer, gl_material)
+                                const group = cube.parent
                                 mesh.modifiers.replaceGroupWithMesh(group.name, replace_mesh as any, mat4.create())
                                 return true
                             }

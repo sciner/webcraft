@@ -430,10 +430,7 @@ export default class style {
                 if(tblock instanceof TBlock) {
                     // if(tblock.extra_data.relindex == -1) {
                     if(tblock.extra_data.texture) {
-                        // const group = model.getGroupByPath('default/display')
-                        const group = model.groups.get('display')
-                        const cube = group?.children[0]
-                        if(cube && cube instanceof BBModel_Cube) {
+                        for(const cube of model.displays) {
                             if(bb.animated && (typeof QubatchChunkWorker != 'undefined')) {
                                 const extra_data = tblock.extra_data ?? {}
                                 if(!extra_data.texture?.uv) {

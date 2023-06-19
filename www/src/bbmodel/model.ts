@@ -9,6 +9,7 @@ import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { getEuler } from "../components/Transform.js";
 import { BBMODEL_ATLAS_SIZE } from "../constant.js";
 import type { BBModel_Child } from "./child.js";
+import { BBModel_Display } from "./display.js";
 
 const VEC_2 = new Vector(2, 2, 2)
 const EMPTY_ARGS = []
@@ -32,6 +33,7 @@ export class BBModel_Model {
     private _groups_by_path: Map<string, BBModel_Group> = new Map()
     all_textures?:  Map<string, any> = null
     animations?:    Map<string, any>
+    displays:       BBModel_Display[]
 
     constructor(json) {
         // TODO: need to read from bbmodel texture pack options
@@ -396,6 +398,7 @@ export class BBModel_Model {
     parse() {
         const origin = new Vector(8, 0, 8);
         const model_json = this.json;
+        this.displays = []
         //
         if(model_json.elements) {
             for(let i = 0; i < model_json.elements.length; i++) {
@@ -612,6 +615,10 @@ export class BBModel_Model {
         let child : BBModel_Child
 
         switch(el.type) {
+            case 'display': {
+                child = new BBModel_Display(this, el, size, translate)
+                break
+            }
             case 'cube': {
                 child = new BBModel_Cube(this, el, size, translate)
                 break
@@ -636,6 +643,10 @@ export class BBModel_Model {
         //
         this.addChildToCurrentGroup(child)
         child.updateLocalTransform()
+
+        if(child instanceof BBModel_Display) {
+            this.displays.push(child)
+        }
 
     }
 
