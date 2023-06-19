@@ -240,7 +240,9 @@ export class BillboardWindow extends BlankWindow {
         this.confirm.show()
     }
 
-    /** Создать слот удаления предметов из инвенторя */
+    /**
+     * Создать диалоговое окно подтверждения действия
+     */
     protected addDialog(title_text:string, body_text: string, callback): void {
         const width = 336
         const height = 190
@@ -258,12 +260,12 @@ export class BillboardWindow extends BlankWindow {
         title.style.font.color = UI_THEME.popup.title.font.color
         confirm.add(title)
 
-        const text = new Label(38 * this.zoom, 67 * this.zoom, 0, 0, `lblConfirmText`, '', body_text)
+        const text = new Label(38 * this.zoom, 70 * this.zoom, 0, 0, `lblConfirmText`, '', body_text)
         text.style.font.size = UI_THEME.popup.text.font.size
         text.style.font.color = UI_THEME.popup.text.font.color
         confirm.add(text)
 
-        const descr = new Label(38 * this.zoom, 83 * this.zoom, 0, 0, `lblConfirmDescr`, '', Lang.lost_file_2)
+        const descr = new Label(38 * this.zoom, 86 * this.zoom, 0, 0, `lblConfirmDescr`, '', Lang.lost_file_2)
         descr.style.font.size = UI_THEME.popup.text.font.size
         descr.style.font.color = UI_THEME.popup.text.font.color
         confirm.add(descr)
