@@ -278,18 +278,19 @@ export class BillboardWindow extends BlankWindow {
      * Создать диалоговое окно подтверждения действия
      */
     protected addDialog(title_text:string, body_text: string, callback): void {
-        const width = 336
+        const hh = 13
+        const width = 342
         const height = 190
         const form_atlas = new SpriteAtlas()
         const confirm = this.confirm = new Window((this.w - width * this.zoom) / 2, (this.h - height * this.zoom) / 2, width * this.zoom, height * this.zoom, 'confirm_delete')
         form_atlas.fromFile('./media/gui/popup.png').then(async (atlas : SpriteAtlas) => {
-            confirm.setBackground(await atlas.getSprite(0, 0, 1008, 570), 'none', this.zoom / 2.0)
+            confirm.setBackground(await atlas.getSprite(0, 0, 1008, 573), 'none', this.zoom / 2.0)
         })
         confirm.z = 1
         confirm.hide()
         this.add(confirm)
 
-        const title = new Label(36 * this.zoom, 27 * this.zoom, 0, 0, `lblConfirmTitle`, '', title_text)
+        const title = new Label(38 * this.zoom, 25 * this.zoom, 0, 0, `lblConfirmTitle`, '', title_text)
         title.style.font.size = UI_THEME.popup.title.font.size
         title.style.font.color = UI_THEME.popup.title.font.color
         confirm.add(title)
@@ -304,14 +305,14 @@ export class BillboardWindow extends BlankWindow {
         descr.style.font.color = UI_THEME.popup.text.font.color
         confirm.add(descr)
 
-        const btnYes = new Button(50 * this.zoom, 115 * this.zoom, 92 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
+        const btnYes = new Button(38 * this.zoom, 119 * this.zoom, 92 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
         btnYes.onDrop = btnYes.onMouseDown = function() {
             callback(confirm.data)
             confirm.hide()
         }
         this.confirm.add(btnYes)
 
-        const btnNo = new Button(185 * this.zoom, 115 * this.zoom, 92 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
+        const btnNo = new Button(151 * this.zoom, 119 * this.zoom, 92 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
         btnNo.onMouseDown = function() {
             confirm.hide()
         }
