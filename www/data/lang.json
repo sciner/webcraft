@@ -252,7 +252,7 @@
         "displayed_image": {"en": "Displayed Image", "ru": "Отображаемое изображение", "fr": "", "es": "", "man": "", "kk": ""},
         "delete_file": {"en": "Delete file", "ru": "Удалить файл", "fr": "", "es": "", "man": ""},
         "lost_file": {"en": "This image will be removed from all billboards", "ru": "Изображение будет удалено со всех билбордов", "fr": "", "es": "", "man": ""},
-        "lost_file_descr": {"en": "Default settings will be used instead", "ru": "Вернутся стандартныe настройки", "fr": "", "es": "", "man": ""}
+        "lost_file_2": {"en": "Default settings will be used instead", "ru": "Вернутся стандартныe настройки", "fr": "", "es": "", "man": ""}
         
     }
 }

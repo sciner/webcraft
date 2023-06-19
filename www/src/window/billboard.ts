@@ -242,8 +242,6 @@ export class BillboardWindow extends BlankWindow {
 
     /** Создать слот удаления предметов из инвенторя */
     protected addDialog(title_text:string, body_text: string, callback): void {
-        //const width = 420
-        //const height = 190
         const width = 336
         const height = 190
         const form_atlas = new SpriteAtlas()
@@ -255,34 +253,33 @@ export class BillboardWindow extends BlankWindow {
         confirm.hide()
         this.add(confirm)
 
-        const title = new Label(36 * this.zoom, 23 * this.zoom, 0, 0, `lblConfirmTitle`, '', title_text)
+        const title = new Label(36 * this.zoom, 27 * this.zoom, 0, 0, `lblConfirmTitle`, '', title_text)
         title.style.font.size = UI_THEME.popup.title.font.size
         title.style.font.color = UI_THEME.popup.title.font.color
         confirm.add(title)
 
-        const text = new Label(38 * this.zoom, 60 * this.zoom, 0, 0, `lblConfirmText`, '', body_text)
+        const text = new Label(38 * this.zoom, 67 * this.zoom, 0, 0, `lblConfirmText`, '', body_text)
         text.style.font.size = UI_THEME.popup.text.font.size
         text.style.font.color = UI_THEME.popup.text.font.color
         confirm.add(text)
 
-        //const btnYes = new Button(width * this.zoom / 4 - 90 * this.zoom / 2, 90 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
-        const btnYes = new Button(50 * this.zoom, 115 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
+        const descr = new Label(38 * this.zoom, 83 * this.zoom, 0, 0, `lblConfirmDescr`, '', Lang.lost_file_2)
+        descr.style.font.size = UI_THEME.popup.text.font.size
+        descr.style.font.color = UI_THEME.popup.text.font.color
+        confirm.add(descr)
+
+        const btnYes = new Button(50 * this.zoom, 115 * this.zoom, 92 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
         btnYes.onDrop = btnYes.onMouseDown = function() {
             callback(confirm.data)
             confirm.hide()
         }
         this.confirm.add(btnYes)
-        //const btnNo = new Button(width * 3 * this.zoom / 4 - 90 * this.zoom / 2, 90 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
-        const btnNo = new Button(185 * this.zoom, 115 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
+
+        const btnNo = new Button(185 * this.zoom, 115 * this.zoom, 92 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
         btnNo.onMouseDown = function() {
             confirm.hide()
         }
         confirm.add(btnNo)
-
-        const descr = new Label(38 * this.zoom, 80 * this.zoom, 0, 0, `lblConfirmDescr`, '', Lang.lost_file_descr)
-        descr.style.font.size = UI_THEME.popup.text.font.size
-        descr.style.font.color = UI_THEME.popup.text.font.color
-        confirm.add(descr)
     }
 
 }
