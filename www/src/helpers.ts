@@ -30,7 +30,6 @@ import { CubeSym } from "./core/CubeSym.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { Vector } from "./helpers/vector.js";
 import {Color} from "./helpers/color.js";
-import type { World } from "./world.js";
 
 const {mat4, quat} = glMatrix;
 
@@ -210,43 +209,6 @@ export class Helpers {
         loadText(url, function(text) {
             callback(JSON.parse(text));
         });
-    }
-
-    // createGLProgram...
-    static createGLProgram(gl, obj, callback?) {
-        let program = gl.createProgram();
-        // Compile vertex shader
-        let vertexShader = gl.createShader(gl.VERTEX_SHADER);
-        gl.shaderSource(vertexShader, obj.vertex);
-        gl.compileShader(vertexShader);
-        gl.attachShader(program, vertexShader);
-        gl.deleteShader(vertexShader);
-        if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-            throw "Could not compile vertex shader!\n" + gl.getShaderInfoLog(vertexShader);
-        }
-        // Compile fragment shader
-        let fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-        gl.shaderSource(fragmentShader, obj.fragment);
-        gl.compileShader(fragmentShader);
-        gl.attachShader(program, fragmentShader);
-        gl.deleteShader(fragmentShader);
-        if(!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-            throw "Could not compile fragment shader!\n" + gl.getShaderInfoLog(fragmentShader);
-        }
-        if (obj.tfVaryings) {
-            gl.transformFeedbackVaryings(program, obj.tfVaryings, gl.INTERLEAVED_ATTRIBS);
-        }
-        // Finish program
-        gl.linkProgram(program);
-        if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-            throw 'Could not link the shader program!';
-        }
-
-        callback && callback({
-            program
-        });
-
-        return program;
     }
 
     // Return from green to red color depend on percentage

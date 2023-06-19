@@ -5,6 +5,7 @@ import { Vector } from "../helpers.js";
 import { Resources } from "../resources.js";
 import { FastCompiller } from "./compiler_base.js";
 import { BBModel_Model } from "./model.js";
+import {TerrainBaseTexture} from "../renders/TerrainBaseTexture.js";
 
 export class BBModel_DropPaste {
     game: GameClass;
@@ -98,7 +99,7 @@ export class BBModel_DropPaste {
                                 mipmap: false
                             }
 
-                            const texture = renderBackend.createTexture({
+                            const texture = new TerrainBaseTexture({
                                 source: cnv,
                                 style: resource_pack.genTextureStyle(cnv, settings_for_canvas, DEFAULT_TX_SIZE),
                                 minFilter: 'nearest',

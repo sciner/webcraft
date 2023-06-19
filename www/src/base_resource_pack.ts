@@ -8,6 +8,7 @@ import type { ChunkWorkerChunk } from './worker/chunk.js';
 import type { WebGLMaterial } from './renders/webgl/WebGLMaterial.js';
 import type { ResourcePackManager } from './resource_pack_manager.js';
 import type { GameSettings } from './game.js';
+import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
 
 let tmpCanvas;
 
@@ -106,11 +107,11 @@ export class BaseResourcePack {
     async _loadTexture (url, settings, renderBackend, textureInfo) {
         const image = await Resources.loadImage(url, true);
 
-        const texture = renderBackend.createTexture({
+        const texture = new TerrainBaseTexture({
             source: await this.genMipMapTexture(image, settings, textureInfo),
             style: this.genTextureStyle(image, settings, image.width / textureInfo.tx_cnt),
             minFilter: textureInfo?.minFilter || 'nearest',
-            magFilter: textureInfo?.magFilter ||'nearest',
+            magFilter: textureInfo?.magFilter || 'nearest',
         });
 
         return {
@@ -165,7 +166,7 @@ export class BaseResourcePack {
             const settings_for_canvas = {...settings};
             settings_for_canvas.mipmap = false;
 
-            const texture = renderBackend.createTexture({
+            const texture = new TerrainBaseTexture({
                 source: cnv.canvas,
                 style: this.genTextureStyle(cnv.canvas, settings_for_canvas, DEFAULT_TX_SIZE),
                 minFilter: 'nearest',

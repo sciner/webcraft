@@ -37,12 +37,12 @@ export class WebGLFluidShader extends WebGLTerrainShader {
         fluidStatic.uniforms.u_fluidFlags = new Int32Array([
             QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.FLAG_MULTIPLY_COLOR | QUAD_FLAGS.FLAG_NO_AO,
             QUAD_FLAGS.FLAG_ANIMATED | QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT,
-        ]);
+        ]) as any;
         const atlas_size = DEFAULT_ATLAS_SIZE * 1.;
         fluidStatic.uniforms.u_fluidUV = new Float32Array([
             32.0 / atlas_size, 32.0 / atlas_size, 0.0 / atlas_size, 0.0 / atlas_size,
             32.0 / atlas_size, 32.0 / atlas_size, 32.0 / atlas_size, 0.0 / atlas_size,
-        ]);
-        fluidStatic.uniforms.u_fluidFrames = new Int32Array([32, 32]);
+        ]) as any;
+        fluidStatic.uniforms.u_fluidFrames = new Int32Array([32, 32]) as any;
     }
 }

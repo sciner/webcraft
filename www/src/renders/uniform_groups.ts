@@ -22,7 +22,7 @@ export let defaultGlobalUniforms = {
     u_camera_pos: [0, 0, 0] as tupleFloat3,
     u_camera_posi: [0, 0, 0] as tupleInt3,
     u_eyeinwater: 0 as float,
-    u_localLigthRadius: 0 as float,
+    u_localLightRadius: 0 as float,
     u_fogOn: true
 }
 
@@ -191,12 +191,12 @@ export class GlobalUniformGroup extends VAUX.UniformGroup<typeof defaultGlobalUn
     }
 
     get localLigthRadius(): number {
-        return this.uniforms.u_localLigthRadius;
+        return this.uniforms.u_localLightRadius;
     }
 
     set localLigthRadius(val)
     {
-        this.uniforms.u_localLigthRadius = val
+        this.uniforms.u_localLightRadius = val
     }
 
     get rainStrength(): number {
@@ -236,7 +236,7 @@ export class LightUniformGroup extends VAUX.UniformGroup<{ u_lightOverride: tupl
     declare uniforms: { u_lightOverride: tupleFloat3 };
 
     constructor() {
-        super({u_lightOverride: new Float32Array(3)}, true);
+        super({u_lightOverride: new Float32Array(3) as any}, true);
     }
 
     update()
