@@ -12,14 +12,13 @@ export class HUD_Underlay extends Container {
     _crosshair_num = 0;
     crosshair_tex: Texture;
     crosshair_sprite: MySprite;
-    constructor()
-    {
+
+    constructor() {
         super();
         this.init();
     }
 
-    init()
-    {
+    init() {
         this.crosshair_tex = new Texture(this.crosshairBase,
             new Rectangle(this._crosshair_num * 64, 0, 64, 64));
         this.crosshair_sprite = new MySprite(this.crosshair_tex);
@@ -28,29 +27,27 @@ export class HUD_Underlay extends Container {
         this.addChild(this.crosshair_sprite);
     }
 
-    set crosshairOn(val: boolean)
-    {
+    set crosshairOn(val: boolean) {
         this.crosshair_sprite.visible = val;
     }
 
-    get crosshairOn()
-    {
+    get crosshairOn() {
         return this.crosshair_sprite.visible;
     }
 
-    set crosshair_num(val: number)
-    {
+    set crosshair_num(val: number) {
         this._crosshair_num = val;
         this.crosshair_tex.frame.x = 64 * this._crosshair_num;
         this.crosshair_tex.updateUvs();
     }
 
-    get crosshair_num()
-    {
+    get crosshair_num() {
         return this._crosshair_num;
     }
 
     resize(screen: Rectangle, zoom = 1) {
         this.crosshair_sprite.position.set(screen.width / 2, screen.height / 2);
+        this.crosshair_sprite.scale.set(zoom / 2)
     }
+
 }

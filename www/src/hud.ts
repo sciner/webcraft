@@ -372,14 +372,14 @@ export class HUD {
         // width /= dpr
         // height /= dpr
 
-        // this.wm.pixiRender?.resize(width, height);
+        this.wm.pixiRender?.resize(width, height);
         this.wm.w = width
         this.wm.h = height
 
         this.wm.hud_window.w = width
         this.wm.hud_window.h = height
 
-        this.underlay.resize(this.wm.pixiRender.screen);
+        this.underlay.resize(this.wm.pixiRender.screen, this.zoom)
 
         this.refresh()
 
