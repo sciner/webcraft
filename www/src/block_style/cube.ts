@@ -277,7 +277,9 @@ export default class style {
 
         if(material.is_simple_qube) {
 
-            force_tex = bm.calcTexture(material.texture, DIRECTION.UP);
+            if(!material.texture_variants) {
+                force_tex = bm.calcTexture(material.texture, DIRECTION.UP);
+            }
 
         } else {
 
@@ -440,7 +442,7 @@ export default class style {
             }
         }
         if(canDrawDOWN) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'down', DIRECTION_DOWN, null, null);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'down', DIRECTION_DOWN, null, null, random_index)
             if(material.connected_sides) {
                 style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_DOWN)
             } else {
@@ -448,7 +450,7 @@ export default class style {
             }
         }
         if(canDrawSOUTH) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'south', DIRECTION_SOUTH, width, height);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'south', DIRECTION_SOUTH, width, height, random_index)
             // connected_sides
             if(material.connected_sides) {
                 style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_SOUTH)
@@ -457,7 +459,7 @@ export default class style {
             }
         }
         if(canDrawNORTH) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'north', DIRECTION_NORTH, width, height);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'north', DIRECTION_NORTH, width, height, random_index)
             if(material.connected_sides) {
                 style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_NORTH)
             } else {
@@ -465,7 +467,7 @@ export default class style {
             }
         }
         if(canDrawWEST) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'west', DIRECTION_WEST, width, height);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'west', DIRECTION_WEST, width, height, random_index)
             if(material.connected_sides) {
                 style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_WEST)
             } else {
@@ -473,7 +475,7 @@ export default class style {
             }
         }
         if(canDrawEAST) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'east', DIRECTION_EAST, width, height);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'east', DIRECTION_EAST, width, height, random_index)
             if(material.connected_sides) {
                 style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_EAST)
             } else {
@@ -765,7 +767,8 @@ export default class style {
             }
         }
         let random_double = undefined
-        if((block.id == bm.GRASS_BLOCK.id || block.id == bm.GRASS_BLOCK_SLAB.id) && side == 'up') {
+        const is_grass_block = block.id == bm.GRASS_BLOCK.id || block.id == bm.GRASS_BLOCK_SLAB.id
+        if(!force_tex && ((is_grass_block && side == 'up') || (!is_grass_block && material.texture_variants && typeof random_index != 'undefined'))) {
             random_double = (randoms.double(random_index) | 0) / 100
         }
         _sideParams.t = (force_tex as any) || bm.calcMaterialTexture(material, dir, width, height, block, undefined, random_double)
