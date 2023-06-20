@@ -260,19 +260,20 @@ export abstract class BaseInventoryWindow extends BaseAnyInventoryWindow {
         confirm.hide()
         this.add(confirm)
 
-        const title = new Label(38 * this.zoom, 25 * this.zoom, 0, 0, `lblConfirmTitle`, '', Lang.delete_item + '?')
+        const title = new Label(38 * this.zoom, 26.5 * this.zoom, 0, 0, `lblConfirmTitle`, '', Lang.delete_item + '?')
         title.style.font.size = UI_THEME.popup.title.font.size
         title.style.font.color = UI_THEME.popup.title.font.color
+        title.style.background.color = '#ff0000'
         confirm.add(title)
 
-        const text = new Label(38 * this.zoom, 66 * this.zoom, 0, 0, `lblConfirmText`, '', Lang.lost_item)
+        const text = new Label(38 * this.zoom, 68 * this.zoom, 0, 0, `lblConfirmText`, '', Lang.lost_item)
         text.style.font.size = UI_THEME.popup.text.font.size
         text.style.font.color = UI_THEME.popup.text.font.color
         confirm.add(text)
 
         const hud_atlas = Resources.atlas.get('hud')
-        const btnSwitch = new Label(38 * this.zoom, 140 * this.zoom, 15 * this.zoom, 15 * this.zoom, 'btnSwitch', ' ', Lang.do_not_show)
-        btnSwitch.style.padding.left = 20 * this.zoom
+        const btnSwitch = new Label(38 * this.zoom, 139 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btnSwitch', ' ', Lang.do_not_show)
+        btnSwitch.style.padding.left = 25 * this.zoom
         btnSwitch.style.font.size = UI_THEME.popup.text.font.size
         btnSwitch.style.font.color = '#507ea4'
         btnSwitch.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
@@ -286,7 +287,7 @@ export abstract class BaseInventoryWindow extends BaseAnyInventoryWindow {
         }
         confirm.add(btnSwitch)
 
-        const btnYes = new Button(38 * this.zoom, 94 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
+        const btnYes = new Button(38 * this.zoom, 96 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnOK', Lang.yes)
         btnYes.onDrop = btnYes.onMouseDown = function() {
             confirm.hide()
             deleteItem()
@@ -296,7 +297,7 @@ export abstract class BaseInventoryWindow extends BaseAnyInventoryWindow {
             }
         }
         confirm.add(btnYes)
-        const btnNo = new Button(151 * this.zoom, 94 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
+        const btnNo = new Button(151 * this.zoom, 96 * this.zoom, 90 * this.zoom, 30 * this.zoom, 'btnNo', Lang.no)
         btnNo.onDrop = btnNo.onMouseDown = function() {
             //ct.inventory.clearDragItem(true)
             confirm.hide()
