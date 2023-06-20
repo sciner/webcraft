@@ -105,6 +105,7 @@ export default class WebGLRenderer extends BaseRenderer {
         this.resetBefore();
         this.multidrawExt = gl.getExtension('WEBGL_multi_draw');
         this.multidrawBaseExt = gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
+        this.pixiRender.state.blendModes[30] = [gl.ONE_MINUS_DST_COLOR, gl.ONE_MINUS_SRC_COLOR, gl.ZERO, gl.ONE];
 
         this.line.init();
     }
