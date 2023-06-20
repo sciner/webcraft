@@ -1,5 +1,5 @@
 import * as VAUX from 'vauxcel';
-import {BatchRenderer, BatchTextureArray, premultiplyBlendMode} from "vauxcel";
+import {BatchRenderer, BatchTextureArray, premultiplyBlendMode, Renderer} from "vauxcel";
 globalThis.PIXI = VAUX;
 //PIXI.BatchRenderer.defaultMaxTextures = Math.min(PIXI.BatchRenderer.defaultMaxTextures, 16);
 
@@ -462,6 +462,31 @@ export class MyText extends VAUX.Text {
     constructor(text, style, canvas? : any) {
         super(text, style, canvas);
         this.tintMode = 0;
+        this.pluginName = 'mySprite';
+        this.wasInside = false;
+    }
+
+    updateText(respectDirty: boolean) {
+        if (this._text.length === 0 && !this.wasInside) {
+            return;
+        }
+        this.wasInside = true;
+        super.updateText(respectDirty);
+    }
+
+    _render(renderer: Renderer) {
+        if (this._text.length === 0) {
+            return;
+        }
+        super._render(renderer);
+    }
+}
+
+export class MyGraphics extends VAUX.Graphics {
+    [key: string]: any;
+    constructor() {
+        super();
+        this.geometry.isBatchable = () => { return true };
         this.pluginName = 'mySprite';
     }
 }

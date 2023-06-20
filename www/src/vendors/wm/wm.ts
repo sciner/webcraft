@@ -7,7 +7,7 @@ import * as VAUX from 'vauxcel';
 import {Style} from "./styles.js";
 
 import { msdf } from "../../../data/font.js";
-import {MyText} from "./MySpriteRenderer.js";
+import {MyGraphics, MyText} from "./MySpriteRenderer.js";
 import { BLOCK } from "../../blocks.js";
 import { Lang } from "../../lang.js";
 import { Resources } from "../../resources.js";
@@ -42,7 +42,7 @@ export type TMouseEvent = TMouseMoveEvent & {
     drag        : Pointer
 }
 
-export class Graphics extends VAUX.Graphics {
+export class Graphics extends MyGraphics {
     [key: string]: any;
 
     constructor(id? : any) {

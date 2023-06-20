@@ -21,7 +21,7 @@ export function getBlockImage(block) {
         console.error('error_invalid_block_id')
         return
     }
-    const baseTex = BaseTexture.from(Resources.inventory.image);
+    const baseTex = Resources.inventory.atlas.baseTex;
     const frame = image.width / INVENTORY_ICON_COUNT_PER_TEX
     const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, image.width, frame)
     return new Texture(baseTex, new Rectangle(icon.x, icon.y, icon.width, icon.height))
