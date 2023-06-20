@@ -478,7 +478,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                         // get block
                         let {dirt_layer, block_id} = map_manager.getBlock(xyz, not_air_count, cell, density_params, block_result)
 
-                        if(block_id == grass_block_id && !cell.biome.is_snowy) {
+                        if((block_id == grass_block_id || block_id == dirt_block_id) && !cell.biome.is_snowy) {
                             if(xyz.y - WATER_LEVEL < 2 && !in_canyon) {
                                 if(d4 * .3 + d3 * .7 < 0) {
                                     block_id = cell.biome.is_swamp ? podzol_block_id : sand_block_id
