@@ -60,7 +60,6 @@ export class BaseCubeShader extends BaseShader {
         // Default values
         this.resolution_value   = [1, 1];
         this.testLightOn_value  = false;
-        this.crosshairOn_value  = true;
 
         this.mergedBuffer = new Float32Array(16 * 2 + 1);
 
@@ -97,14 +96,6 @@ export class BaseCubeShader extends BaseShader {
         return this.testLightOn_value;
     }
 
-    set crosshairOn(v) {
-        this.crosshairOn_value = v;
-    }
-
-    get crosshairOn() {
-        return this.crosshairOn_value;
-    }
-
     bind() {
     }
 
@@ -127,7 +118,6 @@ export class BaseTerrainShader extends BaseShader {
         this.addPos = [0,0,0];
         this.texture = null;
         this.tintColor = new Color(0, 0, 0, 0);
-        this.crosshairOn = true;
     }
 
     bind() {

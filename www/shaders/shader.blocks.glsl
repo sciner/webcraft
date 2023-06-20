@@ -52,7 +52,6 @@
     uniform vec4 u_tintColor;
     uniform vec4 u_fogAddColor;
     uniform bool u_fogOn;
-    uniform bool u_crosshairOn;
     uniform float u_chunkBlockDist;
 
     uniform float u_brightness;
@@ -166,41 +165,6 @@
 #ifdef sample_texture_define_func
     // sample
     float ()
-#endif
-
-#ifdef crosshair_define_func
-    // crosshair draw block
-    void drawCrosshair() {
-        float cm = 0.0008;
-        vec4 crosshair;
-
-        if(u_resolution.x > u_resolution.y) {
-            crosshair = vec4(0., 0., u_resolution.x * cm, u_resolution.x * cm * 7.);
-        } else {
-            crosshair = vec4(0., 0., u_resolution.y * cm, u_resolution.y * cm * 7.);
-        }
-
-        float w = u_resolution.x;
-        float h = u_resolution.y;
-        float x = gl_FragCoord.x;
-        float y = gl_FragCoord.y;
-        if((x > w / 2.0 - crosshair.w && x < w / 2.0 + crosshair.w &&
-            y > h / 2.0 - crosshair.z && y < h / 2.0 + crosshair.z) ||
-            (x > w / 2.0 - crosshair.z && x < w / 2.0 + crosshair.z &&
-            y > h / 2.0 - crosshair.w && y < h / 2.0 + crosshair.w)
-            ) {
-                outColor = vec4(1. - outColor.rgb, 1.);
-        }
-    }
-    //--
-#endif
-
-#ifdef crosshair_call_func
-    // Draw crosshair
-    if (u_crosshairOn) {
-        drawCrosshair();
-    }
-    //--
 #endif
 
 #ifdef vignetting_define_func

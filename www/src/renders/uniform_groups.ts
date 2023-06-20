@@ -13,7 +13,6 @@ export let defaultGlobalUniforms = {
     u_fogColor: [1, 1, 1, 1] as tupleFloat4,
     u_time: performance.now() as float,
     u_testLightOn: 0 as float,
-    u_crosshairOn: true,
     u_sunDir: [0, 0, 0, 0] as tupleFloat4,
     u_useNormalMap: 0 as float,
     u_gridChunkSize: [0, 0, 0] as tupleFloat3,
@@ -46,7 +45,6 @@ export class GlobalUniformGroup extends VAUX.UniformGroup<typeof defaultGlobalUn
         this.time = performance.now();
 
         this.testLightOn = 0;
-        this.crosshairOn = true;
 
         this.sunDir = [0, 0, 0];
         this.useSunDir = false;
@@ -141,15 +139,6 @@ export class GlobalUniformGroup extends VAUX.UniformGroup<typeof defaultGlobalUn
     set testLightOn(val)
     {
         this.uniforms.u_testLightOn = val
-    }
-
-    get crosshairOn(): boolean {
-        return this.uniforms.u_crosshairOn;
-    }
-
-    set crosshairOn(val)
-    {
-        this.uniforms.u_crosshairOn = val
     }
 
     get sunDir(): tupleFloat3 {
