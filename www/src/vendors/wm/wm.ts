@@ -66,7 +66,7 @@ export class GradientGraphics {
      */
     static createVertical(from, to, height = 256) {
         const gradient = GradientGraphics._createVerticalGradient(from, to, height)
-        const graphics = new VAUX.Graphics()
+        const graphics = new MyGraphics()
         graphics.clear()
         graphics.beginTextureFill(gradient)
         // hud_graphics.beginFill(0x00ffff)
