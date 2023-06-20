@@ -935,13 +935,14 @@ v_axisV *= sign(a_uvSize.y);
           || abs(centerSample.z - 0.1) < 0.04) {
             color.rgb += 0.25;
         }*/
-        float m = centerSample.z < .03 ? 1. - (.03 - centerSample.z) / .01 : 1.;
+        float m = centerSample.z; // < .03 ? 1. - (.03 - centerSample.z) / .01 : 1.;
+
         float water_lighter = min(centerSample.z / water_lighter_limit, .1);
         vec3 cam_period = getCamPeriod();
         float x = v_world_pos.x + cam_period.x;
         float y = v_world_pos.y + cam_period.y;
         // color.rgb += water_lighter * 1.25;
-        color.rgb += min((max(snoise(vec2(x, y) * 10. + u_time / 1000.), 0.) / 2.) * 2., 1.) * m / 5.;
+        color.rgb += min((max(snoise(vec2(x, y) * 10. + u_time / 1000.), 0.) / 2.) * 2., 1.) * m / 4.;
     }
 #endif
 
