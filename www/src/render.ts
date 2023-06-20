@@ -1311,6 +1311,7 @@ export class Renderer {
             const mat = this.renderBackend.createMaterial({
                 cullFace: false,
                 opaque: false,
+                decalOffset: 3,
                 blendMode: BLEND_MODES.MULTIPLY,
                 shader: this.defaultShader,
             });
@@ -1353,7 +1354,7 @@ export class Renderer {
                                 s[1] = (pos.y - a_pos.y - .5) - s[1] - y; // opacity value for shader
                                 s[2] += z;
                                 s[3] += x;
-                                s[4] += y + 1/500;
+                                s[4] += y;
                                 s[5] += z;
                                 shapes.push(s);
                                 s[1] = Math.min(Math.max(1.3 - s[1], 0), 1) * .8;

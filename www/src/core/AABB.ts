@@ -233,38 +233,41 @@ export class AABB {
         return this;
     }
 
-    applyMat4(matrix : imat4, pivot : IVector) : this {
-        if (pivot) {
-            this.x_min -= pivot.x;
-            this.y_min -= pivot.y;
-            this.z_min -= pivot.z;
-            this.x_max -= pivot.x;
-            this.y_max -= pivot.y;
-            this.z_max -= pivot.z;
-        }
+    applyMat4(matrix : imat4, pivot : IVector) : this {    
+        let ox = (this.x_min + this.x_max) * 0.5;
+        let oy = (this.y_min + this.y_max) * 0.5;
+        let oz = (this.z_min + this.z_max) * 0.5;
 
-        const x0 = this.x_min * matrix[0] + this.y_min * matrix[4] + this.z_min * matrix[8];
-        const x1 = this.x_max * matrix[0] + this.y_max * matrix[4] + this.z_max * matrix[8];
-        const y0 = this.x_min * matrix[1] + this.y_min * matrix[5] + this.z_min * matrix[9];
-        const y1 = this.x_max * matrix[1] + this.y_max * matrix[5] + this.z_max * matrix[9];
-        const z0 = this.x_min * matrix[2] + this.y_min * matrix[6] + this.z_min * matrix[10];
-        const z1 = this.x_max * matrix[2] + this.y_max * matrix[6] + this.z_max * matrix[10];
-
-        this.x_min = Math.min(x0, x1) + matrix[12];
-        this.x_max = Math.max(x0, x1) + matrix[12];
-        this.y_min = Math.min(y0, y1) + matrix[13];
-        this.y_max = Math.max(y0, y1) + matrix[13];
-        this.z_min = Math.min(z0, z1) + matrix[14];
-        this.z_max = Math.max(z0, z1) + matrix[14];
+        const odx = ox - this.x_min;
+        const ody = oy - this.y_min;
+        const odz = oz - this.z_min;
 
         if (pivot) {
-            this.x_min += pivot.x;
-            this.y_min += pivot.y;
-            this.z_min += pivot.z;
-            this.x_max += pivot.x;
-            this.y_max += pivot.y;
-            this.z_max += pivot.z;
+            ox -= pivot.x;
+            oy -= pivot.y;
+            oz -= pivot.z;
         }
+
+        let cx = ox * matrix[0] + oy * matrix[4] + ox * matrix[8] + matrix[12];
+        let cy = ox * matrix[1] + oy * matrix[5] + oy * matrix[9] + matrix[13];
+        let cz = ox * matrix[2] + oz * matrix[6] + oz * matrix[10] + matrix[14];
+
+        const dx = Math.abs(odx * matrix[0]) + Math.abs(ody * matrix[4]) + Math.abs(odz * matrix[8]);
+        const dy = Math.abs(odx * matrix[1]) + Math.abs(ody * matrix[5]) + Math.abs(odz * matrix[9]);
+        const dz = Math.abs(odx * matrix[2]) + Math.abs(ody * matrix[6]) + Math.abs(odz * matrix[10]);
+
+        if (pivot) {
+            cx += pivot.x;
+            cy += pivot.y;
+            cz += pivot.z;
+        }
+
+        this.x_min = cx - dx;
+        this.x_max = cx + dx;
+        this.y_min = cy - dy;
+        this.y_max = cy + dy;
+        this.z_min = cz - dz;
+        this.z_max = cz + dz;
 
         return this;
     }

@@ -364,26 +364,25 @@
     // Calc fog amount
     float fogDistance = length(v_world_pos.xyz);
     float fogFactorDiv = 1.0;
-    if (checkFlag(FLAG_NO_FOG)) {
-        fogFactorDiv = 15.0;
+    if (!checkFlag(FLAG_NO_FOG)) {
+        float refBlockDist = u_chunkBlockDist * fogFactorDiv;
+        float refBlockDist2 = 4. * fogFactorDiv;
+
+        float fogFactor = 0.05 / fogFactorDiv;
+        float fogFactor2 = 0.0025 / fogFactorDiv;
+
+        float fogAmount = clamp(fogFactor * (fogDistance - refBlockDist), 0., 1.);
+        fogAmount = fogAmount + fogFactor2 * (fogDistance - refBlockDist2);
+        fogAmount = clamp(fogAmount, 0., 1.);
+
+        // Apply fog
+        outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * combinedLight);
+        // outColor.rgb = u_fogAddColor.rgb + (1. - u_fogAddColor.a * combinedLight) * outColor.rgb;
+        outColor = mix(outColor, vec4(u_fogColor.rgb, 1.), fogAmount);
+
+        // special effect for sunrise
+        outColor.rgb = mix(outColor.rgb, u_fogColor.rgb, u_fogColor.a);
     }
-    float refBlockDist = u_chunkBlockDist * fogFactorDiv;
-    float refBlockDist2 = 4. * fogFactorDiv;
-
-    float fogFactor = 0.05 / fogFactorDiv;
-    float fogFactor2 = 0.0025 / fogFactorDiv;
-
-    float fogAmount = clamp(fogFactor * (fogDistance - refBlockDist), 0., 1.);
-    fogAmount = fogAmount + fogFactor2 * (fogDistance - refBlockDist2);
-    fogAmount = clamp(fogAmount, 0., 1.);
-
-    // Apply fog
-    outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * combinedLight);
-    // outColor.rgb = u_fogAddColor.rgb + (1. - u_fogAddColor.a * combinedLight) * outColor.rgb;
-    outColor = mix(outColor, vec4(u_fogColor.rgb, 1.), fogAmount);
-
-    // special effect for sunrise
-    outColor.rgb = mix(outColor.rgb, u_fogColor.rgb, u_fogColor.a);
 
     float opacity = u_tintColor.a;
     if(opacity >= 0.0) {
