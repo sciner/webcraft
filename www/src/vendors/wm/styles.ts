@@ -1,4 +1,4 @@
-import { MySprite } from "./MySpriteRenderer.js";
+import {MyGraphics, MySprite} from "./MySpriteRenderer.js";
 import { Vector } from "../../helpers.js";
 import * as VAUX from 'vauxcel';
 
@@ -101,7 +101,7 @@ export class BackgroundStyle {
         // this.#_wmbgimage.position.y = 0
         window.addChildAt(this.#_wmbgimage, 0)
         // Create a Graphics object, set a fill color, draw a rectangle
-        this.#_bgcolor = new VAUX.Graphics()
+        this.#_bgcolor = new MyGraphics()
         window.addChildAt(this.#_bgcolor, 1)
         //
         this.scale = undefined // window.zoom / 2.0
@@ -252,7 +252,7 @@ export class BorderStyle {
         this.#window = window
 
         // Border
-        const border = this.#_wmborder = new VAUX.Graphics()
+        const border = this.#_wmborder = new MyGraphics()
         border.visible = false
         // border.w = window.w
         // border.h = window.h
