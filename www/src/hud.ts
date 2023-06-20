@@ -522,11 +522,7 @@ export class HUD {
                 }
                 const ed = desc.block.extra_data
                 if (ed) {
-                    var s = '';
-                    for(let key in ed) {
-                        s += '\n    ' + key + ': ' + JSON.stringify(ed[key])
-                    }
-                    this.block_text += '\nextra_data: {' + s + '\n}';
+                    this.block_text += '\nextra_data: ' + JSON.stringify(ed, null, 2)
                 }
                 if (desc.fluid) { // maybe unpack it
                     this.block_text += '\nFluid: ' + desc.fluid;
