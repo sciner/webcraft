@@ -90,7 +90,6 @@ export class Renderer {
     frustum:                FrustumProxy        = new FrustumProxy()
     xrMode:                 boolean             = false
     testLightOn:            boolean             = false
-    crosshairOn:            boolean             = true
     sunDir:                 tupleFloat3         = [0.9593, 1.0293, 0.6293] // [0.7, 1.0, 0.85];
     camera_mode:            CAMERA_MODE         = CAMERA_MODE.SHOOTER
     step_side:              number              = 0
@@ -944,7 +943,6 @@ export class Renderer {
         // it can depend of passes count
         camera.use(renderBackend.globalUniforms, true);
 
-        globalUniforms.crosshairOn = this.crosshairOn;
         globalUniforms.eyeinwater = player.eyes_in_block?.is_water ? 1. : 0.;
         globalUniforms.gridChunkSize.copyFrom(this.world.chunkManager.grid.chunkSize);
         globalUniforms.gridTexSize.copyFrom(renderList.chunkGridTex.size).multiplyVecSelf(globalUniforms.gridChunkSize);
@@ -1514,7 +1512,7 @@ export class Renderer {
         if(!force) {
 
             let bobViewAmplitude = 1
-            this.crosshairOn = ((this.camera_mode === CAMERA_MODE.SHOOTER) && Qubatch.hud.active); // && !player.game_mode.isSpectator();
+            Qubatch.hud.underlay.crosshairOn = (this.camera_mode === CAMERA_MODE.SHOOTER); // && !player.game_mode.isSpectator();
 
             if(this.camera_mode === CAMERA_MODE.SHOOTER) {
                 // do nothing

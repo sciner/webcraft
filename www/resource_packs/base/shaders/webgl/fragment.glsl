@@ -7,8 +7,6 @@
 #include<global_uniforms>
 #include<global_uniforms_frag>
 
-#include<crosshair_define_func>
-
 #include<vignetting_define_func>
 
 #include<manual_mip_define_func>
@@ -330,8 +328,5 @@ void main() {
     // outColor.rgb = mix(outColor.rgb, vec3(.0, .0, 1.), .025);
     // // vintage sepia
 
-    if(u_crosshairOn) {
-        #include<crosshair_call_func>
-    }
     // #include<vignetting_call_func>
 }

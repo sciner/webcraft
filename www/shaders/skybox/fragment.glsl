@@ -10,9 +10,6 @@ uniform vec3 u_baseColor;
 uniform vec4 u_fogColor; // global
 uniform vec4 u_fogAddColor; // global
 uniform vec3 u_sunDir; // global
-uniform bool u_crosshairOn;
-
-// used in crosshair_define_func
 uniform vec2 u_resolution; // global
 
 in vec3 v_texCoord;
@@ -21,7 +18,6 @@ out vec4 outColor;
 const vec3 sunColor = vec3(0.95, 0.88, 0.25);
 const vec3 moonColor = vec3(0.9);
 
-#include<crosshair_define_func>
 #include<vignetting_define_func>
 
 float rect(vec3 w, vec3 d, float s){
@@ -103,8 +99,6 @@ void main() {
     // // vintage sepia
 
     outColor = vec4(color, 1.);
-
-    #include<crosshair_call_func>
 
     #include<vignetting_call_func>
 }
