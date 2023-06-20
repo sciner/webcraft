@@ -1,4 +1,5 @@
 import * as VAUX from 'vauxcel';
+import {BatchRenderer, BatchTextureArray, premultiplyBlendMode} from "vauxcel";
 globalThis.PIXI = VAUX;
 //PIXI.BatchRenderer.defaultMaxTextures = Math.min(PIXI.BatchRenderer.defaultMaxTextures, 16);
 
@@ -160,6 +161,59 @@ export class MySpriteRenderer extends VAUX.BatchRenderer {
         this.shaderGenerator = new MyBatchShaderGenerator(vertex, fragment);
     }
 
+    buildDrawCalls(texArray: BatchTextureArray, start: number, finish: number): void
+    {
+        const {
+            _bufferedElements: elements,
+            _attributeBuffer,
+            _indexBuffer,
+            vertexSize,
+        } = this;
+        const drawCalls = BatchRenderer._drawCallPool;
+
+        let dcIndex = this._dcIndex;
+        let aIndex = this._aIndex;
+        let iIndex = this._iIndex;
+
+        let drawCall = drawCalls[dcIndex];
+
+        drawCall.start = this._iIndex;
+        drawCall.texArray = texArray;
+
+        for (let i = start; i < finish; ++i)
+        {
+            const sprite = elements[i];
+            const spriteBlendMode = premultiplyBlendMode[0][sprite.blendMode];
+
+            elements[i] = null;
+
+            if (start < i && drawCall.blend !== spriteBlendMode)
+            {
+                drawCall.size = iIndex - drawCall.start;
+                start = i;
+                drawCall = drawCalls[++dcIndex];
+                drawCall.texArray = texArray;
+                drawCall.start = iIndex;
+            }
+
+            this.packInterleavedGeometry(sprite, _attributeBuffer, _indexBuffer, aIndex, iIndex);
+            aIndex += sprite.vertexData.length / 2 * vertexSize;
+            iIndex += sprite.indices.length;
+
+            drawCall.blend = spriteBlendMode;
+        }
+
+        if (start < finish)
+        {
+            drawCall.size = iIndex - drawCall.start;
+            ++dcIndex;
+        }
+
+        this._dcIndex = dcIndex;
+        this._aIndex = aIndex;
+        this._iIndex = iIndex;
+    }
+
     packInterleavedGeometry(element, attributeBuffer, indexBuffer,
                             aIndex, iIndex) {
         const {
@@ -171,8 +225,9 @@ export class MySpriteRenderer extends VAUX.BatchRenderer {
         const uvs = element.uvs;
         const indicies = element.indices;
         const vertexData = element.vertexData;
-        const textureId = element._texture.baseTexture._batchLocation;
-        const multiField = textureId + 32 + (element.tintMode || 0) * 64;
+        const baseTex = element._texture.baseTexture;
+        const textureId = baseTex._batchLocation;
+        const multiField = textureId + (baseTex.alphaMode > 0 ? 32 : 0) + (element.tintMode || 0) * 64;
         const frame = element._texture._frame;
 
         const alpha = Math.min(element.worldAlpha, 1.0);
@@ -330,10 +385,7 @@ export class MyTilemap extends VAUX.Container {
         const frame = sprite._texture._frame;
         const baseTex = sprite._texture.baseTexture;
 
-        const argb = (alpha < 1.0
-            && baseTex.alphaMode)
-            ? VAUX.utils.premultiplyTint(_tintRGB, alpha)
-            : _tintRGB + (alpha * 255 << 24);
+        const argb = _tintRGB + (alpha * 255 << 24);
 
         //TODO: move textures to separate pass
         let textureId = -1;
