@@ -867,10 +867,11 @@ export class Player implements IPlayer {
 
     private getActionPlayerInfo(): ActionPlayerInfo {
         return {
-            radius: PLAYER_DIAMETER, // .radius is used as a diameter
-            height: this.height,
-            pos: this.lerpPos,
-            rotate: this.rotateDegree.clone(),
+            radius:     PLAYER_DIAMETER, // .radius is used as a diameter
+            height:     this.height,
+            pos:        this.lerpPos,
+            rotate:     this.rotateDegree.clone(),
+            game_mode:  this.game_mode,
             session: {
                 user_id: this.session.user_id
             }

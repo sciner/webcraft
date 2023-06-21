@@ -13,7 +13,8 @@ class FileSlot extends Window {
     constructor(x : number, y : number, w : number, h : number, id : string, parent: Window) {
         super(x, y, w, h, id, null, null)
         this.hud_atlas = Resources.atlas.get('hud')
-        this.setIcon(this.hud_atlas.getSpriteFromMap('plus'))
+        this.tooltip = Lang.upload_image
+        this.setIcon(this.hud_atlas.getSpriteFromMap('plus'), 'centerstretch', .5)
         this.setBackground(this.hud_atlas.getSpriteFromMap('slot_selection'))
         this.#parent = parent
         this.onMouseDown = function() {
@@ -183,13 +184,14 @@ class FilesCollection extends Window {
                 lblSlot = this.slots[i] = new FileSlot(0, 0, sz, sz, 'lblFile' + (i), parent)
                 this.container.add(lblSlot)
             }
-                
+
             lblSlot.w = sz
             lblSlot.h = sz
             lblSlot.x = sx + (i % xcnt) * szm
             lblSlot.y = sy + Math.floor(i / xcnt) * szm
 
-            if (i != all_blocks.length) {
+            if(i != all_blocks.length) {
+                lblSlot.tooltip = Lang.click_for_set_image
                 lblSlot.setFile(all_blocks[i])
             }
             
@@ -252,7 +254,7 @@ export class BillboardWindow extends BlankWindow {
         }
         this.ycnt = 6 // количество по высоте
         this.xcnt = 10 // количество в ряду
-        this.collection = new FilesCollection(UI_THEME.window_padding * this.zoom, 36 * this.zoom, this.w - 2 * UI_THEME.window_padding * this.zoom, this.h - 75 * this.zoom, 'wCollectionFiles', this.xcnt, this.ycnt, UI_THEME.slot_margin, this)
+        this.collection = new FilesCollection(UI_THEME.window_padding * this.zoom, 36 * this.zoom, this.w - 2 * UI_THEME.window_padding * this.zoom, this.h - 75 * this.zoom, 'wCollectionFiles', this.xcnt, this.ycnt, UI_THEME.slot_margin * this.zoom, this)
         this.add(this.collection)
         return this.collection
     }

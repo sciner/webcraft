@@ -2066,14 +2066,20 @@ export class Slider extends Window {
                 thumb.y = y - thumb.h / 2
             }
         }
-        this.applyThumbPosition()
-        this.thumb_start_pos.set(thumb.x, thumb.y, 0)
+        if(this.applyThumbPosition()) {
+            this.thumb_start_pos.set(thumb.x, thumb.y, 0)
+        } else {
+            this.grab = false
+        }
     }
 
-    applyThumbPosition() {
+    applyThumbPosition() : boolean {
         const thumb = this.wScrollThumb
         const size = ((this.horizontal) ? thumb.w : thumb.h)
         const max_pos = ((this.horizontal) ? this.w : this.h) - size
+        if(max_pos <= 0) {
+            return false
+        }
         if(this.horizontal) {
             thumb.x = Mth.clamp(thumb.x, 0, max_pos)
             this._value = Math.floor(((thumb.x * (this._max - this._min)) / max_pos) + this._min) || 0
@@ -2082,6 +2088,7 @@ export class Slider extends Window {
             this._value = Math.floor(((thumb.y * (this._max - this._min)) / max_pos) + this._min) || 0
         }
         this.onScroll(this._value)
+        return true
     }
 
     onMouseUp(e: TMouseEvent) {

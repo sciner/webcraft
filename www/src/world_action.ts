@@ -19,6 +19,7 @@ import { Lang } from "./lang.js";
 import type { TSittingState, TSleepState} from "./player.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
 import type {TChestInfo} from "./block_helpers.js";
+import type { GameMode } from "./game_mode.js";
 
 /** A type that is as used as player in actions. */
 export type ActionPlayerInfo = {
@@ -27,6 +28,7 @@ export type ActionPlayerInfo = {
     username?   : string,
     pos         : IVector,
     rotate      : IVector,
+    game_mode   : GameMode,
     session: {
         user_id: number
     }
@@ -1504,16 +1506,18 @@ function needOpenWindow(e, world, pos, player, world_block, world_material, mat_
             entity_id:  entity_id
         };
     } else if(world_material.window == 'frmBillboard') {
-        const posworld = new Vector(pos)
-        const relindex = extra_data.relindex
-        const move = relindex == -1 ? Vector.ZERO : relIndexToPos(relindex, new Vector())
-        const connected_pos = posworld.addByCardinalDirectionSelf(new Vector(-move.x, -move.y, -move.z), rotate.x + 2)
-        const block = world.getBlock(connected_pos)
-        actions.open_window = {
-            id: 'frmBillboard',
-            args: {
-                pos: connected_pos,
-                small: (block.id == BLOCK.BILLBOARD1X2.id),
+        if(player.game_mode.isCreative()) {
+            const posworld = new Vector(pos)
+            const relindex = extra_data.relindex
+            const move = relindex == -1 ? Vector.ZERO : relIndexToPos(relindex, new Vector())
+            const connected_pos = posworld.addByCardinalDirectionSelf(new Vector(-move.x, -move.y, -move.z), rotate.x + 2)
+            const block = world.getBlock(connected_pos)
+            actions.open_window = {
+                id: 'frmBillboard',
+                args: {
+                    pos: connected_pos,
+                    small: (block.id == BLOCK.BILLBOARD1X2.id),
+                }
             }
         }
     } else {
