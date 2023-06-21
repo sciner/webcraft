@@ -1538,7 +1538,13 @@
             "texture": "block/stone.png",
             "texture_variants": [
                 "./textures/stone/stone1.png",
-                "./textures/stone/stone2.png"
+                "./textures/stone/stone2.png",
+                "./textures/stone/stone3.png",
+                "./textures/stone/stone4.png",
+                "./textures/stone/stone5.png",
+                "./textures/stone/stone6.png",
+                "./textures/stone/stone7.png",
+                "./textures/stone/stone8.png"
             ],
             "drop_item": [
                 {
@@ -10298,7 +10304,13 @@
             "texture": "block/stone.png",
             "texture_variants": [
                 "./textures/stone/stone1.png",
-                "./textures/stone/stone2.png"
+                "./textures/stone/stone2.png",
+                "./textures/stone/stone3.png",
+                "./textures/stone/stone4.png",
+                "./textures/stone/stone5.png",
+                "./textures/stone/stone6.png",
+                "./textures/stone/stone7.png",
+                "./textures/stone/stone8.png"
             ],
             "drop_item": [
                 {
