@@ -230,7 +230,8 @@ export class BillboardWindow extends BlankWindow {
         this.addDialog(Lang.delete_file + '?', Lang.lost_file, (data)=> {
             player.world.server.Send({
                 name: ServerClient.CMD_BILLBOARD_MEDIA,
-                delete: data
+                delete: data,
+                pos: this.args.pos
             })
         })
         // listener
@@ -280,7 +281,6 @@ export class BillboardWindow extends BlankWindow {
      * Создать диалоговое окно подтверждения действия
      */
     protected addDialog(title_text:string, body_text: string, callback): void {
-        const hh = 13
         const width = 342
         const height = 190
         const form_atlas = new SpriteAtlas()
