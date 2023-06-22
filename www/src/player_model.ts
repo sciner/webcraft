@@ -1,7 +1,6 @@
 import { BLOCK } from "./blocks.js";
 import { HAND_ANIMATION_SPEED, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_ZOOM } from "./constant.js";
-import { GeometryTerrain } from "./geometry_terrain.js";
-import { Helpers, NORMALS, QUAD_FLAGS, Vector } from './helpers.js';
+import { IndexedColor, QUAD_FLAGS, Vector} from './helpers.js';
 import { MobModel } from "./mob_model.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { Mesh_Object_Base } from "./mesh/object/base.js";
@@ -304,20 +303,19 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             source: canvas,
         })
 
+        //TODO: text should be rendered by special renderer in special layer
         // Create model
-        const vertices = GeometryTerrain.convertFrom12([
-            -w/2 * -1, 0, h / 2, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            w/2 * -1, 0, h / 2, 0, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            w/2 * -1, 0, -h / 2, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            w/2 * -1, 0, -h / 2, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            -w/2 * -1, 0, -h / 2, w/256, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            -w/2 * -1, 0, h / 2, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-        ])
-
         const mesh = new Mesh_Object_Base()
-        mesh.changeFlags(QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_NO_AO | QUAD_FLAGS.FLAG_NO_FOG | QUAD_FLAGS.FLAG_LOOK_AT_CAMERA)
+        mesh.flags = QUAD_FLAGS.FLAG_NO_CAN_TAKE_LIGHT | QUAD_FLAGS.FLAG_NO_AO
+            | QUAD_FLAGS.FLAG_NO_FOG | QUAD_FLAGS.FLAG_LOOK_AT_CAMERA;
+        mesh.setVertices([
+            0, 0, 0,
+            w, 0, 0,
+            0, 0, h,
+            w/256 / 2, h/64 / 2, w/256, -h/64,
+            IndexedColor.packArg(1, 1, 1), 0 //lm flags
+        ])
         mesh.setGLMaterial(render.defaultShader.materials.label.getSubMat(texture))
-        mesh.setVertices(vertices as any)
         mesh.ignoreParentRotation = true
 
         return mesh
