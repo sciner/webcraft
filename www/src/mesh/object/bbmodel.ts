@@ -194,11 +194,11 @@ class MeshObjectModifiers {
         const mesh = this.mesh
         let group : any = mesh.model.groups.get(group_name)
         if(group && !group.isBone()) {
-            mesh.vertices_pushed.delete(group.name)
+            mesh.vertices_pushed.delete(group.path)
             while(true) {
                 group = group.parent
                 if(group) {
-                    mesh.vertices_pushed.delete(group.name)
+                    mesh.vertices_pushed.delete(group.path)
                     if(group.isBone()) {
                         mesh.deleteGeometry(group.name)
                         break
@@ -506,7 +506,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
                         }
                         recvDeleteVertices(g)
                     }
-                    this.vertices_pushed.delete(g.name)
+                    this.vertices_pushed.delete(g.path)
                 }
             }
             recvDeleteVertices(group)
