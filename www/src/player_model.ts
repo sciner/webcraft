@@ -1,7 +1,6 @@
 import { BLOCK } from "./blocks.js";
 import { HAND_ANIMATION_SPEED, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_ZOOM } from "./constant.js";
-import { GeometryTerrain } from "./geometry_terrain.js";
-import {Helpers, IndexedColor, NORMALS, QUAD_FLAGS, Vector} from './helpers.js';
+import { IndexedColor, QUAD_FLAGS, Vector} from './helpers.js';
 import { MobModel } from "./mob_model.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { Mesh_Object_Base } from "./mesh/object/base.js";
@@ -243,7 +242,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             return
         }
 
-        nametag.visible = true; //!this.sneak && !this.hide_nametag
+        nametag.visible = !this.sneak && !this.hide_nametag
 
         if(!nametag.visible) {
             return
