@@ -183,6 +183,7 @@ interface IPlayerSharedProps {
 }
 
 declare type PlayerSession = {
+    flags       : int
     username    : string
     user_id     : int
     user_guid   : string

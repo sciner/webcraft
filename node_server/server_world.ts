@@ -22,7 +22,7 @@ import { AIR_BLOCK_SIMPLE, BLOCK, DBItemBlock } from "@client/blocks.js";
 import { BLOCK_ACTION, ServerClient } from "@client/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { DEFAULT_MOB_TEXTURE_NAME, GAME_DAY_SECONDS, GAME_ONE_SECOND, MOB_TYPE, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
+import { DEFAULT_MOB_TEXTURE_NAME, DEMO_PATH, GAME_DAY_SECONDS, GAME_ONE_SECOND, MOB_TYPE, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
 import { Weather } from "@client/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
@@ -47,6 +47,7 @@ import {preprocessMobConfigs, TMobConfig} from "./mob/mob_config.js";
 import {Raycaster} from "@client/Raycaster.js";
 import type { ServerGame } from "server_game.js";
 import {ObjectUpdateType} from "./helpers/aware_players.js";
+import Billboard from "player/billboard.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -1400,6 +1401,10 @@ export class ServerWorld implements IWorld {
             }
         }
 
+    }
+
+    getPlayerFile(id: number, file: string, demo: boolean) {
+        return Billboard.getPlayerFile(id, file, demo)
     }
 
 }

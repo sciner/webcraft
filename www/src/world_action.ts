@@ -19,6 +19,7 @@ import { Lang } from "./lang.js";
 import type { TSittingState, TSleepState} from "./player.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
 import type {TChestInfo} from "./block_helpers.js";
+import type { GameMode } from "./game_mode.js";
 
 /** A type that is as used as player in actions. */
 export type ActionPlayerInfo = {
@@ -27,6 +28,8 @@ export type ActionPlayerInfo = {
     username?   : string,
     pos         : IVector,
     rotate      : IVector,
+    game_mode   : GameMode,
+    is_admin    : boolean,
     session: {
         user_id: number
     }
@@ -1021,7 +1024,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
 
     // 1. Change extra data
     if(e.changeExtraData) {
-        for(let func of FUNCS.changeExtraData ??= [editSign, editBeacon]) {
+        for(let func of FUNCS.changeExtraData ??= [editBillboard, editSign, editBeacon]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, null, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 return [actions, pos];
             }
@@ -1503,6 +1506,21 @@ function needOpenWindow(e, world, pos, player, world_block, world_material, mat_
             pos:        new Vector(pos),
             entity_id:  entity_id
         };
+    } else if(world_material.window == 'frmBillboard') {
+        if(player.is_admin) {
+            const posworld = new Vector(pos)
+            const relindex = extra_data.relindex
+            const move = relindex == -1 ? Vector.ZERO : relIndexToPos(relindex, new Vector())
+            const connected_pos = posworld.addByCardinalDirectionSelf(new Vector(-move.x, -move.y, -move.z), rotate.x + 2)
+            const block = world.getBlock(connected_pos)
+            actions.open_window = {
+                id: 'frmBillboard',
+                args: {
+                    pos: connected_pos,
+                    small: (block.id == BLOCK.BILLBOARD1X2.id),
+                }
+            }
+        }
     } else {
         switch(world_material.id) {
             case BLOCK.CRAFTING_TABLE.id: {
@@ -1826,6 +1844,29 @@ function editBeacon(e, world, pos, player, world_block, world_material, mat_bloc
         return true
     }
     return true // @todo false error server
+}
+
+// Set bilboard and open file select
+function editBillboard(e, world, pos, player : ActionPlayerInfo, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+    if (world_material.window != 'frmBillboard') {
+        return false
+    }
+    if(!player.is_admin) {
+        return false
+    }
+    const url = world.getPlayerFile(player.session.user_id, e.extra_data.file, e.extra_data.demo)
+    if (!url) {
+        return false
+    }
+    actions.addBlocks([{pos: new Vector(pos), item: {id: world_material.id, rotate, 
+        extra_data: {
+            relindex: -1,
+            texture: {
+                url: e.extra_data.demo ? url : url.replace('_', '')
+            }
+        }
+    }, action_id: BLOCK_ACTION.MODIFY}])
+    return true
 }
 
 // Edit sign

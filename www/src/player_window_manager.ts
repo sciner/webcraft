@@ -1,5 +1,5 @@
 import type { Player } from "./player.js";
-import {ChargingStationWindow, ChestWindow, DoubleChestWindow, CraftTable, CreativeInventoryWindow, DieWindow, EditSignWindow, FurnaceWindow, InventoryWindow, NotImplementedWindow, QuestWindow, StatsWindow, AnvilWindow, BeaconWindow, ScreenshotWindow, BookWindow, InGameMain, BarrelWindow, EnderChestWindow, ModeWindow, BrewingWindow, HopperWindow, RecipeWindow, InventoryRecipeWindow} from "./window/index.js";
+import {ChargingStationWindow, ChestWindow, DoubleChestWindow, CraftTable, CreativeInventoryWindow, DieWindow, EditSignWindow, FurnaceWindow, InventoryWindow, NotImplementedWindow, QuestWindow, StatsWindow, AnvilWindow, BeaconWindow, ScreenshotWindow, BookWindow, InGameMain, BarrelWindow, EnderChestWindow, ModeWindow, BrewingWindow, HopperWindow, RecipeWindow, InventoryRecipeWindow, BillboardWindow} from "./window/index.js";
 import type {WindowManager} from "./ui/wm.js";
 
 export class PlayerWindowManager {
@@ -36,6 +36,7 @@ export class PlayerWindowManager {
         this.addWindow(new ModeWindow(player));
         this.addWindow(new BrewingWindow(inventory));
         this.addWindow(new HopperWindow(inventory))
+        this.addWindow(new BillboardWindow(player))
         /**
          * Перенесено союда из конструктора {@link RecipeManager}, т.к. он серверный класс, не можем там
          * импортировать типы окон, и тут более подходящее место.

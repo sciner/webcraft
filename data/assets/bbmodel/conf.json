@@ -2103,7 +2103,8 @@
                 "set_state": [
                     {"name": "default"}
                 ]
-            }
+            },
+            "window": "frmBillboard"
         },
         {
             "id": 3001,
@@ -2137,7 +2138,8 @@
                 "animated": {
                     "name": "idle"
                 }
-            }
+            },
+            "window": "frmBillboard"
         },
         {
             "id": 3002,

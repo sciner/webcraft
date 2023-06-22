@@ -23,7 +23,7 @@ export default class packet_reader {
 
     // Pickat action
     static async read(player: ServerPlayer, packet: INetworkMessage<ICmdPickatData>) {
-
+        
         // ВАЖНО: нужно гарантировать что во всех возможных случаях или вызовется player.controlManager.syncWithEvent(data),
         // или data.controlEventId будет перенесен куда-то еще (например, в WorldAction), и с ним позже вызовется синхронизация управления.
 
@@ -54,6 +54,8 @@ export default class packet_reader {
                 username:   player.session.username,
                 pos:        new Vector(player.state.pos),
                 rotate:     player.rotateDegree.clone(),
+                game_mode:  player.game_mode,
+                is_admin:   world.admins.checkIsAdmin(player),
                 session:    {
                     user_id: player.session.user_id
                 }

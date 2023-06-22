@@ -354,6 +354,10 @@ export enum WORKER_MESSAGE {
     SOUND_WORKER_FLOWING_DIFF = 'flowing_diff',
 }
 
+export enum PLAYER_FLAG {
+    SYSTEM_ADMIN = 256
+}
+
 // ======================== Network options =========================
 
 // If we receive packets older than this, terminate the connection
@@ -469,6 +473,9 @@ export const WORLD_TYPE_BUILDING_SCHEMAS    = 2;
 
 // attack
 export const ATTACK_COOLDOWN                = 500
+
+// demo media files
+export const DEMO_PATH                     = `../www/media/demo/`
 
 export const MOUSE = {
     DOWN: 1,
