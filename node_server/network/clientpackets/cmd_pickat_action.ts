@@ -55,6 +55,7 @@ export default class packet_reader {
                 pos:        new Vector(player.state.pos),
                 rotate:     player.rotateDegree.clone(),
                 game_mode:  player.game_mode,
+                is_admin:   world.admins.checkIsAdmin(player),
                 session:    {
                     user_id: player.session.user_id
                 }

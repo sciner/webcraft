@@ -29,6 +29,7 @@ export type ActionPlayerInfo = {
     pos         : IVector,
     rotate      : IVector,
     game_mode   : GameMode,
+    is_admin    : boolean,
     session: {
         user_id: number
     }
@@ -1506,7 +1507,7 @@ function needOpenWindow(e, world, pos, player, world_block, world_material, mat_
             entity_id:  entity_id
         };
     } else if(world_material.window == 'frmBillboard') {
-        if(player.game_mode.isCreative()) {
+        if(player.is_admin) {
             const posworld = new Vector(pos)
             const relindex = extra_data.relindex
             const move = relindex == -1 ? Vector.ZERO : relIndexToPos(relindex, new Vector())
@@ -1846,8 +1847,11 @@ function editBeacon(e, world, pos, player, world_block, world_material, mat_bloc
 }
 
 // Set bilboard and open file select
-function editBillboard(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
+function editBillboard(e, world, pos, player : ActionPlayerInfo, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions) {
     if (world_material.window != 'frmBillboard') {
+        return false
+    }
+    if(!player.is_admin) {
         return false
     }
     const url = world.getPlayerFile(player.session.user_id, e.extra_data.file, e.extra_data.demo)

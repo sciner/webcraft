@@ -354,6 +354,10 @@ export enum WORKER_MESSAGE {
     SOUND_WORKER_FLOWING_DIFF = 'flowing_diff',
 }
 
+export enum PLAYER_FLAG {
+    SYSTEM_ADMIN = 256
+}
+
 // ======================== Network options =========================
 
 // If we receive packets older than this, terminate the connection

@@ -3,7 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
-import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE, MIN_STEP_PLAY_SOUND, MIN_HEIGHT_PLAY_SOUND, PLAYER_BURNING_TIME} from "./constant.js";
+import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE, MIN_STEP_PLAY_SOUND, MIN_HEIGHT_PLAY_SOUND, PLAYER_BURNING_TIME, PLAYER_FLAG} from "./constant.js";
 import {ClientPlayerControlManager, PlayerControlManager} from "./control/player_control_manager.js";
 import {PlayerControl, PlayerControls} from "./control/player_control.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -872,10 +872,19 @@ export class Player implements IPlayer {
             pos:        this.lerpPos,
             rotate:     this.rotateDegree.clone(),
             game_mode:  this.game_mode,
+            is_admin:   this.checkIsAdmin(),
             session: {
                 user_id: this.session.user_id
             }
         }
+    }
+
+    checkIsAdmin() : boolean {
+        return this.checkFlag(PLAYER_FLAG.SYSTEM_ADMIN)
+    }
+
+    checkFlag(flag : PLAYER_FLAG) : boolean {
+        return (this.session.flags & flag) == flag
     }
 
     // Ограничение частоты выполнения данного действия

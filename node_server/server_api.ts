@@ -5,8 +5,7 @@ import { Vector } from "@client/helpers.js";
 import {MonotonicUTCDate, TApiSyncTimeRequest, TApiSyncTimeResponse} from "@client/helpers/monotonic_utc_date.js";
 import type { DBGame } from "db/game.js";
 import Billboard from "player/billboard.js";
-
-const FLAG_SYSTEM_ADMIN = 256;
+import { PLAYER_FLAG } from "@client/constant.js";
 
 // JSON API
 export class ServerAPI {
@@ -54,7 +53,7 @@ export class ServerAPI {
                 // check admin rights for specific world
                 if([config.building_schemas_world_name].includes(params.title)) {
                     const session = await ServerAPI.getDb().GetPlayerSession(session_id)
-                    ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN)
+                    ServerAPI.requireSessionFlag(session, PLAYER_FLAG.SYSTEM_ADMIN)
                     params.game_mode = 'creative'
                     params.generator = { id: 'flat', options: {} }
                 }
@@ -107,7 +106,7 @@ export class ServerAPI {
             }
             case '/api/Game/Online': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);
-                ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN);
+                ServerAPI.requireSessionFlag(session, PLAYER_FLAG.SYSTEM_ADMIN);
                 const resp = {
                     dt_started: Qubatch.dt_started,
                     players_online: 0,
@@ -238,7 +237,7 @@ export class ServerAPI {
             }
             case '/api/Skin/UpdateStatic': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);
-                ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN);
+                ServerAPI.requireSessionFlag(session, PLAYER_FLAG.SYSTEM_ADMIN);
                 return await ServerAPI.getDb().skins.updateStaticSkins();
             }
             default: {
