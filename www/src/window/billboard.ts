@@ -10,6 +10,7 @@ import { SpriteAtlas } from "../core/sprite_atlas.js";
 class FileSlot extends Window {
     #data: any
     #parent: Window
+
     constructor(x : number, y : number, w : number, h : number, id : string, parent: Window) {
         super(x, y, w, h, id, null, null)
         this.hud_atlas = Resources.atlas.get('hud')
@@ -21,7 +22,8 @@ class FileSlot extends Window {
             if (this.#data) {
                 this.#parent.sendChangeExtraData(this.#data)
             } else {
-                Qubatch.App.OpenSelectFileImage((files : File[]) => {
+                Qubatch.App.OpenSelectFileImage((event) => {
+                    const files : File[] = event.target.files
                     if (!files) {
                         return
                     }

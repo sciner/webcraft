@@ -170,9 +170,10 @@ export class UIApp {
     }
 
     OpenSelectFileImage(callback: Function) {
-        const input = document.getElementById('form-upload-image')
+        const input = document.getElementById('form-upload-image') as HTMLFormElement
+        input.value = ''
         input.onchange = function(event : any) {
-            callback(event.target.files)
+            callback(event)
         }
         input.click()
     }
