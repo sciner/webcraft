@@ -1190,12 +1190,12 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
                 _createBlockAABB.set(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1);
                 if(_createBlockAABB.intersect({
                     // player.radius = player's diameter
-                    x_min: action_player_info.pos.x - action_player_info.radius / 2,
-                    x_max: action_player_info.pos.x - action_player_info.radius / 2 + action_player_info.radius,
+                    x_min: action_player_info.pos.x - action_player_info.radius,
+                    x_max: action_player_info.pos.x + action_player_info.radius,
                     y_min: action_player_info.pos.y,
                     y_max: action_player_info.pos.y + action_player_info.height,
-                    z_min: action_player_info.pos.z - action_player_info.radius / 2,
-                    z_max: action_player_info.pos.z - action_player_info.radius / 2 + action_player_info.radius
+                    z_min: action_player_info.pos.z - action_player_info.radius,
+                    z_max: action_player_info.pos.z + action_player_info.radius
                 })) {
                     console.error('intersect with player');
                     return [null, pos];

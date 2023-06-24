@@ -1,13 +1,14 @@
 import { BLOCK_ACTION, ServerClient } from "@client/server_client.js";
 import { ActionPlayerInfo, doBlockAction } from "@client/world_action.js";
 import { Vector, VectorCollector } from "@client/helpers.js";
-import { MOUSE } from "@client/constant.js";
+import { MOUSE, PLAYER_PHYSICS_HALF_WIDTH} from "@client/constant.js";
 import { TBlock } from "@client/typed_blocks3.js";
 import type { ServerPlayer } from "../../server_player.js";
 import type { ServerChunk } from "../../server_chunk.js";
 import type {ICmdPickatData} from "@client/pickat.js";
 
 const tmpBlock = new TBlock()
+const MAX_DISTANCE_PICKAT = 64
 
 export default class packet_reader {
 
@@ -49,7 +50,7 @@ export default class packet_reader {
         } else {
             const correct_destroy = player.isMiningComplete(packet.data);
             const action_player_info: ActionPlayerInfo = {
-                radius:     0.7,
+                radius:     PLAYER_PHYSICS_HALF_WIDTH,
                 height:     player.height,
                 username:   player.session.username,
                 pos:        new Vector(player.state.pos),
@@ -110,7 +111,7 @@ export default class packet_reader {
                     for(const item of packet.data.actions.blocks.list) {
                         if ('pos' in item) {
                             const pos = new Vector(item.pos);
-                            if(pos.distance(player.state.pos) < 64) {
+                            if(pos.distance(player.state.pos) < MAX_DISTANCE_PICKAT) {
                                 const tblock = world.getBlock(pos);
                                 if(tblock && tblock.id >= 0) {
                                     const patch = tblock.convertToDBItem();

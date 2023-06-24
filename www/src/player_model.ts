@@ -1,5 +1,5 @@
 import { BLOCK } from "./blocks.js";
-import { HAND_ANIMATION_SPEED, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_ZOOM } from "./constant.js";
+import { HAND_ANIMATION_SPEED, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_HEIGHT, PLAYER_PHYSICS_HALF_WIDTH, PLAYER_ZOOM } from "./constant.js";
 import { IndexedColor, QUAD_FLAGS, Vector} from './helpers.js';
 import { MobModel } from "./mob_model.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
@@ -78,8 +78,8 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             ...props
         }, world)
 
+        this.width              = PLAYER_PHYSICS_HALF_WIDTH * 2
         this.height             = PLAYER_HEIGHT
-        this.width              = PLAYER_WIDTH
         this.scale              = 0.9 * PLAYER_ZOOM
         this.activeSlotsData    = props.hands
         this.head               = null
