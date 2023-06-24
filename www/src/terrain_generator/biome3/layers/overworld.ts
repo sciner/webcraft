@@ -1,4 +1,4 @@
-import { Vector } from "../../../helpers.js";
+import { DIRECTION, Vector } from "../../../helpers.js";
 import { MineGenerator } from "../../mine/mine_generator.js";
 import { DENSITY_AIR_THRESHOLD, UNCERTAIN_ORE_THRESHOLD } from "../terrain/manager_vars.js";
 import { AQUIFERA_UP_PADDING } from "../aquifera.js";
@@ -18,6 +18,8 @@ import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type Terrain_Generator from "../index.js";
 import type { TerrainMapCell } from "../terrain/map_cell.js";
 import { MapsBlockResult, TerrainMapManager3 } from "../terrain/manager.js";
+import { CD_ROT } from "../../../core/CubeSym.js";
+import type { BLOCK } from "blocks.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
 
@@ -37,6 +39,93 @@ function ensureSize(sz: number) {
         return;
     }
     _ground_places = new Array(sz * GROUND_PLACE_SIZE);
+}
+
+class FallenTree {
+    pos: Vector
+    _temp: Vector
+    size: number
+    dir: number
+    chunk: ChunkWorkerChunk
+    bm: BLOCK
+    min: Vector
+    empty: boolean
+    block_id?: any
+    rand: alea
+
+    constructor(rand : alea, chunk : ChunkWorkerChunk, bm : BLOCK) {
+        this.pos        = new Vector(0, 0, 0)
+        this._temp      = new Vector(0, 0, 0)
+        this.min        = new Vector(Math.floor(rand.double() * chunk.size.x - 4), 0, Math.floor(rand.double() * chunk.size.z - 4))
+        this.size       = 0
+        this.chunk      = chunk
+        this.bm         = bm
+        this.dir        = Math.floor(rand.double() * 4)
+        this.block_id   = null
+        this.empty      = rand.double() > .25
+        this.rand       = rand
+        if(!this.empty) {
+            const biome = this.chunk.map.getCell(12, 12).biome
+            if(biome.title != 'Пустыня') {
+                const trees = biome.trees.list
+                const v = 1 / trees.length * 2
+                for(let i = 0; i < trees.length; i++) {
+                    if(rand.double() < v) {
+                        const tree = trees[i]
+                        if(tree.trunk) {
+                            this.block_id = tree.trunk
+                            break
+                        }
+                    }
+                }
+            }
+            if(!this.block_id) {
+                this.empty = true
+            }
+        }
+    }
+
+    processPos(x : int, y : int, z : int) {
+        if(this.empty) {
+            return
+        }
+        if(this.size == 0) {
+            if(x >= this.min.x && z >= this.min.z) {
+                this.size = 1
+                this.pos.set(x, y, z)
+            }
+        } else {
+            if(this.pos.y == y) {
+                this._temp.set(x, y, z).addToDirSelf(this.dir, this.size)
+                if(this._temp.equal(this.pos)) {
+                    this.size++
+                }
+            }
+        }
+    }
+
+    finish() {
+        if(this.size > 3) {
+            // make fallen logs
+            const rotate = new Vector(0, 0, 0)
+            if(this.dir == DIRECTION.NORTH) rotate.x = CD_ROT.NORTH
+            if(this.dir == DIRECTION.SOUTH) rotate.x = CD_ROT.SOUTH
+            if(this.dir == DIRECTION.WEST) rotate.x = CD_ROT.WEST
+            if(this.dir == DIRECTION.EAST) rotate.x = CD_ROT.EAST
+            for(let i = 0; i < Math.min(this.size, 8); i++) {
+                const {x, y, z} = this.pos
+                if(i != 1) {
+                    this.chunk.setBlockIndirect(x, y + 1, z, this.block_id, i == 0 ? null : rotate)
+                    // random pebbles over log
+                    if(this.rand.double() < .05) {
+                        this.chunk.setBlockIndirect(x, y + 2, z, this.bm.PEBBLES.id)
+                    }
+                }
+                this.pos.addToDirSelf(this.dir, -1)
+            }
+        }
+    }
+
 }
 
 export default class Biome3LayerOverworld extends Biome3LayerBase {
@@ -304,8 +393,9 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         const fire_block_id             = bm.FIRE.id
         const blockFlags                = bm.flags
         const block_result              = new MapsBlockResult()
-        const rand_lava                 = new alea('random_lava_source_' + this.seed)
+        const rand_lava                 = new alea('random_lava_source_' + seed)
         const map_manager               = this.maps as TerrainMapManager3
+        const fallen_tree               = new FallenTree(rand_lava, chunk, bm)
         const {relativePosToFlatIndexInChunk_s} = chunk.chunkManager.grid.math;
 
         const cell = map.getCell(0, 0)
@@ -568,6 +658,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                             // замена блока травы на землю, чтобы потом это не делал тикер (например арбуз)
                                             block_id = dirt_block_id
                                         }
+                                        fallen_tree.processPos(x, y, z)
                                     }
 
                                     const slab_block_id = bm.REPLACE_TO_SLAB[block_id]
@@ -735,6 +826,8 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
             }
         }
+
+        fallen_tree.finish()
 
         chunk.timers.stop()
 
