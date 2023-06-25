@@ -91,7 +91,7 @@ export class GameCamera extends Camera_3d {
     setSettingsFov(settings_fov) {
         this.settings_fov = settings_fov;
     }
-    
+
     step_side:              number              = 0
     obstacle_pos:           any                 = new Vector(0, 0, 0)
     /**
@@ -163,7 +163,7 @@ export class GameCamera extends Camera_3d {
                     }
                 }
                 cam_pos = pos.clone().movePolarSelf(-distToCamera, cam_rotate.x, cam_rotate.z);
-                const model = this.player.getModel()
+                const model = player.getModel()
                 if(model) {
                     model.opacity = distToCamera < .75 ? Math.pow(distToCamera / .75, 4) : 1
                 }
