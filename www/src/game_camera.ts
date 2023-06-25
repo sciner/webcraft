@@ -91,8 +91,9 @@ export class GameCamera extends Camera_3d {
     setSettingsFov(settings_fov) {
         this.settings_fov = settings_fov;
     }
-
-
+    
+    step_side:              number              = 0
+    obstacle_pos:           any                 = new Vector(0, 0, 0)
     /**
      * Moves the camera to the specified orientation.
       */
@@ -201,8 +202,6 @@ export class GameCamera extends Camera_3d {
         this.set(cam_pos, cam_rotate, tmp);
         this.frustum.setFromProjectionMatrix(this.viewProjMatrix, this.pos);
     }
-
-
     // Original bobView
     bobView(player: Player, viewMatrix, forDrop = false, amplitude: float = 1) {
 

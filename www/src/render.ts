@@ -61,12 +61,10 @@ class DrawMobsStat {
 
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
-    obstacle_pos:           any                 = new Vector(0, 0, 0)
     draw_mobs_stat:         DrawMobsStat        = new DrawMobsStat()
     xrMode:                 boolean             = false
     testLightOn:            boolean             = false
     sunDir:                 tupleFloat3         = [0.9593, 1.0293, 0.6293] // [0.7, 1.0, 0.85];
-    step_side:              number              = 0
     frame:                  number              = 0
     clouds?:                Mesh_Object_Clouds
     rain?:                  Mesh_Object_Rain
