@@ -154,7 +154,7 @@ export class ChunkRenderList {
             meshLists[i].clear();
         }
 
-        culling.update(render.frustum, chunkManager.dataWorld.grid.chunkSize);
+        culling.update(render.camera.frustum, chunkManager.dataWorld.grid.chunkSize);
 
         const {cullIDs, entries} = spiral;
         const cullID = render.cullID = culling.updateID;

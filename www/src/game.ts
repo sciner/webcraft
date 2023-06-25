@@ -1,5 +1,6 @@
 import { World } from "./world.js";
-import { DEFAULT_FOV_NORMAL, Renderer, ZOOM_FACTOR } from "./render.js";
+import { Renderer } from "./render.js";
+import { DEFAULT_FOV_NORMAL, ZOOM_FACTOR } from "./game_camera.js";
 import { AverageClockTimer, isMobileBrowser, Mth, Vector} from "./helpers.js";
 import { BLOCK } from "./blocks.js";
 import { Resources } from "./resources.js";
@@ -758,7 +759,7 @@ export class GameClass {
         // change camera location
         const camPos = player.controlManager.getCampPos()
         const camRotation = player.controlManager.getCamRotation()
-        this.render.setCamera(player, camPos, camRotation, isFreeCam)
+        this.render.camera.setForPlayer(player, camPos, camRotation, isFreeCam)
 
         // Update world
         // this is necessary

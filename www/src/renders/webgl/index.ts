@@ -117,22 +117,6 @@ export default class WebGLRenderer extends BaseRenderer {
         this.resolution = [w, h];
     }
 
-    _configure() {
-        super._configure();
-
-        /*
-        if (this._mainFrame) {
-            this._mainFrame.destroy();
-        }
-
-        this._mainFrame = this.createRenderTarget({
-            width: this.size.width,
-            height: this.size.height,
-            depth: true,
-        });
-        */
-    }
-
     createMaterial(options) {
         return new WebGLMaterial(this, options);
     }

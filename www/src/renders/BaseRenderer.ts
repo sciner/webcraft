@@ -236,11 +236,7 @@ export class BaseRenderer {
         this.size = {
             width, height
         }
-        this._configure();
-    }
-
-    _configure() {
-
+        this.pixiRender.resize(width, height);
     }
 
     beginPass(layerPassOrOptions: any) {

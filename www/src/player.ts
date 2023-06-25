@@ -925,7 +925,7 @@ export class Player implements IPlayer {
 
     // Returns the position of the eyes of the player for rendering.
     getEyePos(abs : boolean = false): Vector {
-        if(!abs || this.render.camera_mode == CAMERA_MODE.SHOOTER) {
+        if(!abs || this.render.camera.mode == CAMERA_MODE.SHOOTER) {
             let subY = 0;
             if(this.state.sitting) {
                 subY = this.height * 1/3;
@@ -1132,7 +1132,7 @@ export class Player implements IPlayer {
                 // console.log(this.swimingDist);
             }
             // Update FOV
-            this.render.updateFOV(delta, this.zoom, this.running, this.getFlying());
+            this.render.camera.updateFOV(delta, this.zoom, this.running, this.getFlying());
             this.render.updateNightVision(this.getEffectLevel(Effect.NIGHT_VISION));
             // Update picking target
             this.updatePickingTarget()
