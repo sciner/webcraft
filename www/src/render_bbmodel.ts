@@ -4,7 +4,7 @@ import rendererProvider from "./renders/rendererProvider.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { MeshManager } from "./mesh/manager.js";
-import { Camera } from "./camera.js";
+import { Camera_3d } from "./renders/camera_3d.js";
 import { Environment } from "./environment.js";
 import { LIGHT_TYPE, PLAYER_ZOOM } from "./constant.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
@@ -35,7 +35,7 @@ export class RendererBBModel {
     env:                    Environment
     renderBackend:          WebGLRenderer
     meshes:                 MeshManager
-    camera:                 Camera
+    camera:                 Camera_3d
     canvas:                 any
     settings:               any
     options:                any = {FOV_WIDE_FACTOR, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING_FACTOR, FOV_FLYING_CHANGE_SPEED}
@@ -69,8 +69,8 @@ export class RendererBBModel {
             }
         )
 
-        this.camera = new Camera({
-            type: Camera.PERSP_CAMERA,
+        this.camera = new Camera_3d({
+            type: Camera_3d.PERSP_CAMERA,
             fov: DEFAULT_FOV_NORMAL,
             min: NEAR_DISTANCE,
             max: RENDER_DISTANCE,

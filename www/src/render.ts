@@ -3,7 +3,6 @@
 import {Mth, CAMERA_MODE, DIRECTION, Helpers, Vector, IndexedColor, fromMat3, QUAD_FLAGS, Color, blobToImage} from "./helpers.js";
 import { INVENTORY_ICON_COUNT_PER_TEX, INVENTORY_ICON_TEX_HEIGHT, INVENTORY_ICON_TEX_WIDTH} from "./chunk_const.js";
 import rendererProvider from "./renders/rendererProvider.js";
-import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
 import {BLOCK, DBItemBlock} from "./blocks.js";
 import {BLEND_MODES, LayerPass} from 'vauxcel';
@@ -16,7 +15,7 @@ import Mesh_Object_Rain from "./mesh/object/rain.js";
 import { Mesh_Object_Stars } from "./mesh/object/stars.js";
 
 import { MeshManager } from "./mesh/manager.js";
-import { Camera } from "./camera.js";
+import { Camera_3d } from "./renders/camera_3d.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { Environment, PRESET_NAMES } from "./environment.js";
 import { GeometryTerrain } from "./geometry_terrain.js";
@@ -25,8 +24,6 @@ import {
     DEFAULT_CLOUD_HEIGHT,
     MIN_BRIGHTNESS,
     NOT_SPAWNABLE_BUT_INHAND_BLOCKS,
-    PLAYER_ZOOM,
-    THIRD_PERSON_CAMERA_DISTANCE
 } from "./constant.js";
 import { Weather } from "./block_type/weather.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
@@ -41,10 +38,9 @@ import type { MobModel } from "./mob_model.js";
 import type { HUD } from "./hud.js";
 import type {Player} from "./player.js";
 import type WebGLRenderer from "./renders/webgl/index.js";
-import type {TBlock} from "./typed_blocks3.js";
-import {BlockAccessor} from "./block_accessor.js";
 import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
 import {BufferBaseTexture} from "./renders/BufferBaseTexture.js";
+import {GameCamera, DEFAULT_FOV_NORMAL} from "./game_camera.js";
 
 const {mat3, mat4, quat, vec3} = glMatrix;
 
@@ -54,29 +50,9 @@ const {mat3, mat4, quat, vec3} = glMatrix;
 * This class contains the code that takes care of visualising the
 * elements in the specified world.
 **/
-export const ZOOM_FACTOR        = 0.25;
 const BACKEND                   = 'webgl'; // disable webgpu temporary because require update to follow webgl
-const FOV_CHANGE_SPEED          = 75;
-const FOV_FLYING_CHANGE_SPEED   = 35;
-export const DEFAULT_FOV_NORMAL = 70;
-const FOV_FLYING_FACTOR         = 1.075;
-const FOV_WIDE_FACTOR           = 1.15;
-const FOV_ZOOM                  = DEFAULT_FOV_NORMAL * ZOOM_FACTOR;
-const NEAR_DISTANCE             = (1 / 24) * PLAYER_ZOOM; // было (2 / 16) * PLAYER_ZOOM. Уменьшено чтобы не заглядывать в препятствия и внутрь головы
-const RENDER_DISTANCE           = 800;
-const NIGHT_SHIFT_RANGE         = 16;
-// Shake camera on damage
-const DAMAGE_TIME               = 250;
-const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
-// авто-камера в режиме 3-го лица
-const CAMERA_3P_MARGIN_HEIGHT   = 0.04 // насколько широко расставлять 4 луча для поиска препятствия (по вертикали), при FOV 70 градусов
-const BOB_VIEW_SAFE_DISTANCE    = 0.5   // если камера ближе этого расстояния до блока, амплитуда bobView уменьшается
 
-const tmpVec                    = new Vector()
-const tmpOrthoVec1              = new Vector()
-const tmpOrthoVec2              = new Vector()
-const tmpShiftedEyePos          = new Vector()
-const tmpAABB                   = new AABB()
+const NIGHT_SHIFT_RANGE         = 16;
 
 class DrawMobsStat {
     count: int = 0
@@ -85,28 +61,23 @@ class DrawMobsStat {
 
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
-    obstacle_pos:           any                 = new Vector(0, 0, 0)
     draw_mobs_stat:         DrawMobsStat        = new DrawMobsStat()
-    frustum:                FrustumProxy        = new FrustumProxy()
     xrMode:                 boolean             = false
     testLightOn:            boolean             = false
     sunDir:                 tupleFloat3         = [0.9593, 1.0293, 0.6293] // [0.7, 1.0, 0.85];
-    camera_mode:            CAMERA_MODE         = CAMERA_MODE.SHOOTER
-    step_side:              number              = 0
     frame:                  number              = 0
     clouds?:                Mesh_Object_Clouds
     rain?:                  Mesh_Object_Rain
     env:                    Environment
     renderBackend:          WebGLRenderer
     meshes:                 MeshManager
-    camera:                 Camera
+    camera:                 GameCamera
     debugGeom:              LineGeometry
     inHandOverlay?:         InHandOverlay
     canvas:                 any
     drop_item_meshes:       any[]
     settings:               any
     videoCardInfoCache:     any
-    options:                any
     defaultShader:          any
     defaultFluidShader:     any
     viewportWidth:          any
@@ -131,7 +102,6 @@ export class Renderer {
     mobsDrawnLast:          MobModel[] = [] // список мобов, отложенных при 1-м вызове drawMobs, чтобы быть нарисованными на 2-м
     nightVision:            boolean = false;
     _debug_aabb:            AABB[] = []
-    private blockAccessor?: BlockAccessor
 
     constructor(qubatchRenderSurfaceId : string) {
         this.canvas             = document.getElementById(qubatchRenderSurfaceId);
@@ -148,13 +118,7 @@ export class Renderer {
                 powerPreference: "high-performance"
             });
 
-        this.camera = new Camera({
-            type: Camera.PERSP_CAMERA,
-            fov: DEFAULT_FOV_NORMAL,
-            min: NEAR_DISTANCE,
-            max: RENDER_DISTANCE,
-            scale: 0.05, // ortho scale
-        });
+        this.camera = new GameCamera({});
 
         //
         this.drop_item_meshes = Array(4096); // new Map();
@@ -179,7 +143,7 @@ export class Renderer {
     }
 
     nextCameraMode() {
-        this.camera_mode = ++this.camera_mode % CAMERA_MODE.COUNT;
+        this.camera.mode = ++this.camera.mode % CAMERA_MODE.COUNT;
     }
 
     /**
@@ -226,7 +190,6 @@ export class Renderer {
 
 
         this.videoCardInfoCache = null;
-        this.options = {FOV_WIDE_FACTOR, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING_FACTOR, FOV_FLYING_CHANGE_SPEED};
 
         if(!settings || !settings?.disable_env) {
             this.env.init(this)
@@ -270,8 +233,7 @@ export class Renderer {
         this.defaultFluidShader = rp.fluidShader;
 
         this.camera.renderType  = this.renderBackend.gl ? 'webgl' : 'webgpu';
-        this.camera.width       = this.viewportWidth;
-        this.camera.height      = this.viewportHeight;
+        this.camera.setSize(this.viewportWidth, this.viewportHeight);
 
         // Create projection and view matrices
         // we can use it directly from camera, but will be problems with reference in multicamera
@@ -279,8 +241,7 @@ export class Renderer {
         this.viewMatrix         = this.globalUniforms.viewMatrix;
         this.camPos             = this.globalUniforms.camPos;
 
-        settings.fov = settings.fov || DEFAULT_FOV_NORMAL;
-        this.setPerspective(settings.fov, NEAR_DISTANCE, RENDER_DISTANCE);
+        this.camera.setSettingsFov(settings.fov = settings.fov || DEFAULT_FOV_NORMAL);
 
         // HUD
         this.HUD = Qubatch.hud;
@@ -447,8 +408,8 @@ export class Renderer {
         }).filter(Boolean);
 
         //
-        const camera = new Camera({
-            type: Camera.ORTHO_CAMERA,
+        const camera = new Camera_3d({
+            type: Camera_3d.ORTHO_CAMERA,
             max: 100,
             min: 0.01,
             fov: 60,
@@ -1113,7 +1074,7 @@ export class Renderer {
             this.inHandOverlay = new InHandOverlay(this.world, this.player.skin, this);
         }
 
-        if(this.camera_mode == CAMERA_MODE.SHOOTER) {
+        if(this.camera.mode == CAMERA_MODE.SHOOTER) {
             this.inHandOverlay.draw(this, delta);
         }
 
@@ -1218,7 +1179,7 @@ export class Renderer {
             if(player_model.distance != null || player_model.itsMe()) {
                 if(player_model.itsMe()) {
                     this.lastDeltaForMeGui = 0
-                    if(this.camera_mode == CAMERA_MODE.SHOOTER || this.player.game_mode.isSpectator()) {
+                    if(this.camera.mode == CAMERA_MODE.SHOOTER || this.player.game_mode.isSpectator()) {
                         continue;
                     }
                     if(player_model.nametag) {
@@ -1292,7 +1253,7 @@ export class Renderer {
 
     // Draw shadows
     drawShadows() {
-        if([CAMERA_MODE.THIRD_PERSON, CAMERA_MODE.THIRD_PERSON_FRONT].indexOf(this.camera_mode) < 0) {
+        if([CAMERA_MODE.THIRD_PERSON, CAMERA_MODE.THIRD_PERSON_FRONT].indexOf(this.camera.mode) < 0) {
             return false;
         }
         const player : Player = Qubatch.player;
@@ -1459,178 +1420,19 @@ export class Renderer {
     updateViewport() {
         const actual_width = this.canvas.width
         const actual_height = this.canvas.height
-        if (actual_width !== this.viewportWidth || actual_height !== this.viewportHeight) {
-            // resize call _configure automatically but ONLY if dimension changed
-            // _configure very slow!
-            this.renderBackend.resize(
-                actual_width | 0,
-                actual_height | 0);
-            this.viewportWidth = actual_width | 0;
-            this.viewportHeight = actual_height | 0;
 
-            this.HUD.resize(actual_width, actual_height)
-            // Update perspective projection based on new w/h ratio
-            this.setPerspective(this.camera.fov, this.camera.min, this.camera.max)
+        if (actual_width === this.viewportWidth && actual_height === this.viewportHeight)
+        {
+            return;
         }
-    }
+        this.viewportWidth = actual_width | 0;
+        this.viewportHeight = actual_height | 0;
+        this.renderBackend.resize(
+            actual_width | 0,
+            actual_height | 0);
 
-    // Sets the properties of the perspective projection.
-    setPerspective(fov, min, max) {
-        this.camera.width = this.renderBackend.size.width;
-        this.camera.height = this.renderBackend.size.height;
-        this.camera.fov = fov;
-        this.camera.min = min;
-        this.camera.max = max;
-    }
-
-    // Moves the camera to the specified orientation.
-    // pos - позиция глаз либо свободной камеры в мировых координатах
-    // ang - Pitch, yaw and roll.
-    setCamera(player : Player, pos : Vector, rotate : Vector, force : boolean = false) {
-
-        const {world} = this
-        const tmp = mat4.create();
-        const hotbar = Qubatch.hotbar;
-
-        // Shake camera on damage
-        if(hotbar.last_damage_time && performance.now() - hotbar.last_damage_time < DAMAGE_TIME) {
-            const percent = (performance.now() - hotbar.last_damage_time) / DAMAGE_TIME;
-            let value = 0;
-
-            if(percent < .25) {
-                value = -DAMAGE_CAMERA_SHAKE_VALUE * (percent / .25);
-            } else {
-                value = -DAMAGE_CAMERA_SHAKE_VALUE + DAMAGE_CAMERA_SHAKE_VALUE * ((percent - .25) / .75);
-            }
-            rotate.y = value;
-        } else {
-            rotate.y = 0;
-        }
-
-        let cam_pos = pos;
-        let cam_rotate = rotate;
-
-        if(!force) {
-
-            let bobViewAmplitude = 1
-            Qubatch.hud.underlay.crosshairOn = (this.camera_mode === CAMERA_MODE.SHOOTER); // && !player.game_mode.isSpectator();
-
-            if(this.camera_mode === CAMERA_MODE.SHOOTER) {
-                // do nothing
-            } else {
-                cam_rotate = rotate.clone();
-                // back
-                if(this.camera_mode == CAMERA_MODE.THIRD_PERSON_FRONT) {
-                    // front
-                    cam_rotate.z = rotate.z + Math.PI;
-                    cam_rotate.x *= -1;
-                }
-                const view_vector = player.forward.clone();
-                view_vector.multiplyScalarSelf(this.camera_mode == CAMERA_MODE.THIRD_PERSON ? -1 : 1)
-                //
-                let distToCamera = THIRD_PERSON_CAMERA_DISTANCE; // - 1/4 + Math.sin(performance.now() / 5000) * 1/4;
-                if(!player.game_mode.isSpectator() && !player.controlManager.isFreeCam) {
-                    // Выпускаем 4 параллельные луча от глаз в обратную сторону к камере
-                    const raycaster = player.pickAt.raycaster
-                    const myPlayerModel = this.world.players.getMyself()
-                    const height = (this.camera.fov ?? 70) / 70 * CAMERA_3P_MARGIN_HEIGHT // FOV задан по вертикали
-                    const width = height * Math.min( 2, this.camera.width / this.camera.height)
-                    const orthoVec1 = tmpOrthoVec1.zero().movePolarSelf(width, 0, cam_rotate.z + Mth.PI_DIV2)
-                    const orthoVec2 = tmpOrthoVec2.zero().movePolarSelf(height, cam_rotate.x + Mth.PI_DIV2, cam_rotate.z)
-                    const posFloored = pos.floored()
-                    for(let [sign1, sign2] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
-                        tmpShiftedEyePos.set(
-                            pos.x + sign1 * orthoVec1.x + sign2 * orthoVec2.x,
-                            pos.y + sign1 * orthoVec1.y + sign2 * orthoVec2.y,
-                            pos.z + sign1 * orthoVec1.z + sign2 * orthoVec2.z
-                        )
-                        const bPos = raycaster.get(tmpShiftedEyePos, view_vector, THIRD_PERSON_CAMERA_DISTANCE + 1, null, true, false, myPlayerModel, false)
-                        if(bPos?.point && !posFloored.equal(tmpVec.copyFrom(bPos).flooredSelf())) {
-                            this.obstacle_pos.copyFrom(bPos).addSelf(bPos.point)
-                            const dist = tmpShiftedEyePos.distance(this.obstacle_pos)
-                            distToCamera = Math.max(Math.min(distToCamera, dist), 0)
-                        }
-                    }
-                }
-                cam_pos = pos.clone().movePolarSelf(-distToCamera, cam_rotate.x, cam_rotate.z);
-                const model = this.player.getModel()
-                if(model) {
-                    model.opacity = distToCamera < .75 ? Math.pow(distToCamera / .75, 4) : 1
-                }
-
-                // найти расстояние до ближайшего блока и уменьшить ампилтуду bobView
-                if (player.hasBobView()) {
-                    const camBlockPos = cam_pos.floored()
-                    const acc = this.blockAccessor ??= new BlockAccessor(world)
-                    acc.reset(camBlockPos)
-                    let minDist = Infinity
-                    for(let dx = -1; dx <= 1; dx++) {
-                        for(let dy = -1; dy <= 1; dy++) {
-                            for(let dz = -1; dz <= 1; dz++) {
-                                tmpVec.set(camBlockPos.x + dx, camBlockPos.y + dy, camBlockPos.z + dz)
-                                const block = acc.set(tmpVec).block
-                                const material = block.material
-                                if (material.id > 0 && !material.invisible_for_cam) {
-                                    const shapes = world.block_manager.getShapes(block, world, false, true)
-                                    for(const shape of shapes) {
-                                        const dist = tmpAABB.setArray(shape).translateByVec(tmpVec).distance(cam_pos)
-                                        minDist = Math.min(minDist, dist)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    bobViewAmplitude = Mth.lerpAny(minDist, 0, 0, BOB_VIEW_SAFE_DISTANCE, 1)
-                }
-            }
-
-            if (player.hasBobView()) {
-                this.bobView(player, tmp, false, bobViewAmplitude);
-            }
-        }
-
-        this.camera.set(cam_pos, cam_rotate, tmp);
-        // update camera
-        this.frustum.setFromProjectionMatrix(this.camera.viewProjMatrix, this.camera.pos);
-    }
-
-    // Original bobView
-    bobView(player, viewMatrix, forDrop = false, amplitude: float = 1) {
-
-        let p_109140_ = (player.walking_frame * 2) % 1;
-
-        //
-        let speed_mul = 1.0 / player.scale;
-        let f = (player.walkDist * speed_mul - player.walkDistO * speed_mul);
-        let f1 = -(player.walkDist * speed_mul + f * p_109140_);
-        let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
-
-        //
-        let zmul = (Mth.sin(f1 * Math.PI) * f2 * 3.0) / player.scale;
-        let xmul = Math.abs(Mth.cos(f1 * Math.PI - 0.2) * f2) / player.scale;
-        let m = Math.PI / 180;
-
-        //
-        //
-        if(forDrop) {
-            mat4.translate(viewMatrix, viewMatrix, [
-                Mth.sin(f1 * Math.PI) * f2 * 0.25,
-                -Math.abs(Mth.cos(f1 * Math.PI) * f2) * 1,
-                0.0,
-            ]);
-        } else {
-            mat4.multiply(viewMatrix, viewMatrix, mat4.fromZRotation([], zmul * m)); // амплитуда не влияет, т.к. этот поворот не позволяет заглядывать за стенки
-            mat4.multiply(viewMatrix, viewMatrix, mat4.fromXRotation([], xmul * m * amplitude));
-            mat4.translate(viewMatrix, viewMatrix, [
-                Mth.sin(f1 * Math.PI) * f2 * 0.5 * amplitude,
-                0.0,
-                -Math.abs(Mth.cos(f1 * Math.PI) * f2) * amplitude,
-            ]);
-        }
-        if(Math.sign(viewMatrix[1]) != Math.sign(this.step_side)) {
-            this.step_side = viewMatrix[1];
-            //player.triggerEvent('step', {step_side: this.step_side});
-        }
+        this.HUD.resize(actual_width, actual_height)
+        this.camera.setSize(actual_width, actual_height);
     }
 
     guiCam = null;
@@ -1644,8 +1446,8 @@ export class Renderer {
         this.resetBefore(false);
         const {screen} = pixiRender;
         if (!this.guiCam) {
-            this.guiCam = new Camera({
-                type: Camera.ORTHO_CAMERA,
+            this.guiCam = new Camera_3d({
+                type: Camera_3d.ORTHO_CAMERA,
                 max: -10,
                 min: 10,
                 fov: 60,
@@ -1712,31 +1514,6 @@ export class Renderer {
         }
         this.videoCardInfoCache = resp;
         return resp;
-    }
-
-    // Update FOV...
-    updateFOV(delta, zoom, running, flying) {
-        const {FOV_WIDE_FACTOR, FOV_ZOOM, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING_FACTOR, FOV_FLYING_CHANGE_SPEED} = this.options;
-        let target_fov = this.settings.fov;
-        let new_fov = null;
-        if(zoom) {
-            target_fov = FOV_ZOOM;
-        } else {
-            if(running) {
-                target_fov += (target_fov + DEFAULT_FOV_NORMAL) / 2 * (FOV_WIDE_FACTOR - 1);
-            } else if(flying) {
-                target_fov += (target_fov + DEFAULT_FOV_NORMAL) / 2 * (FOV_FLYING_FACTOR - 1);
-            }
-        }
-        if(this.camera.fov < target_fov) {
-            new_fov = Math.min(this.camera.fov + FOV_CHANGE_SPEED * delta, target_fov);
-        }
-        if(this.camera.fov > target_fov) {
-            new_fov = Math.max(this.camera.fov - FOV_CHANGE_SPEED * delta, target_fov);
-        }
-        if(new_fov !== null) {
-            this.setPerspective(new_fov, NEAR_DISTANCE, RENDER_DISTANCE);
-        }
     }
 
     updateNightVision(val) {

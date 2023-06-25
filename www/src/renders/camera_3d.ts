@@ -1,5 +1,5 @@
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
-import { Vector } from "./helpers.js";
+import { Vector } from "../helpers.js";
 //import { GlobalUniformGroup } from "./renders/BaseRenderer.js";
 
 const {mat4} = glMatrix;
@@ -15,7 +15,7 @@ interface ICameraOptions {
     scale?: number
 }
 
-export class Camera {
+export class Camera_3d {
     [key: string]: any;
     static PERSP_CAMERA = 'perspective';
     static ORTHO_CAMERA = 'ortho';
@@ -45,7 +45,7 @@ export class Camera {
         this.width = options.width || 1;
         this.height = options.height || 1;
         this.scale = options.scale || 1;
-        this.type = options.type || Camera.PERSP_CAMERA;
+        this.type = options.type || Camera_3d.PERSP_CAMERA;
 
         /**
          * @type {'webgl' | 'webgpu'}
@@ -149,14 +149,14 @@ export class Camera {
             shiftY,
         } = this;
 
-        if (type === Camera.PERSP_CAMERA) {
+        if (type === Camera_3d.PERSP_CAMERA) {
             const func = renderType === 'webgl' ? mat4.perspectiveNO : mat4.perspectiveZO;
             const fovRad = fov * (Math.PI / 180.0)
             func(projMatrix, fovRad, width / height, min, max);
             this._horizontalFovRad = fovRad * width / height
 
             return;
-        } else if(type === Camera.ORTHO_CAMERA) {
+        } else if(type === Camera_3d.ORTHO_CAMERA) {
             const func = renderType === 'webgl' ? mat4.orthoNO : mat4.orthoZO;
             func(projMatrix, scale * (- width / 2 + shiftX), scale * (width / 2 + shiftX),
                 scale * (- height / 2 + shiftY), scale * (height / 2 + shiftY), min, max);
@@ -166,6 +166,19 @@ export class Camera {
         }
 
         throw new TypeError('Unknow camera type:' + type);
+    }
+
+    setSize(widthPx: number, heightPx: number)
+    {
+        this.width = widthPx;
+        this.height = heightPx;
+    }
+
+    setPerspective(fov: number, min: number, max: number)
+    {
+        this.fov = fov;
+        this.min = min;
+        this.max = max;
     }
 
     update() {

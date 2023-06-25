@@ -371,8 +371,6 @@ export class HUD {
         // const dpr = window.devicePixelRatio
         // width /= dpr
         // height /= dpr
-
-        this.wm.pixiRender?.resize(width, height);
         this.wm.w = width
         this.wm.h = height
 
