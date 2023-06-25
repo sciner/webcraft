@@ -162,6 +162,11 @@ export class ServerChunkManager {
         return promise;
     }
 
+    /** Число чанков в памяти в любом состоянии */
+    get totalChunksCount(): int {
+        return this.all.size + this.unloading_chunks.size
+    }
+
     resolve_worker = (value?: unknown) => {
         // Not implemented, and this is fine
     }

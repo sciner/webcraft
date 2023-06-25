@@ -47,8 +47,16 @@ import {preprocessMobConfigs, TMobConfig} from "./mob/mob_config.js";
 import {Raycaster} from "@client/Raycaster.js";
 import type { ServerGame } from "server_game.js";
 import {ObjectUpdateType} from "./helpers/aware_players.js";
+import type {TSchematicJobState} from "./plugins/worldedit/schematic_job.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
+
+/** Объект с даннми состояния мира, автоматически сохраняемый в БД в каждой транзакции. */
+export type TServerWorldState = {
+    schematicJob?: TSchematicJobState
+
+    // может быть перенести сюда и другие поля мира из БД, например, dt
+}
 
 export class ServerWorld implements IWorld {
     temp_vec: Vector;
@@ -80,6 +88,7 @@ export class ServerWorld implements IWorld {
     drivingManager: ServerDrivingManager;
     packets_queue: WorldPacketQueue;
     ticks_stat: WorldTickStat;
+    nextTickScheduledTime: number | null = null // для статичтсики - насколько опоздал вызов tick()
     network_stat: {
         in: number; out: number; in_count: number; out_count: number;
         out_count_by_type?: int[]; in_count_by_type?: int[];
@@ -98,6 +107,8 @@ export class ServerWorld implements IWorld {
     /** An immutable shared instance of {@link getDefaultPlayerIndicators} */
     defaultPlayerIndicators: Indicators
     physics?: Physics
+    /** Список функций, вызываемых каждый тик. Например, плагины могут себя сюда зарегистрировать. */
+    tickListeners: ((delta: float) => Promise<any> | null | void)[] = []
 
     constructor(block_manager : typeof BLOCK) {
         this.temp_vec = new Vector();
@@ -212,6 +223,9 @@ export class ServerWorld implements IWorld {
 
         await this.tick();
     }
+
+    /** Поле state из таблицы world. Здесь можно хранить любые часто меняющиеся небольшие данные, которые регулярно сохраняются в БД. */
+    get state(): TServerWorldState { return this.info.state }
 
     // Closes the world on a critical error. It must never resolve.
     async terminate(text, err) {
@@ -450,6 +464,7 @@ export class ServerWorld implements IWorld {
             await this.shutdown()
         }
         const started = performance.now();
+        this.nextTickScheduledTime ??= started
         let delta = 0;
         if (this.pn) {
             delta = (performance.now() - this.pn) / 1000;
@@ -460,7 +475,9 @@ export class ServerWorld implements IWorld {
         if(!this.pause_ticks) {
             //
             this.ticks_stat.number++;
-            this.ticks_stat.start();
+            // добавить в статистику насколько опоздал тик
+            this.ticks_stat.start(Math.min(started, this.nextTickScheduledTime));
+            this.ticks_stat.add('setTimeout delay');
             // 1.
             await this.chunks.tick(this.ticks_stat.number);
             this.ticks_stat.add('chunks.tick');
@@ -490,6 +507,9 @@ export class ServerWorld implements IWorld {
             this.ticks_stat.add('drop_items');
             //
             this.drivingManager.tick();
+            for(const fn of this.tickListeners) {
+                await fn(delta)
+            }
             this.ticks_stat.add('other');
             //
             this.entityCollide()
@@ -537,12 +557,10 @@ export class ServerWorld implements IWorld {
             this.ticks_stat.end();
         }
         //
-        const elapsed = performance.now() - started;
-        setTimeout(async () => {
-            await this.tick();
-        },
-            elapsed < 50 ? (50 - elapsed) : 1
-        );
+        const elapsed = performance.now() - this.nextTickScheduledTime
+        const timeToNextTick = Math.max(50 - elapsed, 1)
+        setTimeout(() => this.tick(), timeToNextTick)
+        this.nextTickScheduledTime = performance.now() + timeToNextTick
     }
 
     // onPlayer
@@ -861,13 +879,13 @@ export class ServerWorld implements IWorld {
                     const block_pos = new Vector()
                     if(params.posi !== undefined) {
                         if(!blocks_chunk_coord) {
-                            throw 'error_pos_not_presents'
+                            throw 'error_pos_is_not_present'
                         }
                         math.fromFlatChunkIndex(block_pos, params.posi).addSelf(blocks_chunk_coord)
                     } else if(params.pos) {
                         block_pos.copyFrom(params.pos).flooredSelf()
                     } else {
-                        throw 'error_pos_not_presents'
+                        throw 'error_pos_is_not_present'
                     }
                     params.pos = block_pos;
                     //
@@ -982,7 +1000,7 @@ export class ServerWorld implements IWorld {
                         if (chunk) {
                             // The chunk exists, but not ready yet. Queue the block action until the chunk is loaded.
                             postponedActions = postponedActions ?? chunk.getOrCreatePendingAction(actor, actions)
-                            postponedActions.addBlock(params);
+                            postponedActions.importBlock(params);
                         } else {
                             this.dbActor.addChunklessBlockChange(chunk_addr, params);
                         }
@@ -1134,6 +1152,8 @@ export class ServerWorld implements IWorld {
 
         // синхронизировать управление с действие, если нужно (независимо от успешности действия)
         server_player?.controlManager.syncWithEvent(actions)
+
+        actions.callback && actions.callback(actions)
     }
 
     // Return generator options

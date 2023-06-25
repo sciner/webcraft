@@ -23,7 +23,7 @@ export class WorldTickStat {
 
     static SLIDING_WINDOW = 10000
 
-    static DEFAULT_STAT_NAMES = ['chunks.tick', 'player.preTick', 'tickChunkQueue', 'player.postTick',
+    static DEFAULT_STAT_NAMES = ['setTimeout delay', 'chunks.tick', 'player.preTick', 'tickChunkQueue', 'player.postTick',
         'mobs', 'drop_items', 'packet_reader_queue',
         'maps_clear', 'packets_queue_send', 'chunks_random_tick', 'actions_queue', 'fluid_queue',
         'db_fluid_save', 'auto_spawn_hostile_mobs', 'world_transaction_sync', 'other', 'entity_collide'];
@@ -53,8 +53,8 @@ export class WorldTickStat {
             this.values[stat_name] = this._createValue()
         }
         this.valuesArray = Object.values(this.values)
-        this._moveSlidingWindow() // call it twice to create new and old values
-        this._moveSlidingWindow()
+        this._moveSlidingWindow(performance.now()) // call it twice to create new and old values
+        this._moveSlidingWindow(performance.now())
     }
 
     add(field: string, allowAdding = false): WorldTickStat {
@@ -91,12 +91,15 @@ export class WorldTickStat {
         return this
     }
 
-    start() {
-        this.pn = performance.now();
-        this.pn_values = performance.now();
+    /**
+     * @param initial_time - необязательный, позволяет задать время от которого ведется отсчет до этого вызова
+     */
+    start(initial_time?: number) {
+        this.pn = initial_time ?? performance.now()
+        this.pn_values = this.pn
         this.started = this.started ?? this.pn
         if (this.slidingOld.started + WorldTickStat.SLIDING_WINDOW < this.pn) {
-            this._moveSlidingWindow()
+            this._moveSlidingWindow(this.pn)
         }
     }
 
@@ -196,7 +199,7 @@ export class WorldTickStat {
         return { min: Infinity, max: -Infinity, sum: 0 }
     }
 
-    _moveSlidingWindow() {
+    _moveSlidingWindow(now: number) {
         this.slidingOld     = this.slidingCurrent
         this.slidingCurrent = {
             values: ArrayHelpers.toObject(this.stat_names, null,
@@ -204,7 +207,7 @@ export class WorldTickStat {
                 this._createSlidingValue
             ),
             count: 0,
-            started: performance.now()
+            started: now
         }
     }
 }

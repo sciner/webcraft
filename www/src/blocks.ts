@@ -1710,7 +1710,7 @@ export class BLOCK {
     }
 
     // Init
-    static async init(settings : TBlocksSettings) {
+    static async init(settings : TBlocksSettings): Promise<typeof BLOCK> {
 
         if(BLOCK.list.size > 0) {
             return BLOCK

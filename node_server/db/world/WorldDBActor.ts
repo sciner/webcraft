@@ -96,13 +96,15 @@ export class WorldDBActor {
     savingWorldNow: Promise<any>;
     underConstruction: WorldTransactionUnderConstruction;
     lastWorldTransactionStartTime: number;
-    totalDirtyBlocks: number;
+    totalDirtyBlocks: int;
     cleanupAddrByRowId: Map<int, Vector>;
     cleanupWorldModifyPerTransaction: int;
     asyncStats: WorldTickStat;
     _worldSavingResolve: Function;
     // флаги - что надо сохранить в мире
     worldGeneratorDirty = false
+    // настраиваемый список тех, кто хочет писать что-то в мировую транзакцию (например, плагины)
+    transactionListeners: ((WorldTransactionUnderConstruction) => void)[] = []
 
     constructor(world : ServerWorld) {
         this.world = world;
@@ -134,6 +136,10 @@ export class WorldDBActor {
 
         this.cleanupWorldModifyPerTransaction = 0;
         this.asyncStats = new WorldTickStat(['world_transaction']);
+    }
+
+    get chunkActorsCount(): int {
+        return this.chunklessActors.size + this.world.chunks.totalChunksCount
     }
 
     getOrCreateChunkActor(chunk) {
@@ -324,10 +330,16 @@ export class WorldDBActor {
                 db.driving.bulkDelete(uc.deleteDriving)
             )
 
+            for(const listener of this.transactionListeners) {
+                listener(uc)
+            }
+
+            // мир в целом
             if (this.worldGeneratorDirty) {
                 this.worldGeneratorDirty = false
                 uc.pushPromises(world.db.setWorldGenerator(world.info.guid, world.info.generator))
             }
+            uc.pushPromises(world.db.setWorldState(world.info.guid, world.state)) // для простоты сораняем всегда, там мало информации
 
             this.writeRecoveryBlob(uc);
         } catch(e) {

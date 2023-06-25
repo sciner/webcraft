@@ -61,7 +61,7 @@ export type ActivateMobParams = {
 }
 
 export type TActionBlock = {
-    posi?           : int
+    posi?           : int       // flat index
     pos?            : Vector
     action_id?      : int
     item            : IBlockItem
@@ -71,11 +71,17 @@ export type TActionBlock = {
 type ActionBlocks = {
     list: TActionBlock[]
     options: {
+        /**
+         * Если true, то если и старый, и новый блок - воздух, действие пропускается.
+         *
+         * Нужен ли этот параметр? Если блоки полностью совпадают (не только AIR), это лигочно сделать
+         * поведением по умолчанию - ничего не делать.
+         */
         can_ignore_air      : boolean
-        ignore_check_air    : boolean
+        ignore_check_air    : boolean   // если true, то не проигрывается particle animation при разрушении блока
         on_block_set        : boolean
         on_block_set_radius : number
-        chunk_addr          : Vector
+        chunk_addr          : IVector
     }
 }
 
@@ -585,6 +591,7 @@ export class WorldAction {
     play_sound: PlaySoundParams[]
     drop_items: DropItemParams[]
     blocks: ActionBlocks
+    fluids: int[]
     mobs: {
         activate: ActivateMobParams[]
         spawn: any[] // it should be MobSpawnParams, but it's server class
@@ -597,7 +604,12 @@ export class WorldAction {
      */
     controlEventId? : int
     load_chest?: TChestInfo
+    /** Если задано - вызывается после окончания действия */
+    callback?: (WorldAction) => void
 
+    /**
+     * @param ignore_check_air - см. {@link ActionBlocks.options.ignore_check_air}
+     */
     constructor(id ? : string | int | null, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
         this.#world = world;
         //
@@ -651,7 +663,9 @@ export class WorldAction {
      */
     createSimilarEmpty() {
         const options = this.blocks.options;
-        return new WorldAction(this.id, this.world, options.ignore_check_air, options.on_block_set, null);
+        const result = new WorldAction(this.id, this.world, options.ignore_check_air, options.on_block_set, null);
+        result.blocks.options = options
+        return result
     }
 
     // Add play sound
@@ -661,6 +675,14 @@ export class WorldAction {
 
     importBlock(item: TActionBlock): void {
         this.blocks.list.push(item)
+    }
+
+    /** Устанавливает блоки без проверок (как {@link importBlock}), но весь массив блоков сразу, без дополниьельного выделения памяти. */
+    importBlocks(items: TActionBlock[]): void {
+        if (this.blocks.list.length) {
+            throw new Error('importBlocks: blocks already exist - probably a bug')
+        }
+        this.blocks.list = items
     }
 
     addBlock(item: TActionBlock): void {
@@ -692,6 +714,14 @@ export class WorldAction {
         for (let i = 0; i < fluids.length; i += 4) {
             this.fluids.push(fluids[i + 0] + offset.x, fluids[i + 1] + offset.y, fluids[i + 2] + offset.z, fluids[i + 3]);
         }
+    }
+
+    /** Устанавливает значение {@link fluids} без копирования данных */
+    importFluids(fluids : int[]): void {
+        if (this.fluids.length) {
+            throw new Error('importFluids: fluids already exist - probably a bug')
+        }
+        this.fluids = fluids
     }
 
     // Add drop item

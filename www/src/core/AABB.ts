@@ -45,11 +45,11 @@ export const PLANES = {
     }
 }
 
-export class AABB {
+export class AABB implements IAABB {
     x_min: number;
     y_min: number;
     z_min: number;
-    x_max: number;
+    x_max: number;  // не включительно
     y_max: number;
     z_max: number;
     private _position?: Vector;
@@ -122,7 +122,7 @@ export class AABB {
         return new AABB(this.x_min, this.y_min, this.z_min, this.x_max, this.y_max, this.z_max)
     }
 
-    copyFrom(aabb : AABB) : this {
+    copyFrom(aabb : IAABB) : this {
         this.x_min = aabb.x_min;
         this.x_max = aabb.x_max;
         this.y_min = aabb.y_min;
@@ -173,7 +173,11 @@ export class AABB {
         return this;
     }
 
-    setIntersect(aabb1 : AABB, aabb2 : AABB = this) : this {
+    setCorners(corner : IVector, corner1 : IVector) : this {
+        return this.set(corner.x, corner.y, corner.z, corner1.x, corner1.y, corner1.z)
+    }
+
+    setIntersect(aabb1 : IAABB, aabb2 : IAABB = this) : this {
         this.x_min = Math.max(aabb1.x_min, aabb2.x_min);
         this.x_max = Math.min(aabb1.x_max, aabb2.x_max);
         this.y_min = Math.max(aabb1.y_min, aabb2.y_min);
@@ -267,6 +271,12 @@ export class AABB {
 
     containsVec(vec : IVector) : boolean {
         return this.contains(vec.x, vec.y, vec.z);
+    }
+
+    containsAABB(aabb : IAABB) : boolean {
+        return aabb.x_min >= this.x_min && aabb.x_max <= this.x_max
+            && aabb.y_min >= this.y_min && aabb.y_max <= this.y_max
+            && aabb.z_min >= this.z_min && aabb.z_max <= this.z_max;
     }
 
     intersectsColumn(x : number, z : number, y : number, y2 : number) : boolean {

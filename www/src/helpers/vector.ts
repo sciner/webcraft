@@ -17,6 +17,7 @@ export class Vector implements IVector {
     static ZP = new Vector(0.0, 0.0, 1.0);
     static ZERO = new Vector(0.0, 0.0, 0.0);
     static ONE = new Vector(1, 1, 1);
+    static MINUS_ONE = new Vector(-1, -1, -1);
     static INFINITY = new Vector(Infinity, Infinity, Infinity);
 
     static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
