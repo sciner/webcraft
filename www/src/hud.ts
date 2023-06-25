@@ -7,7 +7,8 @@ import { DRAW_HUD_INFO_DEFAULT, HUD_CONNECTION_WARNING_INTERVAL, ONLINE_MAX_VISI
 import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
 import type {GameClass} from "./game.js";
-import { GradientGraphics, Label, Window, WindowManager } from "./ui/wm.js";
+import { Label, Window, WindowManager } from "./ui/wm.js";
+import { GradientGraphics } from "./ui/splash/gradient_graphics.js";
 import type { Player } from "./player.js";
 import type { Renderer } from "./render.js";
 import type { ChunkManager } from "./chunk_manager.js";
