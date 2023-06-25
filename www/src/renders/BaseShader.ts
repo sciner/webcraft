@@ -1,7 +1,7 @@
 import {Color, Vector} from '../helpers.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
-import {Program, Shader, BLEND_MODES, State, UniformGroup} from "vauxcel";
-import type {BaseRenderer} from "./BaseRenderer.js";
+import {Program, Shader, State, UniformGroup} from "vauxcel";
+import {BaseRenderer} from "./BaseRenderer.js";
 import type {GlobalUniformGroup} from "./uniform_groups";
 
 const {mat4} = glMatrix;
@@ -57,19 +57,9 @@ export class BaseCubeShader extends BaseShader {
 
         super(context, options);
 
-        /**
-         *
-         * @type {BaseTexture}
-         */
-        this.texture = context.createTexture({
-            source: options.sides
-        });
-        this.texture.bind();
-
         // Default values
         this.resolution_value   = [1, 1];
         this.testLightOn_value  = false;
-        this.crosshairOn_value  = true;
 
         this.mergedBuffer = new Float32Array(16 * 2 + 1);
 
@@ -106,14 +96,6 @@ export class BaseCubeShader extends BaseShader {
         return this.testLightOn_value;
     }
 
-    set crosshairOn(v) {
-        this.crosshairOn_value = v;
-    }
-
-    get crosshairOn() {
-        return this.crosshairOn_value;
-    }
-
     bind() {
     }
 
@@ -136,7 +118,6 @@ export class BaseTerrainShader extends BaseShader {
         this.addPos = [0,0,0];
         this.texture = null;
         this.tintColor = new Color(0, 0, 0, 0);
-        this.crosshairOn = true;
     }
 
     bind() {
@@ -169,10 +150,7 @@ export class BaseLineShader extends BaseShader {
         this.posUniformGroup = posUniformGroup;
         this.globalUniforms = context.globalUniforms;
 
-        this.state = new State();
-        this.state.blendMode = BLEND_MODES.NORMAL_NPM;
-        this.state.depthTest = true;
-        this.state.cullFace = true;
+        this.state = BaseRenderer.create3dState();
         this.state.polygonOffsetValue = -2;
         this.state.polygonOffsetScale = -4;
     }

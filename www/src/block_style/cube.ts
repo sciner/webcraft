@@ -47,7 +47,7 @@ class OverlayTextureItem {
 
 const _overlay = {
     materials: new Map(),
-    neightbours: [null, null, null, null] as TBlock[],
+    neighbours: [null, null, null, null] as TBlock[],
     items: [new OverlayTextureItem(), new OverlayTextureItem(), new OverlayTextureItem(), new OverlayTextureItem()] as OverlayTextureItem[],
     sides: {
         up: new AABBSideParams()
@@ -277,7 +277,9 @@ export default class style {
 
         if(material.is_simple_qube) {
 
-            force_tex = bm.calcTexture(material.texture, DIRECTION.UP);
+            if(!material.texture_variants) {
+                force_tex = bm.calcTexture(material.texture, DIRECTION.UP);
+            }
 
         } else {
 
@@ -435,12 +437,12 @@ export default class style {
             // overlay textures
             if(chunk?.chunkManager?.world?.settings?.overlay_textures) {
                 emmited_blocks = []
-                style.pushOverlayTextures(material, bm, x, y, z, neighbours, emmited_blocks, chunk, dirt_color, matrix, pivot)
+                style.pushOverlayTextures(material, bm, x, y, z, neighbours, emmited_blocks, chunk, dirt_color, matrix, pivot, block.extra_data, neibIDs)
                 style.pushEdgeTextures(material, bm, x, y, z, neighbours, vertices, lm, f, height)
             }
         }
         if(canDrawDOWN) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'down', DIRECTION_DOWN, null, null);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'down', DIRECTION_DOWN, null, null, random_index)
             if(material.connected_sides) {
                 style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_DOWN)
             } else {
@@ -448,7 +450,7 @@ export default class style {
             }
         }
         if(canDrawSOUTH) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'south', DIRECTION_SOUTH, width, height);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'south', DIRECTION_SOUTH, width, height, random_index)
             // connected_sides
             if(material.connected_sides) {
                 style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_SOUTH)
@@ -457,7 +459,7 @@ export default class style {
             }
         }
         if(canDrawNORTH) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'north', DIRECTION_NORTH, width, height);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'north', DIRECTION_NORTH, width, height, random_index)
             if(material.connected_sides) {
                 style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_NORTH)
             } else {
@@ -465,7 +467,7 @@ export default class style {
             }
         }
         if(canDrawWEST) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'west', DIRECTION_WEST, width, height);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'west', DIRECTION_WEST, width, height, random_index)
             if(material.connected_sides) {
                 style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_WEST)
             } else {
@@ -473,7 +475,7 @@ export default class style {
             }
         }
         if(canDrawEAST) {
-            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'east', DIRECTION_EAST, width, height);
+            const {anim_frames, t, f} = style.calcSideParams(block, material, bm, no_anim, cavity_id, force_tex, lm, flags, sideFlags, upFlags, 'east', DIRECTION_EAST, width, height, random_index)
             if(material.connected_sides) {
                 style.pushConnectedSides(material, bm, x, y, z, neighbours, vertices, t, lm, f, neibIDs, DIRECTION_EAST)
             } else {
@@ -765,7 +767,8 @@ export default class style {
             }
         }
         let random_double = undefined
-        if((block.id == bm.GRASS_BLOCK.id || block.id == bm.GRASS_BLOCK_SLAB.id) && side == 'up') {
+        const is_grass_block = block.id == bm.GRASS_BLOCK.id || block.id == bm.GRASS_BLOCK_SLAB.id
+        if(!force_tex && ((is_grass_block && side == 'up') || (!is_grass_block && material.texture_variants && typeof random_index != 'undefined'))) {
             random_double = (randoms.double(random_index) | 0) / 100
         }
         _sideParams.t = (force_tex as any) || bm.calcMaterialTexture(material, dir, width, height, block, undefined, random_double)
@@ -808,32 +811,51 @@ export default class style {
         return true
     }
 
-    static pushOverlayTextures(center_material : IBlockMaterial, bm : BLOCK, x : number, y : number, z : number, neighbours, emmited_blocks: any[], chunk : ChunkWorkerChunk, dirt_color? : IndexedColor, matrix? : imat4, pivot? : number[] | IVector) {
+    static pushOverlayTextures(center_material : IBlockMaterial, bm : BLOCK, x : number, y : number, z : number, neighbours, emmited_blocks: any[], chunk : ChunkWorkerChunk, dirt_color? : IndexedColor, matrix? : imat4, pivot? : number[] | IVector, extra_data ?: any, neibIDs?: int[]) {
 
         if(center_material.width || center_material.height) {
-            return
+            if(!center_material.layering?.slab) {
+                return
+            }
         }
 
-        _overlay.neightbours[0] = neighbours.WEST
-        _overlay.neightbours[1] = neighbours.SOUTH
-        _overlay.neightbours[2] = neighbours.EAST
-        _overlay.neightbours[3] = neighbours.NORTH
+        _overlay.neighbours[0] = neighbours.WEST
+        _overlay.neighbours[1] = neighbours.SOUTH
+        _overlay.neighbours[2] = neighbours.EAST
+        _overlay.neighbours[3] = neighbours.NORTH
 
-        const center_material_have_overlay = !!center_material.texture_overlays
+        // const {getNeighbourIndex} = CONNECTED_SIDE_PARAMS[DIRECTION.UP]
+        // const getNeibID = (dx : int, dy: int, dz : int) => neibIDs[getNeighbourIndex(dx, dy, dz, (dx : int, dy : int, dz : int) => dxdydzIndex[dx + dz * 3 + dy * 9 + 13])]
+        // if(_overlay.neighbours[2].material.is_solid) {
+        //     if(!globalThis.asdas)globalThis.asdas=0
+        //     if(globalThis.asdas++%100==0)console.log(globalThis.asdas)
+        //     const eu = getNeibID(1, 1, 0)
+        //     if(eu > 0) {
+        //         const eu_mat = style.block_manager.fromId(eu)
+        //         if(eu_mat.is_solid || eu_mat.layering?.slab) {
+        //             _overlay.neighbours[2] = {id: eu_mat.id, material: eu_mat} as any
+        //         }
+        //     }
+        // }
 
-        for(let i = 0; i < _overlay.neightbours.length; i++) {
-            const n = _overlay.neightbours[i]
+        const center_material_have_overlay = !!center_material.texture_overlays && (!center_material?.layering?.slab || (extra_data?.point?.y ?? 0 >= .5))
+
+        for(let i = 0; i < _overlay.neighbours.length; i++) {
+            const n = _overlay.neighbours[i]
             if(!n || n.id == center_material.id) {
                 continue
             }
             const n_material = n.material
             if(n_material.texture_overlays) {
+                if(n_material?.layering?.slab && ((n.extra_data?.point?.y ?? 0) < .5)) {
+                    continue
+                }
                 if(center_material.layering?.full_block_name == n_material.name) {
                     continue
                 }
                 if(center_material_have_overlay) {
                     if(center_material.id == this.block_manager.GRASS_BLOCK.id && n.id == this.block_manager.DIRT.id) {
-
+                        // do nothing
                     } else if(center_material.id == this.block_manager.DIRT.id && n.id == this.block_manager.GRASS_BLOCK.id) {
                         continue
                     } else {

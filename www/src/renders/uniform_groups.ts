@@ -13,7 +13,6 @@ export let defaultGlobalUniforms = {
     u_fogColor: [1, 1, 1, 1] as tupleFloat4,
     u_time: performance.now() as float,
     u_testLightOn: 0 as float,
-    u_crosshairOn: true,
     u_sunDir: [0, 0, 0, 0] as tupleFloat4,
     u_useNormalMap: 0 as float,
     u_gridChunkSize: [0, 0, 0] as tupleFloat3,
@@ -22,7 +21,7 @@ export let defaultGlobalUniforms = {
     u_camera_pos: [0, 0, 0] as tupleFloat3,
     u_camera_posi: [0, 0, 0] as tupleInt3,
     u_eyeinwater: 0 as float,
-    u_localLigthRadius: 0 as float,
+    u_localLightRadius: 0 as float,
     u_fogOn: true
 }
 
@@ -46,7 +45,6 @@ export class GlobalUniformGroup extends VAUX.UniformGroup<typeof defaultGlobalUn
         this.time = performance.now();
 
         this.testLightOn = 0;
-        this.crosshairOn = true;
 
         this.sunDir = [0, 0, 0];
         this.useSunDir = false;
@@ -143,15 +141,6 @@ export class GlobalUniformGroup extends VAUX.UniformGroup<typeof defaultGlobalUn
         this.uniforms.u_testLightOn = val
     }
 
-    get crosshairOn(): boolean {
-        return this.uniforms.u_crosshairOn;
-    }
-
-    set crosshairOn(val)
-    {
-        this.uniforms.u_crosshairOn = val
-    }
-
     get sunDir(): tupleFloat3 {
         return this.uniforms.u_sunDir as any;
     }
@@ -191,12 +180,12 @@ export class GlobalUniformGroup extends VAUX.UniformGroup<typeof defaultGlobalUn
     }
 
     get localLigthRadius(): number {
-        return this.uniforms.u_localLigthRadius;
+        return this.uniforms.u_localLightRadius;
     }
 
     set localLigthRadius(val)
     {
-        this.uniforms.u_localLigthRadius = val
+        this.uniforms.u_localLightRadius = val
     }
 
     get rainStrength(): number {
@@ -236,7 +225,7 @@ export class LightUniformGroup extends VAUX.UniformGroup<{ u_lightOverride: tupl
     declare uniforms: { u_lightOverride: tupleFloat3 };
 
     constructor() {
-        super({u_lightOverride: new Float32Array(3)}, true);
+        super({u_lightOverride: new Float32Array(3) as any}, true);
     }
 
     update()

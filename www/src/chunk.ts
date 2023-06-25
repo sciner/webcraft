@@ -1,4 +1,4 @@
-import { Vector } from "./helpers.js";
+import {IvanArray, Vector} from "./helpers.js";
 import {newTypedBlocks, TBlock} from "./typed_blocks3.js";
 import type { TypedBlocks3 } from "./typed_blocks3.js";
 import {BLOCK, DBItemBlock} from "./blocks.js";
@@ -9,6 +9,7 @@ import type { ChunkManager } from "./chunk_manager.js";
 import {BaseGeometryPool} from "./geom/base_geometry_pool.js";
 import {ChunkMesh} from "./chunk_mesh.js";
 import type { IWorkerChunkCreateArgs } from "./worker/chunk.js";
+import {opposite_grid_neib_index} from "./core/ChunkGrid.js";
 
 let global_uniqId = 0;
 const _inchunk_pos = new Vector(0, 0, 0)
@@ -41,12 +42,18 @@ export class Chunk {
 
     vertices_args: any = null;
     vertices_args_size: number = 0;
+    multiblock_neib_mask = 0;
+    multiblock_rev_mask = 0;
     vertices: Map<string, ChunkMesh>;
     verticesList: Array<ChunkMesh>;
     /**
      * в данный момент отрисован на экране
       */
     cullID = -1;
+    /**
+     * chunk has part of neib multiblock, neib is drawn
+     */
+    cull_multiblock = -1;
 
     getChunkManager() : ChunkManager {
         return this.chunkManager;
@@ -271,9 +278,58 @@ export class Chunk {
         this.buildVerticesInProgress = false
         chunkManager.chunks_state.applyVertices(this, args.timers)
         this.timers = args.timers
+        this.apply_multiblock_neib_mask(args.multiblock_neib_mask);
         this.gravity_blocks = args.gravity_blocks
         this.applyVertices('worker', chunkManager.renderList.bufferPool, args.vertices)
         this.dirty = false
+    }
+
+    apply_multiblock_neib_mask(mask: number) {
+        const { dataChunk } = this;
+        if (!dataChunk) {
+            return;
+        }
+        const { grid_portals } = dataChunk;
+        this.multiblock_neib_mask = mask;
+        this.multiblock_rev_mask = 0;
+
+        //TODO: currently rev links aren't needed. Remove it later if we dont find the use
+        for (let i = 0; i < 26; i++)
+        {
+            if (!grid_portals[i]) {
+                continue;
+            }
+            const neib = grid_portals[i].toRegion.rev;
+            const rev_ind = opposite_grid_neib_index[i];
+            if ((mask & (1 << i)) !== 0)
+            {
+                neib.multiblock_rev_mask = neib.multiblock_rev_mask | (1 << rev_ind);
+            } else
+            {
+                neib.multiblock_rev_mask = (neib.multiblock_rev_mask & ~(1 << rev_ind));
+            }
+            if ((neib.multiblock_neib_mask & (1 << rev_ind)) !== 0)
+            {
+                this.multiblock_rev_mask = this.multiblock_rev_mask | (1 << i);
+            }
+        }
+    }
+
+    uncull_neib_chunks(out_neibs: IvanArray<Chunk>)
+    {
+        const { grid_portals } = this.dataChunk;
+        for (let i = 0; i < 26; i++)
+        {
+            if ((this.multiblock_neib_mask & (1 << i)) > 0)
+            {
+                const neib = grid_portals[i]?.toRegion?.rev;
+                if (neib && neib.cullID !== this.cullID && neib.cull_multiblock !== this.cullID)
+                {
+                    neib.cull_multiblock = this.cullID;
+                    out_neibs.push(neib);
+                }
+            }
+        }
     }
 
     // Destruct chunk

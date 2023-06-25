@@ -169,6 +169,27 @@ export class UIApp {
         return result;
     }
 
+    OpenSelectFileImage(callback: Function) {
+        const input = document.getElementById('form-upload-image') as HTMLFormElement
+        input.value = ''
+        input.onchange = function(event : any) {
+            callback(event)
+        }
+        input.click()
+    }
+
+    // Send image to billboard
+    async Billboard(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
+        let result = [];
+        await this.api.call(this, '/api/Game/Billboard', form, (resp) => {
+            result = resp;
+            if(callback) {
+                callback(result);
+            }
+        }, callback_error, callback_progress, callback_final);
+        return result;
+    }
+
     // CreateWorld...
     async CreateWorld(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = null;

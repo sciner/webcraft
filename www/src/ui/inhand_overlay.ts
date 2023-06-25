@@ -1,12 +1,11 @@
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import { BLOCK } from "../blocks.js";
-import { Camera } from "../camera.js";
+import { Camera_3d } from "../renders/camera_3d.js";
 import { NOT_SPAWNABLE_BUT_INHAND_BLOCKS } from "../constant.js";
 import {Helpers, Mth, Vector} from "../helpers.js";
 import Mesh_Object_Block_Drop from "../mesh/object/block_drop.js";
 import type { World } from "../world.js";
 import type {Renderer} from "../render.js";
-import {LayerPass} from "vauxcel";
 
 class ItemUseAnimation {
     [key: string]: any;
@@ -68,7 +67,7 @@ export class InHandOverlay {
 
     world               : World
     inHandItemMesh ?    : Mesh_Object_Block_Drop = null
-    camera              : Camera
+    camera              : Camera_3d
     wasEating           : boolean = false
     inHandItemBroken    : boolean = false
     inHandItemId        : int = -1
@@ -78,8 +77,8 @@ export class InHandOverlay {
     constructor(world : World, skinId, render) {
 
         // overlay camera
-        this.camera = new Camera({
-            type: Camera.PERSP_CAMERA,
+        this.camera = new Camera_3d({
+            type: Camera_3d.PERSP_CAMERA,
             renderType: render.camera.renderType,
             max: 100,
             min: 0.001,

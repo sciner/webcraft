@@ -19,11 +19,11 @@ import type { Renderer } from "./render.js";
 import { Resources } from "./resources.js";
 import type { BaseResourcePack } from "./base_resource_pack.js";
 import { FastCompiller } from "./bbmodel/compiler_base.js";
-import type { WebGLTexture } from "./renders/webgl/index.js";
+import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
-export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface', 'decal1', 'decal2'];
+export const GROUPS_NO_TRANSPARENT = ['regular', 'creative_regular', 'doubleface', 'decal1', 'decal2']
 
 const tmpAddr = new Vector()
 let billboard_tex_compiler : FastCompiller
@@ -333,7 +333,7 @@ export class ChunkManager {
                                         mipmap: false
                                     }
                                     const renderBackend = render.renderBackend
-                                    const texture = renderBackend.createTexture({
+                                    const texture = new TerrainBaseTexture({
                                         source:     spritesheet_canvas,
                                         style:      resource_pack.genTextureStyle(spritesheet_canvas, settings_for_canvas, DEFAULT_TX_SIZE),
                                         minFilter:  'nearest',
@@ -350,8 +350,7 @@ export class ChunkManager {
                                 } else {
                                     const tex = resource_pack.textures.get(spritesheet_id)
                                     if(tex) {
-                                        //TODO: switch upload() to updateID++
-                                        (tex.texture as WebGLTexture).upload()
+                                        tex.texture.update();
                                         // Helpers.downloadImage(spritesheet.canvases.get('').cnv, 'banner.png')
                                     }
                                 }

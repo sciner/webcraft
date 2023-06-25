@@ -430,10 +430,7 @@ export default class style {
                 if(tblock instanceof TBlock) {
                     // if(tblock.extra_data.relindex == -1) {
                     if(tblock.extra_data.texture) {
-                        // const group = model.getGroupByPath('default/display')
-                        const group = model.groups.get('display')
-                        const cube = group?.children[0]
-                        if(cube && cube instanceof BBModel_Cube) {
+                        for(const cube of model.displays) {
                             if(bb.animated && (typeof QubatchChunkWorker != 'undefined')) {
                                 const extra_data = tblock.extra_data ?? {}
                                 if(!extra_data.texture?.uv) {
@@ -560,6 +557,16 @@ export default class style {
                 if(!bm.canFenceConnect(neighbours.EAST)) hide_group_names.push('east')
                 model.hideGroups(hide_group_names)
                 style.selectTextureFromPalette(model, {name: mat.name}, tblock)
+                break
+            }
+            case 'wall': {
+                const hide_group_names = [];
+                if(!bm.canWallConnect(neighbours.SOUTH)) hide_group_names.push('south')
+                if(!bm.canWallConnect(neighbours.NORTH)) hide_group_names.push('north')
+                if(!bm.canWallConnect(neighbours.WEST)) hide_group_names.push('west')
+                if(!bm.canWallConnect(neighbours.EAST)) hide_group_names.push('east')
+                model.hideGroups(hide_group_names)
+                // style.selectTextureFromPalette(model, {name: mat.name}, tblock)
                 break
             }
             case 'pot': {

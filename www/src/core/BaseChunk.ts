@@ -19,6 +19,8 @@ export class BaseChunk {
     pos = new Vector();
     portals: Array<Portal> = [];
     facetPortals: Array<Portal> = [];
+    grid_portals: Array<Portal> = new Array(26).fill(null);
+    grid_neib_mask = 0;
     padding: number;
     outerLen: number;
     insideLen: number;
@@ -192,7 +194,7 @@ export class BaseChunk {
         this.portals.push(portal);
 
         const inner = this.safeAABB;
-        const {aabb, toRegion} = portal;
+        const {aabb, toRegion, grid_neib_index} = portal;
 
         const nibbleSize1 = this.nibbleSize;
         const nibbleSize2 = toRegion.nibbleSize;
@@ -216,6 +218,11 @@ export class BaseChunk {
 
         if (portal.isFacet) {
             this.facetPortals.push(portal);
+        }
+        if (grid_neib_index >= 0)
+        {
+            this.grid_portals[grid_neib_index] = portal;
+            this.grid_neib_mask = this.grid_neib_mask || (1 << grid_neib_index);
         }
 
         tempAABB.setIntersect(inner, aabb);
@@ -283,12 +290,12 @@ export class BaseChunk {
                 const portal1 = new Portal({
                     aabb,
                     fromRegion: this,
-                    toRegion: second
+                    toRegion: second,
                 })
                 const portal2 = new Portal({
                     aabb,
                     fromRegion: second,
-                    toRegion: this
+                    toRegion: this,
                 })
                 portal1.rev = portal2;
                 portal2.rev = portal1;
@@ -304,13 +311,16 @@ export class BaseChunk {
      * @param portalHandler
      */
     cleanPortals(portalHandler?: (Portal) => void) {
-        const {portals, facetPortals} = this;
+        const {portals, facetPortals, grid_portals} = this;
         let j = 0;
         for (let i = 0; i < portals.length; i++) {
             const portal = portals[i];
             if (portal.toRegion.markDeleteId) {
                 if (portalHandler) {
                     portalHandler(portal);
+                }
+                if (portal.grid_neib_index >= 0) {
+                    grid_portals[portal.grid_neib_index] = null;
                 }
             } else {
                 portals[j++] = portal;
@@ -337,6 +347,10 @@ export class BaseChunk {
             let ind = rev.fromRegion.portals.indexOf(rev);
             if (ind >= 0) {
                 rev.fromRegion.portals.splice(ind, 1);
+                if (rev.grid_neib_index >= 0)
+                {
+                    rev.fromRegion.grid_portals[rev.grid_neib_index] = null;
+                }
             } else {
                 // WTF?
             }
@@ -349,9 +363,16 @@ export class BaseChunk {
         }
         this.portals.length = 0;
         this.facetPortals.length = 0;
+        this.grid_portals.fill(null);
     }
 }
 
+interface IPortalConstructorParams {
+    aabb: AABB;
+    fromRegion: any;
+    toRegion: any;
+    grid_neib_index?: int;
+}
 export class Portal {
     fromRegion: DataChunk;
     toRegion: DataChunk;
@@ -360,8 +381,9 @@ export class Portal {
     volume: number;
     nibbleCompatible = false;
     isFacet: boolean;
+    grid_neib_index: number;
 
-    constructor({aabb, fromRegion, toRegion}) {
+    constructor({aabb, fromRegion, toRegion, grid_neib_index}: IPortalConstructorParams) {
         this.aabb = aabb;
         this.volume = (aabb.x_max - aabb.x_min) * (aabb.y_max - aabb.y_min) * (aabb.z_max - aabb.z_min);
         this.fromRegion = fromRegion;
@@ -378,5 +400,6 @@ export class Portal {
             facet++;
         }
         this.isFacet = facet >= 2;
+        this.grid_neib_index = grid_neib_index ?? -1;
     }
 }

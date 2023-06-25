@@ -41,7 +41,6 @@ export class BlockAccessor {
 
     constructor(world: IWorld) {
         this.world          = world as World
-        this.chunkManager   = this.world.chunkManager
     }
 
     /**
@@ -53,6 +52,7 @@ export class BlockAccessor {
     reset(initial: IVector | TBlock): this {
         // ленивая инициализцая не в конструкторе из-за того, что на клиенте grid еще не досутпен в момент создания игрока
         if (!this.gridMath) {
+            this.chunkManager   = this.world.chunkManager
             const grid          = this.world.grid
             this.gridMath       = grid.math
             this.sizeXMinus1    = grid.chunkSize.x - 1

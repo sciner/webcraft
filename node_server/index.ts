@@ -173,6 +173,13 @@ Config.init().then(async (config) => {
         abortOnLimit: true
     }));
 
+    app.use('/api/Game/Billboard', fileUpload({
+        debug: true,
+        limits: { fileSize: 10 * 1024 * 1024 },
+        useTempFiles : true,
+        abortOnLimit: true
+    }));
+
     app.use('/api', async(req, res) => {
         try {
             const resp = await ServerAPI.call(req.originalUrl, req.body, req.get('x-session-id'), req);

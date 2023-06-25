@@ -1,9 +1,9 @@
 import {BaseTerrainShader} from "../BaseShader.js";
 import {UniformGroup} from "vauxcel";
-import glMatrix from "@vendors/gl-matrix-3.3.min.js"
-import type {BaseTexture} from "../BaseRenderer.js";
+import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import type {Vector} from "../../helpers/vector.js";
-const {mat4, vec3} = glMatrix;
+import type {TerrainBaseTexture} from "../TerrainBaseTexture.js";
+const {mat4} = glMatrix;
 
 
 export const defaultTerrainStaticUniforms = {
@@ -26,8 +26,8 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         u_modelMatrix: Float32Array, u_modelMatrixMode: float
     }
     posUniformGroup: UniformGroup;
-    texture: BaseTexture = null;
-    texture_n: BaseTexture = null;
+    texture: TerrainBaseTexture = null;
+    texture_n: TerrainBaseTexture = null;
     /**
      *
      * @param {WebGLRenderer} context

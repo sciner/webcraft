@@ -676,6 +676,27 @@ export class Vector implements IVector {
         ];
     }
 
+    addToDirSelf(dir: number, arg1: number) {
+        switch(dir) {
+            case DIRECTION.SOUTH: {
+                this.z -= arg1
+                break
+            }
+            case DIRECTION.NORTH: {
+                this.z += arg1
+                break
+            }
+            case DIRECTION.WEST: {
+                this.x -= arg1
+                break
+            }
+            case DIRECTION.EAST: {
+                this.x += arg1
+                break
+            }
+        }
+    }
+
 }
 
 Vector.initStatics()

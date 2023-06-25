@@ -132,7 +132,7 @@ export class BBModel_Group extends BBModel_Child {
             return
         }
 
-        const vertices_pushed = mesh.vertices_pushed.has(this.name)
+        const vertices_pushed = mesh.vertices_pushed.has(this.path)
 
         for(let part of this.children) {
             if(!part.visibility) {
@@ -146,7 +146,7 @@ export class BBModel_Group extends BBModel_Child {
         }
 
         if(!vertices_pushed) {
-            mesh.vertices_pushed.set(this.name, true)
+            mesh.vertices_pushed.set(this.path, true)
         }
 
         if(im_bone) {

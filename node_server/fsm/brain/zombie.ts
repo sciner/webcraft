@@ -3,7 +3,6 @@ import { WorldAction } from "@client/world_action.js";
 import { EnumDamage } from "@client/enums/enum_damage.js";
 import { EnumDifficulty } from "@client/enums/enum_difficulty.js";
 import { MOB_TYPE } from "@client/constant.js";
-import { BaseRenderTarget } from "@client/renders/BaseRenderer.js";
 import {MOB_CONTROL, MobControlParams} from "@client/control/player_control.js";
 
 export class Brain extends FSMBrain {

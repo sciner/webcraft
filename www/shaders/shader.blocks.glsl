@@ -52,7 +52,6 @@
     uniform vec4 u_tintColor;
     uniform vec4 u_fogAddColor;
     uniform bool u_fogOn;
-    uniform bool u_crosshairOn;
     uniform float u_chunkBlockDist;
 
     uniform float u_brightness;
@@ -166,41 +165,6 @@
 #ifdef sample_texture_define_func
     // sample
     float ()
-#endif
-
-#ifdef crosshair_define_func
-    // crosshair draw block
-    void drawCrosshair() {
-        float cm = 0.0008;
-        vec4 crosshair;
-
-        if(u_resolution.x > u_resolution.y) {
-            crosshair = vec4(0., 0., u_resolution.x * cm, u_resolution.x * cm * 7.);
-        } else {
-            crosshair = vec4(0., 0., u_resolution.y * cm, u_resolution.y * cm * 7.);
-        }
-
-        float w = u_resolution.x;
-        float h = u_resolution.y;
-        float x = gl_FragCoord.x;
-        float y = gl_FragCoord.y;
-        if((x > w / 2.0 - crosshair.w && x < w / 2.0 + crosshair.w &&
-            y > h / 2.0 - crosshair.z && y < h / 2.0 + crosshair.z) ||
-            (x > w / 2.0 - crosshair.z && x < w / 2.0 + crosshair.z &&
-            y > h / 2.0 - crosshair.w && y < h / 2.0 + crosshair.w)
-            ) {
-                outColor = vec4(1. - outColor.rgb, 1.);
-        }
-    }
-    //--
-#endif
-
-#ifdef crosshair_call_func
-    // Draw crosshair
-    if (u_crosshairOn) {
-        drawCrosshair();
-    }
-    //--
 #endif
 
 #ifdef vignetting_define_func
@@ -400,26 +364,25 @@
     // Calc fog amount
     float fogDistance = length(v_world_pos.xyz);
     float fogFactorDiv = 1.0;
-    if (checkFlag(FLAG_NO_FOG)) {
-        fogFactorDiv = 15.0;
+    if (!checkFlag(FLAG_NO_FOG)) {
+        float refBlockDist = u_chunkBlockDist * fogFactorDiv;
+        float refBlockDist2 = 4. * fogFactorDiv;
+
+        float fogFactor = 0.05 / fogFactorDiv;
+        float fogFactor2 = 0.0025 / fogFactorDiv;
+
+        float fogAmount = clamp(fogFactor * (fogDistance - refBlockDist), 0., 1.);
+        fogAmount = fogAmount + fogFactor2 * (fogDistance - refBlockDist2);
+        fogAmount = clamp(fogAmount, 0., 1.);
+
+        // Apply fog
+        outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * combinedLight);
+        // outColor.rgb = u_fogAddColor.rgb + (1. - u_fogAddColor.a * combinedLight) * outColor.rgb;
+        outColor = mix(outColor, vec4(u_fogColor.rgb, 1.), fogAmount);
+
+        // special effect for sunrise
+        outColor.rgb = mix(outColor.rgb, u_fogColor.rgb, u_fogColor.a);
     }
-    float refBlockDist = u_chunkBlockDist * fogFactorDiv;
-    float refBlockDist2 = 4. * fogFactorDiv;
-
-    float fogFactor = 0.05 / fogFactorDiv;
-    float fogFactor2 = 0.0025 / fogFactorDiv;
-
-    float fogAmount = clamp(fogFactor * (fogDistance - refBlockDist), 0., 1.);
-    fogAmount = fogAmount + fogFactor2 * (fogDistance - refBlockDist2);
-    fogAmount = clamp(fogAmount, 0., 1.);
-
-    // Apply fog
-    outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * combinedLight);
-    // outColor.rgb = u_fogAddColor.rgb + (1. - u_fogAddColor.a * combinedLight) * outColor.rgb;
-    outColor = mix(outColor, vec4(u_fogColor.rgb, 1.), fogAmount);
-
-    // special effect for sunrise
-    outColor.rgb = mix(outColor.rgb, u_fogColor.rgb, u_fogColor.a);
 
     float opacity = u_tintColor.a;
     if(opacity >= 0.0) {
@@ -972,13 +935,14 @@ v_axisV *= sign(a_uvSize.y);
           || abs(centerSample.z - 0.1) < 0.04) {
             color.rgb += 0.25;
         }*/
-        float m = centerSample.z < .03 ? 1. - (.03 - centerSample.z) / .01 : 1.;
+        float m = centerSample.z; // < .03 ? 1. - (.03 - centerSample.z) / .01 : 1.;
+
         float water_lighter = min(centerSample.z / water_lighter_limit, .1);
         vec3 cam_period = getCamPeriod();
         float x = v_world_pos.x + cam_period.x;
         float y = v_world_pos.y + cam_period.y;
         // color.rgb += water_lighter * 1.25;
-        color.rgb += min((max(snoise(vec2(x, y) * 10. + u_time / 1000.), 0.) / 2.) * 2., 1.) * m / 5.;
+        color.rgb += min((max(snoise(vec2(x, y) * 10. + u_time / 1000.), 0.) / 2.) * 2., 1.) * m / 4.;
     }
 #endif
 

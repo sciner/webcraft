@@ -30,7 +30,6 @@ import { CubeSym } from "./core/CubeSym.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { Vector } from "./helpers/vector.js";
 import {Color} from "./helpers/color.js";
-import type { World } from "./world.js";
 
 const {mat4, quat} = glMatrix;
 
@@ -212,43 +211,6 @@ export class Helpers {
         });
     }
 
-    // createGLProgram...
-    static createGLProgram(gl, obj, callback?) {
-        let program = gl.createProgram();
-        // Compile vertex shader
-        let vertexShader = gl.createShader(gl.VERTEX_SHADER);
-        gl.shaderSource(vertexShader, obj.vertex);
-        gl.compileShader(vertexShader);
-        gl.attachShader(program, vertexShader);
-        gl.deleteShader(vertexShader);
-        if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-            throw "Could not compile vertex shader!\n" + gl.getShaderInfoLog(vertexShader);
-        }
-        // Compile fragment shader
-        let fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-        gl.shaderSource(fragmentShader, obj.fragment);
-        gl.compileShader(fragmentShader);
-        gl.attachShader(program, fragmentShader);
-        gl.deleteShader(fragmentShader);
-        if(!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-            throw "Could not compile fragment shader!\n" + gl.getShaderInfoLog(fragmentShader);
-        }
-        if (obj.tfVaryings) {
-            gl.transformFeedbackVaryings(program, obj.tfVaryings, gl.INTERLEAVED_ATTRIBS);
-        }
-        // Finish program
-        gl.linkProgram(program);
-        if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-            throw 'Could not link the shader program!';
-        }
-
-        callback && callback({
-            program
-        });
-
-        return program;
-    }
-
     // Return from green to red color depend on percentage
     static getColorForPercentage(pct : float) : Color {
         var percentColors = [
@@ -411,35 +373,36 @@ export class IvanArray<T=any> {
 
 
 
-    /**
-     * Возвращает позицию, на которой можно стоять вокруг точки pos или null
-     * @param pos - позиция
-     * @param world - ссылка на world
-     */
-    export function getValidPosition(pos : Vector, world: IWorld) : Vector | null {
-        let block = world.getBlock(pos.offset(0, 2, 0))
-        if (block.id == 0) {
-            return pos.offset(.5, 1, .5)
-        }
-        for (let i = -1; i <= 1; i++) {
-            for (let j = -1; j <= 1; j++) {
-                if (j == 0 && i == 0) {
-                    continue
-                }
-                block = world.getBlock(pos.offset(i, -1, j))
-                if (block.material.is_solid) {
-                    block = world.getBlock(pos.offset(i, 0, j))
-                    if (block.id == 0 || block?.material?.height < .5) {
-                        block = world.getBlock(pos.offset(i, 1, j))
-                        if (block.id == 0) {
-                            return pos.offset(i + .5, .5, j + .5)
-                        }
+/**
+ * Возвращает позицию, на которой можно стоять вокруг точки pos или null
+ * @param pos - позиция
+ * @param world - ссылка на world
+ */
+export function getValidPosition(pos: Vector, world: IWorld): Vector | null {
+    let block = world.getBlock(pos.offset(0, 2, 0))
+    if (block.id == 0) {
+        return pos.offset(.5, 1, .5)
+    }
+    for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+            if (j == 0 && i == 0) {
+                continue
+            }
+            block = world.getBlock(pos.offset(i, -1, j))
+            if (block.material.is_solid) {
+                block = world.getBlock(pos.offset(i, 0, j))
+                if (block.id == 0 || block?.material?.height < .5) {
+                    block = world.getBlock(pos.offset(i, 1, j))
+                    if (block.id == 0) {
+                        return pos.offset(i + .5, .5, j + .5)
                     }
                 }
             }
         }
-        return null
-    }//
+    }
+    return null
+}//
+
 export function makeChunkEffectID(chunk_addr : Vector, material_key : string) : string {
     let resp = `particles_effects/${chunk_addr.toHash()}/`;
     if(material_key) {

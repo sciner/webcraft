@@ -1,6 +1,6 @@
 import { Vector, unixTime } from "@client/helpers.js";
 import { DropItem } from '../drop_item.js';
-import { BulkSelectQuery, preprocessSQL, run } from './db_helpers.js';
+import {BulkSelectQuery, preprocessSQL, run, runBulkQuery} from './db_helpers.js';
 import { BLOCK_IDS, INVENTORY_SLOT_COUNT, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS, WORLD_TYPE_NORMAL } from '@client/constant.js';
 
 // Database packages
@@ -228,35 +228,34 @@ export class DBWorld {
 
     //
     async compressModifiers() {
-        const p_start = performance.now()
-        let chunks_count = 0;
-        const rows = await this.conn.all('SELECT _rowid_ AS rowid, data FROM world_modify_chunks WHERE has_data_blob = 0', {});
-        const all = []
-        const processChunk = async (rowid, priv, pub, compress_time) => {
-            return new Promise(async (resolve, reject) => {
-                const p = performance.now()
-                const result = await this.conn.run('UPDATE world_modify_chunks SET data_blob = :data_blob, private_data_blob = :private_data_blob, has_data_blob = 1 WHERE _rowid_ = :_rowid_', {
-                    ':data_blob':           pub,
-                    ':private_data_blob':   priv,
-                    ':_rowid_':             rowid
-                })
-                const p1 = Math.round(compress_time * 1000) / 1000
-                const p2 = Math.round((performance.now() - p) * 1000) / 1000
-                console.log(`compressModifiers: upd times: compress: ${p1}, store: ${p2} ms`)
-                resolve(result)
-            })
-
+        const MAX_BATCH = 5000 // макс. число чанков загружаемых одновременно - ограничить макс. выделение памяти
+        while(true) {
+            const p_start = performance.now()
+            const rows = await this.conn.all(`SELECT _rowid_ AS rowid, data FROM world_modify_chunks WHERE has_data_blob = 0 LIMIT ${MAX_BATCH}`)
+            if (rows.length === 0) {
+                return
+            }
+            console.log(`compressModifiers: ${rows.length} chunks`)
+            const updateRows = []
+            for(let row of rows) {
+                const compressed = compressWorldModifyChunk(JSON.parse(row.data), true)
+                updateRows.push([row.rowid, compressed.public, compressed.private])
+            }
+            const p_store = performance.now()
+            console.log(`compressModifiers: compress: ${Math.round(p_store - p_start)} ms`)
+            await runBulkQuery(this.conn,
+                'WITH cte (_rowid, _data_blob, _private_data_blob) AS (VALUES',
+                '(?,?,?)',
+                `)UPDATE world_modify_chunks
+                SET data_blob = _data_blob,
+                    private_data_blob = _private_data_blob,
+                    has_data_blob = 1
+                FROM cte
+                WHERE world_modify_chunks._rowid_ = cte._rowid`,
+                updateRows
+            )
+            console.log(`compressModifiers: store: ${Math.round(performance.now() - p_store)} ms, elapsed: ${Math.round(performance.now() - p_start)} ms`)
         }
-        for(let row of rows) {
-            chunks_count++;
-            const p = performance.now()
-            const compressed = compressWorldModifyChunk(JSON.parse(row.data), true)
-            // save compressed
-            all.push(processChunk(row.rowid, compressed.private, compressed.public, performance.now() - p))
-        }
-        await Promise.all(all)
-        console.log(`compressModifiers: chunks: ${chunks_count}, elapsed: ${Math.round((performance.now() - p_start) * 1000) / 1000} ms`)
-        return true
     }
 
     /** @returns a new instance of {@link Indicators} filled with default values. */

@@ -3,7 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
-import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE, MIN_STEP_PLAY_SOUND, MIN_HEIGHT_PLAY_SOUND, PLAYER_BURNING_TIME} from "./constant.js";
+import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE, MIN_STEP_PLAY_SOUND, MIN_HEIGHT_PLAY_SOUND, PLAYER_BURNING_TIME, PLAYER_FLAG} from "./constant.js";
 import {ClientPlayerControlManager, PlayerControlManager} from "./control/player_control_manager.js";
 import {PlayerControl, PlayerControls} from "./control/player_control.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -867,14 +867,24 @@ export class Player implements IPlayer {
 
     private getActionPlayerInfo(): ActionPlayerInfo {
         return {
-            radius: PLAYER_DIAMETER, // .radius is used as a diameter
-            height: this.height,
-            pos: this.lerpPos,
-            rotate: this.rotateDegree.clone(),
+            radius:     PLAYER_DIAMETER, // .radius is used as a diameter
+            height:     this.height,
+            pos:        this.lerpPos,
+            rotate:     this.rotateDegree.clone(),
+            game_mode:  this.game_mode,
+            is_admin:   this.checkIsAdmin(),
             session: {
                 user_id: this.session.user_id
             }
         }
+    }
+
+    checkIsAdmin() : boolean {
+        return this.checkFlag(PLAYER_FLAG.SYSTEM_ADMIN)
+    }
+
+    checkFlag(flag : PLAYER_FLAG) : boolean {
+        return (this.session.flags & flag) == flag
     }
 
     // Ограничение частоты выполнения данного действия
@@ -915,7 +925,7 @@ export class Player implements IPlayer {
 
     // Returns the position of the eyes of the player for rendering.
     getEyePos(abs : boolean = false): Vector {
-        if(!abs || this.render.camera_mode == CAMERA_MODE.SHOOTER) {
+        if(!abs || this.render.camera.mode == CAMERA_MODE.SHOOTER) {
             let subY = 0;
             if(this.state.sitting) {
                 subY = this.height * 1/3;
@@ -1122,7 +1132,7 @@ export class Player implements IPlayer {
                 // console.log(this.swimingDist);
             }
             // Update FOV
-            this.render.updateFOV(delta, this.zoom, this.running, this.getFlying());
+            this.render.camera.updateFOV(delta, this.zoom, this.running, this.getFlying());
             this.render.updateNightVision(this.getEffectLevel(Effect.NIGHT_VISION));
             // Update picking target
             this.updatePickingTarget()
@@ -1545,6 +1555,18 @@ export class Player implements IPlayer {
                 this.debugValues.set(arg, value)
             }
         }
+    }
+
+    isHideCreativeMaterialBlocks(material? : IBlockMaterial) : boolean {
+        let hide_creative_mat = true
+        if(this.game_mode.isCreative()) {
+            const cur_mat_id = this.currentInventoryItem?.id ?? 0
+            if(cur_mat_id) {
+                const mat = this.world.block_manager.fromId(cur_mat_id)
+                hide_creative_mat = !mat.hide_in_creative
+            }
+        }
+        return hide_creative_mat
     }
 
 }

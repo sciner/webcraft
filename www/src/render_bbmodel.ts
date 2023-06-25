@@ -4,7 +4,7 @@ import rendererProvider from "./renders/rendererProvider.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { MeshManager } from "./mesh/manager.js";
-import { Camera } from "./camera.js";
+import { Camera_3d } from "./renders/camera_3d.js";
 import { Environment } from "./environment.js";
 import { LIGHT_TYPE, PLAYER_ZOOM } from "./constant.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
@@ -14,6 +14,7 @@ import type { World } from "./world.js";
 import type {Player} from "./player.js";
 import type WebGLRenderer from "./renders/webgl/index.js";
 import {LayerPass} from "vauxcel";
+import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
 
 export const ZOOM_FACTOR        = 0.25;
 export const DEFAULT_FOV_NORMAL = 70;
@@ -34,7 +35,7 @@ export class RendererBBModel {
     env:                    Environment
     renderBackend:          WebGLRenderer
     meshes:                 MeshManager
-    camera:                 Camera
+    camera:                 Camera_3d
     canvas:                 any
     settings:               any
     options:                any = {FOV_WIDE_FACTOR, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING_FACTOR, FOV_FLYING_CHANGE_SPEED}
@@ -68,8 +69,8 @@ export class RendererBBModel {
             }
         )
 
-        this.camera = new Camera({
-            type: Camera.PERSP_CAMERA,
+        this.camera = new Camera_3d({
+            type: Camera_3d.PERSP_CAMERA,
             fov: DEFAULT_FOV_NORMAL,
             min: NEAR_DISTANCE,
             max: RENDER_DISTANCE,
@@ -96,6 +97,7 @@ export class RendererBBModel {
         this.meshes = new MeshManager(world)
 
         const {renderBackend} = this
+        const {pixiRender} = renderBackend;
 
         // if (renderBackend.gl) {
         //     if (settings.use_light === LIGHT_TYPE.RTX) {
@@ -149,17 +151,16 @@ export class RendererBBModel {
 
         this.updateViewport()
 
-        this.blockDayLightTex = renderBackend.createTexture({
+        this.blockDayLightTex = new TerrainBaseTexture({
             source: Resources.blockDayLight,
             minFilter: 'linear',
             magFilter: 'linear'
         })
-        this.blockDayLightTex.bind(2)
-
-        this.renderBackend._emptyTexInt.bind(3);
-        this.renderBackend._emptyTex3DInt.bind(6);
-        this.renderBackend._emptyTex3DInt.bind(7);
-        this.renderBackend._emptyTex3DInt.bind(8);
+        pixiRender.texture.bind(this.blockDayLightTex, 2);
+        pixiRender.texture.bind(renderBackend._emptyTexInt, 3);
+        pixiRender.texture.bind(renderBackend._emptyTex3DInt, 6);
+        pixiRender.texture.bind(renderBackend._emptyTex3DInt, 7);
+        pixiRender.texture.bind(renderBackend._emptyTex3DInt, 8);
 
         // this.debugGeom = new LineGeometry()
         // this.debugGeom.pos = this.camPos

@@ -1,16 +1,16 @@
-import type {BaseShader} from "./BaseShader.js";
 import * as VAUX from "vauxcel";
 import {Color} from "../helpers/color.js";
 import {State, UniformGroup} from "vauxcel";
 import {TerrainTextureUniforms} from "./common.js";
-import type {BaseRenderer, BaseTexture} from "./BaseRenderer.js";
+import type {BaseRenderer} from "./BaseRenderer.js";
 import type {BaseTerrainShader} from "./BaseShader.js";
+import type {TerrainBaseTexture} from "./TerrainBaseTexture.js";
 
 export interface ITerrainMaterialOptions {
     decalOffset?: number;
     shader?: BaseTerrainShader;
-    texture?: BaseTexture;
-    texture_n?: BaseTexture;
+    texture?: TerrainBaseTexture;
+    texture_n?: TerrainBaseTexture;
     cullFace?: boolean;
     opaque?: boolean;
     ignoreDepth?: boolean;
@@ -28,9 +28,9 @@ export const defaultTerrainMaterial = {
 
 export class BaseMaterial implements Required<ITerrainMaterialOptions> {
     shader: BaseTerrainShader;
-    _texture: BaseTexture = undefined
-    texture: BaseTexture = undefined;
-    texture_n: BaseTexture;
+    _texture: TerrainBaseTexture = undefined
+    texture: TerrainBaseTexture = undefined;
+    texture_n: TerrainBaseTexture;
     opaque: boolean;
     _tintColor = new Color(0, 0, 0, 0);
 

@@ -13,6 +13,7 @@ import type { Renderer } from "./render.js";
 import type { ChunkManager } from "./chunk_manager.js";
 import type { World } from "./world.js";
 import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID } from "./fluid/FluidConst.js";
+import {HUD_Underlay} from "./window/hud/hud_underlay.js";
 
 declare type ICompasMark = {
     angle: number,
@@ -163,6 +164,7 @@ export class Splash {
 
     hud:                    HUD        = null
     hudwindow:              HUDWindow  = null
+    underlay:               HUD_Underlay = null;
     qubatch:                GameClass  = null
     loading:                boolean    = true
     image:                  any        = null
@@ -242,6 +244,8 @@ export class HUD {
         // Init Window Manager
         const wm = this.wm = new WindowManager(this.canvas, 0, 0, this.canvas.width, this.canvas.height)
 
+        this.underlay = new HUD_Underlay();
+        wm.untypedParent.addChildAt(this.underlay, 0);
         //
         if(!this.wm.hud_window) {
             this.wm.hud_window = new Label(0, 0, this.wm.w, this.wm.h, 'hud')
@@ -367,13 +371,13 @@ export class HUD {
         // const dpr = window.devicePixelRatio
         // width /= dpr
         // height /= dpr
-
-        this.wm.pixiRender?.resize(width, height);
         this.wm.w = width
         this.wm.h = height
 
         this.wm.hud_window.w = width
         this.wm.hud_window.h = height
+
+        this.underlay.resize(this.wm.pixiRender.screen, this.zoom)
 
         this.refresh()
 
@@ -516,11 +520,7 @@ export class HUD {
                 }
                 const ed = desc.block.extra_data
                 if (ed) {
-                    var s = '';
-                    for(let key in ed) {
-                        s += '\n    ' + key + ': ' + JSON.stringify(ed[key])
-                    }
-                    this.block_text += '\nextra_data: {' + s + '\n}';
+                    this.block_text += '\nextra_data: ' + JSON.stringify(ed, null, 2)
                 }
                 if (desc.fluid) { // maybe unpack it
                     this.block_text += '\nFluid: ' + desc.fluid;
