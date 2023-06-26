@@ -89,6 +89,17 @@ export class ServerAPI {
                 Log.append('JoinWorld', {user_id: session.user_id, world_guid});
                 return world;
             }
+            case '/api/Game/EnterWorld': {
+                const args = params as IEnterWorld
+                const {location, world_guid} = args
+                const session    = await ServerAPI.getDb().GetPlayerSession(session_id)
+                const server_url = (location.protocol == 'https:' ? 'wss:' : 'ws:') +
+                    '//' + location.hostname +
+                    (location.port ? ':' + location.port : '') +
+                    '/ws'
+                Log.append('EnterWorld', {user_id: session.user_id, world_guid, server_url})
+                return {server_url, world_guid}
+            }
             case '/api/Game/MyWorlds': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);
                 const resp = await ServerAPI.getDb().MyWorlds(session.user_id);

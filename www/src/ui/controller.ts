@@ -800,24 +800,36 @@ class GameController {
         // Show Loading...
         await this.showSplash()
 
+        const instance = this // $scope
+
         // Continue loading
         this.$timeout(async () => {
-            const options = this.settings.form;
-            const server_url = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
-                '//' + location.hostname +
-                (location.port ? ':' + location.port : '') +
-                '/ws';
-            const world = await this.Qubatch.Start(server_url, world_guid, (resource_loading_state) => {
-                Qubatch.hud.draw(true);
-            });
-            if(!world.info) {
-                debugger;
+            const options = instance.settings.form
+            const location = window.location
+            const form : IEnterWorld = {
+                options,
+                world_guid,
+                location: {
+                    protocol: location.protocol,
+                    hostname: location.hostname,
+                    port: location.port,
+                }
             }
-            const player = new Player(options, Qubatch.render)
-            // player.windows = new PlayerWindowManager(player)
-            player.JoinToWorld(world, () => {
-                Qubatch.Started(player);
-            });
+            instance.App.EnterToWorld(form, async (resp) => {
+                const {server_url, world_guid} = resp
+                const world = await instance.Qubatch.Start(server_url, world_guid, (resource_loading_state) => {
+                    Qubatch.hud.draw(true)
+                })
+                Qubatch.hud.draw(true)
+                if(!world.info) {
+                    debugger
+                }
+                const player = new Player(options, Qubatch.render)
+                // player.windows = new PlayerWindowManager(player)
+                player.JoinToWorld(world, () => {
+                    Qubatch.Started(player)
+                })
+            })
         })
 
     }

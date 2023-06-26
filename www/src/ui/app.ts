@@ -278,6 +278,17 @@ export class UIApp {
         return result;
     }
 
+    async EnterToWorld(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
+        let result = [];
+        await this.api.call(this, '/api/Game/EnterWorld', form, (resp) => {
+            result = resp
+            if(callback) {
+                callback(result)
+            }
+        }, callback_error, callback_progress, callback_final)
+        return result
+    }
+
     //
     getSession() {
         return this.session;
