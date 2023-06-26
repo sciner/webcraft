@@ -19,7 +19,7 @@ import type Terrain_Generator from "../index.js";
 import type { TerrainMapCell } from "../terrain/map_cell.js";
 import { MapsBlockResult, TerrainMapManager3 } from "../terrain/manager.js";
 import { CD_ROT } from "../../../core/CubeSym.js";
-import type { BLOCK } from "blocks.js";
+import type {BLOCK} from "../../../blocks.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
 

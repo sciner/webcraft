@@ -487,7 +487,7 @@ export class MyGraphics extends VAUX.Graphics {
     [key: string]: any;
     constructor() {
         super();
-        this.geometry.isBatchable = () => { return true };
+        (this.geometry as any).isBatchable = () => { return true };
         this.pluginName = 'mySprite';
     }
 }

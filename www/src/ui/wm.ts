@@ -2,7 +2,7 @@ import { UI_THEME } from "../constant.js";
 import { Icon as icn, SimpleBlockSlot as sbs, Slider as sld,
         ToggleButton as tb, Label as lbl, Button as btn, TextEdit as txted,
         HTMLText as htmlt,
-        Window as wnd, GradientGraphics as gg, WindowManager as wm, VerticalLayout as vl } from "../vendors/wm/wm.js";
+        Window as wnd, WindowManager as wm, VerticalLayout as vl } from "../vendors/wm/wm.js";
 export { MySprite, MyTilemap } from "../vendors/wm/MySpriteRenderer.js";
 
 /**
@@ -84,11 +84,6 @@ export class Icon extends icn {
     }
 
 }
-
-export class GradientGraphics extends gg {
-    static [key: string]: any;
-}
-
 export class SimpleBlockSlot extends sbs {
     [key: string]: any;
 
