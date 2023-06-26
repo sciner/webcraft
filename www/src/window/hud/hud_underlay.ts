@@ -6,8 +6,6 @@ import {MySprite} from "../../vendors/wm/MySpriteRenderer.js";
  * `Qubatch.hud.underlay.crosshair_num = 2`
  */
 export class HUD_Underlay extends Container {
-    declare addChild: (child: Container) => void;
-
     crosshairBase = BaseTexture.from("./media/gui/crosshair.png");
     _crosshair_num = 0;
     crosshair_tex: Texture;
@@ -24,7 +22,7 @@ export class HUD_Underlay extends Container {
         this.crosshair_sprite = new MySprite(this.crosshair_tex);
         this.crosshair_sprite.blendMode = BLEND_MODES.INVERSE;
         this.crosshair_sprite.anchor.set(0.5);
-        this.addChild(this.crosshair_sprite);
+        (this as any).addChild(this.crosshair_sprite);
     }
 
     set crosshairOn(val: boolean) {

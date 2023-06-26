@@ -108,8 +108,8 @@ export class SplashMesh1 extends Mesh {
     }
     _render(renderer: Renderer) {
         this.shader.uniforms.u_time = performance.now() / 1000.0;
-        this.shader.uniforms.u_resolution[0] = this.width;
-        this.shader.uniforms.u_resolution[1] = this.height;
+        this.shader.uniforms.u_resolution[0] = (this as any).width;
+        this.shader.uniforms.u_resolution[1] = (this as any).height;
         super._render(renderer);
     }
 }
