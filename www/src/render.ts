@@ -1108,7 +1108,7 @@ export class Renderer {
         if(!model) {
             return null
         }
-        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name, doubleface, matrix, hide_groups, item_block)
+        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name, doubleface, false, matrix, hide_groups, item_block)
         const chunk_addr = this.world.chunkManager.grid.getChunkAddr(pos.x, pos.y, pos.z)
         return this.meshes.addForChunk(chunk_addr, bbmodel, key)
     }

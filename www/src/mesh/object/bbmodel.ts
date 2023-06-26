@@ -289,7 +289,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
     private rotation_matrix?: imat4
     private _block_drawer: Mesh_Object_Asteroid
 
-    constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false, rotation_matrix?: imat4, hide_groups?: string[], item_block? : DBItemBlock) {
+    constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false, transparent : boolean = false, rotation_matrix?: imat4, hide_groups?: string[], item_block? : DBItemBlock) {
         super(undefined)
 
         this.model = model
@@ -313,6 +313,8 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
             // this.rotation_matrix = mx
         }
 
+        const kmat = transparent ? (doubleface ? 'doubleface_transparent' : 'transparent') : (doubleface ? 'doubleface' : 'regular')
+
         this.render         = render
         this.life           = 1.0;
         this.chunk          = null
@@ -323,7 +325,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         this.matrix         = mat4.create();
         this.start_time     = performance.now();
         this.resource_pack  = render.world.block_manager.resource_pack_manager.get('bbmodel');
-        this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${doubleface ? 'doubleface' : 'regular'}/terrain/${model.json._properties.texture_id}`);
+        this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${kmat}/terrain/${model.json._properties.texture_id}`);
         this.buffer         = new GeometryTerrain(this.vertices)
         this.modifiers      = new MeshObjectModifiers(this)
         this.hide_groups    = hide_groups ?? []

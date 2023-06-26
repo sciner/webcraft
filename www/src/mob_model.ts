@@ -130,7 +130,7 @@ export class MobModel extends NetworkPhysicObject {
             console.error(`error_model_not_found|${this.skin.model_name}`, props)
             debugger
         }
-        this._mesh = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
+        this._mesh = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true, true)
         if(this.skin.texture_name) {
             this._mesh.modifiers.selectTextureFromPalette('', this.skin.texture_name)
         }
