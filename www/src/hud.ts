@@ -7,13 +7,15 @@ import { DRAW_HUD_INFO_DEFAULT, HUD_CONNECTION_WARNING_INTERVAL, ONLINE_MAX_VISI
 import { Lang } from "./lang.js";
 import { Mesh_Effect } from "./mesh/effect.js";
 import type {GameClass} from "./game.js";
-import { GradientGraphics, Label, Window, WindowManager } from "./ui/wm.js";
+import { Label, Window, WindowManager } from "./ui/wm.js";
+import { GradientGraphics } from "./ui/splash/gradient_graphics.js";
 import type { Player } from "./player.js";
 import type { Renderer } from "./render.js";
 import type { ChunkManager } from "./chunk_manager.js";
 import type { World } from "./world.js";
 import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID } from "./fluid/FluidConst.js";
 import {HUD_Underlay} from "./window/hud/hud_underlay.js";
+import { SplashMesh1 } from "./ui/splash/splash_mesh_1.js";
 
 declare type ICompasMark = {
     angle: number,
@@ -79,6 +81,7 @@ class HUDWindow extends Window {
         this.w *= this.zoom
         this.h *= this.zoom
         this.addChild(this.splash = GradientGraphics.createVertical('#1c1149', '#66408d', 512))
+        // this.addChild(this.splash = new SplashMesh1());
         this.add(this.progressbar = new Window(0, 0, 0, 4 * this.zoom, 'hud_progressbar'))
         this.progressbar.style.background.color = '#ffffff55'
 
