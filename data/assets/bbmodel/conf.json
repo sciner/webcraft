@@ -132,8 +132,11 @@
         {"name": "tool/industrial_shovel"},
         {"name": "tool/industrial_sword"},
         {"name": "tool/mechanism_assembler"},
-
-        {"name": "armor/scrap_armor"}
+        {"name": "armor/scrap_armor"},
+        {"name": "tool/straw_backpack"},
+        {"name": "tool/birch_bark_backpack"},
+        {"name": "tool/leather_backpack"},
+        {"name": "tool/wooden_training_sword"}
 
     ],
     "blocks": [
@@ -2320,6 +2323,34 @@
                 "import_anyway": true,
                 "behavior": "wall",
                 "aabb_stylename": "wall"
+            }
+        },
+        {
+            "id": 329,
+            "name": "STRAW_BACKPACK",
+            "bb": {
+                "model": "tool/straw_backpack"
+            }
+        },
+        {
+            "id": 330,
+            "name": "BIRCH_BARK_BACKPACK",
+            "bb": {
+                "model": "tool/birch_bark_backpack"
+            }
+        },
+        {
+            "id": 331,
+            "name": "LEATHER_BACKPACK",
+            "bb": {
+                "model": "tool/leather_backpack"
+            }
+        },
+        {
+            "id": 332,
+            "name": "WOODEN_TRAINING_SWORD",
+            "bb": {
+                "model": "tool/wooden_training_sword"
             }
         }
     ]

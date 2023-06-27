@@ -663,6 +663,11 @@
                 "id": "cobblestone"
             },
             "texture": "block/cobblestone.png",
+            "texture_variants": [
+                "./textures/cobblestone/cobblestone1.png",
+                "./textures/cobblestone/cobblestone2.png",
+                "./textures/cobblestone/cobblestone3.png"
+            ],
             "drop_item": [
                 {
                     "name": "COBBLESTONE",
@@ -1647,6 +1652,11 @@
                 }
             ],
             "texture": "block/gravel.png",
+            "texture_variants": [
+                "./textures/gravel/gravel1.png",
+                "./textures/gravel/gravel2.png",
+                "./textures/gravel/gravel3.png"
+            ],
             "overlay_textures_weight": 97,
             "texture_overlays": {
                 "1": "block/decals/gravel/1.png",
@@ -2463,6 +2473,11 @@
                 "full_block_name": "COBBLESTONE"
             },
             "texture": "block/cobblestone.png",
+            "texture_variants": [
+                "./textures/cobblestone/cobblestone1.png",
+                "./textures/cobblestone/cobblestone2.png",
+                "./textures/cobblestone/cobblestone3.png"
+            ],
             "drop_item": [
                 {
                     "name": "COBBLESTONE_SLAB",
@@ -2596,6 +2611,11 @@
                 "id": "cobblestone"
             },
             "texture": "block/cobblestone.png",
+            "texture_variants": [
+                "./textures/cobblestone/cobblestone1.png",
+                "./textures/cobblestone/cobblestone2.png",
+                "./textures/cobblestone/cobblestone3.png"
+            ],
             "drop_item": [
                 {
                     "name": "COBBLESTONE_STAIRS",
@@ -2872,6 +2892,12 @@
                 "id": "stone"
             },
             "texture": "block/stone_bricks.png",
+            "texture_variants": [
+                "./textures/stone_bricks/stone_bricks1.png",
+                "./textures/stone_bricks/stone_bricks2.png",
+                "./textures/stone_bricks/stone_bricks3.png",
+                "./textures/stone_bricks/stone_bricks4.png"
+            ],
             "drop_item": [
                 {
                     "name": "STONE_BRICKS",
@@ -2935,6 +2961,12 @@
                 "id": "stone"
             },
             "texture": "block/stone_bricks.png",
+            "texture_variants": [
+                "./textures/stone_bricks/stone_bricks1.png",
+                "./textures/stone_bricks/stone_bricks2.png",
+                "./textures/stone_bricks/stone_bricks3.png",
+                "./textures/stone_bricks/stone_bricks4.png"
+            ],
             "drop_item": [
                 {
                     "name": "STONE_BRICK_SLAB",
@@ -3231,6 +3263,12 @@
                 "id": "stone"
             },
             "texture": "block/stone_bricks.png",
+            "texture_variants": [
+                "./textures/stone_bricks/stone_bricks1.png",
+                "./textures/stone_bricks/stone_bricks2.png",
+                "./textures/stone_bricks/stone_bricks3.png",
+                "./textures/stone_bricks/stone_bricks4.png"
+            ],
             "drop_item": [
                 {
                     "name": "STONE_STAIRS",
@@ -4472,6 +4510,12 @@
             "texture": {
                 "side": "block/andesite.png"
             },
+            "texture_variants": [
+                "./textures/andesite/andesite1.png",
+                "./textures/andesite/andesite2.png",
+                "./textures/andesite/andesite3.png",
+                "./textures/andesite/andesite4.png"
+            ],
             "drop_item": [
                 {
                     "name": "ANDESITE",
@@ -4520,6 +4564,12 @@
             "texture": {
                 "side": "block/diorite.png"
             },
+            "texture_variants": [
+                "./textures/diorite/diorite1.png",
+                "./textures/diorite/diorite2.png",
+                "./textures/diorite/diorite3.png",
+                "./textures/diorite/diorite4.png"
+            ],
             "drop_item": [
                 {
                     "name": "DIORITE",
@@ -4568,6 +4618,14 @@
             "texture": {
                 "side": "block/granite.png"
             },
+            "texture_variants": [
+                "./textures/granite/granite1.png",
+                "./textures/granite/granite2.png",
+                "./textures/granite/granite3.png",
+                "./textures/granite/granite4.png",
+                "./textures/granite/granite5.png",
+                "./textures/granite/granite6.png"
+            ],
             "drop_item": [
                 {
                     "name": "GRANITE",
@@ -5270,6 +5328,12 @@
                 "id": "stone"
             },
             "texture": "block/stone_bricks.png",
+            "texture_variants": [
+                "./textures/stone_bricks/stone_bricks1.png",
+                "./textures/stone_bricks/stone_bricks2.png",
+                "./textures/stone_bricks/stone_bricks3.png",
+                "./textures/stone_bricks/stone_bricks4.png"
+            ],
             "drop_item": [
                 {
                     "name": "STONE_BRICK_STAIRS",
@@ -5377,6 +5441,11 @@
                 "id": "cobblestone"
             },
             "texture": "block/cobblestone.png",
+            "texture_variants": [
+                "./textures/cobblestone/cobblestone1.png",
+                "./textures/cobblestone/cobblestone2.png",
+                "./textures/cobblestone/cobblestone3.png"
+            ],
             "drop_item": [
                 {
                     "name": "COBBLESTONE_WALL",
@@ -5401,6 +5470,12 @@
                 "id": "stone"
             },
             "texture": "block/stone_bricks.png",
+            "texture_variants": [
+                "./textures/stone_bricks/stone_bricks1.png",
+                "./textures/stone_bricks/stone_bricks2.png",
+                "./textures/stone_bricks/stone_bricks3.png",
+                "./textures/stone_bricks/stone_bricks4.png"
+            ],
             "drop_item": [
                 {
                     "name": "STONE_BRICK_WALL",
@@ -5451,6 +5526,12 @@
             "texture": {
                 "side": "block/andesite.png"
             },
+            "texture_variants": [
+                "./textures/andesite/andesite1.png",
+                "./textures/andesite/andesite2.png",
+                "./textures/andesite/andesite3.png",
+                "./textures/andesite/andesite4.png"
+            ],
             "drop_item": [
                 {
                     "name": "ANDESITE_WALL",
@@ -5477,6 +5558,12 @@
             "texture": {
                 "side": "block/diorite.png"
             },
+            "texture_variants": [
+                "./textures/diorite/diorite1.png",
+                "./textures/diorite/diorite2.png",
+                "./textures/diorite/diorite3.png",
+                "./textures/diorite/diorite4.png"
+            ],
             "drop_item": [
                 {
                     "name": "DIORITE_WALL",
@@ -5503,6 +5590,14 @@
             "texture": {
                 "side": "block/granite.png"
             },
+            "texture_variants": [
+                "./textures/granite/granite1.png",
+                "./textures/granite/granite2.png",
+                "./textures/granite/granite3.png",
+                "./textures/granite/granite4.png",
+                "./textures/granite/granite5.png",
+                "./textures/granite/granite6.png"
+            ],
             "drop_item": [
                 {
                     "name": "GRANITE_WALL",
@@ -5680,6 +5775,12 @@
             "texture": {
                 "side": "block/mossy_stone_bricks.png"
             },
+            "texture_variants": [
+                "./textures/mossy_stone_bricks/mossy_stone_bricks1.png",
+                "./textures/mossy_stone_bricks/mossy_stone_bricks2.png",
+                "./textures/mossy_stone_bricks/mossy_stone_bricks3.png",
+                "./textures/mossy_stone_bricks/mossy_stone_bricks4.png"
+            ],
             "drop_item": [
                 {
                     "name": "MOSSY_STONE_BRICKS",
@@ -7445,6 +7546,11 @@
                 "id": "stone"
             },
             "texture": "block/mossy_cobblestone.png",
+            "texture_variants": [
+                "./textures/mossy_cobblestone/mossy_cobblestone1.png",
+                "./textures/mossy_cobblestone/mossy_cobblestone2.png",
+                "./textures/mossy_cobblestone/mossy_cobblestone3.png"
+            ],
             "drop_item": [
                 {
                     "name": "MOSSY_COBBLESTONE_WALL",
@@ -7467,6 +7573,11 @@
                 "id": "cobblestone"
             },
             "texture": "block/mossy_cobblestone.png",
+            "texture_variants": [
+                "./textures/mossy_cobblestone/mossy_cobblestone1.png",
+                "./textures/mossy_cobblestone/mossy_cobblestone2.png",
+                "./textures/mossy_cobblestone/mossy_cobblestone3.png"
+            ],
             "drop_item": [
                 {
                     "name": "MOSSY_COBBLESTONE",
@@ -7490,6 +7601,11 @@
                 "id": "cobblestone"
             },
             "texture": "block/mossy_cobblestone.png",
+            "texture_variants": [
+                "./textures/mossy_cobblestone/mossy_cobblestone1.png",
+                "./textures/mossy_cobblestone/mossy_cobblestone2.png",
+                "./textures/mossy_cobblestone/mossy_cobblestone3.png"
+            ],
             "drop_item": [
                 {
                     "name": "MOSSY_COBBLESTONE_STAIRS",
@@ -8339,6 +8455,12 @@
                 "id": "stone"
             },
             "texture": "block/andesite.png",
+            "texture_variants": [
+                "./textures/andesite/andesite1.png",
+                "./textures/andesite/andesite2.png",
+                "./textures/andesite/andesite3.png",
+                "./textures/andesite/andesite4.png"
+            ],
             "drop_item": [
                 {
                     "name": "ANDESITE_STAIRS",
@@ -8658,6 +8780,14 @@
                 "id": "stone"
             },
             "texture": "block/granite.png",
+            "texture_variants": [
+                "./textures/granite/granite1.png",
+                "./textures/granite/granite2.png",
+                "./textures/granite/granite3.png",
+                "./textures/granite/granite4.png",
+                "./textures/granite/granite5.png",
+                "./textures/granite/granite6.png"
+            ],
             "drop_item": [
                 {
                     "name": "GRANITE_STAIRS",
@@ -8704,6 +8834,12 @@
                 "id": "stone"
             },
             "texture": "block/diorite.png",
+            "texture_variants": [
+                "./textures/diorite/diorite1.png",
+                "./textures/diorite/diorite2.png",
+                "./textures/diorite/diorite3.png",
+                "./textures/diorite/diorite4.png"
+            ],
             "drop_item": [
                 {
                     "name": "DIORITE_STAIRS",
@@ -12545,7 +12681,7 @@
                 "texture": "backpack_basic" 
             },
             "extra_data": {
-                "slot": 5
+                "slot": 10
             }
         },
         {
@@ -12944,6 +13080,97 @@
                     }
                 }
             ]
+		},
+		{
+            "id": 329,
+            "name": "STRAW_BACKPACK",
+            "style": "extruder",
+            "texture": "item/turtle_helmet.png",
+            "max_in_stack": 1,
+            "item": {"name": "armor"},
+            "material": {
+                "id": "powder"
+            },
+            "armor": {
+                "slot": 84,
+                "durability": 276,
+                "damage": 0
+            },
+            "model": {
+                "name": "tool/straw_backpack",
+                "texture": "straw_backpack" 
+            },
+            "extra_data": {
+                "slot": 4
+            }
+        },
+        {
+            "id": 330,
+            "name": "BIRCH_BARK_BACKPACK",
+            "style": "extruder",
+            "texture": "item/turtle_helmet.png",
+            "max_in_stack": 1,
+            "item": {"name": "armor"},
+            "material": {
+                "id": "powder"
+            },
+            "armor": {
+                "slot": 84,
+                "durability": 276,
+                "damage": 0
+            },
+            "model": {
+                "name": "tool/birch_bark_backpack",
+                "texture": "birch_bark_backpack" 
+            },
+            "extra_data": {
+                "slot":  8
+            }
+        },
+        {
+            "id": 331,
+            "name": "LEATHER_BACKPACK",
+            "style": "extruder",
+            "texture": "item/turtle_helmet.png",
+            "max_in_stack": 1,
+            "item": {"name": "armor"},
+            "material": {
+                "id": "powder"
+            },
+            "armor": {
+                "slot": 84,
+                "durability": 276,
+                "damage": 0
+            },
+            "model": {
+                "name": "tool/leather_backpack",
+                "texture": "leather_backpack" 
+            },
+            "extra_data": {
+                "slot": 12
+            }
+        },
+        {
+            "id": 332,
+            "name": "WOODEN_TRAINING_SWORD",
+            "transparent": true,
+            "max_in_stack": 1,
+            "style": "extruder",
+            "item": {"name": "instrument", "instrument_id": "sword"},
+            "diagonal": true,
+            "power": 120,
+            "damage": 1,
+            "speed": 1.6,
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "item/wooden_sword.png"
+            },
+            "tags": [
+                "#combat"
+            ],
+            "light": null
         }
     ]
 }
