@@ -5081,6 +5081,11 @@
                 "id": "cobblestone"
             },
             "texture": "./textures/moss_block.png",
+            "texture_variants": [
+                "./textures/moss_block/moss_block1.png",
+                "./textures/moss_block/moss_block2.png",
+                "./textures/moss_block/moss_block3.png"
+            ],
             "composter_chance": 0.65
         },
         {
