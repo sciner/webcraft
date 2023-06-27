@@ -137,9 +137,11 @@ export class ServerClient {
     static CMD_BUILDING_SCHEMA_ADD      = 107;
 
     // Media
-    static CMD_BILLBOARD_MEDIA              = 125;
+    static CMD_BILLBOARD_MEDIA          = 125;
 
-    // NEXT UNUSED COMMAND INDEX        = 126
+    static CMD_WORLD_STATS              = 126;
+
+    // NEXT UNUSED COMMAND INDEX        = 127
 
     ws                                  : WebSocket
     lastPacketReceivedTime              = Infinity; // set to performance.now() when a packet is received

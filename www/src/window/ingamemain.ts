@@ -4,6 +4,7 @@ import { Lang } from "../lang.js";
 import { CreativeInventoryWindow } from "./creative_inventory.js";
 import { InventoryWindow } from "./inventory.js";
 import { CharacterWindow } from "./character.js";
+import { WorldInfoWindow } from "./world_info.js";
 import { QuestWindow } from "./quest.js";
 import { StatsWindow } from "./stats.js";
 import { Label, Window } from "../ui/wm.js";
@@ -51,7 +52,8 @@ export class InGameMain extends BlankWindow {
             {title: Lang.inventory,          form: new InventoryWindow(inventory, recipes), button: null, fix_pos: new Vector(2, 0, 0)},
             {title: Lang.creative_inventory, form: new CreativeInventoryWindow(inventory),  button: null, fix_pos: new Vector(0, 0, 0)},
             {title: Lang.quests,             form: new QuestWindow(player),                 button: null, fix_pos: new Vector(0, 0, 0)},
-            {title: Lang.btn_statistics,     form: new StatsWindow(player),                 button: null, fix_pos: new Vector(0, 0, 0)}
+            {title: Lang.btn_statistics,     form: new StatsWindow(player),                 button: null, fix_pos: new Vector(0, 0, 0)},
+            {title: Lang.btn_statistics,     form: new WorldInfoWindow(player),                 button: null, fix_pos: new Vector(0, 0, 0)}
         ]
 
         const that = this

@@ -9,19 +9,21 @@ export default class packet_reader {
 
     // which command can be parsed with this class
     static get command() {
-        return ServerClient.CMD_STATS;
+        return ServerClient.CMD_WORLD_STATS;
     }
 
     static async read(player, packet) {
-        const death     = player.state.stats.death;
+
+        const world = player.world 
+        const title     = world.info.title
         const time      = player.state.stats.time;
         const pickat    = player.state.stats.pickat;
         const distance  = player.state.stats.distance;
 
         let packets = [{
-            name: ServerClient.CMD_STATS,
+            name: ServerClient.CMD_WORLD_STATS,
             data: {
-                "death":                death,
+                "title":                title,
                 "time":                 time,
 				"time_formatted":       packet_reader.secToStr(time),
                 "pickat":               pickat,
