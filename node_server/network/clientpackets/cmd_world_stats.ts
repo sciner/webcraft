@@ -14,42 +14,21 @@ export default class packet_reader {
 
     static async read(player, packet) {
 
-        const world = player.world 
-        const title     = world.info.title
-        const time      = player.state.stats.time;
-        const pickat    = player.state.stats.pickat;
-        const distance  = player.state.stats.distance;
+        const world   = player.world
+        const info    = world.info
+        const creater = world.players.get(info.user_id)
 
-        let packets = [{
+        const packets = [{
             name: ServerClient.CMD_WORLD_STATS,
             data: {
-                "title":                title,
-                "time":                 time,
-				"time_formatted":       packet_reader.secToStr(time),
-                "pickat":               pickat,
-                "pickat_formated":      pickat.toLocaleString('en-EN'),
-                "distance":             distance,
-				"distance_formatted":   distance.toLocaleString('en-EN') + ' m'
+                "title": info.title,
+                "username": creater.session.username,
             }
         }];
 
-        player.world.sendSelected(packets, player);
+        player.world.sendSelected(packets, player)
 
-        return true;
-    
-    }
-
-	static secToStr(time) {
-        let minute = Math.floor(time / 60);
-        let hours = Math.floor(minute / 60);
-        let day = Math.floor(hours / 24);
-        minute %= 60;
-        hours %= 24;
-        const resp = [];
-        if(day > 0) resp.push(day + ' days');
-        if(hours > 0) resp.push(hours + ' hours');
-        resp.push(minute + ' minutes');
-        return resp.join(' ');
+        return true
     }
 
 }

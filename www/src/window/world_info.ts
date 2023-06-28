@@ -15,10 +15,6 @@ export class WorldInfoWindow extends BlankWindow {
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
         this.setBackground('./media/gui/form-empty.png')
 
-        // Add labels to window
-        // const lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 300 * this.zoom, 30 * this.zoom, 'lbl1', null, Lang.btn_statistics);
-        // this.add(lbl1)
-
         let x = 17 * this.zoom
         let y = 17 * this.zoom
         let w = 300 * this.zoom
@@ -32,11 +28,9 @@ export class WorldInfoWindow extends BlankWindow {
         }
 
         //
-        for(let item of [
+        for(const item of [
             {id: 'label_title', title: Lang.stat_death},
-            {id: 'label_time', title: Lang.stat_time},
-            {id: 'label_pickat', title: Lang.stat_pickat},
-            {id: 'label_distance', title: Lang.stat_distance},
+            {id: 'label_username', title: Lang.stat_time}
         ]) {
             const y = getY()
             const lbl_title = new Label(x, y, w, one_line, item.id + '_title', item.title, item.title)
@@ -53,7 +47,7 @@ export class WorldInfoWindow extends BlankWindow {
 
         //
         const setValue = (id : string, value : string) => {
-            for(let w of this.list.values()) {
+            for(const w of this.list.values()) {
                 if(w.id == id) {
                     w.text = value
                 }
@@ -62,30 +56,17 @@ export class WorldInfoWindow extends BlankWindow {
 
         //
         player.world.server.AddCmdListener([ServerClient.CMD_WORLD_STATS], (cmd) => {
-
-            let times = cmd.data.time_formatted;
-            times = times.replace('days', Lang.days);
-            times = times.replace('hours', Lang.hours);
-            times = times.replace('minutes', Lang.minutes);
-
-            setValue('label_title', cmd.data.title)
-            setValue('label_time', times)
-            setValue('label_pickat', cmd.data.pickat_formated)
-            setValue('label_distance', cmd.data.distance_formatted.replace('m', Lang.short_meters))
-
+            const data = cmd.data
+            setValue('label_title', data.title)
+            setValue('label_username', data.username)
         })
 
     }
 
     // Обработчик открытия формы
     onShow(args) {
-        // this.getRoot().center(this)
-        // Qubatch.releaseMousePointer()
         this.player.world.server.Send({name: ServerClient.CMD_WORLD_STATS})
         super.onShow(args)
     }
-
-    // Обработчик закрытия формы
-    onHide() {}
 
 }
