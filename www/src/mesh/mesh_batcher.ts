@@ -21,6 +21,18 @@ export interface IMeshDrawer {
     drawMesh(geom: GeometryTerrain, material: BaseMaterial, pos: Vector, modelMatrix?: imat4): void;
 }
 
+function meshSorter(mesh1: MeshBatcherEntry, mesh2: MeshBatcherEntry) {
+    if (mesh1.dist < mesh2.dist)
+    {
+        return 1;
+    }
+    if (mesh1.dist > mesh2.dist)
+    {
+        return -1;
+    }
+    return 0;
+}
+
 export class MeshBatcher implements IMeshDrawer {
     elements: IvanArray<MeshBatcherEntry>[] = [];
     constructor() {
@@ -80,6 +92,16 @@ export class MeshBatcher implements IMeshDrawer {
         const {mesh} = pixiRender.plugins;
         pixiRender.batch.setObjectRenderer(mesh);
         const elements = this.elements[mode];
+
+        if (mode === MESH_RENDER_LIST.OPAQUE)
+        {
+            for (let i = 0; i < elements.count; i++)
+            {
+                elements.arr[i].dist = this.render.camPos.distance(elements.arr[i].pos);
+            }
+            elements.arr.sort(meshSorter);
+        }
+
         for (let i = 0; i < elements.count; i++) {
             const entry = elements.arr[i];
             mesh.draw(entry.geom, entry.material, entry.pos,
@@ -100,6 +122,7 @@ export class MeshBatcherEntry {
     pos = new Vector();
     modelMatrix: imat4 = mat4.create();
     hasModelMatrix = false;
+    dist = 0;
 
     reset()
     {
@@ -110,6 +133,7 @@ export class MeshBatcherEntry {
         this.material = null;
         this.geom = null;
         this.hasModelMatrix = false;
+        this.dist = 0;
     }
 
     static pool = new SimplePool(MeshBatcherEntry);

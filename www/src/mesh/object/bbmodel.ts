@@ -1,4 +1,4 @@
-import { IndexedColor, QUAD_FLAGS, Vector } from '../../helpers.js';
+import {Color, IndexedColor, QUAD_FLAGS, Vector} from '../../helpers.js';
 import { GeometryTerrain } from '../../geometry_terrain.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { Mesh_Object_Base } from './base.js';
@@ -529,6 +529,21 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         if(this._block_drawer) {
             this._block_drawer.destroy()
             this._block_drawer = null
+        }
+    }
+
+    _tintEnabled = false;
+    enableTint(clr: Color) {
+        if (!this._tintEnabled) {
+            this._tintEnabled = true;
+            this.gl_material = this.gl_material.getSubMat();
+        }
+        this.gl_material.tintColor = clr;
+    }
+
+    disableTint() {
+        if (this._tintEnabled) {
+            this.gl_material.tintColor = Color.ZERO;
         }
     }
 

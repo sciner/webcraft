@@ -189,18 +189,21 @@ export class MobModel extends NetworkPhysicObject {
     }
 
     computeLocalPosAndLight(delta : float) {
-
         const newChunk = this.world.chunkManager.getChunk(this.chunk_addr);
         const mesh = this._mesh
         if(mesh) {
             // mesh.gl_material.changeLighTex(this.lightTex)
             // mesh.gl_material.lightTex = this.lightTex
             if (this.#timer_demage > performance.now()) {
-                mesh.gl_material.tintColor = new Color(1, 0, 0, .3)
+                mesh.enableTint(new Color(1, 0, 0, .3));
             } else {
                 // Negative alpha is specially processed in the shader
                 // It is used to set the opacity for the material
-                mesh.gl_material.tintColor = this.opacity ? new Color(0, 0, 0, -this.opacity) : color_trnsparent
+                if (this.opacity) {
+                    mesh.enableTint(new Color(0, 0, 0, -this.opacity));
+                } else {
+                    mesh.disableTint();
+                }
             }
 
         }
@@ -321,7 +324,7 @@ export class MobModel extends NetworkPhysicObject {
 
         // Draw AABB wireframe
         if(this.aabb && draw_debug_grid) {
-            this.aabb.draw(meshBatcher, this.pos, delta, true /*this.raycasted*/ );
+            this.aabb.draw(meshBatcher.render, this.pos, delta, true /*this.raycasted*/ );
         }
 
         if(mesh) {
@@ -331,10 +334,6 @@ export class MobModel extends NetworkPhysicObject {
             }
             mesh.apos.copyFrom(this.pos)
             mesh.drawBuffered(meshBatcher, delta, mx)
-            if(mesh.gl_material.tintColor) {
-                mesh.gl_material.tintColor.set(0, 0, 0, 0)
-                mesh.gl_material.tintColor = mesh.gl_material.tintColor
-            }
         }
 
         return true

@@ -8,6 +8,7 @@ import {BLEND_MODES, Geometry, LayerPass, RenderTexture, Buffer, Renderer, State
 import {GlobalUniformGroup, LightUniformGroup} from "./uniform_groups.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import {BufferBaseTexture, BufferBaseTexture3D} from "./BufferBaseTexture.js";
+import type {BaseMaterial} from "./TerrainMaterial";
 
 const {mat4} = glMatrix;
 
@@ -279,7 +280,7 @@ export class BaseRenderer {
         this.blit(this._target, toTarget);
     }
 
-    createMaterial(options) {
+    createMaterial(options): BaseMaterial {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 

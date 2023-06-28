@@ -251,7 +251,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
 
         // Draw AABB wireframe
         if(this.aabb && draw_debug_grid) {
-            this.aabb.draw(meshBatcher, this.pos, delta, true /*this.raycasted*/ );
+            this.aabb.draw(meshBatcher.render, this.pos, delta, true /*this.raycasted*/ );
         }
 
     }

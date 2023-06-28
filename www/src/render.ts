@@ -34,7 +34,6 @@ import { AABB } from "./core/AABB.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { World } from "./world.js";
-import type { MobModel } from "./mob_model.js";
 import type { HUD } from "./hud.js";
 import type {Player} from "./player.js";
 import type WebGLRenderer from "./renders/webgl/index.js";
