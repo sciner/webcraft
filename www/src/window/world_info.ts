@@ -15,26 +15,29 @@ export class WorldInfoWindow extends BlankWindow {
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
         this.setBackground('./media/gui/form-empty.png')
 
-        let x = 17 * this.zoom
-        let y = 17 * this.zoom
-        let w = 300 * this.zoom
-        const one_line = 22 * this.zoom
-        const margin = 8 * this.zoom
+        let margin = 17 * this.zoom
 
-        const getY = () => {
-            const resp = y
-            y += one_line + margin
-            return resp
-        }
+        const line_width = 14 * this.zoom
 
-        //
+        // Заголовок
+        const lbl_title = new Label(margin, 2 * line_width, 30 * this.zoom, 30 * this.zoom, 'lbl_title','No image1', 'No image')
+        lbl_title.style.background.color = '#FF000055'
+        this.add(lbl_title)
+
+        // предпросмотр
+        const lbl_preview = new Label(margin, lbl_title.y + lbl_title.h + 2 * line_width, 167 * this.zoom, 96 * this.zoom, 'lbl_preview','No image1', 'No image')
+        lbl_preview.style.background.color = '#FF000055'
+        this.add(lbl_preview)
+
+        //список
+        let y = lbl_preview.y + lbl_preview.h + line_width
         for(const item of [
-            {id: 'label_title', title: Lang.stat_death},
-            {id: 'label_username', title: Lang.stat_time}
+            {id: 'label_data_created', title: Lang.data_created},
+            {id: 'label_age', title: Lang.age},
+            {id: 'label_creator', title: Lang.creator}
         ]) {
-            const y = getY()
-            const lbl_title = new Label(x, y, w, one_line, item.id + '_title', item.title, item.title)
-            const lbl = new Label(x + 100 * this.zoom, y, w, one_line, item.id, item.title, item.title)
+            const lbl_title = new Label(margin, y, 0, 0, item.id + '_title', item.title, item.title)
+            const lbl = new Label(this.w - margin, y, 0, 0, item.id, item.title, item.title)
             lbl_title.style.font.size = UI_THEME.base_font.size
             lbl_title.style.font.weight = 'bold'
             lbl_title.style.font.color = UI_THEME.base_font.color
@@ -43,7 +46,19 @@ export class WorldInfoWindow extends BlankWindow {
             lbl.style.font.color = UI_THEME.second_text_color
             this.add(lbl_title)
             this.add(lbl)
+            y += 2 * line_width
         }
+
+        this.lbl_public = new Label(margin, 28 * line_width, 0, 0, 'lbl_public', null, Lang.make_public)
+        this.lbl_public.style.font.size = UI_THEME.base_font.size
+        this.lbl_public.style.font.weight = 'bold'
+        this.lbl_public.style.font.color = UI_THEME.base_font.color
+        this.add(this.lbl_public)
+
+        this.lbl_public_description = new Label(margin, 30 * line_width, 0, 0, 'lbl_public_description', null, Lang.make_public_description)
+        this.lbl_public_description.style.font.size = UI_THEME.base_font.size
+        this.lbl_public_description.style.font.color = UI_THEME.second_text_color
+        this.add(this.lbl_public_description)
 
         //
         const setValue = (id : string, value : string) => {
@@ -57,8 +72,8 @@ export class WorldInfoWindow extends BlankWindow {
         //
         player.world.server.AddCmdListener([ServerClient.CMD_WORLD_STATS], (cmd) => {
             const data = cmd.data
-            setValue('label_title', data.title)
-            setValue('label_username', data.username)
+           // setValue('label_title', data.title)
+            //setValue('label_username', data.username)
         })
 
     }
