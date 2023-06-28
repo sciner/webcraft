@@ -130,7 +130,7 @@ export class MobModel extends NetworkPhysicObject {
             console.error(`error_model_not_found|${this.skin.model_name}`, props)
             debugger
         }
-        this._mesh = new Mesh_Object_BBModel(this.world, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true, true)
+        this._mesh = new Mesh_Object_BBModel(this.world, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true, false)
         if(this.skin.texture_name) {
             this._mesh.modifiers.selectTextureFromPalette('', this.skin.texture_name)
         }
@@ -199,7 +199,7 @@ export class MobModel extends NetworkPhysicObject {
             } else {
                 // Negative alpha is specially processed in the shader
                 // It is used to set the opacity for the material
-                if (this.opacity) {
+                if (this.opacity < 1) {
                     mesh.enableTint(new Color(0, 0, 0, -this.opacity));
                 } else {
                     mesh.disableTint();

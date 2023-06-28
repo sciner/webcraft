@@ -142,6 +142,9 @@ export class BBModel_Group extends BBModel_Child {
             if(part instanceof BBModel_Group) {
                 part.drawBuffered(meshBatcher, mesh, pos, lm, mx, bone_matrix, vertices, emmit_particles_func)
             } else if(!vertices_pushed && part instanceof BBModel_Cube) {
+                if(part.json.madcraft?.material) {
+                    // console.log(part.json.madcraft.material)
+                }
                 part.pushVertices(vertices, Vector.ZERO, lm, bone_matrix, emmit_particles_func)
             }
         }
