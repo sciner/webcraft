@@ -93,7 +93,7 @@ export class MeshBatcher implements IMeshDrawer {
         pixiRender.batch.setObjectRenderer(mesh);
         const elements = this.elements[mode];
 
-        if (mode === MESH_RENDER_LIST.OPAQUE)
+        if (mode === MESH_RENDER_LIST.TRANSPARENT)
         {
             for (let i = 0; i < elements.count; i++)
             {
