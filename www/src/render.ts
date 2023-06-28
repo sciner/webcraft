@@ -41,6 +41,7 @@ import type WebGLRenderer from "./renders/webgl/index.js";
 import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
 import {BufferBaseTexture} from "./renders/BufferBaseTexture.js";
 import {GameCamera, DEFAULT_FOV_NORMAL} from "./game_camera.js";
+import {MESH_RENDER_LIST, MeshBatcher} from "./mesh/mesh_batcher.js";
 
 const {mat3, mat4, quat, vec3} = glMatrix;
 
@@ -99,9 +100,10 @@ export class Renderer {
     material_shadow:        any
     cullID:                 int = 0
     lastDeltaForMeGui:      int = 0
-    mobsDrawnLast:          MobModel[] = [] // список мобов, отложенных при 1-м вызове drawMobs, чтобы быть нарисованными на 2-м
     nightVision:            boolean = false;
     _debug_aabb:            AABB[] = []
+
+    meshBatcher = new MeshBatcher();
 
     constructor(qubatchRenderSurfaceId : string) {
         this.canvas             = document.getElementById(qubatchRenderSurfaceId);
@@ -785,7 +787,7 @@ export class Renderer {
                 preset = PRESET_NAMES.LAVA;
                 chunkBlockDist = 4; //
             }
-        } else if (this.clouds.isCameraInCloud(this)) {
+        } else if (this.clouds.isCameraInCloud(this.camPos)) {
             preset = PRESET_NAMES.CLOUD
         } else {
             const biome_id = player.getOverChunkBiomeId()
@@ -885,7 +887,7 @@ export class Renderer {
 
     // Render one frame of the world to the canvas.
     draw(delta : float, args) {
-        const { renderBackend, camera, player } = this;
+        const { renderBackend, camera, player, meshBatcher } = this;
         const { globalUniforms } = renderBackend;
         const { renderList } = this.world.chunkManager;
 
@@ -924,41 +926,32 @@ export class Renderer {
         // upload important buffers here!
         renderList.uploadBuffers(this);
 
+        // all meshes go here
+        meshBatcher.start(this);
+        this.clouds.draw(meshBatcher, delta);
+        this.drawMobs(delta);
+        this.drawPlayers(delta);
+        this.drawDropItems(delta);
+        this.drawShadows();
+        this.meshes.draw(meshBatcher, delta, player.lerpPos);
+
         // layers??
         // maybe we will create a real layer group
         for(let transparent of [false, true]) {
             if (transparent) {
-                this.clouds.draw(this, delta);
+                meshBatcher.drawList(MESH_RENDER_LIST.TRANSPARENT_FIRST);
             }
             for(let rp of BLOCK.resource_pack_manager.list.values()) {
                 // 2. Draw chunks
                 renderList.draw(this, rp, transparent);
             }
             renderBackend.batch.flush();
-            if(!transparent) {
-                const shader = this.defaultShader;
-                // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
-                if (shader.texture) {
-                    shader.bind(true);
-                    // 3. Draw mobs
-                    this.drawMobs(delta, false);
-                    // 4. Draw players and rain
-                    // После мобов, это важно. draw также обновляет состояние. Моб-транспорт должен обработаться первым и изменить позицию модели игрока.
-                    this.drawPlayers(delta);
-                    // 5. Draw drop items
-                    this.drawDropItems(delta);
-                    // 6. Draw meshes
-                    // this.meshes.draw(this, delta, player.lerpPos);
-                    // 7. Draw mobs that must be drawn last (boats)
-                    this.drawMobs(delta, true);
-                    // 8. Draw shadows
-                    this.drawShadows();
-                }
-            } else {
-                const shader = this.defaultShader;
-                if (shader.texture) {
-                    // 6. Draw meshes
-                    this.meshes.draw(this, delta, player.lerpPos);
+            if (this.defaultShader.texture) {
+                if(!transparent) {
+                    meshBatcher.drawList(MESH_RENDER_LIST.OPAQUE);
+                    meshBatcher.drawList(MESH_RENDER_LIST.OPAQUE_LAST);
+                } else {
+                    meshBatcher.drawList(MESH_RENDER_LIST.TRANSPARENT);
                 }
             }
         }
@@ -1097,7 +1090,7 @@ export class Renderer {
 
     // addAsteroid
     addAsteroid(pos, rad) {
-        this.meshes.add(new Mesh_Object_Asteroid(this.world, this, pos, rad));
+        this.meshes.add(new Mesh_Object_Asteroid(this.world, pos, rad));
     }
 
     /**
@@ -1108,7 +1101,7 @@ export class Renderer {
         if(!model) {
             return null
         }
-        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name, doubleface, false, matrix, hide_groups, item_block)
+        const bbmodel = new Mesh_Object_BBModel(this.world, pos, rotate, model, animation_name, doubleface, false, matrix, hide_groups, item_block)
         const chunk_addr = this.world.chunkManager.grid.getChunkAddr(pos.x, pos.y, pos.z)
         return this.meshes.addForChunk(chunk_addr, bbmodel, key)
     }
@@ -1128,7 +1121,7 @@ export class Renderer {
         if(!model) {
             return null
         }
-        const bbmodel = new Mesh_Object_BBModel(this, pos, rotate, model, animation_name, doubleface)
+        const bbmodel = new Mesh_Object_BBModel(this.world, pos, rotate, model, animation_name, doubleface)
         bbmodel.setAnimation(animation_name)
         return this.meshes.add(bbmodel, key)
     }
@@ -1149,7 +1142,7 @@ export class Renderer {
             if(rain) {
                 rain.destroy();
             }
-            rain = new Mesh_Object_Rain(this.world, this, this.weather_name, chunkManager);
+            rain = new Mesh_Object_Rain(this.world, this.meshBatcher, this.weather_name, chunkManager);
             this.meshes.add(rain, 'weather');
             this.rain = rain
         }
@@ -1190,13 +1183,13 @@ export class Renderer {
                     shader_binded = true
                     this.defaultShader.bind()
                 }
-                player_model.draw(this, this.camPos, delta, this.world.mobs.draw_debug_grid)
+                player_model.draw(this.meshBatcher, this.camPos, delta, this.world.mobs.draw_debug_grid)
             }
         }
     }
 
     // drawMobs
-    drawMobs(delta : float, renderLast: boolean) : DrawMobsStat | null {
+    drawMobs(delta : float) : DrawMobsStat | null {
 
         const mobs_list = this.world.mobs.list
         if(mobs_list.size < 1) {
@@ -1205,13 +1198,7 @@ export class Renderer {
 
         const pos_of_interest = this.player.getEyePos()
 
-        if (renderLast) {
-            for(const mob of this.mobsDrawnLast) {
-                mob.draw(this, pos_of_interest, delta, this.world.mobs.draw_debug_grid)
-            }
-            this.mobsDrawnLast.length = 0
-            return null
-        }
+        const { meshBatcher } = this;
 
         this.draw_mobs_stat.count = 0
         this.draw_mobs_stat.time = performance.now()
@@ -1225,12 +1212,12 @@ export class Renderer {
             }
             if(prev_chunk && prev_chunk.cullID === this.cullID) {
                 if(mob.renderLast) {
-                    // запомнить моба чтобы нарисовать его на втором проходе быстро без проверок чанка
-                    this.mobsDrawnLast.push(mob)
-                    mob.processNetState() // даже если моб не рисуется на первом проходе - обновить его (например, чтобы его вождение обновило других мобов)
-                    continue
+                    meshBatcher.startRenderList(MESH_RENDER_LIST.OPAQUE_LAST);
                 }
-                mob.draw(this, pos_of_interest, delta, this.world.mobs.draw_debug_grid)
+                mob.draw(meshBatcher, pos_of_interest, delta, this.world.mobs.draw_debug_grid)
+                if(mob.renderLast) {
+                    meshBatcher.finishRenderList();
+                }
                 this.draw_mobs_stat.count++
             }
         }
@@ -1247,7 +1234,7 @@ export class Renderer {
         this.defaultShader.bind()
         for(const drop_item of this.world.drop_items.list.values()) {
             drop_item.updatePlayer(this.player, delta)
-            drop_item.draw(this, delta, this.world.mobs.draw_debug_grid)
+            drop_item.draw(this.meshBatcher, delta, this.world.mobs.draw_debug_grid)
         }
     }
 
@@ -1354,9 +1341,8 @@ export class Renderer {
         */
         // Create buffer, draw and destroy
         const buf = new GeometryTerrain(vertices);
-        const modelMatrix = mat4.create();
-        this.renderBackend.drawMesh(buf, this.material_shadow, a_pos, modelMatrix);
-        buf.destroy();
+        this.meshBatcher.drawMesh(buf, this.material_shadow, a_pos);
+        buf.autoDestroy = true;
     }
 
     // createShadowBuffer...

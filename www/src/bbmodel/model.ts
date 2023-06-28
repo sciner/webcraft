@@ -10,6 +10,7 @@ import { getEuler } from "../components/Transform.js";
 import { BBMODEL_ATLAS_SIZE } from "../constant.js";
 import type { BBModel_Child } from "./child.js";
 import { BBModel_Display } from "./display.js";
+import type {MeshBatcher} from "../mesh/mesh_batcher.js";
 
 const VEC_2 = new Vector(2, 2, 2)
 const EMPTY_ARGS = []
@@ -155,9 +156,9 @@ export class BBModel_Model {
         this.root.pushVertices(vertices, pos, lm, matrix, emmit_particles_func, mesh)
     }
 
-    drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, matrix : float[], emmit_particles_func? : Function) {
+    drawBuffered(meshBatcher : MeshBatcher, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, matrix : float[], emmit_particles_func? : Function) {
         const vertices = []
-        this.root.drawBuffered(render, mesh, pos, lm, matrix, undefined, vertices, emmit_particles_func)
+        this.root.drawBuffered(meshBatcher, mesh, pos, lm, matrix, undefined, vertices, emmit_particles_func)
     }
 
     static parseAnimationName(animation : string | TParsedAnimation) : TParsedAnimation {

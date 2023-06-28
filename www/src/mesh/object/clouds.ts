@@ -4,7 +4,7 @@ import { GeometryTerrain } from "../../geometry_terrain.js";
 import {Resources} from "../../resources.js";
 import {BLOCK, FakeTBlock} from "../../blocks.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
-import type {Renderer} from "../../render.js";
+import {MeshBatcher, MESH_RENDER_LIST} from "../mesh_batcher.js";
 const {mat4} = glMatrix;
 
 const push_cube = push_cube_style.func;
@@ -150,9 +150,8 @@ export default class Mesh_Object_Clouds {
     }
 
     /** @return блок облака, в котором находится камера */
-    isCameraInCloud(render: Renderer): boolean {
-        const {camPos} = render
-        const cloudsCoord = this.getCloudsCoord(render)
+    isCameraInCloud(camPos: Vector): boolean {
+        const cloudsCoord = this.getCloudsCoord(camPos)
         if (cloudsCoord) {
             for(let dx = -CLOUD_CAMERA_MARGIN; dx <= CLOUD_CAMERA_MARGIN; dx += 2 * CLOUD_CAMERA_MARGIN) {
                 const x = (camPos.x - cloudsCoord.x + dx) / CLOUDS_TEX_SCALE.x | 0
@@ -171,8 +170,7 @@ export default class Mesh_Object_Clouds {
     }
 
     /** @return координаты угла одного повторяющегося "чанка" облаков, содержащего (x, z) камеры */
-    private getCloudsCoord(render: Renderer): Vector | null {
-        const cam_pos = render.camPos
+    private getCloudsCoord(cam_pos: Vector): Vector | null {
         if (cam_pos.y < 0) {
             return null
         }
@@ -190,22 +188,17 @@ export default class Mesh_Object_Clouds {
     }
 
     // Draw
-    draw(render: Renderer, delta) {
-        const cloudsCoord = this.getCloudsCoord(render)
+    draw(meshBatcher: MeshBatcher, _delta: number) {
+        const { render } = meshBatcher;
+        const cloudsCoord = this.getCloudsCoord(render.camPos)
         if (cloudsCoord == null) {
             return
         }
 
-        const that = this
         const size = CLOUDS_SIZE.x;
         const material = render.defaultShader.materials.transparent;
         render.lightUniforms.pushOverride(0x10000);
-        const context = render.renderBackend
-        const gl = context.gl
         const {geom, pos} = this
-        material.shader.updatePos(pos, this.modelMatrix)
-        material.bind()
-        geom.bind(material.shader)
 
         // сколько раз нужно повторять облака и какие части рисовать - на основе дальности прорисовки
         const camMax = render.camera.max
@@ -215,26 +208,23 @@ export default class Mesh_Object_Clouds {
         const camMaxX = render.camPos.x + camMax
         const camMaxZ = render.camPos.z + camMax
         // нарисовать повторяющие участки облаков со сдвигом
+        meshBatcher.startRenderList(MESH_RENDER_LIST.TRANSPARENT_FIRST);
         for(let mx = -repeatAround; mx <= repeatAround; mx++) {
             for(let mz = -repeatAround; mz <= repeatAround; mz++) {
                 pos.set(cloudsCoord.x + mx * size, cloudsCoord.y, cloudsCoord.z + mz * size)
                 if (pos.x + size > camMinX && pos.x < camMaxX && pos.z + size > camMinZ && pos.z < camMaxZ) {
-                    /* старый код был закомментирован - может нужен
-                    render.renderBackend.drawMesh(this.buffer, material, this.pos, this.modelMatrix);
-                    */
-                    material.shader.updatePosOnly(pos)
-                    material.bind()
-                    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, geom.size)
-                    context.stat.drawquads += geom.size
-                    context.stat.drawcalls++
+                    //TODO: store same modelMatrix multiple times
+                    meshBatcher.drawMesh(geom, material, pos, this.modelMatrix);
                 }
             }
         }
+        meshBatcher.finishRenderList();
+
         render.lightUniforms.popOverride();
 
     }
 
-    destroy(render) {
+    destroy() {
         this.geom.destroy();
     }
 

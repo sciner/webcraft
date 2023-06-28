@@ -3,6 +3,7 @@ import { GeometryTerrain } from '../../geometry_terrain.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from '../../render.js';
 import type { WebGLMaterial } from '../../renders/webgl/WebGLMaterial.js';
+import type {MeshBatcher} from "../mesh_batcher.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -68,22 +69,22 @@ export class Mesh_Object_Base {
     }
 
     // Draw
-    draw(render : Renderer, delta : float) {
-        this.drawBuffer(render, this.pos, this.matrix)
+    draw(meshBatcher: MeshBatcher, delta : float) {
+        this.drawBuffer(meshBatcher, this.pos, this.matrix)
     }
 
     // Draw directly without any pre-computation
-    drawBuffer(render : Renderer, pos : Vector, mx : imat4) {
+    drawBuffer(meshBatcher: MeshBatcher, pos : Vector, mx : imat4) {
         if(this.buffer && this.visible) {
             if (this.ignoreParentRotation) {
                 _pos.copyFrom(pos);
                 _pos.addScalarSelf(mx[12], mx[13], mx[14])
-                render.renderBackend.drawMesh(this.buffer, this.gl_material, _pos, this.matrix)
+                meshBatcher.drawMesh(this.buffer, this.gl_material, _pos, this.matrix)
             } else {
                 mat4.identity(_mx)
                 mat4.multiply(_mx, mx, this.matrix)
                 // TODO: need to update this.lightTex befor draw?
-                render.renderBackend.drawMesh(this.buffer, this.gl_material, pos, _mx)
+                meshBatcher.drawMesh(this.buffer, this.gl_material, pos, _mx)
             }
         }
     }
@@ -106,7 +107,7 @@ export class Mesh_Object_Base {
     //         return;
     //     }
     //     this.chunk = chunk;
-    //     this.lightTex = chunk.getLightTexture(render.renderBackend);
+    //     this.lightTex = chunk.getLightTexture(meshBatcher);
     // }
 
 }
