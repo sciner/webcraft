@@ -4,7 +4,7 @@ import { NetworkPhysicObject } from '../../network_physic_object.js';
 import { MeshGroup } from '../group.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { World } from '../../world.js';
-import type { Renderer } from '../../render.js';
+import type {MeshBatcher} from "../mesh_batcher.js";
 
 const {mat4, vec3} = glMatrix;
 
@@ -16,7 +16,7 @@ export class Mesh_Object_Asteroid extends NetworkPhysicObject {
     static neighbours = null
 
     // Constructor
-    constructor(world : World, render : Renderer, pos : IVector, radius : int, blocks?: object) {
+    constructor(world : World, pos : IVector, radius : int, blocks?: object) {
 
         super(
             world,
@@ -99,7 +99,7 @@ export class Mesh_Object_Asteroid extends NetworkPhysicObject {
     }
 
     // Draw
-    draw(render : Renderer, delta : float, m? : imat4) {
+    draw(meshBatcher: MeshBatcher, delta : float, m? : imat4) {
 
         this.update()
 
@@ -121,7 +121,7 @@ export class Mesh_Object_Asteroid extends NetworkPhysicObject {
         }
 
         // Draw mesh group
-        this.mesh_group.draw(render, this.posFact, this.modelMatrix)
+        this.mesh_group.draw(meshBatcher, this.posFact, this.modelMatrix)
 
     }
 

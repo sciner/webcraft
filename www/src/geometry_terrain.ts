@@ -81,6 +81,11 @@ export class GeometryTerrain extends Geometry {
 
         this.customFlag = false;
 
+        /**
+         * destroy after draw
+         */
+        this.autoDestroy = false;
+
         this.initGeom();
     }
 

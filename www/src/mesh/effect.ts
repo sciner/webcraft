@@ -121,7 +121,7 @@ export class Mesh_Effect {
 
     }
 
-    update(render, delta) {
+    update(delta) {
 
         //
         const data = this.buffer.data;
@@ -204,13 +204,13 @@ export class Mesh_Effect {
      * @param {float} delta
      * @returns
      */
-    draw(render, delta) {
+    draw(meshBatcher, delta) {
 
         if(this.p_count < 1) {
             return false;
         }
 
-        this.update(render, delta);
+        this.update(delta);
 
         if(!this.chunk) {
             /**
@@ -220,7 +220,7 @@ export class Mesh_Effect {
         }
 
         if(this.chunk) {
-            render.renderBackend.drawMesh(
+            meshBatcher.drawMesh(
                 this.buffer,
                 this.material,
                 this.chunk_coord,

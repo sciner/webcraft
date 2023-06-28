@@ -3,8 +3,8 @@ import { BLOCK } from '../../blocks.js';
 import { GeometryTerrain } from '../../geometry_terrain.js';
 import { GAME_DAY_SECONDS } from '../../constant.js';
 import {impl as alea} from "@vendors/alea.js";
-import glMatrix from "@vendors/gl-matrix-3.3.min.js"
-import type { Renderer } from '../../render.js';
+import glMatrix from "@vendors/gl-matrix-3.3.min.js";
+import type {MeshBatcher} from "../mesh_batcher.js";
 
 const {mat4} = glMatrix;
 
@@ -129,7 +129,7 @@ export class Mesh_Object_Stars {
     }
 
     // Draw
-    draw(render : Renderer, delta : float) {
+    draw(meshBatcher: MeshBatcher, delta : float) {
 
         this.generateStarsMesh();
 
@@ -144,7 +144,7 @@ export class Mesh_Object_Stars {
         this.matrix = mat4.create();
         mat4.rotate(this.matrix, this.matrix, -rot, [0, 1, 0]);
 
-        render.renderBackend.drawMesh(this.buffer, this.gl_material, this.apos, this.matrix);
+        meshBatcher.drawMesh(this.buffer, this.gl_material, this.apos, this.matrix);
 
     }
 

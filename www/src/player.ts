@@ -284,7 +284,7 @@ export class Player implements IPlayer {
     #timer_burn:                number = 0
     #timer_attack:              number = 0
     #distance:                  number = 0
-    #old_distance:              number = 0 
+    #old_distance:              number = 0
     #old_y:                     number = 0
     mechanism_assembler?:       MechanismAssembler
     pos1pos2:                   AABB
@@ -543,7 +543,7 @@ export class Player implements IPlayer {
         //    this.render.destroyBlock({id: 202}, pos, false);
         //}, 10);
 
-        this.arm = new PlayerArm(this, this.render)
+        this.arm = new PlayerArm(this)
 
         return true;
     }
@@ -1045,7 +1045,7 @@ export class Player implements IPlayer {
             } else if(this.onGroundO){
                 this.#old_y = this.pos.y
             }
-            
+
             if(this.in_water && !this.in_water_o) {
                 this.triggerEvent('legs_enter_to_water');
             }
@@ -1101,7 +1101,7 @@ export class Player implements IPlayer {
             }
             if ( this.in_water || (this.headBlock && (this.headBlock.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) || this.getEffectLevel(Effect.FIRE_RESISTANCE)) {
                 this.#timer_burn = 0
-            } 
+            }
             // если в воде, то проверим еще высоту воды
             if (this.headBlock.fluid > 0) {
                 const fluidLevel = this.headBlock.getFluidLevel(this.lerpPos.x, this.lerpPos.z);
@@ -1486,7 +1486,7 @@ export class Player implements IPlayer {
     * Метод устанавливает проигрывание анимации
     */
     setAnimation(animation_name: string, speed: float = 1, time?: float) {
-        
+
         if(typeof time === 'undefined') {
             const model = this.getModel()
             if(model) {
