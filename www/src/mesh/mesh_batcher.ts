@@ -4,7 +4,7 @@ import type {BaseMaterial} from "../renders/TerrainMaterial.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import {IvanArray, Vector} from "../helpers.js";
 import type {GeometryTerrain} from "../geometry_terrain.js";
-import type {Renderer} from "vauxcel";
+import type {Renderer} from "../render.js";
 const {mat4} = glMatrix;
 
 export enum MESH_RENDER_LIST {

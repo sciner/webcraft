@@ -928,7 +928,6 @@ export class Renderer {
 
         // all meshes go here
         meshBatcher.start(this);
-        this.clouds.draw(meshBatcher, delta);
         this.drawMobs(delta);
         this.drawPlayers(delta);
         this.drawDropItems(delta);
@@ -940,6 +939,7 @@ export class Renderer {
         for(let transparent of [false, true]) {
             if (transparent) {
                 meshBatcher.drawList(MESH_RENDER_LIST.TRANSPARENT_FIRST);
+                this.clouds.draw(this, delta);
             }
             for(let rp of BLOCK.resource_pack_manager.list.values()) {
                 // 2. Draw chunks
