@@ -327,7 +327,7 @@ export class DBWorld {
             }
 
             const inventory = fixInventory(JSON.parse(row.inventory))
-            const state = row.state ? JSON.parse(row.state) : { }
+            const state : PlayerState = row.state ? JSON.parse(row.state) : { }
 
             // TODO remove backwards compatibility with seprate fields
             Object.assign(state, {
@@ -337,7 +337,10 @@ export class DBWorld {
                 indicators:         upgradeToNewIndicators(JSON.parse(row.indicators)),
                 chunk_render_dist:  row.chunk_render_dist,
                 game_mode:          row.game_mode || world.info.game_mode,
-                stats:              JSON.parse(row.stats)
+                stats:              JSON.parse(row.stats),
+                world: {
+                    is_admin: world.admins.checkIsAdmin(player)
+                }
             });
 
             // postprocess state
@@ -353,7 +356,7 @@ export class DBWorld {
                 world_data: JSON.parse(row.world_data ?? '{}'),
                 driving_id      : row.driving_id,
                 driving_data    : row.driving_data
-            };
+            } as PlayerInitInfo
         }
         const default_pos_spawn = world.info.pos_spawn;
         const defaultState = {
