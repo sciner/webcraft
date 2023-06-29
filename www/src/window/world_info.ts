@@ -8,43 +8,41 @@ import { Resources } from "../resources.js";
 class PlayerItem extends Window {
     #data: any
     #parent: Window
-    private lblTitle = null
+    #title = null
     #id = null
 
     constructor(x : number, y : number, w : number, h : number, id : string, parent: Window) {
         super(x, y, w, h, id, null, null)
         this.#parent = parent
-        this.lblTitle = new Label(0, 0, 0, 0, 'lblTitle', '', '')
-        this.lblTitle.style.font.size = UI_THEME.base_font.size
-        this.lblTitle.style.font.color = UI_THEME.second_text_color
-        this.add(this.lblTitle)
+        this.#title = new Label(0, 0, 0, 0, 'lblTitle', '', '')
+        this.#title.style.font.size = UI_THEME.base_font.size
+        this.#title.style.font.color = UI_THEME.second_text_color
+        this.add(this.#title)
     }
 
     setPlayer(data) {
         this.#id = data.id
-        this.lblTitle.text = data.username
+        this.#title.text = data.username
     }
 }
 
 class PlayerCollection extends Window {
-    items : PlayerItem[] = []
-    xcnt : int = 0
-    ycnt : int = 13
-    #parent: Window
-    private items_count  : int = 0
+    private items : PlayerItem[] = []
+    #parent: Window = null
+    private items_count : int = 0
+    private item_height : float = 0
+    private line_height : float = 0
+    private max_count : int = 0
 
     //
-    constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, slot_margin: float, parent: Window) {
+    constructor(x : int, y : int, w : int, h : int, id : string, parent: Window) {
 
         super(x, y, w, h, id)
 
         this.#parent = parent
-
-        this.xcnt   = xcnt
-        this.ycnt   = ycnt
-
-        this.max_height                 = 0
-        this.slots_count                = 0
+        this.item_height = 22 * this.zoom
+        this.line_height = 5 * this.zoom
+        this.max_count = Math.floor(this.h / (this.item_height + this.line_height))
         this.style.background.color     = '#ff000055'
         this.style.border.hidden        = true
 
@@ -52,14 +50,11 @@ class PlayerCollection extends Window {
         this.add(this.container)
 
         // Ширина / высота слота
-        this.cell_size = Math.ceil(this.container.w / this.xcnt) - slot_margin
-        this.slot_margin = slot_margin
-
         this.scrollbar = new Slider((this.w - 22 * this.zoom), 0, 22 * this.zoom, this.h, 'scroll')
         this.scrollbar.min = 0
         this.scrollbar.max = this.max_height - this.h
         this.scrollbar.onScroll = (value) => {
-            this.updateScroll(-value / this.cell_size)
+            this.updateScroll(-value)
         }
         this.add(this.scrollbar)
     }
@@ -77,19 +72,14 @@ class PlayerCollection extends Window {
     }
 
     updateScroll(val) {
-        const sz     = this.cell_size
-        const szm    = sz + this.slot_margin
-        this.scrollY = val * szm
-        this.scrollY = Math.min(this.scrollY, 0)
-        this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
-        this.scrollY = Math.round(this.scrollY / szm) * szm
-        this.container.y = this.scrollY
-        this.updateVisibleSlots()
+        console.log(val)
+        this.scrollY = val
+        this.updateVisibleItems()
     }
 
     updateVisibleItems() {
-        const start_index   = 0
-        const end_index     = 5
+        const start_index   = Math.round(-this.scrollY)
+        const end_index     = start_index + this.max_count
         for(let i = 0; i < this.items_count; i++) {
             const child = this.items[i]
             child.visible = i >= start_index && i < end_index
@@ -104,20 +94,19 @@ class PlayerCollection extends Window {
         let sy           = 0
 
         for(let i = 0; i < this.items_count; i++) {
-            
             let item = this.items[i]
             if(!item) {
-                item = this.items[i] = new PlayerItem(0, 0, 0, 0, 'lblItem' + (i), parent)
+                item = this.items[i] = new PlayerItem(0, 0, this.w - 22 * this.zoom, this.item_height, 'lblItem' + (i), parent)
+                item.style.background.color     = '#ff0ff055'
                 this.container.add(item)
             }
-
             item.y = sy   
-            
             item.setPlayer(all_items[i])
-            sy += 60
+            sy += (this.line_height + this.item_height)
         }
 
         this.updateVisibleItems()
+        this.scrollbar.max = this.items_count
 
 
         /*this.slots_count        = all_blocks.length + 1
@@ -173,19 +162,18 @@ export class WorldInfoWindow extends BlankWindow {
 
     constructor(player) {
 
-        super(0, 0, 352, 332, "frmWorldInfo", null, null)
+        super(0, 0, 352, 480, "frmWorldInfo", null, null)
         this.w *= this.zoom
         this.h *= this.zoom
         this.player = player
-        this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
-        this.setBackground('./media/gui/form-empty.png')
+        this.style.background.color = '#00ff0055'
 
         const margin = 17 * this.zoom
         const line_width = 14 * this.zoom
         const hud_atlas = Resources.atlas.get('hud')
 
         // Заголовок
-        const lblName = new Label(margin, 2 * line_width, 100 * this.zoom, 22 * this.zoom, 'lblName', null, 'World Name')
+        const lblName = new Label(margin, 2 * line_width, 0, 22 * this.zoom, 'lblName', null, 'World Name')
         lblName.style.font.size = 16
         lblName.style.font.weight = 'bold'
         this.add(lblName)
@@ -292,12 +280,10 @@ export class WorldInfoWindow extends BlankWindow {
 
     addCollection() {
         if(this.collection) {
-            console.error('error_create_collection_slots_already_created')
+            console.error('error_create_collection_players_already_created')
             return
         }
-        this.ycnt = 6 // количество по высоте
-        this.xcnt = 10 // количество в ряду
-        this.collection = new PlayerCollection(this.w + 40, 36 * this.zoom, this.w - 2 * UI_THEME.window_padding * this.zoom, this.h - 75 * this.zoom, 'wCollectionPlayers', this.xcnt, this.ycnt, UI_THEME.slot_margin * this.zoom, this)
+        this.collection = new PlayerCollection(this.w + 40, 36 * this.zoom, this.w - 2 * UI_THEME.window_padding * this.zoom, this.h - 75 * this.zoom, 'wCollectionPlayers', this)
         this.add(this.collection)
         return this.collection
     }
