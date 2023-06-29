@@ -1056,48 +1056,48 @@
         "y": 0.5
       }
     },
-    "sort": {
+    "check2": {
       "frame": {
         "x": 675,
         "y": 306,
-        "w": 43,
-        "h": 53
+        "w": 48,
+        "h": 48
       },
       "rotated": false,
       "trimmed": false,
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 43,
-        "h": 53
+        "w": 48,
+        "h": 48
       },
       "sourceSize": {
-        "w": 43,
-        "h": 53
+        "w": 48,
+        "h": 48
       },
       "pivot": {
         "x": 0.5,
         "y": 0.5
       }
     },
-    "close": {
+    "sort": {
       "frame": {
         "x": 629,
         "y": 309,
-        "w": 40,
-        "h": 40
+        "w": 43,
+        "h": 53
       },
       "rotated": false,
       "trimmed": false,
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 40,
-        "h": 40
+        "w": 43,
+        "h": 53
       },
       "sourceSize": {
-        "w": 40,
-        "h": 40
+        "w": 43,
+        "h": 53
       },
       "pivot": {
         "x": 0.5,
@@ -1146,6 +1146,30 @@
       "sourceSize": {
         "w": 140,
         "h": 140
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "close": {
+      "frame": {
+        "x": 723,
+        "y": 322,
+        "w": 40,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 40,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 40,
+        "h": 40
       },
       "pivot": {
         "x": 0.5,
@@ -1298,9 +1322,8 @@
     }
   },
   "meta": {
-    "app": "http://free-tex-packer.com",
     "version": "0.6.7",
-    "image": "texture.png",
+    "image": "atlas.png",
     "format": "RGBA8888",
     "size": {
       "w": 1850,

@@ -1,11 +1,176 @@
-import { Button, Label, Slider } from "../ui/wm.js";
+import { Button, Label, Slider, Window } from "../ui/wm.js";
 import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
 import { BlankWindow } from "./blank.js";
 import { Resources } from "../resources.js";
 
+class PlayerItem extends Window {
+    #data: any
+    #parent: Window
+    private title = null
+    #id = null
+
+    constructor(x : number, y : number, w : number, h : number, id : string, parent: Window) {
+        super(x, y, w, h, id, null, null)
+        this.#parent = parent
+        this.title = new Label(0, 0, 100, 50, 'lblTitle')
+        this.add(this.title)
+    }
+
+    setPlayer(data) {
+        this.#id = data.id
+        this.title.text = data.username
+    }
+}
+
+class PlayerCollection extends Window {
+    items : PlayerItem[] = []
+    xcnt : int = 0
+    ycnt : int = 13
+    #parent: Window
+    private items_count  : int = 0
+
+    //
+    constructor(x : int, y : int, w : int, h : int, id : string, xcnt : int, ycnt : int, slot_margin: float, parent: Window) {
+
+        super(x, y, w, h, id)
+
+        this.#parent = parent
+
+        this.xcnt   = xcnt
+        this.ycnt   = ycnt
+
+        this.max_height                 = 0
+        this.slots_count                = 0
+        this.style.background.color     = '#ff000055'
+        this.style.border.hidden        = true
+
+        this.container = new Window(0, 0, this.w - 22 * this.zoom, this.h, this.id + '_container')
+        this.add(this.container)
+
+        // Ширина / высота слота
+        this.cell_size = Math.ceil(this.container.w / this.xcnt) - slot_margin
+        this.slot_margin = slot_margin
+
+        this.scrollbar = new Slider((this.w - 22 * this.zoom), 0, 22 * this.zoom, this.h, 'scroll')
+        this.scrollbar.min = 0
+        this.scrollbar.max = this.max_height - this.h
+        this.scrollbar.onScroll = (value) => {
+            this.updateScroll(-value / this.cell_size)
+        }
+        this.add(this.scrollbar)
+    }
+
+    _wheel(e) {
+        const sz    = this.cell_size
+        const szm   = sz + this.slot_margin
+        this.scrollY += Math.sign(e.original_event.wheelDeltaY) * szm
+        this.scrollY = Math.min(this.scrollY, 0)
+        this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
+        this.scrollY = Math.round(this.scrollY / szm) * szm
+        this.container.y = this.scrollY
+        this.scrollbar.value = -this.scrollY
+        this.updateVisibleSlots()
+    }
+
+    updateScroll(val) {
+        const sz     = this.cell_size
+        const szm    = sz + this.slot_margin
+        this.scrollY = val * szm
+        this.scrollY = Math.min(this.scrollY, 0)
+        this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
+        this.scrollY = Math.round(this.scrollY / szm) * szm
+        this.container.y = this.scrollY
+        this.updateVisibleSlots()
+    }
+
+    updateVisibleItems() {
+        const start_index   = 0
+        const end_index     = 5
+        for(let i = 0; i < this.items_count; i++) {
+            const child = this.items[i]
+            child.visible = i >= start_index && i < end_index
+        }
+    }
+
+    // Init collection
+    initCollection(all_items) {
+        console.log(all_items)
+        this.items_count = all_items.length
+        const parent            = this.#parent
+        let sy                  = 0
+
+        for(let i = 0; i < this.items_count; i++) {
+            
+            let item = this.items[i]
+            if(!item) {
+                item = this.items[i] = new PlayerItem(0, 0, 100, 50, 'lblItem' + (i), parent)
+                this.container.add(item)
+            }
+
+            item.w = 100
+            item.h = 50
+            item.x = 0
+            item.y = sy   
+            
+            item.setPlayer(all_items[i])
+            sy += 60
+        }
+
+        this.updateVisibleItems()
+
+
+        /*this.slots_count        = all_blocks.length + 1
+        this.scrollY            = 0
+        this.container.y        = 0
+
+        let sx                  = 0
+        let sy                  = 0
+        let sz                  = this.cell_size
+        let szm                 = sz + this.slot_margin
+        let xcnt                = this.xcnt
+        const parent            = this.#parent
+
+        if (all_blocks.length < this.slots.length) {
+            for (let i = 0; i < this.slots.length; i++) {
+                this.container.removeChild(this.slots[i])
+                this.slots[i] = null
+            }
+        }
+
+        for(let i = 0; i < this.slots_count; i++) {
+
+            let lblSlot = this.slots[i]
+            if(!lblSlot) {
+                lblSlot = this.slots[i] = new PlayerItem(0, 0, sz, sz, 'lblFile' + (i), parent)
+                this.container.add(lblSlot)
+            }
+
+            lblSlot.w = sz
+            lblSlot.h = sz
+            lblSlot.x = sx + (i % xcnt) * szm
+            lblSlot.y = sy + Math.floor(i / xcnt) * szm
+
+            if(i != all_blocks.length) {
+                lblSlot.tooltip = Lang.click_for_set_image
+                lblSlot.setFile(all_blocks[i])
+            }
+            
+        }
+
+        this.max_height = Math.ceil((this.slots_count) / xcnt) * szm - (szm - sz)
+        this.container.h = this.max_height
+        this.scrollbar.max = this.max_height - this.h
+
+        this.updateVisibleSlots()
+        */
+    }
+}
+
 export class WorldInfoWindow extends BlankWindow {
+
+    private collection: PlayerCollection
 
     constructor(player) {
 
@@ -21,14 +186,16 @@ export class WorldInfoWindow extends BlankWindow {
         const hud_atlas = Resources.atlas.get('hud')
 
         // Заголовок
-        const lblName = new Label(margin, 2 * line_width, 100 * this.zoom, 20 * this.zoom, 'lblName', null, 'World Name')
+        const lblName = new Label(margin, 2 * line_width, 100 * this.zoom, 22 * this.zoom, 'lblName', null, 'World Name')
         lblName.style.font.size = 16
         lblName.style.font.weight = 'bold'
-        lblName.style.background.color = '#FF000055'
         this.add(lblName)
 
         const btnSwitchOfficial = new Label(this.w - margin - 17 * this.zoom, 2 * line_width, 17 * this.zoom, 17 * this.zoom, 'btnSwitchOfficial')
         btnSwitchOfficial.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
+        btnSwitchOfficial.style.border.color = UI_THEME.button.border.disabled_color
+        btnSwitchOfficial.style.border.style = 'fixed_single'
+        btnSwitchOfficial.style.border.hidden = false
         this.add(btnSwitchOfficial)
 
         // предпросмотр
@@ -39,7 +206,7 @@ export class WorldInfoWindow extends BlankWindow {
         //список
         let y = lbl_preview.y + lbl_preview.h + 2 * line_width
         for(const item of [
-            {id: 'lblDataCreated', title: Lang.data_created},
+            {id: 'lblDateCreated', title: Lang.date_created},
             {id: 'lblAge', title: Lang.age},
             {id: 'lblCreator', title: Lang.creator}
         ]) {
@@ -63,6 +230,9 @@ export class WorldInfoWindow extends BlankWindow {
         this.add(lbl_public)
 
         const btnSwitchPublic = new Label(this.w - margin - 17 * this.zoom, 28 * line_width, 17 * this.zoom, 17 * this.zoom, 'btnSwitchPublic')
+        btnSwitchPublic.style.border.color = UI_THEME.button.border.disabled_color
+        btnSwitchPublic.style.border.style = 'fixed_single'
+        btnSwitchPublic.style.border.hidden = false
         btnSwitchPublic.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
         btnSwitchPublic.onMouseDown = function() {
             player.world.server.Send({
@@ -88,7 +258,10 @@ export class WorldInfoWindow extends BlankWindow {
             }
         }
 
+        this.addCollection()
+
         //
+        const self = this
         player.world.server.AddCmdListener([ServerClient.CMD_WORLD_STATS], (cmd) => {
             console.log(cmd)
             const data = cmd.data
@@ -99,13 +272,15 @@ export class WorldInfoWindow extends BlankWindow {
 
             setValue('lblName', data.title)
             setValue('lblCreator', data.username)
-            setValue('lblDataCreated', this.timeToStr(data.time * 1000))
+            setValue('lblDateCreated', this.timeToStr(data.time * 1000))
             setValue('lblAge', data.age)
 
-            btnSwitchPublic.setIcon(data.public ? hud_atlas.getSpriteFromMap('check') : null)
+            btnSwitchPublic.setIcon(data.public ? hud_atlas.getSpriteFromMap('check2') : null)
             btnSwitchPublic.toggled = data.public
 
-            btnSwitchOfficial.setIcon(data.official ? hud_atlas.getSpriteFromMap('check') : null)
+            btnSwitchOfficial.setIcon(data.official ? hud_atlas.getSpriteFromMap('check2') : null)
+
+            self.collection.initCollection(data.players)
         })
 
     }
@@ -116,10 +291,25 @@ export class WorldInfoWindow extends BlankWindow {
         super.onShow(args)
     }
 
+    addCollection() {
+        if(this.collection) {
+            console.error('error_create_collection_slots_already_created')
+            return
+        }
+        this.ycnt = 6 // количество по высоте
+        this.xcnt = 10 // количество в ряду
+        this.collection = new PlayerCollection(this.w + 40, 36 * this.zoom, this.w - 2 * UI_THEME.window_padding * this.zoom, this.h - 75 * this.zoom, 'wCollectionPlayers', this.xcnt, this.ycnt, UI_THEME.slot_margin * this.zoom, this)
+        this.add(this.collection)
+        return this.collection
+    }
+
     timeToStr(time: number): string {
         const date = new Date(time)
         const month = date.getMonth() + 1
-        return date.getDate() + '.' + month + '.' + date.getFullYear() + ' ' + date.getHours() + ':' + date.getMinutes()
+        const day = date.getDate()
+        const hours = date.getHours()
+        const minutes = date.getMinutes()
+        return ('0' + day.toString()).substr(-2) + '.' + ('0' + month.toString()).substr(-2) + '.' + date.getFullYear() + ' ' + ('0' + hours.toString()).substr(-2) + ':' + ('0' + minutes.toString()).substr(-2)
     }
 
 }
