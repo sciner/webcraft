@@ -17,6 +17,7 @@ export class GameRule {
         fluidTickRate:      { default: number; min: number; max: number; type: string; };
         lavaSpeed:          { default: number; min: number; max: number; type: string; };
         ambientLight:       { default: number; min: number; max: number; type: string; };
+        public:          { default: boolean; type: string; };
     };
 
     constructor(world) {
@@ -26,6 +27,7 @@ export class GameRule {
             doWeatherCycle:     {default: true, type: 'boolean'},
             doMobSpawning:      {default: true, type: 'boolean'},
             pvp:                {default: true, type: 'boolean'},
+            public:         {default: false, type: 'boolean'},
             /** См. {@link getRandomTickSpeedValue} */
             randomTickSpeed:    {default: 3, type: 'float'},
             difficulty:         {default: 1, type: 'int'},

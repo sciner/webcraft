@@ -29,9 +29,6 @@ export class WorldInfoWindow extends BlankWindow {
 
         const btnSwitchOfficial = new Label(this.w - margin - 17 * this.zoom, 2 * line_width, 17 * this.zoom, 17 * this.zoom, 'btnSwitchOfficial')
         btnSwitchOfficial.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
-        btnSwitchOfficial.onMouseDown = function() {
-            
-        }
         this.add(btnSwitchOfficial)
 
         // предпросмотр
@@ -65,6 +62,18 @@ export class WorldInfoWindow extends BlankWindow {
         lbl_public.style.font.color = UI_THEME.base_font.color
         this.add(lbl_public)
 
+        const btnSwitchPublic = new Label(this.w - margin - 17 * this.zoom, 28 * line_width, 17 * this.zoom, 17 * this.zoom, 'btnSwitchPublic')
+        btnSwitchPublic.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
+        btnSwitchPublic.onMouseDown = function() {
+            player.world.server.Send({
+                name: ServerClient.CMD_WORLD_STATS, 
+                data: {
+                    public: btnSwitchPublic.toggled ? false : true
+                }
+            })
+        }
+        this.add(btnSwitchPublic)
+
         const lbl_public_description = new Label(margin, 30 * line_width, 0, 0, 'lbl_public_description', null, Lang.make_public_description)
         lbl_public_description.style.font.size = UI_THEME.base_font.size
         lbl_public_description.style.font.color = UI_THEME.second_text_color
@@ -83,10 +92,20 @@ export class WorldInfoWindow extends BlankWindow {
         player.world.server.AddCmdListener([ServerClient.CMD_WORLD_STATS], (cmd) => {
             console.log(cmd)
             const data = cmd.data
+            data.age = data.age.replace('h', Lang.short_hours)
+            data.age = data.age.replace('d', Lang.short_days)
+            data.age = data.age.replace('m', Lang.short_month)
+            data.age = data.age.replace('y', Lang.short_year)
+
             setValue('lblName', data.title)
             setValue('lblCreator', data.username)
-            setValue('lblDataCreated', data.time_formatted)
+            setValue('lblDataCreated', this.timeToStr(data.time * 1000))
             setValue('lblAge', data.age)
+
+            btnSwitchPublic.setIcon(data.public ? hud_atlas.getSpriteFromMap('check') : null)
+            btnSwitchPublic.toggled = data.public
+
+            btnSwitchOfficial.setIcon(data.official ? hud_atlas.getSpriteFromMap('check') : null)
         })
 
     }
@@ -95,6 +114,12 @@ export class WorldInfoWindow extends BlankWindow {
     onShow(args) {
         this.player.world.server.Send({name: ServerClient.CMD_WORLD_STATS})
         super.onShow(args)
+    }
+
+    timeToStr(time: number): string {
+        const date = new Date(time)
+        const month = date.getMonth() + 1
+        return date.getDate() + '.' + month + '.' + date.getFullYear() + ' ' + date.getHours() + ':' + date.getMinutes()
     }
 
 }
