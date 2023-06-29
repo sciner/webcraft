@@ -3,6 +3,7 @@ import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
 import { INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
 import { BlankWindow } from "./blank.js";
+import { Resources } from "../resources.js";
 
 export class WorldInfoWindow extends BlankWindow {
 
@@ -15,26 +16,35 @@ export class WorldInfoWindow extends BlankWindow {
         this.cell_size = INVENTORY_SLOT_SIZE * this.zoom
         this.setBackground('./media/gui/form-empty.png')
 
-        let margin = 17 * this.zoom
-
+        const margin = 17 * this.zoom
         const line_width = 14 * this.zoom
+        const hud_atlas = Resources.atlas.get('hud')
 
         // Заголовок
-        const lbl_title = new Label(margin, 2 * line_width, 30 * this.zoom, 30 * this.zoom, 'lbl_title','No image1', 'No image')
-        lbl_title.style.background.color = '#FF000055'
-        this.add(lbl_title)
+        const lblName = new Label(margin, 2 * line_width, 100 * this.zoom, 20 * this.zoom, 'lblName', null, 'World Name')
+        lblName.style.font.size = 16
+        lblName.style.font.weight = 'bold'
+        lblName.style.background.color = '#FF000055'
+        this.add(lblName)
+
+        const btnSwitchOfficial = new Label(this.w - margin - 17 * this.zoom, 2 * line_width, 17 * this.zoom, 17 * this.zoom, 'btnSwitchOfficial')
+        btnSwitchOfficial.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
+        btnSwitchOfficial.onMouseDown = function() {
+            
+        }
+        this.add(btnSwitchOfficial)
 
         // предпросмотр
-        const lbl_preview = new Label(margin, lbl_title.y + lbl_title.h + 2 * line_width, 167 * this.zoom, 96 * this.zoom, 'lbl_preview','No image1', 'No image')
+        const lbl_preview = new Label(margin, lblName.y + lblName.h + 2 * line_width, 167 * this.zoom, 96 * this.zoom, 'lbl_preview', null, 'No image')
         lbl_preview.style.background.color = '#FF000055'
         this.add(lbl_preview)
 
         //список
-        let y = lbl_preview.y + lbl_preview.h + line_width
+        let y = lbl_preview.y + lbl_preview.h + 2 * line_width
         for(const item of [
-            {id: 'label_data_created', title: Lang.data_created},
-            {id: 'label_age', title: Lang.age},
-            {id: 'label_creator', title: Lang.creator}
+            {id: 'lblDataCreated', title: Lang.data_created},
+            {id: 'lblAge', title: Lang.age},
+            {id: 'lblCreator', title: Lang.creator}
         ]) {
             const lbl_title = new Label(margin, y, 0, 0, item.id + '_title', item.title, item.title)
             const lbl = new Label(this.w - margin, y, 0, 0, item.id, item.title, item.title)
@@ -49,16 +59,16 @@ export class WorldInfoWindow extends BlankWindow {
             y += 2 * line_width
         }
 
-        this.lbl_public = new Label(margin, 28 * line_width, 0, 0, 'lbl_public', null, Lang.make_public)
-        this.lbl_public.style.font.size = UI_THEME.base_font.size
-        this.lbl_public.style.font.weight = 'bold'
-        this.lbl_public.style.font.color = UI_THEME.base_font.color
-        this.add(this.lbl_public)
+        const lbl_public = new Label(margin, 28 * line_width, 0, 0, 'lbl_public', null, Lang.make_public)
+        lbl_public.style.font.size = UI_THEME.base_font.size
+        lbl_public.style.font.weight = 'bold'
+        lbl_public.style.font.color = UI_THEME.base_font.color
+        this.add(lbl_public)
 
-        this.lbl_public_description = new Label(margin, 30 * line_width, 0, 0, 'lbl_public_description', null, Lang.make_public_description)
-        this.lbl_public_description.style.font.size = UI_THEME.base_font.size
-        this.lbl_public_description.style.font.color = UI_THEME.second_text_color
-        this.add(this.lbl_public_description)
+        const lbl_public_description = new Label(margin, 30 * line_width, 0, 0, 'lbl_public_description', null, Lang.make_public_description)
+        lbl_public_description.style.font.size = UI_THEME.base_font.size
+        lbl_public_description.style.font.color = UI_THEME.second_text_color
+        this.add(lbl_public_description)
 
         //
         const setValue = (id : string, value : string) => {
@@ -71,9 +81,12 @@ export class WorldInfoWindow extends BlankWindow {
 
         //
         player.world.server.AddCmdListener([ServerClient.CMD_WORLD_STATS], (cmd) => {
+            console.log(cmd)
             const data = cmd.data
-           // setValue('label_title', data.title)
-            //setValue('label_username', data.username)
+            setValue('lblName', data.title)
+            setValue('lblCreator', data.username)
+            setValue('lblDataCreated', data.time_formatted)
+            setValue('lblAge', data.age)
         })
 
     }

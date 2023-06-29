@@ -254,6 +254,10 @@
         "lost_file": {"en": "This image will be removed from all billboards", "ru": "Изображение будет удалено со всех билбордов", "fr": "Cette image sera supprimée de toutes les affiches publicitaires", "es": "Esta imagen será eliminada de todos los carteles publicitarios", "man": "此图像将从所有广告牌中删除"},
         "lost_file_2": {"en": "Default settings will be used instead", "ru": "Вернутся стандартныe настройки", "fr": "Les paramètres par défaut seront utilisés à la place", "es": "Se utilizarán los ajustes predeterminados en su lugar", "man": "将使用默认设置代替"},
         "upload_image": {"en": "Upload image...", "ru": "Загрузить изображение...", "fr": "Télécharger une image...", "es": "Subir imagen...", "man": "上传图片..."},
-        "click_for_set_image": {"en": "Click to set image", "ru": "Нажмите, чтобы установить изображение", "fr": "Cliquez pour définir l'image", "es": "Haga clic para establecer la imagen", "man": "点击设置图像"}
+        "click_for_set_image": {"en": "Click to set image", "ru": "Нажмите, чтобы установить изображение", "fr": "Cliquez pour définir l'image", "es": "Haga clic para establecer la imagen", "man": "点击设置图像"},
+        "data_created": {"en": "Data created", "ru": "Дата создания", "fr": "", "es": "", "man": ""},
+        "age": {"en": "Age", "ru": "Возраст", "fr": "", "es": "", "man": ""},
+        "creator": {"en": "Creator", "ru": "Создатель", "fr": "", "es": "", "man": ""},
+        "make_public": {"en": "Make world public", "ru": "Сделать мир публичным", "fr": "", "es": "", "man": ""}
     }
 }
