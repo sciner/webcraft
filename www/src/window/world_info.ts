@@ -8,19 +8,21 @@ import { Resources } from "../resources.js";
 class PlayerItem extends Window {
     #data: any
     #parent: Window
-    private title = null
+    private lblTitle = null
     #id = null
 
     constructor(x : number, y : number, w : number, h : number, id : string, parent: Window) {
         super(x, y, w, h, id, null, null)
         this.#parent = parent
-        this.title = new Label(0, 0, 100, 50, 'lblTitle')
-        this.add(this.title)
+        this.lblTitle = new Label(0, 0, 0, 0, 'lblTitle', '', '')
+        this.lblTitle.style.font.size = UI_THEME.base_font.size
+        this.lblTitle.style.font.color = UI_THEME.second_text_color
+        this.add(this.lblTitle)
     }
 
     setPlayer(data) {
         this.#id = data.id
-        this.title.text = data.username
+        this.lblTitle.text = data.username
     }
 }
 
@@ -96,22 +98,19 @@ class PlayerCollection extends Window {
 
     // Init collection
     initCollection(all_items) {
-        console.log(all_items)
+
         this.items_count = all_items.length
-        const parent            = this.#parent
-        let sy                  = 0
+        const parent     = this.#parent
+        let sy           = 0
 
         for(let i = 0; i < this.items_count; i++) {
             
             let item = this.items[i]
             if(!item) {
-                item = this.items[i] = new PlayerItem(0, 0, 100, 50, 'lblItem' + (i), parent)
+                item = this.items[i] = new PlayerItem(0, 0, 0, 0, 'lblItem' + (i), parent)
                 this.container.add(item)
             }
 
-            item.w = 100
-            item.h = 50
-            item.x = 0
             item.y = sy   
             
             item.setPlayer(all_items[i])
