@@ -1357,6 +1357,8 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         return [actions, pos];
     }
 
+    return [null, null];
+
 }
 
 //
@@ -1853,7 +1855,7 @@ function editBillboard(e, world, pos, player : ActionPlayerInfo, world_block, wo
         return false
     }
     if(!player.world.is_admin) {
-        return false
+        throw 'error_require_permission'
     }
     const url = world.getPlayerFile(player.session.user_id, e.extra_data.file, e.extra_data.demo)
     if (!url) {
