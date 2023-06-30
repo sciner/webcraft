@@ -128,7 +128,7 @@ export class WorldInfoWindow extends BlankWindow {
         const hud_atlas = Resources.atlas.get('hud')
 
         // разделитель
-        const lblSeparator = new Label( this.w / 2 - 1.5 * this.zoom, 3 * this.line_height, 3 * this.zoom, 360 * this.zoom, 'lblSep', '', '')
+        const lblSeparator = new Label( this.w / 2 - 1.5 * this.zoom, 4.5 * this.line_height, 3 * this.zoom, this.h - 8 * this.line_height, 'lblSep', '', '')
         lblSeparator.style.border.hidden = true
         lblSeparator.style.background.color = '#00000033'
         this.add(lblSeparator)
@@ -179,10 +179,11 @@ export class WorldInfoWindow extends BlankWindow {
             y += 2 * this.line_height
         }
 
-        const lbl_public = new Label(2 * this.line_height, 28 * this.line_height, 0, 0, 'lbl_public', null, Lang.make_public)
+        const lbl_public = new Label(2 * this.line_height, 28 * this.line_height, 0, 0, 'lbl_public', '', Lang.make_public)
         lbl_public.style.font.size = UI_THEME.base_font.size
         lbl_public.style.font.weight = 'bold'
         lbl_public.style.font.color = UI_THEME.base_font.color
+        lbl_public.visible = false
         this.add(lbl_public)
 
         const btnSwitchPublic = new Label(this.w / 2 - 2 * this.line_height - 17 * this.zoom, 28 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btnSwitchPublic')
@@ -198,12 +199,20 @@ export class WorldInfoWindow extends BlankWindow {
                 }
             })
         }
+        btnSwitchPublic.visible = false
         this.add(btnSwitchPublic)
 
-        const lbl_public_description = new Label(2 * this.line_height, 30 * this.line_height, 0, 0, 'lbl_public_description', null, Lang.make_public_description)
-        lbl_public_description.style.font.size = UI_THEME.base_font.size
+        const lbl_public_description = new Label(2 * this.line_height, 30 * this.line_height, 0, 0, 'lbl_public_description', '', Lang.make_public_description)
+        lbl_public_description.style.font.size = 10
         lbl_public_description.style.font.color = UI_THEME.second_text_color
+        lbl_public_description.visible = false
         this.add(lbl_public_description)
+
+        const lbl_public_description_2 = new Label(2 * this.line_height, 31 * this.line_height, 0, 0, 'lbl_public_description', '', Lang.make_public_description_2)
+        lbl_public_description_2.style.font.size = 10
+        lbl_public_description_2.style.font.color = UI_THEME.second_text_color
+        lbl_public_description_2.visible = false
+        this.add(lbl_public_description_2)
 
         //
         const setValue = (id : string, value : string) => {
@@ -221,26 +230,42 @@ export class WorldInfoWindow extends BlankWindow {
         player.world.server.AddCmdListener([ServerClient.CMD_WORLD_STATS], (cmd) => {
             console.log(cmd)
             const data = cmd.data
+            console.log('0')
             data.age = data.age.replace('h', Lang.short_hours)
             data.age = data.age.replace('d', Lang.short_days)
             data.age = data.age.replace('m', Lang.short_month)
             data.age = data.age.replace('y', Lang.short_year)
-
+            console.log('1')
             setValue('lblName', data.title)
             setValue('lblCreator', data.username)
             setValue('lblDateCreated', this.timeToStr(data.time * 1000))
             setValue('lblAge', data.age)
-
+            console.log('2')
             btnSwitchPublic.setIcon(data.public ? hud_atlas.getSpriteFromMap('check2') : null)
             btnSwitchPublic.toggled = data.public
-
+            console.log('3')
             btnSwitchOfficial.setIcon(data.official ? hud_atlas.getSpriteFromMap('check2') : null)
-
+            console.log('4')
             self.collection.initCollection(data.players)
-
+            console.log('5')
             if (data?.cover) {
                 lbl_preview.setBackground(`/worldcover/${data.guid}/screenshot/preview_${data.cover}`)
             }
+            console.log('6')
+            if (data?.is_admin) {
+                console.log('show')
+                lbl_public.visible = true
+                btnSwitchPublic.visible = true
+                lbl_public_description.visible = true
+                lbl_public_description_2.visible = true
+            } else {
+                console.log('hide')
+                lbl_public.visible = false
+                btnSwitchPublic.visible = false
+                lbl_public_description.visible = false
+                lbl_public_description_2.visible = false
+            }
+            console.log('7')
         })
 
     }

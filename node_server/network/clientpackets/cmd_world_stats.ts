@@ -1,3 +1,4 @@
+import { PLAYER_FLAG } from "@client/constant.js";
 import { ServerClient } from "@client/server_client.js";
 
 export default class packet_reader {
@@ -14,11 +15,13 @@ export default class packet_reader {
 
     static async read(player, packet) {
         const world   = player.world
+        let t = false
         if (packet?.data) {
-            world.rules.setValue('public', packet.data.public.toString())
+            t = packet.data.public
+            console.log(packet.data.public)
         }
         const info    = world.info
-        const creater = world.players.get(info.user_id)
+        const creater = info.user_id
         const age     = world.getTime()
         const players = []
         for (const pl of player.world.players.values()) {
@@ -29,13 +32,14 @@ export default class packet_reader {
             data: {
                 guid: info.guid,
                 title: info.title,
-                username: creater.session.username,
+                username: creater,
                 time: info.dt,
                 age: packet_reader.ageToDate(age.day, age.hours),
-                public: world.rules.getValue('public'),
+                public: t,
                 official: true,
                 players: players,
-                cover: info.cover
+                cover: info.cover,
+                is_admin: (player.session.flags & PLAYER_FLAG.SYSTEM_ADMIN) == PLAYER_FLAG.SYSTEM_ADMIN
             }
         }];
 
