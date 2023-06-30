@@ -2321,6 +2321,126 @@
                 "behavior": "wall",
                 "aabb_stylename": "wall"
             }
+        },
+        {
+            "id": 438,
+            "name": "BIRCH_HOLLOW_LOG",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "log",
+                "can_put_into_pot",
+                "no_drop_ao"
+            ],
+            "bb": {
+                "import_anyway": true,
+                "model": "hollow_log",
+                "behavior": "hollow_log",
+                "rotate": {"type": "cardinal_direction"},
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 439,
+            "name": "OAK_HOLLOW_LOG",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "log",
+                "can_put_into_pot",
+                "no_drop_ao"
+            ],
+            "bb": {
+                "extends": "BIRCH_HOLLOW_LOG"
+            }
+        },
+        {
+            "id": 440,
+            "name": "ACACIA_HOLLOW_LOG",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "log",
+                "can_put_into_pot",
+                "no_drop_ao"
+            ],
+            "bb": {
+                "extends": "BIRCH_HOLLOW_LOG"
+            }
+        },
+        {
+            "id": 441,
+            "name": "SPRUCE_HOLLOW_LOG",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "log",
+                "can_put_into_pot",
+                "no_drop_ao"
+            ],
+            "bb": {
+                "extends": "BIRCH_HOLLOW_LOG"
+            }
+        },
+        {
+            "id": 442,
+            "name": "DARK_OAK_HOLLOW_LOG",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "log",
+                "can_put_into_pot",
+                "no_drop_ao"
+            ],
+            "bb": {
+                "extends": "BIRCH_HOLLOW_LOG"
+            }
+        },
+        {
+            "id": 443,
+            "name": "JUNGLE_HOLLOW_LOG",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "can_rotate": true,
+            "transparent": true,
+            "material": {
+                "id": "wood"
+            },
+            "tags": [
+                "log",
+                "can_put_into_pot",
+                "no_drop_ao"
+            ],
+            "bb": {
+                "extends": "BIRCH_HOLLOW_LOG"
+            }
         }
     ]
 }

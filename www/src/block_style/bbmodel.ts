@@ -631,6 +631,18 @@ export default class style {
                 }
                 break
             }
+            case 'hollow_log': {
+                const hg = []
+                const ed = tblock.extra_data
+                if(ed) {
+                    if(!tblock.extra_data.moss) hg.push('moss')
+                    if(!tblock.extra_data.branch) hg.push('branch')
+                } else {
+                    hg.push('moss', 'branch')
+                }
+                model.hideGroups(hg)
+                break
+            }
         }
 
         return emmited_blocks
