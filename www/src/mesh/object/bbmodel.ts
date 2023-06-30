@@ -11,17 +11,16 @@ import type Mesh_Object_Block_Drop from './block_drop.js';
 import type { Renderer } from '../../render.js';
 import { Mesh_Object_Asteroid } from './asteroid.js';
 import { BLOCK, DBItemBlock } from '../../blocks.js';
-import { BBModel_Cube } from '../../bbmodel/cube.js';
 import { default as default_style } from '../../block_style/default.js';
-import type { WebGLMaterial } from '../../renders/webgl/WebGLMaterial.js';
+import type { TerrainMaterial } from '../../renders/terrain_material.js';
 import type {World} from "../../world";
 import type {MeshBatcher} from "../mesh_batcher.js";
 
 export class MeshObjectCustomReplace {
     buffer: GeometryTerrain
-    gl_material: WebGLMaterial
+    gl_material: TerrainMaterial
 
-    constructor(buffer : GeometryTerrain, gl_material : WebGLMaterial) {
+    constructor(buffer : GeometryTerrain, gl_material : TerrainMaterial) {
         this.buffer = buffer
         this.gl_material = gl_material
     }

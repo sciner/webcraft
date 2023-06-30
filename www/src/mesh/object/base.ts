@@ -2,7 +2,7 @@ import { Vector } from '../../helpers.js';
 import { GeometryTerrain } from '../../geometry_terrain.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import type {MeshBatcher} from "../mesh_batcher.js";
-import type {BaseMaterial} from "../../renders/TerrainMaterial.js";
+import type {TerrainMaterial} from "../../renders/terrain_material.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -19,7 +19,7 @@ export class Mesh_Object_Base {
     life:                   float = 1.0
     flags:                  int = 0
     matrix:                 imat4 = mat4.create()
-    gl_material?:           BaseMaterial
+    gl_material?:           TerrainMaterial
     vertices:               float[] = []
     buffer?:                GeometryTerrain
     lightTex?:              any
