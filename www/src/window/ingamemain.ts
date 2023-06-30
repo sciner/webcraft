@@ -53,7 +53,7 @@ export class InGameMain extends BlankWindow {
             {title: Lang.creative_inventory, form: new CreativeInventoryWindow(inventory),  button: null, fix_pos: new Vector(0, 0, 0)},
             {title: Lang.quests,             form: new QuestWindow(player),                 button: null, fix_pos: new Vector(0, 0, 0)},
             {title: Lang.btn_statistics,     form: new StatsWindow(player),                 button: null, fix_pos: new Vector(0, 0, 0)},
-            {title: Lang.btn_statistics,     form: new WorldInfoWindow(player),                 button: null, fix_pos: new Vector(0, 0, 0)}
+            {title: Lang.world,              form: new WorldInfoWindow(player),                 button: null, fix_pos: new Vector(0, 0, 0)}
         ]
 
         const that = this

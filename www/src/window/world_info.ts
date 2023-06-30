@@ -127,26 +127,36 @@ export class WorldInfoWindow extends BlankWindow {
         this.line_height = 14 * this.zoom
         const hud_atlas = Resources.atlas.get('hud')
 
+        // разделитель
+        const lblSeparator = new Label( this.w / 2 - 1.5 * this.zoom, 3 * this.line_height, 3 * this.zoom, 360 * this.zoom, 'lblSep', '', '')
+        lblSeparator.style.border.hidden = true
+        lblSeparator.style.background.color = '#00000033'
+        this.add(lblSeparator)
+
         // Заголовок
-        const lblName = new Label(UI_THEME.window_padding * this.zoom, 2 * this.line_height, 0, 22 * this.zoom, 'lblName', '', 'World Name')
+        const lblName = new Label(2 * this.line_height, 2 * this.line_height, 0, 22 * this.zoom, 'lblName', '', 'World Name')
         lblName.style.font.size = 16
         lblName.style.font.weight = 'bold'
         this.add(lblName)
 
-        const btnSwitchOfficial = new Label(this.w / 2 - UI_THEME.window_padding * this.zoom - 17 * this.zoom, 2 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btnSwitchOfficial')
+        const lblOfficial = new Label(286 * this.zoom, 2 * this.line_height, 0, 22 * this.zoom, 'lblOfficial', '', 'Official')
+        lblOfficial.style.font.size = 16
+        this.add(lblOfficial)
+
+        const btnSwitchOfficial = new Label(this.w / 2 - 2 * this.line_height - 17 * this.zoom, 2 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btnSwitchOfficial')
         btnSwitchOfficial.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
         btnSwitchOfficial.style.border.color = UI_THEME.button.border.disabled_color
         btnSwitchOfficial.style.border.style = 'fixed_single'
         btnSwitchOfficial.style.border.hidden = false
         this.add(btnSwitchOfficial)
 
-        const lblPlayers = new Label(this.w / 2 + UI_THEME.window_padding * this.zoom, 2 * this.line_height, 0, 22 * this.zoom, 'lblPlayers', '', 'Players')
+        const lblPlayers = new Label(this.w / 2 + 2 * this.line_height, 2 * this.line_height, 0, 22 * this.zoom, 'lblPlayers', '', 'Players')
         lblPlayers.style.font.size = 16
         lblPlayers.style.font.weight = 'bold'
         this.add(lblPlayers)
 
         // предпросмотр
-        const lbl_preview = new Label(UI_THEME.window_padding * this.zoom, lblName.y + lblName.h + 2 * this.line_height, 167 * this.zoom, 96 * this.zoom, 'lbl_preview', null, 'No image')
+        const lbl_preview = new Label(2 * this.line_height, lblName.y + lblName.h + 1.5 * this.line_height, 167 * this.zoom, 96 * this.zoom, 'lbl_preview', '', '')
         this.add(lbl_preview)
 
         //список
@@ -156,8 +166,8 @@ export class WorldInfoWindow extends BlankWindow {
             {id: 'lblAge', title: Lang.age},
             {id: 'lblCreator', title: Lang.creator}
         ]) {
-            const lbl_title = new Label(UI_THEME.window_padding * this.zoom, y, 0, 0, item.id + '_title', item.title, item.title)
-            const lbl = new Label(this.w / 2 - UI_THEME.window_padding * this.zoom, y, 0, 0, item.id, item.title, item.title)
+            const lbl_title = new Label(2 * this.line_height, y, 0, 0, item.id + '_title', item.title, item.title)
+            const lbl = new Label(this.w / 2 - 2 * this.line_height, y, 0, 0, item.id, item.title, item.title)
             lbl_title.style.font.size = UI_THEME.base_font.size
             lbl_title.style.font.weight = 'bold'
             lbl_title.style.font.color = UI_THEME.base_font.color
@@ -169,13 +179,13 @@ export class WorldInfoWindow extends BlankWindow {
             y += 2 * this.line_height
         }
 
-        const lbl_public = new Label(UI_THEME.window_padding * this.zoom, 28 * this.line_height, 0, 0, 'lbl_public', null, Lang.make_public)
+        const lbl_public = new Label(2 * this.line_height, 28 * this.line_height, 0, 0, 'lbl_public', null, Lang.make_public)
         lbl_public.style.font.size = UI_THEME.base_font.size
         lbl_public.style.font.weight = 'bold'
         lbl_public.style.font.color = UI_THEME.base_font.color
         this.add(lbl_public)
 
-        const btnSwitchPublic = new Label(this.w / 2 - UI_THEME.window_padding * this.zoom - 17 * this.zoom, 28 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btnSwitchPublic')
+        const btnSwitchPublic = new Label(this.w / 2 - 2 * this.line_height - 17 * this.zoom, 28 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btnSwitchPublic')
         btnSwitchPublic.style.border.color = UI_THEME.button.border.disabled_color
         btnSwitchPublic.style.border.style = 'fixed_single'
         btnSwitchPublic.style.border.hidden = false
@@ -190,7 +200,7 @@ export class WorldInfoWindow extends BlankWindow {
         }
         this.add(btnSwitchPublic)
 
-        const lbl_public_description = new Label(UI_THEME.window_padding * this.zoom, 30 * this.line_height, 0, 0, 'lbl_public_description', null, Lang.make_public_description)
+        const lbl_public_description = new Label(2 * this.line_height, 30 * this.line_height, 0, 0, 'lbl_public_description', null, Lang.make_public_description)
         lbl_public_description.style.font.size = UI_THEME.base_font.size
         lbl_public_description.style.font.color = UI_THEME.second_text_color
         this.add(lbl_public_description)
@@ -246,7 +256,7 @@ export class WorldInfoWindow extends BlankWindow {
             console.error('error_create_collection_players_already_created')
             return
         }
-        this.collection = new PlayerCollection(this.w / 2 + UI_THEME.window_padding * this.zoom, 5 * this.line_height, this.w / 2 - 2 * UI_THEME.window_padding * this.zoom, this.h - 8 * this.line_height, 'wCollectionPlayers', this)
+        this.collection = new PlayerCollection(this.w / 2 + 2 * this.line_height, 4.5 * this.line_height, this.w / 2 - 4 * this.line_height, this.h - 8 * this.line_height, 'wCollectionPlayers', this)
         this.add(this.collection)
         return this.collection
     }
