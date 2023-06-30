@@ -17,7 +17,7 @@ export class PixiGuiPlayer extends Container {
                 if(!player.itsMe()) {
                     continue;
                 }
-                player.drawInGui(qbRender, qbRender.lastDeltaForMeGui);
+                player.drawInGui(qbRender.meshBatcher, qbRender.lastDeltaForMeGui);
             }
         });
     }

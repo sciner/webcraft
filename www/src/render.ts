@@ -1465,9 +1465,10 @@ export class Renderer {
         guiCam.use(gu, true);
         gu.update();
 
-        this.defaultShader.bind(true);
-
+        this.meshBatcher.start(this);
         lambda(this);
+        this.meshBatcher.drawList(MESH_RENDER_LIST.OPAQUE);
+        this.meshBatcher.drawList(MESH_RENDER_LIST.TRANSPARENT);
 
         this.resetAfter();
 
