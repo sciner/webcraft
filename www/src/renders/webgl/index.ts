@@ -1,6 +1,5 @@
 //@ts-check
 import {BaseRenderer, BaseCubeGeometry, CubeMesh} from "../BaseRenderer.js";
-import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
 import {Resources} from "../../resources.js";
 import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
@@ -116,11 +115,6 @@ export default class WebGLRenderer extends BaseRenderer {
         super.resize(w, h);
         this.resolution = [w, h];
     }
-
-    createMaterial(options) {
-        return new WebGLMaterial(this, options);
-    }
-
     createProgram({vertex, fragment, tfVaryings}, preprocessArgs = {}) {
         const program = new VAUX.Program({
             vertex: this.preprocessor.applyBlocks(vertex, preprocessArgs),
