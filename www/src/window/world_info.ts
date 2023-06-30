@@ -1,7 +1,7 @@
 import { Button, Label, Slider, Window } from "../ui/wm.js";
 import { ServerClient } from "../server_client.js";
 import { Lang } from "../lang.js";
-import { INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
+import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
 import { BlankWindow } from "./blank.js";
 import { Resources } from "../resources.js";
 
@@ -15,9 +15,11 @@ class PlayerItem extends Window {
         super(x, y, w, h, id, null, null)
         this.#parent = parent
         this.#title = new Label(0, 0, 0, 0, 'lblTitle', '', '')
-        this.#title.style.font.size = UI_THEME.base_font.size
+        this.#title.style.font.size = 16
         this.#title.style.font.color = UI_THEME.second_text_color
         this.add(this.#title)
+        this.btnTest = new Button(w - 50 * this.zoom, 0, 50 * this.zoom, h - 2 * this.zoom, 'btnTest', 'button')
+        this.add(this.btnTest)
     }
 
     setPlayer(data) {
@@ -39,20 +41,19 @@ class PlayerCollection extends Window {
 
         super(x, y, w, h, id)
 
-        this.#parent = parent
+        this.#parent     = parent
         this.item_height = 22 * this.zoom
         this.line_height = 5 * this.zoom
-        this.max_count = Math.floor(this.h / (this.item_height + this.line_height))
-        this.style.background.color     = '#ff000055'
-        this.style.border.hidden        = true
+        this.mul_scroll  = 10
+        this.max_count   = Math.floor(this.h / (this.item_height + this.line_height))
+        this.style.border.hidden    = true
 
         this.container = new Window(0, 0, this.w - 22 * this.zoom, this.h, this.id + '_container')
+        this.container.style.background.color = '#FF000055'
         this.add(this.container)
 
         // Ширина / высота слота
         this.scrollbar = new Slider((this.w - 22 * this.zoom), 0, 22 * this.zoom, this.h, 'scroll')
-        this.scrollbar.min = 0
-        this.scrollbar.max = this.max_height - this.h
         this.scrollbar.onScroll = (value) => {
             this.updateScroll(-value)
         }
@@ -60,20 +61,17 @@ class PlayerCollection extends Window {
     }
 
     _wheel(e) {
-        const sz    = this.cell_size
-        const szm   = sz + this.slot_margin
-        this.scrollY += Math.sign(e.original_event.wheelDeltaY) * szm
+        this.scrollY += Math.sign(e.original_event.wheelDeltaY)
         this.scrollY = Math.min(this.scrollY, 0)
-        this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.h, 0) * -1)
-        this.scrollY = Math.round(this.scrollY / szm) * szm
-        this.container.y = this.scrollY
-        this.scrollbar.value = -this.scrollY
-        this.updateVisibleSlots()
+        this.scrollY = Math.max(this.scrollY, -Math.max(this.items_count - this.max_count, 0))
+        this.container.y = this.scrollY * (this.line_height + this.item_height)
+        this.scrollbar.value = -this.scrollY * this.mul_scroll
+        this.updateVisibleItems()
     }
 
     updateScroll(val) {
-        console.log(val)
-        this.scrollY = val
+        this.scrollY = Math.floor(val / this.mul_scroll)
+        this.container.y = this.scrollY * (this.line_height + this.item_height)
         this.updateVisibleItems()
     }
 
@@ -88,117 +86,79 @@ class PlayerCollection extends Window {
 
     // Init collection
     initCollection(all_items) {
-
         this.items_count = all_items.length
-        const parent     = this.#parent
-        let sy           = 0
-
+        if (this.items_count < this.items.length) {
+            for (let i = 0; i < this.items.length; i++) {
+                this.container.removeChild(this.items[i])
+                this.items[i] = null
+            }
+        }
+        let sy = this.line_height
         for(let i = 0; i < this.items_count; i++) {
             let item = this.items[i]
             if(!item) {
-                item = this.items[i] = new PlayerItem(0, 0, this.w - 22 * this.zoom, this.item_height, 'lblItem' + (i), parent)
-                item.style.background.color     = '#ff0ff055'
+                item = this.items[i] = new PlayerItem(0, 0, this.w - 30 * this.zoom, this.item_height, 'lblItem' + (i), this.#parent)
                 this.container.add(item)
             }
-            item.y = sy   
+            item.y = sy
             item.setPlayer(all_items[i])
             sy += (this.line_height + this.item_height)
         }
-
+        this.scrollY = 0
+        this.container.h = this.h
+        this.scrollbar.max = this.mul_scroll * (this.items_count - this.max_count)
         this.updateVisibleItems()
-        this.scrollbar.max = this.items_count
-
-
-        /*this.slots_count        = all_blocks.length + 1
-        this.scrollY            = 0
-        this.container.y        = 0
-
-        let sx                  = 0
-        let sy                  = 0
-        let sz                  = this.cell_size
-        let szm                 = sz + this.slot_margin
-        let xcnt                = this.xcnt
-        const parent            = this.#parent
-
-        if (all_blocks.length < this.slots.length) {
-            for (let i = 0; i < this.slots.length; i++) {
-                this.container.removeChild(this.slots[i])
-                this.slots[i] = null
-            }
-        }
-
-        for(let i = 0; i < this.slots_count; i++) {
-
-            let lblSlot = this.slots[i]
-            if(!lblSlot) {
-                lblSlot = this.slots[i] = new PlayerItem(0, 0, sz, sz, 'lblFile' + (i), parent)
-                this.container.add(lblSlot)
-            }
-
-            lblSlot.w = sz
-            lblSlot.h = sz
-            lblSlot.x = sx + (i % xcnt) * szm
-            lblSlot.y = sy + Math.floor(i / xcnt) * szm
-
-            if(i != all_blocks.length) {
-                lblSlot.tooltip = Lang.click_for_set_image
-                lblSlot.setFile(all_blocks[i])
-            }
-            
-        }
-
-        this.max_height = Math.ceil((this.slots_count) / xcnt) * szm - (szm - sz)
-        this.container.h = this.max_height
-        this.scrollbar.max = this.max_height - this.h
-
-        this.updateVisibleSlots()
-        */
     }
 }
 
 export class WorldInfoWindow extends BlankWindow {
 
     private collection: PlayerCollection
+    private player: any
 
     constructor(player) {
 
-        super(0, 0, 352, 480, "frmWorldInfo", null, null)
+        super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, "frmWorldInfo", '', '')
+        this.h -= 44 // шапка
         this.w *= this.zoom
         this.h *= this.zoom
-        this.player = player
-        this.style.background.color = '#00ff0055'
 
-        const margin = 17 * this.zoom
-        const line_width = 14 * this.zoom
+        this.player = player
+        this.line_height = 14 * this.zoom
         const hud_atlas = Resources.atlas.get('hud')
 
         // Заголовок
-        const lblName = new Label(margin, 2 * line_width, 0, 22 * this.zoom, 'lblName', null, 'World Name')
+        const lblName = new Label(UI_THEME.window_padding * this.zoom, 2 * this.line_height, 0, 22 * this.zoom, 'lblName', '', 'World Name')
         lblName.style.font.size = 16
         lblName.style.font.weight = 'bold'
         this.add(lblName)
 
-        const btnSwitchOfficial = new Label(this.w - margin - 17 * this.zoom, 2 * line_width, 17 * this.zoom, 17 * this.zoom, 'btnSwitchOfficial')
+        const btnSwitchOfficial = new Label(this.w / 2 - UI_THEME.window_padding * this.zoom - 17 * this.zoom, 2 * this.line_height, 17 * this.zoom, 17 * this.zoom, 'btnSwitchOfficial')
         btnSwitchOfficial.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
         btnSwitchOfficial.style.border.color = UI_THEME.button.border.disabled_color
         btnSwitchOfficial.style.border.style = 'fixed_single'
         btnSwitchOfficial.style.border.hidden = false
         this.add(btnSwitchOfficial)
 
+        const lblPlayers = new Label(this.w / 2 + UI_THEME.window_padding * this.zoom, 2 * this.line_height, 0, 22 * this.zoom, 'lblPlayers', '', 'Players')
+        lblPlayers.style.font.size = 16
+        lblPlayers.style.font.weight = 'bold'
+        this.add(lblPlayers)
+
         // предпросмотр
-        const lbl_preview = new Label(margin, lblName.y + lblName.h + 2 * line_width, 167 * this.zoom, 96 * this.zoom, 'lbl_preview', null, 'No image')
+        const lbl_preview = new Label(UI_THEME.window_padding * this.zoom, lblName.y + lblName.h + 2 * this.line_height, 167 * this.zoom, 96 * this.zoom, 'lbl_preview', null, 'No image')
         lbl_preview.style.background.color = '#FF000055'
         this.add(lbl_preview)
 
         //список
-        let y = lbl_preview.y + lbl_preview.h + 2 * line_width
+        let y = lbl_preview.y + lbl_preview.h + 2 * this.line_height
         for(const item of [
             {id: 'lblDateCreated', title: Lang.date_created},
             {id: 'lblAge', title: Lang.age},
             {id: 'lblCreator', title: Lang.creator}
         ]) {
-            const lbl_title = new Label(margin, y, 0, 0, item.id + '_title', item.title, item.title)
-            const lbl = new Label(this.w - margin, y, 0, 0, item.id, item.title, item.title)
+            const lbl_title = new Label(UI_THEME.window_padding * this.zoom, y, 0, 0, item.id + '_title', item.title, item.title)
+            const lbl = new Label(this.w / 2 - UI_THEME.window_padding * this.zoom, y, 0, 0, item.id, item.title, item.title)
             lbl_title.style.font.size = UI_THEME.base_font.size
             lbl_title.style.font.weight = 'bold'
             lbl_title.style.font.color = UI_THEME.base_font.color
@@ -207,16 +167,16 @@ export class WorldInfoWindow extends BlankWindow {
             lbl.style.font.color = UI_THEME.second_text_color
             this.add(lbl_title)
             this.add(lbl)
-            y += 2 * line_width
+            y += 2 * this.line_height
         }
 
-        const lbl_public = new Label(margin, 28 * line_width, 0, 0, 'lbl_public', null, Lang.make_public)
+        const lbl_public = new Label(UI_THEME.window_padding * this.zoom, 28 * this.line_height, 0, 0, 'lbl_public', null, Lang.make_public)
         lbl_public.style.font.size = UI_THEME.base_font.size
         lbl_public.style.font.weight = 'bold'
         lbl_public.style.font.color = UI_THEME.base_font.color
         this.add(lbl_public)
 
-        const btnSwitchPublic = new Label(this.w - margin - 17 * this.zoom, 28 * line_width, 17 * this.zoom, 17 * this.zoom, 'btnSwitchPublic')
+        const btnSwitchPublic = new Label(this.w / 2 - UI_THEME.window_padding * this.zoom - 17 * this.zoom, 28 * this.line_height, 17 * this.zoom, 17 * this.zoom, 'btnSwitchPublic')
         btnSwitchPublic.style.border.color = UI_THEME.button.border.disabled_color
         btnSwitchPublic.style.border.style = 'fixed_single'
         btnSwitchPublic.style.border.hidden = false
@@ -231,7 +191,7 @@ export class WorldInfoWindow extends BlankWindow {
         }
         this.add(btnSwitchPublic)
 
-        const lbl_public_description = new Label(margin, 30 * line_width, 0, 0, 'lbl_public_description', null, Lang.make_public_description)
+        const lbl_public_description = new Label(UI_THEME.window_padding * this.zoom, 30 * this.line_height, 0, 0, 'lbl_public_description', null, Lang.make_public_description)
         lbl_public_description.style.font.size = UI_THEME.base_font.size
         lbl_public_description.style.font.color = UI_THEME.second_text_color
         this.add(lbl_public_description)
@@ -283,7 +243,7 @@ export class WorldInfoWindow extends BlankWindow {
             console.error('error_create_collection_players_already_created')
             return
         }
-        this.collection = new PlayerCollection(this.w + 40, 36 * this.zoom, this.w - 2 * UI_THEME.window_padding * this.zoom, this.h - 75 * this.zoom, 'wCollectionPlayers', this)
+        this.collection = new PlayerCollection(this.w / 2 + UI_THEME.window_padding * this.zoom, 5 * this.line_height, this.w / 2 - 2 * UI_THEME.window_padding * this.zoom, this.h - 8 * this.line_height, 'wCollectionPlayers', this)
         this.add(this.collection)
         return this.collection
     }

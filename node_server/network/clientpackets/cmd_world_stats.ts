@@ -21,22 +21,21 @@ export default class packet_reader {
         const creater = world.players.get(info.user_id)
         const age     = world.getTime()
         const players = []
-        //for (const pl of player.world.players.values()) {
-        //    players.push({id: pl.session.user_id, username: pl.session.username})
-        //}
-        for (let i = 0; i < 50; i++) {
-            players.push({id: i, username: 'player+'+i})
+        for (const pl of player.world.players.values()) {
+            players.push({id: pl.session.user_id, username: pl.session.username})
         }
         const packets = [{
             name: ServerClient.CMD_WORLD_STATS,
             data: {
-                "title": info.title,
-                "username": creater.session.username,
-                "time": info.dt,
-                "age": packet_reader.ageToDate(age.day, age.hours),
-                "public": world.rules.getValue('public'),
-                "official": true,
-                players: players
+                guid: info.guid,
+                title: info.title,
+                username: creater.session.username,
+                time: info.dt,
+                age: packet_reader.ageToDate(age.day, age.hours),
+                public: world.rules.getValue('public'),
+                official: true,
+                players: players,
+                cover: info.cover
             }
         }];
 
