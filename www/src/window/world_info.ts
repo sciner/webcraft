@@ -49,7 +49,7 @@ class PlayerCollection extends Window {
         this.style.border.hidden    = true
 
         this.container = new Window(0, 0, this.w - 22 * this.zoom, this.h, this.id + '_container')
-        this.container.style.background.color = '#FF000055'
+        //this.container.style.background.color = '#FF000055'
         this.add(this.container)
 
         // Ширина / высота слота
@@ -133,7 +133,7 @@ export class WorldInfoWindow extends BlankWindow {
         lblName.style.font.weight = 'bold'
         this.add(lblName)
 
-        const btnSwitchOfficial = new Label(this.w / 2 - UI_THEME.window_padding * this.zoom - 17 * this.zoom, 2 * this.line_height, 17 * this.zoom, 17 * this.zoom, 'btnSwitchOfficial')
+        const btnSwitchOfficial = new Label(this.w / 2 - UI_THEME.window_padding * this.zoom - 17 * this.zoom, 2 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btnSwitchOfficial')
         btnSwitchOfficial.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
         btnSwitchOfficial.style.border.color = UI_THEME.button.border.disabled_color
         btnSwitchOfficial.style.border.style = 'fixed_single'
@@ -147,7 +147,6 @@ export class WorldInfoWindow extends BlankWindow {
 
         // предпросмотр
         const lbl_preview = new Label(UI_THEME.window_padding * this.zoom, lblName.y + lblName.h + 2 * this.line_height, 167 * this.zoom, 96 * this.zoom, 'lbl_preview', null, 'No image')
-        lbl_preview.style.background.color = '#FF000055'
         this.add(lbl_preview)
 
         //список
@@ -176,7 +175,7 @@ export class WorldInfoWindow extends BlankWindow {
         lbl_public.style.font.color = UI_THEME.base_font.color
         this.add(lbl_public)
 
-        const btnSwitchPublic = new Label(this.w / 2 - UI_THEME.window_padding * this.zoom - 17 * this.zoom, 28 * this.line_height, 17 * this.zoom, 17 * this.zoom, 'btnSwitchPublic')
+        const btnSwitchPublic = new Label(this.w / 2 - UI_THEME.window_padding * this.zoom - 17 * this.zoom, 28 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btnSwitchPublic')
         btnSwitchPublic.style.border.color = UI_THEME.button.border.disabled_color
         btnSwitchPublic.style.border.style = 'fixed_single'
         btnSwitchPublic.style.border.hidden = false
@@ -228,6 +227,10 @@ export class WorldInfoWindow extends BlankWindow {
             btnSwitchOfficial.setIcon(data.official ? hud_atlas.getSpriteFromMap('check2') : null)
 
             self.collection.initCollection(data.players)
+
+            if (data?.cover) {
+                lbl_preview.setBackground(`/worldcover/${data.guid}/screenshot/preview_${data.cover}`)
+            }
         })
 
     }
