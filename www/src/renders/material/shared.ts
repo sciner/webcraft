@@ -1,4 +1,4 @@
-import { MaterialGroup } from "./material/material_group.js";
+import { MaterialGroup } from "./material_group.js";
 
 export let MATERIAL_GROUPS = {
     regular: new MaterialGroup({ cullFace: true, opaque: true}),
@@ -13,8 +13,8 @@ export let MATERIAL_GROUPS = {
     fluid_doubleface_transparent: new MaterialGroup({cullFace: false, opaque: false, decalOffset: -4}),
 }
 
-export const GROUPS_TRANSPARENT = [];
 export const GROUPS_NO_TRANSPARENT = []
+export const GROUPS_TRANSPARENT = []
 
 function initGroups()
 {
@@ -25,6 +25,7 @@ function initGroups()
         } else {
             GROUPS_TRANSPARENT.push(key);
         }
+        MATERIAL_GROUPS[key].setName(key);
     }
 }
 

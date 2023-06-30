@@ -1,6 +1,6 @@
 import * as VAUX from "vauxcel";
 import {Color} from "../helpers/color.js";
-import {State, UniformGroup} from "vauxcel";
+import {BLEND_MODES, State, UniformGroup} from "vauxcel";
 import {TerrainTextureUniforms} from "./common.js";
 import type {BaseRenderer} from "./BaseRenderer.js";
 import type {BaseTerrainShader} from "./BaseShader.js";
@@ -13,6 +13,7 @@ export interface ITerrainMaterialOptions {
     texture_n?: TerrainBaseTexture;
     tintColor?: Color;
     group?: MaterialGroup | IMaterialGroupOptions;
+    blendMode?: BLEND_MODES;
 }
 
 export const defaultTerrainMaterial = {
@@ -29,6 +30,7 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
     texture: TerrainBaseTexture = undefined;
     texture_n: TerrainBaseTexture;
     _tintColor = new Color(0, 0, 0, 0);
+    state = new State();
 
     context: BaseRenderer;
     options: ITerrainMaterialOptions;
@@ -43,6 +45,13 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
         this.options = options;
         this.shader = options.shader;
 
+        if (options.group instanceof MaterialGroup && options.group.shared) {
+            this.group = options.group;
+        } else {
+            this.group = new MaterialGroup(options.group);
+        }
+        this.group.applyToState(this.state);
+
         const terr = {...defaultTerrainMaterial};
         this.terrainUniforms = terr;
         this.terrainUniformGroup = new UniformGroup(terr, false);
@@ -50,16 +59,8 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
         this.texture_n = options.texture_n || null;
         this.texture = options.texture || null;
         this.tintColor = options.tintColor || new Color(0, 0, 0, 0);
+        this.blendMode = options.blendMode || BLEND_MODES.NORMAL_NPM;
 
-        if (options.group) {
-            if (options.group instanceof MaterialGroup && options.group.shared) {
-                this.group = options.group;
-            } else {
-                this.group = new MaterialGroup(options.group);
-            }
-        } else {
-            this.group = new MaterialGroup();
-        }
 
         this.initPixiShader();
     }
@@ -67,7 +68,7 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
     beforeBind()
     {
         const {terrainUniforms} = this;
-        this.group.state.depthMask = this.group.opaque || !(this.shader as any).fluidStatic;
+        this.state.depthMask = this.group.opaque || !(this.shader as any).fluidStatic;
         terrainUniforms.u_opaqueThreshold = this.opaque ? 0.5 : 0.0;
 
         const tex = this.texture || (this.shader as any).texture;
@@ -87,6 +88,14 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
     {
         this._tintColor.copyFrom(val);
         this.terrainUniforms.u_tintColor = this._tintColor.toArray();
+    }
+
+    get blendMode() {
+        return this.state.blendMode;
+    }
+
+    set blendMode(val: BLEND_MODES) {
+        this.state.blendMode = val;
     }
 
     get tintColor()
@@ -111,7 +120,7 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
 
         this.beforeBind();
         pixiRender.shader.bind(this.pixiShader);
-        pixiRender.state.set(this.group.state);
+        pixiRender.state.set(this.state);
         const tex = this.texture || this.shader.texture;
         const texN = this.texture_n || this.shader.texture_n;
         if (!tex.castToBaseTexture) {
@@ -125,7 +134,8 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
 
     getSubMat(texture = null) {
         // nothing
-        return this.context.createMaterial({texture: texture || this.texture, shader: this.shader, group: this.group});
+        return this.context.createMaterial({texture: texture || this.texture, shader: this.shader,
+            group: this.group, blendMode: this.blendMode});
     }
 
     /**

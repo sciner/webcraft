@@ -41,7 +41,7 @@ import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
 import {BufferBaseTexture} from "./renders/BufferBaseTexture.js";
 import {GameCamera, DEFAULT_FOV_NORMAL} from "./game_camera.js";
 import {MESH_RENDER_LIST, MeshBatcher} from "./mesh/mesh_batcher.js";
-import {MATERIAL_GROUPS} from "./renders/shared.js";
+import {MATERIAL_GROUPS} from "./renders/material/shared.js";
 
 const {mat3, mat4, quat, vec3} = glMatrix;
 
@@ -1251,9 +1251,11 @@ export class Renderer {
         // Material (shadow)
         if(!this.material_shadow) {
             const mat = this.renderBackend.createMaterial({
-                cullFace: false,
-                opaque: false,
-                decalOffset: 3,
+                group: {
+                    cullFace: false,
+                    opaque: false,
+                    decalOffset: 3,
+                },
                 blendMode: BLEND_MODES.MULTIPLY,
                 shader: this.defaultShader,
             });
