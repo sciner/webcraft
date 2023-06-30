@@ -13,6 +13,7 @@ import type {TMobAnimations, TMobProps} from "./mob_manager.js";
 import type { Mesh_Object_Base } from "./mesh/object/base.js";
 import type {ClientDriving} from "./control/driving.js";
 import { CD_ROT } from "./core/CubeSym.js";
+import type {MeshBatcher} from "./mesh/mesh_batcher.js";
 
 const MAX_CHESTPLATE_COUNT = 6
 const MAX_LEG_COUNT = 10
@@ -124,13 +125,12 @@ export class MobModel extends NetworkPhysicObject {
         this.renderLast = (this.type === MOB_TYPE.BOAT) // рисовать лодку после всех для спец. реима воды
 
         // load mesh
-        const render = Qubatch.render as Renderer
         const model = Resources._bbmodels.get(this.skin.model_name)
         if(!model) {
             console.error(`error_model_not_found|${this.skin.model_name}`, props)
             debugger
         }
-        this._mesh = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
+        this._mesh = new Mesh_Object_BBModel(this.world, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true, false)
         if(this.skin.texture_name) {
             this._mesh.modifiers.selectTextureFromPalette('', this.skin.texture_name)
         }
@@ -177,10 +177,10 @@ export class MobModel extends NetworkPhysicObject {
         this.#health = val
     }
 
-    isRenderable(render: Renderer) : boolean {
+    isRenderable(meshBatcher: MeshBatcher) : boolean {
         return (
              !this.currentChunk ||
-             (this.currentChunk.cullID === render.cullID)
+             (this.currentChunk.cullID === meshBatcher.render.cullID)
          )
     }
 
@@ -188,22 +188,22 @@ export class MobModel extends NetworkPhysicObject {
         return this.#health > 0
     }
 
-    computeLocalPosAndLight(render : Renderer, delta : float) {
-
-        const newChunk = ChunkManager.instance?.getChunk(this.chunk_addr);
-
-        this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend)
-
+    computeLocalPosAndLight(delta : float) {
+        const newChunk = this.world.chunkManager.getChunk(this.chunk_addr);
         const mesh = this._mesh
         if(mesh) {
             // mesh.gl_material.changeLighTex(this.lightTex)
             // mesh.gl_material.lightTex = this.lightTex
             if (this.#timer_demage > performance.now()) {
-                mesh.gl_material.tintColor = new Color(1, 0, 0, .3)
+                mesh.enableTint(new Color(1, 0, 0, .3));
             } else {
                 // Negative alpha is specially processed in the shader
                 // It is used to set the opacity for the material
-                mesh.gl_material.tintColor = this.opacity ? new Color(0, 0, 0, -this.opacity) : color_trnsparent
+                if (this.opacity < 1) {
+                    mesh.enableTint(new Color(0, 0, 0, -this.opacity));
+                } else {
+                    mesh.disableTint();
+                }
             }
 
         }
@@ -248,9 +248,9 @@ export class MobModel extends NetworkPhysicObject {
 
     }
 
-    update(render? : Renderer, camPos? : Vector, delta? : float) {
+    update(_meshBatcher?: MeshBatcher, camPos? : Vector, delta? : float) {
         super.update()
-        this.computeLocalPosAndLight(render, delta)
+        this.computeLocalPosAndLight(delta)
     }
 
     isDetonationStarted() : boolean {
@@ -260,12 +260,12 @@ export class MobModel extends NetworkPhysicObject {
     /**
      * Draw mob model
      */
-    draw(render : Renderer, camPos : Vector, delta : float, draw_debug_grid : boolean = false) : boolean {
+    draw(meshBatcher: MeshBatcher, camPos : Vector, delta : float, draw_debug_grid : boolean = false) : boolean {
         if(!this.isAlive) {
             return false
         }
 
-        this.update(render, camPos, delta);
+        this.update(meshBatcher, camPos, delta);
 
         // TODO: need to migrate to bbmodels
         // // ignore_roots
@@ -319,12 +319,12 @@ export class MobModel extends NetworkPhysicObject {
 
         // Draw in fire
         if (this.fire || this.extra_data?.in_fire) {
-            this.drawInFire(render, delta);
+            this.drawInFire(meshBatcher, delta);
         }
 
         // Draw AABB wireframe
         if(this.aabb && draw_debug_grid) {
-            this.aabb.draw(render, this.pos, delta, true /*this.raycasted*/ );
+            this.aabb.draw(meshBatcher.render, this.pos, delta, true /*this.raycasted*/ );
         }
 
         if(mesh) {
@@ -333,11 +333,7 @@ export class MobModel extends NetworkPhysicObject {
                 debugger
             }
             mesh.apos.copyFrom(this.pos)
-            mesh.drawBuffered(render, delta, mx)
-            if(mesh.gl_material.tintColor) {
-                mesh.gl_material.tintColor.set(0, 0, 0, 0)
-                mesh.gl_material.tintColor = mesh.gl_material.tintColor
-            }
+            mesh.drawBuffered(meshBatcher, delta, mx)
         }
 
         return true
@@ -445,22 +441,22 @@ export class MobModel extends NetworkPhysicObject {
         Qubatch.player.updateArmor()
     }
 
-    drawInGui(render : Renderer, delta : float) {
-        this.update(render, new Vector(), delta);
+    drawInGui(meshBatcher: MeshBatcher, delta : float) {
+        this.update(meshBatcher, new Vector(), delta);
         const mesh = this._mesh;
         if (mesh) {
             this.doAnims();
             mesh.apos.copyFrom(Vector.ZERO);
             mesh.rotation[2] = (this.sleep ? 0 : 15) / 180 * -Math.PI
-            mesh.drawBuffered(render, delta)
+            mesh.drawBuffered(meshBatcher, delta)
         }
     }
 
-    drawInFire(render : Renderer, delta : float) {
+    drawInFire(meshBatcher: MeshBatcher, delta : float) {
         if(this._fire_mesh) {
-            this._fire_mesh.yaw = Math.PI - Helpers.angleTo(this.pos, render.camPos);
+            this._fire_mesh.yaw = Math.PI - Helpers.angleTo(this.pos, meshBatcher.render.camPos);
             this._fire_mesh.apos.copyFrom(this.pos);
-            this._fire_mesh.draw(render, delta);
+            this._fire_mesh.draw(meshBatcher, delta);
         } else {
             this._fire_mesh = new Mesh_Object_MobFire(this, this.world)
         }

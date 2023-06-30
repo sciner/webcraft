@@ -3,7 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
-import {PLAYER_DIAMETER, DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE, MIN_STEP_PLAY_SOUND, MIN_HEIGHT_PLAY_SOUND, PLAYER_BURNING_TIME, PLAYER_FLAG} from "./constant.js";
+import {DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE, MIN_STEP_PLAY_SOUND, MIN_HEIGHT_PLAY_SOUND, PLAYER_BURNING_TIME, PLAYER_FLAG, PLAYER_PHYSICS_HALF_WIDTH} from "./constant.js";
 import {ClientPlayerControlManager, PlayerControlManager} from "./control/player_control_manager.js";
 import {PlayerControl, PlayerControls} from "./control/player_control.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -118,6 +118,10 @@ type PlayerStateDynamicPart = {
     attack?     : false | TAnimState
 }
 
+export type PlayerStateWorld = {
+    is_admin: boolean
+}
+
 /** Fields that are saved together into DB in user.state field. */
 export type PlayerState = PlayerStateDynamicPart & {
     pos_spawn           : Vector
@@ -125,7 +129,8 @@ export type PlayerState = PlayerStateDynamicPart & {
     chunk_render_dist   : int
     game_mode ?         : string
     stats               : PlayerStats
-    effects             : Effects[]
+    effects             : Effects[],
+    world               : PlayerStateWorld
 }
 
 export type PlayerStateUpdate = PlayerStateDynamicPart & {
@@ -284,7 +289,7 @@ export class Player implements IPlayer {
     #timer_burn:                number = 0
     #timer_attack:              number = 0
     #distance:                  number = 0
-    #old_distance:              number = 0 
+    #old_distance:              number = 0
     #old_y:                     number = 0
     mechanism_assembler?:       MechanismAssembler
     pos1pos2:                   AABB
@@ -465,6 +470,9 @@ export class Player implements IPlayer {
             this.effects.effects = cmd.data.effects;
             this.inventory.hud.refresh();
         });
+        this.world.server.AddCmdListener([ServerClient.CMD_PLAYER_UPDATE_STATE], (cmd) => {
+            this.state.world = cmd.data.world
+        });
         // pickAt
         this.pickAt = new PickAt(this.world, this.render, async (e : IPickatEvent, times : float, number : int) => {
             return this.onPickAtTarget(e, times, number)
@@ -543,7 +551,7 @@ export class Player implements IPlayer {
         //    this.render.destroyBlock({id: 202}, pos, false);
         //}, 10);
 
-        this.arm = new PlayerArm(this, this.render)
+        this.arm = new PlayerArm(this)
 
         return true;
     }
@@ -867,12 +875,13 @@ export class Player implements IPlayer {
 
     private getActionPlayerInfo(): ActionPlayerInfo {
         return {
-            radius:     PLAYER_DIAMETER, // .radius is used as a diameter
-            height:     this.height,
-            pos:        this.lerpPos,
-            rotate:     this.rotateDegree.clone(),
-            game_mode:  this.game_mode,
-            is_admin:   this.checkIsAdmin(),
+            radius:         PLAYER_PHYSICS_HALF_WIDTH, // .radius is used as a diameter
+            height:         this.height,
+            pos:            this.lerpPos,
+            rotate:         this.rotateDegree.clone(),
+            game_mode:      this.game_mode,
+            is_admin:       this.checkIsAdmin(),
+            world:          this.state.world,
             session: {
                 user_id: this.session.user_id
             }
@@ -885,6 +894,10 @@ export class Player implements IPlayer {
 
     checkFlag(flag : PLAYER_FLAG) : boolean {
         return (this.session.flags & flag) == flag
+    }
+
+    isWorldAdmin() : boolean {
+        return this.state.world.is_admin
     }
 
     // Ограничение частоты выполнения данного действия
@@ -1045,7 +1058,7 @@ export class Player implements IPlayer {
             } else if(this.onGroundO){
                 this.#old_y = this.pos.y
             }
-            
+
             if(this.in_water && !this.in_water_o) {
                 this.triggerEvent('legs_enter_to_water');
             }
@@ -1101,7 +1114,7 @@ export class Player implements IPlayer {
             }
             if ( this.in_water || (this.headBlock && (this.headBlock.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) || this.getEffectLevel(Effect.FIRE_RESISTANCE)) {
                 this.#timer_burn = 0
-            } 
+            }
             // если в воде, то проверим еще высоту воды
             if (this.headBlock.fluid > 0) {
                 const fluidLevel = this.headBlock.getFluidLevel(this.lerpPos.x, this.lerpPos.z);
@@ -1486,7 +1499,7 @@ export class Player implements IPlayer {
     * Метод устанавливает проигрывание анимации
     */
     setAnimation(animation_name: string, speed: float = 1, time?: float) {
-        
+
         if(typeof time === 'undefined') {
             const model = this.getModel()
             if(model) {

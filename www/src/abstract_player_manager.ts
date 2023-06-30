@@ -1,4 +1,4 @@
-import { PLAYER_RADIUS } from "./constant.js";
+import { PLAYER_PHYSICS_HALF_WIDTH } from "./constant.js";
 import { AABB } from "./core/AABB.js";
 import type { Vector } from "./helpers.js";
 
@@ -17,7 +17,7 @@ export class AbstractPlayerManager<WorldT extends IWorld, PlayerT extends IPlaye
         for(const player of this.list.values()) {
             // on the client, isAlive doesn't work for player model
             if (player.sharedProps.isAlive) {
-                aabb.setBottomHeightRadius((player.sharedProps.pos as Vector).offset(0, -0.1, 0), player.height, PLAYER_RADIUS)
+                aabb.setBottomHeightRadius((player.sharedProps.pos as Vector).offset(0, -0.1, 0), player.height, PLAYER_PHYSICS_HALF_WIDTH)
                 if (aabb.containsVec(vec)) {
                     yield player
                 }

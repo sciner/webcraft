@@ -97,7 +97,7 @@ export class WorldActionQueue {
                             queue.push(msg)
                         }
                     } catch(e) {
-                        world.packet_reader.onError(msg.player, msg.reader, e)
+                        world.packet_reader.onError(msg.player, msg.reader, e.message ?? e)
                         // если эта команда породила дочерние действия - не добавлять их (высокий шанс что они некорректны)
                         childActions.length = 0
                         continue // не бросать исключение, продолжать выполнять очередь

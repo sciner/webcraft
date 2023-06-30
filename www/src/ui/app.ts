@@ -160,7 +160,7 @@ export class UIApp {
     // Send screenshot
     async Screenshot(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = [];
-        await this.api.call(this, '/api/Game/Screenshot', form, (resp) => {
+        await this.api.call(this, '/api/Game/UploadScreenshot', form, (resp) => {
             result = resp;
             if(callback) {
                 callback(result);
@@ -181,7 +181,7 @@ export class UIApp {
     // Send image to billboard
     async Billboard(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
         let result = [];
-        await this.api.call(this, '/api/Game/Billboard', form, (resp) => {
+        await this.api.call(this, '/api/Game/UploadBillboardImage', form, (resp) => {
             result = resp;
             if(callback) {
                 callback(result);
@@ -276,6 +276,17 @@ export class UIApp {
             result = resp;
         });
         return result;
+    }
+
+    async EnterToWorld(form, callback : API_Client_Callback, callback_error? : API_Client_Callback, callback_progress? : API_Client_Callback, callback_final? : API_Client_Callback) {
+        let result = [];
+        await this.api.call(this, '/api/Game/EnterWorld', form, (resp) => {
+            result = resp
+            if(callback) {
+                callback(result)
+            }
+        }, callback_error, callback_progress, callback_final)
+        return result
     }
 
     //

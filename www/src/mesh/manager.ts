@@ -3,8 +3,8 @@ import { Helpers, makeChunkEffectID, Vector } from "../helpers.js";
 import type { Renderer } from "../render.js";
 import type { World } from "../world.js";
 import { Mesh_Effect_Manager } from "./effect/manager.js";
-import type { Mesh_Object_Base } from "./object/base.js";
 import { Mesh_Object_BBModel } from "./object/bbmodel.js";
+import type {MeshBatcher} from "./mesh_batcher.js";
 
 // MeshManager
 export class MeshManager {
@@ -81,17 +81,17 @@ export class MeshManager {
         return true;
     }
 
-    draw(render : Renderer, delta : float, player_pos : Vector) {
+    draw(meshBatcher: MeshBatcher, delta : float, player_pos : Vector) {
         this.effects.tick(delta, player_pos);
         for(let [key, mesh] of this.list.entries()) {
             if(mesh.isAlive) {
                 if(mesh instanceof Mesh_Object_BBModel) {
-                    mesh.drawBuffered(render, delta)
+                    mesh.drawBuffered(meshBatcher, delta)
                 } else {
-                    mesh.draw(render, delta)
+                    mesh.draw(meshBatcher, delta)
                 }
             } else {
-                this.remove(key, render)
+                this.remove(key, Qubatch.render)
             }
         }
     }

@@ -6,7 +6,7 @@ import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { MAX_DIST_FOR_PICKUP } from '../../constant.js';
 import type { Player } from '../../player.js';
 import type { World } from '../../world.js';
-import type { Renderer } from '../../render.js';
+import type {MeshBatcher} from "../mesh_batcher.js";
 
 const MAX_FLY_TIME              = 200; // ms
 const MAX_FLY_SPEED             = 12; // m/s
@@ -183,7 +183,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
     }
 
     // Draw
-    draw(render : Renderer, delta : float, draw_debug_grid : boolean = false) {
+    draw(meshBatcher: MeshBatcher, delta : float, draw_debug_grid : boolean = false) {
 
         if(this.now_draw || this.isDead()) {
             return false
@@ -247,18 +247,18 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
         mat4.multiply(_matrix_rot, _matrix_rot, matrix)
 
         // Draw mesh group
-        this.drawBuffer(render, this.pos, _matrix_rot)
+        this.drawBuffer(meshBatcher, this.pos, _matrix_rot)
 
         // Draw AABB wireframe
         if(this.aabb && draw_debug_grid) {
-            this.aabb.draw(render, this.pos, delta, true /*this.raycasted*/ );
+            this.aabb.draw(meshBatcher.render, this.pos, delta, true /*this.raycasted*/ );
         }
 
     }
 
     // Draw directly without any pre-computation
-    drawBuffer(render : Renderer, pos : Vector, mx : imat4) {
-        this.mesh_group.draw(render, pos, mx)
+    drawBuffer(meshBatcher: MeshBatcher, pos : Vector, mx : imat4) {
+        this.mesh_group.draw(meshBatcher, pos, mx)
     }
 
     /**
@@ -266,7 +266,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
      * Any matrix updates should be applied manually
      * Allow prepend matrix to modelMatrix
      */
-    drawDirectly(render : Renderer, prePendMatrix : imat4 = null) {
+    drawDirectly(meshBatcher: MeshBatcher, prePendMatrix : imat4 = null) {
         if (this.isDead()){
             return false;
         }
@@ -285,7 +285,7 @@ export default class Mesh_Object_Block_Drop extends NetworkPhysicObject {
             mx = matrix
         }
 
-        this.mesh_group.draw(render, this.pos, mx)
+        this.mesh_group.draw(meshBatcher, this.pos, mx)
 
         // TODO: Включить, чтобы рисовалась рука BBMODEL
         // Qubatch.player.arm.draw(render, this.pos, mx, null)

@@ -7,7 +7,7 @@ import { PlayerEvent } from "./player_event.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
 import { ALLOW_NEGATIVE_Y, MAX_RENDER_DIST_IN_BLOCKS } from "@client/chunk_const.js";
-import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_STATUS, DEFAULT_RENDER_DISTANCE, PLAYER_SKIN_TYPES } from "@client/constant.js";
+import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, PLAYER_HEIGHT, PLAYER_STATUS, DEFAULT_RENDER_DISTANCE, PLAYER_SKIN_TYPES, PLAYER_PHYSICS_HALF_WIDTH } from "@client/constant.js";
 import { WorldPortal, WorldPortalWait } from "@client/portal.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { ServerPlayerEffects } from "./player/effects.js";
@@ -335,7 +335,7 @@ export class ServerPlayer extends Player {
         }
     }
 
-    sendError(message) {
+    sendError(message : string) {
         const packets = [{
             name: ServerClient.CMD_ERROR,
             data: {
@@ -568,12 +568,12 @@ export class ServerPlayer extends Player {
      */
     get aabb() : AABB {
         this._aabb.set(
-            this.state.pos.x - PLAYER_WIDTH / 2,
+            this.state.pos.x - PLAYER_PHYSICS_HALF_WIDTH,
             this.state.pos.y,
-            this.state.pos.z - PLAYER_WIDTH / 2,
-            this.state.pos.x + PLAYER_WIDTH / 2,
+            this.state.pos.z - PLAYER_PHYSICS_HALF_WIDTH,
+            this.state.pos.x + PLAYER_PHYSICS_HALF_WIDTH,
             this.state.pos.y + PLAYER_HEIGHT,
-            this.state.pos.z + PLAYER_WIDTH / 2
+            this.state.pos.z + PLAYER_PHYSICS_HALF_WIDTH
         )
         return this._aabb
     }
@@ -1170,6 +1170,15 @@ export class ServerPlayer extends Player {
         if (this.timer_anim <= performance.now()) {
             this.state.anim = false
         }
+    }
+
+    sendState() {
+        this.sendPackets([
+            {
+                name: ServerClient.CMD_PLAYER_UPDATE_STATE,
+                data: this.state
+            }
+        ])
     }
 
 }

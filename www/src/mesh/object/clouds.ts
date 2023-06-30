@@ -150,9 +150,8 @@ export default class Mesh_Object_Clouds {
     }
 
     /** @return блок облака, в котором находится камера */
-    isCameraInCloud(render: Renderer): boolean {
-        const {camPos} = render
-        const cloudsCoord = this.getCloudsCoord(render)
+    isCameraInCloud(camPos: Vector): boolean {
+        const cloudsCoord = this.getCloudsCoord(camPos)
         if (cloudsCoord) {
             for(let dx = -CLOUD_CAMERA_MARGIN; dx <= CLOUD_CAMERA_MARGIN; dx += 2 * CLOUD_CAMERA_MARGIN) {
                 const x = (camPos.x - cloudsCoord.x + dx) / CLOUDS_TEX_SCALE.x | 0
@@ -171,8 +170,7 @@ export default class Mesh_Object_Clouds {
     }
 
     /** @return координаты угла одного повторяющегося "чанка" облаков, содержащего (x, z) камеры */
-    private getCloudsCoord(render: Renderer): Vector | null {
-        const cam_pos = render.camPos
+    private getCloudsCoord(cam_pos: Vector): Vector | null {
         if (cam_pos.y < 0) {
             return null
         }
@@ -191,7 +189,7 @@ export default class Mesh_Object_Clouds {
 
     // Draw
     draw(render: Renderer, delta) {
-        const cloudsCoord = this.getCloudsCoord(render)
+        const cloudsCoord = this.getCloudsCoord(render.camPos)
         if (cloudsCoord == null) {
             return
         }
@@ -234,7 +232,7 @@ export default class Mesh_Object_Clouds {
 
     }
 
-    destroy(render) {
+    destroy() {
         this.geom.destroy();
     }
 

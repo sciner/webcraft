@@ -194,7 +194,6 @@ export class InHandOverlay {
         const {
             player, globalUniforms, lightUniforms, renderBackend
         } = render;
-        const { pixiRender } = renderBackend;
 
         this.player = player;
 
@@ -296,7 +295,7 @@ export class InHandOverlay {
 
             this.postModelMatrix(modelMatrix);
 
-            inHandItemMesh.drawDirectly(render);
+            inHandItemMesh.drawDirectly(render.renderBackend);
 
         }
         renderBackend.endPass(inhandPass);

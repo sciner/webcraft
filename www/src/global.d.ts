@@ -561,3 +561,13 @@ declare type IAddMeshArgs = {
     item_block?:        any
     matrix?:            imat4
 }
+
+declare type IEnterWorld = {
+    options: any,
+    world_guid: string
+    location: {
+        protocol: string,
+        hostname: string,
+        port?: string,
+    }
+}

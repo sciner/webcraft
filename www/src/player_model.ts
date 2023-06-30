@@ -1,5 +1,5 @@
 import { BLOCK } from "./blocks.js";
-import { HAND_ANIMATION_SPEED, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_ZOOM } from "./constant.js";
+import { HAND_ANIMATION_SPEED, NOT_SPAWNABLE_BUT_INHAND_BLOCKS, PLAYER_HEIGHT, PLAYER_PHYSICS_HALF_WIDTH, PLAYER_ZOOM } from "./constant.js";
 import { IndexedColor, QUAD_FLAGS, Vector} from './helpers.js';
 import { MobModel } from "./mob_model.js";
 import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
@@ -11,6 +11,7 @@ import type { NetworkPhysicObjectState } from "./network_physic_object.js";
 import type { World } from "./world.js";
 import type { TMobProps } from "./mob_manager.js";
 import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
+import type {MeshBatcher} from "./mesh/mesh_batcher.js";
 
 const { quat, mat4 } = glMatrix
 const SWING_DURATION = 6
@@ -78,8 +79,8 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             ...props
         }, world)
 
+        this.width              = PLAYER_PHYSICS_HALF_WIDTH * 2
         this.height             = PLAYER_HEIGHT
-        this.width              = PLAYER_WIDTH
         this.scale              = 0.9 * PLAYER_ZOOM
         this.activeSlotsData    = props.hands
         this.head               = null
@@ -231,14 +232,14 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
     }
 
-    update(render : Renderer, camPos : Vector, delta : float) {
-        super.update(render, camPos, delta)
+    update(meshBatcher: MeshBatcher, camPos : Vector, delta : float) {
+        super.update(meshBatcher, camPos, delta)
 
         this.updateArmSwingProgress(delta)
 
         const nametag = this.nametag
 
-        if(!this.isRenderable(render)) {
+        if(!this.isRenderable(meshBatcher)) {
             return
         }
 
@@ -389,7 +390,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
     }
 
-    draw(render : Renderer, camPos : Vector, delta : float, draw_debug_grid : boolean = false) : boolean {
+    draw(meshBatcher: MeshBatcher, camPos : Vector, delta : float, draw_debug_grid : boolean = false) : boolean {
         if(this.isAlive == false) {
             return false
         }
@@ -399,7 +400,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
         // speed = Helpers.calcSpeed(this.prev_pos, this.pos, delta / 1000);
         this.prev_pos.copyFrom(this.pos);
-        super.draw(render, camPos, delta, draw_debug_grid)
+        super.draw(meshBatcher, camPos, delta, draw_debug_grid)
         return true
     }
 
