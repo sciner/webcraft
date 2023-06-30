@@ -739,7 +739,7 @@
         },
         {
             "id": 563,
-            "name": "GOLD_SHOVEL",
+            "name": "GOLDEN_SHOVEL",
             "sound": "madcraft:block.shovel",
             "transparent": true,
             "max_in_stack": 1,
@@ -930,7 +930,7 @@
             "item": {"name": "instrument", "instrument_id": "axe"},
             "diagonal": true,
             "material": {
-                "id": "wood"
+                "id": "copper"
             },
             "texture": {
                 "side": "item/wooden_axe.png"
@@ -976,7 +976,7 @@
         },
         {
             "id": 558,
-            "name": "GOLD_AXE",
+            "name": "GOLDEN_AXE",
             "style": "extruder",
             "sound": "madcraft:axe",
             "transparent": true,

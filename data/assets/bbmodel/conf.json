@@ -1521,7 +1521,7 @@
         },
         {
             "id": 563,
-            "name": "GOLD_SHOVEL",
+            "name": "GOLDEN_SHOVEL",
             "bb": {
                 "model": "tool/shovel",
                 "select_texture": [
@@ -1621,7 +1621,7 @@
         },
         {
             "id": 558,
-            "name": "GOLD_AXE",
+            "name": "GOLDEN_AXE",
             "bb": {
                 "model": "tool/axe",
                 "select_texture": [
