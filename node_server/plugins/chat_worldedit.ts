@@ -1215,7 +1215,7 @@ export default class WorldEdit {
                     username,
                     state: SchematicState.LOADING,
                     orig_file_name: args[2],
-                    read_air: !!(args[3] ?? true),
+                    read_air: !!args[3],
                     rotate: 0,
                     fileCookie: {}
                 }
