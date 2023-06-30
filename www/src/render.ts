@@ -41,6 +41,7 @@ import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
 import {BufferBaseTexture} from "./renders/BufferBaseTexture.js";
 import {GameCamera, DEFAULT_FOV_NORMAL} from "./game_camera.js";
 import {MESH_RENDER_LIST, MeshBatcher} from "./mesh/mesh_batcher.js";
+import {MATERIAL_GROUPS} from "./renders/shared.js";
 
 const {mat3, mat4, quat, vec3} = glMatrix;
 
@@ -205,25 +206,19 @@ export class Renderer {
 
         // Make materials for all shaders
         for(let rp of BLOCK.resource_pack_manager.list.values()) {
-            rp.shader.materials = {
-                regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader}),
-                creative_regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader}),
-                doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader: rp.shader}),
-                decal1: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader, decalOffset: 1}),
-                decal2: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader, decalOffset: 2}),
-                transparent: renderBackend.createMaterial({ cullFace: true, opaque: false, shader: rp.shader}),
-                doubleface_transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader: rp.shader}),
-                label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader: rp.shader}),
-            }
-            if (rp.fluidShader) {
-                rp.fluidShader.materials = {
-                    doubleface: renderBackend.createMaterial({cullFace: false, opaque: true, decalOffset: -2, shader: rp.fluidShader}),
-                    doubleface_transparent: renderBackend.createMaterial({
-                        cullFace: false,
-                        opaque: false,
-                        decalOffset: -4,
-                        shader: rp.fluidShader,
-                    }),
+            rp.shader.materials = {};
+            if (rp.fluidShader) rp.fluidShader.materials = {};
+            for (let key in MATERIAL_GROUPS)
+            {
+                if (key.startsWith('fluid')) {
+                    if (rp.fluidShader) {
+                        rp.fluidShader.materials[key] = renderBackend.createMaterial({
+                            group: MATERIAL_GROUPS[key],
+                            shader: rp.fluidShader
+                        });
+                    }
+                } else {
+                    rp.shader.materials[key] = renderBackend.createMaterial({ group: MATERIAL_GROUPS[key], shader: rp.shader});
                 }
             }
         }
