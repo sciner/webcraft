@@ -2,9 +2,9 @@ import { BLOCK } from "@client/blocks.js";
 import type { GameSettings } from "@client/game.js";
 import { Vector } from "@client/helpers/vector.js";
 import { SchematicReader } from "./schematic_reader.js";
-import type {TWorldEditCopy} from "../chat_worldedit.js";
 import {ChunkGrid} from "@client/core/ChunkGrid.js";
 import type {TQueryBlocksArgs, TQueryBlocksReply} from "./schematic_job.js";
+import type {TSchematicInfo} from "../chat_worldedit.js";
 
 let initializeResolve: Function
 const initializePromise = new Promise(resolve => initializeResolve = resolve)
@@ -12,6 +12,7 @@ const initializePromise = new Promise(resolve => initializeResolve = resolve)
 let parentPort : any
 let bm : typeof BLOCK
 let grid : ChunkGrid
+let worldGUID : string
 /**
  * Текущая загруженная схематика. В мире может быть одновременно загружена только одна (для простоты,
  * и для ограничения ресурсов).
@@ -55,6 +56,7 @@ async function onMessageFunc(e) {
     // либо инициализируем, либо ждем пока инициализирется
     if (cmd === 'init') {
         await initBlockManager()
+        worldGUID = args.worldGUID
         grid = new ChunkGrid(args.chunkGridOptions)
         initializeResolve()
         return
@@ -68,54 +70,54 @@ async function onMessageFunc(e) {
     try {
         switch(cmd) {
             case 'schem_load': { // грузит схематику, возвращает информацию о ней, не блоки
+                const info: TSchematicInfo = args.info
+                // если уже была загружена схематика - забыть ее
+                await currentReader?.close()
                 currentReader = null
                 // загрузить
-                const reader = new SchematicReader(grid)
-                const info = await reader.read(args.filename, args.useExternalParser)
+                const reader = new SchematicReader(bm, grid)
+                await reader.open(info, worldGUID)
                 const schem = reader.schematic
-                info.user_id = args.user_id
-                info.username = args.username
                 p = Math.round(performance.now() - p) * 0.001;
                 // подготовить ответ
                 console.log('schematic version', schem.version);
                 const size = new Vector(schem.size)
                 const offset = schem.offset && new Vector(schem.offset)
-                const msg = `!lang... loaded (palette: ${schem.palette.length}, volume: ${size.volume()}, size: ${size.toHash()}, offset: ${offset?.toHash()}, load time: ${p} sec). Version: ${schem.version}. Use "/schem copy" or "/schem start".`;
+                let msg: string | null = null
+                if (!info.resume) {
+                    msg = `!lang... loaded (${size.volume()} blocks, size: ${size.toHash()}, offset: ${offset?.toHash()}, palette: ${schem.palette.length}, load time: ${p} sec). Version: ${schem.version}.`
+                    if (info.fileCookie.useExternalParser) {
+                        msg += '\nThe new parser has failed, using the old loader!'
+                    } else if (args.info.fileCookie.tmpFileCtimeMs) {
+                        msg += ' Using a temporary file.'
+                    }
+                    msg += `\nPaste it with /paste`
+                }
                 currentReader = reader
                 postMessage(['schem_loaded', {args, msg, info}])
+                break
+            }
+            case 'schem_update_info': {  // устанавливает параметры pos и rotate перед запросом блоков
+                currentReader.updateInfo(args.info)
                 break
             }
             case 'schem_query_blocks': { // вернуть блоки схематики в заданном AABB для вставки в мир
                 const args: TQueryBlocksArgs = argsCopy
                 checkLoaded()
-                const aabb = args.aabbInSchem
-                const chunks = currentReader.getByChunks(args.pos, aabb, args.air_y)
+                const chunks = currentReader.getByChunks(args.aabbInSchem)
                 const msg: TQueryBlocksReply = {args, chunks}
                 postMessage(['schem_blocks', msg])
                 break
             }
-            case 'schem_copy': { // вернуть все блоки схематики для буфера обмена
-                checkLoaded()
-                const [blocks, fluids] = currentReader.getAll(args.copy_air)
-                p = Math.round(performance.now() - p) * 0.001;
-                const msg = `... copied (${blocks.size} blocks, fluid: ${fluids.length / 4}, time: ${p} sec). Paste it with /paste`;
-                const _world_edit_copy: TWorldEditCopy = {
-                    quboid: null,
-                    blocks,
-                    fluids,
-                    player_pos: null
-                }
-                postMessage(['schem_copied', {args, msg, _world_edit_copy}])
-                break
-            }
             case 'schem_clear': {
-                checkLoaded()
+                await currentReader?.close()
                 currentReader = null
                 postMessage(['schem_cleared', {args}])
                 break
             }
         }
     } catch(e) {
+        currentReader = null
         console.log('Error in schematic worker: ', e)
         if (typeof e !== 'string') {
             e = 'Error in schematic worker: ' + e

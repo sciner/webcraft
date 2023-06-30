@@ -47,14 +47,18 @@ import {preprocessMobConfigs, TMobConfig} from "./mob/mob_config.js";
 import {Raycaster} from "@client/Raycaster.js";
 import type { ServerGame } from "server_game.js";
 import {ObjectUpdateType} from "./helpers/aware_players.js";
-import type {TSchematicJobState} from "./plugins/worldedit/schematic_job.js";
 import Billboard from "player/billboard.js";
+import type {TSchematicInfo} from "./plugins/chat_worldedit.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
 /** Объект с даннми состояния мира, автоматически сохраняемый в БД в каждой транзакции. */
 export type TServerWorldState = {
-    schematicJob?: TSchematicJobState
+    /**
+     * Если не null, то в описывает процесс вставки схематики. Он может идти в настоящий момент,
+     * или еще не возобновиться после перезагрузки мира.
+     */
+    schematicJob?: TSchematicInfo
 
     // может быть перенести сюда и другие поля мира из БД, например, dt
 }

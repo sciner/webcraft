@@ -48,7 +48,7 @@ export class ObjectHelpers {
         return out
     }
 
-    static deepCloneObject(src: object, depth : number = MAX_DEEP_CLONE_DEPTH, out : object = undefined): object {
+    static deepCloneObject(src: any, depth : number = MAX_DEEP_CLONE_DEPTH, out : any = undefined): any {
         if(--depth < 0) {
             return src;
         }

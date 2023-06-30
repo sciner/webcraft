@@ -12,10 +12,14 @@ import type { ServerChunk } from "server_chunk";
 import type {ServerPlayer} from "../server_player.js";
 import {SchematicJob, TSchematicJobState} from "./worldedit/schematic_job.js";
 import path from 'path';
+import type {TBinarySchematicCookie} from "./worldedit/binary_schematic.js";
 
 const MAX_SET_BLOCK         = 250000 * 4
 const MAX_BLOCKS_PER_PASTE  = 10000
 const QUBOID_SET_COMMANDS = ['/set', '/walls', '/faces'];
+
+/** Задержка до начала автоматической загрузки схематики после старта мира */
+const SCHEMATIC_RESUME_DELAY_SECONDS    = 20
 
 enum QUBOID_SET_TYPE {
     FILL = 1,
@@ -24,21 +28,52 @@ enum QUBOID_SET_TYPE {
 }
 
 export type TWorldEditCopy = {
-    quboid,
+    quboid: IQuboidInfo,
     blocks: VectorCollector,
-    fluids: any[],
+    fluids: int[],
     player_pos: IVector | null
 }
 
-/** Описывает cхематику, загруженную в настоящее время в вебворкер. */
-export type TSchematicInfo = {
-    user_id?    : int       // кто ее загрузил
-    username?   : string
+enum SchematicState {
+    INITIAL_TIMEOUT = 0, // сразу после загрузки мира
+    LOADING,    // послали сообщение о загрузке в воркер, но ответ еще не пришел
+    LOADED,     // чтобы узнать встявляется ли в это время - см. наличие WorldEdit.schematicJob
+    UNLOADING   // послали сообщение об очистке в воркер, но ответ еще не пришел
+}
 
-    orig_file_name  : string
-    size            : IVector
-    offset          : IVector   // если в самой схематике прописано смещение - Metadata.WEOffsetX ...
-    useExternalParser: boolean
+/**
+ * Описывает cхематику, загруженную в настоящее время в вебворкер, а также примененные к ней преобразования.
+ *
+ * Этот объект может независимо пристствовать или отсутствовать в дву местах:
+ * - {@link WorldEdit.schematicInfo} - если сейчас схематика загружена
+ * - {@link TServerWorldState.schematicJob} и соответвтсвующее поле в БД - если был или есть процесс вставки
+ *   Возможно что сразу после загрузки мира {@link TServerWorldState.schematicJob} не null, но
+ *   {@link WorldEdit.schematicInfo} == null - значит еще не загрузилась, но скоро загрузится.
+ */
+export type TSchematicInfo = {
+    user_id         : int       // кто ее загрузил
+    username        : string
+
+    resume?         : boolean   // true если это повторная загрузка
+    state           : SchematicState
+
+    // что и как загружали
+    fileCookie      : TBinarySchematicCookie
+    orig_file_name? : string
+    file_name?      : string
+    size?           : IVector
+    offset?         : IVector   // если в самой схематике прописано смещение - Metadata.WEOffsetX ...
+    /**
+     * Этот параметр не влияет на загрузку. Мы могли бы указывать его перед вставкой. Но чтобы команды
+     * выглядели как раньше, он указывается при загрузке, запоминается, и потом его нельзя поменять.
+     */
+    read_air        : boolean
+
+    // преобразования, примененные командами и параметры вставки
+    rotate  : int
+    pos?    : IVector   // Позиция блока схамтики, на который указывает ее offset с учетом поворта, в мире
+
+    job?    : TSchematicJobState    // если не null - текущее состояние процесса вставки
 }
 
 /** Описание чего основной поток ждет от воркера */
@@ -55,6 +90,8 @@ export default class WorldEdit {
     /**
      * Описание загруженной сейчас в вебворкере схематики. Одновременно может быть загружена только одна - для
      * простоты, и для экономии ресурсов.
+     *
+     * Важно также учитывать поле {@link TServerWorldState.schematicJob} - см. {@link TSchematicInfo}
      */
     schematicInfo: TSchematicInfo | null = null
     /**
@@ -68,7 +105,7 @@ export default class WorldEdit {
 
     /** Если не null, то ожидаем ответа по указанной команде от воркера и пока не принимаем других команд по схематикам */
     private waiting: TWorldEditWaiting | null = null
-    private waitingRequestId: int = 0
+    private nextWaitingRequestId: int = 0
 
     static targets = ['chat'];
 
@@ -86,18 +123,21 @@ export default class WorldEdit {
             }
             // console.log('worker -> chat_worldedit', data)
             const [cmd, args] = data
-            const user_id = args.args?.user_id
-            if (args?.args?.waiting && this.waiting?.requestId === args.args.waiting.requestId) {
+            const user_id = args.args?.user_id ?? args.info?.user_id
+            if (args?.args?.waitingRequestId === this.waiting?.requestId) {
                 this.waiting = null  // если ждали этго ответа ответа - больше не ждем
             }
             switch(cmd) {
                 case 'schem_loaded': {
-                    this.chat.sendSystemChatMessageToSelectedPlayers(args.msg, [user_id])
                     this.schematicInfo = args.info
-                    if (args.args.resume) {
+                    this.schematicInfo.state = SchematicState.LOADED
+                    if (args.msg) {
+                        this.chat.sendSystemChatMessageToSelectedPlayers(args.msg, [user_id])
+                    }
+                    if (args.info.resume) {
                         this.schematicJob = new SchematicJob(this)
                         this.schematicJob.initResume()
-                        this.chat.sendSystemChatMessageToSelectedPlayers('!langSchematic pasting resumed', [user_id])
+                        this.chat.sendSystemChatMessageToSelectedPlayers(`!langPasting of schematic ${this.schematicInfo.orig_file_name} has resumed automatically.`, [user_id])
                     }
                     break;
                 }
@@ -105,23 +145,20 @@ export default class WorldEdit {
                     this.schematicJob?.onBlocksReceived(args)
                     break
                 }
-                case 'schem_copied': { // схематика скопирована в буфер
-                    const player = user_id && this.world.players.get(user_id)
-                    if(player) {
-                        player._world_edit_copy = args._world_edit_copy
-                        player._world_edit_copy.blocks = new VectorCollector(player._world_edit_copy.blocks.list, player._world_edit_copy.blocks.size)
-                        this.chat.sendSystemChatMessageToSelectedPlayers(args.msg, player)
+                case 'schem_cleared': {
+                    if (this.schematicInfo?.state === SchematicState.UNLOADING) { // если ответ пришел к текущей схематике
+                        this.schematicInfo = null
+                        if (args.args.notify) {
+                            this.chat.sendSystemChatMessageToSelectedPlayers('clipboard_cleared', [user_id])
+                        }
                     }
                     break;
                 }
-                case 'schem_cleared': {
-                    this.schematicJob?.clear()
-                    this.schematicInfo = null
-                    this.chat.sendSystemChatMessageToSelectedPlayers('!langThe schematic has been cleared.', [user_id])
-                    break;
-                }
                 case 'schem_error': {
-                    this.chat.sendSystemChatMessageToSelectedPlayers(args.e, [user_id])
+                    const msg = args.e.length < 200 ? args.e : '!langError while processing the schematic.'
+                    this.chat.sendSystemChatMessageToSelectedPlayers(msg, [user_id])
+                    this.clearSchematicJob()
+                    this.schematicInfo = null
                     break
                 }
             }
@@ -137,18 +174,29 @@ export default class WorldEdit {
             (this.worker as any).on('message', onmessage);
             (this.worker as any).on('error', onerror);
         }
-        this.postWorkerMessage(['init', {chunkGridOptions: this.world.grid.options}])
+        this.postWorkerMessage(['init', {
+            worldGUID: this.world.info.guid,
+            chunkGridOptions: this.world.grid.options
+        }])
     }
 
-    // postWorkerMessage
-    postWorkerMessage(cmd) {
+    /**
+     * @param waitingText - если задано, то большинство команд не будут выполняться пока не придет ответ
+     *  от воркера на эту команду. А это значение будет выводиться пользователю при попытке выполнить другие
+     *  команды.
+     */
+    postWorkerMessage(cmd: [string, Dict], waitingText?: string): void {
         if(!this.worker) {
             this.initWorker()
         }
-        this.worker.postMessage(cmd)
-        if (cmd[1]?.waiting) {  // если нужно, начать ожидание ответа на это сообщение
-            this.waiting = cmd[1].waiting
+        if (waitingText) {  // если нужно, начать ожидание ответа на это сообщение
+            this.waiting = {
+                text: waitingText,
+                requestId: ++this.nextWaitingRequestId
+            }
+            cmd[1].waitingRequestId = this.waiting.requestId
         }
+        this.worker.postMessage(cmd)
     }
 
     onGame(game) {}
@@ -163,6 +211,19 @@ export default class WorldEdit {
             // вызывать текущую задачу вставки (если она есть) в каждом тике и перед сохранением в БД
             this.world.tickListeners.push(() => this.schematicJob?.tick())
             this.world.dbActor.transactionListeners.push(() => this.schematicJob?.updateWorldState())
+            // авто-возобновление вставки схематики
+            const info = this.world.state.schematicJob
+            if (info) {
+                info.resume = true
+                info.state = SchematicState.INITIAL_TIMEOUT
+                setTimeout(() => {
+                    // если за это время не загрузили другую схематику и не очистили
+                    if (this.world.state.schematicJob === info) {
+                        info.state = SchematicState.LOADING
+                        this.postWorkerMessage(['schem_load', {info}], 'schematic pasting resume')
+                    }
+                }, SCHEMATIC_RESUME_DELAY_SECONDS * 1000)
+            }
         }
 
         this.building = new WorldEditBuilding(this);
@@ -216,8 +277,12 @@ export default class WorldEdit {
 
     // Clear clipboard
     async cmd_clearclipboard(chat, player: ServerPlayer, cmd, args) {
-        delete(player._world_edit_copy);
-        chat.sendSystemChatMessageToSelectedPlayers('clipboard_cleared', [player.session.user_id]);
+        delete player._world_edit_copy
+        // если есть схематика загруженная или загружаемая этим игроком, то команда относится к ней
+        if (this.clearSchematic(player, true)) {
+            return
+        }
+        chat.sendSystemChatMessageToSelectedPlayers('clipboard_cleared', player);
     }
 
     /**
@@ -234,7 +299,7 @@ export default class WorldEdit {
      */
     async cmd_pos1(chat, player, cmd, args) {
         player.pos1 = player.state.pos.floored();
-        let msg = `pos1 = ${player.pos1.x}, ${player.pos1.y}, ${player.pos1.z}`;
+        let msg = `!langpos1 = ${player.pos1.x}, ${player.pos1.y}, ${player.pos1.z}`;
         if(player.pos2) {
             const volume = player.pos1.volume(player.pos2);
             msg += `. Selected ${volume} blocks`;
@@ -248,7 +313,7 @@ export default class WorldEdit {
      */
     async cmd_pos2(chat, player, cmd, args) {
         player.pos2 = player.state.pos.floored();
-        let msg = `pos2 = ${player.pos2.x}, ${player.pos2.y}, ${player.pos2.z}`;
+        let msg = `!langpos2 = ${player.pos2.x}, ${player.pos2.y}, ${player.pos2.z}`;
         if(player.pos1) {
             const volume = player.pos1.volume(player.pos2);
             msg += `. Selected ${volume} blocks`;
@@ -287,7 +352,7 @@ export default class WorldEdit {
             throw 'error_chunk_not_loaded';
         }
         player.pos1 = pos;
-        let msg = `pos1 = ${player.pos1.x}, ${player.pos1.y}, ${player.pos1.z}`;
+        let msg = `!langpos1 = ${player.pos1.x}, ${player.pos1.y}, ${player.pos1.z}`;
         if(player.pos2) {
             const volume = player.pos1.volume(player.pos2);
             msg += `. Selected ${volume} blocks`;
@@ -307,7 +372,7 @@ export default class WorldEdit {
             throw 'error_chunk_not_loaded';
         }
         player.pos2 = pos;
-        let msg = `pos2 = ${player.pos2.x}, ${player.pos2.y}, ${player.pos2.z}`;
+        let msg = `!langpos2 = ${player.pos2.x}, ${player.pos2.y}, ${player.pos2.z}`;
         if(player.pos1) {
             const volume = player.pos1.volume(player.pos2);
             msg += `. Selected ${volume} blocks`;
@@ -331,10 +396,14 @@ export default class WorldEdit {
      * Copy all blocks in region to clipboard
      */
     async cmd_copy(chat, player: ServerPlayer, cmd, args) {
+        if (this.checkSchematic(player, { pasting: true })) {
+            return
+        }
+        this.clearSchematic(player, false)
         const qi = this.getCuboidInfo(player);
         const player_pos = player.state.pos.floored();
         player._world_edit_copy = await this.copy(qi, player_pos, chat.world);
-        const msg = `${player._world_edit_copy.blocks.size} block(s) copied`;
+        const msg = `!lang${player._world_edit_copy.blocks.size} block(s) copied`;
         chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
     }
 
@@ -402,6 +471,9 @@ export default class WorldEdit {
 
     //
     async cmd_building(chat, player, cmd, args) {
+        if (this.checkSchematic(player, { pasting: true })) {
+            return
+        }
         if(!chat.world.admins.checkIsAdmin(player)) {
             throw 'error_not_permitted';
         }
@@ -410,24 +482,34 @@ export default class WorldEdit {
     }
 
     //
-    async cmd_rotate(chat, player, cmd, args, copy_data) {
-
-        if(!player._world_edit_copy && !copy_data) {
-            throw 'error_not_copied_blocks';
+    async cmd_rotate(chat, player: ServerPlayer, cmd, args, copy_data) {
+        if (this.checkSchematic(player, { pasting: true, loading: true })) {
+            return
         }
 
         args = chat.parseCMD(args, ['string', 'int']);
 
         // Detect direction
         const dirs = {
-            270: 1,
-            180: 2,
-            90: 3
+            270: 1,     "-90": 1,
+            180: 2,     "-180": 2,
+            90: 3,      "-270": 3
         }
         let angle = args[1];
         const dir = dirs[angle]
         if(!dir) {
             throw 'error_no_interpolation';
+        }
+
+        // если есть загруженная этим пользователем схематика - изменить ее вращение
+        if (this.schematicInfo?.user_id === player.userId && this.schematicInfo.state === SchematicState.LOADED) {
+            this.schematicInfo.rotate = ((this.schematicInfo.rotate ?? 0) + dir) % 4
+            chat.sendSystemChatMessageToSelectedPlayers(`!langThe schematic has been rotated`, player)
+            return
+        }
+
+        if(!player._world_edit_copy && !copy_data) {
+            throw 'error_not_copied_blocks';
         }
 
         //
@@ -436,7 +518,6 @@ export default class WorldEdit {
 
         for(let [bpos, item] of data.blocks.entries()) {
             const pos = new Vector(0, 0, 0).addByCardinalDirectionSelf(bpos, dir, false, false);
-            item.block_id = item.id;
             item.pos = pos
             new_blocks.set(pos, item);
         }
@@ -450,14 +531,13 @@ export default class WorldEdit {
             const item = rot[dir][i]
             const pos = item.pos
             delete(item.pos)
-            delete(item.block_id)
             new_blocks.set(pos, item)
         }
 
         data.blocks = new_blocks;
 
-        const msg = `${data.blocks.size} block(s) rotated`;
-        chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+        const msg = `!lang${data.blocks.size} block(s) rotated`;
+        chat.sendSystemChatMessageToSelectedPlayers(msg, player);
 
     }
 
@@ -465,6 +545,26 @@ export default class WorldEdit {
      * Paste copied blocks
      */
     async cmd_paste(chat : ServerChat, player, cmd, args, copy_data = null) {
+        if (this.checkSchematic(player, { pasting: true, loading: true })) {
+            return
+        }
+
+        const player_pos : Vector = player.state.pos.floored();
+
+        // если есть загруженная этим пользователем схематика - начать ее вставку
+        const info = this.schematicInfo
+        if (info?.user_id === player.userId && info.state === SchematicState.LOADED) {
+            if (this.checkWaitingWorker(player)) {
+                return
+            }
+            info.pos = player_pos
+            this.postWorkerMessage(['schem_update_info', { info }]) // обновить pos и rotate
+            this.schematicJob = new SchematicJob(this)
+            this.schematicJob.initNew(info)
+            chat.sendSystemChatMessageToSelectedPlayers(`!langSchematic pasting started (use "/schem info" to see progress)`, player)
+            return
+        }
+
         if(!player._world_edit_copy && !copy_data) {
             throw 'error_not_copied_blocks';
         }
@@ -480,7 +580,6 @@ export default class WorldEdit {
         //
         const grid = chat.world.chunkManager.grid
         const math = grid.math
-        const player_pos : Vector = player.state.pos.floored();
         let affected_count = 0;
         //
         const data = copy_data ?? player._world_edit_copy;
@@ -536,7 +635,7 @@ export default class WorldEdit {
         const notify = {
             user_id: player.session.user_id,
             total_actions_count: actions_list.size,
-            message: 'WorldEdit paste completed!'
+            message: '!langWorldEdit paste completed!'
         };
         for(const actions of actions_list.values()) {
             if(player) {
@@ -1053,93 +1152,17 @@ export default class WorldEdit {
     // schematic commands
     async cmd_schematic(chat: ServerChat, player: ServerPlayer, cmd: string, args: any[]) {
 
-        /** Создает текстовое описание текущей схематике, хода втсавки и других текущих показателей важных пользователю. */
-        const infoToString = () => {
-
-            const descToString: (info: TSchematicInfo | TSchematicJobState) => string = (info) => {
-                const {user_id, username, orig_file_name, size} = info
-                const loadedBy = user_id === player.userId
-                    ? 'you'
-                    : `@${username} (id=${user_id})`
-                return `"${orig_file_name}" size=(${new Vector(size).toHash()}) loaded by ${loadedBy}`
-            }
-
-            let result = info
-                ? `Schematic ${descToString(info)}.`
-                : `A schematic isn't loaded.`
-            if (job) {
-                result += `\nInserting schematic: ${job.progressToString()}.`
-            } else if (jobState) { // есть неоконченная работа, но не выполняется в данный момент
-                const totalInsertedChunks = jobState.consecutiveChunksInserted + jobState.chunksInserted.length
-                const desc = info ? null : descToString(jobState) + ', '
-                result += `\nUnfinished job: ${desc}inserted ${totalInsertedChunks} of ${jobState.chunksCount} chunks`
-            }
-            if (this.waiting) {
-                result += `\nWaiting for "${this.waiting.text}" command to finish.`
-            }
-            return result
-        }
-
-        /** @return true если есть неоконченная вставка */
-        const checkExistingJob: (boolean) => boolean = (inactive: boolean) => {
-            let msg: string | null = null
-            if (job) {
-                msg = `!langPasting of a schematic is in progress. Wait until it finishes or use "/schem clear".`
-            } else if (inactive && world.state.schematicJob) {
-                msg = `!langThere is an unfinished pasting job. Use "/schem resume" or "/schem clear"`
-            }
-            if (msg) {
-                msg += `\n${infoToString()}`
-                chat.sendSystemChatMessageToSelectedPlayers(msg, player)
-                return true
-            }
-            return false
-        }
-
-        /** @return true если схематика не загружена */
-        const checkNotLoaded: () => boolean = () => {
-            if (!info) {
-                const msg = this.waiting?.text === 'load'
-                    ? `!langA schematic hasn't loaded yet, please wait.`
-                    : `!langA schematic isn't loaded. Use "/schem load".`
-                chat.sendSystemChatMessageToSelectedPlayers(msg, player)
-                return true
-            }
-            return false
-        }
-
-        /** @return true воркер занят, пока нельзя принимать команды (состояние загруженой схематики может измениться) */
-        const checkWaiting: () => boolean = () => {
-            if (this.waiting) {
-                chat.sendSystemChatMessageToSelectedPlayers(`!langThe previous command "${this.waiting.text}" hasn't finished. Try again later.`, player)
-                return true
-            }
-            return false
-        }
-
         if (args.length === 1) {
             const lines = [
-                '/schem load <name> [true|false] - the 2nd parameter - use external (old) parser, default false',
-                '/schem info',
-                '/schem start [<x> <y> <z>] [<air_y>|true|false] - start a pasting job (no need to use /schem copy)',
-                '/schem pause',
-                '/schem resume - resumes an interrupted pasting job',
-                '/schem copy [<air_y>|true|false] - copy to clipboard (then use /paste)',
-                '/schem clear - stops the pasting job, removes it from DB',
-                'where <x>, <y>, <z> can be ~ or relative (prefixed with +); <air_y> - the maximum height where air is copied',
-                'see doc/schematic.md'
+                '/schem load <name> [true|false] - the 2nd parameter - read air (default = true)',
+                '/schem info'
             ]
             chat.sendSystemChatMessageToSelectedPlayers('!lang\n' + lines.join('\n'), player)
         }
 
-        const {world} = this
-        const info = this.schematicInfo
-        const job = this.schematicJob
-        const jobState = world.state.schematicJob
         const {user_id, username} = player.session
         const action = args[1];
         let msg: string | null = null;
-        const waiting: TWorldEditWaiting = { text: action, requestId: ++this.waitingRequestId } // этот объект не всегда нужен, но для простоты создаем его всегда
         //
         switch(action) {
             case 'save': {
@@ -1147,95 +1170,56 @@ export default class WorldEdit {
             }
             case 'inf':
             case 'info': {
-                chat.sendSystemChatMessageToSelectedPlayers('!lang' + infoToString(), player)
-                break
-            }
-            case 'start': { // создает новую job вставки схематики
-                if (checkWaiting() || checkNotLoaded() || checkExistingJob(true)) {
-                    break
-                }
-                args = chat.parseCMD(args, ['string', 'string', '?x', '?y', '?z', '?string|float'], player)
-                const playerPos = player.state.pos
-                const pos = new Vector(args[2] ?? playerPos.x, args[3] ?? playerPos.y, args[4] ?? playerPos.z)
-                    .flooredSelf().addSelf(info.offset ?? Vector.ZERO)
-                // парсинг аргумента высота воздуха
-                let air_y = args[5]
-                if (typeof air_y === 'number')                  air_y = Math.ceil(air_y)
-                else if (air_y === 'true')                      air_y = 1e10     // нельзя использовать Infinity, потому что оно не сохраняется в JSON
-                else if (air_y === 'false' || air_y == null)    air_y = -1e10
-                else throw 'invalid air_y value ' + air_y
-
-                this.schematicJob = new SchematicJob(this)
-                this.schematicJob.initNew(pos, player, air_y)
-                msg = '!langSchematic pasting started (use "/schem info" to track progress)'
-                break
-            }
-            case 'pause':
-            case 'stop': {  // приостанавливает текущую job вставки схематики, но не выгружает ее из мира
-                // зе запрошенные чанки будут вставлены, но новые не будут запрошены
-                if (!job) {
-                    msg = `!langThere is no schematic pasting job`
-                } else if (job.paused) {
-                    msg = `!langThe job is already paused`
+                let result: string
+                const info = this.schematicInfo ?? this.world.state.schematicJob
+                if (this.schematicInfo) {
+                    const by = (user_id === player.userId) ? 'you' : `@${username}`
+                    const loaded = (this.schematicInfo.state === SchematicState.LOADING) ? 'being loaded' : 'loaded'
+                    result = `Schematic "${info.orig_file_name}" is ${loaded} by ${by}.`
+                    if (info.state === SchematicState.LOADED) {
+                        const size = new Vector(info.size)
+                        result += ` Blocks: ${size.volume()}, size: ${size.toHash()}, offset: ${new Vector(info.offset).toHash()}, read_air=${info.read_air}`
+                        if (info.rotate) {
+                            result += `, rotation=${info.rotate * 90}`
+                        }
+                        result += '.'
+                        if (info.fileCookie.useExternalParser) {
+                            result += ' Using the old parser.'
+                        } else if (info.fileCookie.tmpFileCtimeMs) {
+                            result += ' Using a temporary file.'
+                        }
+                    }
                 } else {
-                    job.paused = true
-                    msg = `!langThe job has been paused`
+                    result = info
+                        ? `Pasting of schematic "${info.orig_file_name}" will resume automatically.`
+                        : `No schematic is loaded.`
                 }
-                break
-            }
-            case 'resume': { // если есть job - снимает ее с паузы. Если есть неокончаенная job - агружает схематику и возобновляет вставку.
-                if (job) {
-                    msg = job.paused ? `!langThe job has been resumed` : `!langThe job is already running`
-                    job.paused = false
-                    break
+                if (this.schematicJob) {
+                    const aabb = this.schematicJob.schemAABB
+                    result += `\nPasting progress: ${this.schematicJob.progressToString()}, AABB: ${aabb.getMin()}, ${aabb.getMax()}.`
                 }
-                if (checkWaiting()) {
-                    break
+                if (this.waiting) {
+                    result += `\nWaiting for "${this.waiting.text}" command to finish.`
                 }
-                if (!jobState) {
-                    msg = '!langThere is no pasting job to resume.'
-                    break
-                }
-                // инициируем загрузку, но добавляем к ней аргумент "resume" чтобы после нее начать вставку
-                this.postWorkerMessage(['schem_load', {
-                    filename: jobState.orig_file_name,
-                    resume: true,
-                    useExternalParser: jobState.useExternalParser,
-                    user_id, username, waiting
-                }])
+                chat.sendSystemChatMessageToSelectedPlayers('!lang' + result, player)
                 break
             }
             case 'load': {
-                if (checkWaiting() || checkExistingJob(true)) {
+                if (this.checkWaitingWorker(player) || this.checkSchematic(player, {anyPlayer: true, pasting: true})) {
                     break
                 }
                 args = chat.parseCMD(args, ['string', 'string', 'string', '?boolean'])
-                const filename = args[2]
-                const useExternalParser = !!args[3]
-                this.postWorkerMessage(['schem_load', {filename, user_id, username, waiting, useExternalParser}])
-                break
-            }
-            case 'copy': {
-                if (checkWaiting() || checkNotLoaded()) {
-                    break
+                player._world_edit_copy = null  // если у него было что-то в буфере - очистить
+                this.schematicInfo = {
+                    user_id,
+                    username,
+                    state: SchematicState.LOADING,
+                    orig_file_name: args[2],
+                    read_air: !!(args[3] ?? true),
+                    rotate: 0,
+                    fileCookie: {}
                 }
-                args = chat.parseCMD(args, ['string', 'string', '?boolean']);
-                this.postWorkerMessage(['schem_copy', {user_id, copy_air: args[2], waiting}])
-                break
-            }
-            case 'clear': {
-                if (checkWaiting()) {
-                    break
-                }
-                if (job) {
-                    job.paused = true // поставить на паузу не дожидаясь ответа от воркера, чтобы не запрашивала новых чанков
-                    this.postWorkerMessage(['schem_clear', {user_id, waiting}])
-                } else if (jobState) {
-                    delete world.state.schematicJob
-                    chat.sendSystemChatMessageToSelectedPlayers('!langThe unfinished job has been deleted.', player)
-                } else {
-                    chat.sendSystemChatMessageToSelectedPlayers('!langThere is nothing to clear.', player)
-                }
+                this.postWorkerMessage(['schem_load', {info: this.schematicInfo}], action)
                 break
             }
             default: {
@@ -1246,6 +1230,78 @@ export default class WorldEdit {
         if (msg) {
             chat.sendSystemChatMessageToSelectedPlayers(msg, player);
         }
+    }
+
+    /** @return true воркер занят, пока нельзя принимать команды (состояние загруженой схематики может измениться) */
+    private checkWaitingWorker(player: ServerPlayer): boolean {
+        if (this.waiting) {
+            this.chat.sendSystemChatMessageToSelectedPlayers(`!langThe previous command "${this.waiting.text}" hasn't finished. Try again later.`, player)
+            return true
+        }
+        return false
+    }
+
+    /**
+     * @return true если выполняется или скоро начнется вставка схематики, и другие команды
+     *   не должны выполняться. Также отпарвляет об этом сообщение игроку.
+     *   !Игнорирует, если просто загружена схематика, но не заказана ее встака!
+     * @param options
+     *  byAnyPlayer - если true, то проверяет схематику, загруженну любым игроком. Иначе - только этим
+     *  pasting - проверяет если схематика сейчас вставляется
+     *  loading - проверяет если не загружена
+     */
+    private checkSchematic(player: ServerPlayer, options: {anyPlayer?: boolean, pasting?: boolean, loading?: boolean}): boolean {
+        let info = this.world.state.schematicJob
+        if (info && (options.anyPlayer || info.user_id === player.userId)) {
+            if (options.pasting) {
+                const job = this.schematicJob
+                let msg = job
+                    ? `!langPasting of schematic "${info.orig_file_name}" is in progress, ${
+                        Math.floor(job.totalInsertedChunks / info.job.chunksCount * 100)}% completed.`
+                    : `!langPasting of schematic "${info.orig_file_name}" is about to resume.`
+                msg += info.user_id === player.userId
+                    ? ` Wait until it finishes or enter /clearclipboard to cancel it.`
+                    : ` Wait until it finishes.`
+                this.chat.sendSystemChatMessageToSelectedPlayers(msg, player)
+                return true
+            }
+            // если загружается или ожидает начала загрузки
+            if (options.loading && info.state < SchematicState.LOADED) {
+                this.chat.sendSystemChatMessageToSelectedPlayers(`!langThe schematic hasn't loaded yet. Wait until it finishes.`, player)
+                return true
+            }
+        }
+        return false
+    }
+
+    /** Останавливает и удаляет процесс вставки схематики. Не выгружает из памяти саму схематику. */
+    clearSchematicJob(): void {
+        this.schematicJob?.clearActions()
+        this.schematicJob = null
+        delete this.world.state.schematicJob
+    }
+
+    /**
+     * Удаляет схематику, если она загружена указанным игроком. Также отменяет/останавлиет ее встаку.
+     * @return true если схематика была
+     */
+    clearSchematic(player?: ServerPlayer, notify?: boolean): boolean {
+        const info = this.world.state.schematicJob ?? this.schematicInfo
+        if (info && (!player || info?.user_id === player.userId)) {
+            this.clearSchematicJob()
+            // если загружена или загружается - надо очистить в воркере
+            if (this.schematicInfo?.state === SchematicState.LOADING || this.schematicInfo?.state === SchematicState.LOADED) {
+                this.schematicInfo.state = SchematicState.UNLOADING
+                this.postWorkerMessage(['schem_clear', { user_id: player?.userId, notify }], 'clearing schematic')
+            } else {
+                this.schematicInfo = null
+                if (notify) {
+                    this.chat.sendSystemChatMessageToSelectedPlayers('clipboard_cleared', player)
+                }
+            }
+            return true
+        }
+        return false
     }
 
 }

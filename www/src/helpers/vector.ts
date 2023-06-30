@@ -577,7 +577,7 @@ export class Vector implements IVector {
     }
 
     // Rotates self from 0 to 3 times around Y, by 90 degrees each time
-    rotateByCardinalDirectionSelf(dir) {
+    rotateByCardinalDirectionSelf(dir: int): this {
         const x = this.x;
         const z = this.z;
         switch(dir) {
@@ -598,6 +598,7 @@ export class Vector implements IVector {
                 break;
             }
         }
+        return this
     }
 
     addByCardinalDirectionSelf(vec : IVector, dir : int, mirror_x = false, mirror_z = false) {

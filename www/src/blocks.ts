@@ -79,21 +79,24 @@ export let NEIGHB_BY_SYM = {};
 
 /**
  * Поля блока, существующие в чанке и в БД.
- * Ожидается что во время игры содержит только такие поля:
- *   id: int
- *   extra_data?  : Dict
- *   rotate?      : Vector
- *   entity_id?   : string
  * Временно (при чтении схематик) может содержать другие.
  * Поля кроме id не нужно объявлять из-за снижения производительности.
  */
-export class DBItemBlock {
+export interface IDBItemBlock {
+    id          : int
+    extra_data? : Dict
+    rotate?     : Vector
+    entity_id?  : string
+}
+
+/**
+ * Временно (при чтении схематик) может содержать поля, не входящие в {@link IDBItemBlock}.
+ * Поля кроме id не нужно объявлять из-за снижения производительности.
+ */
+export class DBItemBlock implements IDBItemBlock {
     [key: string]: any;
     id: int
-    // extra_data?  : Dict
-    // rotate?      : Vector
     // waterlogged? : boolean
-    // entity_id?   : string
     // power?       : float
 
     constructor(id : int, extra_data? : Dict) {

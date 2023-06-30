@@ -1,7 +1,7 @@
-import { BLOCK, DBItemBlock } from "@client/blocks.js";
+import {BLOCK, DBItemBlock, IDBItemBlock} from "@client/blocks.js";
 import type { Schematic } from "madcraft-schematic-reader";
 import { promises as fs } from 'fs';
-import { DIRECTION_BIT, ObjectHelpers, SIX_VECS, Vector, VectorCollector } from "@client/helpers.js";
+import {DIRECTION_BIT, ObjectHelpers, SIX_VECS, Vector, VectorCardinalTransformer, VectorCollector} from "@client/helpers.js";
 import { RailShape } from "@client/block_type/rail_shape.js";
 import * as FLUID from '@client/fluid/FluidConst.js';
 import {BinarySchematic} from "./binary_schematic.js";
@@ -9,6 +9,7 @@ import {AABB, IAABB} from "@client/core/AABB.js";
 import type {TSchematicInfo} from "../chat_worldedit.js";
 import type {ChunkGrid} from "@client/core/ChunkGrid.js";
 import type {TActionBlock} from "@client/world_action.js";
+import {BuildingTemplate} from "@client/terrain_generator/cluster/building_template.js";
 
 const facings4 = ['north', 'west', 'south', 'east'];
 const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
@@ -107,70 +108,85 @@ const tmpAddr = new Vector()
 
 // SchematicReader...
 export class SchematicReader {
+    block_manager: typeof BLOCK
     grid: ChunkGrid
 
+    info            : TSchematicInfo    // информация о загруженой схематике и преобразованиях над ней
+
     /** Бинарные данные схематики (в них главное - упакованный масссив блоков) */
-    binarySchematic: BinarySchematic
+    binarySchematic : BinarySchematic
 
     /** Схематика в формате sponge/mcedit, кроме масива блоков */
-    schematic: Schematic
+    schematic       : Schematic
 
     private blockEntities: VectorCollector // в СК схематики
+    /** Текущее вращение блоков в палитре и offset */
+    private currentRotation = 0
 
     /** Блоки из палитры, прошедшие обработку для madcraft. Индекс - номер в палитре. */
     private states: IStateBlock[]
 
-    constructor(grid: ChunkGrid) {
+    constructor(block_manager: typeof BLOCK, grid: ChunkGrid) {
         if (grid == null) {
             throw new Error()
         }
+        this.block_manager = block_manager
         this.grid = grid
     }
 
     /**
      * Загружает бинаруную схематику, прасит палитру, общие данные схематики и blockEntities. Не парсит массив блоков.
-     * Чтобы получить блоки - см. {@link getAll} или {@link getByChunks}.
+     * Чтобы получить блоки - см. {@link getBlocks}.
+     * @param info - входной и выходной. Описывает что и как загружается. При повторном открытии того же файла - там
+     *   информация о том, что и как получилось открыть в первый раз.
+     * @param worldGUID - добавляется к имени временного файла. Зачем: если одну и ту же схематикиу открыли в двух мирах,
+     *   они будт создавать/читать/удалять разыне файлы, не мешать друг другу, и можно понять какой файл из какого мира
+     *   создавался.
      * @return информацию о загруженой хематике (для основного потока)
      */
-    async read(orig_file_name : string, useExternalParser : boolean): Promise<TSchematicInfo> {
+    async open(info: TSchematicInfo, worldGUID: string): Promise<void> {
+        this.info = info
+        const BLOCK = this.block_manager
+        const fileExists = path => fs.stat(path).then(() => true, () => false)
 
-        let file_name = `../data/schematics/${orig_file_name}`;
-        console.log('Loading ' + file_name)
-        // Check schem file exists and try extension append
-        const fileExists = path => fs.stat(path).then(() => true, () => false);
-        if(!await fileExists(file_name)) {
-            if(!orig_file_name.includes('.')) {
-                let found = false;
-                for(let ext of ['schem', 'schematic', 'schema']) {
-                    let next_file_name = `${file_name}.${ext}`;
-                    if(await fileExists(next_file_name)) {
-                        found = true;
-                        file_name = next_file_name;
-                        break;
-                    }
-                }
-                if(!found) {
-                    console.log(await fs.realpath('./'))
-                    throw 'error_schem_file_not_found';
+        if (!info.file_name) {
+            // найти расширение файла и проверить что он существует
+            const extensions = info.orig_file_name.includes('.')
+                ? ['']
+                : ['', '.schem', '.schematic', '.schema']
+            for(const extension of extensions) {
+                const tryName = `../data/schematics/${info.orig_file_name}${extension}`
+                if (await fileExists(tryName)) {
+                    info.file_name = tryName
+                    break
                 }
             }
+        } else if (!await fileExists(info.file_name)) { // проверить не удалился ли файл с прошлого раза
+            info.file_name = null
+        }
+        if (!info.file_name) {
+            console.log(await fs.realpath('./'))
+            throw 'error_schem_file_not_found';
         }
 
         // read schematic
         this.binarySchematic = new BinarySchematic()
-        const schematic = await this.binarySchematic.read(file_name, useExternalParser)
+        const tmpFileName = `${info.file_name}.${worldGUID}.tmp`
+        const schematic = await this.binarySchematic.open(info.file_name, tmpFileName, info.fileCookie)
         let {palette, blockEntities} = schematic
+        const sizeZ = schematic.size.z
 
-        // возможно, тут стоило бы отразить schematic.offset.z или поменять ему знак, т.к. остальные кординаты отражатся по Z
+        // Изменить offset.z, т.к. остальные кординаты тоже отражатся по Z. Эта формула неочевидная, но приводит к тому,
+        // что возле начальной точки оказывается тот же блок, как и если бы координаты не отражались.
+        schematic.offset.z = -(sizeZ - 1) - schematic.offset.z
 
         // Prepare BlockEntities for fast search
         this.blockEntities = new VectorCollector();
         const bePos = new Vector(0, 0, 0);
         if(blockEntities) {
-            const sizeZ = schematic.size.z
             for(let i = 0; i < blockEntities.length; i++) {
                 const item = blockEntities[i];
-                bePos.set(item.Pos[0], item.Pos[1], sizeZ - 1 - item.Pos[2]) // отразить Z, указанную в схематике
+                bePos.setScalar(item.Pos[0], item.Pos[1], sizeZ - 1 - item.Pos[2]) // отразить Z, указанную в схематике
                 this.blockEntities.set(bePos, item);
             }
         } else {
@@ -286,71 +302,28 @@ export class SchematicReader {
         console.log('Not found blocks:');
         console.log(not_found_blocks_str);
         this.schematic = schematic
-        return {
-            orig_file_name,
-            size: this.binarySchematic.size,
-            offset: schematic.offset,
-            useExternalParser
-        }
+        info.size = this.binarySchematic.size
+        info.offset = ObjectHelpers.deepClone(schematic.offset) // клонируем потому что schematic.offset может поворачиваться
     }
 
-    /**
-     * @param air_y -
-     * @return все блоки и жидкости в том формате и с той же логикой, как раньше их читал {@link read}, т.е.
-     *  - в {@link VectorCollector} - для совместимости с буфером обмена из chat_worldedit.
-     *  - к координатам блоков добавлен schematic.offset (если есть)
-     */
-    getAll(copy_air: boolean): [blocks: VectorCollector<DBItemBlock>, fluids: int[]] {
-        const {states, schematic} = this
-        const {blockEntities} = this
-        const blocks = new VectorCollector<DBItemBlock>()
-        const emittedBlocks: [Vector, DBItemBlock][] = []
-        const fluids: int[] = []
-        const offset = schematic.offset ?? Vector.ZERO
+    async close() {
+        return this.binarySchematic.close()
+    }
 
-        for(const [pos, paletteIndex] of this.binarySchematic.ofAABB(offset, this.binarySchematic.aabb)) {
-            const st = states[paletteIndex]
-            if (!st) {
-                continue
-            }
-            let {schematicBlock} = st
-            if(schematicBlock.type === AIR_BLOCK.id) {
-                if (copy_air) {
-                    blocks.set(pos, AIR_BLOCK)
-                }
-                continue
-            }
-            let {new_block, fluidValue} = st
-            if (st.read_entity_props) {
-                new_block = this.createBlockFromSchematic(schematicBlock, st.b, schematic, blockEntities,
-                    tmpVec.copyFrom(pos).subSelf(offset), st.read_entity_props)
-            }
-            blocks.set(pos, new_block)
-            // Некоторые блоки могут создавать другие блоки (двери, высокие растения и прочее)
-            if (new_block.emit_blocks) {
-                for(const eb of new_block.emit_blocks) {
-                    emittedBlocks.push([pos.clone().addSelf(eb.move), eb])
-                }
-            }
-            if (fluidValue) {
-                fluids.push(pos.x, pos.y, pos.z, fluidValue);
-            }
+    updateInfo(info: TSchematicInfo): void {
+        if (this.info?.orig_file_name !== info.orig_file_name) {
+            throw 'this.info.orig_file_name !== info.orig_file_name'
         }
-        // добавить emittedBlocks блокам - после того, как сами блоки заполнены (например, чтобы перезаписать воздух)
-        for(const [pos, block] of emittedBlocks) {
-            blocks.set(pos, block)
-        }
-        return [blocks, fluids]
+        this.info.pos = info.pos
+        this.info.rotate = info.rotate
     }
 
     /**
      * Возвращает блоки и жидкости из AABB, разделенные по чанкам (подготовленные к вставке в мир),
      * похоже на {@link WorldEdit.cmd_paste}.
-     * @param pos0 - позиция угла схематики в мире (по ней определяется как разрезать результат на чанки)
      * @param requestedAabb_inSchem - читаемый AABB в СК схематики
-     * @param air_y - максимальный Y в СК мира (включительно), до которого возвращается воздух
      */
-    getByChunks(pos0: IVector, requestedAabb_inSchem: IAABB, air_y: int): TBlocksInChunk[] {
+    getByChunks(requestedAabb_inSchem: IAABB): TBlocksInChunk[] {
 
         const switchChunk = (pos: Vector) => {
             const addr = grid.toChunkAddr(pos, tmpAddr)
@@ -368,21 +341,59 @@ export class SchematicReader {
         const {states, schematic, grid} = this
         const {math} = grid
         const {blockEntities} = this
-        const requestedAABB_inWorld = new AABB().copyFrom(requestedAabb_inSchem).translateByVec(pos0)
+        const pos0 = this.info.pos
+        const {read_air, rotate} = this.info
+
+        // повернуть все блоки паитры, если нужно
+        if (rotate !== this.currentRotation) {
+            const deltaRotation = (rotate - this.currentRotation + 4) % 4
+            this.currentRotation = rotate
+            // собрать все блоки, включая emitted, в массив
+            const srcBlocks: IDBItemBlock[] = []
+            for(const state of this.states) {
+                if (state) {
+                    const {new_block} = state
+                    srcBlocks.push(new_block)
+                    if (new_block.emit_blocks) {
+                        for(const emitted of new_block.emit_blocks) {
+                            srcBlocks.push(emitted)
+                            emitted.move = new Vector(emitted.move).rotateByCardinalDirectionSelf(deltaRotation)
+                        }
+                    }
+                }
+            }
+            // преобразовать блоки, записать результат на в исходное место
+            const rotatedArrays: IDBItemBlock[][] = [[], [], [], []]
+            BuildingTemplate.rotateBlocksProperty(srcBlocks, rotatedArrays, this.block_manager, [deltaRotation])
+            let i = 0
+            const rotatedBlocks = rotatedArrays[deltaRotation]
+            for(const block of srcBlocks) {
+                Object.assign(block, rotatedBlocks[i++])
+            }
+            // повернуть schematic.offset
+            Object.assign(schematic.offset, new Vector(schematic.offset).rotateByCardinalDirectionSelf(deltaRotation))
+        }
+
+        // вычислить преобразования координат
+        const schemToWorld = new VectorCardinalTransformer(new Vector(pos0).addSelf(schematic.offset), rotate)
+        const requestedAABB_inWorld = schemToWorld.transformAABB(requestedAabb_inSchem, new AABB())
         // AABB больше запрашиваемного (чтобы учесть emit_blocks за границами), но не за границами схематики
         const requestedAABBextended_inSchem = new AABB().copyFrom(requestedAabb_inSchem)
             .expand(MAX_EMIT_BLOCK_DISTANCE_XZ, MAX_EMIT_BLOCK_DISTANCE_Y, MAX_EMIT_BLOCK_DISTANCE_XZ)
             .setIntersect(this.binarySchematic.aabb)
+        const pos = new Vector()
 
         const chunkResults = new VectorCollector<TBlocksInChunk>()
         const schemChunkAABB_inWorld = new AABB(Infinity)   // AABB пересечения текущго чанка и схематики
         let chunkResult: TBlocksInChunk | null = null
 
-        for(const [pos, paletteIndex] of this.binarySchematic.ofAABB(pos0, requestedAABBextended_inSchem)) {
+        for(const [pos_inSchem, paletteIndex] of this.binarySchematic.getBlocks(requestedAABBextended_inSchem)) {
             const st = states[paletteIndex]
             if (!st) {
                 continue
             }
+            // преоразовать кооринаты
+            schemToWorld.transform(pos_inSchem, pos)
             // перейти к чанку результата, содержащему позицию
             let inRequestedAABB = true
             if (!schemChunkAABB_inWorld.containsVec(pos)) { // если не из текущего чанка
@@ -394,7 +405,7 @@ export class SchematicReader {
             // быстрая проверка для воздуха
             let {new_block} = st
             if(new_block.id === AIR_BLOCK.id) {
-                if (pos.y <= air_y && inRequestedAABB) {
+                if (read_air && inRequestedAABB) {
                     chunkResult.blocks.push({posi: math.getFlatIndexInChunk(pos), item: AIR_BLOCK})
                 }
                 continue
@@ -906,6 +917,7 @@ export class SchematicReader {
         if(!entities || !entities.Items) {
             return null;
         }
+        const BLOCK = this.block_manager
         const chest_extra_data = this.parseChestPropsExtraData(props);
         for(let i = 0; i < entities.Items.length; i++)  {
             const item = entities.Items[i];
@@ -941,5 +953,4 @@ export class SchematicReader {
         }
         return chest_extra_data;
     }
-
 }

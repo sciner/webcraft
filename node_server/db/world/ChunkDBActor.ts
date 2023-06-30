@@ -287,8 +287,8 @@ export class ChunkDBActor {
             });
             underConstruction.pushPromises(promise);
         } else {
-            // we know the rowId, so the chunk was loaded and ml exist
-            if (ml.compressed) {
+            // Даже если мы знаем rowId (следовательно, чанк существует), ml может отсутствовать (может chunkless Actor?)
+            if (ml?.compressed) {
                 const row = DBWorldChunk.toUpdateWorldModifyChunksWithBLOBs(patch, rowId, ml);
                 underConstruction.updateWorldModifyChunksWithBLOBs.push(row);
             } else {

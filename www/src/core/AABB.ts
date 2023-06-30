@@ -118,6 +118,14 @@ export class AABB implements IAABB {
         return this.width * this.height * this.depth
     }
 
+    getMin(dst: Vector = new Vector()): Vector {
+        return dst.setScalar(this.x_min, this.y_min, this.z_min)
+    }
+
+    getMax(dst: Vector = new Vector()): Vector {
+        return dst.setScalar(this.x_max, this.y_max, this.z_max)
+    }
+
     clone() : AABB {
         return new AABB(this.x_min, this.y_min, this.z_min, this.x_max, this.y_max, this.z_max)
     }

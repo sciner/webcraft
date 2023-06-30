@@ -153,12 +153,14 @@ export class WorldActionQueue {
             }
         }
         this.queueRunningNow = null
+        /*
         // отладочное сообщение если не успевает обработать
         const timedOut = this.queueOther.length > 0
         if (timedOut !== this.prevTimedOut) {
             console.log(timedOut ? 'WorldActionQueue timed out' : 'WorldActionQueue is free again')
         }
         this.prevTimedOut = timedOut
+        */
     }
 
 }
