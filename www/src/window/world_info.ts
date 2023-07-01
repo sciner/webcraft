@@ -139,6 +139,7 @@ export class WorldInfoWindow extends BlankWindow {
         lblName.style.font.weight = 'bold'
         this.add(lblName)
 
+        // кнопка оффициальный
         const lblOfficial = new Label(286 * this.zoom, 2 * this.line_height, 0, 22 * this.zoom, 'lblOfficial', '', 'Official')
         lblOfficial.style.font.size = 16
         this.add(lblOfficial)
@@ -156,11 +157,15 @@ export class WorldInfoWindow extends BlankWindow {
         this.add(lblPlayers)
 
         // предпросмотр
-        const lbl_preview = new Label(2 * this.line_height, lblName.y + lblName.h + 1.5 * this.line_height, 167 * this.zoom, 96 * this.zoom, 'lbl_preview', '', '')
-        this.add(lbl_preview)
+        const lblPreview = new Label(2 * this.line_height, lblName.y + lblName.h + 1.5 * this.line_height, 167 * this.zoom, 96 * this.zoom, 'lbl_preview', '', '')
+        lblPreview.style.textAlign.horizontal = 'center'
+        lblPreview.style.textAlign.vertical = 'middle'
+        lblPreview.style.border.hidden = false
+        lblPreview.setText(Lang.no_cover)
+        this.add(lblPreview)
 
-        //список
-        let y = lbl_preview.y + lbl_preview.h + 2 * this.line_height
+        // список
+        let y = lblPreview.y + lblPreview.h + 2 * this.line_height
         for(const item of [
             {id: 'lblDateCreated', title: Lang.date_created},
             {id: 'lblAge', title: Lang.age},
@@ -246,7 +251,9 @@ export class WorldInfoWindow extends BlankWindow {
             btnSwitchOfficial.setIcon(data.official ? hud_atlas.getSpriteFromMap('check2') : null)
             self.collection.initCollection(data.players)
             if (data?.cover) {
-                lbl_preview.setBackground(`/worldcover/${data.guid}/screenshot/${data.cover}`)
+                lblPreview.style.border.hidden = true
+                lblPreview.setText('')
+                lblPreview.setBackground(`/worldcover/${data.guid}/screenshot/${data.cover}`)
             }
             if (data?.is_admin) {
                 lbl_public.visible = true
