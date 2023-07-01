@@ -8,6 +8,7 @@ import type { WorldTickStat } from "./world/tick_stat.js";
 import type { ServerPlayer } from "./server_player.js";
 import { BLOCK_FLAG, DEFAULT_MOB_TEXTURE_NAME } from "@client/constant.js";
 import {EnumDamage} from "@client/enums/enum_damage.js";
+import type WorldEdit from "./plugins/chat_worldedit.js";
 
 const MAX_LINE_LENGTH = 100 // TODO based on the cleint's screen size
 
@@ -17,6 +18,7 @@ export class ServerChat {
     world: ServerWorld;
     onCmdCallbacks: CmdCallback[];
     onCmdCallbacksByName = new Map<string, CmdCallback[]>();
+    worldEdit?: WorldEdit
 
     static XYZ_HELP = '<x>, <y>, <z> can be: ~ (it means empty), +<number> (it means relative to the player, e.g. +-5)'
 

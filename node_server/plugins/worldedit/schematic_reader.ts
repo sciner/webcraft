@@ -406,7 +406,7 @@ export class SchematicReader {
             let {new_block} = st
             if(new_block.id === AIR_BLOCK.id) {
                 if (read_air && inRequestedAABB) {
-                    chunkResult.blocks.push({posi: math.getFlatIndexInChunk(pos), item: AIR_BLOCK})
+                    chunkResult.blocks.push({posi: math.worldPosToChunkIndex(pos), item: AIR_BLOCK})
                 }
                 continue
             }
@@ -417,7 +417,7 @@ export class SchematicReader {
             }
             // добавить сам блок и жидкости только если он входит в запрашиваемый AABB
             if (inRequestedAABB) {
-                chunkResult.blocks.push({posi: math.getFlatIndexInChunk(pos), item: new_block})
+                chunkResult.blocks.push({posi: math.worldPosToChunkIndex(pos), item: new_block})
                 const {fluidValue} = st
                 if (fluidValue) {
                     chunkResult.fluids.push(pos.x, pos.y, pos.z, fluidValue)
@@ -434,7 +434,7 @@ export class SchematicReader {
                         switchChunk(tmpVec)
                     }
                     const map = chunkResult.emittedBlocks ??= new Map()
-                    const posi = math.getFlatIndexInChunk(tmpVec)
+                    const posi = math.worldPosToChunkIndex(tmpVec)
                     map.set(posi, {posi, item})
                 }
             }

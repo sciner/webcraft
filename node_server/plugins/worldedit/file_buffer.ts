@@ -128,13 +128,13 @@ export class FileBuffer {
                 throw 'this.fileSize !== cookie.size'
             }
             this.file       = fs.openSync(fileName, 'r')
-            this.buffer     = new Buffer(FILE_CHUNK_SIZE)
+            this.buffer     = Buffer.alloc(FILE_CHUNK_SIZE)
             this.dataView   = new DataView(this.buffer.buffer)
 
         } else { // файл небольшой, можно целиком прочесть в память
 
             // выделить память
-            this.buffer     = new Buffer(cookie.fileSize)
+            this.buffer     = Buffer.alloc(cookie.fileSize)
             this.dataView   = new DataView(this.buffer.buffer)
 
             // прочитать в память

@@ -84,8 +84,8 @@ export class ObjectHelpers {
         if (a === b) { // первая проверка - хороша как для примитивов, так и для неглдубоко клонированных объектов
             return true
         }
-        if (a == null || b == null) {
-            return false
+        if (a == null || b == null) {    // т.к. (null === undefined) == false, первая проверка в этом слкчае не выполнилась бы
+            return a == b
         }
         if (typeof a !== 'object' || typeof b !== 'object') {
             // Мы уже знаем что (a === b) неверно, т.е. примитивные значения не равны.

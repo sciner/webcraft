@@ -2,7 +2,7 @@ import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth,
     SpatialDeterministicRandom, ObjectHelpers, getValidPosition, relPosToIndex, relIndexToPos } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CD_ROT, CubeSym} from './core/CubeSym.js';
-import { BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT, NO_DESTRUCTABLE_BLOCKS } from "./blocks.js";
+import {BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT, NO_DESTRUCTABLE_BLOCKS, IDBItemBlock} from "./blocks.js";
 import { BLOCK_ACTION } from "./server_client.js";
 import { Resources } from "./resources.js";
 import {impl as alea} from '@vendors/alea.js';
@@ -65,10 +65,10 @@ export type ActivateMobParams = {
 }
 
 export type TActionBlock = {
-    posi?           : int       // flat index
+    posi?           : int       // индекс в чанке, не flat
     pos?            : Vector
     action_id?      : int
-    item            : IBlockItem
+    item            : IDBItemBlock
     destroy_block ? : { id: int }
 }
 
@@ -76,12 +76,12 @@ type ActionBlocks = {
     list: TActionBlock[]
     options: {
         /**
-         * Если true, то если и старый, и новый блок - воздух, действие пропускается.
+         * Если true, и новый блок полностью совпадает со старым, то действие пропускается.
          *
          * Нужен ли этот параметр? Если блоки полностью совпадают (не только AIR), это лигочно сделать
          * поведением по умолчанию - ничего не делать.
          */
-        can_ignore_air      : boolean
+        ignore_equal        : boolean
         ignore_check_air    : boolean   // если true, то не проигрывается particle animation при разрушении блока
         on_block_set        : boolean
         on_block_set_radius : number

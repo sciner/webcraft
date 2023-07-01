@@ -1,4 +1,4 @@
-import { ChunkWorkerChunkManager, ChunkWorkerChunk } from "./chunk.js";
+import {ChunkWorkerChunkManager, ChunkWorkerChunk, IWorkerChunkCreateArgs} from "./chunk.js";
 import { VectorCollector, Vector, PerformanceTimer } from "../helpers.js";
 import {ChunkWorkQueue} from "./ChunkWorkQueue.js";
 import type { Biome3TerrainMap } from "../terrain_generator/biome3/terrain/map.js";
@@ -6,6 +6,7 @@ import type { BLOCK } from "../blocks.js";
 import type { DataChunk } from "../core/DataChunk";
 import { ChunkGrid } from "../core/ChunkGrid.js";
 import { DAYLIGHT_VALUE } from "../constant.js";
+import type {TChunkWorkerMessageBlocksGenerated} from "./messages.js";
 
 /** If it's true, it causes the chunk total chunk timers to be printed once after the wueue is empty. */
 const DEBUG_CHUNK_GEN_TIMERS = false
@@ -155,12 +156,15 @@ export class WorkerWorld {
         }
     }
 
-    createChunk(args) {
-        if(this.chunks.has(args.addr)) {
-            return this.chunks.get(args.addr);
+    createChunk(args: IWorkerChunkCreateArgs): void {
+        const existingChunk = this.chunks.get(args.addr)
+        if (existingChunk) {
+            return existingChunk
         }
         let chunk = new ChunkWorkerChunk(this.chunkManager, args);
-        this.chunks.add(args.addr, chunk);
+        if (!args.forSchematic) {
+            this.chunks.add(args.addr, chunk);
+        }
         chunk.init();
         this.genQueue.push(chunk);
         // console.log(`Actual chunks count: ${this.chunks.size}`);
@@ -270,8 +274,9 @@ export class WorkerWorld {
                     // key:                 ci.key,
                     tblocks:                non_zero > 0 ? chunk.tblocks.saveState() : null,
                     packedCells:            chunk.packCells(),
-                    tickers:                non_zero ? chunk.scanTickingBlocks() : null,
-                    genQueueSize:           genQueue.size()
+                    tickers:                (non_zero && !chunk.forSchematic) ? chunk.scanTickingBlocks() : null,
+                    genQueueSize:           genQueue.size(),
+                    forSchematic:           chunk.forSchematic
                 }
 
                 // Update and log timers - after the chunk finished exporting

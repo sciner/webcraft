@@ -85,7 +85,7 @@ export let NEIGHB_BY_SYM = {};
 export interface IDBItemBlock {
     id          : int
     extra_data? : Dict
-    rotate?     : Vector
+    rotate?     : IVector
     entity_id?  : string
 }
 

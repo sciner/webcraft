@@ -14,6 +14,7 @@ import type { ServerWorld } from "./server_world.js";
 import { PLAYER_STATUS, WORKER_MESSAGE } from "@client/constant.js";
 import type { ChunkGrid } from "@client/core/ChunkGrid.js";
 import type {RandomTickingBlocks} from "./ticker/random/random_ticking_blocks.js";
+import type {TChunkWorkerMessageBlocksGenerated, TChunkWorkerMessageInit} from "@client/worker/messages.js";
 
 /**
  * Each tick (unloaded_chunks_total * UNLOADED_CHUNKS_SUBSETS) is unloaded
@@ -121,9 +122,14 @@ export class ServerChunkManager {
                     break;
                 }
                 case 'blocks_generated': {
-                    let chunk = this.get(args.addr);
+                    const args: TChunkWorkerMessageBlocksGenerated = data[1]
                     this.genQueueSize = args.genQueueSize;
-                    chunk?.onBlocksGenerated(args);
+                    if (args.forSchematic) {
+                        this.world.chat.worldEdit?.schematicJob?.onBlocksGenerated(args)
+                    } else {
+                        const chunk = this.get(args.addr);
+                        chunk?.onBlocksGenerated(args);
+                    }
                     break;
                 }
                 case 'gen_queue_size': {
@@ -412,6 +418,11 @@ export class ServerChunkManager {
     /** Return chunk by addr */
     get(addr: IVector): ServerChunk | null {
         return this.all.get(addr) || null;
+    }
+
+    /** В отличие от {@link get}, возвращает также unloading чанки, или (возможно в будущем) в любом другом состоянии */
+    getInAnyState(addr: IVector): ServerChunk | undefined {
+        return this.all.get(addr) || this.unloading_chunks.get(addr);
     }
 
     getChunk(addr) {

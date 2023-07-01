@@ -83,9 +83,9 @@ export default class WorldEdit {
     id: number;
     worker: Worker;
     world: ServerWorld;
-    chat: any;
+    chat: ServerChat;
     building: WorldEditBuilding;
-    commands: Map<any, any>;
+    commands: Map<string, Function>;
 
     /**
      * Описание загруженной сейчас в вебворкере схематики. Одновременно может быть загружена только одна - для
@@ -123,7 +123,7 @@ export default class WorldEdit {
             }
             // console.log('worker -> chat_worldedit', data)
             const [cmd, args] = data
-            const user_id = args.args?.user_id ?? args.info?.user_id
+            const user_id = args.args?.user_id ?? args.args.info?.user_id
             if (args?.args?.waitingRequestId === this.waiting?.requestId) {
                 this.waiting = null  // если ждали этго ответа ответа - больше не ждем
             }
@@ -203,11 +203,12 @@ export default class WorldEdit {
 
     onWorld(world) {}
 
-    onChat(chat) {
+    onChat(chat: ServerChat) {
         
         if(!this.world) {
             this.chat = chat
             this.world = chat.world
+            this.chat.worldEdit = this
             // вызывать текущую задачу вставки (если она есть) в каждом тике и перед сохранением в БД
             this.world.tickListeners.push(() => this.schematicJob?.tick())
             this.world.dbActor.transactionListeners.push(() => this.schematicJob?.updateWorldState())
@@ -574,7 +575,7 @@ export default class WorldEdit {
         const createWorldActions = (chunk_addr : Vector) : WorldAction => {
             const resp = new WorldAction(null, null, true, false)
             resp.blocks.options.chunk_addr = new Vector().copyFrom(chunk_addr)
-            resp.blocks.options.can_ignore_air = true
+            resp.blocks.options.ignore_equal = true
             return resp
         };
         //
@@ -612,7 +613,7 @@ export default class WorldEdit {
             if(item.id != 0 && Object.keys(clone).length > 1) {
                 clone = ObjectHelpers.deepCloneObject(item, 100, new DBItemBlock(item.id)) as DBItemBlock
             }
-            actions.importBlock({posi: math.getFlatIndexInChunk(_pos), item: clone})
+            actions.importBlock({posi: math.worldPosToChunkIndex(_pos), item: clone})
             affected_count++
         }
         // fluids
@@ -1215,7 +1216,7 @@ export default class WorldEdit {
                     username,
                     state: SchematicState.LOADING,
                     orig_file_name: args[2],
-                    read_air: !!args[3],
+                    read_air: !!(args[3] ?? true),
                     rotate: 0,
                     fileCookie: {}
                 }

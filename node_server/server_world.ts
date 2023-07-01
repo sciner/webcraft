@@ -865,11 +865,11 @@ export class ServerWorld implements IWorld {
         // Modify blocks
         if(actions.blocks?.list) {
             // trick for worldedit plugin
-            const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
-            const can_ignore_air = (actions.blocks.options && 'can_ignore_air' in actions.blocks.options) ? !!actions.blocks.options.can_ignore_air : false;
-            const on_block_set = actions.blocks.options && 'on_block_set' in actions.blocks.options ? !!actions.blocks.options.on_block_set : true;
-            const blocks_chunk_addr = (actions.blocks.options && ('chunk_addr' in actions.blocks.options)) ? new Vector().copyFrom(actions.blocks.options.chunk_addr) : null
-            const blocks_chunk_coord = blocks_chunk_addr ? blocks_chunk_addr.clone().multiplyVecSelf(grid.chunkSize) : null
+            const options           = actions.blocks.options
+            const ignore_check_air  = options?.ignore_check_air
+            const ignore_equal      = options?.ignore_equal
+            const on_block_set      = options?.on_block_set ?? true
+            const blocks_chunk_coord = options?.chunk_addr && grid.chunkAddrToCoord(options.chunk_addr)
             try {
                 const block_pos_in_chunk = new Vector(Infinity, Infinity, Infinity);
                 const chunk_addr = new Vector(0, 0, 0);
@@ -886,7 +886,7 @@ export class ServerWorld implements IWorld {
                         if(!blocks_chunk_coord) {
                             throw 'error_pos_is_not_present'
                         }
-                        math.fromFlatChunkIndex(block_pos, params.posi).addSelf(blocks_chunk_coord)
+                        math.fromChunkIndex(block_pos, params.posi).addSelf(blocks_chunk_coord)
                     } else if(params.pos) {
                         block_pos.copyFrom(params.pos).flooredSelf()
                     } else {
@@ -949,7 +949,7 @@ export class ServerWorld implements IWorld {
                         }
                         const tblock = chunk.tblocks.get(block_pos_in_chunk);
                         let oldId = tblock.id;
-                        if(can_ignore_air && params.item.id == AIR_BLOCK_SIMPLE.id && oldId === 0) {
+                        if(ignore_equal && params.item.id === oldId && tblock.equal(params.item)) {
                             continue
                         }
                         previous_item.id = oldId
@@ -1154,11 +1154,6 @@ export class ServerWorld implements IWorld {
         for(const params of actions.mobs.activate) {
             await this.mobs.activate(params.id, params.spawn_pos, params.rotate);
         }
-
-        // синхронизировать управление с действие, если нужно (независимо от успешности действия)
-        server_player?.controlManager.syncWithEvent(actions)
-
-        actions.callback && actions.callback(actions)
     }
 
     // Return generator options

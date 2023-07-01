@@ -20,6 +20,7 @@ import { Resources } from "./resources.js";
 import type { BaseResourcePack } from "./base_resource_pack.js";
 import { FastCompiller } from "./bbmodel/compiler_base.js";
 import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
+import type {TChunkWorkerMessageBlocksGenerated, TChunkWorkerMessageInit} from "./worker/messages.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];

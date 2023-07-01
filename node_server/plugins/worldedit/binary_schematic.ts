@@ -128,6 +128,7 @@ export class BinarySchematic {
                 this.schematic = Schematic.parse(nbt)
                 this.schematic.blocks = null // чтобы не обратиться к этому полю случайно
             } catch (e) {
+                console.error('New schematic parser failed, ' + (e.message ?? e))
                 cookie.useExternalParser = true
                 await this.fileBuf.close()
                 this.fileBuf = null

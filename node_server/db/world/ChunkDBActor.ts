@@ -62,8 +62,10 @@ export class ChunkDBActor {
     dirtyBlocks: Map<int, DirtyBlock>;
     unsavedBlocks: Map<int, DBItemBlock>;
     lastUnsavedChangeTime: number;
-    world_modify_chunk_hasRowId: any;
-    savingUnsavedBlocksPromise: any;
+    world_modify_chunk_hasRowId?: number | boolean
+    /** Если не null, то запись в БД будет создана только когда этот Promise выполнится. */
+    world_modify_chunk_hasRowId_readyPromise: Promise<any> | null = null
+    savingUnsavedBlocksPromise?: Promise<any> | null
 
     constructor(world : ServerWorld, addr : Vector, chunk : ServerChunk = null) {
         this.world = world;
@@ -102,13 +104,18 @@ export class ChunkDBActor {
 
         let ml;
         if (this.world_modify_chunk_hasRowId) {
+            // может быть строка еще готова? ПОдождатб
+            const debugHadReadyPromise = this.world_modify_chunk_hasRowId_readyPromise != null
+            await this.world_modify_chunk_hasRowId_readyPromise
+            this.world_modify_chunk_hasRowId_readyPromise = null
+
             const addr = this.addr;
             const row = await this.world.db.chunks.bulkGetWorldModifyChunkQuery.get(addr.toArray()) as any;
             if (!row) {
                 // If there is no row, restoreModifiedChunks() told us that is exists: it's posible
                 // if someone deleted the record while the game was running.
                 // We don't handle it properly anywhere in code.
-                throw new Error('Not found in world_modify_chunks ' + addr);
+                throw new Error(`Not found in world_modify_chunks ${addr} ${this.world_modify_chunk_hasRowId} ${debugHadReadyPromise}`);
             }
             if (row.obj) {
                 ml = {
@@ -278,6 +285,9 @@ export class ChunkDBActor {
             const row = DBWorldChunk.toUpdateWorldModifyChunksRowByAddr(patch, this.addr);
             underConstruction.updateWorldModifyChunkByAddr.push(row);
         } else if (rowId === false) {
+            // Может быть, строка будет доступна для чтения только после окончания транзакции. Не уверен что это правильно и что это нужно.
+            this.world_modify_chunk_hasRowId_readyPromise = this.world.dbActor.worldSavingPromise
+
             const promise = world.db.chunks.insertChunkModifiers(
                 this.addr, patch, ml?.compressed, ml?.private_compressed
             ).then( rowId => {

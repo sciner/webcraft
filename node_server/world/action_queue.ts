@@ -118,15 +118,25 @@ export class WorldActionQueue {
                     }
                     // Apply actions
                     let pn_apply = performance.now();
+                    const {actions} = item
                     try {
-                        await world.applyActions(item.actor, item.actions);
+                        await world.applyActions(item.actor, actions);
                     } catch (e) {
                         console.error('world.applyActions exception ', e)
                         // если это действие породило дочерние - не добавлять их (высокий шанс что они некорректны)
                         childActions.length = 0
                         continue // не бросать исключение, продолжать выполнять очередь
                     }
-                    if(item.actions.notify) {
+                    // ниже - действия, кторые должны выполниться даже если при обработке WorldAction возникло исключение
+
+                    // синхронизировать управление с действием, если нужно (независимо от успешности действия)
+                    (item.actor as ServerPlayer)?.controlManager?.syncWithEvent(actions)
+
+                    if (actions.callback) {
+                        actions.callback(actions)
+                    }
+
+                    if(actions.notify) {
                         const notify = item.actions.notify;
                         if(('user_id' in notify) && ('user_id' in notify)) {
                             if(notify.total_actions_count == 1) {

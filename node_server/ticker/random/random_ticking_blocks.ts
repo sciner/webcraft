@@ -6,6 +6,7 @@ import {FAST_RANDOM_TICKERS_PERCENT} from "@client/constant.js";
 import {WorldAction} from "@client/world_action.js";
 import {CHUNK_STATE} from "@client/chunk_const.js";
 import {RANDOM_TICK_SPEED_CHUNK_SIZE} from "../../game_rule.js";
+import type {TScannedTickers} from "@client/worker/messages.js";
 
 const _rnd_check_pos = new Vector()
 const tmpRandomTickerTBlock = new TBlock()

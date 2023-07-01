@@ -17,9 +17,11 @@ import type { Mob, MobSpawnParams } from "./mob.js";
 import type { DropItem } from "./drop_item.js";
 import type { ServerChunkManager } from "./server_chunk_manager.js";
 import { FluidChunkQueue } from "@client/fluid/FluidChunkQueue.js";
-import type { DBItemBlock } from "@client/blocks";
+import type {IDBItemBlock} from "@client/blocks";
 import type { ChunkDBActor } from "./db/world/ChunkDBActor.js";
 import {RandomTickingBlocks} from "./ticker/random/random_ticking_blocks.js";
+import type {IWorkerChunkCreateArgs} from "@client/worker/chunk.js";
+import type {TChunkWorkerMessageBlocksGenerated, TScannedTickers} from "@client/worker/messages.js";
 
 const _rnd_check_pos            = new Vector(0, 0, 0);
 const tmpRandomTickerTBlock     = new TBlock()
@@ -33,9 +35,7 @@ const tmp_onNeighbourLoaded_block2  = new TBlock(null, new Vector())
 export interface ServerModifyList {
     compressed?         : BLOB
     private_compressed? : BLOB
-    obj? : {
-        [key: string]: DBItemBlock
-    }
+    obj?                : Dict<IDBItemBlock>
 }
 
 /** One row of "chunks" table, with additional in-memory fields */
@@ -217,6 +217,7 @@ export class ServerChunk {
     fluid:                              any                         = null;
     safeTeleportMarker:                 number                      = 0;
     spiralMarker:                       number                      = 0;
+    neededBy:                           any[]                       = []  // если этот массив не пустой, то чанк нужне какой-то подсистеме, и не должен пока выгружаться
     options:                            {}                          = {};
     tblocks:                            TypedBlocks3;
     ticking_blocks:                     TickingBlockManager;
@@ -333,16 +334,13 @@ export class ServerChunk {
             }
             this.setState(CHUNK_STATE.LOADING_BLOCKS);
             // Send requet to worker for create blocks structure
-            this.world.chunks.postWorkerMessage(['createChunk',
-                [
-                    {
-                        update:         true,
-                        addr:           this.addr,
-                        uniqId:         this.uniqId,
-                        modify_list:    ml
-                    }
-                ]
-            ]);
+            const args: IWorkerChunkCreateArgs = {
+                update:         true,
+                addr:           this.addr,
+                uniqId:         this.uniqId,
+                modify_list:    { obj : ml.obj }
+            }
+            this.world.chunks.postWorkerMessage(['createChunk', [args]]);
             // Разошлем чанк игрокам, которые его запрашивали
             this._preloadFluidBuf = fluid;
             if(this.preq.size > 0) {
@@ -715,7 +713,7 @@ export class ServerChunk {
     }
 
     shouldUnload() : boolean {
-        if (this.connections.size + this.safeTeleportMarker + this.spiralMarker > 0) {
+        if (this.connections.size + this.safeTeleportMarker + this.spiralMarker + this.neededBy.length > 0) {
             return false
         }
         if (this.load_state === CHUNK_STATE.LOADING_MOBS
@@ -724,8 +722,6 @@ export class ServerChunk {
         }
         return true;
     }
-
-
 
     // Return block key
     getBlockKey(pos) {
@@ -1344,7 +1340,7 @@ export class ServerChunk {
     }
 
     // Store in modify list
-    addModifiedBlock(pos : IVector, item : IBlockItem, previousId : int) {
+    addModifiedBlock(pos : IVector, item : IDBItemBlock, previousId : int) {
         const ml = this.modify_list;
         const bm = this.world.block_manager
         if(!ml.obj) ml.obj = {};
