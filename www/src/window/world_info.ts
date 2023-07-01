@@ -24,7 +24,16 @@ class PlayerItem extends Window {
 
     setPlayer(data) {
         this.#id = data.id
-        this.#title.text = data.username
+        this.#title.setText(data.username)
+        this.#title.style.font.color = UI_THEME.second_text_color
+        if (data.is_me) {
+            this.#title.setText(`[You]${data.username}`)
+            this.#title.style.font.color = '#00ff00bb'
+            this.btnTest.visible = false
+        } else if (data.is_admin) {
+            this.#title.setText(`[Admin]${data.username}`)
+            this.#title.style.font.color = '#ff0000bb'
+        }
     }
 }
 

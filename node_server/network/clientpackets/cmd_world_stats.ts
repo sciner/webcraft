@@ -19,14 +19,26 @@ export default class packet_reader {
         let t = false
         if (is_admin && packet?.data) {
             t = packet.data.public
-            console.log(packet.data.public)
-        }
+           
+        } 
+        //console.log(world.players)
         const info    = world.getInfo()
         const creater = info.user_id
         const age     = world.getTime()
         const players = []
         for (const pl of player.world.players.values()) {
-            players.push({id: pl.session.user_id, username: pl.session.username})
+            const is_admin = world.admins.checkIsAdmin(pl)
+            const is_me = pl.session.user_id == player.session.user_id
+            players.push({
+                id: pl.session.user_id, 
+                username: pl.session.username, 
+                is_admin: is_admin,
+                is_me: is_me
+            })
+        }
+        if (!info?.username) {
+            //const game = await world.game.db.getWorld(info.user_id)
+            //info.username = game.
         }
         //const game = await world.game.db.getWorld(info.guid)
         const packets = [{
