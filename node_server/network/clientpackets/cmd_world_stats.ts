@@ -16,14 +16,11 @@ export default class packet_reader {
     static async read(player, packet) {
         const world    = player.world
         const is_admin = world.admins.checkIsAdmin(player)
-        let t = false
+        let test = false
         if (is_admin && packet?.data) {
-            t = packet.data.public
-           
+            test = packet.data.public
         } 
-        //console.log(world.players)
         const info    = world.getInfo()
-        const creater = info.user_id
         const age     = world.getTime()
         const players = []
         for (const pl of player.world.players.values()) {
@@ -36,20 +33,15 @@ export default class packet_reader {
                 is_me: is_me
             })
         }
-        if (!info?.username) {
-            //const game = await world.game.db.getWorld(info.user_id)
-            //info.username = game.
-        }
-        //const game = await world.game.db.getWorld(info.guid)
         const packets = [{
             name: ServerClient.CMD_WORLD_STATS,
             data: {
                 guid: info.guid,
                 title: info.title,
-                username: creater,
+                username: info.username,
                 time: info.dt,
                 age: packet_reader.ageToDate(age.day, age.hours),
-                public: t,
+                public: test,
                 official: true,
                 players: players,
                 cover: info.cover,
