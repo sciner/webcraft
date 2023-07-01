@@ -149,7 +149,7 @@ export class WorldInfoWindow extends BlankWindow {
         this.add(lblName)
 
         // кнопка оффициальный
-        const lblOfficial = new Label(286 * this.zoom, 2 * this.line_height, 0, 22 * this.zoom, 'lblOfficial', '', 'Official')
+        const lblOfficial = new Label(230 * this.zoom, 2 * this.line_height, 0, 22 * this.zoom, 'lblOfficial', '', Lang.official)
         lblOfficial.style.font.size = 16
         this.add(lblOfficial)
 
@@ -160,7 +160,7 @@ export class WorldInfoWindow extends BlankWindow {
         btnSwitchOfficial.style.border.hidden = false
         this.add(btnSwitchOfficial)
 
-        const lblPlayers = new Label(this.w / 2 + 2 * this.line_height, 2 * this.line_height, 0, 22 * this.zoom, 'lblPlayers', '', 'Players')
+        const lblPlayers = new Label(this.w / 2 + 2 * this.line_height, 2 * this.line_height, 0, 22 * this.zoom, 'lblPlayers', '', Lang.players)
         lblPlayers.style.font.size = 16
         lblPlayers.style.font.weight = 'bold'
         this.add(lblPlayers)
