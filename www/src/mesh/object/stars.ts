@@ -1,6 +1,6 @@
 import { DIRECTION, IndexedColor, QUAD_FLAGS } from '../../helpers.js';
 import { BLOCK } from '../../blocks.js';
-import { GeometryTerrain } from '../../geometry_terrain.js';
+import { TerrainGeometry15 } from '../../geom/terrain_geometry_15.js';
 import { GAME_DAY_SECONDS } from '../../constant.js';
 import {impl as alea} from "@vendors/alea.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
@@ -94,7 +94,7 @@ export class Mesh_Object_Stars {
             );
         }
 
-        this.buffer = new GeometryTerrain(this.vertices);
+        this.buffer = new TerrainGeometry15(this.vertices);
 
     }
 

@@ -1,5 +1,5 @@
 import { Vector } from '../../helpers.js';
-import { GeometryTerrain } from '../../geometry_terrain.js';
+import { TerrainGeometry15 } from '../../geom/terrain_geometry_15.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import type {MeshBatcher} from "../mesh_batcher.js";
 import type {TerrainMaterial} from "../../renders/terrain_material.js";
@@ -21,7 +21,7 @@ export class Mesh_Object_Base {
     matrix:                 imat4 = mat4.create()
     gl_material?:           TerrainMaterial
     vertices:               float[] = []
-    buffer?:                GeometryTerrain
+    buffer?:                TerrainGeometry15
     lightTex?:              any
     visible:                boolean = true
     scale:                  ivec3 = vec3.create()
@@ -57,7 +57,7 @@ export class Mesh_Object_Base {
             this.buffer.destroy()
             this.buffer = null
         }
-        this.buffer = new GeometryTerrain(this.vertices)
+        this.buffer = new TerrainGeometry15(this.vertices)
         this.buffer.changeFlags(this.flags)
     }
 

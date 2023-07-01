@@ -18,7 +18,7 @@ import { MeshManager } from "./mesh/manager.js";
 import { Camera_3d } from "./renders/camera_3d.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { Environment, PRESET_NAMES } from "./environment.js";
-import { GeometryTerrain } from "./geometry_terrain.js";
+import { TerrainGeometry15 } from "./geom/terrain_geometry_15.js";
 import { CubeSym } from "./core/CubeSym.js";
 import {
     DEFAULT_CLOUD_HEIGHT,
@@ -1315,7 +1315,7 @@ export class Renderer {
             this.createShadowVertices(player_vertices, shapes, pos, TARGET_TEXTURES);
             //if(player.username != player.session.username) {
                 const dist = player_pos.sub(pos.flooredSelf()).subSelf(blockPosDiff)
-                for(let i = 0; i < player_vertices.length; i += GeometryTerrain.strideFloats) {
+                for(let i = 0; i < player_vertices.length; i += TerrainGeometry15.strideFloats) {
                     player_vertices[i + 0] -= dist.x;
                     player_vertices[i + 1] -= dist.z;
                     player_vertices[i + 2] -= dist.y;
@@ -1336,7 +1336,7 @@ export class Renderer {
         }
         */
         // Create buffer, draw and destroy
-        const buf = new GeometryTerrain(vertices);
+        const buf = new TerrainGeometry15(vertices);
         this.meshBatcher.drawMesh(buf, this.material_shadow, a_pos);
         buf.autoDestroy = true;
     }

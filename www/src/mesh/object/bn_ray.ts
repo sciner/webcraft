@@ -1,6 +1,6 @@
 import { DIRECTION, IndexedColor, QUAD_FLAGS, Vector } from '../../helpers.js';
 import { BLOCK } from '../../blocks.js';
-import { GeometryTerrain } from '../../geometry_terrain.js';
+import { TerrainGeometry15 } from '../../geom/terrain_geometry_15.js';
 import { AABB, AABBSideParams, pushAABB } from '../../core/AABB.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 
@@ -55,7 +55,7 @@ export class Mesh_Object_BeaconRay {
             this.pos
         );
 
-        this.buffer = new GeometryTerrain(this.vertices);
+        this.buffer = new TerrainGeometry15(this.vertices);
 
     }
 
