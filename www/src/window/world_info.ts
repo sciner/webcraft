@@ -41,19 +41,19 @@ class PlayerCollection extends Window {
 
         super(x, y, w, h, id)
 
-        this.#parent     = parent
+        // настройки
         this.item_height = 22 * this.zoom
         this.line_height = 5 * this.zoom
         this.mul_scroll  = 10
+
+        this.#parent     = parent
         this.max_count   = Math.floor(this.h / (this.item_height + this.line_height))
         this.style.border.hidden    = true
 
         this.container = new Window(0, 0, this.w - 22 * this.zoom, this.h, this.id + '_container')
-        //this.container.style.background.color = '#FF000055'
         this.add(this.container)
 
-        // Ширина / высота слота
-        this.scrollbar = new Slider((this.w - 22 * this.zoom), 0, 22 * this.zoom, this.h, 'scroll')
+        this.scrollbar = new Slider((this.w - 22 * this.zoom), 0, 22 * this.zoom, this.h, '_scroll')
         this.scrollbar.onScroll = (value) => {
             this.updateScroll(-value)
         }
@@ -69,15 +69,15 @@ class PlayerCollection extends Window {
         this.updateVisibleItems()
     }
 
-    updateScroll(val) {
+    updateScroll(val: number) {
         this.scrollY = Math.floor(val / this.mul_scroll)
         this.container.y = this.scrollY * (this.line_height + this.item_height)
         this.updateVisibleItems()
     }
 
     updateVisibleItems() {
-        const start_index   = Math.round(-this.scrollY)
-        const end_index     = start_index + this.max_count
+        const start_index = Math.round(-this.scrollY)
+        const end_index   = start_index + this.max_count
         for(let i = 0; i < this.items_count; i++) {
             const child = this.items[i]
             child.visible = i >= start_index && i < end_index
@@ -104,8 +104,8 @@ class PlayerCollection extends Window {
             item.setPlayer(all_items[i])
             sy += (this.line_height + this.item_height)
         }
-        this.scrollY = 0
-        this.container.h = this.h
+        //this.scrollY = 0
+        //this.container.h = this.h
         this.scrollbar.max = this.mul_scroll * (this.items_count - this.max_count)
         this.updateVisibleItems()
     }
@@ -128,7 +128,7 @@ export class WorldInfoWindow extends BlankWindow {
         const hud_atlas = Resources.atlas.get('hud')
 
         // разделитель
-        const lblSeparator = new Label( this.w / 2 - 1.5 * this.zoom, 4.5 * this.line_height, 3 * this.zoom, this.h - 8 * this.line_height, 'lblSep', '', '')
+        const lblSeparator = new Label( this.w / 2 - 1.5 * this.zoom, 4.5 * this.line_height, 3 * this.zoom, this.h - 8 * this.line_height, 'lblSeparator', '', '')
         lblSeparator.style.border.hidden = true
         lblSeparator.style.background.color = '#00000033'
         this.add(lblSeparator)
@@ -230,42 +230,30 @@ export class WorldInfoWindow extends BlankWindow {
         player.world.server.AddCmdListener([ServerClient.CMD_WORLD_STATS], (cmd) => {
             console.log(cmd)
             const data = cmd.data
-            console.log('0')
+            
             data.age = data.age.replace('h', Lang.short_hours)
             data.age = data.age.replace('d', Lang.short_days)
             data.age = data.age.replace('m', Lang.short_month)
             data.age = data.age.replace('y', Lang.short_year)
-            console.log('1')
+            
             setValue('lblName', data.title)
             setValue('lblCreator', data.username)
             setValue('lblDateCreated', this.timeToStr(data.time * 1000))
             setValue('lblAge', data.age)
-            console.log('2')
+
             btnSwitchPublic.setIcon(data.public ? hud_atlas.getSpriteFromMap('check2') : null)
             btnSwitchPublic.toggled = data.public
-            console.log('3')
             btnSwitchOfficial.setIcon(data.official ? hud_atlas.getSpriteFromMap('check2') : null)
-            console.log('4')
             self.collection.initCollection(data.players)
-            console.log('5')
             if (data?.cover) {
-                lbl_preview.setBackground(`/worldcover/${data.guid}/screenshot/preview_${data.cover}`)
+                lbl_preview.setBackground(`/worldcover/${data.guid}/screenshot/${data.cover}`)
             }
-            console.log('6')
             if (data?.is_admin) {
-                console.log('show')
                 lbl_public.visible = true
                 btnSwitchPublic.visible = true
                 lbl_public_description.visible = true
                 lbl_public_description_2.visible = true
-            } else {
-                console.log('hide')
-                lbl_public.visible = false
-                btnSwitchPublic.visible = false
-                lbl_public_description.visible = false
-                lbl_public_description_2.visible = false
             }
-            console.log('7')
         })
 
     }
@@ -283,7 +271,6 @@ export class WorldInfoWindow extends BlankWindow {
         }
         this.collection = new PlayerCollection(this.w / 2 + 2 * this.line_height, 4.5 * this.line_height, this.w / 2 - 4 * this.line_height, this.h - 8 * this.line_height, 'wCollectionPlayers', this)
         this.add(this.collection)
-        return this.collection
     }
 
     timeToStr(time: number): string {
