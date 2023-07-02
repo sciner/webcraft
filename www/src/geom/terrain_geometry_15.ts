@@ -4,7 +4,7 @@ import type {BaseShader} from "../renders/BaseShader.js";
 
 export class QuadAttr {
     [key: string]: any;
-    /**d
+    /**
      *
      * @param {Float32Array} buffer
      * @param {number} offset
@@ -35,7 +35,8 @@ export class QuadAttr {
 
 export class TerrainGeometry15 extends Geometry {
     [key: string]: any;
-    constructor(vertices, chunkId? : int) {
+    strideFloats: int;
+    constructor(vertices?, chunkId? : int) {
         super();
         // убрал, для уменьшения объема оперативной памяти
         // this.vertices = vertices;
@@ -53,7 +54,7 @@ export class TerrainGeometry15 extends Geometry {
          */
         this.uint32Data;
 
-        this.setVertices(vertices);
+        this.setVertices(vertices || []);
 
         this.size = this.data.length / this.strideFloats;
         this.chunkIds = null;

@@ -123,6 +123,8 @@ export class MeshBatcherEntry {
     modelMatrix: imat4 = mat4.create();
     hasModelMatrix = false;
     dist = 0;
+    start = 0;
+    finish = 0;
 
     reset()
     {
