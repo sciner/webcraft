@@ -41,10 +41,16 @@ enum SchematicState {
     UNLOADING   // послали сообщение об очистке в воркер, но ответ еще не пришел
 }
 
+declare type ICheckSchematicOptions = {
+    anyPlayer?: boolean // если true, то проверяет схематику, загруженну любым игроком. Иначе - только этим
+    pasting?: boolean // проверяет если схематика сейчас вставляется
+    loading?: boolean // проверяет если не загружена
+}
+
 /**
  * Описывает cхематику, загруженную в настоящее время в вебворкер, а также примененные к ней преобразования.
  *
- * Этот объект может независимо пристствовать или отсутствовать в дву местах:
+ * Этот объект может независимо присутствовать или отсутствовать в дву местах:
  * - {@link WorldEdit.schematicInfo} - если сейчас схематика загружена
  * - {@link TServerWorldState.schematicJob} и соответвтсвующее поле в БД - если был или есть процесс вставки
  *   Возможно что сразу после загрузки мира {@link TServerWorldState.schematicJob} не null, но
@@ -1216,7 +1222,7 @@ export default class WorldEdit {
                     username,
                     state: SchematicState.LOADING,
                     orig_file_name: args[2],
-                    read_air: !!(args[3] ?? true),
+                    read_air: !!(args[3] ?? false),
                     rotate: 0,
                     fileCookie: {}
                 }
@@ -1246,12 +1252,8 @@ export default class WorldEdit {
      * @return true если выполняется или скоро начнется вставка схематики, и другие команды
      *   не должны выполняться. Также отпарвляет об этом сообщение игроку.
      *   !Игнорирует, если просто загружена схематика, но не заказана ее встака!
-     * @param options
-     *  byAnyPlayer - если true, то проверяет схематику, загруженну любым игроком. Иначе - только этим
-     *  pasting - проверяет если схематика сейчас вставляется
-     *  loading - проверяет если не загружена
      */
-    private checkSchematic(player: ServerPlayer, options: {anyPlayer?: boolean, pasting?: boolean, loading?: boolean}): boolean {
+    private checkSchematic(player: ServerPlayer, options: ICheckSchematicOptions): boolean {
         let info = this.world.state.schematicJob
         if (info && (options.anyPlayer || info.user_id === player.userId)) {
             if (options.pasting) {

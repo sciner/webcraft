@@ -252,7 +252,7 @@ export class SchematicJob {
         this.blocksInAction += action.blocks.list.length
     }
 
-    /** Отменяет текущие действия, если возможно. Не отменяет уже сделанных изменний! */
+    /** Отменяет текущие действия, если возможно. Не отменяет уже сделанных изменений! */
     clearActions(): void {
         this.paused = true
         this.world.chunks.fluidWorld.schematicAddressesAABB = null  // чтобы подсистема воды приостановила моделирование в этих чанках
@@ -314,7 +314,7 @@ export class SchematicJob {
                 ? (blocksLineIncrement.x > 0 ? this.addressesSize.x - relativeAddr.x : relativeAddr.x + 1)
                 : (blocksLineIncrement.z > 0 ? this.addressesSize.z - relativeAddr.z : relativeAddr.z + 1)
             count = Math.min(count, maxQueryChunks)
-            // находим сколько можно запросить в непрерывной серии до ближайшего запроешнного (если есть дыры в нумерации)
+            // находим сколько можно запросить в непрерывной серии до ближайшего запрошенного (если есть дыры в нумерации)
             for(let i = 1; i < count; i++) {
                 if (insertedChunks.has(this.nextQueryChunk + i)) {
                     count = i
@@ -324,7 +324,7 @@ export class SchematicJob {
 
             // подготовить запрос чанков
             const addr = relativeAddr.addSelf(this.addr0) // адрес 0-го чанка в запросе
-            const aabbInWorld = grid.getChunkAABB(addr) // AABB заправшиваемых блоков в СК мира
+            const aabbInWorld = grid.getChunkAABB(addr) // AABB запрашиваемых блоков в СК мира
             if (blocksLineIncrement.x) {
                 if (blocksLineIncrement.x > 0) {
                     aabbInWorld.x_max += chunkSize.x * (count - 1)
