@@ -3,7 +3,7 @@ import {TrivialGeometryPool} from "./geom/base_geometry_pool.js";
 import {IvanArray, Vector, SpiralGrid} from "./helpers.js";
 import {CubeTexturePool} from "./light/cube_texture_pool.js";
 import {CHUNK_GENERATE_MARGIN_Y} from "./chunk_const.js";
-import {GROUPS_NO_TRANSPARENT, GROUPS_TRANSPARENT} from "./chunk_manager.js";
+import {GROUPS_NO_TRANSPARENT, GROUPS_TRANSPARENT} from "./renders/material/shared.js";
 
 import type {BaseGeometryPool} from "./geom/base_geometry_pool.js";
 import type {Chunk} from "./chunk.js";

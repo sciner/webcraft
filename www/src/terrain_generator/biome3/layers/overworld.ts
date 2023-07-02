@@ -19,7 +19,7 @@ import type Terrain_Generator from "../index.js";
 import type { TerrainMapCell } from "../terrain/map_cell.js";
 import { MapsBlockResult, TerrainMapManager3 } from "../terrain/manager.js";
 import { CD_ROT } from "../../../core/CubeSym.js";
-import type {BLOCK} from "../../../blocks.js";
+import type { BLOCK } from "blocks.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
 
@@ -52,6 +52,9 @@ class FallenTree {
     empty: boolean
     block_id?: any
     rand: alea
+    is_hollow: boolean
+    // hollow_logs: string[] = ['BIRCH_HOLLOW_LOG', 'OAK_HOLLOW_LOG', 'ACACIA_HOLLOW_LOG', 'SPRUCE_HOLLOW_LOG', 'JUNGLE_HOLLOW_LOG', 'DARK_OAK_HOLLOW_LOG']
+    b: IBlockMaterial
 
     constructor(rand : alea, chunk : ChunkWorkerChunk, bm : BLOCK) {
         this.pos        = new Vector(0, 0, 0)
@@ -73,9 +76,18 @@ class FallenTree {
                     if(rand.double() < v) {
                         const tree = trees[i]
                         if(tree.trunk) {
-                            this.block_id = tree.trunk
+                            this.b = this.bm.fromId(tree.trunk)
+                            this.block_id = this.b.id
                             break
                         }
+                    }
+                }
+                if(this.b && rand.double() > .5) {
+                    this.is_hollow = true
+                    const log_name = this.b.name.replace('_LOG', '_HOLLOW_LOG')
+                    this.b = this.bm.fromName(log_name)
+                    if(this.b) {
+                        this.block_id = this.b.id
                     }
                 }
             }
@@ -86,7 +98,7 @@ class FallenTree {
     }
 
     processPos(x : int, y : int, z : int) {
-        if(this.empty) {
+        if(this.empty || y < 1) {
             return
         }
         if(this.size == 0) {
@@ -104,23 +116,59 @@ class FallenTree {
         }
     }
 
-    finish() {
+    // make fallen logs
+    finish(slab_candidates : any[]) {
         if(this.size > 3) {
-            // make fallen logs
+            const chunk = this.chunk
+            const xyz = new Vector(0, 0, 0)
             const rotate = new Vector(0, 0, 0)
-            if(this.dir == DIRECTION.NORTH) rotate.x = CD_ROT.NORTH
-            if(this.dir == DIRECTION.SOUTH) rotate.x = CD_ROT.SOUTH
-            if(this.dir == DIRECTION.WEST) rotate.x = CD_ROT.WEST
-            if(this.dir == DIRECTION.EAST) rotate.x = CD_ROT.EAST
+            let branch_used = false
+            if(this.is_hollow) {
+                rotate.x = this.dir
+                rotate.y = 1
+            } else {
+                if(this.dir == DIRECTION.NORTH) rotate.x = CD_ROT.NORTH
+                if(this.dir == DIRECTION.SOUTH) rotate.x = CD_ROT.SOUTH
+                if(this.dir == DIRECTION.WEST) rotate.x = CD_ROT.WEST
+                if(this.dir == DIRECTION.EAST) rotate.x = CD_ROT.EAST
+            }
             for(let i = 0; i < Math.min(this.size, 8); i++) {
                 const {x, y, z} = this.pos
-                if(i != 1) {
-                    this.chunk.setBlockIndirect(x, y + 1, z, this.block_id, i == 0 ? null : rotate)
-                    // random pebbles over log
-                    if(this.rand.double() < .05) {
-                        this.chunk.setBlockIndirect(x, y + 2, z, this.bm.PEBBLES.id)
+                if(i != 1 || this.is_hollow) {
+                    let extra_data = null
+                    if(this.is_hollow) {
+                        let r = this.rand.double()
+                        if(!branch_used) {
+                            if(r < .1) {
+                                branch_used = true
+                                extra_data = {}
+                                extra_data.branch = true
+                            }
+                        }
+                        if(r < .3) {
+                            extra_data = extra_data ?? {}
+                            extra_data.moss = true
+                        }
+                    }
+                    // 1. убираем кандидатов на слебы под бревнами
+                    xyz.copyFrom(chunk.coord).addScalarSelf(x, y, z)
+                    for(let k = 0; k < slab_candidates.length; k += 3) {
+                        if(slab_candidates[k] && slab_candidates[k].equal(xyz)) {
+                            slab_candidates[k] = null
+                        }
+                    }
+                    this.chunk.setBlockIndirect(x, y + 1, z, this.block_id, (i == 0 && !this.is_hollow) ? null : rotate, extra_data)
+                    // 2. рисуем над бревном воздух, чтобы стереть высокую травы или блок-шапку (например снег)
+                    const cell = chunk.map.getCell(x, z)
+                    this.chunk.setBlockIndirect(x, y + 2, z, cell?.dirt_layer?.cap_block_id ?? 0)
+                    // 3. если это полное бревно, то рисует сверху рандломно камушки (random pebbles over log)
+                    if(!this.is_hollow) {
+                        if(this.rand.double() < .05) {
+                            this.chunk.setBlockIndirect(x, y + 2, z, this.bm.PEBBLES.id)
+                        }
                     }
                 }
+                // сдвигаемся к следующему блоку
                 this.pos.addToDirSelf(this.dir, -1)
             }
         }
@@ -306,9 +354,9 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
             }
             return true
         }
-
         for(let i = 0; i < this.slab_candidates.length; i += 3) {
             const xyz = this.slab_candidates[i]
+            if(!xyz) continue
             this.slab_candidates[i] = null
             const x = xyz.x - chunk.coord.x
             const y = xyz.y - chunk.coord.y
@@ -827,7 +875,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
             }
         }
 
-        fallen_tree.finish()
+        fallen_tree.finish(this.slab_candidates)
 
         chunk.timers.stop()
 

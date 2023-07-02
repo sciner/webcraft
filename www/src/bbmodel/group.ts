@@ -8,7 +8,7 @@ import type { BBModel_Model } from './model.js';
 import { MeshObjectCustomReplace, Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 import { Mesh_Object_Base } from '../mesh/object/base.js';
 import Mesh_Object_Block_Drop from '../mesh/object/block_drop.js';
-import type { WebGLMaterial } from '../renders/webgl/WebGLMaterial.js';
+import type { TerrainMaterial } from '../renders/terrain_material.js';
 import type {MeshBatcher} from "../mesh/mesh_batcher.js";
 
 const {mat4, vec3} = glMatrix;
@@ -128,7 +128,7 @@ export class BBModel_Group extends BBModel_Child {
                 mat4.multiply(mx, mx, matrix)
                 mesh.drawBuffer(meshBatcher, pos, mx)
             } else if(mesh instanceof MeshObjectCustomReplace) {
-                meshBatcher.drawMesh(mesh.buffer as GeometryTerrain, mesh.gl_material as WebGLMaterial, pos, mx)
+                meshBatcher.drawMesh(mesh.buffer as GeometryTerrain, mesh.gl_material, pos, mx)
             }
             return
         }

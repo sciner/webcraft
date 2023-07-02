@@ -23,9 +23,6 @@ import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
 import type {TChunkWorkerMessageBlocksGenerated, TChunkWorkerMessageInit} from "./worker/messages.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
-export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
-export const GROUPS_NO_TRANSPARENT = ['regular', 'creative_regular', 'doubleface', 'decal1', 'decal2']
-
 const tmpAddr = new Vector()
 let billboard_tex_compiler : FastCompiller
 
@@ -363,14 +360,14 @@ export class ChunkManager {
                                 ]
                                 return {spritesheet_id, tx_size, w: image_width, h: image_height, material_key, uv}
                             })
-                            
+
                             billboard_tex_compiler.billboard_textures.set(url, billboard_texture_info)
                         }
-                        
+
                         const info = await billboard_texture_info
                         extra_data.texture = {...extra_data.texture, ...info}
                         world.chunkManager.setBlock(args.pos, item)
-                    
+
                     }
                     process(args)
                     break
