@@ -275,11 +275,10 @@ export class Renderer {
         this.generateDropItemVertices();
 
         // Clouds
-        // @todo Переделать в связи с появлением TBlock
         this.clouds = new Mesh_Object_Clouds(this, DEFAULT_CLOUD_HEIGHT);
 
         // Stars
-        this.stars = this.meshes.add(new Mesh_Object_Stars());
+        this.stars = new Mesh_Object_Stars();
 
         world.chunkManager.postWorkerMessage(['setDropItemMeshes', this.drop_item_meshes]);
 
@@ -914,6 +913,8 @@ export class Renderer {
         });
 
         this.env.draw(this);
+        this.stars.draw(this.renderBackend);
+
         this.lightUniforms.pushOverride(this.nightVision ? 0xff: -1);
         this.defaultShader.bind(true);
 
