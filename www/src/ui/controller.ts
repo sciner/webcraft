@@ -100,7 +100,7 @@ class GameController {
     sunDir: { value: Vector; apply: () => void; getValue: () => string; };
     current_window: { id: string; show(id: any): void; toggle(id: any): void; getTitle(): any; };
     registration: { loading: boolean; form: { username: string; password: string; }; submit: () => boolean; reset: () => void; isValid: () => any; };
-    settings: { show_advanced_settings: boolean, form: PlayerOptions; lightMode: { list: { id: number; name: string; }[]; current: any; }; chunkGeometryMode: { list: { id: number; name: string; }[]; current: any; }; chunkGeometryAlloc: { list: { id: number; name: string; }[]; current: any; }; save: () => void; toggle: () => boolean; updateSlider: (inputId: any) => void; };
+    settings: { show_advanced_settings: boolean, form: PlayerOptions; crosshairStyle: { list: { id: number; name: string; }[]; current: any; }; lightMode: { list: { id: number; name: string; }[]; current: any; }; chunkGeometryMode: { list: { id: number; name: string; }[]; current: any; }; chunkGeometryAlloc: { list: { id: number; name: string; }[]; current: any; }; save: () => void; toggle: () => boolean; updateSlider: (inputId: any) => void; };
     boot: { loading: boolean; latest_save: boolean; init(): void; };
     DeleteWorld: { world_guid: string; world_title: string; showModal(world_guid: any): void; delete(): any; };
     mygames: {
@@ -319,6 +319,15 @@ class GameController {
                 },
                 set current(item) {
                     instance.settings.form.chunk_geometry_alloc = item.id;
+                }
+            },
+            crosshairStyle: {
+                list: [{id: 0, name: 'Classic'}, {id: 1, name: 'Dot'}, {id: 2, name: 'Cross'}, {id: 3, name: 'Hide'}],
+                get current() {
+                    return this.list[Qubatch.settings.crosshair_style];
+                },
+                set current(item) {
+                    Qubatch.settings.crosshair_style = item.id;
                 }
             },
             save: function() {

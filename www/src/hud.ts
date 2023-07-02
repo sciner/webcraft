@@ -314,6 +314,8 @@ export class HUD {
             return
         }
 
+        Qubatch.hud.underlay.crosshair_num = Qubatch.settings.crosshair_style
+
         this.frmMainMenu.parent.center(this.frmMainMenu)
 
         // Check if need redraw

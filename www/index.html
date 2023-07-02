@@ -426,6 +426,10 @@
                 <div class="interface">
                     <h1>{{Lang.interface}}</h1>
                     <div class="input-group">
+                        <p>{{Lang.crosshair_style}}</p>
+                        <select class="slim-select" id="settings-select-crosshair" ng-options="item as item.name for item in settings.crosshairStyle.list" ng-model="settings.crosshairStyle.current"></select>
+                    </div>
+                    <div class="input-group">
                         <div class="switcher-container" style="margin-top: 1em;">
                             <input type="checkbox" id="chk-show_compass" value="" ng-model="settings.form.show_compass" />
                             <div class="switcher">
