@@ -88,6 +88,7 @@ export class GameSettings implements TWorldSettings {
     cluster_draw_debug_grid: boolean = false
     // interface
     crosshair_style:         int = 0
+    crosshair_size:          int = 100
     window_size:             float = 100
     show_compass:            boolean = true
     check_delete_item:       boolean = true

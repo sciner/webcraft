@@ -255,6 +255,7 @@
         "lost_file_2": {"en": "Default settings will be used instead", "ru": "Вернутся стандартныe настройки", "fr": "Les paramètres par défaut seront utilisés à la place", "es": "Se utilizarán los ajustes predeterminados en su lugar", "man": "将使用默认设置代替"},
         "upload_image": {"en": "Upload image...", "ru": "Загрузить изображение...", "fr": "Télécharger une image...", "es": "Subir imagen...", "man": "上传图片..."},
         "click_for_set_image": {"en": "Click to set image", "ru": "Нажмите, чтобы установить изображение", "fr": "Cliquez pour définir l'image", "es": "Haga clic para establecer la imagen", "man": "点击设置图像"},
-        "crosshair_style": {"en": "Crosshair style", "ru": "Стиль прицела", "fr": "", "es": "", "man":""}
+        "crosshair_style": {"en": "Crosshair style", "ru": "Стиль прицела", "fr": "", "es": "", "man":""},
+        "crosshair_size": {"en": "Crosshair size", "ru": "Размер прицела", "fr": "", "es": "", "man":""}
     }
 }

@@ -430,6 +430,12 @@
                         <select class="slim-select" id="settings-select-crosshair" ng-options="item as item.name for item in settings.crosshairStyle.list" ng-model="settings.crosshairStyle.current"></select>
                     </div>
                     <div class="input-group">
+                        <p>{{Lang.crosshair_size}}: <span>{{settings.form.crosshair_size}}</span>%</p>
+                        <div class="rangeContainer" style="margin-bottom: 20px;">
+                            <input id="input_crosshair_size" class="slider" type="range" min="10" max="200" step="10" value="settings.form.crosshair_size" ng-model="settings.form.crosshair_size">
+                        </div>
+                    </div>
+                    <div class="input-group">
                         <div class="switcher-container" style="margin-top: 1em;">
                             <input type="checkbox" id="chk-show_compass" value="" ng-model="settings.form.show_compass" />
                             <div class="switcher">

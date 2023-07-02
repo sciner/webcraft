@@ -248,6 +248,7 @@ export class HUD {
         const wm = this.wm = new WindowManager(this.canvas, 0, 0, this.canvas.width, this.canvas.height)
 
         this.underlay = new HUD_Underlay();
+        this.underlay.crosshair_num = Qubatch.settings.crosshair_style
         wm.untypedParent.addChildAt(this.underlay, 0);
         //
         if(!this.wm.hud_window) {
@@ -314,7 +315,7 @@ export class HUD {
             return
         }
 
-        Qubatch.hud.underlay.crosshair_num = Qubatch.settings.crosshair_style
+        
 
         this.frmMainMenu.parent.center(this.frmMainMenu)
 
@@ -382,7 +383,7 @@ export class HUD {
         this.wm.hud_window.w = width
         this.wm.hud_window.h = height
 
-        this.underlay.resize(this.wm.pixiRender.screen, this.zoom)
+        this.underlay.resize(this.wm.pixiRender.screen, this.zoom * Qubatch.settings.crosshair_size / 100)
 
         this.refresh()
 
