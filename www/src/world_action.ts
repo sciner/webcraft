@@ -16,20 +16,21 @@ import {
 import { BLOCK_FLAG, COVER_STYLE_SIDES, DEFAULT_STYLE_NAME, SIGN_POSITION, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
-import type { TSittingState, TSleepState} from "./player.js";
+import type { PlayerStateWorld, TSittingState, TSleepState} from "./player.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
 import type {TChestInfo} from "./block_helpers.js";
 import type { GameMode } from "./game_mode.js";
 
 /** A type that is as used as player in actions. */
 export type ActionPlayerInfo = {
-    radius      : float,    // it's used as the player's diameter, not radius!
-    height      : float,
-    username?   : string,
-    pos         : IVector,
-    rotate      : IVector,
-    game_mode   : GameMode,
-    is_admin    : boolean,
+    radius          : float,    // it's used as the player's diameter, not radius!
+    height          : float,
+    username?       : string,
+    pos             : IVector,
+    rotate          : IVector,
+    game_mode       : GameMode,
+    is_admin        : boolean,
+    world           : PlayerStateWorld,
     session: {
         user_id: number
     }
@@ -1356,6 +1357,8 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         return [actions, pos];
     }
 
+    return [null, null];
+
 }
 
 //
@@ -1493,7 +1496,7 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) :
 }
 
 // Если ткнули на предмет с собственным окном
-function needOpenWindow(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+function needOpenWindow(e, world, pos, player: ActionPlayerInfo, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(!world_material.has_window || e.shiftKey) {
         return false;
     }
@@ -1507,7 +1510,7 @@ function needOpenWindow(e, world, pos, player, world_block, world_material, mat_
             entity_id:  entity_id
         };
     } else if(world_material.window == 'frmBillboard') {
-        if(player.is_admin) {
+        if(player.world.is_admin) {
             const posworld = new Vector(pos)
             const relindex = extra_data.relindex
             const move = relindex == -1 ? Vector.ZERO : relIndexToPos(relindex, new Vector())
@@ -1851,8 +1854,8 @@ function editBillboard(e, world, pos, player : ActionPlayerInfo, world_block, wo
     if (world_material.window != 'frmBillboard') {
         return false
     }
-    if(!player.is_admin) {
-        return false
+    if(!player.world.is_admin) {
+        throw 'error_require_permission'
     }
     const url = world.getPlayerFile(player.session.user_id, e.extra_data.file, e.extra_data.demo)
     if (!url) {

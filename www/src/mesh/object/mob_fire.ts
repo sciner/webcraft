@@ -5,6 +5,7 @@ import { AABB, AABBSideParams, pushAABB } from '../../core/AABB.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { MobModel } from '../../mob_model.js';
 import type { World } from '../../world.js';
+import type {MeshBatcher} from "../mesh_batcher.js";
 
 const {mat4} = glMatrix;
 
@@ -60,7 +61,7 @@ export class Mesh_Object_MobFire {
     }
 
     // Draw
-    draw(render, delta) {
+    draw(meshBatcher: MeshBatcher, delta: number) {
 
         if(!this.buffer) {
             return false;
@@ -76,7 +77,7 @@ export class Mesh_Object_MobFire {
         // mat4.rotate(this.matrix, this.matrix, rot, [0, 0, 1]);
         // mat4.scale(this.matrix, this.matrix, this.scale.toArray());
 
-        render.renderBackend.drawMesh(this.buffer, this.gl_material, this.apos, this.matrix);
+        meshBatcher.drawMesh(this.buffer, this.gl_material, this.apos, this.matrix);
 
     }
 
@@ -99,7 +100,7 @@ export class Mesh_Object_MobFire {
             return;
         }
         this.chunk = chunk;
-        this.lightTex = chunk.getLightTexture(render.renderBackend);
+        this.lightTex = chunk.getLightTexture(meshBatcher);
     }*/
 
 }

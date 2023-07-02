@@ -11,6 +11,7 @@ import type { NetworkPhysicObjectState } from "./network_physic_object.js";
 import type { World } from "./world.js";
 import type { TMobProps } from "./mob_manager.js";
 import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
+import type {MeshBatcher} from "./mesh/mesh_batcher.js";
 
 const { quat, mat4 } = glMatrix
 const SWING_DURATION = 6
@@ -231,14 +232,14 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
     }
 
-    update(render : Renderer, camPos : Vector, delta : float) {
-        super.update(render, camPos, delta)
+    update(meshBatcher: MeshBatcher, camPos : Vector, delta : float) {
+        super.update(meshBatcher, camPos, delta)
 
         this.updateArmSwingProgress(delta)
 
         const nametag = this.nametag
 
-        if(!this.isRenderable(render)) {
+        if(!this.isRenderable(meshBatcher)) {
             return
         }
 
@@ -389,7 +390,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
     }
 
-    draw(render : Renderer, camPos : Vector, delta : float, draw_debug_grid : boolean = false) : boolean {
+    draw(meshBatcher: MeshBatcher, camPos : Vector, delta : float, draw_debug_grid : boolean = false) : boolean {
         if(this.isAlive == false) {
             return false
         }
@@ -399,7 +400,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
         // speed = Helpers.calcSpeed(this.prev_pos, this.pos, delta / 1000);
         this.prev_pos.copyFrom(this.pos);
-        super.draw(render, camPos, delta, draw_debug_grid)
+        super.draw(meshBatcher, camPos, delta, draw_debug_grid)
         return true
     }
 

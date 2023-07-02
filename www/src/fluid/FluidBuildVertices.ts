@@ -31,7 +31,7 @@ class FluidMaterial {
         }
 
         this.material_key = block.resource_pack.id + '/'
-            + block.group + '/fluid/' + texture_id;
+            + 'fluid_' + block.group + '/fluid/' + texture_id;
     }
 }
 

@@ -1,5 +1,7 @@
+import type { ServerWorld } from "server_world";
+
 export class WorldAdminManager {
-    world: any;
+    world: ServerWorld;
     list: any;
 
     constructor(world) {
@@ -37,9 +39,10 @@ export class WorldAdminManager {
         }
         const user = await this.world.db.findPlayer(this.world.info.id, username);
         if (!user) {
-            return null;
+            throw 'error_user_not_found'
         }
         await this.world.db.setAdmin(this.world.info.id, user.id, 1);
+        this.updateWorldAdminForPlayer(user.id, true)
         return await this.load();
     }
 
@@ -56,7 +59,18 @@ export class WorldAdminManager {
             throw 'Can\'t remove owner';
         }
         await this.world.db.setAdmin(this.world.info.id, user.id, 0);
+        this.updateWorldAdminForPlayer(user.id, false)
         return await this.load();
+    }
+
+    updateWorldAdminForPlayer(user_id: int, value: boolean) {
+        for(const player of this.world.players.values()) {
+            if(player.session.user_id == user_id) {
+                player.state.world.is_admin = value
+                player.sendState()
+                break
+            }
+        }
     }
 
 }

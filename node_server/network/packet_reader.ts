@@ -124,11 +124,11 @@ export class PacketReader {
     }
 
     //
-    onError(player: ServerPlayer, commandReader: ICommandReader, err): void {
-        console.log(err)
-        player.sendError(err)
+    onError(player: ServerPlayer, commandReader: ICommandReader, error_message : string): void {
+        console.error(error_message)
+        player.sendError(error_message)
         if (commandReader.terminateOnException) {
-            player.terminate(err)
+            player.terminate(error_message)
         }
     }
 

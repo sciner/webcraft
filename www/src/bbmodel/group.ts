@@ -8,7 +8,8 @@ import type { BBModel_Model } from './model.js';
 import { MeshObjectCustomReplace, Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 import { Mesh_Object_Base } from '../mesh/object/base.js';
 import Mesh_Object_Block_Drop from '../mesh/object/block_drop.js';
-import type { WebGLMaterial } from '../renders/webgl/WebGLMaterial.js';
+import type { TerrainMaterial } from '../renders/terrain_material.js';
+import type {MeshBatcher} from "../mesh/mesh_batcher.js";
 
 const {mat4, vec3} = glMatrix;
 
@@ -60,7 +61,7 @@ export class BBModel_Group extends BBModel_Child {
         return this.model.bone_groups.has(this.name)
     }
 
-    drawBuffered(render : Renderer, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : imat4, bone_matrix: float[] = null, vertices : float[], emmit_particles_func? : Function, replace : boolean = false) {
+    drawBuffered(meshBatcher: MeshBatcher, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : imat4, bone_matrix: float[] = null, vertices : float[], emmit_particles_func? : Function, replace : boolean = false) {
 
         // Hide some groups
         if(mesh.hide_groups.includes(this.name)) {
@@ -110,7 +111,7 @@ export class BBModel_Group extends BBModel_Child {
                     replace_modifier.mesh.model.selectTextureFromPalette(this.name, replace_modifier.texture_name)
                 }
                 // draw another mesh
-                replace_modifier.replacement_group.drawBuffered(render, replace_modifier.mesh, pos, lm, mx, bone_matrix, [], undefined, true)
+                replace_modifier.replacement_group.drawBuffered(meshBatcher, replace_modifier.mesh, pos, lm, mx, bone_matrix, [], undefined, true)
                 // restore specific texture
                 if(replace_modifier.texture_name) {
                     replace_modifier.mesh.model.selectTextureFromPalette(this.name, null)
@@ -125,9 +126,9 @@ export class BBModel_Group extends BBModel_Child {
             if(mesh instanceof Mesh_Object_Block_Drop) {
                 mat4.translate(mx, mx, vec3.set(tempVec3, this.pivot.x/16, this.pivot.y/16 + .5, this.pivot.z/16))
                 mat4.multiply(mx, mx, matrix)
-                mesh.drawBuffer(render, pos, mx)
+                mesh.drawBuffer(meshBatcher, pos, mx)
             } else if(mesh instanceof MeshObjectCustomReplace) {
-                render.renderBackend.drawMesh(mesh.buffer as GeometryTerrain, mesh.gl_material as WebGLMaterial, pos, mx)
+                meshBatcher.drawMesh(mesh.buffer as GeometryTerrain, mesh.gl_material, pos, mx)
             }
             return
         }
@@ -139,8 +140,11 @@ export class BBModel_Group extends BBModel_Child {
                 continue
             }
             if(part instanceof BBModel_Group) {
-                part.drawBuffered(render, mesh, pos, lm, mx, bone_matrix, vertices, emmit_particles_func)
+                part.drawBuffered(meshBatcher, mesh, pos, lm, mx, bone_matrix, vertices, emmit_particles_func)
             } else if(!vertices_pushed && part instanceof BBModel_Cube) {
+                if(part.json.madcraft?.material) {
+                    // console.log(part.json.madcraft.material)
+                }
                 part.pushVertices(vertices, Vector.ZERO, lm, bone_matrix, emmit_particles_func)
             }
         }
@@ -156,7 +160,7 @@ export class BBModel_Group extends BBModel_Child {
                 geom = new GeometryTerrain(vertices)
                 mesh.geometries.set(this.name, geom)
             }
-            render.renderBackend.drawMesh(geom, mesh.gl_material, pos, mx)
+            meshBatcher.drawMesh(geom, mesh.gl_material, pos, mx)
         }
 
         // Draw appended groups
@@ -176,9 +180,9 @@ export class BBModel_Group extends BBModel_Child {
                 }
             }
             if(modifier.mesh instanceof Mesh_Object_BBModel) {
-                modifier.mesh.drawBuffered(render, 0, accessory_matrix, pos)
+                modifier.mesh.drawBuffered(meshBatcher, 0, accessory_matrix, pos)
             } else if(modifier.mesh instanceof Mesh_Object_Base) {
-                modifier.mesh.drawBuffer(render, pos, accessory_matrix)
+                modifier.mesh.drawBuffer(meshBatcher, pos, accessory_matrix)
             }
         }
 

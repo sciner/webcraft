@@ -334,7 +334,7 @@ export class ServerPlayer extends Player {
         }
     }
 
-    sendError(message) {
+    sendError(message : string) {
         const packets = [{
             name: ServerClient.CMD_ERROR,
             data: {
@@ -1169,6 +1169,15 @@ export class ServerPlayer extends Player {
         if (this.timer_anim <= performance.now()) {
             this.state.anim = false
         }
+    }
+
+    sendState() {
+        this.sendPackets([
+            {
+                name: ServerClient.CMD_PLAYER_UPDATE_STATE,
+                data: this.state
+            }
+        ])
     }
 
 }

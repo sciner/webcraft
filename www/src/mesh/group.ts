@@ -4,8 +4,8 @@ import {BLOCK, FakeTBlock} from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 import type { BaseResourcePack } from '../base_resource_pack.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
-import type { Renderer } from '../render.js';
-import type { WebGLMaterial } from '../renders/webgl/WebGLMaterial.js';
+import type { IMeshDrawer } from './mesh_batcher.js';
+import type { TerrainMaterial } from '../renders/terrain_material.js';
 import { DEFAULT_GRASS_PALETTE } from '../constant.js';
 
 // Chunk
@@ -34,7 +34,7 @@ export class MeshGroup {
         buffer?:        GeometryTerrain;
         resource_pack:  BaseResourcePack,
         vertices:       any[],
-        material:       WebGLMaterial
+        material:       TerrainMaterial
     }>
 
     constructor() {
@@ -170,9 +170,9 @@ export class MeshGroup {
     }
 
     // Draw meshes
-    draw(render : Renderer, pos : Vector, matrix : imat4) {
+    draw(meshBatcher: IMeshDrawer, pos : Vector, matrix : imat4) {
         this.meshes.forEach((mesh, _, map) => {
-            render.renderBackend.drawMesh(
+            meshBatcher.drawMesh(
                 mesh.buffer,
                 mesh.material,
                 pos,

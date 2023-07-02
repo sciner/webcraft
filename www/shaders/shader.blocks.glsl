@@ -378,7 +378,7 @@
         // Apply fog
         outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * combinedLight);
         // outColor.rgb = u_fogAddColor.rgb + (1. - u_fogAddColor.a * combinedLight) * outColor.rgb;
-        outColor = mix(outColor, vec4(u_fogColor.rgb, 1.), fogAmount);
+        outColor.rgb = mix(outColor.rgb, u_fogColor.rgb, fogAmount);
 
         // special effect for sunrise
         outColor.rgb = mix(outColor.rgb, u_fogColor.rgb, u_fogColor.a);
@@ -388,7 +388,7 @@
     if(opacity >= 0.0) {
         outColor.rgb = mix(outColor.rgb, u_tintColor.rgb, u_tintColor.a);
     } else {
-        outColor.a = -opacity;
+        outColor.a *= -opacity;
     }
 
 #endif

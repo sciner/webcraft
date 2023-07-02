@@ -351,7 +351,7 @@ export class IvanArray<T=any> {
         const { count, arr } = this;
         this.count = 0;
         for (let i = 0; i < count; i++) {
-            arr[i] = null;
+            arr[i] = undefined;
         }
     }
 
@@ -362,7 +362,7 @@ export class IvanArray<T=any> {
             arr[i - cnt] = arr[i];
         }
         for (let i = this.count; i < count; i++) {
-            arr[i] = null;
+            arr[i] = undefined;
         }
     }
 

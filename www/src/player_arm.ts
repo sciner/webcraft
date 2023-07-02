@@ -5,6 +5,7 @@ import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import type { Renderer } from "./render.js";
 import type { Player } from "./player.js";
+import type {MeshBatcher} from "./mesh/mesh_batcher.js";
 const { mat4, vec3, quat } = glMatrix;
 
 const lm        = IndexedColor.WHITE
@@ -13,10 +14,10 @@ const vecZero   = Vector.ZERO.clone()
 export class PlayerArm {
     [key: string]: any;
 
-    constructor(player : Player, render : Renderer) {
+    constructor(player : Player) {
 
         const model = Resources._bbmodels.get('arm')
-        const arm = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
+        const arm = new Mesh_Object_BBModel(player.world, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
         arm.setAnimation('idle') // atack_sword
 
         //
@@ -35,10 +36,10 @@ export class PlayerArm {
         }
 
         // Bind draw
-        const draw = function(render : Renderer, delta : float) {
+        const draw = function(meshBatcher : MeshBatcher, delta : float) {
             delta = getDelta()
             arm.apos.set(0, .1, -.35)
-            return orig_draw(render, delta)
+            return orig_draw(meshBatcher, delta)
         }
         draw.bind(arm)
         arm.draw = draw

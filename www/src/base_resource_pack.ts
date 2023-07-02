@@ -5,7 +5,7 @@ import { BLOCK_FLAG, DEFAULT_TX_SIZE, LIGHT_TYPE } from './constant.js';
 import type { TBlock } from './typed_blocks3.js';
 import type { BLOCK, FakeTBlock } from './blocks.js';
 import type { ChunkWorkerChunk } from './worker/chunk.js';
-import type { WebGLMaterial } from './renders/webgl/WebGLMaterial.js';
+import type { TerrainMaterial } from './renders/terrain_material.js';
 import type { ResourcePackManager } from './resource_pack_manager.js';
 import type { GameSettings } from './game.js';
 import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
@@ -276,7 +276,7 @@ export class BaseResourcePack {
     }
 
     //
-    getMaterial(key : string) : WebGLMaterial {
+    getMaterial(key : string) : TerrainMaterial {
         let texMat = this.materials.get(key);
         if(texMat) {
             return texMat;
