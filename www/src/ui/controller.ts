@@ -322,7 +322,7 @@ class GameController {
                 }
             },
             crosshairStyle: {
-                list: [{id: 0, name: 'Classic'}, {id: 1, name: 'Dot'}, {id: 2, name: 'Cross'}, {id: 3, name: 'Hide'}],
+                list: [{id: 0, name: 'Hide'}, {id: 1, name: 'Classic'}, {id: 2, name: 'Dot'}, {id: 3, name: 'Cross'}],
                 get current() {
                     return this.list[Qubatch.settings.crosshair_style];
                 },

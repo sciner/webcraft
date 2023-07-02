@@ -87,7 +87,7 @@ export class GameSettings implements TWorldSettings {
     chunks_draw_debug_grid:  boolean = false
     cluster_draw_debug_grid: boolean = false
     // interface
-    crosshair_style:         int = 0
+    crosshair_style:         int = 1
     crosshair_size:          int = 100
     window_size:             float = 100
     show_compass:            boolean = true
