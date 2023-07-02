@@ -137,48 +137,48 @@ export class WorldInfoWindow extends BlankWindow {
         const hud_atlas = Resources.atlas.get('hud')
 
         // разделитель
-        const lblSeparator = new Label( this.w / 2 - 1.5 * this.zoom, 4.5 * this.line_height, 3 * this.zoom, this.h - 8 * this.line_height, 'lblSeparator', '', '')
-        lblSeparator.style.border.hidden = true
-        lblSeparator.style.background.color = '#00000033'
-        this.add(lblSeparator)
+        const lbl_separator = new Label( this.w / 2 - 1.5 * this.zoom, 4.5 * this.line_height, 3 * this.zoom, this.h - 8 * this.line_height, 'lbl_separator', '', '')
+        lbl_separator.style.border.hidden = true
+        lbl_separator.style.background.color = '#00000033'
+        this.add(lbl_separator)
 
         // Заголовок
-        const lblName = new Label(2 * this.line_height, 2 * this.line_height, 0, 22 * this.zoom, 'lblName', '', 'World Name')
-        lblName.style.font.size = 16
-        lblName.style.font.weight = 'bold'
-        this.add(lblName)
+        const lbl_name = new Label(2 * this.line_height, 2 * this.line_height, 0, 22 * this.zoom, 'lbl_name', '', 'World Name')
+        lbl_name.style.font.size = 16
+        lbl_name.style.font.weight = 'bold'
+        this.add(lbl_name)
 
         // кнопка оффициальный
-        const lblOfficial = new Label(230 * this.zoom, 2 * this.line_height, 0, 22 * this.zoom, 'lblOfficial', '', Lang.official)
-        lblOfficial.style.font.size = 16
-        this.add(lblOfficial)
+        const lbl_official = new Label(230 * this.zoom, 2 * this.line_height, 0, 22 * this.zoom, 'lbl_official', '', Lang.official)
+        lbl_official.style.font.size = 16
+        this.add(lbl_official)
 
-        const btnSwitchOfficial = new Label(this.w / 2 - 2 * this.line_height - 17 * this.zoom, 2 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btnSwitchOfficial')
-        btnSwitchOfficial.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
-        btnSwitchOfficial.style.border.color = UI_THEME.button.border.disabled_color
-        btnSwitchOfficial.style.border.style = 'fixed_single'
-        btnSwitchOfficial.style.border.hidden = false
-        this.add(btnSwitchOfficial)
+        const btn_switch_official = new Label(this.w / 2 - 2 * this.line_height - 17 * this.zoom, 2 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btn_switch_official')
+        btn_switch_official.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
+        btn_switch_official.style.border.color = UI_THEME.button.border.disabled_color
+        btn_switch_official.style.border.style = 'fixed_single'
+        btn_switch_official.style.border.hidden = false
+        this.add(btn_switch_official)
 
-        const lblPlayers = new Label(this.w / 2 + 2 * this.line_height, 2 * this.line_height, 0, 22 * this.zoom, 'lblPlayers', '', Lang.players)
-        lblPlayers.style.font.size = 16
-        lblPlayers.style.font.weight = 'bold'
-        this.add(lblPlayers)
+        const lbl_players = new Label(this.w / 2 + 2 * this.line_height, 2 * this.line_height, 0, 22 * this.zoom, 'lbl_players', '', Lang.players)
+        lbl_players.style.font.size = 16
+        lbl_players.style.font.weight = 'bold'
+        this.add(lbl_players)
 
         // предпросмотр
-        const lblPreview = new Label(2 * this.line_height, lblName.y + lblName.h + 1.5 * this.line_height, 167 * this.zoom, 96 * this.zoom, 'lbl_preview', '', '')
-        lblPreview.style.textAlign.horizontal = 'center'
-        lblPreview.style.textAlign.vertical = 'middle'
-        lblPreview.style.border.hidden = false
-        lblPreview.setText(Lang.no_cover)
-        this.add(lblPreview)
+        const lbl_preview = new Label(2 * this.line_height, lbl_name.y + lbl_name.h + 1.5 * this.line_height, 167 * this.zoom, 96 * this.zoom, 'lbl_preview', '', '')
+        lbl_preview.style.textAlign.horizontal = 'center'
+        lbl_preview.style.textAlign.vertical = 'middle'
+        lbl_preview.style.border.hidden = false
+        lbl_preview.setText(Lang.no_cover)
+        this.add(lbl_preview)
 
         // список
-        let y = lblPreview.y + lblPreview.h + 2 * this.line_height
+        let y = lbl_preview.y + lbl_preview.h + 2 * this.line_height
         for(const item of [
-            {id: 'lblDateCreated', title: Lang.date_created},
-            {id: 'lblAge', title: Lang.age},
-            {id: 'lblCreator', title: Lang.creator}
+            {id: 'lbl_date_created', title: Lang.date_created},
+            {id: 'lbl_age', title: Lang.age},
+            {id: 'lbl_creator', title: Lang.creator}
         ]) {
             const lbl_title = new Label(2 * this.line_height, y, 0, 0, item.id + '_title', item.title, item.title)
             const lbl = new Label(this.w / 2 - 2 * this.line_height, y, 0, 0, item.id, item.title, item.title)
@@ -200,21 +200,21 @@ export class WorldInfoWindow extends BlankWindow {
         lbl_public.visible = false
         this.add(lbl_public)
 
-        const btnSwitchPublic = new Label(this.w / 2 - 2 * this.line_height - 17 * this.zoom, 28 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btnSwitchPublic')
-        btnSwitchPublic.style.border.color = UI_THEME.button.border.disabled_color
-        btnSwitchPublic.style.border.style = 'fixed_single'
-        btnSwitchPublic.style.border.hidden = false
-        btnSwitchPublic.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
-        btnSwitchPublic.onMouseDown = function() {
+        const btn_switch_public = new Label(this.w / 2 - 2 * this.line_height - 17 * this.zoom, 28 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btn_switch_public')
+        btn_switch_public.style.border.color = UI_THEME.button.border.disabled_color
+        btn_switch_public.style.border.style = 'fixed_single'
+        btn_switch_public.style.border.hidden = false
+        btn_switch_public.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
+        btn_switch_public.onMouseDown = function() {
             player.world.server.Send({
                 name: ServerClient.CMD_WORLD_STATS, 
                 data: {
-                    public: btnSwitchPublic.toggled ? false : true
+                    public: btn_switch_public.toggled ? false : true
                 }
             })
         }
-        btnSwitchPublic.visible = false
-        this.add(btnSwitchPublic)
+        btn_switch_public.visible = false
+        this.add(btn_switch_public)
 
         const lbl_public_description = new Label(2 * this.line_height, 30 * this.line_height, 0, 0, 'lbl_public_description', '', Lang.make_public_description)
         lbl_public_description.style.font.size = 10
@@ -250,23 +250,23 @@ export class WorldInfoWindow extends BlankWindow {
             data.age = data.age.replace('m', Lang.short_month)
             data.age = data.age.replace('y', Lang.short_year)
             
-            setValue('lblName', data.title)
-            setValue('lblCreator', data.username)
-            setValue('lblDateCreated', this.timeToStr(data.time * 1000))
-            setValue('lblAge', data.age)
+            setValue('lbl_name', data.title)
+            setValue('lbl_creator', data.username)
+            setValue('lbl_date_created', this.timeToStr(data.time * 1000))
+            setValue('lbl_age', data.age)
 
-            btnSwitchPublic.setIcon(data.public ? hud_atlas.getSpriteFromMap('check2') : null)
-            btnSwitchPublic.toggled = data.public
-            btnSwitchOfficial.setIcon(data.official ? hud_atlas.getSpriteFromMap('check2') : null)
+            btn_switch_public.setIcon(data.public ? hud_atlas.getSpriteFromMap('check2') : null)
+            btn_switch_public.toggled = data.public
+            btn_switch_official.setIcon(data.official ? hud_atlas.getSpriteFromMap('check2') : null)
             self.collection.initCollection(data.players)
             if (data?.cover) {
-                lblPreview.style.border.hidden = true
-                lblPreview.setText('')
-                lblPreview.setBackground(`/worldcover/${data.guid}/screenshot/${data.cover}`)
+                lbl_preview.style.border.hidden = true
+                lbl_preview.setText('')
+                lbl_preview.setBackground(`/worldcover/${data.guid}/screenshot/${data.cover}`)
             }
             if (data?.is_admin) {
                 lbl_public.visible = true
-                btnSwitchPublic.visible = true
+                btn_switch_public.visible = true
                 lbl_public_description.visible = true
                 lbl_public_description_2.visible = true
             }
