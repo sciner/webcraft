@@ -242,7 +242,7 @@ export class WorldInfoWindow extends BlankWindow {
         //
         const self = this
         player.world.server.AddCmdListener([ServerClient.CMD_WORLD_STATS], (cmd) => {
-            console.log(cmd)
+
             const data = cmd.data
             
             data.age = data.age.replace('h', Lang.short_hours)
