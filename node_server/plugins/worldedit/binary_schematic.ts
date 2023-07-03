@@ -157,7 +157,7 @@ export class BinarySchematic {
 
     async close() {
         this.closed = true
-        return this.file_buffer.close()
+        return this.file_buffer?.close()
     }
 
     /**
