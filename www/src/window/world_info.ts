@@ -295,7 +295,7 @@ export class WorldInfoWindow extends BlankWindow {
         const day = date.getDate()
         const hours = date.getHours()
         const minutes = date.getMinutes()
-        return ('0' + day.toString()).substring(-2) + '.' + ('0' + month.toString()).substring(-2) + '.' + date.getFullYear() + ' ' + ('0' + hours.toString()).substring(-2) + ':' + ('0' + minutes.toString()).substring(-2)
+        return ('0' + day.toString()).substr(-2) + '.' + ('0' + month.toString()).substr(-2) + '.' + date.getFullYear() + ' ' + ('0' + hours.toString()).substr(-2) + ':' + ('0' + minutes.toString()).substr(-2)
     }
 
 }
