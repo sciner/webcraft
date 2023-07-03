@@ -12,7 +12,7 @@ import Mesh_Object_Block_Drop from "./mesh/object/block_drop.js";
 import { Mesh_Object_Asteroid } from "./mesh/object/asteroid.js";
 import Mesh_Object_Clouds from "./mesh/object/clouds.js";
 import Mesh_Object_Rain from "./mesh/object/rain.js";
-import { Mesh_Object_Stars } from "./mesh/object/stars.js";
+import { Mesh_Object_Stars } from "./mesh/stars/star_mesh.js";
 
 import { MeshManager } from "./mesh/manager.js";
 import { Camera_3d } from "./renders/camera_3d.js";
@@ -278,7 +278,7 @@ export class Renderer {
         this.clouds = new Mesh_Object_Clouds(this, DEFAULT_CLOUD_HEIGHT);
 
         // Stars
-        this.stars = new Mesh_Object_Stars();
+        this.stars = new Mesh_Object_Stars(this.world);
 
         world.chunkManager.postWorkerMessage(['setDropItemMeshes', this.drop_item_meshes]);
 
@@ -913,7 +913,7 @@ export class Renderer {
         });
 
         this.env.draw(this);
-        this.stars.draw(this.renderBackend);
+        this.stars.draw(this);
 
         this.lightUniforms.pushOverride(this.nightVision ? 0xff: -1);
         this.defaultShader.bind(true);
