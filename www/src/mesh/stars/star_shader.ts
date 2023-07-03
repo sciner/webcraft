@@ -23,11 +23,13 @@ void main() {
     vec3 center = vec3(a_coord.xy * mat2(cr, sr, -sr, cr), a_coord.z);
     vec4 screen_center = u_projMatrix * u_viewMatrix * vec4(center.xzy, 0.0);
     
-    if (screen_center.z < 0.1)
+    if (screen_center.z < 0.1 || center.y < 0.0)
     {
         gl_Position = vec4(-1.0, -1.0, -1.0, 1.0);
         return;
     }
+    v_color.a *= clamp(center.y * 100.0, 0.0, 1.0);
+    
     vec2 pixel_center = (screen_center.xy / screen_center.w + 1.0) * 0.5 * u_resolution;
     
     v_pixel_radius = a_noot_radius * u_resolution.y * 0.01;
