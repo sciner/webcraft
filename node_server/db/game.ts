@@ -476,7 +476,7 @@ export class DBGame {
 
     // getWorld... Возвращает мир по его GUID
     async getWorld(world_guid)  {
-        const row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
+        const row = await this.conn.get("SELECT w.*, u.username FROM world as w LEFT JOIN user as u ON u.id = w.user_id WHERE w.guid = ?", [world_guid]);
         if(!row) {
             throw 'error_world_not_found';
         }

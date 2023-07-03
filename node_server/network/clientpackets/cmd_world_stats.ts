@@ -37,7 +37,7 @@ export default class packet_reader {
             name: ServerClient.CMD_WORLD_STATS,
             data: {
                 guid: info.guid,
-                title: info.title,
+                title: (info.title.length > 17) ? info.title.substring(0, 17) + '...' : info.title,
                 username: info.username,
                 time: info.dt,
                 age: packet_reader.ageToDate(age.day, age.hours),
