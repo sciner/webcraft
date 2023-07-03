@@ -596,6 +596,7 @@ export class WorldAction {
     drop_items: DropItemParams[]
     blocks: ActionBlocks
     fluids: int[]
+    fluidFlush: boolean
     mobs: {
         activate: ActivateMobParams[]
         spawn: any[] // it should be MobSpawnParams, but it's server class

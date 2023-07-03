@@ -215,7 +215,10 @@ export class SchematicJob {
             action.blocks.options.chunk_addr = blocksInChunk.addr
             action.blocks.options.ignore_equal = true
             action.importBlocks(blocksInChunk.blocks)
-            action.importFluids(blocksInChunk.fluids)
+            if (blocksInChunk.fluids.length) {
+                action.importFluids(blocksInChunk.fluids)
+                action.fluidFlush = true
+            }
 
             // обратный вызов по окончанию вставки
             action.callback = (action: WorldAction) => {
