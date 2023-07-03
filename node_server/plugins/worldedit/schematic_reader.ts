@@ -392,7 +392,7 @@ export class SchematicReader {
             if (!st) {
                 continue
             }
-            // преоразовать кооринаты
+            // преобразовать кооринаты
             schem_to_world.transform(pos_inSchem, pos)
             // перейти к чанку результата, содержащему позицию
             let inRequestedAABB = true
