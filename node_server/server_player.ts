@@ -306,8 +306,8 @@ export class ServerPlayer extends Player {
         this.sendWorldInfo(false);
     }
 
-    // sendWorldInfo
-    sendWorldInfo(update) {
+    // Send world info
+    sendWorldInfo(update : boolean) {
         this.sendPackets([{name: update ? ServerClient.CMD_WORLD_UPDATE_INFO : ServerClient.CMD_WORLD_INFO, data: this.world.getInfo()}]);
     }
 

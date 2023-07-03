@@ -1,9 +1,10 @@
-import { Button, Label, Slider, Window } from "../ui/wm.js";
-import { ServerClient } from "../server_client.js";
+import { Button, CheckBox, Label, Slider, Window } from "../ui/wm.js";
 import { Lang } from "../lang.js";
-import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH, INVENTORY_SLOT_SIZE, UI_THEME } from "../constant.js";
+import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH,  UI_THEME } from "../constant.js";
 import { BlankWindow } from "./blank.js";
 import { Resources } from "../resources.js";
+import type { World } from "../world.js";
+import type { Player } from "player.js";
 
 class PlayerItem extends Window {
     #data: any
@@ -26,12 +27,12 @@ class PlayerItem extends Window {
         this.#id = data.id
         this.#title.setText(data.username)
         this.#title.style.font.color = UI_THEME.second_text_color
-        if (data.is_me) {
-            this.#title.setText(`[You]${data.username}`)
+        if (data.its_me) {
+            this.#title.setText(`[${Lang.is_you}] ${data.username}`)
             this.#title.style.font.color = '#009622ff'
             this.btnTest.visible = false
         } else if (data.is_admin) {
-            this.#title.setText(`[Admin]${data.username}`)
+            this.#title.setText(`[${Lang.is_admin}] ${data.username}`)
             this.#title.style.font.color = '#c22727ff'
         }
     }
@@ -153,12 +154,9 @@ export class WorldInfoWindow extends BlankWindow {
         lbl_official.style.font.size = 16
         this.add(lbl_official)
 
-        const btn_switch_official = new Label(this.w / 2 - 2 * this.line_height - 17 * this.zoom, 2 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btn_switch_official')
-        btn_switch_official.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
-        btn_switch_official.style.border.color = UI_THEME.button.border.disabled_color
-        btn_switch_official.style.border.style = 'fixed_single'
-        btn_switch_official.style.border.hidden = false
-        this.add(btn_switch_official)
+        const chk_official = new CheckBox(this.w / 2 - 2 * this.line_height - 17 * this.zoom, 2 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btn_switch_official')
+        chk_official.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
+        this.add(chk_official)
 
         const lbl_players = new Label(this.w / 2 + 2 * this.line_height, 2 * this.line_height, 0, 22 * this.zoom, 'lbl_players', '', Lang.players)
         lbl_players.style.font.size = 16
@@ -197,87 +195,105 @@ export class WorldInfoWindow extends BlankWindow {
         lbl_public.style.font.size = UI_THEME.base_font.size
         lbl_public.style.font.weight = 'bold'
         lbl_public.style.font.color = UI_THEME.base_font.color
-        lbl_public.visible = false
         this.add(lbl_public)
 
-        const btn_switch_public = new Label(this.w / 2 - 2 * this.line_height - 17 * this.zoom, 28 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btn_switch_public')
-        btn_switch_public.style.border.color = UI_THEME.button.border.disabled_color
-        btn_switch_public.style.border.style = 'fixed_single'
-        btn_switch_public.style.border.hidden = false
-        btn_switch_public.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
-        btn_switch_public.onMouseDown = function() {
-            player.world.server.Send({
-                name: ServerClient.CMD_WORLD_STATS, 
-                data: {
-                    public: btn_switch_public.toggled ? false : true
-                }
-            })
-        }
-        btn_switch_public.visible = false
-        this.add(btn_switch_public)
+        const chk_public = new CheckBox(this.w / 2 - 2 * this.line_height - 17 * this.zoom, 28 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btn_switch_public')
+        chk_public.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
+        chk_public.visible = false
+        this.add(chk_public)
 
         const lbl_public_description = new Label(2 * this.line_height, 30 * this.line_height, 0, 0, 'lbl_public_description', '', Lang.make_public_description)
         lbl_public_description.style.font.size = 10
         lbl_public_description.style.font.color = UI_THEME.second_text_color
-        lbl_public_description.visible = false
         this.add(lbl_public_description)
 
-        const lbl_public_description_2 = new Label(2 * this.line_height, 31 * this.line_height, 0, 0, 'lbl_public_description', '', Lang.make_public_description_2)
+        const lbl_public_description_2 = new Label(2 * this.line_height, 31 * this.line_height, 0, 0, 'lbl_public_description_2', '', Lang.make_public_description_2)
         lbl_public_description_2.style.font.size = 10
         lbl_public_description_2.style.font.color = UI_THEME.second_text_color
-        lbl_public_description_2.visible = false
         this.add(lbl_public_description_2)
 
-        //
-        const setValue = (id : string, value : string) => {
-            for(const w of this.list.values()) {
-                if(w.id == id) {
-                    w.text = value
-                }
-            }
-        }
-
         this.addCollection()
-
-        //
-        const self = this
-        player.world.server.AddCmdListener([ServerClient.CMD_WORLD_STATS], (cmd) => {
-
-            const data = cmd.data
-            
-            data.age = data.age.replace('h', Lang.short_hours)
-            data.age = data.age.replace('d', Lang.short_days)
-            data.age = data.age.replace('m', Lang.short_month)
-            data.age = data.age.replace('y', Lang.short_year)
-            
-            setValue('lbl_name', data.title)
-            setValue('lbl_creator', data.username)
-            setValue('lbl_date_created', this.timeToStr(data.time * 1000))
-            setValue('lbl_age', data.age)
-
-            btn_switch_public.setIcon(data.public ? hud_atlas.getSpriteFromMap('check2') : null)
-            btn_switch_public.toggled = data.public
-            btn_switch_official.setIcon(data.official ? hud_atlas.getSpriteFromMap('check2') : null)
-            self.collection.initCollection(data.players)
-            if (data?.cover) {
-                lbl_preview.style.border.hidden = true
-                lbl_preview.setText('')
-                lbl_preview.setIcon(`/worldcover/${data.guid}/screenshot/${data.cover}`, 'centerstretch', 1.0)
-            }
-            if (data?.is_admin) {
-                lbl_public.visible = true
-                btn_switch_public.visible = true
-                lbl_public_description.visible = true
-                lbl_public_description_2.visible = true
-            }
-        })
 
     }
 
     // Обработчик открытия формы
     onShow(args) {
-        this.player.world.server.Send({name: ServerClient.CMD_WORLD_STATS})
         super.onShow(args)
+        this.updateInfo()
+    }
+
+    updateInfo() {
+
+        const player : Player = this.player
+        const world : World = this.player.world
+        const info : TWorldInfo = world.info
+        const time = world.getTime()
+
+        //
+        const setWindowText = (id : string, value : string) => {
+            this.getWindow(id).text = value
+        }
+
+        //
+        const self = this
+        const hud_atlas = Resources.atlas.get('hud')
+        const btn_switch_public = this.getWindow('btn_switch_public')
+        const btn_switch_official = this.getWindow('btn_switch_official')
+        const lbl_preview = this.getWindow('lbl_preview')
+        const data = {
+            guid:        info.guid,
+            title:       (info.title.length > 17) ? info.title.substring(0, 17) + '...' : info.title,
+            cover:       `/worldcover/${info.guid}/screenshot/preview_${info.cover}`,
+            username:    info.username,
+            is_admin:    info.user_id == player.session.user_id,
+            time:        info.dt,
+            age:         time.string_full,
+            is_public:   false,
+            is_official: true,
+            players:     [],
+        }
+        // fill players
+        for(const p of world.players.values()) {
+            data.players.push({
+                id:       p.id, 
+                username: p.username, 
+                is_admin: p.id == info.user_id,
+                its_me:   p.itsMe()
+            });
+        }
+        
+        data.age = data.age.replace('h', Lang.short_hours)
+        data.age = data.age.replace('d', Lang.short_days)
+        data.age = data.age.replace('m', Lang.short_month)
+        data.age = data.age.replace('y', Lang.short_year)
+        
+        setWindowText('lbl_name', data.title)
+        setWindowText('lbl_creator', data.username)
+        setWindowText('lbl_date_created', this.timeToStr(data.time * 1000))
+        setWindowText('lbl_age', data.age)
+
+        btn_switch_public.setIcon(data.is_public ? hud_atlas.getSpriteFromMap('check2') : null)
+        btn_switch_public.toggled = data.is_public
+        btn_switch_official.setIcon(data.is_official ? hud_atlas.getSpriteFromMap('check2') : null)
+
+        // players
+        self.collection.initCollection(data.players)
+
+        // cover
+        if (data?.cover) {
+            lbl_preview.style.border.hidden = true
+            lbl_preview.setText('')
+            lbl_preview.setIcon(data.cover, 'centerstretch', 1.0)
+        }
+
+        // is admin
+        const lbl_public = this.getWindow('lbl_public')
+        const lbl_public_description = this.getWindow('lbl_public_description')
+        const lbl_public_description_2 = this.getWindow('lbl_public_description_2')
+        for(let w of [lbl_public, btn_switch_public, lbl_public_description, lbl_public_description_2]) {
+            w.visible = data.is_admin
+        }
+
     }
 
     addCollection() {

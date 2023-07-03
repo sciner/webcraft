@@ -328,7 +328,7 @@ export class ServerWorld implements IWorld {
     }
 
     // Return world info
-    getInfo() {
+    getInfo() : TWorldInfo {
         return this.info;
     }
 

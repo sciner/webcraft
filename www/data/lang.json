@@ -267,6 +267,8 @@
         "make_public_description": {"en": "Public worlds are available for search and any player may join them.", "ru": "Публичные миры доступны для поиска, и любой может присоединиться.", "fr": "", "es": "", "man": ""},
         "make_public_description_2": {"en": "You can unpublish your world anytime.", "ru": "Вы можете отменить публичность своего мира в любое время.", "fr": "", "es": "", "man": ""},
         "players": {"en": "Players", "ru": "Игроки", "fr": "", "es": "", "man": ""},
-        "official": {"en": "Official server", "ru": "Официальный", "fr": "", "es": "", "man": ""}
+        "official": {"en": "Official server", "ru": "Официальный", "fr": "", "es": "", "man": ""},
+        "is_you": {"en": "You", "ru": "Вы", "fr": "", "es": "", "man": ""},
+        "is_admin": {"en": "Admin", "ru": "Админ", "fr": "", "es": "", "man": ""}
     }
 }
