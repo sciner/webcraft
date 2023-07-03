@@ -7,7 +7,6 @@ const pipelineAsync = promisify(stream.pipeline)
 const finishedAsync = promisify(stream.finished)
 
 const FILE_CHUNK_SIZE               = 32768         // какими кусками читается файл, не загруженый целиком
-const DEFAULT_MAX_MEMORY_FILE_SIZE  = 50 * 1000000 // какой максимальной файл загружается в память целиком (по умолчанию)
 
 /**
  * Описывает как осуществляется доступ к файлу через {@link FileBuffer}, в том какой создан временный файл и
@@ -18,11 +17,11 @@ const DEFAULT_MAX_MEMORY_FILE_SIZE  = 50 * 1000000 // какой максима�
  * в тот же класс при следующем открытии того же файла. Поэтому называется cookie.
  */
 export type TFileBufferCookie = {
-    fileSize        ? : int     // размер неупаковынных даных
+    file_size        ? : int     // размер неупаковынных даных
     zipped          ? : boolean
     // время создания/изменения временного файла, если он есть
-    tmpFileCtimeMs  ? : number
-    tmpFileMtimeMs  ? : number
+    tmp_file_ctimeMs  ? : number
+    tmp_file_mtimeMs  ? : number
 }
 
 /**
@@ -39,13 +38,13 @@ export class FileBuffer {
 
     private cookie: TFileBufferCookie
 
-    private _offset      : int = 0   // текущая позиция
+    private _offset     : int = 0   // текущая позиция
     /** Порядок байт при чтении многобайтовых числе. Вызывающий может его ментяь. Не сохоаняется в {@link TFileBufferCookie} */
-    littleEndian        = false
+    little_endian       = false
 
     // открытый сейчас файл, из которого чиаем частями
     private file        : number | null = null
-    private usingTemporaryFileName? : string | null
+    private using_temporary_file_name? : string | null
 
     // загруженная сейчас в памать порция файла, или весь файл
     private buffer      : Buffer
@@ -58,105 +57,105 @@ export class FileBuffer {
     /**
      * Открывает файл для чтения.
      * Файл может быть сжатым zlib или нет.
-     * Если размер файла не превышает {@link maxMemoryFileSize}, он считывается в память полностью.
+     * Если размер файла не превышает {@link max_memory_file_size}, он считывается в память полностью.
      * Иначе - читается частями по мере необходимости. Если в память не помещается содержимое сжатого фалйла,
-     * создает временный файл {@link temporaryFileName}
+     * создает временный файл {@link temporary_file_name}
      * @param cookie - сохраняет информацию о том, как был открыт файл, был ли создан временный файл, см. {@link TFileBufferCookie}.
      */
-    async open(fileName: string, temporaryFileName: string, cookie: TFileBufferCookie = {}, maxMemoryFileSize = DEFAULT_MAX_MEMORY_FILE_SIZE): Promise<void> {
+    async open(file_name: string, temporary_file_name: string, max_memory_file_size: int, cookie: TFileBufferCookie = {}): Promise<void> {
         if (this.buffer) {
             throw "re-opening isn't supported"
         }
         this.cookie = cookie
 
         // если открываем файл первый раз - оценить сжатость и размер
-        if (cookie.fileSize == null) {
+        if (cookie.file_size == null) {
             // проверить сжатый ли файл
             let header: Buffer
             await finishedAsync(
-                fs.createReadStream(fileName, {start: 0, end: 2})
+                fs.createReadStream(file_name, {start: 0, end: 2})
                     .on('data', (buf: Buffer) => { header = buf })
             )
             if (header[0] === 0x1f && header[1] === 0x8b) { // если сжатый
                 cookie.zipped = true
-                cookie.fileSize = 0
+                cookie.file_size = 0
                 // Прочитать и распаковать чтобы узнать несжатый размер
                 await pipelineAsync(
-                    fs.createReadStream(fileName),
+                    fs.createReadStream(file_name),
                     zlib.createGunzip().on('data', (chunk: Buffer) => {
-                        cookie.fileSize += chunk.length
+                        cookie.file_size += chunk.length
                     })
                 )
             } else {
-                cookie.fileSize = (await fs.promises.stat(fileName)).size
+                cookie.file_size = (await fs.promises.stat(file_name)).size
             }
         }
 
-        if (cookie.fileSize > maxMemoryFileSize) {
+        if (cookie.file_size > max_memory_file_size) {
 
             if (cookie.zipped) { // надо использовать временный файл
                 let tmpFileExists = false
                 // проверить если он уже существует и не менялся с прошлого раза
-                if (cookie.tmpFileCtimeMs != null) {
-                    let stat = await fs.promises.stat(temporaryFileName).catch(() => null)
-                    tmpFileExists = stat?.size === cookie.fileSize &&
-                        stat?.ctimeMs === cookie.tmpFileCtimeMs &&
-                        stat?.mtimeMs === cookie.tmpFileMtimeMs
+                if (cookie.tmp_file_ctimeMs != null) {
+                    let stat = await fs.promises.stat(temporary_file_name).catch(() => null)
+                    tmpFileExists = stat?.size === cookie.file_size &&
+                        stat?.ctimeMs === cookie.tmp_file_ctimeMs &&
+                        stat?.mtimeMs === cookie.tmp_file_mtimeMs
                 }
                 // если нет - создать
                 if (!tmpFileExists) {
                     await pipelineAsync(
-                        fs.createReadStream(fileName),
+                        fs.createReadStream(file_name),
                         zlib.createGunzip(),
-                        fs.createWriteStream(temporaryFileName)
+                        fs.createWriteStream(temporary_file_name)
                     ).catch(async (err) => {
-                        await fs.promises.unlink(temporaryFileName).catch(() => null)
+                        await fs.promises.unlink(temporary_file_name).catch(() => null)
                         throw err
                     })
-                    const stat = await fs.promises.stat(temporaryFileName)
-                    cookie.tmpFileCtimeMs = stat.ctimeMs
-                    cookie.tmpFileMtimeMs = stat.mtimeMs
+                    const stat = await fs.promises.stat(temporary_file_name)
+                    cookie.tmp_file_ctimeMs = stat.ctimeMs
+                    cookie.tmp_file_mtimeMs = stat.mtimeMs
                 }
                 // теперь используем временный файл как исходный несжатый
-                fileName = temporaryFileName
-                this.usingTemporaryFileName = fileName  // запомнить чтобы удалить файл в конце
+                file_name = temporary_file_name
+                this.using_temporary_file_name = file_name  // запомнить чтобы удалить файл в конце
             }
 
             // подготовить работу с файлом с диска
-            const fileSize = (await fs.promises.stat(fileName)).size
-            if (fileSize !== cookie.fileSize) {
-                throw 'this.fileSize !== cookie.size'
+            const fileSize = (await fs.promises.stat(file_name)).size
+            if (fileSize !== cookie.file_size) {
+                throw 'this.fileSize !== cookie.file_size'
             }
-            this.file       = fs.openSync(fileName, 'r')
+            this.file       = fs.openSync(file_name, 'r')
             this.buffer     = Buffer.alloc(FILE_CHUNK_SIZE)
             this.dataView   = new DataView(this.buffer.buffer)
 
         } else { // файл небольшой, можно целиком прочесть в память
 
             // выделить память
-            this.buffer     = Buffer.alloc(cookie.fileSize)
+            this.buffer     = Buffer.alloc(cookie.file_size)
             this.dataView   = new DataView(this.buffer.buffer)
 
             // прочитать в память
             const onData = (chunk: Buffer) => {
                 chunk.copy(this.buffer, this.end)
                 this.end += chunk.length
-                if (this.end > cookie.fileSize) {
-                    throw 'this.end > cookie.size'
+                if (this.end > cookie.file_size) {
+                    throw 'this.end > cookie.file_size'
                 }
             }
             if (cookie.zipped) {
                 await pipelineAsync(
-                    fs.createReadStream(fileName),
+                    fs.createReadStream(file_name),
                     zlib.createGunzip().on('data', onData)
                 )
             } else {
                 await finishedAsync(
-                    fs.createReadStream(fileName).on('data', onData)
+                    fs.createReadStream(file_name).on('data', onData)
                 )
             }
-            if (this.end !== cookie.fileSize) {
-                throw 'this.end !== cookie.size'
+            if (this.end !== cookie.file_size) {
+                throw 'this.end !== cookie.file_size'
             }
         }
     }
@@ -164,14 +163,14 @@ export class FileBuffer {
     async close() {
         if (this.file) {
             fs.closeSync(this.file)
-            if (this.usingTemporaryFileName) {
-                await fs.promises.unlink(this.usingTemporaryFileName).catch(() => null)
+            if (this.using_temporary_file_name) {
+                await fs.promises.unlink(this.using_temporary_file_name).catch(() => null)
             }
             this.file = null
         }
     }
 
-    get size(): int { return this.cookie.fileSize }
+    get size(): int { return this.cookie.file_size }
 
     /** Текущее смещение относительно начала файла в байтах */
     get offset(): int { return this._offset }
@@ -181,11 +180,11 @@ export class FileBuffer {
      * @param readLength - необязательный параметр для оптимизации чтения небольших кусков.
      *   Если задан, то будет прочитано не больше байт, чем это значение а не {@link FILE_CHUNK_SIZE}.
      */
-    setOffset(offset: int, fileChunkSize?: int): void {
+    setOffset(offset: int, file_chunk_size?: int): void {
         this._offset = offset
         if (this.file && (offset < this.start || offset >= this.end)) {
-            fileChunkSize = Math.min(fileChunkSize ?? FILE_CHUNK_SIZE, FILE_CHUNK_SIZE)
-            this.read(1, fileChunkSize)
+            file_chunk_size = Math.min(file_chunk_size ?? FILE_CHUNK_SIZE, FILE_CHUNK_SIZE)
+            this.read(1, file_chunk_size)
         }
     }
 
@@ -204,7 +203,7 @@ export class FileBuffer {
             this.read(2)
         }
         this._offset += 2
-        return this.dataView.getInt16(_offset - this.start, this.littleEndian)
+        return this.dataView.getInt16(_offset - this.start, this.little_endian)
     }
 
     readInt32(): float {
@@ -213,7 +212,7 @@ export class FileBuffer {
             this.read(4)
         }
         this._offset += 4
-        return this.dataView.getInt32(_offset - this.start, this.littleEndian)
+        return this.dataView.getInt32(_offset - this.start, this.little_endian)
     }
 
     readBigInt64(): bigint {
@@ -222,7 +221,7 @@ export class FileBuffer {
             this.read(8)
         }
         this._offset += 8
-        return this.dataView.getBigInt64(_offset - this.start, this.littleEndian)
+        return this.dataView.getBigInt64(_offset - this.start, this.little_endian)
     }
 
     readFloat32(): float {
@@ -231,7 +230,7 @@ export class FileBuffer {
             this.read(4)
         }
         this._offset += 4
-        return this.dataView.getFloat32(_offset - this.start, this.littleEndian)
+        return this.dataView.getFloat32(_offset - this.start, this.little_endian)
     }
 
     readFloat64(): float {
@@ -240,34 +239,34 @@ export class FileBuffer {
             this.read(8)
         }
         this._offset += 8
-        return this.dataView.getFloat64(_offset - this.start, this.littleEndian)
+        return this.dataView.getFloat64(_offset - this.start, this.little_endian)
     }
 
-    readString(lengthBytes: int): string {
+    readString(length_bytes: int): string {
         const {_offset} = this
-        if (_offset + lengthBytes > this.end) {
-            this.read(lengthBytes)
+        if (_offset + length_bytes > this.end) {
+            this.read(length_bytes)
         }
-        this._offset += lengthBytes
-        const dataView = new DataView(this.buffer.buffer, _offset - this.start, lengthBytes)
+        this._offset += length_bytes
+        const dataView = new DataView(this.buffer.buffer, _offset - this.start, length_bytes)
         return this.utf8decoder.decode(dataView)
     }
     
-    skip(lengthBytes: int): void {
-        this._offset += lengthBytes
-        if (this._offset > this.cookie.fileSize) {
+    skip(length_bytes: int): void {
+        this._offset += length_bytes
+        if (this._offset > this.cookie.file_size) {
             throw 'buffer_underflow'
         }
     }
 
-    private read(length: int, chunkSize: int = FILE_CHUNK_SIZE): void {
+    private read(length: int, chunk_size: int = FILE_CHUNK_SIZE): void {
         const {file, _offset} = this
-        const {fileSize} = this.cookie
-        if (file == null || _offset + length > fileSize) {
+        const {file_size} = this.cookie
+        if (file == null || _offset + length > file_size) {
             this.close()
             throw 'buffer_underflow'
         }
-        length = Math.min(fileSize - _offset, Math.max(length, chunkSize))
+        length = Math.min(file_size - _offset, Math.max(length, chunk_size))
         const bytesRead = fs.readSync(file, this.buffer, 0, length, _offset)
         if (bytesRead !== length) {
             this.close()

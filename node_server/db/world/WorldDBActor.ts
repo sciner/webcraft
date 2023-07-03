@@ -1,4 +1,4 @@
-import { unixTime, Vector, VectorCollector } from "@client/helpers.js";
+import {ObjectHelpers, unixTime, Vector, VectorCollector} from "@client/helpers.js";
 import { TransactionMutex } from "../db_helpers.js";
 import { ChunkDBActor, BLOCK_DIRTY, DirtyBlock } from "./ChunkDBActor.js";
 import { WORLD_TRANSACTION_PERIOD, CLEANUP_WORLD_MODIFY_PER_TRANSACTION,
@@ -103,8 +103,6 @@ export class WorldDBActor {
     _worldSavingResolve: Function;
     // флаги - что надо сохранить в мире
     worldGeneratorDirty = false
-    // настраиваемый список тех, кто хочет писать что-то в мировую транзакцию (например, плагины)
-    transactionListeners: ((WorldTransactionUnderConstruction) => void)[] = []
 
     constructor(world : ServerWorld) {
         this.world = world;
@@ -146,6 +144,16 @@ export class WorldDBActor {
         const addr = chunk.addr;
         const actor = this.chunklessActors.get(addr);
         if (actor) {
+            // Из схематик могли прийти модификаторы, на которые ссылаются разные блоки.
+            // WorldAction их при вставке клонирует, но без чанка они не клонировались.
+            // На всякий случай склонировать их, чтобы в чанке разные блоки не указаывали на одну extra_data.
+            for(const [key, value] of actor.dirtyBlocks) {
+                actor.dirtyBlocks[key] = ObjectHelpers.deepClone(value)
+            }
+            for(const [key, value] of actor.unsavedBlocks) {
+                actor.unsavedBlocks[key] = ObjectHelpers.deepClone(value)
+            }
+
             actor.chunk = chunk;
             this.chunklessActors.delete(addr);
             return actor;
@@ -330,9 +338,8 @@ export class WorldDBActor {
                 db.driving.bulkDelete(uc.deleteDriving)
             )
 
-            for(const listener of this.transactionListeners) {
-                listener(uc)
-            }
+            // прочее
+            world.chat.world_edit?.schematic_job?.updateWorldState()
 
             // мир в целом
             if (this.worldGeneratorDirty) {

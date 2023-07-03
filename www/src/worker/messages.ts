@@ -24,5 +24,5 @@ export type TChunkWorkerMessageBlocksGenerated = {
     genQueueSize?:          int
     dayLightDefaultValue?:  int
     tickers:                TScannedTickers | null
-    forSchematic?:          { jobId: int, index: int }
+    for_schematic?:         { job_id: int, index: int }
 }

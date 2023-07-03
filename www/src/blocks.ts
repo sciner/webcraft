@@ -102,7 +102,7 @@ export class DBItemBlock implements IDBItemBlock {
     constructor(id : int, extra_data? : Dict) {
         this.id = id
         if(extra_data) {
-            this.extra_data = null
+            this.extra_data = extra_data
         }
     }
 

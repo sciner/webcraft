@@ -100,11 +100,11 @@ export type TBlocksInChunk = {
     addr        : IVector
     blocks      : TActionBlock[]
     fluids      : int[]
-    emittedBlocks?: Map<int, TActionBlock> // временные значения; не входят в результат
+    emitted_blocks?: Map<int, TActionBlock> // временные значения; не входят в результат
 }
 
-const tmpVec = new Vector()
-const tmpAddr = new Vector()
+const tmp_vec = new Vector()
+const tmp_addr = new Vector()
 
 // SchematicReader...
 export class SchematicReader {
@@ -114,14 +114,14 @@ export class SchematicReader {
     info            : TSchematicInfo    // информация о загруженой схематике и преобразованиях над ней
 
     /** Бинарные данные схематики (в них главное - упакованный масссив блоков) */
-    binarySchematic : BinarySchematic
+    binary_schematic : BinarySchematic
 
     /** Схематика в формате sponge/mcedit, кроме масива блоков */
     schematic       : Schematic
 
     private blockEntities: VectorCollector // в СК схематики
     /** Текущее вращение блоков в палитре и offset */
-    private currentRotation = 0
+    private current_rotation = 0
 
     /** Блоки из палитры, прошедшие обработку для madcraft. Индекс - номер в палитре. */
     private states: IStateBlock[]
@@ -144,7 +144,7 @@ export class SchematicReader {
      *   создавался.
      * @return информацию о загруженой хематике (для основного потока)
      */
-    async open(info: TSchematicInfo, worldGUID: string): Promise<void> {
+    async open(info: TSchematicInfo, max_memory_file_size: int, worldGUID: string): Promise<void> {
         this.info = info
         const BLOCK = this.block_manager
         const fileExists = path => fs.stat(path).then(() => true, () => false)
@@ -155,9 +155,9 @@ export class SchematicReader {
                 ? ['']
                 : ['', '.schem', '.schematic', '.schema']
             for(const extension of extensions) {
-                const tryName = `../data/schematics/${info.orig_file_name}${extension}`
-                if (await fileExists(tryName)) {
-                    info.file_name = tryName
+                const try_name = `../data/schematics/${info.orig_file_name}${extension}`
+                if (await fileExists(try_name)) {
+                    info.file_name = try_name
                     break
                 }
             }
@@ -170,9 +170,9 @@ export class SchematicReader {
         }
 
         // read schematic
-        this.binarySchematic = new BinarySchematic()
-        const tmpFileName = `${info.file_name}.${worldGUID}.tmp`
-        const schematic = await this.binarySchematic.open(info.file_name, tmpFileName, info.fileCookie)
+        this.binary_schematic = new BinarySchematic()
+        const tmp_file_name = `${info.file_name}.${worldGUID}.tmp`
+        const schematic = await this.binary_schematic.open(info.file_name, tmp_file_name, max_memory_file_size, info.file_cookie)
         let {palette, blockEntities} = schematic
         const sizeZ = schematic.size.z
 
@@ -204,9 +204,9 @@ export class SchematicReader {
         const result : IParseBlockResult        = {b: null, name: null};
 
         // обработать все блоки палитры 1 раз
-        for(let paletteIndex = 0; paletteIndex < palette.length; paletteIndex++) {
-            const stateId = palette[paletteIndex] // элемент palette у них называется stateId, см. Schematic.getBlockStateId
-            const block : IMCBlock = schematic.Block.fromStateId(stateId, 0)
+        for(let palette_index = 0; palette_index < palette.length; palette_index++) {
+            const state_id = palette[palette_index] // элемент palette у них называется state_id, см. Schematic.getBlockStateId
+            const block : IMCBlock = schematic.Block.fromStateId(state_id, 0)
             let new_block: DBItemBlock = null
             let fluidValue = 0
             let read_entity_props = false
@@ -234,7 +234,7 @@ export class SchematicReader {
                     } else if(b.name == 'FLOWER_POT') {
                         read_entity_props = true
                     }
-                    new_block = this.createBlockFromSchematic(block, b, schematic, null, tmpVec, read_entity_props)
+                    new_block = this.createBlockFromSchematic(block, b, schematic, null, tmp_vec, read_entity_props)
                     if(!new_block) {
                         continue
                     }
@@ -286,7 +286,7 @@ export class SchematicReader {
                     new_block = AIR_BLOCK;
                 }
             }
-            states[paletteIndex] = {fluidValue, new_block, b, read_entity_props, schematicBlock: block} as IStateBlock
+            states[palette_index] = {fluidValue, new_block, b, read_entity_props, schematicBlock: block} as IStateBlock
         }
         //
         const not_found_blocks_arr = [];
@@ -302,12 +302,12 @@ export class SchematicReader {
         console.log('Not found blocks:');
         console.log(not_found_blocks_str);
         this.schematic = schematic
-        info.size = this.binarySchematic.size
+        info.size = this.binary_schematic.size
         info.offset = ObjectHelpers.deepClone(schematic.offset) // клонируем потому что schematic.offset может поворачиваться
     }
 
     async close() {
-        return this.binarySchematic.close()
+        return this.binary_schematic.close()
     }
 
     updateInfo(info: TSchematicInfo): void {
@@ -326,7 +326,7 @@ export class SchematicReader {
     getByChunks(requestedAabb_inSchem: IAABB): TBlocksInChunk[] {
 
         const switchChunk = (pos: Vector) => {
-            const addr = grid.toChunkAddr(pos, tmpAddr)
+            const addr = grid.toChunkAddr(pos, tmp_addr)
             chunkResult = chunkResults.getOrSet(addr, () => {
                 return {
                     addr    : addr.clone(),
@@ -345,9 +345,9 @@ export class SchematicReader {
         const {read_air, rotate} = this.info
 
         // повернуть все блоки паитры, если нужно
-        if (rotate !== this.currentRotation) {
-            const deltaRotation = (rotate - this.currentRotation + 4) % 4
-            this.currentRotation = rotate
+        if (rotate !== this.current_rotation) {
+            const deltaRotation = (rotate - this.current_rotation + 4) % 4
+            this.current_rotation = rotate
             // собрать все блоки, включая emitted, в массив
             const srcBlocks: IDBItemBlock[] = []
             for(const state of this.states) {
@@ -375,25 +375,25 @@ export class SchematicReader {
         }
 
         // вычислить преобразования координат
-        const schemToWorld = new VectorCardinalTransformer(new Vector(pos0).addSelf(schematic.offset), rotate)
-        const requestedAABB_inWorld = schemToWorld.transformAABB(requestedAabb_inSchem, new AABB())
+        const schem_to_world = new VectorCardinalTransformer(new Vector(pos0).addSelf(schematic.offset), rotate)
+        const requestedAABB_inWorld = schem_to_world.transformAABB(requestedAabb_inSchem, new AABB())
         // AABB больше запрашиваемного (чтобы учесть emit_blocks за границами), но не за границами схематики
         const requestedAABBextended_inSchem = new AABB().copyFrom(requestedAabb_inSchem)
             .expand(MAX_EMIT_BLOCK_DISTANCE_XZ, MAX_EMIT_BLOCK_DISTANCE_Y, MAX_EMIT_BLOCK_DISTANCE_XZ)
-            .setIntersect(this.binarySchematic.aabb)
+            .setIntersect(this.binary_schematic.aabb)
         const pos = new Vector()
 
         const chunkResults = new VectorCollector<TBlocksInChunk>()
         const schemChunkAABB_inWorld = new AABB(Infinity)   // AABB пересечения текущго чанка и схематики
         let chunkResult: TBlocksInChunk | null = null
 
-        for(const [pos_inSchem, paletteIndex] of this.binarySchematic.getBlocks(requestedAABBextended_inSchem)) {
-            const st = states[paletteIndex]
+        for(const [pos_inSchem, palette_index] of this.binary_schematic.getBlocks(requestedAABBextended_inSchem)) {
+            const st = states[palette_index]
             if (!st) {
                 continue
             }
             // преоразовать кооринаты
-            schemToWorld.transform(pos_inSchem, pos)
+            schem_to_world.transform(pos_inSchem, pos)
             // перейти к чанку результата, содержащему позицию
             let inRequestedAABB = true
             if (!schemChunkAABB_inWorld.containsVec(pos)) { // если не из текущего чанка
@@ -405,36 +405,39 @@ export class SchematicReader {
             // быстрая проверка для воздуха
             let {new_block} = st
             if(new_block.id === AIR_BLOCK.id) {
-                if (read_air && inRequestedAABB) {
-                    chunkResult.blocks.push({posi: math.worldPosToChunkIndex(pos), item: AIR_BLOCK})
+                if (inRequestedAABB) {
+                    if (read_air) {
+                        chunkResult.blocks.push({posi: math.worldPosToChunkIndex(pos), item: AIR_BLOCK})
+                    }
+                    if (st.fluidValue) {
+                        chunkResult.fluids.push(pos.x, pos.y, pos.z, st.fluidValue)
+                    }
                 }
                 continue
             }
 
             if (st.read_entity_props) {
-                new_block = this.createBlockFromSchematic(st.schematicBlock, st.b, schematic, blockEntities,
-                    tmpVec.copyFrom(pos).subSelf(pos0), st.read_entity_props)
+                new_block = this.createBlockFromSchematic(st.schematicBlock, st.b, schematic, blockEntities, pos_inSchem, st.read_entity_props)
             }
             // добавить сам блок и жидкости только если он входит в запрашиваемый AABB
             if (inRequestedAABB) {
                 chunkResult.blocks.push({posi: math.worldPosToChunkIndex(pos), item: new_block})
-                const {fluidValue} = st
-                if (fluidValue) {
-                    chunkResult.fluids.push(pos.x, pos.y, pos.z, fluidValue)
+                if (st.fluidValue) {
+                    chunkResult.fluids.push(pos.x, pos.y, pos.z, st.fluidValue)
                 }
             }
             // Некоторые блоки могут создавать другие блоки (двери, высокие растения и прочее)
             if (new_block.emit_blocks) {
                 for(const item of new_block.emit_blocks) {
-                    tmpVec.copyFrom(pos).addSelf(item.move)
-                    if (!schemChunkAABB_inWorld.containsVec(tmpVec)) {
-                        if (!requestedAABB_inWorld.containsVec(tmpVec)) {
+                    tmp_vec.copyFrom(pos).addSelf(item.move)
+                    if (!schemChunkAABB_inWorld.containsVec(tmp_vec)) {
+                        if (!requestedAABB_inWorld.containsVec(tmp_vec)) {
                             continue
                         }
-                        switchChunk(tmpVec)
+                        switchChunk(tmp_vec)
                     }
-                    const map = chunkResult.emittedBlocks ??= new Map()
-                    const posi = math.worldPosToChunkIndex(tmpVec)
+                    const map = chunkResult.emitted_blocks ??= new Map()
+                    const posi = math.worldPosToChunkIndex(tmp_vec)
                     map.set(posi, {posi, item})
                 }
             }
@@ -443,23 +446,23 @@ export class SchematicReader {
         // Преобразовать реузльтат в массив
         const result: TBlocksInChunk[] = []
         for(chunkResult of chunkResults.values()) {
-            const {emittedBlocks, blocks} = chunkResult
-            // Добавить emittedBlocks к блокам. После того, как сами блоки заполнены (например, чтобы перезаписать воздух).
-            if (emittedBlocks) {
+            const {emitted_blocks, blocks} = chunkResult
+            // Добавить emitted_blocks к блокам. После того, как сами блоки заполнены (например, чтобы перезаписать воздух).
+            if (emitted_blocks) {
                 // замеить уже добавленные блоки на emitted
                 for(let i = 0; i < blocks.length; i++) {
                     const actionBlock = blocks[i]
-                    const emittedBlock = emittedBlocks.get(actionBlock.posi)
+                    const emittedBlock = emitted_blocks.get(actionBlock.posi)
                     if (emittedBlock) {
                         actionBlock.item = emittedBlock.item
-                        emittedBlocks.delete(actionBlock.posi)
+                        emitted_blocks.delete(actionBlock.posi)
                     }
                 }
                 // добавить оставшиеся emitted
-                for(const emitted of emittedBlocks.values()) {
+                for(const emitted of emitted_blocks.values()) {
                     blocks.push(emitted)
                 }
-                delete chunkResult.emittedBlocks
+                delete chunkResult.emitted_blocks
             }
             result.push(chunkResult)
         }

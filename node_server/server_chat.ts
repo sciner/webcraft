@@ -18,7 +18,7 @@ export class ServerChat {
     world: ServerWorld;
     onCmdCallbacks: CmdCallback[];
     onCmdCallbacksByName = new Map<string, CmdCallback[]>();
-    worldEdit?: WorldEdit
+    world_edit?: WorldEdit
 
     static XYZ_HELP = '<x>, <y>, <z> can be: ~ (it means empty), +<number> (it means relative to the player, e.g. +-5)'
 

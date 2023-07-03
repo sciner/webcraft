@@ -38,7 +38,7 @@ export declare type IWorkerChunkCreateArgs = {
     uniqId:         int | null
     modify_list:    IChunkModifyList | null
     update?:        boolean
-    forSchematic?:  { jobId: int, index: int } // Если не null, то не сохраянять в кеш, не сканировать тикеры
+    for_schematic?: { job_id: int, index: int } // Если не null, то не сохраянять в кеш, не сканировать тикеры
 }
 
 class MaterialBuf {
@@ -152,7 +152,7 @@ export class ChunkWorkerChunk implements IChunk {
     modify_list:                IChunkModifyList | null | IParsedChunkModifyList
     tm:                         number
     destroyed:                  boolean
-    forSchematic?:              { jobId: int, index: int }
+    for_schematic?:              { job_id: int, index: int }
 
     static neibMat = [null, null, null, null, null, null];
     static removedEntries = [];

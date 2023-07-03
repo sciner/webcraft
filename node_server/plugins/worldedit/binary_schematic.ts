@@ -5,7 +5,7 @@ import { Schematic } from 'madcraft-schematic-reader';
 import {FileBuffer, TFileBufferCookie} from "./file_buffer.js";
 
 /**
- * На сколько блоков хранится 1 инкрементное смещение (1 байт) - см. {@link BinarySchematic.incrementalOffsets}.
+ * На сколько блоков хранится 1 инкрементное смещение (1 байт) - см. {@link BinarySchematic.incremental_offsets}.
  * Это для ускорения поиска в упакованном varInt массиве. Мненьше значение = больше потребление памяти, быстрее.
  * Разумно задать {@link BLOCKS_PER_INCREMENTAL_OFFSET} 10..50.
  * например, 20 - значит на индексы тратится дополнительно чуть меньше чем (1/20) памяти
@@ -30,7 +30,7 @@ export type TBinarySchematicCookie = TFileBufferCookie & {
      * Если true, то используется внешний NBT парсер. Он медленнее и ограничен по объему файла.
      * Только на случай если новый парсер не может прочесть.
      */
-    useExternalParser?: boolean
+    use_external_parser?: boolean
 }
 
 /**
@@ -42,7 +42,7 @@ export class BinarySchematic {
 
     private schematic: Schematic
     /** Загруженный или открытый файл, откуда читаются несжатые данные. Если не null, то используется новый парсер. Иначе - старый. */
-    private fileBuf?: FileBuffer | null
+    private file_buffer?: FileBuffer | null
     private closed = false
     private cookie: TBinarySchematicCookie
     size: Vector
@@ -54,30 +54,30 @@ export class BinarySchematic {
      * i-й элемент - смещение в байтах блока (i * BLOCKS_PER_INCREMENTAL_OFFSET) относительно блока
      * ((i - 1) * BLOCKS_PER_INCREMENTAL_OFFSET)
      */
-    private incrementalOffsets: Uint8Array
+    private incremental_offsets: Uint8Array
     private strideZ: int
     private strideY: int
 
-    private tmpIterationEntry: [Vector, int] = [new Vector(), 0]
+    private tmp_iteration_entry: [Vector, int] = [new Vector(), 0]
 
     /**
      * Читает, распаковывает, парсит NBT, индексирует varint блоки для быстрого доступа.
      * Обрабатывает схематику вызовом Sponge или McEdit.
-     * @param useExternalParser - если true, то используется внешний NBT парсер. Он медленнее и ограничен
+     * @param use_external_parser - если true, то используется внешний NBT парсер. Он медленнее и ограничен
      *   по объему файла. Только на случай если этот парсер не может прочесть
      * @return схематикиа, обработанная Sponge или McEdit. Она содержит все кроме массива блоков.
      *   Для чтения блоков нужно использовать {@link getBlocks}
      */
-    async open(fileName: string, temporaryFileName: string, cookie: TBinarySchematicCookie): Promise<Schematic> {
+    async open(fileName: string, temporary_file_name: string, max_memory_file_size: int, cookie: TBinarySchematicCookie): Promise<Schematic> {
         this.cookie = cookie
 
         // пробуем прочесть новым парсером
-        if (!cookie.useExternalParser) {
+        if (!cookie.use_external_parser) {
             try {
                 // читаем файл
-                const fileBuf = new FileBuffer()
-                this.fileBuf = fileBuf
-                await fileBuf.open(fileName, temporaryFileName, cookie)
+                const file_buffer = new FileBuffer()
+                this.file_buffer = file_buffer
+                await file_buffer.open(fileName, temporary_file_name, max_memory_file_size, cookie)
                 if (this.closed) {
                     throw 'closed'
                 }
@@ -87,39 +87,39 @@ export class BinarySchematic {
 
                 // вычислить смещения в байтах для некоторых упакованных блоков для быстрого доступа по координатам
                 const {offset, length} = nbt.BlockData
-                fileBuf.setOffset(offset)
-                let prevOffset = 0
-                const endOffset = offset + length
+                file_buffer.setOffset(offset)
+                let prev_offset = 0
+                const end_offset = offset + length
                 this.offsets = new Uint32Array(Math.ceil(length / BLOCKS_PER_OFFSET))
-                this.incrementalOffsets = new Uint8Array(Math.ceil(length / BLOCKS_PER_INCREMENTAL_OFFSET))
-                let blockIndex = 0
-                let incrementalOffsetIndex = 0 // индекс в массиве incrementalOffsets
+                this.incremental_offsets = new Uint8Array(Math.ceil(length / BLOCKS_PER_INCREMENTAL_OFFSET))
+                let block_index = 0
+                let incremental_offset_index = 0 // индекс в массиве incremental_offsets
                 const volume = nbt.Width * nbt.Height * nbt.Length
 
-                while(blockIndex < volume) { // цикл по грппе блоков с одним offsets
-                    this.offsets[blockIndex / BLOCKS_PER_OFFSET | 0] = fileBuf.offset
-                    const bigGroupEnd = Math.min(blockIndex + BLOCKS_PER_OFFSET, volume)
+                while(block_index < volume) { // цикл по грппе блоков с одним offsets
+                    this.offsets[block_index / BLOCKS_PER_OFFSET | 0] = file_buffer.offset
+                    const big_group_end = Math.min(block_index + BLOCKS_PER_OFFSET, volume)
 
                     // пропустить блоки до следующего индекса кратного BLOCKS_PER_OFFSET
-                    while(blockIndex < bigGroupEnd) {
-                        this.incrementalOffsets[incrementalOffsetIndex++] = fileBuf.offset - prevOffset
-                        prevOffset = fileBuf.offset
-                        const smallGroupEnd = Math.min(blockIndex + BLOCKS_PER_INCREMENTAL_OFFSET, volume)
+                    while(block_index < big_group_end) {
+                        this.incremental_offsets[incremental_offset_index++] = file_buffer.offset - prev_offset
+                        prev_offset = file_buffer.offset
+                        const small_group_end = Math.min(block_index + BLOCKS_PER_INCREMENTAL_OFFSET, volume)
 
                         // пропустить блоки до следующего индекса кратного BLOCKS_PER_INCREMENTAL_OFFSET
-                        while(blockIndex < smallGroupEnd) {
+                        while(block_index < small_group_end) {
                             // пропустить 1 упакованный блок, провалидировать его длину
-                            let varIntLength = 1
-                            while ((fileBuf.readByte() & 128) !== 0) {
-                                if (++varIntLength > 5) {
+                            let varint_length = 1
+                            while ((file_buffer.readByte() & 128) !== 0) {
+                                if (++varint_length > 5) {
                                     throw new Error('VarInt too big (probably corrupted data)')
                                 }
                             }
-                            blockIndex++
+                            block_index++
                         }
                     }
                 }
-                if (fileBuf.offset !== endOffset) {
+                if (file_buffer.offset !== end_offset) {
                     throw new Error("BlockData length doesn't match")
                 }
 
@@ -129,14 +129,14 @@ export class BinarySchematic {
                 this.schematic.blocks = null // чтобы не обратиться к этому полю случайно
             } catch (e) {
                 console.error('New schematic parser failed, ' + (e.message ?? e))
-                cookie.useExternalParser = true
-                await this.fileBuf.close()
-                this.fileBuf = null
+                cookie.use_external_parser = true
+                await this.file_buffer.close()
+                this.file_buffer = null
             }
         }
 
         // пробуем прочесть старым парсером
-        if (cookie.useExternalParser) {
+        if (cookie.use_external_parser) {
             const buffer = await fs.promises.readFile(fileName)
             if (this.closed) {
                 throw 'closed'
@@ -157,7 +157,7 @@ export class BinarySchematic {
 
     async close() {
         this.closed = true
-        return this.fileBuf.close()
+        return this.file_buffer.close()
     }
 
     /**
@@ -166,8 +166,8 @@ export class BinarySchematic {
      * @return координаты в СК мира, номера блоков в палитре
      */
     *getBlocks(aabb: AABB = this.aabb): IterableIterator<[pos: Vector, paletteIndex: int]> {
-        const {strideZ, strideY, tmpIterationEntry, size} = this
-        const vec = tmpIterationEntry[0]
+        const {strideZ, strideY, tmp_iteration_entry, size} = this
+        const vec = tmp_iteration_entry[0]
         const {x_min, x_max} = aabb
         if (!this.aabb.containsAABB(aabb)) {
             throw 'requested AABB is outside the schematic'
@@ -177,7 +177,7 @@ export class BinarySchematic {
         const z_max = size.z - aabb.z_min
 
         // если блоки не в бинароном формате
-        if (this.cookie.useExternalParser) {
+        if (this.cookie.use_external_parser) {
             const {blocks} = this.schematic
             for(let y = aabb.y_min; y < aabb.y_max; y++) {
                 vec.y = y
@@ -186,17 +186,17 @@ export class BinarySchematic {
                     let offset = y * strideY + z * strideZ + x_min
                     for(let x = x_min; x < x_max; x++) {
                         vec.x = x
-                        tmpIterationEntry[1] = blocks[offset++]
-                        yield tmpIterationEntry
+                        tmp_iteration_entry[1] = blocks[offset++]
+                        yield tmp_iteration_entry
                     }
                 }
             }
             return
         }
 
-        const {offsets, incrementalOffsets, fileBuf} = this
+        const {offsets, incremental_offsets, file_buffer} = this
         // оценка длины читаемой строки в байтах - по 2 байта на блок. Сорее всего меньше, но может быть и больше (если больше - это ок)
-        const estimatedLineLengthBytes = (x_max - x_min) * 2
+        const estimated_line_length_bytes = (x_max - x_min) * 2
         // цкилы по (y, z) - началу непрерывной строки блоков
         for(let y = aabb.y_min; y < aabb.y_max; y++) {
             vec.y = y
@@ -205,21 +205,21 @@ export class BinarySchematic {
 
                 // найти начало строки приблизительно с помощью сохраненных смещений
                 const index = y * strideY + z * strideZ + x_min
-                const offsetIndex = index / BLOCKS_PER_OFFSET | 0
-                let roughOffset = offsets[offsetIndex]
+                const offset_index = index / BLOCKS_PER_OFFSET | 0
+                let rough_offset = offsets[offset_index]
 
                 // уточнить смещение по инкрементам
-                let incrementalOffsetIndex = offsetIndex * INCREMENTAL_OFFSETS_PER_OFFSET
-                const maxIncrementalOffsetIndex = index / BLOCKS_PER_INCREMENTAL_OFFSET | 0
-                while (incrementalOffsetIndex < maxIncrementalOffsetIndex) {
-                    roughOffset += incrementalOffsets[++incrementalOffsetIndex]
+                let incremental_offset_index = offset_index * INCREMENTAL_OFFSETS_PER_OFFSET
+                const max_incremental_offset_index = index / BLOCKS_PER_INCREMENTAL_OFFSET | 0
+                while (incremental_offset_index < max_incremental_offset_index) {
+                    rough_offset += incremental_offsets[++incremental_offset_index]
                 }
 
                 // найти смещение строки точно - пропустить ненужные блоки
-                fileBuf.setOffset(roughOffset, estimatedLineLengthBytes)
-                const skipCount = index - incrementalOffsetIndex * BLOCKS_PER_INCREMENTAL_OFFSET
-                for(let j = 0; j < skipCount; j++) {
-                    while ((fileBuf.readByte() & 128) !== 0) {
+                file_buffer.setOffset(rough_offset, estimated_line_length_bytes)
+                const skip_count = index - incremental_offset_index * BLOCKS_PER_INCREMENTAL_OFFSET
+                for(let j = 0; j < skip_count; j++) {
+                    while ((file_buffer.readByte() & 128) !== 0) {
                         // ничего
                     }
                 }
@@ -228,24 +228,24 @@ export class BinarySchematic {
                 for(let x = x_min; x < x_max; x++) {
                     vec.x = x
                     // распаковать значение блока. Повтор кода - см. readVarInt
-                    let byte = fileBuf.readByte()
+                    let byte = file_buffer.readByte()
                     let value = byte & 127
-                    let varintLength = 0
+                    let varint_length = 0
                     while ((byte & 128) !== 0) {
-                        byte = fileBuf.readByte()
-                        varintLength += 7
-                        value |= (byte & 127) << varintLength
+                        byte = file_buffer.readByte()
+                        varint_length += 7
+                        value |= (byte & 127) << varint_length
                     }
                     // вызать результат
-                    tmpIterationEntry[1] = value
-                    yield tmpIterationEntry
+                    tmp_iteration_entry[1] = value
+                    yield tmp_iteration_entry
                 }
             }
         }
     }
 
     /**
-     * Читает NBT тэги и распаковывает в объект все кроме BlockData из {@link fileBuf}.
+     * Читает NBT тэги и распаковывает в объект все кроме BlockData из {@link file_buffer}.
      * Всесто BlockData возвращает объект {offset, length}, показывающий его позицию в буфере.
      */
     private parseNBT(): Dict {
@@ -253,13 +253,13 @@ export class BinarySchematic {
         // См. readSignedVarInt в prismarine-nbt/compiler-zigzag.js
         function readSignedVarInt(): int {
             let result = 0
-            let varintLength = 0
+            let varint_length = 0
             let b: int
             do {
-                b = fileBuf.readByte()
-                result |= (b & 127) << varintLength
-                varintLength += 7
-                if (varintLength > 31) {
+                b = file_buffer.readByte()
+                result |= (b & 127) << varint_length
+                varint_length += 7
+                if (varint_length > 31) {
                     throw new Error('VarInt too big (probably corrupted data)')
                 }
             } while ((b & 128) !== 0)
@@ -275,18 +275,18 @@ export class BinarySchematic {
 
         function readString(): string {
             const length = readStingLength()
-            return fileBuf.readString(length)
+            return file_buffer.readString(length)
         }
 
-        function readTag(tagType: int, name?: string): any {
-            const reader = readers[tagType]
+        function readTag(tag_type: int, name?: string): any {
+            const reader = readers[tag_type]
             if (!reader) {
-                throw new Error(`unsupported tag type ${tagType}`)
+                throw new Error(`unsupported tag type ${tag_type}`)
             }
             return reader(name)
         }
 
-        const {fileBuf} = this
+        const {file_buffer} = this
         //const dataLength = buffer.length
 
         // функции для разных типов кодирования чисел
@@ -295,18 +295,18 @@ export class BinarySchematic {
         let readArrayLength: () => int
         const readers: ((name?: string) => any)[] = []
 
-        const header = [fileBuf.readByte(), fileBuf.readByte(), fileBuf.readByte(), fileBuf.readByte()]
-        const hasBedrockLevelHeader = header[1] === 0 && header[2] === 0 && header[3] === 0 // bedrock level.dat header
-        const bedrockHeaderLength = hasBedrockLevelHeader ? 8 : 0
+        const header = [file_buffer.readByte(), file_buffer.readByte(), file_buffer.readByte(), file_buffer.readByte()]
+        const has_bedrock_level_header = header[1] === 0 && header[2] === 0 && header[3] === 0 // bedrock level.dat header
+        const bedrockHeaderLength = has_bedrock_level_header ? 8 : 0
         const formats = (this.cookie.format && [this.cookie.format]) ??
-            (hasBedrockLevelHeader ? ['little'] : ['big', 'little', 'littleVarint'])
+            (has_bedrock_level_header ? ['little'] : ['big', 'little', 'littleVarint'])
         // пытаемся прочесть в разных форматах
         for(const format of formats) {
             this.cookie.format = format
             // настроить функции чтения
-            fileBuf.littleEndian = format !== 'big'
-            readStingLength = () => fileBuf.readInt16()
-            readArrayLength = () => fileBuf.readInt32()
+            file_buffer.little_endian = format !== 'big'
+            readStingLength = () => file_buffer.readInt16()
+            readArrayLength = () => file_buffer.readInt32()
             if (format === 'littleVarint') {
                 // Этот случай не тестировался и почти наверняка не работет.
                 // Если найдется такая схематика - можно будет на ней отладить.
@@ -315,41 +315,41 @@ export class BinarySchematic {
                 readArrayLength = readSignedVarInt
             }
             // типы тэгов: https://minecraft.fandom.com/wiki/NBT_format#TAG_definition
-            readers[1] = () => fileBuf.readByte()
-            readers[2] = () => fileBuf.readInt16()
-            readers[3] = () => fileBuf.readInt32()
-            readers[4] = () => fileBuf.readBigInt64()
-            readers[5] = () => fileBuf.readFloat32()
-            readers[6] = () => fileBuf.readFloat64()
+            readers[1] = () => file_buffer.readByte()
+            readers[2] = () => file_buffer.readInt16()
+            readers[3] = () => file_buffer.readInt32()
+            readers[4] = () => file_buffer.readBigInt64()
+            readers[5] = () => file_buffer.readFloat32()
+            readers[6] = () => file_buffer.readFloat64()
             readers[7] = (name?: string) => { // TAG_Byte_Array
                     const length = readArrayLength()
                     if (name === 'BlockData') {
-                        const result = { offset: fileBuf.offset, length }
-                        fileBuf.skip(length)
+                        const result = { offset: file_buffer.offset, length }
+                        file_buffer.skip(length)
                         return result
                     }
                     const result = new Uint8Array(length)
                     for(let i = 0; i < length; i++) {
-                        result[i] = fileBuf.readByte()
+                        result[i] = file_buffer.readByte()
                     }
                     return result
                 }
             readers[8] = readString
             readers[9] = () => {    // TAG_List
-                    const listTagType = fileBuf.readByte()
-                    const listLength = readArrayLength()
-                    const result = new Array(listLength)
-                    for(let i = 0; i < listLength; i++) {
-                        result[i] = readTag(listTagType)
+                    const list_tag_type = file_buffer.readByte()
+                    const list_length = readArrayLength()
+                    const result = new Array(list_length)
+                    for(let i = 0; i < list_length; i++) {
+                        result[i] = readTag(list_tag_type)
                     }
                     return result
                 }
             readers[10] = () => {   // TAG_Compound
                     const result = {}
-                    let subTagType: int
-                    while(subTagType = fileBuf.readByte()) {
+                    let sub_tag_type: int
+                    while(sub_tag_type = file_buffer.readByte()) {
                         const name = readString()
-                        result[name] = readTag(subTagType, name)
+                        result[name] = readTag(sub_tag_type, name)
                     }
                     return result
                 }
@@ -357,7 +357,7 @@ export class BinarySchematic {
                     const length = readArrayLength()
                     const result = new Array(length)
                     for(let i = 0; i < length; i++) {
-                        result[i] = fileBuf.readInt32()
+                        result[i] = file_buffer.readInt32()
                     }
                     return result
                 }
@@ -373,14 +373,14 @@ export class BinarySchematic {
             // попробовать прочитать в этом формате
             let result = {}
             try {
-                fileBuf.setOffset(bedrockHeaderLength)
-                while (fileBuf.offset !== fileBuf.size) {
-                    const tagType = fileBuf.readByte()
-                    if (tagType === 0) {
+                file_buffer.setOffset(bedrockHeaderLength)
+                while (file_buffer.offset !== file_buffer.size) {
+                    const tag_type = file_buffer.readByte()
+                    if (tag_type === 0) {
                         break
                     }
                     const name = readString()
-                    result[name] = readTag(tagType, name)
+                    result[name] = readTag(tag_type, name)
                 }
             } catch (e) {
                 continue // попробовать следующий формат

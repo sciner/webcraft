@@ -10,7 +10,7 @@ import type { ChunkGrid } from "@client/core/ChunkGrid";
 import type { ServerChat } from "server_chat";
 import type { ServerChunk } from "server_chunk";
 import type {ServerPlayer} from "../server_player.js";
-import {SchematicJob, TSchematicJobState} from "./worldedit/schematic_job.js";
+import {SCHEMATIC_JOB_OPTIONS, SchematicJob, TSchematicJobState} from "./worldedit/schematic_job.js";
 import path from 'path';
 import type {TBinarySchematicCookie} from "./worldedit/binary_schematic.js";
 
@@ -20,6 +20,9 @@ const QUBOID_SET_COMMANDS = ['/set', '/walls', '/faces'];
 
 /** Задержка до начала автоматической загрузки схематики после старта мира */
 const SCHEMATIC_RESUME_DELAY_SECONDS    = 20
+
+/** Опции, вляющие на скорость вставки схематики, и потребление памяти и нагрузку на CPU */
+const DEFAULT_SCHEMATIC_JOB_OPTIONS = SCHEMATIC_JOB_OPTIONS['safe']
 
 enum QUBOID_SET_TYPE {
     FILL = 1,
@@ -37,7 +40,7 @@ export type TWorldEditCopy = {
 enum SchematicState {
     INITIAL_TIMEOUT = 0, // сразу после загрузки мира
     LOADING,    // послали сообщение о загрузке в воркер, но ответ еще не пришел
-    LOADED,     // чтобы узнать встявляется ли в это время - см. наличие WorldEdit.schematicJob
+    LOADED,     // чтобы узнать встявляется ли в это время - см. наличие WorldEdit.schematic_job
     UNLOADING   // послали сообщение об очистке в воркер, но ответ еще не пришел
 }
 
@@ -51,10 +54,10 @@ declare type ICheckSchematicOptions = {
  * Описывает cхематику, загруженную в настоящее время в вебворкер, а также примененные к ней преобразования.
  *
  * Этот объект может независимо присутствовать или отсутствовать в дву местах:
- * - {@link WorldEdit.schematicInfo} - если сейчас схематика загружена
- * - {@link TServerWorldState.schematicJob} и соответвтсвующее поле в БД - если был или есть процесс вставки
- *   Возможно что сразу после загрузки мира {@link TServerWorldState.schematicJob} не null, но
- *   {@link WorldEdit.schematicInfo} == null - значит еще не загрузилась, но скоро загрузится.
+ * - {@link WorldEdit.schematic_info} - если сейчас схематика загружена
+ * - {@link TServerWorldState.schematic_job} и соответвтсвующее поле в БД - если был или есть процесс вставки
+ *   Возможно что сразу после загрузки мира {@link TServerWorldState.schematic_job} не null, но
+ *   {@link WorldEdit.schematic_info} == null - значит еще не загрузилась, но скоро загрузится.
  */
 export type TSchematicInfo = {
     user_id         : int       // кто ее загрузил
@@ -64,7 +67,7 @@ export type TSchematicInfo = {
     state           : SchematicState
 
     // что и как загружали
-    fileCookie      : TBinarySchematicCookie
+    file_cookie      : TBinarySchematicCookie
     orig_file_name? : string
     file_name?      : string
     size?           : IVector
@@ -97,21 +100,23 @@ export default class WorldEdit {
      * Описание загруженной сейчас в вебворкере схематики. Одновременно может быть загружена только одна - для
      * простоты, и для экономии ресурсов.
      *
-     * Важно также учитывать поле {@link TServerWorldState.schematicJob} - см. {@link TSchematicInfo}
+     * Важно также учитывать поле {@link TServerWorldState.schematic_job} - см. {@link TSchematicInfo}
      */
-    schematicInfo: TSchematicInfo | null = null
+    schematic_info: TSchematicInfo | null = null
     /**
      * Если в настоящий момент схематика вставляется - это прогресс текущей вставки.
      *
-     * Может быть что это поле null, но {@link TServerWorldState.schematicJob} не null. Это значит, что
+     * Может быть что это поле null, но {@link TServerWorldState.schematic_job} не null. Это значит, что
      * есть неоконченная вставка, но в настоящий момент схематика не загружена и вставка не продолжается.
      * Ее можно возобновить через /schem resume
      */
-    schematicJob: SchematicJob | null
+    schematic_job: SchematicJob | null
+
+    private schematic_job_options = DEFAULT_SCHEMATIC_JOB_OPTIONS
 
     /** Если не null, то ожидаем ответа по указанной команде от воркера и пока не принимаем других команд по схематикам */
     private waiting: TWorldEditWaiting | null = null
-    private nextWaitingRequestId: int = 0
+    private next_waiting_request_id: int = 0
 
     static targets = ['chat'];
 
@@ -135,25 +140,26 @@ export default class WorldEdit {
             }
             switch(cmd) {
                 case 'schem_loaded': {
-                    this.schematicInfo = args.info
-                    this.schematicInfo.state = SchematicState.LOADED
+                    this.schematic_info = args.info
+                    this.schematic_info.state = SchematicState.LOADED
                     if (args.msg) {
                         this.chat.sendSystemChatMessageToSelectedPlayers(args.msg, [user_id])
                     }
                     if (args.info.resume) {
-                        this.schematicJob = new SchematicJob(this)
-                        this.schematicJob.initResume()
-                        this.chat.sendSystemChatMessageToSelectedPlayers(`!langPasting of schematic ${this.schematicInfo.orig_file_name} has resumed automatically.`, [user_id])
+                        // если авто-возобновляем, то всегда медленно и безопасно
+                        this.schematic_job = new SchematicJob(this, SCHEMATIC_JOB_OPTIONS['safe'])
+                        this.schematic_job.initResume()
+                        this.chat.sendSystemChatMessageToSelectedPlayers(`!langPasting of schematic ${this.schematic_info.orig_file_name} has resumed automatically.`, [user_id])
                     }
                     break;
                 }
                 case 'schem_blocks': { // пришли запрошенные блоки для процесса вставки
-                    this.schematicJob?.onBlocksReceived(args)
+                    this.schematic_job?.onBlocksReceived(args)
                     break
                 }
                 case 'schem_cleared': {
-                    if (this.schematicInfo?.state === SchematicState.UNLOADING) { // если ответ пришел к текущей схематике
-                        this.schematicInfo = null
+                    if (this.schematic_info?.state === SchematicState.UNLOADING) { // если ответ пришел к текущей схематике
+                        this.schematic_info = null
                         if (args.args.notify) {
                             this.chat.sendSystemChatMessageToSelectedPlayers('clipboard_cleared', [user_id])
                         }
@@ -164,7 +170,7 @@ export default class WorldEdit {
                     const msg = args.e.length < 200 ? args.e : '!langError while processing the schematic.'
                     this.chat.sendSystemChatMessageToSelectedPlayers(msg, [user_id])
                     this.clearSchematicJob()
-                    this.schematicInfo = null
+                    this.schematic_info = null
                     break
                 }
             }
@@ -198,7 +204,7 @@ export default class WorldEdit {
         if (waitingText) {  // если нужно, начать ожидание ответа на это сообщение
             this.waiting = {
                 text: waitingText,
-                requestId: ++this.nextWaitingRequestId
+                requestId: ++this.next_waiting_request_id
             }
             cmd[1].waitingRequestId = this.waiting.requestId
         }
@@ -214,20 +220,20 @@ export default class WorldEdit {
         if(!this.world) {
             this.chat = chat
             this.world = chat.world
-            this.chat.worldEdit = this
-            // вызывать текущую задачу вставки (если она есть) в каждом тике и перед сохранением в БД
-            this.world.tickListeners.push(() => this.schematicJob?.tick())
-            this.world.dbActor.transactionListeners.push(() => this.schematicJob?.updateWorldState())
+            this.chat.world_edit = this
             // авто-возобновление вставки схематики
-            const info = this.world.state.schematicJob
+            const info = this.world.state.schematic_job
             if (info) {
                 info.resume = true
                 info.state = SchematicState.INITIAL_TIMEOUT
                 setTimeout(() => {
                     // если за это время не загрузили другую схематику и не очистили
-                    if (this.world.state.schematicJob === info) {
+                    if (this.world.state.schematic_job === info) {
                         info.state = SchematicState.LOADING
-                        this.postWorkerMessage(['schem_load', {info}], 'schematic pasting resume')
+                        this.postWorkerMessage(['schem_load', {
+                            info,
+                            max_memory_file_size: SCHEMATIC_JOB_OPTIONS['safe'].max_memory_file_size
+                        }], 'schematic pasting resume')
                     }
                 }, SCHEMATIC_RESUME_DELAY_SECONDS * 1000)
             }
@@ -509,8 +515,8 @@ export default class WorldEdit {
         }
 
         // если есть загруженная этим пользователем схематика - изменить ее вращение
-        if (this.schematicInfo?.user_id === player.userId && this.schematicInfo.state === SchematicState.LOADED) {
-            this.schematicInfo.rotate = ((this.schematicInfo.rotate ?? 0) + dir) % 4
+        if (this.schematic_info?.user_id === player.userId && this.schematic_info.state === SchematicState.LOADED) {
+            this.schematic_info.rotate = ((this.schematic_info.rotate ?? 0) + dir) % 4
             chat.sendSystemChatMessageToSelectedPlayers(`!langThe schematic has been rotated`, player)
             return
         }
@@ -559,15 +565,15 @@ export default class WorldEdit {
         const player_pos : Vector = player.state.pos.floored();
 
         // если есть загруженная этим пользователем схематика - начать ее вставку
-        const info = this.schematicInfo
+        const info = this.schematic_info
         if (info?.user_id === player.userId && info.state === SchematicState.LOADED) {
             if (this.checkWaitingWorker(player)) {
                 return
             }
             info.pos = player_pos
             this.postWorkerMessage(['schem_update_info', { info }]) // обновить pos и rotate
-            this.schematicJob = new SchematicJob(this)
-            this.schematicJob.initNew(info)
+            this.schematic_job = new SchematicJob(this, this.schematic_job_options)
+            this.schematic_job.initNew(info)
             chat.sendSystemChatMessageToSelectedPlayers(`!langSchematic pasting started (use "/schem info" to see progress)`, player)
             return
         }
@@ -1159,9 +1165,11 @@ export default class WorldEdit {
     // schematic commands
     async cmd_schematic(chat: ServerChat, player: ServerPlayer, cmd: string, args: any[]) {
 
+        const options = Array.from(Object.keys(SCHEMATIC_JOB_OPTIONS)).join('|')
         if (args.length === 1) {
             const lines = [
                 '/schem load <name> [true|false] - the 2nd parameter - read air (default = true)',
+                `/schem options ${options} - sets options by name. It affects speed, memory and responsiveness.`,
                 '/schem info'
             ]
             chat.sendSystemChatMessageToSelectedPlayers('!lang\n' + lines.join('\n'), player)
@@ -1175,13 +1183,25 @@ export default class WorldEdit {
             case 'save': {
                 throw 'error_not_implemented'
             }
+            case 'options': {
+                const name = args[3]
+                let msg: string
+                if (SCHEMATIC_JOB_OPTIONS[name]) {
+                    this.schematic_job_options = SCHEMATIC_JOB_OPTIONS[name]
+                    msg = `Schematic options are set to "${name}"`
+                } else {
+                    msg = `Unknown schematic options name "${name}", use: ${options}"`
+                }
+                chat.sendSystemChatMessageToSelectedPlayers('!lang' + msg, player)
+                break
+            }
             case 'inf':
             case 'info': {
                 let result: string
-                const info = this.schematicInfo ?? this.world.state.schematicJob
-                if (this.schematicInfo) {
+                const info = this.schematic_info ?? this.world.state.schematic_job
+                if (this.schematic_info) {
                     const by = (user_id === player.userId) ? 'you' : `@${username}`
-                    const loaded = (this.schematicInfo.state === SchematicState.LOADING) ? 'being loaded' : 'loaded'
+                    const loaded = (this.schematic_info.state === SchematicState.LOADING) ? 'being loaded' : 'loaded'
                     result = `Schematic "${info.orig_file_name}" is ${loaded} by ${by}.`
                     if (info.state === SchematicState.LOADED) {
                         const size = new Vector(info.size)
@@ -1190,9 +1210,9 @@ export default class WorldEdit {
                             result += `, rotation=${info.rotate * 90}`
                         }
                         result += '.'
-                        if (info.fileCookie.useExternalParser) {
+                        if (info.file_cookie.use_external_parser) {
                             result += ' Using the old parser.'
-                        } else if (info.fileCookie.tmpFileCtimeMs) {
+                        } else if (info.file_cookie.tmp_file_ctimeMs) {
                             result += ' Using a temporary file.'
                         }
                     }
@@ -1201,9 +1221,9 @@ export default class WorldEdit {
                         ? `Pasting of schematic "${info.orig_file_name}" will resume automatically.`
                         : `No schematic is loaded.`
                 }
-                if (this.schematicJob) {
-                    const aabb = this.schematicJob.schemAABB
-                    result += `\nPasting progress: ${this.schematicJob.progressToString()}, AABB: ${aabb.getMin()}, ${aabb.getMax()}.`
+                if (this.schematic_job) {
+                    const aabb = this.schematic_job.schemAABB
+                    result += `\nPasting progress: ${this.schematic_job.progressToString()}, AABB: ${aabb.getMin()}, ${aabb.getMax()}.`
                 }
                 if (this.waiting) {
                     result += `\nWaiting for "${this.waiting.text}" command to finish.`
@@ -1217,16 +1237,19 @@ export default class WorldEdit {
                 }
                 args = chat.parseCMD(args, ['string', 'string', 'string', '?boolean'])
                 player._world_edit_copy = null  // если у него было что-то в буфере - очистить
-                this.schematicInfo = {
+                this.schematic_info = {
                     user_id,
                     username,
                     state: SchematicState.LOADING,
                     orig_file_name: args[2],
                     read_air: !!(args[3] ?? false),
                     rotate: 0,
-                    fileCookie: {}
+                    file_cookie: {}
                 }
-                this.postWorkerMessage(['schem_load', {info: this.schematicInfo}], action)
+                this.postWorkerMessage(['schem_load', {
+                    info: this.schematic_info,
+                    max_memory_file_size: this.schematic_job_options.max_memory_file_size
+                }], action)
                 break
             }
             default: {
@@ -1254,13 +1277,13 @@ export default class WorldEdit {
      *   !Игнорирует, если просто загружена схематика, но не заказана ее встака!
      */
     private checkSchematic(player: ServerPlayer, options: ICheckSchematicOptions): boolean {
-        let info = this.world.state.schematicJob
+        let info = this.world.state.schematic_job
         if (info && (options.anyPlayer || info.user_id === player.userId)) {
             if (options.pasting) {
-                const job = this.schematicJob
+                const job = this.schematic_job
                 let msg = job
                     ? `!langPasting of schematic "${info.orig_file_name}" is in progress, ${
-                        Math.floor(job.totalInsertedChunks / info.job.chunksCount * 100)}% completed.`
+                        Math.floor(job.total_inserted_chunks / info.job.chunks_count * 100)}% completed.`
                     : `!langPasting of schematic "${info.orig_file_name}" is about to resume.`
                 msg += info.user_id === player.userId
                     ? ` Wait until it finishes or enter /clearclipboard to cancel it.`
@@ -1279,9 +1302,15 @@ export default class WorldEdit {
 
     /** Останавливает и удаляет процесс вставки схематики. Не выгружает из памяти саму схематику. */
     clearSchematicJob(): void {
-        this.schematicJob?.clearActions()
-        this.schematicJob = null
-        delete this.world.state.schematicJob
+        if (this.schematic_job) {
+            this.world.sendSelected([{
+                name: ServerClient.CMD_PROGRESSBAR,
+                data: { text: '', percent: null }
+            }], [this.schematic_info.user_id])
+            this.schematic_job.clearActions()
+            this.schematic_job = null
+        }
+        delete this.world.state.schematic_job
     }
 
     /**
@@ -1289,15 +1318,15 @@ export default class WorldEdit {
      * @return true если схематика была
      */
     clearSchematic(player?: ServerPlayer, notify?: boolean): boolean {
-        const info = this.world.state.schematicJob ?? this.schematicInfo
+        const info = this.world.state.schematic_job ?? this.schematic_info
         if (info && (!player || info?.user_id === player.userId)) {
             this.clearSchematicJob()
             // если загружена или загружается - надо очистить в воркере
-            if (this.schematicInfo?.state === SchematicState.LOADING || this.schematicInfo?.state === SchematicState.LOADED) {
-                this.schematicInfo.state = SchematicState.UNLOADING
+            if (this.schematic_info?.state === SchematicState.LOADING || this.schematic_info?.state === SchematicState.LOADED) {
+                this.schematic_info.state = SchematicState.UNLOADING
                 this.postWorkerMessage(['schem_clear', { user_id: player?.userId, notify }], 'clearing schematic')
             } else {
-                this.schematicInfo = null
+                this.schematic_info = null
                 if (notify) {
                     this.chat.sendSystemChatMessageToSelectedPlayers('clipboard_cleared', player)
                 }

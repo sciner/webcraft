@@ -140,7 +140,9 @@ export class ServerClient {
     // Media
     static CMD_BILLBOARD_MEDIA          = 125;
 
-    // NEXT UNUSED COMMAND INDEX        = 127
+    static CMD_PROGRESSBAR              = 127 // s->p: сообщает клиенту нужно что нужно отображать на прогрессбаре
+
+    // NEXT UNUSED COMMAND INDEX        = 128
 
     ws                                  : WebSocket
     lastPacketReceivedTime              = Infinity; // set to performance.now() when a packet is received

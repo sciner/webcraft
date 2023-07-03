@@ -162,7 +162,7 @@ export class WorkerWorld {
             return existingChunk
         }
         let chunk = new ChunkWorkerChunk(this.chunkManager, args);
-        if (!args.forSchematic) {
+        if (!args.for_schematic) {
             this.chunks.add(args.addr, chunk);
         }
         chunk.init();
@@ -274,9 +274,9 @@ export class WorkerWorld {
                     // key:                 ci.key,
                     tblocks:                non_zero > 0 ? chunk.tblocks.saveState() : null,
                     packedCells:            chunk.packCells(),
-                    tickers:                (non_zero && !chunk.forSchematic) ? chunk.scanTickingBlocks() : null,
+                    tickers:                (non_zero && !chunk.for_schematic) ? chunk.scanTickingBlocks() : null,
                     genQueueSize:           genQueue.size(),
-                    forSchematic:           chunk.forSchematic
+                    for_schematic:          chunk.for_schematic
                 }
 
                 // Update and log timers - after the chunk finished exporting

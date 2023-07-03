@@ -58,7 +58,7 @@ export type TServerWorldState = {
      * Если не null, то в описывает процесс вставки схематики. Он может идти в настоящий момент,
      * или еще не возобновиться после перезагрузки мира.
      */
-    schematicJob?: TSchematicInfo
+    schematic_job?: TSchematicInfo
 
     // может быть перенести сюда и другие поля мира из БД, например, dt
 }
@@ -112,8 +112,6 @@ export class ServerWorld implements IWorld {
     /** An immutable shared instance of {@link getDefaultPlayerIndicators} */
     defaultPlayerIndicators: Indicators
     physics?: Physics
-    /** Список функций, вызываемых каждый тик. Например, плагины могут себя сюда зарегистрировать. */
-    tickListeners: ((delta: float) => Promise<any> | null | void)[] = []
 
     constructor(block_manager : typeof BLOCK) {
         this.temp_vec = new Vector();
@@ -512,9 +510,7 @@ export class ServerWorld implements IWorld {
             this.ticks_stat.add('drop_items');
             //
             this.drivingManager.tick();
-            for(const fn of this.tickListeners) {
-                await fn(delta)
-            }
+            this.chat.world_edit?.schematic_job?.tick()
             this.ticks_stat.add('other');
             //
             this.entityCollide()

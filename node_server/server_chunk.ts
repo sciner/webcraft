@@ -23,8 +23,6 @@ import {RandomTickingBlocks} from "./ticker/random/random_ticking_blocks.js";
 import type {IWorkerChunkCreateArgs} from "@client/worker/chunk.js";
 import type {TChunkWorkerMessageBlocksGenerated, TScannedTickers} from "@client/worker/messages.js";
 
-const _rnd_check_pos            = new Vector(0, 0, 0);
-const tmpRandomTickerTBlock     = new TBlock()
 const tmpListenerNeighbourTBlock= new TBlock()
 const tmp_posVector             = new Vector()
 const tmp_onFluidEvent_TBlock   = new TBlock()

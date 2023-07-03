@@ -124,8 +124,8 @@ export class ServerChunkManager {
                 case 'blocks_generated': {
                     const args: TChunkWorkerMessageBlocksGenerated = data[1]
                     this.genQueueSize = args.genQueueSize;
-                    if (args.forSchematic) {
-                        this.world.chat.worldEdit?.schematicJob?.onBlocksGenerated(args)
+                    if (args.for_schematic) {
+                        this.world.chat.world_edit?.schematic_job?.onBlocksGenerated(args)
                     } else {
                         const chunk = this.get(args.addr);
                         chunk?.onBlocksGenerated(args);

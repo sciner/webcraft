@@ -187,8 +187,8 @@ export class ChunkWorkerRoot {
                             uniqId: item.uniqId,
                             tblocks: non_zero > 0 ? chunk.tblocks.saveState() : null,
                             packedCells: chunk.packCells(),
-                            tickers: (non_zero && !args.forSchematic) ? chunk.scanTickingBlocks() : null,
-                            forSchematic: args.forSchematic
+                            tickers: (non_zero && !args.for_schematic) ? chunk.scanTickingBlocks() : null,
+                            for_schematic: args.for_schematic
                         }
                         this.postMessage(['blocks_generated', msg]);
                     } else {

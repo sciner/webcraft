@@ -64,7 +64,7 @@ export class ChunkDBActor {
     lastUnsavedChangeTime: number;
     world_modify_chunk_hasRowId?: number | boolean
     /** Если не null, то запись в БД будет создана только когда этот Promise выполнится. */
-    world_modify_chunk_hasRowId_readyPromise: Promise<any> | null = null
+    world_modify_chunk_hasRowId_ready_promise: Promise<any> | null = null
     savingUnsavedBlocksPromise?: Promise<any> | null
 
     constructor(world : ServerWorld, addr : Vector, chunk : ServerChunk = null) {
@@ -104,10 +104,12 @@ export class ChunkDBActor {
 
         let ml;
         if (this.world_modify_chunk_hasRowId) {
-            // может быть строка еще готова? ПОдождатб
-            const debugHadReadyPromise = this.world_modify_chunk_hasRowId_readyPromise != null
-            await this.world_modify_chunk_hasRowId_readyPromise
-            this.world_modify_chunk_hasRowId_readyPromise = null
+            // может быть строка еще не готова? Подождать.
+            const debugHadReadyPromise = this.world_modify_chunk_hasRowId_ready_promise != null
+            /* Не уверен что это нужно, и что это не мешает. ВОзможно, раскомментировать если босается исключение ниже.
+            await this.world_modify_chunk_hasRowId_ready_promise
+            */
+            this.world_modify_chunk_hasRowId_ready_promise = null
 
             const addr = this.addr;
             const row = await this.world.db.chunks.bulkGetWorldModifyChunkQuery.get(addr.toArray()) as any;
@@ -286,7 +288,7 @@ export class ChunkDBActor {
             underConstruction.updateWorldModifyChunkByAddr.push(row);
         } else if (rowId === false) {
             // Может быть, строка будет доступна для чтения только после окончания транзакции. Не уверен что это правильно и что это нужно.
-            this.world_modify_chunk_hasRowId_readyPromise = this.world.dbActor.worldSavingPromise
+            this.world_modify_chunk_hasRowId_ready_promise = this.world.dbActor.worldSavingPromise
 
             const promise = world.db.chunks.insertChunkModifiers(
                 this.addr, patch, ml?.compressed, ml?.private_compressed

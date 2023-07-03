@@ -76,7 +76,7 @@ async function onMessageFunc(e) {
                 currentReader = null
                 // загрузить
                 const reader = new SchematicReader(bm, grid)
-                await reader.open(info, worldGUID)
+                await reader.open(info, args.max_memory_file_size, worldGUID)
                 const schem = reader.schematic
                 p = Math.round(performance.now() - p) * 0.001;
                 // подготовить ответ
@@ -86,9 +86,9 @@ async function onMessageFunc(e) {
                 let msg: string | null = null
                 if (!info.resume) {
                     msg = `!lang... loaded (${size.volume()} blocks, size: ${size.toHash()}, offset: ${offset?.toHash()}, palette: ${schem.palette.length}, load time: ${p} sec). Version: ${schem.version}.`
-                    if (info.fileCookie.useExternalParser) {
+                    if (info.file_cookie.use_external_parser) {
                         msg += '\nThe new parser has failed, using the old loader!'
-                    } else if (args.info.fileCookie.tmpFileCtimeMs) {
+                    } else if (args.info.file_cookie.tmpFileCtimeMs) {
                         msg += ' Using a temporary file.'
                     }
                     msg += `\nPaste it with /paste`
@@ -104,7 +104,7 @@ async function onMessageFunc(e) {
             case 'schem_query_blocks': { // вернуть блоки схематики в заданном AABB для вставки в мир
                 const args: TQueryBlocksArgs = argsCopy
                 checkLoaded()
-                const chunks = currentReader.getByChunks(args.aabbInSchem)
+                const chunks = currentReader.getByChunks(args.aabb_in_schem)
                 const msg: TQueryBlocksReply = {args, chunks}
                 postMessage(['schem_blocks', msg])
                 break
