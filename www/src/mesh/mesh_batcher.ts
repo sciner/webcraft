@@ -3,7 +3,7 @@ import type {TerrainMaterial} from "../renders/terrain_material.js";
 
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import {IvanArray, Vector} from "../helpers.js";
-import type {GeometryTerrain} from "../geometry_terrain.js";
+import type {TerrainGeometry15} from "../geom/terrain_geometry_15.js";
 import type {Renderer} from "../render.js";
 const {mat4} = glMatrix;
 
@@ -18,7 +18,7 @@ export enum MESH_RENDER_LIST {
 const RENDER_LIST_NEXT = 5;
 
 export interface IMeshDrawer {
-    drawMesh(geom: GeometryTerrain, material: TerrainMaterial, pos: Vector, modelMatrix?: imat4): void;
+    drawMesh(geom: TerrainGeometry15, material: TerrainMaterial, pos: Vector, modelMatrix?: imat4): void;
 }
 
 function meshSorter(mesh1: MeshBatcherEntry, mesh2: MeshBatcherEntry) {
@@ -70,7 +70,7 @@ export class MeshBatcher implements IMeshDrawer {
         this.render = render;
     }
 
-    drawMesh(geom: GeometryTerrain, material: TerrainMaterial, pos: Vector, modelMatrix?: imat4) {
+    drawMesh(geom: TerrainGeometry15, material: TerrainMaterial, pos: Vector, modelMatrix?: imat4) {
         const entry = MeshBatcherEntry.pool.alloc();
         if (modelMatrix) {
             entry.hasModelMatrix = true;
@@ -118,11 +118,13 @@ export class MeshBatcher implements IMeshDrawer {
 
 export class MeshBatcherEntry {
     material: TerrainMaterial = null;
-    geom: GeometryTerrain = null;
+    geom: TerrainGeometry15 = null;
     pos = new Vector();
     modelMatrix: imat4 = mat4.create();
     hasModelMatrix = false;
     dist = 0;
+    start = 0;
+    finish = 0;
 
     reset()
     {

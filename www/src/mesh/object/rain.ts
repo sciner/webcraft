@@ -1,5 +1,5 @@
 import { IndexedColor, QUAD_FLAGS, Vector, VectorCollector, Mth, FastRandom } from '../../helpers.js';
-import { GeometryTerrain } from "../../geometry_terrain.js";
+import { TerrainGeometry15 } from "../../geom/terrain_geometry_15.js";
 import { WRAP_MODES } from 'vauxcel';
 import { Resources } from '../../resources.js';
 import { FLUID_TYPE_MASK, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "../../fluid/FluidConst.js";
@@ -156,7 +156,7 @@ export default class Mesh_Object_Rain {
             quads += 2;
         }
 
-        this.buffer = new GeometryTerrain(vertices);
+        this.buffer = new TerrainGeometry15(vertices);
 
         return quads;
 

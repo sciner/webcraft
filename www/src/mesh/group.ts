@@ -1,5 +1,5 @@
 import {IndexedColor, Vector, VectorCollector} from '../helpers.js';
-import { GeometryTerrain } from "../geometry_terrain.js";
+import { TerrainGeometry15 } from "../geom/terrain_geometry_15.js";
 import {BLOCK, FakeTBlock} from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 import type { BaseResourcePack } from '../base_resource_pack.js';
@@ -31,7 +31,7 @@ let neighbours_map = [
 export class MeshGroup {
     [key: string]: any;
     meshes : Map<string, {
-        buffer?:        GeometryTerrain;
+        buffer?:        TerrainGeometry15;
         resource_pack:  BaseResourcePack,
         vertices:       any[],
         material:       TerrainMaterial
@@ -163,7 +163,7 @@ export class MeshGroup {
 
         // Create draw buffers
         this.meshes.forEach((mesh, _, map) => {
-            mesh.buffer = new GeometryTerrain(mesh.vertices);
+            mesh.buffer = new TerrainGeometry15(mesh.vertices);
             // mesh.buffer.changeFlags(QUAD_FLAGS.FLAG_NO_CAN_TAKE_AO, 'or');
         });
 

@@ -1,5 +1,5 @@
 import {Color, IndexedColor, QUAD_FLAGS, Vector} from '../../helpers.js';
-import { GeometryTerrain } from '../../geometry_terrain.js';
+import { TerrainGeometry15 } from '../../geom/terrain_geometry_15.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { Mesh_Object_Base } from './base.js';
 import { Resources } from '../../resources.js';
@@ -17,10 +17,10 @@ import type {World} from "../../world";
 import type {MeshBatcher} from "../mesh_batcher.js";
 
 export class MeshObjectCustomReplace {
-    buffer: GeometryTerrain
+    buffer: TerrainGeometry15
     gl_material: TerrainMaterial
 
-    constructor(buffer : GeometryTerrain, gl_material : TerrainMaterial) {
+    constructor(buffer : TerrainGeometry15, gl_material : TerrainMaterial) {
         this.buffer = buffer
         this.gl_material = gl_material
     }
@@ -267,7 +267,7 @@ class MeshObjectModifiers {
 // Mesh_Object_BBModel
 export class Mesh_Object_BBModel extends Mesh_Object_Base {
     model:              BBModel_Model
-    geometries:         Map<string, GeometryTerrain> = new Map()
+    geometries:         Map<string, TerrainGeometry15> = new Map()
     vertices_pushed:    Map<string, boolean> = new Map()
     resource_pack:      BaseResourcePack
     modifiers:          MeshObjectModifiers
@@ -327,7 +327,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         this.start_time     = performance.now();
         this.resource_pack  = world.block_manager.resource_pack_manager.get('bbmodel');
         this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${kmat}/terrain/${model.json._properties.texture_id}`);
-        this.buffer         = new GeometryTerrain(this.vertices)
+        this.buffer         = new TerrainGeometry15(this.vertices)
         this.modifiers      = new MeshObjectModifiers(this)
         this.hide_groups    = hide_groups ?? []
         this.item_block     = item_block
@@ -456,7 +456,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
                                     face.uv = [...uv]
                                 }
                                 default_style.pushPART(verts, part, Vector.ZERO)
-                                const buffer = new GeometryTerrain(verts)
+                                const buffer = new TerrainGeometry15(verts)
                                 const gl_material = material.resource_pack.getMaterial(material_key)
                                 const replace_mesh = new MeshObjectCustomReplace(buffer, gl_material)
                                 const group = cube.parent
