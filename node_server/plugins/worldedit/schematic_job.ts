@@ -207,16 +207,16 @@ export class SchematicJob {
             return
         }
         const {info, state} = this
-        for(let relativeChunkIndex = 0; relativeChunkIndex < args.chunks_count; relativeChunkIndex++) {
-            const chunkIndex = args.first_chunk_index + relativeChunkIndex
-            const blocksInChunk = chunks[relativeChunkIndex]
+        for(let relative_chunk_index = 0; relative_chunk_index < args.chunks_count; relative_chunk_index++) {
+            const chunk_index = args.first_chunk_index + relative_chunk_index
+            const blocks_in_chunk = chunks[relative_chunk_index]
             /** Создаем WorldAction так же, как в {@link WorldEdit.cmd_paste} */
             const action = new WorldAction(null, null, true, false)
-            action.blocks.options.chunk_addr = blocksInChunk.addr
+            action.blocks.options.chunk_addr = blocks_in_chunk.addr
             action.blocks.options.ignore_equal = true
-            action.importBlocks(blocksInChunk.blocks)
-            if (blocksInChunk.fluids.length) {
-                action.importFluids(blocksInChunk.fluids)
+            action.importBlocks(blocks_in_chunk.blocks)
+            if (blocks_in_chunk.fluids.length) {
+                action.importFluids(blocks_in_chunk.fluids)
                 action.fluidFlush = true
             }
 
@@ -234,7 +234,7 @@ export class SchematicJob {
                 this.blocks_in_action -= action.blocks.list.length
                 this.total_inserted_chunks++
                 this.pending_actions.delete(action)
-                if (state.consecutive_chunks_inserted === chunkIndex) {
+                if (state.consecutive_chunks_inserted === chunk_index) {
                     // перед вставленными чанками нет дыр в нумерации
                     state.consecutive_chunks_inserted++
                     // убрать существовавшие дыры в нумерации, если это стало возможным
@@ -243,7 +243,7 @@ export class SchematicJob {
                     }
                 } else {
                     // перед вставленными чанками есть дыры в нумерации, запомнить этот 1 чанк как вставленный
-                    this.inserted_chunks.add(chunkIndex)
+                    this.inserted_chunks.add(chunk_index)
                 }
 
                 // проверить окончилась ли работа
@@ -266,18 +266,18 @@ export class SchematicJob {
             this.chunks_in_queries--
 
             // Если есть такой чанк, то можно сразу добавить действия в мир
-            const chunk = this.world.chunks.getInAnyState(blocksInChunk.addr)
+            const chunk = this.world.chunks.getInAnyState(blocks_in_chunk.addr)
             if (this.options.use_generator && !chunk && this.info.read_air) {
                 // нужно сгенерировать чанк и сравнить с результатом генератора, чтобы не вставялть совпадающие блоки
                 const args: IWorkerChunkCreateArgs = {
-                    addr:           blocksInChunk.addr,
+                    addr:           blocks_in_chunk.addr,
                     uniqId:         null,
                     modify_list:    null,
-                    for_schematic:   { job_id: this.job_id, index: chunkIndex }
+                    for_schematic:   { job_id: this.job_id, index: chunk_index }
                 }
                 this.world.chunks.postWorkerMessage(['createChunk', [args]])
-                this.chunks_in_generator.set(chunkIndex, action)
-                this.blocks_in_generator += blocksInChunk.blocks.length
+                this.chunks_in_generator.set(chunk_index, action)
+                this.blocks_in_generator += blocks_in_chunk.blocks.length
             } else {
                 if (chunk) {
                     if (chunk.load_state <= CHUNK_STATE.READY) {
