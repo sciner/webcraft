@@ -175,8 +175,10 @@ export class WorldInfoWindow extends BlankWindow {
         let y = lbl_preview.y + lbl_preview.h + 2 * this.line_height
         for(const item of [
             {id: 'lbl_date_created', title: Lang.date_created},
+            {id: 'lbl_gamemode', title: Lang.world_game_mode},
             {id: 'lbl_age', title: Lang.age},
-            {id: 'lbl_creator', title: Lang.creator}
+            {id: 'lbl_creator', title: Lang.creator},
+            {id: 'lbl_generator', title: Lang.world_generator_type},
         ]) {
             const lbl_title = new Label(2 * this.line_height, y, 0, 0, item.id + '_title', item.title, item.title)
             const lbl = new Label(this.w / 2 - 2 * this.line_height, y, 0, 0, item.id, item.title, item.title)
@@ -243,6 +245,8 @@ export class WorldInfoWindow extends BlankWindow {
         const data = {
             guid:        info.guid,
             title:       (info.title.length > 17) ? info.title.substring(0, 17) + '...' : info.title,
+            gamemode:    Lang[`gamemode_${info.game_mode}`],
+            generator:   info.generator,
             cover:       `/worldcover/${info.guid}/screenshot/preview_${info.cover}`,
             username:    info.username,
             is_admin:    info.user_id == player.session.user_id,
@@ -271,6 +275,8 @@ export class WorldInfoWindow extends BlankWindow {
         setWindowText('lbl_creator', data.username)
         setWindowText('lbl_date_created', this.timeToStr(data.time * 1000))
         setWindowText('lbl_age', data.age)
+        setWindowText('lbl_gamemode', data.gamemode)
+        setWindowText('lbl_generator', data.generator.id)
 
         btn_switch_public.setIcon(data.is_public ? hud_atlas.getSpriteFromMap('check2') : null)
         btn_switch_public.toggled = data.is_public
