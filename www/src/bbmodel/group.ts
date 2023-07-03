@@ -1,7 +1,7 @@
 import { BBModel_Child } from './child.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { IndexedColor, Vector } from '../helpers.js';
-import { GeometryTerrain } from '../geometry_terrain.js';
+import { TerrainGeometry15 } from '../geom/terrain_geometry_15.js';
 import { BBModel_Cube } from './cube.js';
 import type { Renderer } from '../render.js';
 import type { BBModel_Model } from './model.js';
@@ -128,7 +128,7 @@ export class BBModel_Group extends BBModel_Child {
                 mat4.multiply(mx, mx, matrix)
                 mesh.drawBuffer(meshBatcher, pos, mx)
             } else if(mesh instanceof MeshObjectCustomReplace) {
-                meshBatcher.drawMesh(mesh.buffer as GeometryTerrain, mesh.gl_material, pos, mx)
+                meshBatcher.drawMesh(mesh.buffer as TerrainGeometry15, mesh.gl_material, pos, mx)
             }
             return
         }
@@ -157,7 +157,7 @@ export class BBModel_Group extends BBModel_Child {
             let geom = mesh.geometries.get(this.name)
             if(!geom) {
                 // TODO: кешировать геомы с учетом использованных текстур (в т.ч. у вложенных групп) в bbmodel, а не в mesh_object
-                geom = new GeometryTerrain(vertices)
+                geom = new TerrainGeometry15(vertices)
                 mesh.geometries.set(this.name, geom)
             }
             meshBatcher.drawMesh(geom, mesh.gl_material, pos, mx)

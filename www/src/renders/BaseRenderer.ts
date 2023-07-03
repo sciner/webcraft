@@ -2,7 +2,7 @@
 
 import type {Vector} from '../helpers.js';
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
-import type {GeometryTerrain} from '../geometry_terrain.js';
+import type {TerrainGeometry15} from '../geom/terrain_geometry_15.js';
 import {BLEND_MODES, Geometry, LayerPass, RenderTexture, Buffer, Renderer, State, BatchSystem} from 'vauxcel';
 import {GlobalUniformGroup, LightUniformGroup} from "./uniform_groups.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
@@ -283,7 +283,7 @@ export class BaseRenderer {
         return new TerrainMaterial(this, options);
     }
 
-    drawMesh(geom : GeometryTerrain, material : TerrainMaterial, a_pos : Vector = null, modelMatrix : imat4 = null, draw_type? : string) {
+    drawMesh(geom : TerrainGeometry15, material : TerrainMaterial, a_pos : Vector = null, modelMatrix : imat4 = null, draw_type? : string) {
         if (geom.size === 0) {
             return;
         }

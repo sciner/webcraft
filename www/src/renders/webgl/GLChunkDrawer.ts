@@ -1,5 +1,6 @@
 import {ChunkDrawer} from "../batch/ChunkDrawer.js";
 import {DRAW_MODES, ExtensionType} from "vauxcel";
+import {MultiDrawBuffer} from "./multi_draw_buffer.js";
 
 export class GLChunkDrawer extends ChunkDrawer {
     [key: string]: any;
@@ -11,29 +12,13 @@ export class GLChunkDrawer extends ChunkDrawer {
     constructor(context) {
         super(context);
 
-        this.resize(32);
         this.curMat = null;
         this.curVao = null;
         this.elements = [];
         this.count = 0;
     }
 
-    resize(sz) {
-        this.size = sz;
-        const oldCnt = this.counts, oldOff = this.offsets;
-        this.arrZeros = new Int32Array(sz);
-        this.arrSixes = new Int32Array(sz);
-        this.counts = new Int32Array(sz);
-        this.offsets = new Uint32Array(sz);
-        this.offsetsInt = new Int32Array(this.offsets.buffer);
-        for (let i = 0; i < sz; i++) {
-            this.arrSixes[i] = 6;
-        }
-        if (oldCnt) {
-            this.counts.set(oldCnt, 0);
-            this.offsets.set(oldOff, 0);
-        }
-    }
+    mdb = new MultiDrawBuffer();
 
     draw(geom, material, chunk) {
         const {context} = this;
@@ -71,20 +56,22 @@ export class GLChunkDrawer extends ChunkDrawer {
         if (this.count === 0) {
             return;
         }
-        let {elements, context, offsets, offsetsInt, counts} = this;
+        let {context, elements} = this;
         const {pixiRender} = context;
         let sz = 0;
         let curVao = this.curVao;
+        let totalLen = 0;
+        for (let i = 0; i < this.count; i++) {
+            totalLen += elements[i].glOffsets.length;
+        }
+        this.mdb.ensureSize(totalLen);
+
+        const {offsets, offsetsInt, counts} = this.mdb;
+
         for (let i = 0; i < this.count; i++) {
             const geom = elements[i];
             elements[i] = null;
-
             const len = geom.glOffsets.length;
-            if (this.size < sz + len) {
-                this.resize((sz + len) * 2);
-                offsets = this.offsets;
-                counts = this.counts;
-            }
             if (geom.batchStatus > 0) {
                 offsets[sz] = geom.batchStart;
                 counts[sz] = geom.sizeQuads;
@@ -110,7 +97,7 @@ export class GLChunkDrawer extends ChunkDrawer {
         this.curMat = null;
 
         const mdb = context.multidrawBaseExt, md = context.multidrawExt, gl = context.gl;
-        const {arrZeros, arrSixes} = this;
+        const {arrZeros, arrSixes} = this.mdb;
 
         if (curVao.hasInstance) {
             pixiRender.geometry.multiDrawArraysBVBI(DRAW_MODES.TRIANGLES,

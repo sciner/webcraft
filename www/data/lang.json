@@ -269,6 +269,8 @@
         "players": {"en": "Players", "ru": "Игроки", "fr": "", "es": "", "man": ""},
         "official": {"en": "Official server", "ru": "Официальный", "fr": "", "es": "", "man": ""},
         "is_you": {"en": "You", "ru": "Вы", "fr": "", "es": "", "man": ""},
-        "is_admin": {"en": "Admin", "ru": "Админ", "fr": "", "es": "", "man": ""}
+        "is_admin": {"en": "Admin", "ru": "Админ", "fr": "", "es": "", "man": ""},
+        "crosshair_style": {"en": "Crosshair style", "ru": "Стиль прицела", "fr": "", "es": "", "man":""},
+        "crosshair_size": {"en": "Crosshair size", "ru": "Размер прицела", "fr": "", "es": "", "man":""}
     }
 }

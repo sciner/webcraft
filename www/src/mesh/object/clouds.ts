@@ -1,6 +1,6 @@
 import {QUAD_FLAGS, Vector} from '../../helpers.js';
 import { default as push_cube_style } from '../../block_style/cube.js';
-import { GeometryTerrain } from "../../geometry_terrain.js";
+import { TerrainGeometry15 } from "../../geom/terrain_geometry_15.js";
 import {Resources} from "../../resources.js";
 import {BLOCK, FakeTBlock} from "../../blocks.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
@@ -43,7 +43,7 @@ CLOUD_Y[CloudType.B] = {
 
 export default class Mesh_Object_Clouds {
 
-    geom            : GeometryTerrain
+    geom            : TerrainGeometry15
     modelMatrix
     private y_pos   : float
     private pos     = new Vector()  // временная точка
@@ -135,7 +135,7 @@ export default class Mesh_Object_Clouds {
         //
         // console.log(parseInt(this.vertices.length / GeometryTerrain.strideFloats) + ' quads in clouds ');
         //
-        this.geom = new GeometryTerrain(new Float32Array(vertices));
+        this.geom = new TerrainGeometry15(new Float32Array(vertices));
         this.geom.changeFlags(QUAD_FLAGS.FLAG_NO_FOG | QUAD_FLAGS.FLAG_NO_AO, 'replace');
         this.geom.updateInternal();
     }

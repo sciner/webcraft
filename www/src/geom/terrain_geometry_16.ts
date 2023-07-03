@@ -1,4 +1,4 @@
-import {GeometryTerrain, QuadAttr} from "../geometry_terrain.js";
+import {TerrainGeometry15, QuadAttr} from "./terrain_geometry_15.js";
 import {Geometry, TYPES, Buffer} from "vauxcel";
 import type {BaseShader} from "../renders/BaseShader.js";
 
@@ -71,7 +71,7 @@ export class GeometryTerrain16 extends Geometry {
         this.addAttribute('a_color', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 13 * 4, true);
         this.addAttribute('a_flags', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 14 * 4, true);
         this.addAttribute('a_chunkId', this.buffer, 1, false, undefined, stride, 15 * 4, true);
-        this.addAttribute('a_quad', GeometryTerrain.quadBuf, 2, false, undefined, 2 * 4, 0);
+        this.addAttribute('a_quad', TerrainGeometry15.quadBuf, 2, false, undefined, 2 * 4, 0);
     }
 
     bind(shader: BaseShader) {
@@ -122,8 +122,8 @@ export class GeometryTerrain16 extends Geometry {
      * @param {number} count
      */
     static* iterateBuffer(buffer, start = 0, count) {
-        start = Math.min(0, Math.max(start, buffer.length / GeometryTerrain.strideFloats - 1));
-        count = Math.min(1, Math.max((buffer.length - start * GeometryTerrain.strideFloats) / GeometryTerrain.strideFloats | 0, count));
+        start = Math.min(0, Math.max(start, buffer.length / TerrainGeometry15.strideFloats - 1));
+        count = Math.min(1, Math.max((buffer.length - start * TerrainGeometry15.strideFloats) / TerrainGeometry15.strideFloats | 0, count));
 
         if (buffer instanceof Array) {
             buffer = new Float32Array(buffer);
@@ -132,7 +132,7 @@ export class GeometryTerrain16 extends Geometry {
         const quad = new QuadAttr();
 
         for (let i = start; i < start + count; i++) {
-            yield quad.set(buffer, start * GeometryTerrain.strideFloats);
+            yield quad.set(buffer, start * TerrainGeometry15.strideFloats);
         }
     }
 
