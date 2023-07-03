@@ -169,7 +169,7 @@ export class WorldInfoWindow extends BlankWindow {
         const lbl_preview = new Label(2 * this.line_height, lbl_name.y + lbl_name.h + 1.5 * this.line_height, 167 * this.zoom, 96 * this.zoom, 'lbl_preview', '', '')
         lbl_preview.style.textAlign.horizontal = 'center'
         lbl_preview.style.textAlign.vertical = 'middle'
-        lbl_preview.style.border.hidden = false
+        lbl_preview.setBackground(hud_atlas.getSpriteFromMap('cover_back'))
         lbl_preview.setText(Lang.no_cover)
         this.add(lbl_preview)
 
@@ -262,7 +262,7 @@ export class WorldInfoWindow extends BlankWindow {
             if (data?.cover) {
                 lbl_preview.style.border.hidden = true
                 lbl_preview.setText('')
-                lbl_preview.setBackground(`/worldcover/${data.guid}/screenshot/${data.cover}`)
+                lbl_preview.setIcon(`/worldcover/${data.guid}/screenshot/${data.cover}`, 'centerstretch', .95)
             }
             if (data?.is_admin) {
                 lbl_public.visible = true
