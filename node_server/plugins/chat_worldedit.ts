@@ -1184,7 +1184,7 @@ export default class WorldEdit {
                 throw 'error_not_implemented'
             }
             case 'options': {
-                const name = args[3]
+                const name = args[2]
                 let msg: string
                 if (SCHEMATIC_JOB_OPTIONS[name]) {
                     this.schematic_job_options = SCHEMATIC_JOB_OPTIONS[name]
