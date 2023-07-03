@@ -1,7 +1,7 @@
 import type {GeometryVaoOptions} from "./base_geometry_vao.js";
 import {BaseGeometryVao} from "./base_geometry_vao.js";
 import {TYPES} from "vauxcel";
-import {GeometryTerrain} from "../geometry_terrain.js";
+import {TerrainGeometry15} from "./terrain_geometry_15.js";
 
 export class TerrainGeometryVao extends BaseGeometryVao {
     static strideFloats = 16;
@@ -22,6 +22,6 @@ export class TerrainGeometryVao extends BaseGeometryVao {
         this.addAttribute('a_color', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 13 * 4, true);
         this.addAttribute('a_flags', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 14 * 4, true);
         this.addAttribute('a_chunkId', this.buffer, 1, false, undefined, stride, 15 * 4, true);
-        this.addAttribute('a_quad', GeometryTerrain.quadBuf, 2, false, undefined, 2 * 4, 0);
+        this.addAttribute('a_quad', TerrainGeometry15.quadBuf, 2, false, undefined, 2 * 4, 0);
     }
 }

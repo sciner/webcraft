@@ -76,7 +76,7 @@
         "kb_help_r": {"en": "Respawn", "ru": "Телепорт на спавн", "fr": "Réapparition", "es": "Reaparecer","man":"重生","hind":"पुनर्जीवित"},
         "kb_help_09": {"en": "Select block", "ru": "Выбрать блок", "fr": "Sélectionnez le bloc", "es": "Seleccionar bloque","man":"选择块","hind":""},
         "kb_help_lm": {"en": "Remove block", "ru": "Удалить блок", "fr": "Supprimer le bloc", "es": "Eliminar bloque","man":"删除块","hind":"ब्लॉक हटाएं"},
-        "kb_help_rm": {"en": "Set block",  "ru": "Разместить блок",  "fr": "Placer le bloc",  "es": "Colocar bloque", "man":"放置块", "hind":"ब्लॉक रखें"},        
+        "kb_help_rm": {"en": "Set block",  "ru": "Разместить блок",  "fr": "Placer le bloc",  "es": "Colocar bloque", "man":"放置块", "hind":"ब्लॉक रखें"},
         "kb_help_mm": {"en": "Clone block under cursor", "ru": "Копировать блок под курсором", "fr": "Cloner le bloc sous le curseur", "es": "Clonar bloque debajo del cursor","man":"克隆光标下的块","hind":"कर्सर के नीचे ब्लॉक क्लोन करें"},
         "kb_help_ctrlw": {"en": "Running", "ru": "Бег", "fr": "Courir", "es": "Correr","man":"跑步","hind":"दौड़ रहा है"},
         "mouse_button_left": {"en": "Left mouse button", "ru": "Левая кнопка мыши", "fr": "Bouton gauche de la souris", "es": "Boton izquierdo del raton","man":"鼠标左键","hind":"माउस का बाएं बटन"},
@@ -198,7 +198,7 @@
         "ender_chest": {"en": "Ender chest", "ru": "Эндер-сундук", "fr": "Coffre de l'Ender", "es": "Cofre de Ender", "man": "末影箱", "kz": "Эндер сандығы"},
         "sign_edit": {"en": "Edit sign text", "ru": "Введите текст", "fr": "Modifier le texte du signe", "es": "Editar el texto del letrero", "man": "编辑标志文本", "kz": "Таңба мәтінін өзгерту"},
         "crafting": {"en": "Crafting", "ru": "Создание", "fr": "Artisanat", "es": "Creando", "man": "制作", "kz": "Жасау"},
-        "charging_station": {"en": "Charging station", "ru": "Зарядная станция", "fr": "Station de charge", "es": "Estación de carga", "man": "充电站", "kz": "Зарядка станциясы"},        
+        "charging_station": {"en": "Charging station", "ru": "Зарядная станция", "fr": "Station de charge", "es": "Estación de carga", "man": "充电站", "kz": "Зарядка станциясы"},
         "hopper": {"en": "Hopper", "ru": "Загрузочная воронка", "fr": "Tremie", "es": "Tolva", "man": "跳跃器"},
         "show_compass": {"en": "Show compass", "ru": "Включить компас", "fr": "Afficher le compas", "es": "Mostrar compás", "man": "显示指南针"},
         "in_game_main_menu": {"en": "Crafting, quests, stats...", "ru": "Крафт, квесты, статистика...", "fr": "Artisanat, quêtes, statistiques...", "es": "Elaboración, misiones, estadísticas...", "man": "制作，任务，统计..."},
@@ -255,6 +255,8 @@
         "lost_file_2": {"en": "Default settings will be used instead", "ru": "Вернутся стандартныe настройки", "fr": "Les paramètres par défaut seront utilisés à la place", "es": "Se utilizarán los ajustes predeterminados en su lugar", "man": "将使用默认设置代替"},
         "upload_image": {"en": "Upload image...", "ru": "Загрузить изображение...", "fr": "Télécharger une image...", "es": "Subir imagen...", "man": "上传图片..."},
         "click_for_set_image": {"en": "Click to set image", "ru": "Нажмите, чтобы установить изображение", "fr": "Cliquez pour définir l'image", "es": "Haga clic para establecer la imagen", "man": "点击设置图像"},
-        "pasting_schematic": {"en": "Pasting a schematic %0%", "ru": "Вставка схематики %0%", "fr": "", "es": "", "man": ""}
+        "pasting_schematic": {"en": "Pasting a schematic %0%", "ru": "Вставка схематики %0%", "fr": "", "es": "", "man": ""},
+        "crosshair_style": {"en": "Crosshair style", "ru": "Стиль прицела", "fr": "", "es": "", "man":""},
+        "crosshair_size": {"en": "Crosshair size", "ru": "Размер прицела", "fr": "", "es": "", "man":""}
     }
 }

@@ -1,7 +1,7 @@
 //@ts-check
 
 // import { SceneNode } from "./SceneNode.js";
-// import { GeometryTerrain } from "./geometry_terrain.js";
+// import { GeometryTerrain } from "./terrain_geometry_15.js.js";
 // import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 
 // /**

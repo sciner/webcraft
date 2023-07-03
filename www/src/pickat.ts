@@ -1,6 +1,6 @@
 import { Vector } from "./helpers.js";
 import {BLEND_MODES} from 'vauxcel';
-import { GeometryTerrain } from "./geometry_terrain.js";
+import { TerrainGeometry15 } from "./geom/terrain_geometry_15.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import {Raycaster, RaycasterResult} from "./Raycaster.js";
@@ -336,7 +336,7 @@ export class PickAt {
             aabb.set(...shapes[i]);
             geom.addAABB(aabb, aabbConfig);
         }
-        return new GeometryTerrain(vertices);
+        return new TerrainGeometry15(vertices);
     }
 
     // createTargetBuffer...
@@ -398,7 +398,7 @@ export class PickAt {
                 c[0], c[1], -c[2], c[3],
                 pp, flags | sideFlags);
         }
-        return new GeometryTerrain(vertices);
+        return new TerrainGeometry15(vertices);
     }
 
     // for HUD

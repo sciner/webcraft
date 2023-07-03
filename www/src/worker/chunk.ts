@@ -4,7 +4,7 @@ import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MA
 import { AABB } from '../core/AABB.js';
 import { WorkerGeometryPool } from "../geom/worker_geometry_pool.js";
 import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
-import { GeometryTerrain } from "../geometry_terrain.js";
+import { TerrainGeometry15 } from "../geom/terrain_geometry_15.js";
 import { pushTransformed } from '../block_style/extruder.js';
 import { decompressWorldModifyChunk } from "../compress/world_modify_chunk.js";
 import {FluidWorld} from "../fluid/FluidWorld.js";
@@ -673,14 +673,14 @@ export class ChunkWorkerChunk implements IChunk {
                 // Push vertices
                 const vertices = block.vertice_groups[material_key];
                 const zeroVector = [0, 0, 0];
-                for(let i = 0; i < vertices.length; i += GeometryTerrain.strideFloats) {
+                for(let i = 0; i < vertices.length; i += TerrainGeometry15.strideFloats) {
                     pushTransformed(buf.vertices, block.matrix, zeroVector,
                         pos.x + 0.5, pos.z + 0.5, pos.y + 0.5,
                         vertices[i] + 0,
                         vertices[i + 1] + 1.5,
                         vertices[i + 2] + 0,
                         //@ts-ignore
-                        ...vertices.slice(i + 3, i + GeometryTerrain.strideFloats));
+                        ...vertices.slice(i + 3, i + TerrainGeometry15.strideFloats));
                 }
             }
 
@@ -792,7 +792,7 @@ export class ChunkWorkerChunk implements IChunk {
                         const neib0 = uint16View[index + cy], neib1 = uint16View[index - cy],
                             neib2 = uint16View[index - cz], neib3 = uint16View[index + cz],
                             neib4 = uint16View[index + cx], neib5 = uint16View[index - cx];
-                            
+
                         // blockIsClosed from typedBlocks
                         if (BLOCK.isSolidID(id)
                             && BLOCK.isSolidID(neib0) && BLOCK.isSolidID(neib1)
