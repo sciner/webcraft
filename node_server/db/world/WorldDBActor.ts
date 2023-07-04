@@ -1,4 +1,4 @@
-import { unixTime, Vector, VectorCollector } from "@client/helpers.js";
+import {ObjectHelpers, unixTime, Vector, VectorCollector} from "@client/helpers.js";
 import { TransactionMutex } from "../db_helpers.js";
 import { ChunkDBActor, BLOCK_DIRTY, DirtyBlock } from "./ChunkDBActor.js";
 import { WORLD_TRANSACTION_PERIOD, CLEANUP_WORLD_MODIFY_PER_TRANSACTION,
@@ -96,7 +96,7 @@ export class WorldDBActor {
     savingWorldNow: Promise<any>;
     underConstruction: WorldTransactionUnderConstruction;
     lastWorldTransactionStartTime: number;
-    totalDirtyBlocks: number;
+    totalDirtyBlocks: int;
     cleanupAddrByRowId: Map<int, Vector>;
     cleanupWorldModifyPerTransaction: int;
     asyncStats: WorldTickStat;
@@ -136,10 +136,24 @@ export class WorldDBActor {
         this.asyncStats = new WorldTickStat(['world_transaction']);
     }
 
+    get chunkActorsCount(): int {
+        return this.chunklessActors.size + this.world.chunks.totalChunksCount
+    }
+
     getOrCreateChunkActor(chunk) {
         const addr = chunk.addr;
         const actor = this.chunklessActors.get(addr);
         if (actor) {
+            // Из схематик могли прийти модификаторы, на которые ссылаются разные блоки.
+            // WorldAction их при вставке клонирует, но без чанка они не клонировались.
+            // На всякий случай склонировать их, чтобы в чанке разные блоки не указаывали на одну extra_data.
+            for(const [key, value] of actor.dirtyBlocks) {
+                actor.dirtyBlocks[key] = ObjectHelpers.deepClone(value)
+            }
+            for(const [key, value] of actor.unsavedBlocks) {
+                actor.unsavedBlocks[key] = ObjectHelpers.deepClone(value)
+            }
+
             actor.chunk = chunk;
             this.chunklessActors.delete(addr);
             return actor;
@@ -324,10 +338,15 @@ export class WorldDBActor {
                 db.driving.bulkDelete(uc.deleteDriving)
             )
 
+            // прочее
+            world.chat.world_edit?.schematic_job?.updateWorldState()
+
+            // мир в целом
             if (this.worldGeneratorDirty) {
                 this.worldGeneratorDirty = false
                 uc.pushPromises(world.db.setWorldGenerator(world.info.guid, world.info.generator))
             }
+            uc.pushPromises(world.db.setWorldState(world.info.guid, world.state)) // для простоты сораняем всегда, там мало информации
 
             this.writeRecoveryBlob(uc);
         } catch(e) {

@@ -13,7 +13,7 @@ import { DBWorldFluid } from "./world/fluid.js";
 import { DBWorldChunk } from "./world/chunk.js";
 import { compressWorldModifyChunk } from "@client/compress/world_modify_chunk.js";
 import { WorldGenerators } from "../world/generators.js";
-import type { ServerWorld } from "../server_world.js";
+import type {ServerWorld, TServerWorldState} from "../server_world.js";
 import type { ServerPlayer } from "../server_player.js";
 import type { Indicators, PlayerState } from "@client/player.js";
 import { SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS } from "../server_constant.js";
@@ -150,12 +150,13 @@ export class DBWorld {
      * Возвращает мир по его GUID либо создает и возвращает его
      */
     async getWorld(world_guid : string) : Promise<TWorldInfo> {
-        const row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
+        const row = await this.conn.get("SELECT w.*, u.username FROM world as w LEFT JOIN user as u ON u.id = w.user_id WHERE w.guid = ?", [world_guid]);
         if(row) {
             const tech_info = JSON.parse(row.tech_info)
             const resp = {
                 id:             row.id,
                 user_id:        row.user_id,
+                username:       row.username,
                 dt:             row.dt,
                 guid:           row.guid,
                 title:          row.title,
@@ -165,7 +166,7 @@ export class DBWorld {
                 generator:      JSON.parse(row.generator),
                 pos_spawn:      JSON.parse(row.pos_spawn),
                 rules:          JSON.parse(row.rules),
-                state:          null,
+                state:          JSON.parse(row.state ?? '{}'),
                 add_time:       row.add_time,
                 world_type_id:  row.title == config.building_schemas_world_name ? WORLD_TYPE_BUILDING_SCHEMAS : WORLD_TYPE_NORMAL,
                 recovery:       row.recovery,
@@ -327,7 +328,7 @@ export class DBWorld {
             }
 
             const inventory = fixInventory(JSON.parse(row.inventory))
-            const state = row.state ? JSON.parse(row.state) : { }
+            const state : PlayerState = row.state ? JSON.parse(row.state) : { }
 
             // TODO remove backwards compatibility with seprate fields
             Object.assign(state, {
@@ -337,7 +338,10 @@ export class DBWorld {
                 indicators:         upgradeToNewIndicators(JSON.parse(row.indicators)),
                 chunk_render_dist:  row.chunk_render_dist,
                 game_mode:          row.game_mode || world.info.game_mode,
-                stats:              JSON.parse(row.stats)
+                stats:              JSON.parse(row.stats),
+                world: {
+                    is_admin: world.admins.checkIsAdmin(player)
+                }
             });
 
             // postprocess state
@@ -353,7 +357,7 @@ export class DBWorld {
                 world_data: JSON.parse(row.world_data ?? '{}'),
                 driving_id      : row.driving_id,
                 driving_data    : row.driving_data
-            };
+            } as PlayerInitInfo
         }
         const default_pos_spawn = world.info.pos_spawn;
         const defaultState = {
@@ -616,6 +620,13 @@ export class DBWorld {
             ':world_guid':  world_guid,
             ':rules':    JSON.stringify(rules)
         });
+    }
+
+    async setWorldState(world_guid: string, state: TServerWorldState) {
+        return this.conn.run('UPDATE world SET state = :state WHERE guid = :guid', {
+            ':guid':    world_guid,
+            ':state':   JSON.stringify(state)
+        })
     }
 
     async setWorldGenerator(world_guid: string, generator: TGeneratorInfo) {

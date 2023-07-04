@@ -1,5 +1,6 @@
-/// <reference path="../worker/messages.d.ts" />
 import type { IWorkerChunkCreateArgs } from './chunk.js'
+import type {ChunkWorkerChunk} from "./chunk.js";
+import type {TChunkWorkerMessageBlocksGenerated, TChunkWorkerMessageInit} from "./messages.js";
 
 export class ChunkWorkerRoot {
     RAF_MS = 20
@@ -171,15 +172,14 @@ export class ChunkWorkerRoot {
                     const item = args[i] as IWorkerChunkCreateArgs
                     // console.log('3. createChunk: receive', new Vector(item.addr).toHash());
                     let from_cache = world.chunks.has(item.addr);
-                    const update = ('update' in item) && item.update;
-                    if (update) {
+                    if (item.update) {
                         if (from_cache) {
                             world.chunks.delete(item.addr);
                             from_cache = false;
                         }
                     }
                     if (from_cache) {
-                        const chunk = world.chunks.get(item.addr);
+                        const chunk: ChunkWorkerChunk = world.chunks.get(item.addr);
                         chunk.uniqId = item.uniqId;
                         const non_zero = chunk.refreshNonZero();
                         const msg: TChunkWorkerMessageBlocksGenerated = {
@@ -187,7 +187,8 @@ export class ChunkWorkerRoot {
                             uniqId: item.uniqId,
                             tblocks: non_zero > 0 ? chunk.tblocks.saveState() : null,
                             packedCells: chunk.packCells(),
-                            tickers: non_zero ? chunk.scanTickingBlocks() : null
+                            tickers: (non_zero && !args.for_schematic) ? chunk.scanTickingBlocks() : null,
+                            for_schematic: args.for_schematic
                         }
                         this.postMessage(['blocks_generated', msg]);
                     } else {

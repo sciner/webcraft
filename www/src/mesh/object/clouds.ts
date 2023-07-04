@@ -1,6 +1,6 @@
 import {QUAD_FLAGS, Vector} from '../../helpers.js';
 import { default as push_cube_style } from '../../block_style/cube.js';
-import { GeometryTerrain } from "../../geometry_terrain.js";
+import { TerrainGeometry15 } from "../../geom/terrain_geometry_15.js";
 import {Resources} from "../../resources.js";
 import {BLOCK, FakeTBlock} from "../../blocks.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
@@ -43,7 +43,7 @@ CLOUD_Y[CloudType.B] = {
 
 export default class Mesh_Object_Clouds {
 
-    geom            : GeometryTerrain
+    geom            : TerrainGeometry15
     modelMatrix
     private y_pos   : float
     private pos     = new Vector()  // временная точка
@@ -135,7 +135,7 @@ export default class Mesh_Object_Clouds {
         //
         // console.log(parseInt(this.vertices.length / GeometryTerrain.strideFloats) + ' quads in clouds ');
         //
-        this.geom = new GeometryTerrain(new Float32Array(vertices));
+        this.geom = new TerrainGeometry15(new Float32Array(vertices));
         this.geom.changeFlags(QUAD_FLAGS.FLAG_NO_FOG | QUAD_FLAGS.FLAG_NO_AO, 'replace');
         this.geom.updateInternal();
     }
@@ -150,9 +150,8 @@ export default class Mesh_Object_Clouds {
     }
 
     /** @return блок облака, в котором находится камера */
-    isCameraInCloud(render: Renderer): boolean {
-        const {camPos} = render
-        const cloudsCoord = this.getCloudsCoord(render)
+    isCameraInCloud(camPos: Vector): boolean {
+        const cloudsCoord = this.getCloudsCoord(camPos)
         if (cloudsCoord) {
             for(let dx = -CLOUD_CAMERA_MARGIN; dx <= CLOUD_CAMERA_MARGIN; dx += 2 * CLOUD_CAMERA_MARGIN) {
                 const x = (camPos.x - cloudsCoord.x + dx) / CLOUDS_TEX_SCALE.x | 0
@@ -171,8 +170,7 @@ export default class Mesh_Object_Clouds {
     }
 
     /** @return координаты угла одного повторяющегося "чанка" облаков, содержащего (x, z) камеры */
-    private getCloudsCoord(render: Renderer): Vector | null {
-        const cam_pos = render.camPos
+    private getCloudsCoord(cam_pos: Vector): Vector | null {
         if (cam_pos.y < 0) {
             return null
         }
@@ -191,7 +189,7 @@ export default class Mesh_Object_Clouds {
 
     // Draw
     draw(render: Renderer, delta) {
-        const cloudsCoord = this.getCloudsCoord(render)
+        const cloudsCoord = this.getCloudsCoord(render.camPos)
         if (cloudsCoord == null) {
             return
         }
@@ -234,7 +232,7 @@ export default class Mesh_Object_Clouds {
 
     }
 
-    destroy(render) {
+    destroy() {
         this.geom.destroy();
     }
 

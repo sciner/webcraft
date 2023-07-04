@@ -1,10 +1,10 @@
-import { BLOCK, DBItemBlock, DropItemVertices, FakeVertices } from "../blocks.js";
+import { BLOCK, IDBItemBlock, DropItemVertices, FakeVertices } from "../blocks.js";
 import {ObjectHelpers, PerformanceTimer, relIndexToPos, Vector} from "../helpers.js";
 import { BlockNeighbours, TBlock, newTypedBlocks, DataWorld, MASK_VERTEX_MOD, MASK_VERTEX_PACK, TypedBlocks3 } from "../typed_blocks3.js";
 import { AABB } from '../core/AABB.js';
 import { WorkerGeometryPool } from "../geom/worker_geometry_pool.js";
 import { WorkerInstanceBuffer } from "./WorkerInstanceBuffer.js";
-import { GeometryTerrain } from "../geometry_terrain.js";
+import { TerrainGeometry15 } from "../geom/terrain_geometry_15.js";
 import { pushTransformed } from '../block_style/extruder.js';
 import { decompressWorldModifyChunk } from "../compress/world_modify_chunk.js";
 import {FluidWorld} from "../fluid/FluidWorld.js";
@@ -16,26 +16,29 @@ import type { FluidChunk } from "../fluid/FluidChunk.js";
 import {BLOCK_FLAG, FAST_RANDOM_TICKERS_PERCENT, NO_TICK_BLOCKS} from "../constant.js";
 import {ChunkGrid, dx, dy, dz, SAME_CHUNK} from "../core/ChunkGrid.js";
 import type { Biome3LayerBase } from "../terrain_generator/biome3/layers/base.js";
+import type {TScannedTickers} from "./messages.js";
 
 // Constants
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)))
 const tmpRelVector = new Vector();
 
 export declare type IParsedChunkModifyList = {
-    [key: int]: DBItemBlock
+    [key: int]: IDBItemBlock
 }
 
 export declare type IChunkModifyList = {
-    compressed: string
-    obj: any
+    compressed?: string         // на клиенте
+    obj?: Dict<IDBItemBlock>    // на сервере
 }
 
 export declare type IWorkerChunkCreateArgs = {
-    addr:           Vector
-    seed:           string
-    dataId:         int
+    addr:           IVector
+    seed?:          string
+    dataId?:        int
     uniqId:         int | null
     modify_list:    IChunkModifyList | null
+    update?:        boolean
+    for_schematic?: { job_id: int, index: int } // Если не null, то не сохраянять в кеш, не сканировать тикеры
 }
 
 class MaterialBuf {
@@ -149,6 +152,7 @@ export class ChunkWorkerChunk implements IChunk {
     modify_list:                IChunkModifyList | null | IParsedChunkModifyList
     tm:                         number
     destroyed:                  boolean
+    for_schematic?:              { job_id: int, index: int }
 
     static neibMat = [null, null, null, null, null, null];
     static removedEntries = [];
@@ -669,14 +673,14 @@ export class ChunkWorkerChunk implements IChunk {
                 // Push vertices
                 const vertices = block.vertice_groups[material_key];
                 const zeroVector = [0, 0, 0];
-                for(let i = 0; i < vertices.length; i += GeometryTerrain.strideFloats) {
+                for(let i = 0; i < vertices.length; i += TerrainGeometry15.strideFloats) {
                     pushTransformed(buf.vertices, block.matrix, zeroVector,
                         pos.x + 0.5, pos.z + 0.5, pos.y + 0.5,
                         vertices[i] + 0,
                         vertices[i + 1] + 1.5,
                         vertices[i + 2] + 0,
                         //@ts-ignore
-                        ...vertices.slice(i + 3, i + GeometryTerrain.strideFloats));
+                        ...vertices.slice(i + 3, i + TerrainGeometry15.strideFloats));
                 }
             }
 
@@ -788,7 +792,7 @@ export class ChunkWorkerChunk implements IChunk {
                         const neib0 = uint16View[index + cy], neib1 = uint16View[index - cy],
                             neib2 = uint16View[index - cz], neib3 = uint16View[index + cz],
                             neib4 = uint16View[index + cx], neib5 = uint16View[index - cx];
-                            
+
                         // blockIsClosed from typedBlocks
                         if (BLOCK.isSolidID(id)
                             && BLOCK.isSolidID(neib0) && BLOCK.isSolidID(neib1)

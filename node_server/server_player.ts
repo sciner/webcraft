@@ -28,6 +28,7 @@ import { ServerPlayerCombat } from "player/combat.js";
 import type {TChestSlots} from "@client/block_helpers.js";
 import type {PrismarinePlayerState} from "@client/prismarine-physics/index.js";
 import {WorldAction} from "@client/world_action.js";
+import type {TWorldEditCopy} from "./plugins/chat_worldedit.js";
 
 export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
     time?: number;
@@ -121,7 +122,7 @@ export class ServerPlayer extends Player {
     conn: any;
     savingPromise?: Promise<void>
     lastSentPacketTime = Infinity   // performance.now()
-    _world_edit_copy: any
+    _world_edit_copy?: TWorldEditCopy
     // @ts-ignore
     declare driving: ServerDriving | null = null
     /** См. комментарий к аналогичному полю {@link Mob.drivingId} */
@@ -306,8 +307,8 @@ export class ServerPlayer extends Player {
         this.sendWorldInfo(false);
     }
 
-    // sendWorldInfo
-    sendWorldInfo(update) {
+    // Send world info
+    sendWorldInfo(update : boolean) {
         this.sendPackets([{name: update ? ServerClient.CMD_WORLD_UPDATE_INFO : ServerClient.CMD_WORLD_INFO, data: this.world.getInfo()}]);
     }
 
@@ -334,7 +335,7 @@ export class ServerPlayer extends Player {
         }
     }
 
-    sendError(message) {
+    sendError(message : string) {
         const packets = [{
             name: ServerClient.CMD_ERROR,
             data: {
@@ -1169,6 +1170,15 @@ export class ServerPlayer extends Player {
         if (this.timer_anim <= performance.now()) {
             this.state.anim = false
         }
+    }
+
+    sendState() {
+        this.sendPackets([
+            {
+                name: ServerClient.CMD_PLAYER_UPDATE_STATE,
+                data: this.state
+            }
+        ])
     }
 
 }

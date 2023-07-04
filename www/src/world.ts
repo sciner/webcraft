@@ -236,14 +236,35 @@ export class World implements IWorld {
             }
         }
 
+        const ageToDate = (day: number, hours: number) => {
+            let month = Math.floor(day / 30)
+            let year = Math.floor(month / 12)
+            day %= 30
+            month %= 12
+            const resp = []
+            if(year > 0) {
+                resp.push(year + ' y')
+            }
+            if(month > 0) {
+                resp.push(month + ' m')
+            }
+            if(day > 0) {
+                resp.push(day + ' d')
+            }
+            resp.push(hours + ' h')
+            return resp.join(' ')
+        }
+
         return {
             time:           time, // max value is 24_000
             time_visible:   time_visible,
             day:            age,
             hours:          hours,
             minutes:        minutes,
-            string:         hours_string + ':' + minutes_string
-        };
+            string:         hours_string + ':' + minutes_string,
+            string_full:    ageToDate(age, hours),
+        }
+
     }
 
     // TODO добавить 2-й параметр - resultBlock: TBlock | null

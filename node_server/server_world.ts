@@ -48,8 +48,20 @@ import {Raycaster} from "@client/Raycaster.js";
 import type { ServerGame } from "server_game.js";
 import {ObjectUpdateType} from "./helpers/aware_players.js";
 import Billboard from "player/billboard.js";
+import type {TSchematicInfo} from "./plugins/chat_worldedit.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
+
+/** Объект с даннми состояния мира, автоматически сохраняемый в БД в каждой транзакции. */
+export type TServerWorldState = {
+    /**
+     * Если не null, то в описывает процесс вставки схематики. Он может идти в настоящий момент,
+     * или еще не возобновиться после перезагрузки мира.
+     */
+    schematic_job?: TSchematicInfo
+
+    // может быть перенести сюда и другие поля мира из БД, например, dt
+}
 
 export class ServerWorld implements IWorld {
     temp_vec: Vector;
@@ -81,6 +93,7 @@ export class ServerWorld implements IWorld {
     drivingManager: ServerDrivingManager;
     packets_queue: WorldPacketQueue;
     ticks_stat: WorldTickStat;
+    nextTickScheduledTime: number | null = null // для статичтсики - насколько опоздал вызов tick()
     network_stat: {
         in: number; out: number; in_count: number; out_count: number;
         out_count_by_type?: int[]; in_count_by_type?: int[];
@@ -110,12 +123,12 @@ export class ServerWorld implements IWorld {
         this.shuttingDown = null;
     }
 
-    async initServer(world_guid : string, db_world : DBWorld, new_title : string, game) {
+    async initServer(world_guid : string, db_world : DBWorld, title: string, game) {
         this.game = game;
         if (SERVER_TIME_LAG) {
             console.log('[World] Server time lag ', SERVER_TIME_LAG);
         }
-        const newTitlePromise = new_title ? db_world.setTitle(new_title) : Promise.resolve();
+        const newTitlePromise = title ? db_world.setTitle(title) : Promise.resolve();
         var t = performance.now();
         // Tickers
         this.tickers = new Map();
@@ -213,6 +226,9 @@ export class ServerWorld implements IWorld {
 
         await this.tick();
     }
+
+    /** Поле state из таблицы world. Здесь можно хранить любые часто меняющиеся небольшие данные, которые регулярно сохраняются в БД. */
+    get state(): TServerWorldState { return this.info.state }
 
     // Closes the world on a critical error. It must never resolve.
     async terminate(text, err) {
@@ -328,7 +344,7 @@ export class ServerWorld implements IWorld {
     }
 
     // Return world info
-    getInfo() {
+    getInfo() : TWorldInfo {
         return this.info;
     }
 
@@ -451,6 +467,7 @@ export class ServerWorld implements IWorld {
             await this.shutdown()
         }
         const started = performance.now();
+        this.nextTickScheduledTime ??= started
         let delta = 0;
         if (this.pn) {
             delta = (performance.now() - this.pn) / 1000;
@@ -461,7 +478,9 @@ export class ServerWorld implements IWorld {
         if(!this.pause_ticks) {
             //
             this.ticks_stat.number++;
-            this.ticks_stat.start();
+            // добавить в статистику насколько опоздал тик
+            this.ticks_stat.start(Math.min(started, this.nextTickScheduledTime));
+            this.ticks_stat.add('setTimeout delay');
             // 1.
             await this.chunks.tick(this.ticks_stat.number);
             this.ticks_stat.add('chunks.tick');
@@ -491,6 +510,7 @@ export class ServerWorld implements IWorld {
             this.ticks_stat.add('drop_items');
             //
             this.drivingManager.tick();
+            this.chat.world_edit?.schematic_job?.tick()
             this.ticks_stat.add('other');
             //
             this.entityCollide()
@@ -538,12 +558,10 @@ export class ServerWorld implements IWorld {
             this.ticks_stat.end();
         }
         //
-        const elapsed = performance.now() - started;
-        setTimeout(async () => {
-            await this.tick();
-        },
-            elapsed < 50 ? (50 - elapsed) : 1
-        );
+        const elapsed = performance.now() - this.nextTickScheduledTime
+        const timeToNextTick = Math.max(50 - elapsed, 1)
+        setTimeout(() => this.tick(), timeToNextTick)
+        this.nextTickScheduledTime = performance.now() + timeToNextTick
     }
 
     // onPlayer
@@ -843,11 +861,11 @@ export class ServerWorld implements IWorld {
         // Modify blocks
         if(actions.blocks?.list) {
             // trick for worldedit plugin
-            const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
-            const can_ignore_air = (actions.blocks.options && 'can_ignore_air' in actions.blocks.options) ? !!actions.blocks.options.can_ignore_air : false;
-            const on_block_set = actions.blocks.options && 'on_block_set' in actions.blocks.options ? !!actions.blocks.options.on_block_set : true;
-            const blocks_chunk_addr = (actions.blocks.options && ('chunk_addr' in actions.blocks.options)) ? new Vector().copyFrom(actions.blocks.options.chunk_addr) : null
-            const blocks_chunk_coord = blocks_chunk_addr ? blocks_chunk_addr.clone().multiplyVecSelf(grid.chunkSize) : null
+            const options           = actions.blocks.options
+            const ignore_check_air  = options?.ignore_check_air
+            const ignore_equal      = options?.ignore_equal
+            const on_block_set      = options?.on_block_set ?? true
+            const blocks_chunk_coord = options?.chunk_addr && grid.chunkAddrToCoord(options.chunk_addr)
             try {
                 const block_pos_in_chunk = new Vector(Infinity, Infinity, Infinity);
                 const chunk_addr = new Vector(0, 0, 0);
@@ -862,13 +880,13 @@ export class ServerWorld implements IWorld {
                     const block_pos = new Vector()
                     if(params.posi !== undefined) {
                         if(!blocks_chunk_coord) {
-                            throw 'error_pos_not_presents'
+                            throw 'error_pos_is_not_present'
                         }
-                        math.fromFlatChunkIndex(block_pos, params.posi).addSelf(blocks_chunk_coord)
+                        math.fromChunkIndex(block_pos, params.posi).addSelf(blocks_chunk_coord)
                     } else if(params.pos) {
                         block_pos.copyFrom(params.pos).flooredSelf()
                     } else {
-                        throw 'error_pos_not_presents'
+                        throw 'error_pos_is_not_present'
                     }
                     params.pos = block_pos;
                     //
@@ -927,7 +945,7 @@ export class ServerWorld implements IWorld {
                         }
                         const tblock = chunk.tblocks.get(block_pos_in_chunk);
                         let oldId = tblock.id;
-                        if(can_ignore_air && params.item.id == AIR_BLOCK_SIMPLE.id && oldId === 0) {
+                        if(ignore_equal && params.item.id === oldId && tblock.equal(params.item)) {
                             continue
                         }
                         previous_item.id = oldId
@@ -983,7 +1001,7 @@ export class ServerWorld implements IWorld {
                         if (chunk) {
                             // The chunk exists, but not ready yet. Queue the block action until the chunk is loaded.
                             postponedActions = postponedActions ?? chunk.getOrCreatePendingAction(actor, actions)
-                            postponedActions.addBlock(params);
+                            postponedActions.importBlock(params);
                         } else {
                             this.dbActor.addChunklessBlockChange(chunk_addr, params);
                         }
@@ -1132,9 +1150,6 @@ export class ServerWorld implements IWorld {
         for(const params of actions.mobs.activate) {
             await this.mobs.activate(params.id, params.spawn_pos, params.rotate);
         }
-
-        // синхронизировать управление с действие, если нужно (независимо от успешности действия)
-        server_player?.controlManager.syncWithEvent(actions)
     }
 
     // Return generator options
@@ -1362,7 +1377,7 @@ export class ServerWorld implements IWorld {
         const addVelocityAngleAfterCollide = Math.PI / 180 * 2
         const verticalVelocity = 0
         const mul_vec = new Vector(0, 0, 0)
-    
+
         for(let i = 0; i < entities.length; i++) {
             for(let j = 0; j < entities.length; j++) {
                 if(i != j) {

@@ -6,7 +6,7 @@ import {BLOCK} from "./blocks.js";
 import { MeshManager } from "./mesh/manager.js";
 import { Camera_3d } from "./renders/camera_3d.js";
 import { Environment } from "./environment.js";
-import { LIGHT_TYPE, PLAYER_ZOOM } from "./constant.js";
+import { PLAYER_ZOOM } from "./constant.js";
 import { Mesh_Object_BBModel } from "./mesh/object/bbmodel.js";
 
 import type { Vector } from "./helpers.js";
@@ -15,6 +15,7 @@ import type {Player} from "./player.js";
 import type WebGLRenderer from "./renders/webgl/index.js";
 import {LayerPass} from "vauxcel";
 import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
+import {MESH_RENDER_LIST, MeshBatcher} from "./mesh/mesh_batcher.js";
 
 export const ZOOM_FACTOR        = 0.25;
 export const DEFAULT_FOV_NORMAL = 70;
@@ -51,6 +52,7 @@ export class RendererBBModel {
     player:                 Player
     _base_texture:          any
     _base_texture_n:        any
+    meshBatcher = new MeshBatcher();
 
     constructor(qubatchRenderSurfaceId : string) {
 
@@ -122,12 +124,12 @@ export class RendererBBModel {
         // Make materials for all shaders
         for(let rp of BLOCK.resource_pack_manager.list.values()) {
             rp.shader.materials = {
-                regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader}),
-                doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader: rp.shader}),
+                regular: renderBackend.createMaterial({ group: { cullFace: true, opaque: true }, shader: rp.shader}),
+                doubleface: renderBackend.createMaterial({ group: { cullFace: false, opaque: true }, shader: rp.shader}),
                 // decal1: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader, decalOffset: 1}),
                 // decal2: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader, decalOffset: 2}),
                 // transparent: renderBackend.createMaterial({ cullFace: true, opaque: false, shader: rp.shader}),
-                doubleface_transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader: rp.shader}),
+                doubleface_transparent: renderBackend.createMaterial({ group: { cullFace: false, opaque: false }, shader: rp.shader}),
                 // label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader: rp.shader}),
             }
         }
@@ -190,7 +192,7 @@ export class RendererBBModel {
 
     // Render one frame of the world to the canvas.
     draw(delta : float, args : any = null) {
-        const { renderBackend, camera, player } = this
+        const { renderBackend, camera, player, meshBatcher } = this
         const { globalUniforms } = renderBackend
 
         // this.resetBefore()
@@ -213,8 +215,11 @@ export class RendererBBModel {
 
         this.env.draw(this as any)
         this.defaultShader.bind(true)
+        meshBatcher.start(this as any);
         // this.meshes.draw(this as any, delta, player.lerpPos)
-        this.meshes.draw(this as any, delta, player.lerpPos)
+        this.meshes.draw(meshBatcher, delta, player.lerpPos)
+        meshBatcher.drawList(MESH_RENDER_LIST.OPAQUE);
+        meshBatcher.drawList(MESH_RENDER_LIST.TRANSPARENT);
         // this.debugGeom.draw(renderBackend)
         // this.defaultShader.bind()
         renderBackend.endPass(modelPass);
@@ -227,7 +232,7 @@ export class RendererBBModel {
         if(!model) {
             return null
         }
-        const bbmodel = new Mesh_Object_BBModel(this as any, pos, rotate, model, animation_name, doubleface)
+        const bbmodel = new Mesh_Object_BBModel(this.world, pos, rotate, model, animation_name, doubleface)
         bbmodel.setAnimation(animation_name)
         return this.meshes.add(bbmodel, key)
     }

@@ -1,5 +1,5 @@
 import { IndexedColor, QUAD_FLAGS, Vector, VectorCollector, Mth, FastRandom } from '../../helpers.js';
-import { GeometryTerrain } from "../../geometry_terrain.js";
+import { TerrainGeometry15 } from "../../geom/terrain_geometry_15.js";
 import { WRAP_MODES } from 'vauxcel';
 import { Resources } from '../../resources.js';
 import { FLUID_TYPE_MASK, PACKED_CELL_LENGTH, PACKET_CELL_BIOME_ID } from "../../fluid/FluidConst.js";
@@ -11,6 +11,7 @@ import { MAX_CHUNK_SQUARE } from '../../chunk_const.js';
 import type { World } from '../../world.js';
 import type { Player } from '../../player.js';
 import {TerrainBaseTexture} from "../../renders/TerrainBaseTexture.js";
+import type {MeshBatcher} from "../mesh_batcher";
 
 const TARGET_TEXTURES   = [.5, .5, 1, .25];
 const RAIN_SPEED        = 1023; // 1023 pixels per second scroll . 1024 too much for our IndexedColor
@@ -63,15 +64,15 @@ export default class Mesh_Object_Rain {
      * @param type rain|snow
      * @param chunkManager
      */
-    constructor(world : World, render : Renderer, type : string, chunkManager : ChunkManager) {
+    constructor(world : World, meshBatcher: MeshBatcher, type : string, chunkManager : ChunkManager) {
 
         this.life           = 1;
         this.type           = 'rain';
         this.world          = world
         this.chunkManager   = chunkManager;
         this.grid           = chunkManager.grid
-        this.player         = render.player;
-        this.render         = render;
+        this.player         = meshBatcher.render.player;
+        this.render         = meshBatcher.render;
 
         this.strength_val   = 0
         this.weather        = Weather.BY_NAME[type]
@@ -155,7 +156,7 @@ export default class Mesh_Object_Rain {
             quads += 2;
         }
 
-        this.buffer = new GeometryTerrain(vertices);
+        this.buffer = new TerrainGeometry15(vertices);
 
         return quads;
 
@@ -183,13 +184,13 @@ export default class Mesh_Object_Rain {
      * @param delta Delta time from previous call
      * @memberOf Mesh_Object_Raindrop
      */
-    draw(render : Renderer, delta : float) {
+    draw(meshBatcher: MeshBatcher, delta : float) {
 
         if(!this.enabled || !this.prepare() || !this.buffer) {
             return false;
         }
 
-        render.renderBackend.drawMesh(this.buffer, this.material, this.pos);
+        meshBatcher.drawMesh(this.buffer, this.material, this.pos);
 
         // random raindrop particles on earth
         // let prev_item = null

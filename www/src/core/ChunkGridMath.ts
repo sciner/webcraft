@@ -21,15 +21,15 @@ export class ChunkGridMath {
         return 0;
     }
 
-    fromFlatChunkIndex(vec: Vector, index : int) {
+    fromFlatChunkIndex(vec: Vector, index : int): Vector {
         return vec;
     }
 
-    isRelativePosInChunk(vec: Vector) {
+    isRelativePosInChunk(vec: Vector): boolean {
         return true;
     }
 
-    isRelativePosInChunk_s(x: number, y: number, z: number) {
+    isRelativePosInChunk_s(x: number, y: number, z: number): boolean {
         return true;
     }
 
@@ -53,7 +53,7 @@ export class ChunkGridMath {
         return 0;
     }
 
-    yFromChunkIndex(index: number) {
+    yFromChunkIndex(index: number): int {
         return 0;
     }
 

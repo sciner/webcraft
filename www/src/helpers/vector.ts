@@ -17,6 +17,7 @@ export class Vector implements IVector {
     static ZP = new Vector(0.0, 0.0, 1.0);
     static ZERO = new Vector(0.0, 0.0, 0.0);
     static ONE = new Vector(1, 1, 1);
+    static MINUS_ONE = new Vector(-1, -1, -1);
     static INFINITY = new Vector(Infinity, Infinity, Infinity);
 
     static SIX_DIRECTIONS = [this.XN, this.XP, this.ZN, this.ZP, this.YN, this.YP];
@@ -576,7 +577,7 @@ export class Vector implements IVector {
     }
 
     // Rotates self from 0 to 3 times around Y, by 90 degrees each time
-    rotateByCardinalDirectionSelf(dir) {
+    rotateByCardinalDirectionSelf(dir: int): this {
         const x = this.x;
         const z = this.z;
         switch(dir) {
@@ -597,6 +598,7 @@ export class Vector implements IVector {
                 break;
             }
         }
+        return this
     }
 
     addByCardinalDirectionSelf(vec : IVector, dir : int, mirror_x = false, mirror_z = false) {

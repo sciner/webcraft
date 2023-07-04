@@ -541,7 +541,7 @@
             }
         },
         "result": {
-            "item": "madcraft:gold_axe",
+            "item": "madcraft:golden_axe",
             "count": 1
         }
     },
@@ -583,7 +583,7 @@
             }
         },
         "result": {
-            "item": "madcraft:gold_shovel",
+            "item": "madcraft:golden_shovel",
             "count": 1
         }
     },

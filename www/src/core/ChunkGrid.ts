@@ -34,6 +34,8 @@ declare type ChunkGridOptions = {
     chunkPadding? : int
 }
 
+const tmpVector = new Vector()
+
 /*
  * May contain a topology and not actual data
  *
@@ -42,6 +44,7 @@ declare type ChunkGridOptions = {
 export class ChunkGrid {
     static operationID = 0;
 
+    options: ChunkGridOptions
     innerMap = new VectorCollector<DataChunk>();
     chunkSize: Vector;
     chunkPadding: number;
@@ -54,6 +57,7 @@ export class ChunkGrid {
         if(!chunkSize) {
             throw 'error_invalid_chunk_size'
         }
+        this.options = options
         this.chunkSize = new Vector().copyFrom(chunkSize)
         const padding = this.chunkPadding = chunkPadding ?? 1
         this.outerSize = this.outerSize = new Vector(chunkSize.x + padding * 2, chunkSize.y + padding * 2, chunkSize.z + padding * 2);
@@ -126,6 +130,11 @@ export class ChunkGrid {
 
     getXYZ(x: number, y: number, z: number): DataChunk | null {
         return this.innerMap.list.get(x)?.get(y)?.get(z);
+    }
+
+    getChunkAABB(addr: IVector, out_aabb?: AABB): AABB {
+        this.chunkAddrToCoord(addr, tmpVector)
+        return (out_aabb ?? new AABB()).setCornerSize(tmpVector, this.chunkSize)
     }
 
     addSub(sub: DataChunk) {

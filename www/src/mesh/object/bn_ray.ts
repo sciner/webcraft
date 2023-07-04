@@ -1,11 +1,12 @@
 import { DIRECTION, IndexedColor, QUAD_FLAGS, Vector } from '../../helpers.js';
 import { BLOCK } from '../../blocks.js';
-import { GeometryTerrain } from '../../geometry_terrain.js';
+import { TerrainGeometry15 } from '../../geom/terrain_geometry_15.js';
 import { AABB, AABBSideParams, pushAABB } from '../../core/AABB.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 
 import type { World } from '../../world.js';
 import type { Renderer } from '../../render.js';
+import type {MeshBatcher} from "../mesh_batcher.js";
 
 const {mat4} = glMatrix;
 
@@ -54,12 +55,12 @@ export class Mesh_Object_BeaconRay {
             this.pos
         );
 
-        this.buffer = new GeometryTerrain(this.vertices);
+        this.buffer = new TerrainGeometry15(this.vertices);
 
     }
 
     // Draw
-    draw(render : Renderer, delta : float) {
+    draw(meshBatcher: MeshBatcher, delta : float) {
 
         if(!this.buffer) {
             return false;
@@ -75,7 +76,7 @@ export class Mesh_Object_BeaconRay {
 
         delta *= 25;
         delta /= 1000;
-        render.renderBackend.drawMesh(this.buffer, this.gl_material, this.apos, this.matrix);
+        meshBatcher.drawMesh(this.buffer, this.gl_material, this.apos, this.matrix);
 
     }
 
@@ -96,7 +97,7 @@ export class Mesh_Object_BeaconRay {
             return;
         }
         this.chunk = chunk;
-        this.lightTex = chunk.getLightTexture(render.renderBackend);
+        this.lightTex = chunk.getLightTexture(meshBatcher);
     }*/
 
 }

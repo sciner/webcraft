@@ -1,5 +1,5 @@
 import { Vector } from "./vector.js";
-import type {AABB} from "../core/AABB.js";
+import type {AABB, IAABB} from "../core/AABB.js";
 import {DIRECTION} from "./helper_const.js";
 
 /** Applies rotation by cradinal direction, mirroring and shift to a Vector. */
@@ -98,7 +98,7 @@ export class VectorCardinalTransformer {
         return this.y0 + y
     }
 
-    tranformAABB(src: AABB, dst: AABB): AABB {
+    transformAABB(src: IAABB, dst: AABB): AABB {
         const tmpVec = VectorCardinalTransformer.tmpVec
         tmpVec.set(src.x_min, src.y_min, src.z_min)
         this.transform(tmpVec, tmpVec)

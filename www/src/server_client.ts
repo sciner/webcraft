@@ -54,6 +54,7 @@ export class ServerClient {
     static CMD_PLAYER_JOIN              = 41; // s->p (добавляет нового игрока)
     static CMD_PLAYER_LEAVE             = 42;
     static CMD_PLAYER_STATE             = 43; // server -> player
+    static CMD_PLAYER_UPDATE_STATE      = 126; // server -> player
     static CMD_PLAYER_CONTROL_SESSION   = 112 // p->s (a client stated a new physics session)
     static CMD_PLAYER_CONTROL_UPDATE    = 113 // p->s (c client sends input and output of the player controller in one or multiple ticks)
     static CMD_PLAYER_CONTROL_CORRECTION= 114 // s->p (a server doesn't accept the client's state, and tells the clint the correct state)
@@ -137,9 +138,11 @@ export class ServerClient {
     static CMD_BUILDING_SCHEMA_ADD      = 107;
 
     // Media
-    static CMD_BILLBOARD_MEDIA              = 125;
+    static CMD_BILLBOARD_MEDIA          = 125;
 
-    // NEXT UNUSED COMMAND INDEX        = 126
+    static CMD_PROGRESSBAR              = 127 // s->p: сообщает клиенту нужно что нужно отображать на прогрессбаре
+
+    // NEXT UNUSED COMMAND INDEX        = 128
 
     ws                                  : WebSocket
     lastPacketReceivedTime              = Infinity; // set to performance.now() when a packet is received

@@ -1,10 +1,10 @@
 import { QUAD_FLAGS, Vector, VectorCollector } from '../helpers.js';
-import { GeometryTerrain } from "../geometry_terrain.js";
+import { TerrainGeometry15 } from "../geom/terrain_geometry_15.js";
 import { ChunkManager } from '../chunk_manager.js';
 import { LIGHT_TYPE } from '../constant.js';
 import type { Mesh_Effect_Manager } from './effect/manager.js';
 
-const STRIDE_FLOATS                         = GeometryTerrain.strideFloats;
+const STRIDE_FLOATS                         = TerrainGeometry15.strideFloats;
 
 export const pos_offset                     = 0;
 export const axisx_offset                   = 3;
@@ -51,7 +51,7 @@ export class Mesh_Effect {
         this.max_count      = 8192;
         this.add_index      = 0;
         this.vertices       = new Array(this.max_count * STRIDE_FLOATS);
-        this.buffer         = new GeometryTerrain(new Float32Array(this.vertices));
+        this.buffer         = new TerrainGeometry15(new Float32Array(this.vertices));
         this.p_count        = 0;
 
     }
@@ -121,7 +121,7 @@ export class Mesh_Effect {
 
     }
 
-    update(render, delta) {
+    update(delta) {
 
         //
         const data = this.buffer.data;
@@ -204,13 +204,13 @@ export class Mesh_Effect {
      * @param {float} delta
      * @returns
      */
-    draw(render, delta) {
+    draw(meshBatcher, delta) {
 
         if(this.p_count < 1) {
             return false;
         }
 
-        this.update(render, delta);
+        this.update(delta);
 
         if(!this.chunk) {
             /**
@@ -220,7 +220,7 @@ export class Mesh_Effect {
         }
 
         if(this.chunk) {
-            render.renderBackend.drawMesh(
+            meshBatcher.drawMesh(
                 this.buffer,
                 this.material,
                 this.chunk_coord,

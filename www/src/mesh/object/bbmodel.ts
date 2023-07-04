@@ -1,5 +1,5 @@
-import { IndexedColor, QUAD_FLAGS, Vector } from '../../helpers.js';
-import { GeometryTerrain } from '../../geometry_terrain.js';
+import {Color, IndexedColor, QUAD_FLAGS, Vector} from '../../helpers.js';
+import { TerrainGeometry15 } from '../../geom/terrain_geometry_15.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { Mesh_Object_Base } from './base.js';
 import { Resources } from '../../resources.js';
@@ -11,15 +11,16 @@ import type Mesh_Object_Block_Drop from './block_drop.js';
 import type { Renderer } from '../../render.js';
 import { Mesh_Object_Asteroid } from './asteroid.js';
 import { BLOCK, DBItemBlock } from '../../blocks.js';
-import { BBModel_Cube } from '../../bbmodel/cube.js';
 import { default as default_style } from '../../block_style/default.js';
-import type { WebGLMaterial } from '../../renders/webgl/WebGLMaterial.js';
+import type { TerrainMaterial } from '../../renders/terrain_material.js';
+import type {World} from "../../world";
+import type {MeshBatcher} from "../mesh_batcher.js";
 
 export class MeshObjectCustomReplace {
-    buffer: GeometryTerrain
-    gl_material: WebGLMaterial
+    buffer: TerrainGeometry15
+    gl_material: TerrainMaterial
 
-    constructor(buffer : GeometryTerrain, gl_material : WebGLMaterial) {
+    constructor(buffer : TerrainGeometry15, gl_material : TerrainMaterial) {
         this.buffer = buffer
         this.gl_material = gl_material
     }
@@ -131,9 +132,9 @@ class MeshObjectModifiers {
             this.append_list.set(group_name, group)
         }
 
-        const render = this.mesh.render
+        const world = this.mesh.world
         const bbmodel = Resources._bbmodels.get(model_name)
-        const mesh = new Mesh_Object_BBModel(render, Vector.ZERO, Vector.ZERO, bbmodel, null, true)
+        const mesh = new Mesh_Object_BBModel(world, Vector.ZERO, Vector.ZERO, bbmodel, null, true)
         const displays = mesh.model.json?.display
         const display = display_name && displays ? displays[display_name] : null
         const modifier = new MeshObjectModifyAppend(mesh, display)
@@ -174,14 +175,14 @@ class MeshObjectModifiers {
             group.mesh.destroy()
         }
 
-        const render = this.mesh.render
+        const world = this.mesh.world
         const bbmodel = Resources._bbmodels.get(model_name)
         const replacement_group = bbmodel?.groups?.get(group_name)
         if(!replacement_group) {
             console.error('error_replacement_group_not_found')
             return null
         }
-        const mesh = new Mesh_Object_BBModel(render, Vector.ZERO, Vector.ZERO, bbmodel, null, true)
+        const mesh = new Mesh_Object_BBModel(world, Vector.ZERO, Vector.ZERO, bbmodel, null, true)
         const modifier = new MeshObjectModifyReplace(mesh, replacement_group, texture_name)
 
         this.replace.set(group_name, modifier)
@@ -266,12 +267,12 @@ class MeshObjectModifiers {
 // Mesh_Object_BBModel
 export class Mesh_Object_BBModel extends Mesh_Object_Base {
     model:              BBModel_Model
-    geometries:         Map<string, GeometryTerrain> = new Map()
+    geometries:         Map<string, TerrainGeometry15> = new Map()
     vertices_pushed:    Map<string, boolean> = new Map()
     resource_pack:      BaseResourcePack
     modifiers:          MeshObjectModifiers
     hide_groups:        string[]
-    render:             Renderer
+    world:              World
     /** Время в секундах, когда измеился тип анимации. Не учитывает изменения скорости и направления. */
     animation_changed:  float | null = null
     animations:         Map<string, any> = new Map()
@@ -289,16 +290,17 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
     private rotation_matrix?: imat4
     private _block_drawer: Mesh_Object_Asteroid
 
-    constructor(render : Renderer, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false, transparent : boolean = false, rotation_matrix?: imat4, hide_groups?: string[], item_block? : DBItemBlock) {
+    constructor(world: World, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false, transparent : boolean = false, rotation_matrix?: imat4, hide_groups?: string[], item_block? : DBItemBlock) {
         super(undefined)
 
+        this.world = world;
         this.model = model
         if(!this.model) {
             console.error('error_model_not_found')
             return
         }
 
-        const grid = render.world.chunkManager.grid
+        const grid = world.chunkManager.grid
 
         for(const group_name of model.groups.keys()) {
             this.animations.set(group_name, new Map())
@@ -315,7 +317,6 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
 
         const kmat = transparent ? (doubleface ? 'doubleface_transparent' : 'transparent') : (doubleface ? 'doubleface' : 'regular')
 
-        this.render         = render
         this.life           = 1.0;
         this.chunk          = null
         this.apos           = new Vector(pos) // absolute coord
@@ -324,9 +325,9 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         this.pos            = this.apos.sub(this.chunk_coord); // pos inside chunk
         this.matrix         = mat4.create();
         this.start_time     = performance.now();
-        this.resource_pack  = render.world.block_manager.resource_pack_manager.get('bbmodel');
+        this.resource_pack  = world.block_manager.resource_pack_manager.get('bbmodel');
         this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${kmat}/terrain/${model.json._properties.texture_id}`);
-        this.buffer         = new GeometryTerrain(this.vertices)
+        this.buffer         = new TerrainGeometry15(this.vertices)
         this.modifiers      = new MeshObjectModifiers(this)
         this.hide_groups    = hide_groups ?? []
         this.item_block     = item_block
@@ -368,7 +369,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
     }
 
     // Draw
-    draw(render : Renderer, delta : float) {
+    draw(meshBatcher: MeshBatcher, delta : float) {
 
         if(!this.buffer || !this.visible) {
             return false;
@@ -380,14 +381,12 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
             this.redraw(delta);
         }
 
-        // this.updateLightTex(render);
-
         // const rot = (performance.now() / 1000) % (Math.PI * 2);
         // this.matrix = mat4.create();
         // mat4.rotate(this.matrix, this.matrix, rot, [0, 0, 1]);
         // mat4.scale(this.matrix, this.matrix, this.scale.toArray());
 
-        render.renderBackend.drawMesh(this.buffer, this.gl_material, this.apos, this.matrix);
+        meshBatcher.drawMesh(this.buffer, this.gl_material, this.apos, this.matrix);
 
     }
 
@@ -396,7 +395,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         return normalizedAngle > 180 ? normalizedAngle - 360 : normalizedAngle;
     }
 
-    drawBuffered(render : Renderer, delta : float, m? : float[], pos?: Vector) {
+    drawBuffered(meshBatcher: MeshBatcher, delta : float, m? : float[], pos?: Vector) {
 
         if(!this.visible) {
             return
@@ -418,7 +417,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
 
         if(this._block_drawer) {
             this._block_drawer.pos.copyFrom(this.apos)
-            this._block_drawer.draw(render, delta, m)
+            this._block_drawer.draw(meshBatcher, delta, m)
             return
         }
 
@@ -457,7 +456,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
                                     face.uv = [...uv]
                                 }
                                 default_style.pushPART(verts, part, Vector.ZERO)
-                                const buffer = new GeometryTerrain(verts)
+                                const buffer = new TerrainGeometry15(verts)
                                 const gl_material = material.resource_pack.getMaterial(material_key)
                                 const replace_mesh = new MeshObjectCustomReplace(buffer, gl_material)
                                 const group = cube.parent
@@ -472,7 +471,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         }
 
         this.model.playAnimation(this.animation_name, (performance.now() - this.start_time) / 1000, this)
-        this.model.drawBuffered(render, this, this.apos, lm, m)
+        this.model.drawBuffered(meshBatcher, this, this.apos, lm, m)
 
     }
 
@@ -521,7 +520,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
 
     setupBlockDrawer(blocks: object) {
         if(!this._block_drawer) {
-            this._block_drawer = new Mesh_Object_Asteroid(this.render.world, this.render, this.pos, undefined, blocks)
+            this._block_drawer = new Mesh_Object_Asteroid(this.world, this.pos, undefined, blocks)
         }
     }
 
@@ -529,6 +528,21 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         if(this._block_drawer) {
             this._block_drawer.destroy()
             this._block_drawer = null
+        }
+    }
+
+    _tintEnabled = false;
+    enableTint(clr: Color) {
+        if (!this._tintEnabled) {
+            this._tintEnabled = true;
+            this.gl_material = this.gl_material.getSubMat();
+        }
+        this.gl_material.tintColor = clr;
+    }
+
+    disableTint() {
+        if (this._tintEnabled) {
+            this.gl_material.tintColor = Color.ZERO;
         }
     }
 
@@ -540,7 +554,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
             return;
         }
         this.chunk = chunk;
-        this.lightTex = chunk.getLightTexture(render.renderBackend);
+        this.lightTex = chunk.getLightTexture(meshBatcher);
     }*/
 
 }

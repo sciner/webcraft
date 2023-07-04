@@ -1,6 +1,6 @@
 import type { BaseRenderer } from "../renders/BaseRenderer.js";
 import { Buffer, Geometry, Renderer } from "vauxcel";
-import { GeometryTerrain } from "../geometry_terrain.js";
+import { TerrainGeometry15 } from "./terrain_geometry_15.js";
 
 export enum VAO_BUFFER_TYPE {
     NONE = 0,

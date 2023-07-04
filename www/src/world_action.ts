@@ -2,7 +2,7 @@ import {ROTATE, Vector, VectorCollector, Helpers, DIRECTION, Mth,
     SpatialDeterministicRandom, ObjectHelpers, getValidPosition, relPosToIndex, relIndexToPos } from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CD_ROT, CubeSym} from './core/CubeSym.js';
-import { BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT, NO_DESTRUCTABLE_BLOCKS } from "./blocks.js";
+import {BLOCK, FakeTBlock, EXTRA_DATA_SPECIAL_FIELDS_ON_PLACEMENT, NO_DESTRUCTABLE_BLOCKS, IDBItemBlock} from "./blocks.js";
 import { BLOCK_ACTION } from "./server_client.js";
 import { Resources } from "./resources.js";
 import {impl as alea} from '@vendors/alea.js';
@@ -16,20 +16,21 @@ import {
 import { BLOCK_FLAG, COVER_STYLE_SIDES, DEFAULT_STYLE_NAME, SIGN_POSITION, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
-import type { TSittingState, TSleepState} from "./player.js";
+import type { PlayerStateWorld, TSittingState, TSleepState} from "./player.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
 import type {TChestInfo} from "./block_helpers.js";
 import type { GameMode } from "./game_mode.js";
 
 /** A type that is as used as player in actions. */
 export type ActionPlayerInfo = {
-    radius      : float,    // it's used as the player's diameter, not radius!
-    height      : float,
-    username?   : string,
-    pos         : IVector,
-    rotate      : IVector,
-    game_mode   : GameMode,
-    is_admin    : boolean,
+    radius          : float,    // it's used as the player's diameter, not radius!
+    height          : float,
+    username?       : string,
+    pos             : IVector,
+    rotate          : IVector,
+    game_mode       : GameMode,
+    is_admin        : boolean,
+    world           : PlayerStateWorld,
     session: {
         user_id: number
     }
@@ -64,21 +65,27 @@ export type ActivateMobParams = {
 }
 
 export type TActionBlock = {
-    posi?           : int
+    posi?           : int       // индекс в чанке, не flat
     pos?            : Vector
     action_id?      : int
-    item            : IBlockItem
+    item            : IDBItemBlock
     destroy_block ? : { id: int }
 }
 
 type ActionBlocks = {
     list: TActionBlock[]
     options: {
-        can_ignore_air      : boolean
-        ignore_check_air    : boolean
+        /**
+         * Если true, и новый блок полностью совпадает со старым, то действие пропускается.
+         *
+         * Нужен ли этот параметр? Если блоки полностью совпадают (не только AIR), это лигочно сделать
+         * поведением по умолчанию - ничего не делать.
+         */
+        ignore_equal        : boolean
+        ignore_check_air    : boolean   // если true, то не проигрывается particle animation при разрушении блока
         on_block_set        : boolean
         on_block_set_radius : number
-        chunk_addr          : Vector
+        chunk_addr          : IVector
     }
 }
 
@@ -588,6 +595,8 @@ export class WorldAction {
     play_sound: PlaySoundParams[]
     drop_items: DropItemParams[]
     blocks: ActionBlocks
+    fluids: int[]
+    fluidFlush: boolean
     mobs: {
         activate: ActivateMobParams[]
         spawn: any[] // it should be MobSpawnParams, but it's server class
@@ -600,7 +609,12 @@ export class WorldAction {
      */
     controlEventId? : int
     load_chest?: TChestInfo
+    /** Если задано - вызывается после окончания действия */
+    callback?: (WorldAction) => void
 
+    /**
+     * @param ignore_check_air - см. {@link ActionBlocks.options.ignore_check_air}
+     */
     constructor(id ? : string | int | null, world? : any, ignore_check_air : boolean = false, on_block_set : boolean = true, notify : boolean = null) {
         this.#world = world;
         //
@@ -654,7 +668,9 @@ export class WorldAction {
      */
     createSimilarEmpty() {
         const options = this.blocks.options;
-        return new WorldAction(this.id, this.world, options.ignore_check_air, options.on_block_set, null);
+        const result = new WorldAction(this.id, this.world, options.ignore_check_air, options.on_block_set, null);
+        result.blocks.options = options
+        return result
     }
 
     // Add play sound
@@ -664,6 +680,14 @@ export class WorldAction {
 
     importBlock(item: TActionBlock): void {
         this.blocks.list.push(item)
+    }
+
+    /** Устанавливает блоки без проверок (как {@link importBlock}), но весь массив блоков сразу, без дополниьельного выделения памяти. */
+    importBlocks(items: TActionBlock[]): void {
+        if (this.blocks.list.length) {
+            throw new Error('importBlocks: blocks already exist - probably a bug')
+        }
+        this.blocks.list = items
     }
 
     addBlock(item: TActionBlock): void {
@@ -695,6 +719,14 @@ export class WorldAction {
         for (let i = 0; i < fluids.length; i += 4) {
             this.fluids.push(fluids[i + 0] + offset.x, fluids[i + 1] + offset.y, fluids[i + 2] + offset.z, fluids[i + 3]);
         }
+    }
+
+    /** Устанавливает значение {@link fluids} без копирования данных */
+    importFluids(fluids : int[]): void {
+        if (this.fluids.length) {
+            throw new Error('importFluids: fluids already exist - probably a bug')
+        }
+        this.fluids = fluids
     }
 
     // Add drop item
@@ -1356,6 +1388,8 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         return [actions, pos];
     }
 
+    return [null, null];
+
 }
 
 //
@@ -1493,7 +1527,7 @@ function setActionBlock(actions, world, pos, orientation, mat_block, new_item) :
 }
 
 // Если ткнули на предмет с собственным окном
-function needOpenWindow(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+function needOpenWindow(e, world, pos, player: ActionPlayerInfo, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
     if(!world_material.has_window || e.shiftKey) {
         return false;
     }
@@ -1507,7 +1541,7 @@ function needOpenWindow(e, world, pos, player, world_block, world_material, mat_
             entity_id:  entity_id
         };
     } else if(world_material.window == 'frmBillboard') {
-        if(player.is_admin) {
+        if(player.world.is_admin) {
             const posworld = new Vector(pos)
             const relindex = extra_data.relindex
             const move = relindex == -1 ? Vector.ZERO : relIndexToPos(relindex, new Vector())
@@ -1851,8 +1885,8 @@ function editBillboard(e, world, pos, player : ActionPlayerInfo, world_block, wo
     if (world_material.window != 'frmBillboard') {
         return false
     }
-    if(!player.is_admin) {
-        return false
+    if(!player.world.is_admin) {
+        throw 'error_require_permission'
     }
     const url = world.getPlayerFile(player.session.user_id, e.extra_data.file, e.extra_data.demo)
     if (!url) {
@@ -3081,13 +3115,13 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
         if (block_air.id == bm.AIR.id && block_air.fluid == 0) {
             const dp_pos = air_pos.offset(0, up ? -1 : 1, 0)
             const block_dp = world.getBlock(dp_pos)
-            actions.addBlocks([{pos: air_pos, item: {id: mat_block.id, extra_data: {up: up, tip: true}}, action_id: BLOCK_ACTION.CREATE}]) 
+            actions.addBlocks([{pos: air_pos, item: {id: mat_block.id, extra_data: {up: up, stage: 0}}, action_id: BLOCK_ACTION.CREATE}]) 
         }
     } else {
         if (pos.n.y == 1) {
-            actions.addBlocks([{pos: position.offset(0, 1, 0), item: {id: mat_block.id, extra_data: {up: false, tip: true}}, action_id: BLOCK_ACTION.CREATE}])
+            actions.addBlocks([{pos: position.offset(0, 1, 0), item: {id: mat_block.id, extra_data: {up: false, stage: 0}}, action_id: BLOCK_ACTION.CREATE}])
         } else if (pos.n.y == -1) {
-            actions.addBlocks([{pos: position.offset(0, -1, 0), item: {id: mat_block.id, extra_data: {up: true, tip: true}}, action_id: BLOCK_ACTION.CREATE}])
+            actions.addBlocks([{pos: position.offset(0, -1, 0), item: {id: mat_block.id, extra_data: {up: true, stage: 0}}, action_id: BLOCK_ACTION.CREATE}])
         }
     }
 

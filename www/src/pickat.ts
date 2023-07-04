@@ -1,6 +1,6 @@
 import { Vector } from "./helpers.js";
 import {BLEND_MODES} from 'vauxcel';
-import { GeometryTerrain } from "./geometry_terrain.js";
+import { TerrainGeometry15 } from "./geom/terrain_geometry_15.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import {Raycaster, RaycasterResult} from "./Raycaster.js";
@@ -336,7 +336,7 @@ export class PickAt {
             aabb.set(...shapes[i]);
             geom.addAABB(aabb, aabbConfig);
         }
-        return new GeometryTerrain(vertices);
+        return new TerrainGeometry15(vertices);
     }
 
     // createTargetBuffer...
@@ -398,7 +398,7 @@ export class PickAt {
                 c[0], c[1], -c[2], c[3],
                 pp, flags | sideFlags);
         }
-        return new GeometryTerrain(vertices);
+        return new TerrainGeometry15(vertices);
     }
 
     // for HUD
@@ -442,11 +442,13 @@ export class PickAt {
     initMaterials() {
         // Material (damage)
         this.material_damage = this.render.renderBackend.createMaterial({
-            cullFace: true,
-            opaque: false,
             blendMode: BLEND_MODES.MULTIPLY,
             shader: this.render.defaultShader,
-            decalOffset: 6,
+            group: {
+                cullFace: true,
+                opaque: false,
+                decalOffset: 6,
+            }
         });
         // Material (target)
         this.material_target = this.material_damage.getSubMat(new TerrainBaseTexture({

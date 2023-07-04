@@ -744,7 +744,7 @@
         },
         {
             "id": 563,
-            "name": "GOLD_SHOVEL",
+            "name": "GOLDEN_SHOVEL",
             "sound": "madcraft:block.shovel",
             "transparent": true,
             "max_in_stack": 1,
@@ -935,7 +935,7 @@
             "item": {"name": "instrument", "instrument_id": "axe"},
             "diagonal": true,
             "material": {
-                "id": "wood"
+                "id": "copper"
             },
             "texture": {
                 "side": "item/wooden_axe.png"
@@ -981,7 +981,7 @@
         },
         {
             "id": 558,
-            "name": "GOLD_AXE",
+            "name": "GOLDEN_AXE",
             "style": "extruder",
             "sound": "madcraft:axe",
             "transparent": true,
@@ -5004,7 +5004,7 @@
             "style": "pointed_dripstone",
             "inventory": {
                 "style": "extruder",
-                "texture": "./textures/pointed_dripstone.png"
+                "texture": "./textures/pointed_dripstone_tip.png"
             },
             "sound": "madcraft:block.stone",
             "material": {
@@ -5014,18 +5014,15 @@
                 "doubleface"
             ],
             "texture": {
-                "up": "./textures/pointed_dripstone_tip.png",
-                "west": "./textures/pointed_dripstone_tip_merge.png",
-                "north": "./textures/pointed_dripstone_frustum.png",
-                "south": "./textures/pointed_dripstone_middle.png",
-                "down": "./textures/pointed_dripstone_base.png"
+                "down": "./textures/pointed_dripstone_tip_merge.png",
+                "east": "./textures/pointed_dripstone_base.png",
+                "west": "./textures/pointed_dripstone_frustum.png",
+                "north": "./textures/pointed_dripstone_tip.png",
+                "south": "./textures/pointed_dripstone_middle.png"
             },
             "extra_data": {
                 "up": false,
-                "base": false,
-                "merge": false,
-                "middle": false,
-                "frustum": false
+                "srage": 0
             }
         },
         {

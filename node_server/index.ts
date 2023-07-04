@@ -166,14 +166,14 @@ Config.init().then(async (config) => {
 
     // API
 
-    app.use('/api/Game/Screenshot', fileUpload({
+    app.use('/api/Game/UploadScreenshot', fileUpload({
         debug: true,
         limits: { fileSize: 50 * 1024 * 1024 },
         useTempFiles : true,
         abortOnLimit: true
     }));
 
-    app.use('/api/Game/Billboard', fileUpload({
+    app.use('/api/Game/UploadBillboardImage', fileUpload({
         debug: true,
         limits: { fileSize: 10 * 1024 * 1024 },
         useTempFiles : true,

@@ -65,16 +65,13 @@ export class MobManager {
     }
 
     // Client side method
-    init(render? : null) {
-
-        render = render ?? Qubatch.render
-
+    init() {
         for(let [name, model] of Resources._bbmodels.entries()) {
             if(!name.startsWith('mob/')) {
                 continue
             }
             name = name.substring(4)
-            const mesh = new Mesh_Object_BBModel(render, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
+            const mesh = new Mesh_Object_BBModel(this.#world, new Vector(0, 0, 0), new Vector(0, 0, -Math.PI/2), model, undefined, true)
             this.models.set(name, mesh)
         }
 

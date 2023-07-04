@@ -1100,6 +1100,9 @@ export class Label extends Window {
 
 }
 
+export class CheckBox extends Label {
+}
+
 // TextEdit
 export class TextEdit extends Window {
 

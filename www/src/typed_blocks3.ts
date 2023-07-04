@@ -2,7 +2,7 @@ import { Vector, ObjectHelpers } from "./helpers.js";
 import { DataChunk } from './core/DataChunk.js';
 import { BaseChunk } from './core/BaseChunk.js';
 import { AABB } from './core/AABB.js';
-import {BLOCK, DBItemBlock} from "./blocks.js";
+import {BLOCK, DBItemBlock, IDBItemBlock} from "./blocks.js";
 import {calcFluidLevel, getBlockByFluidVal} from "./fluid/FluidBuildVertices.js";
 import {FLUID_LEVEL_MASK, FLUID_TYPE_MASK, FLUID_WATER_ID, fluidLightPower} from "./fluid/FluidConst.js";
 import type { FluidChunk } from "./fluid/FluidChunk.js";
@@ -155,6 +155,15 @@ export class VectorCollector1D<T = any> {
     }
 }
 
+export type TBlocksSavedState = {
+    id          : Uint16Array
+    rotate      : Map<int, IVector>
+    entity_id   : Map<int, string>
+    texture     : Map<int, any>
+    extra_data  : Map<int, Dict>
+    fluid       : Uint8Array
+}
+
 //
 export class TypedBlocks3 {
 
@@ -260,7 +269,7 @@ export class TypedBlocks3 {
         }
     }
 
-    saveState() {
+    saveState(): TBlocksSavedState {
         return {
             id: this.dataChunk.uint16View,
             rotate: this.rotate.list,
@@ -910,8 +919,8 @@ export class TBlock {
 
     // Clones essential data as POJO.
     // The result can be used in WorldAction.addBlocks() to create/modify the same block
-    clonePOJO(): IBlockItem {
-        let res : IBlockItem = { id: this.id };
+    clonePOJO(): IDBItemBlock {
+        let res : IDBItemBlock = { id: this.id };
         if (res.id) {  // AIR blocks are very common, they don't have properties
             if (BLOCK.BLOCK_BY_ID[res.id]?.can_rotate && this.rotate) {
                 res.rotate = { ...this.rotate };
@@ -926,6 +935,16 @@ export class TBlock {
             }
         }
         return res;
+    }
+
+    equal(other: IDBItemBlock): boolean {
+        const {id} = this
+        // см. похожую проверку в SchematicJob.removeEqualBlocks
+        return id === other.id && (id === 0 ||
+            ObjectHelpers.deepEqual(this.rotate, other.rotate) &&
+            ObjectHelpers.deepEqual(this.extra_data, other.extra_data) &&
+            ObjectHelpers.deepEqual(this.entity_id, other.entity_id)
+        )
     }
 
     get posworld() : Vector {

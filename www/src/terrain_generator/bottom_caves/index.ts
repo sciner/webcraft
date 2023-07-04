@@ -1,5 +1,5 @@
 import { IndexedColor, Vector } from '../../helpers.js';
-import { Default_Terrain_Generator, Default_Terrain_Map } from '../default.js';
+import { Default_Terrain_Generator, Default_Terrain_Map, addPointedDripstone } from '../default.js';
 import { BLOCK } from '../../blocks.js';
 import { CubeSym } from '../../core/CubeSym.js';
 import { noise, alea } from "../default.js";
@@ -150,9 +150,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     } else if(dripstone_allow) {
                                         // Dripstone
                                         if(aleaRandom.double() < .3) {
-                                            chunk.setBlockIndirect(x, y_start - 0, z, BLOCK.POINTED_DRIPSTONE.id, null, {up: true});
-                                            chunk.setBlockIndirect(x, y_start - 1, z, BLOCK.POINTED_DRIPSTONE.id, null, {up: true});
-                                            chunk.setBlockIndirect(x, y_start - 2, z, BLOCK.POINTED_DRIPSTONE.id, null, {up: true});
+                                            addPointedDripstone(chunk, BLOCK, x, y_start, z, aleaRandom.double() * 6 | 0)
                                         }
                                         // reset stalactite
                                         y_start = Infinity;

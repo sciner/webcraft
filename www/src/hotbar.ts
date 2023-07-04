@@ -9,6 +9,7 @@ import type { SpriteAtlas } from "./core/sprite_atlas.js";
 import type { HUD } from "./hud.js";
 import type { PlayerInventory } from "./player_inventory.js";
 import { Label, MySprite, MyTilemap, Window } from "./ui/wm.js";
+import {ServerClient} from "./server_client.js";
 
 const MAX_NAME_SHOW_TIME    = 2000;
 const SLOT_MARGIN_PERCENT   = 1
@@ -101,6 +102,13 @@ export class Hotbar {
     bars:                       Dict<Label> = {}
     strings:                    Strings
     inventory_update_number:    number
+
+    // Прогресс вставки схематики или еще чего-то
+    progress_bar:               Label
+    progress_bar_value:         Label
+    progress_bar_label:         Label
+    progress_bar_percent:       int = null          // от 0 до 1
+    progress_bar_prev_percent:  int | null = null   // от 0 до 1
 
     constructor(hud : HUD) {
 
@@ -213,10 +221,11 @@ export class Hotbar {
     }
 
     /**
-    * Создание слотов для инвентаря
-    * @param sz Ширина / высота слота
-    */
-    createInventorySlots() {
+     * Устанавливает инвентарь и создает слоты для инфентаря, а также полоски индикаторов, и, возможно, некоторые
+     * другие элементы, требующие поздней инициализации.
+     */
+    setInventory(inventory : PlayerInventory) {
+        this.inventory = inventory
 
         const sz = this.sx
 
@@ -258,7 +267,26 @@ export class Hotbar {
         oxygen_bar.value_bar = oxygen_bar_value
         this.hud.wm.addChild(oxygen_bar)
 
-        const armor_base_sprite = this.hud_atlas.getSpriteFromMap('armor_0') 
+        // Прогресс вставки схематики, или еще чего-то в игре
+        const progress_bar = this.progress_bar = new Label(0, 0, 600/3 * this.zoom, 52/3*this.zoom, 'progress_bar')
+        progress_bar.auto_center = false
+        progress_bar.setBackground(this.hud_atlas.getSpriteFromMap('progress_bar_back'))
+        this.progress_bar_value = new Label(0, 0, progress_bar.w, progress_bar.h, 'progress_bar_value')
+        this.progress_bar_value.setBackground(this.hud_atlas.getSpriteFromMap('progress_bar'))
+        progress_bar.add(this.progress_bar_value)
+        this.progress_bar_label = new Label(0, 0, progress_bar.w, progress_bar.h, 'progress_bar_label')
+        progress_bar.add(this.progress_bar_label)
+        this.hud.wm.addChild(progress_bar)
+        inventory.player.world.server.AddCmdListener([ServerClient.CMD_PROGRESSBAR], (packet: INetworkMessage) => {
+            this.progress_bar_percent = packet.data.percent
+            this.progress_bar_label.text = packet.data.text
+            // устанавливать стиль после установки текста, потому что установка текста сбрасывает стиль (баг?)
+            this.progress_bar_label.style.font.color = '#ffffffff'
+            this.progress_bar_label.style.textAlign.horizontal = 'center'
+            this.progress_bar_label.style.textAlign.vertical = 'middle'
+        })
+
+        const armor_base_sprite = this.hud_atlas.getSpriteFromMap('armor_0')
         const armor_base_window = this.armor_base_window = new Window(MARGIN * this.zoom, 0, armor_base_sprite.width * sprite_zoom, armor_base_sprite.height * sprite_zoom, 'armor_base')
         armor_base_window.catchEvents = false
         armor_base_window.auto_center = false
@@ -294,11 +322,6 @@ export class Hotbar {
 
     get zoom() : float {
         return UI_ZOOM * Qubatch.settings.window_size / 100
-    }
-
-    setInventory(inventory : PlayerInventory) {
-        this.inventory = inventory
-        this.createInventorySlots()
     }
 
     //
@@ -350,7 +373,9 @@ export class Hotbar {
         const player  = this.inventory.player;
         const mayGetDamaged = player.game_mode.mayGetDamaged()
         const visible_window = hud.wm.hasVisibleWindow()
-        const visible = !player.game_mode.isSpectator() && hud.isActive() && (visible_window?.id != 'frmInGameMain')
+        const anythingVisible = (visible_window?.id != 'frmInGameMain')
+        const gameplayVisible = anythingVisible && !player.game_mode.isSpectator() && hud.isActive()
+        const {progress_bar, progress_bar_percent} = this
 
         // const alpha = visible_window ? .75 : 1
         // this.inventory_slots_window.alpha = alpha
@@ -358,12 +383,26 @@ export class Hotbar {
         // this.armor_base_window.alpha = alpha
         // this.oxygen_bar.alpha = alpha
 
-        this.inventory_slots_window.visible = visible
-        this.bars_base_window.visible = visible && mayGetDamaged
-        this.armor_base_window.visible = visible && mayGetDamaged
-        this.oxygen_bar.visible = visible && mayGetDamaged
+        this.inventory_slots_window.visible = gameplayVisible
+        this.bars_base_window.visible = gameplayVisible && mayGetDamaged
+        this.armor_base_window.visible = gameplayVisible && mayGetDamaged
+        this.oxygen_bar.visible = gameplayVisible && mayGetDamaged
+        progress_bar.visible = anythingVisible && progress_bar_percent != null
 
-        if(!visible) {
+        if(!anythingVisible) {
+            return false
+        }
+
+        if (progress_bar.visible) {
+            progress_bar.x = (hud.width - progress_bar.w) / 2
+            progress_bar.y = hud.height/2 + progress_bar.h * 12     // под индикаторами ксилорода
+            if(this.progress_bar_prev_percent !== progress_bar_percent) {
+                this.progress_bar_prev_percent = progress_bar_percent
+                this.progress_bar_value.clip(0, 0, this.progress_bar_value.w * progress_bar_percent)
+            }
+        }
+
+        if(!gameplayVisible) {
             return false;
         }
 

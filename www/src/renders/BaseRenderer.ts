@@ -2,12 +2,12 @@
 
 import type {Vector} from '../helpers.js';
 import {ShaderPreprocessor} from "./ShaderPreprocessor.js";
-import type {GeometryTerrain} from '../geometry_terrain.js';
-import type {WebGLMaterial} from './webgl/WebGLMaterial.js';
+import type {TerrainGeometry15} from '../geom/terrain_geometry_15.js';
 import {BLEND_MODES, Geometry, LayerPass, RenderTexture, Buffer, Renderer, State, BatchSystem} from 'vauxcel';
 import {GlobalUniformGroup, LightUniformGroup} from "./uniform_groups.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import {BufferBaseTexture, BufferBaseTexture3D} from "./BufferBaseTexture.js";
+import {TerrainMaterial} from "./terrain_material.js";
 
 const {mat4} = glMatrix;
 
@@ -280,10 +280,10 @@ export class BaseRenderer {
     }
 
     createMaterial(options) {
-        throw new TypeError('Illegal invocation, must be overridden by subclass');
+        return new TerrainMaterial(this, options);
     }
 
-    drawMesh(geom : GeometryTerrain, material : WebGLMaterial, a_pos : Vector = null, modelMatrix : imat4 = null, draw_type? : string) {
+    drawMesh(geom : TerrainGeometry15, material : TerrainMaterial, a_pos : Vector = null, modelMatrix : imat4 = null, draw_type? : string) {
         if (geom.size === 0) {
             return;
         }

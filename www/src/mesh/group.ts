@@ -1,11 +1,11 @@
 import {IndexedColor, Vector, VectorCollector} from '../helpers.js';
-import { GeometryTerrain } from "../geometry_terrain.js";
+import { TerrainGeometry15 } from "../geom/terrain_geometry_15.js";
 import {BLOCK, FakeTBlock} from "../blocks.js";
 import { AABB } from '../core/AABB.js';
 import type { BaseResourcePack } from '../base_resource_pack.js';
 import type { ChunkWorkerChunk } from '../worker/chunk.js';
-import type { Renderer } from '../render.js';
-import type { WebGLMaterial } from '../renders/webgl/WebGLMaterial.js';
+import type { IMeshDrawer } from './mesh_batcher.js';
+import type { TerrainMaterial } from '../renders/terrain_material.js';
 import { DEFAULT_GRASS_PALETTE } from '../constant.js';
 
 // Chunk
@@ -31,10 +31,10 @@ let neighbours_map = [
 export class MeshGroup {
     [key: string]: any;
     meshes : Map<string, {
-        buffer?:        GeometryTerrain;
+        buffer?:        TerrainGeometry15;
         resource_pack:  BaseResourcePack,
         vertices:       any[],
-        material:       WebGLMaterial
+        material:       TerrainMaterial
     }>
 
     constructor() {
@@ -163,16 +163,16 @@ export class MeshGroup {
 
         // Create draw buffers
         this.meshes.forEach((mesh, _, map) => {
-            mesh.buffer = new GeometryTerrain(mesh.vertices);
+            mesh.buffer = new TerrainGeometry15(mesh.vertices);
             // mesh.buffer.changeFlags(QUAD_FLAGS.FLAG_NO_CAN_TAKE_AO, 'or');
         });
 
     }
 
     // Draw meshes
-    draw(render : Renderer, pos : Vector, matrix : imat4) {
+    draw(meshBatcher: IMeshDrawer, pos : Vector, matrix : imat4) {
         this.meshes.forEach((mesh, _, map) => {
-            render.renderBackend.drawMesh(
+            meshBatcher.drawMesh(
                 mesh.buffer,
                 mesh.material,
                 pos,

@@ -10,6 +10,7 @@ import {BaseGeometryPool} from "./geom/base_geometry_pool.js";
 import {ChunkMesh} from "./chunk_mesh.js";
 import type { IWorkerChunkCreateArgs } from "./worker/chunk.js";
 import {opposite_grid_neib_index} from "./core/ChunkGrid.js";
+import type {TChunkWorkerMessageBlocksGenerated} from "./worker/messages.js";
 
 let global_uniqId = 0;
 const _inchunk_pos = new Vector(0, 0, 0)

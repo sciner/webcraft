@@ -87,6 +87,8 @@ export class GameSettings implements TWorldSettings {
     chunks_draw_debug_grid:  boolean = false
     cluster_draw_debug_grid: boolean = false
     // interface
+    crosshair_style:         int = 1
+    crosshair_size:          int = 100
     window_size:             float = 100
     show_compass:            boolean = true
     check_delete_item:       boolean = true
@@ -126,7 +128,7 @@ export class GameSettings implements TWorldSettings {
         this.base_ambient_light_level   = Mth.clamp(this.base_ambient_light_level, 0, 100)
         this.use_light                  = Mth.clamp(this.use_light, 0, 2)
         this.window_size                = Mth.clamp(this.window_size, 10, 300)
-
+        this.crosshair_style            = Mth.clamp(this.crosshair_style, 0, 3)
     }
 
 }
