@@ -41,6 +41,7 @@ interface IVector {
     y: number;
     z: number;
 }
+
 interface IColor {
     r: number;
     g: number;
@@ -90,7 +91,7 @@ declare interface TWorldInfo {
     generator:      TGeneratorInfo
     pos_spawn:      IVector
     rules:          Dict<any>
-    state:          object
+    state:          Dict    // Реальный тип - см. TServerWorldState
     add_time:       int
     world_type_id:  int
     recovery:       binary

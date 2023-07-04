@@ -2055,10 +2055,10 @@
             "bb": {
                 "model": "pointed_dripstone",
                 "set_state": [
-                    {"name": "base", "when": {"extra_data.base": true}},
-                    {"name": "frustum", "when": {"extra_data.frustum": true}},
-                    {"name": "middle", "when": {"extra_data.middle": true}},
-                    {"name": "tip_merge", "when": {"extra_data.merge": true}},
+                    {"name": "base", "when": {"extra_data.stage": 3}},
+                    {"name": "frustum", "when": {"extra_data.stage": 1}},
+                    {"name": "middle", "when": {"extra_data.stage": 2}},
+                    {"name": "tip_merge", "when": {"extra_data.stage": 9}},
                     {"name": "tip"}
                 ],
                 "rotate": [

@@ -17,12 +17,12 @@ import type { Mob, MobSpawnParams } from "./mob.js";
 import type { DropItem } from "./drop_item.js";
 import type { ServerChunkManager } from "./server_chunk_manager.js";
 import { FluidChunkQueue } from "@client/fluid/FluidChunkQueue.js";
-import type { DBItemBlock } from "@client/blocks";
+import type {IDBItemBlock} from "@client/blocks";
 import type { ChunkDBActor } from "./db/world/ChunkDBActor.js";
 import {RandomTickingBlocks} from "./ticker/random/random_ticking_blocks.js";
+import type {IWorkerChunkCreateArgs} from "@client/worker/chunk.js";
+import type {TChunkWorkerMessageBlocksGenerated, TScannedTickers} from "@client/worker/messages.js";
 
-const _rnd_check_pos            = new Vector(0, 0, 0);
-const tmpRandomTickerTBlock     = new TBlock()
 const tmpListenerNeighbourTBlock= new TBlock()
 const tmp_posVector             = new Vector()
 const tmp_onFluidEvent_TBlock   = new TBlock()
@@ -33,9 +33,7 @@ const tmp_onNeighbourLoaded_block2  = new TBlock(null, new Vector())
 export interface ServerModifyList {
     compressed?         : BLOB
     private_compressed? : BLOB
-    obj? : {
-        [key: string]: DBItemBlock
-    }
+    obj?                : Dict<IDBItemBlock>
 }
 
 /** One row of "chunks" table, with additional in-memory fields */
@@ -217,6 +215,7 @@ export class ServerChunk {
     fluid:                              any                         = null;
     safeTeleportMarker:                 number                      = 0;
     spiralMarker:                       number                      = 0;
+    neededBy:                           any[]                       = []  // если этот массив не пустой, то чанк нужне какой-то подсистеме, и не должен пока выгружаться
     options:                            {}                          = {};
     tblocks:                            TypedBlocks3;
     ticking_blocks:                     TickingBlockManager;
@@ -333,16 +332,13 @@ export class ServerChunk {
             }
             this.setState(CHUNK_STATE.LOADING_BLOCKS);
             // Send requet to worker for create blocks structure
-            this.world.chunks.postWorkerMessage(['createChunk',
-                [
-                    {
-                        update:         true,
-                        addr:           this.addr,
-                        uniqId:         this.uniqId,
-                        modify_list:    ml
-                    }
-                ]
-            ]);
+            const args: IWorkerChunkCreateArgs = {
+                update:         true,
+                addr:           this.addr,
+                uniqId:         this.uniqId,
+                modify_list:    { obj : ml.obj }
+            }
+            this.world.chunks.postWorkerMessage(['createChunk', [args]]);
             // Разошлем чанк игрокам, которые его запрашивали
             this._preloadFluidBuf = fluid;
             if(this.preq.size > 0) {
@@ -715,7 +711,7 @@ export class ServerChunk {
     }
 
     shouldUnload() : boolean {
-        if (this.connections.size + this.safeTeleportMarker + this.spiralMarker > 0) {
+        if (this.connections.size + this.safeTeleportMarker + this.spiralMarker + this.neededBy.length > 0) {
             return false
         }
         if (this.load_state === CHUNK_STATE.LOADING_MOBS
@@ -724,8 +720,6 @@ export class ServerChunk {
         }
         return true;
     }
-
-
 
     // Return block key
     getBlockKey(pos) {
@@ -964,13 +958,13 @@ export class ServerChunk {
             if (below.id != 0) {
                 extra_data = {
                     up: up,
-                    tip: true
+                    stage: 0
                 }
             } else if (below.id == bm.POINTED_DRIPSTONE.id) {
-                if (tblock.extra_data?.frustum) {
+                if (tblock?.extra_data?.stage != 0) {
                     extra_data = {
                         up: up,
-                        tip: true,
+                        stage: 0,
                     }
                 }
             }
@@ -997,33 +991,34 @@ export class ServerChunk {
             const up = tblock?.extra_data?.up
             const below = this.getBlock(tblock.posworld.offset(0, up ? 1 : -1, 0), null, null, null, true)
             const above = this.getBlock(tblock.posworld.offset(0, up ? -1 : 1, 0), null, null, null, true)
+            const stage = tblock?.extra_data?.stage
             let extra_data = null
-            if (below.id != 0 && below.id != bm.POINTED_DRIPSTONE.id && above.id == bm.POINTED_DRIPSTONE.id && above.extra_data?.middle) {
-                if (!tblock.extra_data?.base) {
+            if (below.id != 0 && below.id != bm.POINTED_DRIPSTONE.id && above.id == bm.POINTED_DRIPSTONE.id && above.extra_data.stage == 2) {
+                if (stage != 3) {
                     extra_data = {
                         up: up,
-                        base: true,
+                        stage: 3
                     }
                 }
-            } else if (above.id == bm.POINTED_DRIPSTONE.id  && up != above.extra_data?.up && (above.extra_data?.tip || above.extra_data?.merge)) {
-                if (!tblock.extra_data?.merge) {
+            } else if (above.id == bm.POINTED_DRIPSTONE.id  && up != above?.extra_data?.up && (above?.extra_data?.stage == 0 || above?.extra_data?.stage == 9)) {
+                if (stage != 9) {
                     extra_data = {
                         up: up,
-                        merge: true,
+                        stage: 9
                     }
                 }
-            } else if (above.id == bm.POINTED_DRIPSTONE.id && (above.extra_data?.tip || above.extra_data?.merge)) {
-                if (!tblock.extra_data?.frustum) {
+            } else if (above.id == bm.POINTED_DRIPSTONE.id && (above?.extra_data?.stage == 0 || above?.extra_data?.stage == 9)) {
+                if (stage != 1) {
                     extra_data = {
                         up: up,
-                        frustum: true
+                        stage: 1
                     }
                 }
-            } else if (above.id == bm.POINTED_DRIPSTONE.id  && up == above.extra_data?.up && (above.extra_data?.middle || above.extra_data?.frustum)) {
-                if (!tblock.extra_data?.middle) {
+            } else if (above.id == bm.POINTED_DRIPSTONE.id && up == above?.extra_data?.up && (above?.extra_data?.stage == 1 || above?.extra_data?.stage == 2)) {
+                if (stage != 2) {
                     extra_data = {
                         up: up,
-                        middle: true,
+                        stage: 2
                     }
                 }
             }
@@ -1344,7 +1339,7 @@ export class ServerChunk {
     }
 
     // Store in modify list
-    addModifiedBlock(pos : IVector, item : IBlockItem, previousId : int) {
+    addModifiedBlock(pos : IVector, item : IDBItemBlock, previousId : int) {
         const ml = this.modify_list;
         const bm = this.world.block_manager
         if(!ml.obj) ml.obj = {};

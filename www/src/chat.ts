@@ -307,11 +307,12 @@ export class Chat extends TextBox {
             let line = ' '.repeat(message.username.length) + ':'
             for(let i = 0; i < chunks.length; i++) {
                 let c = chunks[i].split(' ')
-                for(let w of c) {
+                for(let j = 0; j < c.length; j++) {
+                    let w = c[j]
                     if(w.length > COUNT_CHARS_IN_LINE) {
                         w = w.substring(0, COUNT_CHARS_IN_LINE - 3) + '...'
                     }
-                    if(line.length + w.length >= COUNT_CHARS_IN_LINE - 1) {
+                    if(line.length + w.length >= COUNT_CHARS_IN_LINE - 1 || i > 0 && j == 0) {
                         if(message_lines.length == 0) {
                             line = replaceUsername(line, message.username)
                         } else {

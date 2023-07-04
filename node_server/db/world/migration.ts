@@ -1089,6 +1089,10 @@ export class DBWorldMigration {
             `INSERT INTO quest_reward (quest_id, block_id, cnt) VALUES (5, 9, 8)`
         ]})
 
+        migrations.push({version: 104, queries: [
+            `ALTER TABLE world ADD COLUMN state TEXT NOT NULL DEFAULT '{}'`
+        ]})
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');

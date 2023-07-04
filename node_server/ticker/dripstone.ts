@@ -19,7 +19,7 @@ export default class Ticker {
                 item: {
                     id: bm.POINTED_DRIPSTONE.id,
                     extra_data: {
-                        tip: true,
+                        stage: 0,
                         up: up,
                         water: water,
                         lava: lava
@@ -55,7 +55,7 @@ export default class Ticker {
             const lava = (above.id == bm.AIR.id && (above.fluid & FLUID_TYPE_MASK) == FLUID_LAVA_ID)
             const water = (above.id == bm.AIR.id && (above.fluid & FLUID_TYPE_MASK) == FLUID_WATER_ID)
             const peak = world.getBlock(pos.offset(0, -stalactite, 0))
-            if (peak?.id == bm.POINTED_DRIPSTONE.id && peak.extra_data?.tip && (water != peak.extra_data.water || lava != peak.extra_data.lava)) {
+            if (peak?.id == bm.POINTED_DRIPSTONE.id && peak.extra_data?.stage == 0 && (water != peak.extra_data.water || lava != peak.extra_data.lava)) {
                 setPointedDripstone(peak.posworld, true, lava, water)
             } else {
                 const air = world.getBlock(pos.offset(0, -stalactite - 1, 0))

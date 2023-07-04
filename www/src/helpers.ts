@@ -1,5 +1,4 @@
 /// <reference path="./global.d.ts" />
-/// <reference path="./worker/messages.d.ts" />
 
 export * from "./helpers/helper_const.js";
 export * from './helpers/color.js';
@@ -30,6 +29,7 @@ import { CubeSym } from "./core/CubeSym.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { Vector } from "./helpers/vector.js";
 import {Color} from "./helpers/color.js";
+import type { ChunkWorkerChunk } from "worker/chunk.js";
 
 const {mat4, quat} = glMatrix;
 

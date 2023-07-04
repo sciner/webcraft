@@ -62,6 +62,36 @@ export class Default_Terrain_Map {
 
 }
 
+/**
+* Метод добавляем блок driprstone_pointer
+* @param height - высота капельника
+*/
+export function addPointedDripstone(chunk: ChunkWorkerChunk, bm, x: number, y: number, z: number, height: number ) {
+    for (let i = 0; i <= height; i++) {
+        if (i == height) {
+            chunk.setBlockIndirect(x, y - i, z, bm.POINTED_DRIPSTONE.id, null, {
+                up: true,
+                stage: 0
+            })
+        } else if (i == height - 1) {
+            chunk.setBlockIndirect(x, y - i, z, bm.POINTED_DRIPSTONE.id, null, {
+                up: true,
+                stage: 1
+            })
+        } else if (i == 0 && height != 2) {
+            chunk.setBlockIndirect(x, y - i, z, bm.POINTED_DRIPSTONE.id, null, {
+                up: true,
+                stage: 3
+            })
+        } else {
+            chunk.setBlockIndirect(x, y - i, z, bm.POINTED_DRIPSTONE.id, null, {
+                up: true,
+                stage: 2
+            })
+        }
+    }
+ }
+
 //
 export class Default_Terrain_Generator {
 

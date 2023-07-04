@@ -4946,7 +4946,7 @@
             "style": "pointed_dripstone",
             "inventory": {
                 "style": "extruder",
-                "texture": "./textures/pointed_dripstone.png"
+                "texture": "./textures/pointed_dripstone_tip.png"
             },
             "sound": "madcraft:block.stone",
             "material": {
@@ -4956,18 +4956,15 @@
                 "doubleface"
             ],
             "texture": {
-                "up": "./textures/pointed_dripstone_tip.png",
-                "west": "./textures/pointed_dripstone_tip_merge.png",
-                "north": "./textures/pointed_dripstone_frustum.png",
-                "south": "./textures/pointed_dripstone_middle.png",
-                "down": "./textures/pointed_dripstone_base.png"
+                "down": "./textures/pointed_dripstone_tip_merge.png",
+                "east": "./textures/pointed_dripstone_base.png",
+                "west": "./textures/pointed_dripstone_frustum.png",
+                "north": "./textures/pointed_dripstone_tip.png",
+                "south": "./textures/pointed_dripstone_middle.png"
             },
             "extra_data": {
                 "up": false,
-                "base": false,
-                "merge": false,
-                "middle": false,
-                "frustum": false
+                "srage": 0
             }
         },
         {

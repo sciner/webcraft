@@ -205,10 +205,16 @@ export class ArrayHelpers {
         return arr;
     }
 
-    static copyToFrom(dst: any[], src: any[]): void {
-        // it might be not the fastest, needs profiling
-        dst.length = 0
-        dst.push(...src)
+    static copyToFrom(dst: AnyArray, src: AnyArray): void {
+        const length = src.length
+        if (dst instanceof Array) {
+            dst.length = length
+        } else if (dst.length !== length) {
+            throw new Error()
+        }
+        for(let i = 0; i < length; i++) {
+            dst[i] = src[i]
+        }
     }
 
     /** Returns the class of Uint primitive arrays that can hold value {@link maxValue} */

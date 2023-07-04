@@ -6,21 +6,6 @@ import type { ChunkWorkerChunk } from '../worker/chunk.js';
 import type { World } from '../world.js';
 import type { TBlock } from 'typed_blocks3.js';
 
-// const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0, 0, 0)))
-
-function getDirection(extra_data) {
-    if (extra_data?.base) {
-        return DIRECTION.DOWN
-    } else if (extra_data?.middle) {
-        return DIRECTION.SOUTH
-    } else if (extra_data?.frustum) {
-        return DIRECTION.NORTH
-    } else if (extra_data?.merge) {
-        return DIRECTION.WEST
-    }
-    return DIRECTION.UP
-}
-
 // style pointed_dripstone
 export default class style {
     [key: string]: any;
@@ -48,9 +33,8 @@ export default class style {
 
         const bm = style.block_manager
         const extra_data = block.extra_data
-        const dir = getDirection(extra_data)
-        const texture = bm.calcTexture(block.material.texture, dir)
-        const planes = [];
+        const texture = bm.calcTexture(block.material.texture, extra_data?.stage)
+        const planes = []
         planes.push(...[
             {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [extra_data?.up ? 0 : Math.PI, extra_data?.up ? Math.PI / 4 : Math.PI * 5 / 4, 0]},
             {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [extra_data?.up ? 0 : Math.PI, extra_data?.up ? -Math.PI / 4 : Math.PI * 3 / 4, 0]}
@@ -76,7 +60,7 @@ export default class style {
         if (typeof QubatchChunkWorker != 'undefined' && extra_data?.up) {
             QubatchChunkWorker.postMessage(['delete_animated_block', tblock.posworld]);
         }
-        if (typeof QubatchChunkWorker != 'undefined' && extra_data?.up && extra_data?.tip && (extra_data?.water || extra_data?.lava)) {
+        if (typeof QubatchChunkWorker != 'undefined' && extra_data?.up && extra_data?.stage == 0 && (extra_data?.water || extra_data?.lava)) {
             QubatchChunkWorker.postMessage(['create_block_emitter', {
                 block_pos:  tblock.posworld,
                 pos:        [tblock.posworld.clone().addScalarSelf(.5, .8, .5)],

@@ -1,4 +1,4 @@
-import {noise, alea} from "../../default.js";
+import {noise, alea, addPointedDripstone} from "../../default.js";
 import { BLOCK_FLAG, DAYLIGHT_VALUE } from "../../../constant.js";
 import { CubeSym } from "../../../core/CubeSym.js";
 import { ClusterEndCity } from "../../cluster/end_city.js";
@@ -291,7 +291,7 @@ export default class Biome3LayerBottomCaves extends Biome3LayerBase {
                                     } else if(dripstone_allow) {
                                         // Dripstone
                                         if(aleaRandom.double() < .3) {
-                                            this.addPointedDripstone(chunk, bm, x, y_start, z, aleaRandom.double() * 6 | 0)
+                                            addPointedDripstone(chunk, bm, x, y_start, z, aleaRandom.double() * 6 | 0)
                                         }
                                         // reset stalactite
                                         y_start = Infinity;
@@ -451,34 +451,6 @@ export default class Biome3LayerBottomCaves extends Biome3LayerBase {
 
     }
 
-    /**
-     * Метод добавляем блок driprstone_pointer
-     * @param height - высота капельника
-     */
-    addPointedDripstone(chunk: ChunkWorkerChunk, bm, x: number, y: number, z: number, height: number ) {
-        for (let i = 0; i <= height; i++) {
-            if (i == height) {
-                chunk.setBlockIndirect(x, y - i, z, bm.POINTED_DRIPSTONE.id, null, {
-                    up: true,
-                    tip: true
-                })
-            } else if (i == height - 1) {
-                chunk.setBlockIndirect(x, y - i, z, bm.POINTED_DRIPSTONE.id, null, {
-                    up: true,
-                    frustum: true
-                })
-            } else if (i == 0 && height != 2) {
-                chunk.setBlockIndirect(x, y - i, z, bm.POINTED_DRIPSTONE.id, null, {
-                    up: true,
-                    base: true
-                })
-            } else {
-                chunk.setBlockIndirect(x, y - i, z, bm.POINTED_DRIPSTONE.id, null, {
-                    up: true,
-                    middle: true
-                })
-            }
-        }
-    }
+    
 
 }
