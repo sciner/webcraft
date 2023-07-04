@@ -190,7 +190,7 @@ export class WorldInfoWindow extends BlankWindow {
             lbl.style.font.color = UI_THEME.second_text_color
             this.add(lbl_title)
             this.add(lbl)
-            y += 2 * this.line_height
+            y += this.line_height * 1.5
         }
 
         const lbl_public = new Label(2 * this.line_height, 28 * this.line_height, 0, 0, 'lbl_public', '', Lang.make_public)
