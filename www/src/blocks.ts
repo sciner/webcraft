@@ -920,7 +920,7 @@ export class BLOCK {
         }
         block.tags              = block?.tags || [];
         // rotate_by_pos_n_xyz
-        if(block.tags.includes('rotate_by_pos_n_xyz') || block.tags.includes('rotate_by_pos_n_6') || block.tags.includes('rotate_by_pos_n_12')) {
+        if(block.tags.includes('rotate_by_pos_n_xyz') || block.tags.includes('rotate_by_pos_n_6') || block.tags.includes('rotate_by_pos_n_12') || block.tags.includes('rotate_by_pos_n_hor')) {
             block.tags.push('rotate_by_pos_n');
         }
         //

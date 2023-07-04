@@ -1393,21 +1393,28 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
 }
 
 //
-function calcBlockOrientation(mat_block, rotate, n) {
-    let resp = null;
-    const rotate_by_pos_n_5 = mat_block.tags.includes('rotate_by_pos_n_5');
-    if(mat_block.tags.includes('rotate_by_pos_n')) {
-        resp = calcRotateByPosN(rotate, n);
+function calcBlockOrientation(mat_block : IBlockMaterial, rotate : IVector, n) : Vector {
+    let resp = null
+    if(mat_block.tags.includes('rotate_by_pos_n_hor')) {
+        resp = new Vector(0, 1, 0)
+        if(n.y == 0) {
+            resp.x = n.x
+        } else {
+            resp.x = BLOCK.getCardinalDirection(resp)
+        }
+    } else if(mat_block.tags.includes('rotate_by_pos_n')) {
+        resp = calcRotateByPosN(rotate, n)
         if(mat_block.tags.includes('rotate_by_pos_n_xyz')) {
-            if(resp.y) resp.set(0, 1, 0);
-            if(resp.x == CD_ROT.SOUTH) resp.set(7, 0, 0);
-            if(resp.x == CD_ROT.EAST) resp.set(13, 0, 0);
+            if(resp.y) resp.set(0, 1, 0)
+            if(resp.x == CD_ROT.SOUTH) resp.set(7, 0, 0)
+            if(resp.x == CD_ROT.EAST) resp.set(13, 0, 0)
         }
     } else {
-        resp = calcRotate(rotate, n, rotate_by_pos_n_5);
+        const rotate_by_pos_n_5 = mat_block.tags.includes('rotate_by_pos_n_5')
+        resp = calcRotate(rotate, n, rotate_by_pos_n_5)
     }
-    return resp;
-};
+    return resp
+}
 
 // Set action block
 function setActionBlock(actions, world, pos, orientation, mat_block, new_item) : boolean {

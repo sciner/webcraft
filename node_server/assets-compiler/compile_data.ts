@@ -193,7 +193,7 @@ export class CompileData {
                 "tags": [
                     BLOCK_GROUP_TAG.FURNITURE,
                     "bed",
-                    "rotate_by_pos_n",
+                    "rotate_by_pos_n_hor",
                     "mask_color"
                 ]
             };
