@@ -13173,6 +13173,228 @@
                 "#combat"
             ],
             "light": null
+        },
+        {
+            "id": 444,
+            "name": "ANDESITE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "ANDESITE"
+            },
+            "texture": "block/andesite.png",
+            "texture_variants": [
+                "./textures/andesite/andesite1.png",
+                "./textures/andesite/andesite2.png",
+                "./textures/andesite/andesite3.png",
+                "./textures/andesite/andesite4.png"
+            ],
+            "drop_item": [
+                {
+                    "name": "ANDESITE_SLAB",
+                    "instrument": ["_PICKAXE", "PRIMITIVE_AXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
+                }
+            ]
+        },
+        {
+            "id": 445,
+            "name": "QUARTZ_BRICKS",
+            "sound": "madcraft:block.stone",
+            "texture": "block/quartz_bricks.png",
+            "material": {
+                "id": "stone"
+            },
+            "drop_item": [
+                {
+                    "name": "QUARTZ_BRICKS",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
+        },
+        {
+            "id": 446,
+            "name": "POLISHED_DIORITE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "POLISHED_DIORITE"
+            },
+            "texture": "block/polished_diorite.png",
+            "drop_item": [
+                {
+                    "name": "POLISHED_DIORITE_SLAB",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
+                }
+            ]
+        },
+        {
+            "id": 447,
+            "name": "POLISHED_GRANITE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "POLISHED_GRANITE"
+            },
+            "texture": "block/polished_granite.png",
+            "drop_item": [
+                {
+                    "name": "POLISHED_GRANITE_SLAB",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
+                }
+            ]
+        },
+        {
+            "id": 448,
+            "name": "MUD",
+            "sound": "madcraft:block.gravel",
+            "texture": "block/dirt.png",
+            "material": {
+                "id": "dirt"
+            }
+        },
+        {
+            "id": 449,
+            "name": "DIORITE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "DIORITE"
+            },
+            "texture": "block/diorite.png",
+            "drop_item": [
+                {
+                    "name": "DIORITE_SLAB",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
+                }
+            ]
+        },
+        {
+            "id": 450,
+            "name": "DARK_PRISMARINE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "DARK_PRISMARINE"
+            },
+            "texture": "block/dark_prismarine.png",
+            "drop_item": [
+                {
+                    "name": "DARK_PRISMARINE_SLAB",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
+                }
+            ]
+        },
+        {
+            "id": 451,
+            "name": "MANGROVE_PLANKS",
+            "sound": "madcraft:block.wood",
+            "fuel_time": 16,
+            "tags": [
+                "can_put_into_pot",
+                "plank"
+            ],
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/mangrove_planks.png"
+        },
+        {
+            "id": 452,
+            "name": "MANGROVE",
+            "style": "stairs",
+            "sound": "madcraft:block.wood",
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/mangrove_planks.png"
+        },
+        {
+            "id": 453,
+            "name": "MANGROVE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.wood",
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "MANGROVE_PLANKS"
+            },
+            "material": {
+                "id": "wood"
+            },
+            "texture": "block/mangrove_planks.png"
         }
     ]
 }
