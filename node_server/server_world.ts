@@ -221,6 +221,7 @@ export class ServerWorld implements IWorld {
         if(this.isBuildingWorld()) {
             await this.rules.setValue('doDaylightCycle', 'false')
             await this.rules.setValue('doWeatherCycle', 'false')
+            await this.rules.setValue('doMobSpawning', 'false')
             await this.rules.setValue('randomTickSpeed', '0')
         }
 

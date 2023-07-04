@@ -74,6 +74,7 @@ type TGeneratorInfo = {
 
 declare interface TWorldTechInfo {
     chunk_size: IVector
+    map_noise_shift: IVector
 }
 
 declare interface TWorldInfo {

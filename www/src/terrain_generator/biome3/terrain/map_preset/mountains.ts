@@ -29,6 +29,8 @@ export class MapCellPreset_Mountains extends MapCellPreset {
 
     calcDensity(xyz : Vector, cell : TerrainMapCell, dist_percent : float, noise2d : any, generator_options : any, result : DensityParams) : DensityParams {
 
+        const shift = generator_options.map_noise_shift
+
         if(cell.mountains_max_height === undefined) {
             const max_height = this.calcMaxHeight(xyz)
             const HEIGHT_SCALE = max_height * dist_percent;
@@ -37,7 +39,7 @@ export class MapCellPreset_Mountains extends MapCellPreset {
             if(mfn === null || this.prev_x != xyz.x || this.prev_z != xyz.z) {
                 this.prev_x = xyz.x
                 this.prev_z = xyz.z
-                mfn = this.mfn = this.mountainFractalNoise(noise2d, xyz.x/3, xyz.z/3, 4, 3, 0.35, this.noise_scale)
+                mfn = this.mfn = this.mountainFractalNoise(noise2d, (xyz.x + shift.x) / 3, (xyz.z + shift.z) / 3, 4, 3, 0.35, this.noise_scale)
             }
 
             cell.mountains_height =  generator_options.WATER_LEVEL + mfn * HEIGHT_SCALE

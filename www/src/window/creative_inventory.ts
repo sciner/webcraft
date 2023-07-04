@@ -257,6 +257,11 @@ export class CreativeInventoryWindow extends BaseAnyInventoryWindow {
         this.world = inventory.player.world
     }
 
+    onShow(args : any) {
+        super.onShow(args)
+        this.txtSearch.text = ''
+    }
+
     initControls() {
 
         // Search input

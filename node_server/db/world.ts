@@ -23,6 +23,8 @@ import { PAPERDOLL_BACKPACK, PAPERDOLL_TOOLBELT } from "@client/constant.js";
 import { DBWorldDriving } from "./world/driving.js";
 import type {TChestSlots} from "@client/block_helpers.js";
 
+const DEFAULT_MAP_NOISE_SHIFT = new Vector(0, 0, 0)
+
 export type BulkDropItemsRow = [
     string,     // entity_id
     number,     // dt
@@ -153,6 +155,7 @@ export class DBWorld {
         const row = await this.conn.get("SELECT w.*, u.username FROM world as w LEFT JOIN user as u ON u.id = w.user_id WHERE w.guid = ?", [world_guid]);
         if(row) {
             const tech_info = JSON.parse(row.tech_info)
+            const generator = JSON.parse(row.generator)
             const resp = {
                 id:             row.id,
                 user_id:        row.user_id,
@@ -163,16 +166,20 @@ export class DBWorld {
                 seed:           row.seed,
                 ore_seed:       row.ore_seed,
                 game_mode:      row.game_mode,
-                generator:      JSON.parse(row.generator),
+                generator:      generator,
                 pos_spawn:      JSON.parse(row.pos_spawn),
                 rules:          JSON.parse(row.rules),
                 state:          JSON.parse(row.state ?? '{}'),
                 add_time:       row.add_time,
                 world_type_id:  row.title == config.building_schemas_world_name ? WORLD_TYPE_BUILDING_SCHEMAS : WORLD_TYPE_NORMAL,
                 recovery:       row.recovery,
-                tech_info:      {...tech_info, chunk_size: new Vector(tech_info.chunk_size) as IVector} as TWorldTechInfo
+                tech_info:      {
+                    ...tech_info,
+                    chunk_size: new Vector(tech_info.chunk_size) as IVector,
+                    map_noise_shift: new Vector(generator.options?.map_noise_shift ?? DEFAULT_MAP_NOISE_SHIFT) as IVector,
+                } as TWorldTechInfo
             } as TWorldInfo
-            resp.generator = WorldGenerators.validateAndFixOptions(resp.generator);
+            resp.generator = WorldGenerators.validateAndFixOptions(generator)
             return resp;
         }
         // Insert new world to Db
@@ -180,8 +187,11 @@ export class DBWorld {
 
         // tech info
         const xz = world.generator.options?.chunk_size_xz ?? OLD_CHUNK_SIZE.x
-        const tech_info = {chunk_size: new Vector(xz, 40, xz)}
-
+        const map_noise_shift = new Vector(world.generator.options?.map_noise_shift ?? DEFAULT_MAP_NOISE_SHIFT)
+        const tech_info = {
+            chunk_size: new Vector(xz, 40, xz),
+            map_noise_shift,
+        }
         await this.conn.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn, game_mode, ore_seed, tech_info) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn, :game_mode, :ore_seed, :tech_info)', {
             ':dt':          unixTime(),
             ':guid':        world.guid,

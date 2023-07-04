@@ -38,7 +38,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     constructor(world : WorkerWorld, seed : string, world_id : string, options : object) {
 
         const al = new alea(seed)
-        const noise2d = createNoise2D(al.double)
+        const noise2d = createNoise2D(al.double, world.tech_info.map_noise_shift)
 
         super(seed, world_id, options, noise2d, null)
 
@@ -53,7 +53,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const noiseFactory = new NoiseFactory();
         await super.init();
         await noiseFactory.init({outputSize: this.world.chunkManager.grid.math.CHUNK_SIZE_OUTER * 4});
-        this.noise3d = noiseFactory.createNoise3D({seed: this.seed, randomFunc: this.tempAlea.double });
+        this.noise3d = noiseFactory.createNoise3D({seed: this.seed, randomFunc: this.tempAlea.double, map_noise_shift: this.world.tech_info.map_noise_shift});
         this.options = {...GENERATOR_OPTIONS, ...this.options};
 
         // this.n3d = createNoise3D(new alea(seed))
