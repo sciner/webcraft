@@ -351,7 +351,7 @@ export class MyTilemap extends VAUX.Container {
                 data[dataOffset++] = points[offset + 2];
                 data[dataOffset++] = points[offset + 3];
                 dataUint32[dataOffset++] = points[offset + 4];
-                data[dataOffset++] = points[offset + 5];
+                dataUint32[dataOffset++] = points[offset + 5];
                 offsetVer += 4;
             }
             offset += instanceSize;

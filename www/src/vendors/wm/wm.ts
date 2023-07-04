@@ -998,8 +998,6 @@ export class Window extends VAUX.Container {
         if(!clip_mask) {
             clip_mask = new Graphics()
             clip_mask.id = `${this.id}_clip_mask`
-            clip_mask.width = w
-            clip_mask.height = h
             clip_mask.clear()
             clip_mask.beginFill(0x00ff0055)
             clip_mask.drawRect(0, 0, w, h)
@@ -1007,8 +1005,6 @@ export class Window extends VAUX.Container {
             this.#_wmclip = clip_mask
             this.mask = clip_mask
         } else {
-            clip_mask.width = w
-            clip_mask.height = h
             clip_mask.clear()
             clip_mask.beginFill(0x00ff0055)
             clip_mask.drawRect(0, 0, w, h)
