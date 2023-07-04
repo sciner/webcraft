@@ -1899,6 +1899,18 @@
         {
             "id": 491,
             "name": "RAFT",
+            "material": {
+                "id": "wood"
+            },
+            "max_in_stack": 1,
+            "texture": "block/stone.png",
+            "spawn_egg": {
+                "type": "transport/raft",
+                "skin": "base"
+            },
+            "tags": [
+                "set_on_water"
+            ],
             "bb": {
                 "model": "transport/raft",
                 "import_anyway": true

@@ -12747,22 +12747,6 @@
             }
         },
         {
-            "id": 491,
-            "name": "RAFT",
-            "material": {
-                "id": "wood"
-            },
-            "max_in_stack": 1,
-            "spawn_egg": {
-                "type": "transport/raft",
-                "skin": "base"
-            },
-            "tags": [
-                "set_on_water"
-            ],
-            "texture": "block/stone.png"
-        },
-        {
             "id": 1104,
             "name": "RAW_TITANIUM",
             "coocked_item": {"name": "TITANIUM_INGOT", "count": 1},
