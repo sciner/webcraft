@@ -179,6 +179,8 @@ export class WorldInfoWindow extends BlankWindow {
             {id: 'lbl_age', title: Lang.age},
             {id: 'lbl_creator', title: Lang.creator},
             {id: 'lbl_generator', title: Lang.world_generator_type},
+            {id: 'lbl_seed', title: Lang.seed},
+            {id: 'lbl_guid', title: Lang.guid},
         ]) {
             const lbl_title = new Label(2 * this.line_height, y, 0, 0, item.id + '_title', item.title, item.title)
             const lbl = new Label(this.w / 2 - 2 * this.line_height, y, 0, 0, item.id, item.title, item.title)
@@ -230,6 +232,7 @@ export class WorldInfoWindow extends BlankWindow {
         const world : World = this.player.world
         const info : TWorldInfo = world.info
         const time = world.getTime()
+        console.log(info)
 
         //
         const setWindowText = (id : string, value : string) => {
@@ -255,6 +258,7 @@ export class WorldInfoWindow extends BlankWindow {
             is_public:   false,
             is_official: true,
             players:     [],
+            seed:        info.seed
         }
         // fill players
         for(const p of world.players.values()) {
@@ -277,6 +281,8 @@ export class WorldInfoWindow extends BlankWindow {
         setWindowText('lbl_age', data.age)
         setWindowText('lbl_gamemode', data.gamemode)
         setWindowText('lbl_generator', data.generator.id)
+        setWindowText('lbl_seed', data.seed)
+        setWindowText('lbl_guid', data.guid)
 
         btn_switch_public.setIcon(data.is_public ? hud_atlas.getSpriteFromMap('check2') : null)
         btn_switch_public.toggled = data.is_public
