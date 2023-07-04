@@ -123,12 +123,12 @@ export class ServerWorld implements IWorld {
         this.shuttingDown = null;
     }
 
-    async initServer(world_guid : string, db_world : DBWorld, new_title : string, game) {
+    async initServer(world_guid : string, db_world : DBWorld, title: string, game) {
         this.game = game;
         if (SERVER_TIME_LAG) {
             console.log('[World] Server time lag ', SERVER_TIME_LAG);
         }
-        const newTitlePromise = new_title ? db_world.setTitle(new_title) : Promise.resolve();
+        const newTitlePromise = title ? db_world.setTitle(title) : Promise.resolve();
         var t = performance.now();
         // Tickers
         this.tickers = new Map();
@@ -344,7 +344,7 @@ export class ServerWorld implements IWorld {
     }
 
     // Return world info
-    getInfo() {
+    getInfo() : TWorldInfo {
         return this.info;
     }
 

@@ -212,7 +212,8 @@ export const UI_THEME = {
                 color: '#5bc4da',
                 font_size: 60
             }
-        }
+        },
+        height: 22
     },
     // search input
     search: {

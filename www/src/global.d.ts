@@ -80,7 +80,9 @@ declare interface TWorldInfo {
 
     id:             int
     user_id:        int
+    username:       string
     dt:             any
+    cover:          string
     guid:           string
     title:          string
     seed:           string

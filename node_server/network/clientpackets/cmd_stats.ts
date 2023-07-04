@@ -13,7 +13,6 @@ export default class packet_reader {
     }
 
     static async read(player, packet) {
-
         const death     = player.state.stats.death;
         const time      = player.state.stats.time;
         const pickat    = player.state.stats.pickat;

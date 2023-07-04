@@ -150,12 +150,13 @@ export class DBWorld {
      * Возвращает мир по его GUID либо создает и возвращает его
      */
     async getWorld(world_guid : string) : Promise<TWorldInfo> {
-        const row = await this.conn.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
+        const row = await this.conn.get("SELECT w.*, u.username FROM world as w LEFT JOIN user as u ON u.id = w.user_id WHERE w.guid = ?", [world_guid]);
         if(row) {
             const tech_info = JSON.parse(row.tech_info)
             const resp = {
                 id:             row.id,
                 user_id:        row.user_id,
+                username:       row.username,
                 dt:             row.dt,
                 guid:           row.guid,
                 title:          row.title,

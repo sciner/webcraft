@@ -1,6 +1,6 @@
 import { UI_THEME } from "../constant.js";
 import { Icon as icn, SimpleBlockSlot as sbs, Slider as sld,
-        ToggleButton as tb, Label as lbl, Button as btn, TextEdit as txted,
+        ToggleButton as tb, Label as lbl, CheckBox as chk, Button as btn, TextEdit as txted,
         HTMLText as htmlt,
         Window as wnd, WindowManager as wm, VerticalLayout as vl } from "../vendors/wm/wm.js";
 export { MySprite, MyTilemap } from "../vendors/wm/MySpriteRenderer.js";
@@ -144,6 +144,18 @@ export class Label extends lbl {
         super(x, y, w, h, id, title, text)
         this.style.font.color = UI_THEME.base_font.color
         this.style.font.size = UI_THEME.base_font.size
+    }
+
+}
+
+export class CheckBox extends chk {
+
+    constructor(x : number, y : number, w : number, h : number, id : string, title? : string, text? : string) {
+        super(x, y, w, h, id, title, text)
+        this.style.border.color = UI_THEME.button.border.disabled_color
+        this.style.border.style = 'fixed_single'
+        this.style.border.hidden = false
+
     }
 
 }

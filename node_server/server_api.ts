@@ -196,6 +196,8 @@ export class ServerAPI {
                             screenshot_file.mv(path + filename);
                             screenshot_file_preview.mv(path + `preview_${filename}`);
                         }
+                        const world = Qubatch.worlds.get(world_id)
+                        world.info.cover = `preview_${filename}`
                         return {'result':'ok'};
                     }
                 }

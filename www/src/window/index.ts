@@ -24,3 +24,4 @@ export { ModeWindow } from "./mode.js";
 export { BrewingWindow } from "./brewing.js";
 export { HopperWindow } from "./hopper.js";
 export { BillboardWindow } from "./billboard.js";
+export { WorldInfoWindow } from "./world_info.js";
