@@ -36,6 +36,7 @@ export class QuadAttr {
 export class TerrainGeometry15 extends Geometry {
     [key: string]: any;
     strideFloats: int;
+    parts_counter = 0;
     constructor(vertices?, chunkId? : int) {
         super();
         // убрал, для уменьшения объема оперативной памяти
@@ -54,12 +55,9 @@ export class TerrainGeometry15 extends Geometry {
          */
         this.uint32Data;
 
-        this.setVertices(vertices || []);
-
-        this.size = this.data.length / this.strideFloats;
+        this.size = -1;
         this.chunkIds = null;
-
-        this.setChunkId(chunkId === undefined ? -1: chunkId);
+        this.setVertices(vertices || [], chunkId);
         /**
          *
          * @type {BaseBuffer}
@@ -90,7 +88,7 @@ export class TerrainGeometry15 extends Geometry {
         this.initGeom();
     }
 
-    setVertices(vertices) {
+    setVertices(vertices, chunkId = -1) {
         if (vertices instanceof ArrayBuffer) {
             this.data = new Float32Array(vertices);
             this.uint32Data = new Uint32Array(this.data.buffer);
@@ -105,6 +103,12 @@ export class TerrainGeometry15 extends Geometry {
                 this.uint32Data[i + 14] = vertices[i + 14];
             }
         }
+        const oldSize = this.size;
+        this.size = vertices.length / this.strideFloats
+        if (oldSize !== this.size) {
+            this.setChunkId(chunkId);
+        }
+        this.updateID++;
     }
 
     /**
@@ -154,6 +158,7 @@ export class TerrainGeometry15 extends Geometry {
         this.addAttribute('a_color', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 13 * 4, true);
         this.addAttribute('a_flags', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 14 * 4, true);
         this.addAttribute('a_quad', TerrainGeometry15.quadBuf, 2, false, undefined, 2 * 4, 0);
+        this.attributes['a_chunkId'].hasSingleValue = true;
     }
 
     bind(shader: BaseShader) {

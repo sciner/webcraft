@@ -3,10 +3,10 @@ import {BaseRenderer, BaseCubeGeometry, CubeMesh} from "../BaseRenderer.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
 import {Resources} from "../../resources.js";
 import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
-import {GLMeshDrawer} from "./GLMeshDrawer.js";
 import {GLCubeDrawer} from "./GLCubeDrawer.js";
 import {GLChunkDrawer} from "./GLChunkDrawer.js";
 import {GLLineDrawer} from "./GLLineDrawer.js";
+import {MeshDrawer} from "../../mesh/mesh_drawer.js";
 import {WebGLFluidShader} from "./WebGLFluidShader.js";
 import * as VAUX from 'vauxcel';
 
@@ -15,7 +15,7 @@ const {mat4} = glMatrix;
 
 const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
 
-VAUX.extensions.add(GLChunkDrawer, GLLineDrawer, GLMeshDrawer, GLCubeDrawer);
+VAUX.extensions.add(GLChunkDrawer, GLLineDrawer, GLCubeDrawer, MeshDrawer);
 
 export class WebGLCubeShader extends WebGLUniversalShader {
     constructor(context, options) {
