@@ -132,6 +132,8 @@ class FallenTree {
                 if(this.dir == DIRECTION.WEST) rotate.x = CD_ROT.WEST
                 if(this.dir == DIRECTION.EAST) rotate.x = CD_ROT.EAST
             }
+            let cnt = 0
+            const candidates = []
             for(let i = 0; i < Math.min(this.size, 8); i++) {
                 const {x, y, z} = this.pos
                 if(i != 1 || this.is_hollow) {
@@ -154,9 +156,11 @@ class FallenTree {
                     xyz.copyFrom(chunk.coord).addScalarSelf(x, y, z)
                     for(let k = 0; k < slab_candidates.length; k += 3) {
                         if(slab_candidates[k] && slab_candidates[k].equal(xyz)) {
-                            slab_candidates[k] = null
+                            candidates.push(k)
+                            break
                         }
                     }
+                    cnt++
                     this.chunk.setBlockIndirect(x, y + 1, z, this.block_id, (i == 0 && !this.is_hollow) ? null : rotate, extra_data)
                     // 2. рисуем над бревном воздух, чтобы стереть высокую травы или блок-шапку (например снег)
                     const cell = chunk.map.getCell(x, z)
@@ -168,8 +172,23 @@ class FallenTree {
                         }
                     }
                 }
+                // всегда убираем слеб под пеньком
+                if(i == 0 && !this.is_hollow) {
+                    // 1. убираем кандидатов на слебы под бревнами
+                    xyz.copyFrom(chunk.coord).addScalarSelf(x, y, z)
+                    for(let k = 0; k < slab_candidates.length; k += 3) {
+                        if(slab_candidates[k] && slab_candidates[k].equal(xyz)) {
+                            slab_candidates[k] = null
+                        }
+                    }
+                }
                 // сдвигаемся к следующему блоку
                 this.pos.addToDirSelf(this.dir, -1)
+            }
+            if(candidates.length > cnt / 2) {
+                for(const k of candidates) {
+                    slab_candidates[k] = null
+                }
             }
         }
     }
@@ -184,6 +203,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
     dungeon:                DungeonGenerator
     slab_candidates:        any[]
     onground_place_index:   any
+    fallen_tree:            FallenTree
 
     filter_biome_list:      int[] = [
         1, 2, 4, 6, 12, 13, 14, 15, 16, 17, 18, 21, 22, 23, 26, 27,
@@ -230,6 +250,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         // Generate chunk data
         chunk.timers.start('generate_chunk_data')
         this.slab_candidates = []
+        this.fallen_tree = new FallenTree(rnd, chunk, chunk.chunkManager.block_manager)
         this.generateChunkData(chunk, seed, rnd)
         chunk.timers.stop()
 
@@ -354,6 +375,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
             }
             return true
         }
+
         for(let i = 0; i < this.slab_candidates.length; i += 3) {
             const xyz = this.slab_candidates[i]
             if(!xyz) continue
@@ -377,6 +399,10 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
             }
         }
 
+        //
+        this.fallen_tree.finish(this.slab_candidates)
+
+        //
         for(let i = 0; i < this.slab_candidates.length; i += 3) {
             const xyz = this.slab_candidates[i]
             if(xyz) {
@@ -443,7 +469,6 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         const block_result              = new MapsBlockResult()
         const rand_lava                 = new alea('random_lava_source_' + seed)
         const map_manager               = this.maps as TerrainMapManager3
-        const fallen_tree               = new FallenTree(rand_lava, chunk, bm)
         const {relativePosToFlatIndexInChunk_s} = chunk.chunkManager.grid.math;
 
         const cell = map.getCell(0, 0)
@@ -706,7 +731,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                             // замена блока травы на землю, чтобы потом это не делал тикер (например арбуз)
                                             block_id = dirt_block_id
                                         }
-                                        fallen_tree.processPos(x, y, z)
+                                        this.fallen_tree.processPos(x, y, z)
                                     }
 
                                     const slab_block_id = bm.REPLACE_TO_SLAB[block_id]
@@ -874,8 +899,6 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
             }
         }
-
-        fallen_tree.finish(this.slab_candidates)
 
         chunk.timers.stop()
 
