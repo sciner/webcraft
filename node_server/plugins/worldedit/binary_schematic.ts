@@ -3,6 +3,7 @@ import {Vector} from "@client/helpers/vector.js";
 import {AABB} from "@client/core/AABB.js";
 import { Schematic } from 'madcraft-schematic-reader';
 import {FileBuffer, TFileBufferCookie} from "./file_buffer.js";
+import {ArrayHelpers} from "@client/helpers/array_helpers.js";
 
 /**
  * На сколько блоков хранится 1 инкрементное смещение (1 байт) - см. {@link BinarySchematic.incremental_offsets}.
@@ -33,6 +34,11 @@ export type TBinarySchematicCookie = TFileBufferCookie & {
     use_external_parser?: boolean
 }
 
+type TByteArrayDescriptor = {
+    offset: int
+    length: int
+}
+
 /**
  * Читает, распаковывает и хранит бинарные данные схематики. Парсит NBT. Читает блоки из бинарных данных.
  * Преобразует координаты (зеркально отражает по Z).
@@ -47,6 +53,10 @@ export class BinarySchematic {
     private cookie: TBinarySchematicCookie
     size: Vector
     aabb: AABB
+    private tmp_iteration_entry: [Vector, int] = [new Vector(), 0]
+    count_by_palette: int[] // число блоков каждого типа из палитры в мире
+
+    // ========== данные для быстрого доступа к упакованным блокам в BlockData ==========
 
     /** i-й элемент - номер байта, с которого начинается (i * BLOCKS_PER_OFFSET)-й блок */
     private offsets: Uint32Array
@@ -58,7 +68,17 @@ export class BinarySchematic {
     private strideZ: int
     private strideY: int
 
-    private tmp_iteration_entry: [Vector, int] = [new Vector(), 0]
+    // ===================== данные для чтения блоков формата 1.13 ======================
+
+    private to_palette?: Map<int, int>   // ключ = (id_блока << 8) + данные, значение - индекс в палитре
+    // сохраненное местоположение массивов с такими же именами в бинарном файле
+    private Blocks: TByteArrayDescriptor
+    private Data: TByteArrayDescriptor
+    private AddBlocks: TByteArrayDescriptor
+    // временные массивы, используются при чтении
+    private tmp_Blocks?: Uint8Array
+    private tmp_Data?: Uint8Array
+    private tmp_AddBlocks?: Uint8Array
 
     /**
      * Читает, распаковывает, парсит NBT, индексирует varint блоки для быстрого доступа.
@@ -84,48 +104,146 @@ export class BinarySchematic {
 
                 // парсим nbt
                 const nbt = this.parseNBT()
-
-                // вычислить смещения в байтах для некоторых упакованных блоков для быстрого доступа по координатам
-                const {offset, length} = nbt.BlockData
-                file_buffer.setOffset(offset)
-                let prev_offset = 0
-                const end_offset = offset + length
-                this.offsets = new Uint32Array(Math.ceil(length / BLOCKS_PER_OFFSET))
-                this.incremental_offsets = new Uint8Array(Math.ceil(length / BLOCKS_PER_INCREMENTAL_OFFSET))
-                let block_index = 0
-                let incremental_offset_index = 0 // индекс в массиве incremental_offsets
                 const volume = nbt.Width * nbt.Height * nbt.Length
 
-                while(block_index < volume) { // цикл по грппе блоков с одним offsets
-                    this.offsets[block_index / BLOCKS_PER_OFFSET | 0] = file_buffer.offset
-                    const big_group_end = Math.min(block_index + BLOCKS_PER_OFFSET, volume)
+                if (nbt.BlockData) {    // формат с палитрой
+                    const palette_max = ArrayHelpers.max(Object.values(nbt.Palette))
+                    const count_by_palette = this.count_by_palette = new Array(palette_max + 1).fill(0)
 
-                    // пропустить блоки до следующего индекса кратного BLOCKS_PER_OFFSET
-                    while(block_index < big_group_end) {
-                        this.incremental_offsets[incremental_offset_index++] = file_buffer.offset - prev_offset
-                        prev_offset = file_buffer.offset
-                        const small_group_end = Math.min(block_index + BLOCKS_PER_INCREMENTAL_OFFSET, volume)
+                    // вычислить смещения в байтах для некоторых упакованных блоков для быстрого доступа по координатам
+                    const {offset, length} = nbt.BlockData
+                    file_buffer.setOffset(offset)
+                    let prev_offset = 0
+                    const end_offset = offset + length
+                    this.offsets = new Uint32Array(Math.ceil(length / BLOCKS_PER_OFFSET))
+                    this.incremental_offsets = new Uint8Array(Math.ceil(length / BLOCKS_PER_INCREMENTAL_OFFSET))
+                    let block_index = 0
+                    let incremental_offset_index = 0 // индекс в массиве incremental_offsets
 
-                        // пропустить блоки до следующего индекса кратного BLOCKS_PER_INCREMENTAL_OFFSET
-                        while(block_index < small_group_end) {
-                            // пропустить 1 упакованный блок, провалидировать его длину
-                            let varint_length = 1
-                            while ((file_buffer.readByte() & 128) !== 0) {
-                                if (++varint_length > 5) {
-                                    throw new Error('VarInt too big (probably corrupted data)')
+                    while(block_index < volume) { // цикл по грппе блоков с одним offsets
+                        this.offsets[block_index / BLOCKS_PER_OFFSET | 0] = file_buffer.offset
+                        const big_group_end = Math.min(block_index + BLOCKS_PER_OFFSET, volume)
+
+                        // пропустить блоки до следующего индекса кратного BLOCKS_PER_OFFSET
+                        while(block_index < big_group_end) {
+                            this.incremental_offsets[incremental_offset_index++] = file_buffer.offset - prev_offset
+                            prev_offset = file_buffer.offset
+                            const small_group_end = Math.min(block_index + BLOCKS_PER_INCREMENTAL_OFFSET, volume)
+
+                            // пропустить блоки до следующего индекса кратного BLOCKS_PER_INCREMENTAL_OFFSET
+                            while(block_index < small_group_end) {
+                                // пропустить 1 упакованный блок. Пвтор кода, см. getBlocks(), readSignedVarInt
+                                let byte = file_buffer.readInt8()
+                                let value = byte & 127
+                                let varint_length = 0   // на 7 меньше длины числа битах
+                                while ((byte & 128) !== 0) {
+                                    byte = file_buffer.readInt8()
+                                    varint_length += 7
+                                    value |= (byte & 127) << varint_length
+                                    if (varint_length > (31 - 7)) {
+                                        throw new Error('VarInt is too big (probably corrupted data)')
+                                    }
                                 }
+                                count_by_palette[value]++
+                                block_index++
                             }
-                            block_index++
                         }
                     }
-                }
-                if (file_buffer.offset !== end_offset) {
-                    throw new Error("BlockData length doesn't match")
+                    if (file_buffer.offset !== end_offset) {
+                        throw new Error("BlockData length doesn't match")
+                    }
+
+                    nbt.BlockData = [] // передать в sponge пустой массив, чтобы они не тратили время на него
+                    // постпроцессинг тэгов через sponge (или mcedit - но мы ожидаем что для такого формата сработает sponge)
+                    this.schematic = Schematic.parse(nbt)
+                } else if (nbt.Blocks && nbt.Data) { // формат 1.13, без палитры.
+
+                    // Прочесть все блоки и собрать уникальные комабинации (id, data) в массив фейк блоков, где каждый уникальный
+                    // блок встаечается 1 раз. Потом передать этот массив в плагин mcedit, чтобы он построил палитру.
+                    // Код чтения основан наа коде из mceditSchematic.js
+
+                    nbt.AddBlocks ??= nbt.Add
+                    const {Blocks, Data, AddBlocks} = nbt
+                    const unique_blocks = new Map<int, int>() // ключи - упакованные блоки; значения - индексы в массиве фейк блоков
+
+                    // читаемые куски файла
+                    const max_chunk_size= 1 << 16   // размер куска данных обрабатываемого за раз; не имеет отношения к размеру игрового Chunk
+                    const blocks        = new Uint8Array(max_chunk_size)
+                    const data          = new Uint8Array(max_chunk_size)
+                    const add_blocks    = AddBlocks && new Uint8Array(max_chunk_size / 2)
+
+                    // массив уникальных блоков, который мы передадим в mcedit
+                    const fake_blocks       : int[] = []
+                    const fake_data         : int[] = []
+                    const fake_add_blocks   : int[] | undefined = AddBlocks && []
+                    const count_by_unique_index: int[] = []
+
+                    // по каждому куску 2-х или 3-х массивов
+                    for(let chunk_offset = 0; chunk_offset < Blocks.length; chunk_offset += max_chunk_size) {
+                        // прочитать куски массивов блоков
+                        const chunk_size = Math.min(max_chunk_size, Blocks.length - chunk_offset)
+                        file_buffer.getBytes(blocks, Blocks.offset + chunk_offset, chunk_size)
+                        file_buffer.getBytes(data, Data.offset + chunk_offset, chunk_size)
+                        if (add_blocks) {
+                            file_buffer.getBytes(add_blocks, AddBlocks.offset + chunk_offset, (chunk_size + 1) / 2)
+                        }
+                        // для каждого блока из этого куска
+                        for(let i = 0; i < chunk_size; i++) {
+                            // повтор кода - см. getBlocks()
+                            let id = blocks[i]
+                            if (add_blocks) {
+                                id += (i & 1)
+                                    ? (add_blocks[i >> 1] & 0x0F) << 8
+                                    : (add_blocks[i >> 1] & 0xF0) << 4
+                            }
+                            const key = (id << 8) | data[i]
+                            const unique_index = unique_blocks.get(key)
+                            if (unique_index == null) {
+                                const fake_index = fake_blocks.length
+                                unique_blocks.set(key, fake_index)
+                                fake_blocks.push(blocks[i])
+                                fake_data.push(data[i])
+                                if (add_blocks) {
+                                    const added = (i & 1)
+                                        ? (add_blocks[i >> 1] & 0x0F)
+                                        : (add_blocks[i >> 1] & 0xF0) >> 4
+                                    const fake_added = (fake_index & 1)
+                                        ? added
+                                        : added << 4
+                                    fake_add_blocks[fake_index >> 1] = (fake_add_blocks[fake_index >> 1] ?? 0) | fake_added
+                                }
+                                count_by_unique_index.push(1)
+                            } else {
+                                count_by_unique_index[unique_index]++
+                            }
+                        }
+                    }
+                    // запомнить где расположены массивы в схематике - это нам понадобится чтобы потом читать блоки
+                    this.Blocks     = nbt.Blocks
+                    this.Data       = nbt.Data
+                    this.AddBlocks  = nbt.AddBlocks
+                    // передать в mcedit фейковые массивы, содержащие уникальные блоки
+                    nbt.Blocks      = fake_blocks
+                    nbt.Data        = fake_data
+                    nbt.AddBlocks   = fake_add_blocks
+
+                    // постпроцессинг тэгов через mcedit (sponge попробует запуститься первым, но будет исключение)
+                    this.schematic = Schematic.parse(nbt)
+
+                    // найти соответствие исходных блоков индексам палитре, посчитать число блоков каждого типа в палитре
+                    const count_by_palette = this.count_by_palette = new Array(this.schematic.palette.length).fill(0)
+                    const unique_to_palette = this.schematic.blocks // индекс = уникальный индекс. Значение = номер в палитре
+                    const to_palette = new Map()
+                    for(const [key, unique_index] of unique_blocks) {
+                        const palette_index = unique_to_palette[unique_index]
+                        to_palette.set(key, palette_index)
+                        count_by_palette[palette_index] = count_by_unique_index[unique_index]
+                    }
+                    this.to_palette = to_palette
+                } else {
+                    throw 'no expected block tags found'
                 }
 
-                // постпроцессинг тэгов через sponge или mcedit
-                nbt.BlockData = [] // передать в sponge или mcedit пустой массив, чтобы они не тратили время на него
-                this.schematic = Schematic.parse(nbt)
                 this.schematic.blocks = null // чтобы не обратиться к этому полю случайно
             } catch (e) {
                 console.error('New schematic parser failed, ' + (e.message ?? e))
@@ -144,6 +262,10 @@ export class BinarySchematic {
             this.schematic = await Schematic.read(buffer) // одновременно парсит NBT и постпроцессит тэги
             if (this.closed) {
                 throw 'closed'
+            }
+            const count_by_palette = this.count_by_palette = new Array(this.schematic.palette.length).fill(0)
+            for(const v of this.schematic.blocks) {
+                count_by_palette[v]++
             }
         }
 
@@ -166,13 +288,13 @@ export class BinarySchematic {
      * @return координаты в СК мира, номера блоков в палитре
      */
     *getBlocks(aabb: AABB = this.aabb): IterableIterator<[pos: Vector, paletteIndex: int]> {
-        const {strideZ, strideY, tmp_iteration_entry, size} = this
+        const {strideZ, strideY, tmp_iteration_entry, size, to_palette} = this
         const vec = tmp_iteration_entry[0]
         const {x_min, x_max} = aabb
         if (!this.aabb.containsAABB(aabb)) {
             throw 'requested AABB is outside the schematic'
         }
-        // отразить по z - перевсести в систему координат схематики
+        // отразить по z - перевести в систему координат схематики
         const z_min = size.z - aabb.z_max
         const z_max = size.z - aabb.z_min
 
@@ -182,12 +304,70 @@ export class BinarySchematic {
             for(let y = aabb.y_min; y < aabb.y_max; y++) {
                 vec.y = y
                 for(let z = z_min; z < z_max; z++) {
-                    vec.z = (size.z - 1 - z) // отразить по z - перевсести в систему координат madcraft
+                    vec.z = (size.z - 1 - z) // отразить по z - перевести в систему координат madcraft
                     let offset = y * strideY + z * strideZ + x_min
                     for(let x = x_min; x < x_max; x++) {
                         vec.x = x
                         tmp_iteration_entry[1] = blocks[offset++]
                         yield tmp_iteration_entry
+                    }
+                }
+            }
+            return
+        }
+        
+        // если формат 1.13
+        if (to_palette) {
+            const {Blocks, Data, AddBlocks, to_palette, file_buffer} = this
+            // выделить память для временных массивов, если нужно
+            const line_length = x_max - x_min + 1 // +1 - т.к. иногда мы читаем на 1 байт больше в начале 
+            if (this.tmp_Blocks?.length ?? 0 < line_length) {
+                const len = line_length * 2
+                this.tmp_Blocks     = new Uint8Array(len)
+                this.tmp_Data       = new Uint8Array(len)
+                this.tmp_AddBlocks  = AddBlocks && new Uint8Array((len + 1) / 2)
+            }
+            const {tmp_Blocks, tmp_Data, tmp_AddBlocks} = this
+                
+            // цкилы по (y, z) - началу непрерывной строки блоков
+            for(let y = aabb.y_min; y < aabb.y_max; y++) {
+                vec.y = y
+                for(let z = z_min; z < z_max; z++) {
+                    vec.z = (size.z - 1 - z) // отразить по z - перевести в систему координат madcraft
+                    
+                    let line_length = x_max - x_min
+                    let offset = y * strideY + z * strideZ + x_min // индекс 0-го блока строки
+                    // сделать offset четным, чтобы AddBlocks начинались с целого байта
+                    let index = offset % 2    // индекс первого блока блока строки во временных массивах
+                    offset -= index
+                    line_length += index
+                    
+                    // прочитать строки данных во временные массивы
+                    file_buffer.getBytes(tmp_Blocks, Blocks.offset + offset, line_length)
+                    file_buffer.getBytes(tmp_Data, Data.offset + offset, line_length)
+                    if (tmp_AddBlocks) {
+                        file_buffer.getBytes(tmp_AddBlocks, AddBlocks.offset + offset, (line_length + 1) / 2)
+                    }
+                    
+                    // по всем блокам строки
+                    for(let x = x_min; x < x_max; x++) {
+                        vec.x = x
+                        // собрать значение блока из разных массивов. Повтор кода - см. в open()
+                        let id = tmp_Blocks[index]
+                        if (tmp_AddBlocks) {
+                            id += (index & 1)
+                                ? (tmp_AddBlocks[index >> 1] & 0x0F) << 8
+                                : (tmp_AddBlocks[index >> 1] & 0xF0) << 4
+                        }
+                        const key = (id << 8) | tmp_Data[index]
+                        const value = to_palette.get(key)
+                        if (value == null) {
+                            throw new Error()
+                        }
+                        // выдать результат
+                        tmp_iteration_entry[1] = value
+                        yield tmp_iteration_entry
+                        index++
                     }
                 }
             }
@@ -201,7 +381,7 @@ export class BinarySchematic {
         for(let y = aabb.y_min; y < aabb.y_max; y++) {
             vec.y = y
             for(let z = z_min; z < z_max; z++) {
-                vec.z = (size.z - 1 - z) // отразить по z - перевсести в систему координат madcraft
+                vec.z = (size.z - 1 - z) // отразить по z - перевести в систему координат madcraft
 
                 // найти начало строки приблизительно с помощью сохраненных смещений
                 const index = y * strideY + z * strideZ + x_min
@@ -219,7 +399,7 @@ export class BinarySchematic {
                 file_buffer.setOffset(rough_offset, estimated_line_length_bytes)
                 const skip_count = index - incremental_offset_index * BLOCKS_PER_INCREMENTAL_OFFSET
                 for(let j = 0; j < skip_count; j++) {
-                    while ((file_buffer.readByte() & 128) !== 0) {
+                    while ((file_buffer.readInt8() & 128) !== 0) {
                         // ничего
                     }
                 }
@@ -227,16 +407,16 @@ export class BinarySchematic {
                 // по всем блокам строки
                 for(let x = x_min; x < x_max; x++) {
                     vec.x = x
-                    // распаковать значение блока. Повтор кода - см. readVarInt
-                    let byte = file_buffer.readByte()
+                    // распаковать значение блока. Повтор кода - см. в open()
+                    let byte = file_buffer.readInt8()
                     let value = byte & 127
-                    let varint_length = 0
+                    let varint_length = 0   // на 7 меньше длины числа битах
                     while ((byte & 128) !== 0) {
-                        byte = file_buffer.readByte()
+                        byte = file_buffer.readInt8()
                         varint_length += 7
                         value |= (byte & 127) << varint_length
                     }
-                    // вызать результат
+                    // выдать результат
                     tmp_iteration_entry[1] = value
                     yield tmp_iteration_entry
                 }
@@ -256,11 +436,11 @@ export class BinarySchematic {
             let varint_length = 0
             let b: int
             do {
-                b = file_buffer.readByte()
+                b = file_buffer.readInt8()
                 result |= (b & 127) << varint_length
                 varint_length += 7
                 if (varint_length > 31) {
-                    throw new Error('VarInt too big (probably corrupted data)')
+                    throw new Error('VarInt is too big (probably corrupted data)')
                 }
             } while ((b & 128) !== 0)
             // Может быть эта строка переставляет бит знака? скопировал ее из compiler-zigzag.js
@@ -295,7 +475,7 @@ export class BinarySchematic {
         let readArrayLength: () => int
         const readers: ((name?: string) => any)[] = []
 
-        const header = [file_buffer.readByte(), file_buffer.readByte(), file_buffer.readByte(), file_buffer.readByte()]
+        const header = [file_buffer.readInt8(), file_buffer.readInt8(), file_buffer.readInt8(), file_buffer.readInt8()]
         const has_bedrock_level_header = header[1] === 0 && header[2] === 0 && header[3] === 0 // bedrock level.dat header
         const bedrockHeaderLength = has_bedrock_level_header ? 8 : 0
         const formats = (this.cookie.format && [this.cookie.format]) ??
@@ -315,7 +495,7 @@ export class BinarySchematic {
                 readArrayLength = readSignedVarInt
             }
             // типы тэгов: https://minecraft.fandom.com/wiki/NBT_format#TAG_definition
-            readers[1] = () => file_buffer.readByte()
+            readers[1] = () => file_buffer.readInt8()
             readers[2] = () => file_buffer.readInt16()
             readers[3] = () => file_buffer.readInt32()
             readers[4] = () => file_buffer.readBigInt64()
@@ -323,20 +503,20 @@ export class BinarySchematic {
             readers[6] = () => file_buffer.readFloat64()
             readers[7] = (name?: string) => { // TAG_Byte_Array
                     const length = readArrayLength()
-                    if (name === 'BlockData') {
-                        const result = { offset: file_buffer.offset, length }
+                    if (name === 'BlockData' || name === 'Blocks' || name === 'Data' || name === 'AddBlocks' || name === 'Add') {
+                        const result: TByteArrayDescriptor = { offset: file_buffer.offset, length }
                         file_buffer.skip(length)
                         return result
                     }
                     const result = new Uint8Array(length)
                     for(let i = 0; i < length; i++) {
-                        result[i] = file_buffer.readByte()
+                        result[i] = file_buffer.readInt8()
                     }
                     return result
                 }
             readers[8] = readString
             readers[9] = () => {    // TAG_List
-                    const list_tag_type = file_buffer.readByte()
+                    const list_tag_type = file_buffer.readInt8()
                     const list_length = readArrayLength()
                     const result = new Array(list_length)
                     for(let i = 0; i < list_length; i++) {
@@ -347,7 +527,7 @@ export class BinarySchematic {
             readers[10] = () => {   // TAG_Compound
                     const result = {}
                     let sub_tag_type: int
-                    while(sub_tag_type = file_buffer.readByte()) {
+                    while(sub_tag_type = file_buffer.readInt8()) {
                         const name = readString()
                         result[name] = readTag(sub_tag_type, name)
                     }
@@ -375,7 +555,7 @@ export class BinarySchematic {
             try {
                 file_buffer.setOffset(bedrockHeaderLength)
                 while (file_buffer.offset !== file_buffer.size) {
-                    const tag_type = file_buffer.readByte()
+                    const tag_type = file_buffer.readInt8()
                     if (tag_type === 0) {
                         break
                     }
