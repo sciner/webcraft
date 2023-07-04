@@ -55,7 +55,9 @@ export class ServerAPI {
                     const session = await ServerAPI.getDb().GetPlayerSession(session_id)
                     ServerAPI.requireSessionFlag(session, PLAYER_FLAG.SYSTEM_ADMIN)
                     params.game_mode = 'creative'
-                    params.generator = { id: 'flat', options: {} }
+                    params.generator = { id: 'flat', options: {
+                        auto_generate_mobs: false
+                    } }
                 }
 
                 const generator = WorldGenerators.validateAndFixOptions(params.generator);
