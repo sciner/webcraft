@@ -964,13 +964,13 @@ export class ServerChunk {
             if (below.id != 0) {
                 extra_data = {
                     up: up,
-                    tip: true
+                    stage: 0
                 }
             } else if (below.id == bm.POINTED_DRIPSTONE.id) {
-                if (tblock.extra_data?.frustum) {
+                if (tblock?.extra_data?.stage != 0) {
                     extra_data = {
                         up: up,
-                        tip: true,
+                        stage: 0,
                     }
                 }
             }
@@ -997,33 +997,34 @@ export class ServerChunk {
             const up = tblock?.extra_data?.up
             const below = this.getBlock(tblock.posworld.offset(0, up ? 1 : -1, 0), null, null, null, true)
             const above = this.getBlock(tblock.posworld.offset(0, up ? -1 : 1, 0), null, null, null, true)
+            const stage = tblock?.extra_data?.stage
             let extra_data = null
-            if (below.id != 0 && below.id != bm.POINTED_DRIPSTONE.id && above.id == bm.POINTED_DRIPSTONE.id && above.extra_data?.middle) {
-                if (!tblock.extra_data?.base) {
+            if (below.id != 0 && below.id != bm.POINTED_DRIPSTONE.id && above.id == bm.POINTED_DRIPSTONE.id && above.extra_data.stage == 2) {
+                if (stage != 3) {
                     extra_data = {
                         up: up,
-                        base: true,
+                        stage: 3
                     }
                 }
-            } else if (above.id == bm.POINTED_DRIPSTONE.id  && up != above.extra_data?.up && (above.extra_data?.tip || above.extra_data?.merge)) {
-                if (!tblock.extra_data?.merge) {
+            } else if (above.id == bm.POINTED_DRIPSTONE.id  && up != above?.extra_data?.up && (above?.extra_data?.stage == 0 || above?.extra_data?.stage == 9)) {
+                if (stage != 9) {
                     extra_data = {
                         up: up,
-                        merge: true,
+                        stage: 9
                     }
                 }
-            } else if (above.id == bm.POINTED_DRIPSTONE.id && (above.extra_data?.tip || above.extra_data?.merge)) {
-                if (!tblock.extra_data?.frustum) {
+            } else if (above.id == bm.POINTED_DRIPSTONE.id && (above?.extra_data?.stage == 0 || above?.extra_data?.stage == 9)) {
+                if (stage != 1) {
                     extra_data = {
                         up: up,
-                        frustum: true
+                        stage: 1
                     }
                 }
-            } else if (above.id == bm.POINTED_DRIPSTONE.id  && up == above.extra_data?.up && (above.extra_data?.middle || above.extra_data?.frustum)) {
-                if (!tblock.extra_data?.middle) {
+            } else if (above.id == bm.POINTED_DRIPSTONE.id && up == above?.extra_data?.up && (above?.extra_data?.stage == 1 || above?.extra_data?.stage == 2)) {
+                if (stage != 2) {
                     extra_data = {
                         up: up,
-                        middle: true,
+                        stage: 2
                     }
                 }
             }

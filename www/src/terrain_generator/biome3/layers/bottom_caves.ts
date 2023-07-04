@@ -1,4 +1,4 @@
-import {noise, alea} from "../../default.js";
+import {noise, alea, addPointedDripstone} from "../../default.js";
 import { BLOCK_FLAG, DAYLIGHT_VALUE } from "../../../constant.js";
 import { CubeSym } from "../../../core/CubeSym.js";
 import { ClusterEndCity } from "../../cluster/end_city.js";
@@ -8,7 +8,7 @@ import { TerrainMapManagerBase } from "../terrain/manager_base.js";
 import { Biome3TerrainMap } from "../terrain/map.js";
 import { Biome3LayerBase } from "./base.js";
 import {  createNoise3D } from '@vendors/simplex-noise.js';
-import { Vector, addPointedDripstone } from "../../../helpers.js";
+import { Vector } from "../../../helpers.js";
 import type { BLOCK } from "../../../blocks.js";
 import type { ChunkGrid } from "../../../core/ChunkGrid.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
