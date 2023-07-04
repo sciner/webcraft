@@ -10,12 +10,12 @@ export class Noise3d {
     
     result: Float32Array
     
-    constructor(factory, seed, randomFunc) {
+    constructor(factory, seed, randomFunc, map_noise_shift : IVector) {
         this.factory = factory;
         this.seed = seed;
 
         this.result = new Float32Array(factory.outputSize);
-        this.genPos = null;
+        this.genPos = new Vector();
         this.genSize = null;
         this.cx = 0;
         this.cy = 0;
@@ -23,6 +23,7 @@ export class Noise3d {
         this.cw = 0;
         this.cgen = 0;
         this.scales = [];
+        this.map_noise_shift = map_noise_shift
 
         if (randomFunc) {
             this.alea = null;
@@ -35,8 +36,8 @@ export class Noise3d {
         this.scoreCounter = 0;
     }
 
-    generate(pos, size = oneVector, scale = 1.0, genNum = 0) {
-        this.genPos = pos;
+    generate(pos: IVector, size = oneVector, scale = 1.0, genNum = 0) {
+        this.genPos.copyFrom(pos).addSelf(this.map_noise_shift)
         this.genSize = size;
         this.cx = 1;
         this.cy = size.x;
@@ -103,8 +104,8 @@ export class NoiseFactory {
         this.maxNoises = maxNoises;
     }
 
-    createNoise3D({seed, randomFunc}) {
-        const noise = new Noise3d(this, seed, randomFunc);
+    createNoise3D({seed, randomFunc, map_noise_shift}) {
+        const noise = new Noise3d(this, seed, randomFunc, map_noise_shift);
         // might use integer id for where its stored in wasm
         return noise;
     }

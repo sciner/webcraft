@@ -98,7 +98,8 @@ export const GENERATOR_OPTIONS = {
     SCALE_EQUATOR:          1280 * .5 * 3, // Масштаб для карты экватора
     SCALE_BIOM:             640  * .5, // Масштаб для карты шума биомов
     SCALE_HUMIDITY:         320  * .5, // Масштаб для карты шума влажности
-    SCALE_VALUE:            250  * .5 // Масштаб шума для карты высот
+    SCALE_VALUE:            250  * .5, // Масштаб шума для карты высот
+    map_noise_shift:        new Vector(0, 0, 0) // для сдвига шумов
 };
 
 const DEFAULT_DENSITY_COEFF = {
@@ -131,6 +132,7 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
     constructor(world: WorkerWorld, seed : string, world_id : string, noise2d, noise3d, block_manager : BLOCK, generator_options, layer? : Biome3LayerBase) {
         super(world, seed, world_id, noise2d, noise3d, block_manager, generator_options, layer)
+        GENERATOR_OPTIONS.map_noise_shift = new Vector(world.tech_info.map_noise_shift)
         this.makePresetsList(seed)
         this.noise3d?.setScale4(1/ 100, 1/50, 1/25, 1/12.5);
         this.initMats();
@@ -523,8 +525,9 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
 
     makeRiverPoint(xz : Vector) : RiverPoint | null {
         let {x, z} = xz
-        x += 91234;
-        z -= 95678;
+        const shift = this.world.tech_info.map_noise_shift
+        x += 91234 + shift.x
+        z -= 95678 + shift.z
         const value1 = this.noise2d((x + 10) / RIVER_OCTAVE_1, (z + 10) / RIVER_OCTAVE_1) * 0.7;
         const value2 = this.noise2d((x) / RIVER_OCTAVE_2, (z) / RIVER_OCTAVE_2) * 0.2;
         const value3 = this.noise2d((x - 10) / RIVER_OCTAVE_3, (z - 10) / RIVER_OCTAVE_3) * 0.1;
@@ -536,7 +539,8 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
     }
 
     makeCanyonPoint(xz : Vector) : float {
-        return this.noise2d(xz.x / 1000, xz.z / 1000)
+        const shift = this.world.tech_info.map_noise_shift
+        return this.noise2d((xz.x + shift.x) / 1000, (xz.z + shift.z) / 1000)
     }
 
     /**
@@ -545,11 +549,14 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
     calcBiome(xz : Vector, preset? : MapCellPresetResult ) : Biome {
 
         const params = TerrainMapManager3._climateParams
+        const shift = this.world.tech_info.map_noise_shift
+        const x = xz.x + shift.x
+        const z = xz.z + shift.z
 
         // Create map cell
         params.set(
-            this.biomes.calcNoise(xz.x / 1.15, xz.z / 1.15, 3, .9),
-            this.biomes.calcNoise(xz.x * .5, xz.z * .5, 2)
+            this.biomes.calcNoise(x / 1.15, z / 1.15, 3, .9),
+            this.biomes.calcNoise(x * .5, z * .5, 2)
         );
 
         if(preset && preset.op?.modifyClimate) {

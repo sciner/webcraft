@@ -6,6 +6,7 @@ import {MonotonicUTCDate, TApiSyncTimeRequest, TApiSyncTimeResponse} from "@clie
 import type { DBGame } from "db/game.js";
 import Billboard from "player/billboard.js";
 import { PLAYER_FLAG } from "@client/constant.js";
+import { impl as alea } from '@vendors/alea.js';
 
 // JSON API
 export class ServerAPI {
@@ -76,6 +77,16 @@ export class ServerAPI {
                     }
                 }
 
+                // random map noise shift
+                const alea_random = new alea(params.seed)
+                const map_noise_shift_rad = 50000
+                const map_noise_shift_min = 2000
+                generator.options['map_noise_shift'] = new Vector(
+                    Math.max(Math.round(alea_random.double() * map_noise_shift_rad * 2), map_noise_shift_min),
+                    Math.max(Math.round(alea_random.double() * map_noise_shift_rad * 2), map_noise_shift_min),
+                    Math.max(Math.round(alea_random.double() * map_noise_shift_rad * 2), map_noise_shift_min),
+                ).addScalarSelf(-map_noise_shift_rad, -map_noise_shift_rad, -map_noise_shift_rad)
+                //
                 const title       = params.title;
                 const seed        = params.seed;
                 const game_mode   = params.game_mode ?? 'survival';
