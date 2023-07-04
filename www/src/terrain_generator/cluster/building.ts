@@ -152,10 +152,10 @@ export class Building {
         const objToChunk = new VectorCardinalTransformer()
         this.initTransformerToChunk(objToChunk, chunk.coord)
         const chunkToObj = new VectorCardinalTransformer().initInverse(objToChunk)
-        const chunkAabbInObj = chunkToObj.tranformAABB(chunk.chunkManager.grid.chunkDefaultAABB, new AABB())
+        const chunkAabbInObj = chunkToObj.transformAABB(chunk.chunkManager.grid.chunkDefaultAABB, new AABB())
         // AABB of the part of the basement in this chunk, clamped to chunk
         const aabbInObj = basement.aabb.clone().setIntersect(chunkAabbInObj)
-        const aabbInChunk = objToChunk.tranformAABB(aabbInObj, new AABB())
+        const aabbInChunk = objToChunk.transformAABB(aabbInObj, new AABB())
 
         // find the lowest surface points
         const minNonSolidYInChunkMatrix = tmpYMatrix.initHorizontalInAABB(aabbInChunk)
@@ -261,7 +261,7 @@ export class Building {
         const objToChunk = new VectorCardinalTransformer()
         this.initTransformerToChunk(objToChunk, chunk.coord)
         const chunkToObj = new VectorCardinalTransformer().initInverse(objToChunk)
-        const chunkAabbInObj = chunkToObj.tranformAABB(chunk.chunkManager.grid.chunkDefaultAABB, new AABB())
+        const chunkAabbInObj = chunkToObj.transformAABB(chunk.chunkManager.grid.chunkDefaultAABB, new AABB())
         const vec = new Vector()
         for(const [x, z, y] of minFloorYbyXZ.entries(
             chunkAabbInObj.x_min, chunkAabbInObj.z_min,
@@ -366,7 +366,7 @@ export class Building {
     getAutoBasementAABB() : AABB {
         if (this._autoBasementAABB) {
             this.initToWorld(tmpTransformer)
-            tmpTransformer.tranformAABB(this.building_template.autoBasement.aabb, this._autoBasementAABB)
+            tmpTransformer.transformAABB(this.building_template.autoBasement.aabb, this._autoBasementAABB)
         }
         return this._autoBasementAABB
     }

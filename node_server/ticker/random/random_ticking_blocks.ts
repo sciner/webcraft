@@ -6,6 +6,7 @@ import {FAST_RANDOM_TICKERS_PERCENT} from "@client/constant.js";
 import {WorldAction} from "@client/world_action.js";
 import {CHUNK_STATE} from "@client/chunk_const.js";
 import {RANDOM_TICK_SPEED_CHUNK_SIZE} from "../../game_rule.js";
+import type {TScannedTickers} from "@client/worker/messages.js";
 
 const _rnd_check_pos = new Vector()
 const tmpRandomTickerTBlock = new TBlock()
@@ -78,18 +79,6 @@ export class RandomTickingBlocks {
     }
 
     tick(world_light: int, check_count: float): void {
-
-        const tickBlock = (flatIndex: int) => {
-            fromFlatChunkIndex(_rnd_check_pos, flatIndex)
-            const tblock = chunk.tblocks.get(_rnd_check_pos, tmpRandomTickerTBlock);
-            const ticker = block_random_tickers[tblock.id]
-            if(ticker) {
-                ticker(chunk.world, RandomTickingBlocks.actions, world_light, tblock)
-            } else {
-                console.error(`No random ticker for block ${tblock.id}`) // такого не долно быть
-            }
-        }
-
         const {chunk, count, arr} = this
         const block_random_tickers = chunk.chunkManager.block_random_tickers
         const {fromFlatChunkIndex, CHUNK_SIZE} = chunk.chunkManager.grid.math
@@ -101,13 +90,28 @@ export class RandomTickingBlocks {
             }
             let index = Mth.randomInt(count) // индекс случайного блока в arr
             for(let i = 0; i < check_count; i++) {
-                tickBlock(arr[2 * index])
-                index = (index + 100003) % count // добавляем простое число - перебирает индексы без повторения
+                const flatIndex = arr[2 * index]
+                fromFlatChunkIndex(_rnd_check_pos, flatIndex)
+                const tblock = chunk.tblocks.get(_rnd_check_pos, tmpRandomTickerTBlock);
+                const ticker = block_random_tickers[tblock.id]
+                if(ticker) {
+                    ticker(chunk.world, RandomTickingBlocks.actions, world_light, tblock)
+                } else {
+                    console.error(`No random ticker for block ${tblock.id}`) // такого не долно быть
+                }
+                // добавляем простое число - перебирает индексы без повторения
+                index = (index + 100003) % count
             }
         } else { // старый метод - вызывем случайно для всех блоков
             check_count = Mth.roundRandom(check_count * CHUNK_SIZE / RANDOM_TICK_SPEED_CHUNK_SIZE) // число вызовов пропорционально размеру чанка
             for (let i = 0; i < check_count; i++) {
-                tickBlock(Math.floor(Math.random() * CHUNK_SIZE))
+                const flatIndex = Math.floor(Math.random() * CHUNK_SIZE)
+                fromFlatChunkIndex(_rnd_check_pos, flatIndex)
+                const tblock = chunk.tblocks.get(_rnd_check_pos, tmpRandomTickerTBlock)
+                const ticker = block_random_tickers[tblock.id]
+                if(ticker) {
+                    ticker(chunk.world, RandomTickingBlocks.actions, world_light, tblock)
+                }
             }
         }
 

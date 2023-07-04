@@ -28,6 +28,7 @@ import { ServerPlayerCombat } from "player/combat.js";
 import type {TChestSlots} from "@client/block_helpers.js";
 import type {PrismarinePlayerState} from "@client/prismarine-physics/index.js";
 import {WorldAction} from "@client/world_action.js";
+import type {TWorldEditCopy} from "./plugins/chat_worldedit.js";
 
 export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
     time?: number;
@@ -121,7 +122,7 @@ export class ServerPlayer extends Player {
     conn: any;
     savingPromise?: Promise<void>
     lastSentPacketTime = Infinity   // performance.now()
-    _world_edit_copy: any
+    _world_edit_copy?: TWorldEditCopy
     // @ts-ignore
     declare driving: ServerDriving | null = null
     /** См. комментарий к аналогичному полю {@link Mob.drivingId} */

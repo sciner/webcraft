@@ -13,7 +13,7 @@ import { DBWorldFluid } from "./world/fluid.js";
 import { DBWorldChunk } from "./world/chunk.js";
 import { compressWorldModifyChunk } from "@client/compress/world_modify_chunk.js";
 import { WorldGenerators } from "../world/generators.js";
-import type { ServerWorld } from "../server_world.js";
+import type {ServerWorld, TServerWorldState} from "../server_world.js";
 import type { ServerPlayer } from "../server_player.js";
 import type { Indicators, PlayerState } from "@client/player.js";
 import { SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS } from "../server_constant.js";
@@ -165,7 +165,7 @@ export class DBWorld {
                 generator:      JSON.parse(row.generator),
                 pos_spawn:      JSON.parse(row.pos_spawn),
                 rules:          JSON.parse(row.rules),
-                state:          null,
+                state:          JSON.parse(row.state ?? '{}'),
                 add_time:       row.add_time,
                 world_type_id:  row.title == config.building_schemas_world_name ? WORLD_TYPE_BUILDING_SCHEMAS : WORLD_TYPE_NORMAL,
                 recovery:       row.recovery,
@@ -619,6 +619,13 @@ export class DBWorld {
             ':world_guid':  world_guid,
             ':rules':    JSON.stringify(rules)
         });
+    }
+
+    async setWorldState(world_guid: string, state: TServerWorldState) {
+        return this.conn.run('UPDATE world SET state = :state WHERE guid = :guid', {
+            ':guid':    world_guid,
+            ':state':   JSON.stringify(state)
+        })
     }
 
     async setWorldGenerator(world_guid: string, generator: TGeneratorInfo) {

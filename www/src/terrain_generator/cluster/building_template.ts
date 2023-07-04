@@ -1,7 +1,7 @@
-import type { BLOCK } from "../../blocks.js";
+import type {BLOCK, IDBItemBlock} from "../../blocks.js";
 import { FLUID_LAVA_ID, FLUID_WATER_ID } from "../../fluid/FluidConst.js";
 import { AABB } from '../../core/AABB.js';
-import { Vector, VectorCollector, ShiftedMatrix, VectorCollector2D, ArrayHelpers, SimpleQueue } from "../../helpers.js";
+import {Vector, VectorCollector, ShiftedMatrix, VectorCollector2D, ArrayHelpers, SimpleQueue, ObjectHelpers} from "../../helpers.js";
 import { BASEMNET_DEPTHS_BY_DISTANCE, BASEMENT_ADDITIONAL_WIDTH, BASEMENT_MAX_PAD,
     BASEMENT_BOTTOM_BULGE_BLOCKS, BASEMENT_BOTTOM_BULGE_PERCENT, BASEMENT_SIDE_BULGE } from "./building.js";
 import { calcMinFloorYbyXZ } from './building_helpers.js';
@@ -720,14 +720,23 @@ export class BuildingTemplate {
     }
 
     /**
-     * @param {VectorCollector} all_blocks
-     * @param {[][]} rot
-     * @param {*} bm
-     * @param {int[]} directions
+     * Сохраняет в {@link rot} блоки из {@link all_blocks}, повернутые на значения, указанные в {@link directions}
+     * @param rot - выодные данные. Для каждого {@link directions} - повернутые блоки
+     * @param directions - входные данные. Каждый элемент v - от 0 до 3 - поворот на (90 * n) градусов.
      */
-    static rotateBlocksProperty(all_blocks, rot, bm, directions) {
+    static rotateBlocksProperty(all_blocks: Iterable<IDBItemBlock | IBuildingItem>,
+                                rot: (IDBItemBlock | IBuildingItem)[][],
+                                bm: typeof BLOCK, directions: int[]): void {
 
         const ROT_N = [18, 22, 7, 13];
+
+        // Списки имен материалов, для которых применяется соответствующая функция (с тем же именем, что и список, только маленькими буквами).
+        // Создаются тут 1 раз чтобы избежать создания многих временных объектов в цикле.
+        const ROTATE_X  = ['bed']
+        const ROT_COVER = ['cover']
+        const ROT4      = ['sign']
+        const ROT3      = ['armor_stand']
+        const ROT_RAILS = ['rail', 'rails']
 
         //
         const rot_none = (block) => {
@@ -741,7 +750,7 @@ export class BuildingTemplate {
         const rot1 = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i];
-                const rb = JSON.parse(JSON.stringify(block));
+                const rb = ObjectHelpers.deepCloneObject(block);
                 if(rb.rotate) {
                     if(rb.rotate.y == 0) {
                         rb.rotate.x = ROT_N[(ROT_N.indexOf(rb.rotate.x) + direction) % 4];
@@ -757,7 +766,7 @@ export class BuildingTemplate {
         const rotate_x = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i];
-                const rb = JSON.parse(JSON.stringify(block));
+                const rb = ObjectHelpers.deepCloneObject(block);
                 rb.rotate.x = (rb.rotate.x + direction) % 4;
                 rot[direction].push(rb);
             }
@@ -767,7 +776,7 @@ export class BuildingTemplate {
         const rot3 = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i];
-                const rb = JSON.parse(JSON.stringify(block));
+                const rb = ObjectHelpers.deepCloneObject(block);
                 rb.rotate.x = (rb.rotate.x + direction + 2) % 4;
                 rot[direction].push(rb);
             }
@@ -777,7 +786,7 @@ export class BuildingTemplate {
         const rot4 = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i]
-                const rb = JSON.parse(JSON.stringify(block))
+                const rb = ObjectHelpers.deepCloneObject(block)
                 if(rb.rotate.y == 0) {
                     rb.rotate.x = (rb.rotate.x + direction + 4) % 4
                 } else {
@@ -790,7 +799,7 @@ export class BuildingTemplate {
         const rotx8 = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i];
-                const rb = JSON.parse(JSON.stringify(block));
+                const rb = ObjectHelpers.deepCloneObject(block);
                 rb.rotate.x = (rb.rotate.x - direction * 90) % 360;
                 rot[direction].push(rb);
             }
@@ -810,7 +819,7 @@ export class BuildingTemplate {
             ];
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i]
-                const rb = JSON.parse(JSON.stringify(block))
+                const rb = ObjectHelpers.deepCloneObject(block)
                 let new_shape = 0
                 rb.extra_data = rb.extra_data ?? {}
                 if('shape' in rb.extra_data) {
@@ -833,7 +842,7 @@ export class BuildingTemplate {
             const sides = ['north', 'west', 'south', 'east']
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i]
-                const rb = JSON.parse(JSON.stringify(block))
+                const rb = ObjectHelpers.deepCloneObject(block);
                 if(block.extra_data) {
                     rb.extra_data = {}
                     for(let k in block.extra_data) {
@@ -859,27 +868,32 @@ export class BuildingTemplate {
             }
         }
 
-        for(const block of all_blocks.values()) {
+        for(const block of all_blocks) {
+            const blockAny: any = block
+            const id = blockAny.block_id ?? blockAny.id
 
             // если это воздух, то просто прописываем его во все измерения
-            if(block.block_id == 0) {
+            if(id == 0) {
                 rot_none(block);
                 continue
             }
 
             // получаем материал
-            const mat = block.mat ?? bm.fromId(block.block_id);
-            if(block.mat) {
-                delete(block.mat);
+            let mat: IBlockMaterial
+            if(blockAny.mat) {
+                mat = blockAny.mat
+                delete(blockAny.mat);
+            } else {
+                mat = bm.fromId(id)
             }
 
-            if(['bed'].includes(mat.style_name)) {
+            if(ROTATE_X.includes(mat.style_name)) {
                 rotate_x(block)
 
             } else if(mat.tags.includes('stairs') || mat.tags.includes('ladder') || mat.tags.includes('trapdoor') || ['banner', 'campfire', 'anvil', 'lantern', 'torch', 'door', 'chest', 'lectern', 'fence_gate'].includes(mat.style_name)) {
                 rotate_x(block)
 
-            } else if(['cover'].includes(mat.style_name)) {
+            } else if(ROT_COVER.includes(mat.style_name)) {
                 rot_cover(block)
 
             } else if(mat.tags.includes('rotate_x8')) {
@@ -891,16 +905,16 @@ export class BuildingTemplate {
             } else if(mat.tags.includes('rotate_sign')) {
                 rot_sign(block)
 
-            } else if(['sign'].includes(mat.style_name)) {
+            } else if(ROT4.includes(mat.style_name)) {
                 rot4(block)
 
             } else if(mat.tags.includes('rotate_by_pos_n')) {
                 rot1(block)
 
-            } else if(['armor_stand'].includes(mat.style_name)) {
+            } else if(ROT3.includes(mat.style_name)) {
                 rot3(block)
 
-            } else if(['rail', 'rails'].includes(mat.style_name)) {
+            } else if(ROT_RAILS.includes(mat.style_name)) {
                 rot_rails(block)
 
             } else if(mat.can_rotate && block.rotate) {

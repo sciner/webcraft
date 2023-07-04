@@ -1,7 +1,6 @@
-// This file is .d.ts because we can't use imports in chunk_worker.ts
-// see the TS bug https://github.com/microsoft/TypeScript/issues/44040
+import type {TBlocksSavedState} from "../typed_blocks3.js";
 
-type TChunkWorkerMessageInit = {
+export type TChunkWorkerMessageInit = {
     generator           : TGeneratorInfo
     world_seed          : string
     world_guid          : string
@@ -11,20 +10,19 @@ type TChunkWorkerMessageInit = {
     world_tech_info     : TWorldTechInfo
 }
 
-type TScannedTickers = {
+export type TScannedTickers = {
     randomTickersCount: int
     randomTickerFlatIndices: int[] | null // индексы случайных тикеров, если их не больше чем FAST_RANDOM_TICKERS_PERCENT * объем
     tickerFlatIndices: int[]
 }
 
-type TChunkWorkerMessageBlocksGenerated = {
+export type TChunkWorkerMessageBlocksGenerated = {
     addr:                   IVector
     uniqId:                 int
-    tblocks:                any
+    tblocks:                TBlocksSavedState
     packedCells:            Int16Array
     genQueueSize?:          int
     dayLightDefaultValue?:  int
     tickers:                TScannedTickers | null
-    // randomTickersCount:  int
-    // tickerFlatIndices:   int[]
+    for_schematic?:         { job_id: int, index: int }
 }
