@@ -1622,7 +1622,7 @@
                 "random_rotate_up"
             ],
             "texture": "block/sand.png",
-            "overlay_textures_weight": 95,
+            "overlay_textures_weight": 94,
             "texture_overlays": {
                 "1": "block/decals/sand/1.png",
                 "corner": "block/decals/sand/corner.png",
@@ -13173,6 +13173,57 @@
                 "#combat"
             ],
             "light": null
+        },
+        {
+            "id": 333,
+            "name": "WET_SAND",
+            "gravity": true,
+            "sound": "madcraft:block.sand",
+            "coocked_item": {"name": "SAND", "count": 1},
+            "material": {
+                "id": "sand"
+            },
+            "tags": [
+                "random_rotate_up"
+            ],
+            "texture": "block/wet_sand.png",
+            "overlay_textures_weight": 95,
+            "texture_overlays": {
+                "1": "block/decals/wet_sand/1.png",
+                "corner": "block/decals/wet_sand/corner.png",
+                "3": "block/decals/wet_sand/3.png",
+                "all": "block/decals/wet_sand/all.png",
+                "opposite": "block/decals/wet_sand/opposite.png"
+            }
+        },
+        {
+            "id": 334,
+            "name": "WET_SAND_SLAB",
+            "sound": "madcraft:block.sand",
+            "height": 0.5,
+            "transparent": true,
+            "tags": [
+                "sand"
+            ],
+            "material": {
+                "id": "sand"
+            },
+            "texture": {
+                "side": "block/wet_sand.png"
+            },
+            "overlay_textures_weight": 95,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "WET_SAND"
+            },
+            "texture_overlays": {
+                "1": "block/decals/wet_sand/1.png",
+                "corner": "block/decals/wet_sand/corner.png",
+                "3": "block/decals/wet_sand/3.png",
+                "all": "block/decals/wet_sand/all.png",
+                "opposite": "block/decals/wet_sand/opposite.png"
+            }
         }
     ]
 }
