@@ -93,6 +93,7 @@ declare type IStateBlock = {
     fluidValue:         int,
     b:                  IBlockMaterial,
     read_entity_props:  boolean,
+    not_found_name:     string | null
 }
 
 /** Результат получения блоков, разделенный на чанки - готовый к вставке в мир */
@@ -135,14 +136,15 @@ export class SchematicReader {
     }
 
     /**
-     * Загружает бинаруную схематику, парсит палитру, общие данные схематики и blockEntities. Не парсит массив блоков.
+     * Загружает бинаруную схематику, парсит палитру, общие данные схематики и blockEntities.
+     * Частично парсит массив блоков - подготавливает последующее чтение из него, подсчитывает сколько блоков какого типа.
      * Чтобы получить блоки - см. {@link getBlocks}.
+     * Информация о загруженной схематике (для основного потока) доступна в {@link schematic}.
      * @param info - входной и выходной. Описывает что и как загружается. При повторном открытии того же файла - там
      *   информация о том, что и как получилось открыть в первый раз.
      * @param worldGUID - добавляется к имени временного файла. Зачем: если одну и ту же схематикиу открыли в двух мирах,
      *   они будт создавать/читать/удалять разыне файлы, не мешать друг другу, и можно понять какой файл из какого мира
      *   создавался.
-     * @return информацию о загруженой схематике (для основного потока)
      */
     async open(info: TSchematicInfo, max_memory_file_size: int, worldGUID: string): Promise<void> {
         this.info = info
@@ -195,7 +197,7 @@ export class SchematicReader {
 
         this.states                             = []
         const states                            = this.states
-        const not_found_blocks                  = new Map()
+        const not_found_blocks                  = new Map<string, int>()
         const cached_blocks                     = new Map()
         const FLOWER_POT_BLOCK_ID               = BLOCK.fromName('FLOWER_POT').id
         const TEST_BLOCK                        = new DBItemBlock(BLOCK.fromName('TEST').id)
@@ -261,8 +263,9 @@ export class SchematicReader {
                 }
             }
             // If not implemented block
+            let not_found_name: string | null = null
             if(!new_block) {
-                not_found_blocks.set(name, (not_found_blocks.get(name) ?? 0) + 1);
+                not_found_name = name
                 // replace with TEST block and store original to his extra_data
                 new_block = DBItemBlock.cloneFrom(TEST_BLOCK)
                 new_block.extra_data = {n: name}
@@ -286,9 +289,16 @@ export class SchematicReader {
                     new_block = AIR_BLOCK;
                 }
             }
-            states[palette_index] = {fluidValue, new_block, b, read_entity_props, schematicBlock: block} as IStateBlock
+            states[palette_index] = {fluidValue, new_block, b, read_entity_props, schematicBlock: block, not_found_name}
         }
         //
+        for(let palette_index = 0; palette_index < states.length; palette_index++) {
+            const name = states[palette_index]?.not_found_name
+            const count = this.binary_schematic.count_by_palette[palette_index]
+            if (name && count) {
+                not_found_blocks.set(name, (not_found_blocks.get(name) ?? 0) + count)
+            }
+        }
         const not_found_blocks_arr = [];
         for(const [name, count] of not_found_blocks.entries()) {
             not_found_blocks_arr.push({name, count});

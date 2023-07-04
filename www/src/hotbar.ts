@@ -274,7 +274,7 @@ export class Hotbar {
         this.progress_bar_value = new Label(0, 0, progress_bar.w, progress_bar.h, 'progress_bar_value')
         this.progress_bar_value.setBackground(this.hud_atlas.getSpriteFromMap('progress_bar'))
         progress_bar.add(this.progress_bar_value)
-        this.progress_bar_label = new Label(0, 0, progress_bar.w, progress_bar.h, 'progress_bar_label')
+        this.progress_bar_label = new Label(0, -1 * this.zoom, progress_bar.w, progress_bar.h, 'progress_bar_label')
         progress_bar.add(this.progress_bar_label)
         this.hud.wm.addChild(progress_bar)
         inventory.player.world.server.AddCmdListener([ServerClient.CMD_PROGRESSBAR], (packet: INetworkMessage) => {
