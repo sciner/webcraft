@@ -3087,7 +3087,7 @@
             "texture": "block/polished_blackstone.png",
             "drop_item": [
                 {
-                    "name": "POLISHED_ANDESITE_STAIRS",
+                    "name": "POLISHED_BLACKSTONE_STAIRS",
                     "instrument": ["_PICKAXE"]
                 },
                 {
@@ -13356,7 +13356,7 @@
         },
         {
             "id": 452,
-            "name": "MANGROVE",
+            "name": "MANGROVE_STAIRS",
             "style": "stairs",
             "sound": "madcraft:block.wood",
             "material": {
@@ -13379,6 +13379,53 @@
                 "id": "wood"
             },
             "texture": "block/mangrove_planks.png"
+        },
+        {
+            "id": 1386,
+            "name": "NETHER_BRICK_WALL",
+            "sound": "madcraft:block.stone",
+            "style": "wall",
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/nether_bricks.png",
+            "drop_item": [
+                {
+                    "name": "NETHER_BRICK_WALL",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
+        },
+        {
+            "id": 454,
+            "name": "BLACKSTONE_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/blackstone.png",
+            "drop_item": [
+                {
+                    "name": "BLACKSTONE_STAIRS",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         }
     ]
 }

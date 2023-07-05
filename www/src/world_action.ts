@@ -433,10 +433,13 @@ export function dropBlock(player : any = null, tblock : TBlock | FakeTBlock, act
         } else if(tblock.material.spawnable) {
             items.push(makeDropItem(tblock, {id: tblock.id, count: 1}));
         }
+        const drop_rows = []
         for(let item of items) {
-            actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force});
+            const drop_row = {pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force}
+            actions.addDropItem(drop_row)
+            drop_rows.push(drop_row)
         }
-        return items
+        return drop_rows
     }
     return [];
 }
@@ -476,21 +479,21 @@ class DestroyBlocks {
         if(tblock.material.sound) {
             actions.addPlaySound({tag: tblock.material.sound, action: 'dig', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
-        const drop_items = [];
+        const drop_rows = [];
         //
         if(tblock.material.is_jukebox) {
             // If disc exists inside jukebox
             if(tblock.extra_data && tblock.extra_data.disc) {
                 const disc_id = tblock.extra_data.disc.id;
                 // Drop disc
-                drop_items.push(...dropBlock(player, new FakeTBlock(disc_id, null, tblock.posworld.clone(), null, null, null, null, null, null), actions, false, this.current_inventory_item));
+                drop_rows.push(...dropBlock(player, new FakeTBlock(disc_id, null, tblock.posworld.clone(), null, null, null, null, null, null), actions, false, this.current_inventory_item));
                 // Stop play disc
                 actions.stop_disc.push({pos: tblock.posworld.clone()});
             }
         }
         // Drop block if need
         if(!no_drop) {
-            drop_items.push(...dropBlock(player, tblock, actions, false, this.current_inventory_item));
+            drop_rows.push(...dropBlock(player, tblock, actions, false, this.current_inventory_item));
         }
         // удаляем капельники
         if (tblock.id == BLOCK.POINTED_DRIPSTONE.id && tblock?.extra_data) {
@@ -556,10 +559,12 @@ class DestroyBlocks {
         }
         //
         if(tblock.material.chest) {
-            const di = drop_items[0]
+            const drop_row = drop_rows[0]
+            const di = drop_row.items[0]
             if(tblock.hasTag('store_items_in_chest')) {
                 di.extra_data = {...tblock.extra_data}
                 di.entity_id = tblock.entity_id || randomUUID()
+                drop_row.force = true
             } else {
                 if('extra_data' in di) delete(di.extra_data)
                 if('entity_id' in di) delete(di.entity_id)
@@ -570,8 +575,10 @@ class DestroyBlocks {
         if(tblock.material.style_name == 'cover' && tblock.extra_data) {
             const existing_faces = Object.keys(tblock.extra_data).filter(value => COVER_STYLE_SIDES.includes(value));
             const dcount = existing_faces.length
-            if(dcount > 1 && drop_items.length == 1) {
-                drop_items[0].count = dcount
+            const drop_row = drop_rows[0]
+            if(dcount > 1 && drop_row.items.length == 1) {
+                const di = drop_row.items[0]
+                di.count = dcount
             }
         }
     }

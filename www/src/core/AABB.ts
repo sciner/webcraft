@@ -260,9 +260,9 @@ export class AABB implements IAABB {
             oz -= pivot.z;
         }
 
-        let cx = ox * matrix[0] + oy * matrix[4] + ox * matrix[8] + matrix[12];
-        let cy = ox * matrix[1] + oy * matrix[5] + oy * matrix[9] + matrix[13];
-        let cz = ox * matrix[2] + oz * matrix[6] + oz * matrix[10] + matrix[14];
+        let cx = ox * matrix[0] + oy * matrix[4] + oz * matrix[8] + matrix[12];
+        let cy = ox * matrix[1] + oy * matrix[5] + oz * matrix[9] + matrix[13];
+        let cz = ox * matrix[2] + oy * matrix[6] + oz * matrix[10] + matrix[14];
 
         const dx = Math.abs(odx * matrix[0]) + Math.abs(ody * matrix[4]) + Math.abs(odz * matrix[8]);
         const dy = Math.abs(odx * matrix[1]) + Math.abs(ody * matrix[5]) + Math.abs(odz * matrix[9]);
