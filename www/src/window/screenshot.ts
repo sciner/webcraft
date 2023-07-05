@@ -53,7 +53,7 @@ export class ScreenshotWindow extends BlankWindow {
     // Обработчик закрытия формы
     onHide() {
         if (this.args?.id) {
-            Qubatch.hud.wm.getWindow(this.args.id).show({tab: this.args.tab})
+            Qubatch.hud.wm.getWindow(this.args.id).show(this.args)
         }
     }
 
@@ -121,12 +121,11 @@ export class ScreenshotWindow extends BlankWindow {
         Qubatch.App.Screenshot(form, function(result) {
             if (result.result == "ok") {
                 vt.success("Screenshot uploaded to server");
-                if (self.args?.id) {
-                    console.log(self.args)
-                    Qubatch.hud.wm.getWindow(self.args.id).show({tab: self.args.tab})
-                }
             } else {
                 vt.error("Error upload screenshot");
+            }
+            if (self.args?.id) {
+                Qubatch.hud.wm.getWindow(self.args.id).show(self.args)
             }
         });
     }

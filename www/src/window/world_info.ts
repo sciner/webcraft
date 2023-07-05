@@ -254,7 +254,6 @@ export class WorldInfoWindow extends BlankWindow {
         const world : World = this.player.world
         const info : TWorldInfo = world.info
         const time = world.getTime()
-        console.log(info)
 
         //
         const setWindowText = (id : string, value : string) => {

@@ -211,6 +211,7 @@ export class ServerAPI {
                         }
                         const world = Qubatch.worlds.get(world_id)
                         world.info.cover = filename
+                        world.sendUpdatedInfo()
                         return {'result':'ok'};
                     }
                 }
