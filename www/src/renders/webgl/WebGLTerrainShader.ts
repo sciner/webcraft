@@ -21,7 +21,7 @@ export const terrainStatic = new UniformGroup<typeof defaultTerrainStaticUniform
 export class WebGLTerrainShader extends BaseTerrainShader {
     [key: string]: any;
     terrainStatic = terrainStatic
-    posUniforms: { u_add_pos: Float32Array, u_gridChunkOffset: Float32Array}
+    posUniforms: { u_add_pos: Float32Array, u_grid_chunk_corner: Float32Array}
     modelUniforms: {
         u_modelMatrix: Float32Array, u_modelMatrixMode: float
     }
@@ -41,7 +41,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
 
         const posUniforms = {
             u_add_pos: new Float32Array(4),
-            u_gridChunkOffset: new Float32Array(3),
+            u_grid_chunk_corner: new Float32Array(3),
         };
         const modelUniforms = {
             u_modelMatrix: new Float32Array(16),
@@ -95,7 +95,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
 
     updatePosOnly(pos: Vector) {
         const {camPos, gridTexSize} = this.globalUniforms;
-        const { u_add_pos, u_gridChunkOffset } = this.posUniforms;
+        const { u_add_pos, u_grid_chunk_corner } = this.posUniforms;
 
         this.posUniformGroup.update();
         if (pos) {
@@ -106,13 +106,11 @@ export class WebGLTerrainShader extends BaseTerrainShader {
             u_add_pos[0] = - camPos.x;
             u_add_pos[1] = - camPos.z;
             u_add_pos[2] = - camPos.y;
-
             pos = camPos;
         }
-        u_gridChunkOffset[0] = - pos.x + (-1 + Math.round(pos.x / gridTexSize.x)) * gridTexSize.x;
-        u_gridChunkOffset[1] = - pos.z + (-1 + Math.round(pos.z / gridTexSize.z)) * gridTexSize.z;
-        u_gridChunkOffset[2] = - pos.y + (-1 + Math.round(pos.y / gridTexSize.y)) * gridTexSize.y;
-
+        u_grid_chunk_corner[0] = (Math.round(pos.x / gridTexSize.x) - 1) * gridTexSize.x - camPos.x;
+        u_grid_chunk_corner[1] = (Math.round(pos.z / gridTexSize.z) - 1) * gridTexSize.z - camPos.z;
+        u_grid_chunk_corner[2] = (Math.round(pos.y / gridTexSize.y) - 1) * gridTexSize.y - camPos.y;
     }
     updatePos(pos, modelMatrix) {
         this.updatePosOnly(pos);
