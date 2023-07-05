@@ -1405,9 +1405,13 @@ function calcBlockOrientation(mat_block : IBlockMaterial, rotate : IVector, n) :
     if(mat_block.tags.includes('rotate_by_pos_n_hor')) {
         resp = new Vector(0, 1, 0)
         if(n.y == 0) {
-            resp.x = n.x
+            for (let d in Vector.DIRECTIONS_BY_ROTATE) {
+                if (Vector.DIRECTIONS_BY_ROTATE[d].equal(n)) {
+                    resp.x = (+d + 2) % 4
+                }
+            }
         } else {
-            resp.x = BLOCK.getCardinalDirection(resp)
+            resp.x = BLOCK.getCardinalDirection(rotate)
         }
     } else if(mat_block.tags.includes('rotate_by_pos_n')) {
         resp = calcRotateByPosN(rotate, n)
