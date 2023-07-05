@@ -91,7 +91,6 @@
     //--
     uniform highp isampler3D u_gridChunkSampler;
     uniform vec3 u_gridChunkSize;
-    uniform vec3 u_gridChunkOffset;
 #endif
 
 #ifdef global_uniforms_vert
@@ -105,7 +104,7 @@
     uniform highp isampler2D u_chunkDataSampler;
     uniform highp isampler3D u_gridChunkSampler;
     uniform vec3 u_gridChunkSize;
-    uniform vec3 u_gridChunkOffset;
+    uniform vec3 u_grid_chunk_corner;
     //--
 #endif
 
@@ -442,8 +441,8 @@
         if (u_modelMatrixMode > 0) {
             localPos = (u_modelMatrix *  vec4(localPos.xzy, 1.0)).xzy;
         }
-        vec3 chunkCoord = floor((localPos - u_gridChunkOffset) / u_gridChunkSize);
-        chunk_corner = chunkCoord * u_gridChunkSize + u_gridChunkOffset;
+        vec3 chunkCoord = floor((localPos + add_pos - u_grid_chunk_corner) / u_gridChunkSize);
+        chunk_corner = chunkCoord * u_gridChunkSize + u_grid_chunk_corner;
         //TODO: use "-" here, 0 <= chunkCoord < 2 * gridTexSize
         ivec3 ts = textureSize(u_gridChunkSampler, 0);
         int chunkIntData = texelFetch(u_gridChunkSampler, ivec3(chunkCoord) % ts, 0).r;
@@ -461,6 +460,7 @@
         chunkData1 = texelFetch(u_chunkDataSampler, ivec2(dataX + 1, dataY), 0);
 
         add_pos = vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos;
+        chunk_corner = add_pos;
     }
     ivec3 lightRegionSize = chunkData1.xyz >> 16;
     ivec3 lightRegionOffset = chunkData1.xyz & 0xffff;

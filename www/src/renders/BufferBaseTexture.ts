@@ -4,7 +4,7 @@ import {
     TEXTURE_FORMATS,
     SCALE_MODES,
     Buffer3DResource, Texture3D,
-    BaseTexture
+    BaseTexture, WRAP_MODES
 } from 'vauxcel';
 import type {GPUScaleMode} from "./TerrainBaseTexture.js";
 
@@ -47,6 +47,7 @@ export interface IBuffer3DResourceOptionsWithData {
     minFilter?: GPUScaleMode;
     magFilter?: GPUScaleMode;
     useSubRegions?: boolean;
+    wrapMode?: WRAP_MODES;
 }
 export class BufferBaseTexture3D extends BaseTexture<Buffer3DResource>
 {
@@ -68,7 +69,7 @@ export class BufferBaseTexture3D extends BaseTexture<Buffer3DResource>
         let depth = options.depth / ps;
 
         super(new Buffer3DResource(options.data, {...options, width, height, depth,
-            useFixedSize: true}), { format });
+            useFixedSize: true}), { format, wrapMode: (options.wrapMode || WRAP_MODES.CLAMP) });
         (this as any).scaleMode = options.minFilter === 'linear' ? SCALE_MODES.LINEAR : SCALE_MODES.NEAREST;
         (this as any).mipmap = 0;
         (this as any).alphaMode = 0;
