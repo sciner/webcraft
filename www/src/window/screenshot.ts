@@ -6,6 +6,7 @@ import { Resources } from "../resources.js";
 
 export class ScreenshotWindow extends BlankWindow {
     [key: string]: any;
+    private args: any
 
     constructor(player) {
 
@@ -43,6 +44,7 @@ export class ScreenshotWindow extends BlankWindow {
 
     // Обработчик открытия формы
     onShow(args) {
+        this.args = args
         this.getRoot().center(this)
         Qubatch.releaseMousePointer()
         super.onShow(args)
@@ -50,11 +52,13 @@ export class ScreenshotWindow extends BlankWindow {
 
     // Обработчик закрытия формы
     onHide() {
-
+        if (this.args?.id) {
+            Qubatch.hud.wm.getWindow(this.args.id).show({tab: this.args.tab})
+        }
     }
 
     // Make screenshot
-    make() {
+    make(args?) {
 
         const ql = this.getWindow('vLayout');
         const lblPreview = ql.getWindow('lblPreview');
@@ -71,7 +75,7 @@ export class ScreenshotWindow extends BlankWindow {
         // Make screenshot
         Qubatch.render.screenshot((blob) => {
 
-            this.show()
+            this.show(args)
 
             const fileFromBlob = new File([blob], 'image.webp', {type: 'image/webp'});
             this.screenshot_blob = blob
@@ -113,9 +117,14 @@ export class ScreenshotWindow extends BlankWindow {
         form.append('file_preview', this.screenshot_file_preview);
         form.append('world_id', Qubatch.world.info.guid);
         form.append('as_cover', as_cover);
+        const self = this
         Qubatch.App.Screenshot(form, function(result) {
             if (result.result == "ok") {
                 vt.success("Screenshot uploaded to server");
+                if (self.args?.id) {
+                    console.log(self.args)
+                    Qubatch.hud.wm.getWindow(self.args.id).show({tab: self.args.tab})
+                }
             } else {
                 vt.error("Error upload screenshot");
             }
