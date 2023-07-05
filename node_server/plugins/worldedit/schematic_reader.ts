@@ -348,38 +348,46 @@ export class SchematicReader {
             schemChunkAABB_inWorld.setIntersect(requestedAABB_inWorld)
         }
 
+        const rotateBlocks = (blocks: IDBItemBlock[], rotation) => {
+            // преобразовать блоки, записать результат на в исходное место
+            const rotatedArrays: IDBItemBlock[][] = [[], [], [], []]
+            BuildingTemplate.rotateBlocksProperty(blocks, rotatedArrays, this.block_manager, [rotation])
+            let i = 0
+            const rotatedBlocks = rotatedArrays[rotation]
+            for(const block of blocks) {
+                Object.assign(block, rotatedBlocks[i++])
+            }
+        }
+
         const {states, schematic, grid} = this
         const {math} = grid
         const {blockEntities} = this
         const pos0 = this.info.pos
         const {read_air, rotate} = this.info
+        const rotatingBlocks: IDBItemBlock[] = []
 
         // повернуть все блоки паитры, если нужно
         if (rotate !== this.current_rotation) {
             const deltaRotation = (rotate - this.current_rotation + 4) % 4
             this.current_rotation = rotate
             // собрать все блоки, включая emitted, в массив
-            const srcBlocks: IDBItemBlock[] = []
             for(const state of this.states) {
                 if (state) {
+                    // (возможно, это не нужно) чтобы гарантировать что каждый блок повернулся ровно 1 раз, если есть ссылки на общие данные
+                    state.new_block = ObjectHelpers.deepClone(state.new_block)
+
                     const {new_block} = state
-                    srcBlocks.push(new_block)
+                    rotatingBlocks.push(new_block)
                     if (new_block.emit_blocks) {
                         for(const emitted of new_block.emit_blocks) {
-                            srcBlocks.push(emitted)
+                            rotatingBlocks.push(emitted)
                             emitted.move = new Vector(emitted.move).rotateByCardinalDirectionSelf(deltaRotation)
                         }
                     }
                 }
             }
-            // преобразовать блоки, записать результат на в исходное место
-            const rotatedArrays: IDBItemBlock[][] = [[], [], [], []]
-            BuildingTemplate.rotateBlocksProperty(srcBlocks, rotatedArrays, this.block_manager, [deltaRotation])
-            let i = 0
-            const rotatedBlocks = rotatedArrays[deltaRotation]
-            for(const block of srcBlocks) {
-                Object.assign(block, rotatedBlocks[i++])
-            }
+            rotateBlocks(rotatingBlocks, deltaRotation)
+            rotatingBlocks.length = 0
             // повернуть schematic.offset
             Object.assign(schematic.offset, new Vector(schematic.offset).rotateByCardinalDirectionSelf(deltaRotation))
         }
@@ -428,6 +436,9 @@ export class SchematicReader {
 
             if (st.read_entity_props) {
                 new_block = this.createBlockFromSchematic(st.schematicBlock, st.b, schematic, blockEntities, pos_inSchem, st.read_entity_props)
+                if (this.current_rotation) {
+                    rotatingBlocks.push(new_block)
+                }
             }
             // добавить сам блок и жидкости только если он входит в запрашиваемый AABB
             if (inRequestedAABB) {
@@ -451,6 +462,11 @@ export class SchematicReader {
                     map.set(posi, {posi, item})
                 }
             }
+        }
+
+        // повернуть точлько что созданные блоки (не взятые напрямую из палитры), если нужно
+        if (this.current_rotation) {
+            rotateBlocks(rotatingBlocks, this.current_rotation)
         }
 
         // Преобразовать реузльтат в массив

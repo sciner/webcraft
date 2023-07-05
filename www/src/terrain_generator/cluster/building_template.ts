@@ -807,9 +807,7 @@ export class BuildingTemplate {
 
         const rotx16 = rotx8
 
-        const rot_sign = (block) => {
-            rotx16(block)
-        }
+        const rot_sign = rot4
 
         const rot_rails = (block) => {
             const rot_sides = [
