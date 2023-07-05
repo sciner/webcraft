@@ -219,7 +219,7 @@ export class WorldInfoWindow extends BlankWindow {
 
         const test_1 = new Button(2 * this.line_height, 33 * this.line_height, 20 * this.zoom, 20 * this.zoom, 'gyt')
         test_1.onMouseDown = () => {
-            ClipboardHelper.copy(this.getWindow('lbl_seed').text)
+            //ClipboardHelper//.copy(this.getWindow('lbl_seed')?.text)
             vt.success(Lang.copied);
         }
         this.add(test_1)
