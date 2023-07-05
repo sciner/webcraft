@@ -807,7 +807,18 @@ export class BuildingTemplate {
 
         const rotx16 = rotx8
 
-        const rot_sign = rot4
+        const rot_sign = (block) => {
+            for(let i = 0; i < directions.length; i++) {
+                const direction = directions[i]
+                const rb = ObjectHelpers.deepCloneObject(block)
+                if(rb.rotate.y === -2) { // на стенке сбоку
+                    rb.rotate.x = (rb.rotate.x + direction + 4) % 4
+                } else {    // 1 - на полу, 2 - на потолке
+                    rb.rotate.x = (rb.rotate.x - direction + 4) % 4
+                }
+                rot[direction].push(rb)
+            }
+        }
 
         const rot_rails = (block) => {
             const rot_sides = [
