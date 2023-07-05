@@ -2205,9 +2205,9 @@ async function openPortal(e, world, pos, player, world_block, world_material : I
         };
         //
         if(dir == DIRECTION.NORTH) {
-            portal.player_pos.addScalarSelf(frame.width / 2, 1, .5);
-        } else {
             portal.player_pos.addScalarSelf(.5, 1, frame.width / 2);
+        } else {
+            portal.player_pos.addScalarSelf(frame.width / 2, 1, .5);
         }
         // check restricts
         let restricted = false;
