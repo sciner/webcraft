@@ -49,7 +49,9 @@ export class ScreenshotWindow extends BlankWindow {
     }
 
     // Обработчик закрытия формы
-    onHide() {}
+    onHide() {
+
+    }
 
     // Make screenshot
     make() {
