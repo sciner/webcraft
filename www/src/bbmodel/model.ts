@@ -158,7 +158,7 @@ export class BBModel_Model {
 
     drawBuffered(meshBatcher : MeshBatcher, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, matrix : float[], emmit_particles_func? : Function) {
         const vertices = []
-        this.root.drawBuffered(meshBatcher, mesh, pos, lm, matrix, undefined, vertices, emmit_particles_func)
+        this.root.drawBuffered(meshBatcher, mesh, pos, lm, matrix, undefined, undefined, emmit_particles_func)
     }
 
     static parseAnimationName(animation : string | TParsedAnimation) : TParsedAnimation {

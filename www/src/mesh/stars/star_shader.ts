@@ -76,6 +76,7 @@ export class StarGeometry extends Geometry {
     stride = this.strideFloats * 4;
     buffer = new Buffer(new Float32Array(), true, false);
     instanceCount = 0;
+    parts_counter = 0;
 
     constructor() {
         super();
@@ -110,4 +111,8 @@ export class StarGeometry extends Geometry {
         1, 1,
         -1, 1]
     ), true);
+
+    destroy() {
+        super.destroy();
+    }
 }

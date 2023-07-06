@@ -1,15 +1,15 @@
 import { BBModel_Child } from './child.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import { IndexedColor, Vector } from '../helpers.js';
-import { TerrainGeometry15 } from '../geom/terrain_geometry_15.js';
 import { BBModel_Cube } from './cube.js';
 import type { Renderer } from '../render.js';
 import type { BBModel_Model } from './model.js';
 import { MeshObjectCustomReplace, Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 import { Mesh_Object_Base } from '../mesh/object/base.js';
 import Mesh_Object_Block_Drop from '../mesh/object/block_drop.js';
-import type { TerrainMaterial } from '../renders/terrain_material.js';
 import type {MeshBatcher} from "../mesh/mesh_batcher.js";
+import type {TerrainGeometry15} from "../geom/terrain_geometry_15.js";
+import {MeshPart} from "../mesh/mesh_builder.js";
 
 const {mat4, vec3} = glMatrix;
 
@@ -17,7 +17,6 @@ const accessory_matrix = mat4.create()
 const tempVec3 = vec3.create();
 //
 export class BBModel_Group extends BBModel_Child {
-    vertices_pushed:    boolean = false
     _mx:                imat4 = mat4.create()
     update:             boolean = true
     children:           any[] = []
@@ -61,7 +60,7 @@ export class BBModel_Group extends BBModel_Child {
         return this.model.bone_groups.has(this.name)
     }
 
-    drawBuffered(meshBatcher: MeshBatcher, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : imat4, bone_matrix: float[] = null, vertices : float[], emmit_particles_func? : Function, replace : boolean = false) {
+    drawBuffered(meshBatcher: MeshBatcher, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : imat4, bone_matrix: float[] = null, mesh_part: MeshPart = null, emmit_particles_func? : Function, replace : boolean = false) {
 
         // Hide some groups
         if(mesh.hide_groups.includes(this.name)) {
@@ -97,9 +96,13 @@ export class BBModel_Group extends BBModel_Child {
                 bone_matrix = mat4.multiply(mat4.create(), bone_matrix, this.matrix)
             }
         }
-        if(im_bone && !mesh.geometries.has(this.name)) {
-            vertices = []
-            bone_matrix = mat4.create();
+        if(im_bone) {
+            if (!mesh.geometries.has(this.name)) {
+                mesh_part = new MeshPart();
+                bone_matrix = mat4.create();
+            } else {
+                mesh_part = null;
+            }
         }
 
         // Replace group
@@ -111,7 +114,8 @@ export class BBModel_Group extends BBModel_Child {
                     replace_modifier.mesh.model.selectTextureFromPalette(this.name, replace_modifier.texture_name)
                 }
                 // draw another mesh
-                replace_modifier.replacement_group.drawBuffered(meshBatcher, replace_modifier.mesh, pos, lm, mx, bone_matrix, [], undefined, true)
+                replace_modifier.replacement_group.drawBuffered(meshBatcher, replace_modifier.mesh, pos, lm, mx, bone_matrix,
+                    null, undefined, true);
                 // restore specific texture
                 if(replace_modifier.texture_name) {
                     replace_modifier.mesh.model.selectTextureFromPalette(this.name, null)
@@ -133,34 +137,28 @@ export class BBModel_Group extends BBModel_Child {
             return
         }
 
-        const vertices_pushed = mesh.vertices_pushed.has(this.path)
-
         for(let part of this.children) {
             if(!part.visibility) {
                 continue
             }
             if(part instanceof BBModel_Group) {
-                part.drawBuffered(meshBatcher, mesh, pos, lm, mx, bone_matrix, vertices, emmit_particles_func)
-            } else if(!vertices_pushed && part instanceof BBModel_Cube) {
+                part.drawBuffered(meshBatcher, mesh, pos, lm, mx, bone_matrix, mesh_part, emmit_particles_func)
+            } else if(mesh_part && part instanceof BBModel_Cube) {
                 if(part.json.madcraft?.material) {
                     // console.log(part.json.madcraft.material)
                 }
-                part.pushVertices(vertices, Vector.ZERO, lm, bone_matrix, emmit_particles_func)
+                part.pushVertices(mesh_part.vertices, Vector.ZERO, lm, bone_matrix, emmit_particles_func)
             }
-        }
-
-        if(!vertices_pushed) {
-            mesh.vertices_pushed.set(this.path, true)
         }
 
         if(im_bone) {
-            let geom = mesh.geometries.get(this.name)
-            if(!geom) {
+            let existing_part = mesh.geometries.get(this.name)
+            if(!existing_part) {
                 // TODO: кешировать геомы с учетом использованных текстур (в т.ч. у вложенных групп) в bbmodel, а не в mesh_object
-                geom = new TerrainGeometry15(vertices)
-                mesh.geometries.set(this.name, geom)
+                existing_part = mesh_part;
+                mesh.geometries.set(this.name, mesh_part)
             }
-            meshBatcher.drawMesh(geom, mesh.gl_material, pos, mx)
+            meshBatcher.drawPart(existing_part, mesh.gl_material, pos, mx)
         }
 
         // Draw appended groups
