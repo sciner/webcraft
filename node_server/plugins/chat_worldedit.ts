@@ -145,7 +145,8 @@ export default class WorldEdit {
                     if (args.msg) {
                         this.chat.sendSystemChatMessageToSelectedPlayers(args.msg, [user_id])
                     }
-                    if (args.info.resume) {
+                    // до прихода сообщения могли сделать /clearclipboard - нужно проверить что world.state.schematic_job еще есть
+                    if (args.info.resume && this.world.state.schematic_job) {
                         // если авто-возобновляем, то всегда медленно и безопасно
                         this.schematic_job = new SchematicJob(this, SCHEMATIC_JOB_OPTIONS['safe'])
                         this.schematic_job.initResume()
@@ -528,6 +529,15 @@ export default class WorldEdit {
         //
         const data = copy_data ?? player._world_edit_copy;
         const new_blocks = new VectorCollector();
+
+        // повернуть жидкости
+        const {fluids} = data
+        const tmpVector = new Vector()
+        for(let i = 0; i < fluids.length; i += 4) {
+            tmpVector.set(fluids[i], 0, fluids[i + 2]).rotateByCardinalDirectionSelf(dir)
+            fluids[i]       = tmpVector.x
+            fluids[i + 2]   = tmpVector.z
+        }
 
         for(let [bpos, item] of data.blocks.entries()) {
             const pos = new Vector(0, 0, 0).addByCardinalDirectionSelf(bpos, dir, false, false);
