@@ -130,6 +130,15 @@ function calcRotateByPosN(rot, pos_n) {
 
 }
 
+function fillPlateSides(pos_n : IVector, extra_data : any) {
+    if (pos_n.y == 1) extra_data.up = true
+    if (pos_n.y == -1) extra_data.down = true
+    if (pos_n.x == -1) extra_data.west = true
+    if (pos_n.x == 1) extra_data.east = true
+    if (pos_n.z == -1) extra_data.south = true
+    if (pos_n.z == 1) extra_data.north = true
+}
+
 class IPaintingSize {
     name : string
     move: {x?: int, y?: int, z?: int}
@@ -2399,51 +2408,20 @@ function putPlate(e, world, pos, player, world_block, world_material, mat_block,
         if (pos.n.y != 0) {
             block.extra_data.rotate = (orientation.x == DIRECTION.WEST || orientation.x == DIRECTION.EAST) ? true : false;
         }
-        if (pos.n.y == 1) {
-            block.extra_data.up = true;
-        }
-        if (pos.n.y == -1) {
-            block.extra_data.down = true;
-        }
-        if (pos.n.x == -1) {
-            block.extra_data.west = true;
-        }
-        if (pos.n.x == 1) {
-            block.extra_data.east = true;
-        }
-        if (pos.n.z == -1) {
-            block.extra_data.south = true;
-        }
-        if (pos.n.z == 1) {
-            block.extra_data.north = true;
-        }
+        fillPlateSides(pos.n, block.extra_data)
         actions.decrement = true;
         actions.addBlocks([{pos: block.posworld, item: {id: block.id, extra_data: block.extra_data}, action_id: BLOCK_ACTION.MODIFY}]);
-    } else if (world_block.id != mat_block.id){
-        const data : any = {};
-        if (pos.n.y == 1) {
-            data.up = true;
+    } else if(world_block.id != mat_block.id) {
+        const replaceBlock = BLOCK.canReplace(block.id, block.extra_data, current_inventory_item.id)
+        if(replaceBlock) {
+            extra_data = {}
+            fillPlateSides(pos.n, extra_data)
+            extra_data.rotate = (orientation.x == DIRECTION.WEST || orientation.x == DIRECTION.EAST) ? true : false
+            actions.decrement = true
+            actions.addBlocks([{pos: position, item: {id: mat_block.id, extra_data: extra_data}, action_id: BLOCK_ACTION.CREATE}])
         }
-        if (pos.n.y == -1) {
-            data.down = true;
-        }
-        if (pos.n.x == -1) {
-            data.west = true;
-        }
-        if (pos.n.x == 1) {
-            data.east = true;
-        }
-        if (pos.n.z == -1) {
-            data.south = true;
-        }
-        if (pos.n.z == 1) {
-            data.north = true;
-        }
-        data.rotate = (orientation.x == DIRECTION.WEST || orientation.x == DIRECTION.EAST) ? true : false;
-        actions.decrement = true;
-        actions.addBlocks([{pos: position, item: {id: mat_block.id, extra_data: data}, action_id: BLOCK_ACTION.MODIFY}]);
     }
-    return true;
+    return true
 }
 
 // Open fence gate

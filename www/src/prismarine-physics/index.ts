@@ -37,6 +37,7 @@ export class Physics {
     private readonly honeyblockId       : int // 1.15+
     private readonly cobwebLikePassable : (float | undefined)[] = [] // for cobweb-like it's passable value
     private readonly ladderIds          : int[]
+    private readonly ladderLikeIds      : int[]
     private readonly bubbleColumnId     : int
     private readonly iceIds             : int[]
     private tinaLikePassable            : float
@@ -75,8 +76,9 @@ export class Physics {
     private readonly negligeableVelocity = 0.003 // actually 0.005 for 1.8, but seems fine
     private readonly soulsandSpeed      = 0.4
     private readonly honeyblockSpeed    = 0.4
-    private readonly honeyblockJumpSpeed = 0.4
+    private readonly honeyblockJumpSpeed= 0.4
     private readonly ladderMaxSpeed     = 0.15
+    private readonly ladderLikeSpeedMul = 0.65
     private readonly ladderClimbSpeed   = 0.2 * this.scale
     /**
      * What fraction of the speed remains in the next tick.
@@ -180,7 +182,8 @@ export class Physics {
         for (const block of [bm.COBWEB, bm.SWEET_BERRY_BUSH]) {
             this.cobwebLikePassable[block.id] = block.passable
         }
-        this.ladderIds      = [bm.LADDER, bm.VINE].map(mat => mat.id)
+        this.ladderIds      = [bm.LADDER].map(mat => mat.id)
+        this.ladderLikeIds  = [bm.VINE].map(mat => mat.id)
         this.bubbleColumnId = bm.BUBBLE_COLUMN?.id ?? BLOCK_NOT_EXISTS // 1.13+
         this.iceIds         = [bm.ICE, ...bm.bySuffix['_ICE']].map(mat => mat.id)
 
@@ -497,25 +500,31 @@ export class Physics {
         vel.z += forward * cos + strafe * sin
     }
 
-    private isOnLadder(pos: Vector): boolean {
+    private isOnLadder(pos: Vector): float {
         const acc = this.blockAccessor
         const offset_value_y = .07
         const block = acc.setOffsetFloor(pos, 0, offset_value_y, 0).block
         const id = block.id
         if (id > 0) {
-            if (this.ladderIds.includes(id)) {
-                return true
+            const l1 = this.ladderIds
+            const l2 = this.ladderLikeIds
+                if (l1.includes(id)) {
+                return 1
+            } else if (l2.includes(id)) {
+                return this.ladderLikeSpeedMul
             }
             // if block is opened trapdoor
             if(block.material.tags.includes('trapdoor') && block.extra_data?.opened) {
                 // check under block
                 acc.y--
-                if (this.ladderIds.includes(acc.block.id)) {
-                    return true
+                if (l1.includes(acc.block.id)) {
+                    return 1
+                } else if (l2.includes(acc.block.id)) {
+                    return this.ladderLikeSpeedMul
                 }
             }
         }
-        return false
+        return 0
     }
 
     private moveEntityWithHeading(entity: PrismarinePlayerState, strafe: number, forward: number): void {
@@ -568,17 +577,18 @@ export class Physics {
 
             this.applyHeading(entity.vel, entity.yaw, strafe, forward, acceleration)
 
-            if (entity.isOnLadder) {
-                vel.x = Mth.clampModule(vel.x, this.ladderMaxSpeed)
-                vel.z = Mth.clampModule(vel.z, this.ladderMaxSpeed)
-                vel.y = Math.max(vel.y, entity.control.sneak ? 0 : -this.ladderMaxSpeed)
+            if (entity.isOnLadder != 0) {
+                const ladder_speed = this.ladderMaxSpeed * entity.isOnLadder
+                vel.x = Mth.clampModule(vel.x, ladder_speed)
+                vel.z = Mth.clampModule(vel.z, ladder_speed)
+                vel.y = Math.max(vel.y, entity.control.sneak ? 0 : -ladder_speed)
             }
 
             this.moveEntity(entity, vel.x, vel.y, vel.z)
 
             // считаем включенным supportFeature('climbUsingJump') - учитываем entity.control.jump
-            if (entity.isOnLadder && (entity.isCollidedHorizontally || entity.control.jump)) {
-                vel.y = this.ladderClimbSpeed // climb ladder
+            if ((entity.isOnLadder != 0) && (entity.isCollidedHorizontally || entity.control.jump)) {
+                vel.y = this.ladderClimbSpeed * entity.isOnLadder // climb ladder
             }
 
             // Apply friction and gravity
@@ -1021,7 +1031,7 @@ export class PrismarinePlayerState implements IPlayerControlState {
     _submergedPercent?: float
     isInWeb     = false
     isInTina    = false
-    isOnLadder  = false
+    isOnLadder  = 0
     isCollidedHorizontally  = false
     isCollidedVertically    = false
     jumpTicks   = 0
