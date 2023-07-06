@@ -930,6 +930,9 @@ export class SchematicReader {
                 setExtraData('ripe', !!props.berries)
             } else if(b.name == 'LIGHT') {
                 setExtraData('level', props.level | 0)
+            } else if(('layers' in props) && b.layering) {
+                const h = b.layering.height
+                setExtraData('height', h * props.layers)
             }
             if('waterlogged' in props && props.waterlogged) {
                 new_block.waterlogged = props.waterlogged;

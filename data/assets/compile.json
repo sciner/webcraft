@@ -13572,6 +13572,54 @@
             "texture": {
                 "side": "block/tinted_glass.png"
             }
+        },
+        {
+            "id": 947,
+            "name": "POLISHED_BLACKSTONE_WALL",
+            "sound": "madcraft:block.stone",
+            "style": "wall",
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/polished_blackstone.png",
+            "drop_item": [
+                {
+                    "name": "POLISHED_BLACKSTONE_WALL",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
+        },
+        {
+            "id": 948,
+            "name": "POLISHED_BLACKSTONE_BRICK_WALL",
+            "sound": "madcraft:block.stone",
+            "style": "wall",
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/polished_blackstone_bricks.png",
+            "drop_item": [
+                {
+                    "name": "POLISHED_BLACKSTONE_BRICK_WALL",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
         }
     ]
 }
