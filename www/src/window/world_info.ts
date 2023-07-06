@@ -226,7 +226,7 @@ export class WorldInfoWindow extends BlankWindow {
 
         const test_2 = new Button(5 * this.line_height, 33 * this.line_height, 20 * this.zoom, 20 * this.zoom, 'gyasdt')
         test_2.onMouseDown = () => {
-            //ClipboardHelper.copy(location.protocol + '//' + location.host + '/worlds/' + Qubatch.world.info.guid)
+            ClipboardHelper.copy(location.protocol + '//' + location.host + '/worlds/' + Qubatch.world.info.guid)
             vt.success(Lang.copied);
         }
         this.add(test_2)
