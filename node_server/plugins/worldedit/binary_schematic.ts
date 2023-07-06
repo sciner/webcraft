@@ -85,11 +85,14 @@ export class BinarySchematic {
      * Обрабатывает схематику вызовом Sponge или McEdit.
      * @param use_external_parser - если true, то используется внешний NBT парсер. Он медленнее и ограничен
      *   по объему файла. Только на случай если этот парсер не может прочесть
-     * @return схематикиа, обработанная Sponge или McEdit. Она содержит все кроме массива блоков.
+     * @return
+     *  - схематику, обработанную Sponge или McEdit. Она содержит все кроме массива блоков.
      *   Для чтения блоков нужно использовать {@link getBlocks}
+     *  - исходный NBT, не обработанный Sponge или McEdit
      */
-    async open(fileName: string, temporary_file_name: string, max_memory_file_size: int, cookie: TBinarySchematicCookie): Promise<Schematic> {
+    async open(fileName: string, temporary_file_name: string, max_memory_file_size: int, cookie: TBinarySchematicCookie): Promise<[Schematic, Dict]> {
         this.cookie = cookie
+        let nbt: Dict
 
         // пробуем прочесть новым парсером
         if (!cookie.use_external_parser) {
@@ -103,7 +106,7 @@ export class BinarySchematic {
                 }
 
                 // парсим nbt
-                const nbt = this.parseNBT()
+                nbt = this.parseNBT()
                 const volume = nbt.Width * nbt.Height * nbt.Length
 
                 if (nbt.BlockData) {    // формат с палитрой
@@ -154,8 +157,8 @@ export class BinarySchematic {
                     }
 
                     nbt.BlockData = [] // передать в sponge пустой массив, чтобы они не тратили время на него
-                    // постпроцессинг тэгов через sponge (или mcedit - но мы ожидаем что для такого формата сработает sponge)
-                    this.schematic = Schematic.parse(nbt)
+                    // постпроцессинг тэгов через sponge
+                    this.schematic = Schematic.parseSponge(nbt)
                 } else if (nbt.Blocks && nbt.Data) { // формат 1.13, без палитры.
 
                     // Прочесть все блоки и собрать уникальные комабинации (id, data) в массив фейк блоков, где каждый уникальный
@@ -228,7 +231,7 @@ export class BinarySchematic {
                     nbt.AddBlocks   = fake_add_blocks
 
                     // постпроцессинг тэгов через mcedit (sponge попробует запуститься первым, но будет исключение)
-                    this.schematic = Schematic.parse(nbt)
+                    this.schematic = Schematic.parseMcEdit(nbt)
 
                     // найти соответствие исходных блоков индексам палитре, посчитать число блоков каждого типа в палитре
                     const count_by_palette = this.count_by_palette = new Array(this.schematic.palette.length).fill(0)
@@ -259,7 +262,12 @@ export class BinarySchematic {
             if (this.closed) {
                 throw 'closed'
             }
-            this.schematic = await Schematic.read(buffer) // одновременно парсит NBT и постпроцессит тэги
+            nbt = await Schematic.readNBT(buffer)
+            try {
+                this.schematic = Schematic.parseSponge(nbt)
+            } catch (e) {
+                this.schematic = Schematic.parseMcEdit(nbt)
+            }
             if (this.closed) {
                 throw 'closed'
             }
@@ -274,7 +282,7 @@ export class BinarySchematic {
         this.aabb = new AABB().setCornerSize(Vector.ZERO, this.size)
         this.strideZ = this.size.x
         this.strideY = this.strideZ * this.size.z
-        return this.schematic
+        return [this.schematic, nbt]
     }
 
     async close() {

@@ -5,7 +5,7 @@ import {Vector, VectorCollector, ShiftedMatrix, VectorCollector2D, ArrayHelpers,
 import { BASEMNET_DEPTHS_BY_DISTANCE, BASEMENT_ADDITIONAL_WIDTH, BASEMENT_MAX_PAD,
     BASEMENT_BOTTOM_BULGE_BLOCKS, BASEMENT_BOTTOM_BULGE_PERCENT, BASEMENT_SIDE_BULGE } from "./building.js";
 import { calcMinFloorYbyXZ } from './building_helpers.js';
-import { TREASURE_SOURCE } from "../../constant.js";
+import {SIGN_POSITION, TREASURE_SOURCE} from "../../constant.js";
 
 const DELETE_BLOCK_ID = 199; // this block is automatically removed from the templates
 
@@ -811,9 +811,9 @@ export class BuildingTemplate {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i]
                 const rb = ObjectHelpers.deepCloneObject(block)
-                if(rb.rotate.y === -2) { // на стенке сбоку
+                if(rb.rotate.y === SIGN_POSITION.WALL || rb.rotate.y === SIGN_POSITION.WALL_ALT) {
                     rb.rotate.x = (rb.rotate.x + direction + 4) % 4
-                } else {    // 1 - на полу, 2 - на потолке
+                } else {
                     rb.rotate.x = (rb.rotate.x - direction + 4) % 4
                 }
                 rot[direction].push(rb)

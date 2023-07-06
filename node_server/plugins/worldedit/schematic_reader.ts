@@ -10,6 +10,8 @@ import type {TSchematicInfo} from "../chat_worldedit.js";
 import type {ChunkGrid} from "@client/core/ChunkGrid.js";
 import type {TActionBlock} from "@client/world_action.js";
 import {BuildingTemplate} from "@client/terrain_generator/cluster/building_template.js";
+import {parseBlockName} from "madcraft-schematic-reader";
+import {SIGN_POSITION} from "@client/constant.js";
 
 const facings4 = ['north', 'west', 'south', 'east'];
 const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
@@ -73,12 +75,16 @@ const REPLACE_NAMES = {
 }
 
 declare type IMCBlock = {
+    /* Было объявлено, но используется, и не поределено если блока нет в mcData
     type:              int
+    */
     name:              string
     _properties?:      any
-    entities?:         any
+    entities?:         Dict     // поля одной entity, если она есть
     signText?:         any
     on_wall?:          any
+    hanging?:          boolean
+    wall_hanging?:     boolean
 }
 
 declare type IParseBlockResult = {
@@ -174,7 +180,7 @@ export class SchematicReader {
         // read schematic
         this.binary_schematic = new BinarySchematic()
         const tmp_file_name = `${info.file_name}.${worldGUID}.tmp`
-        const schematic = await this.binary_schematic.open(info.file_name, tmp_file_name, max_memory_file_size, info.file_cookie)
+        const [schematic, nbt] = await this.binary_schematic.open(info.file_name, tmp_file_name, max_memory_file_size, info.file_cookie)
         let {palette, blockEntities} = schematic
         const sizeZ = schematic.size.z
 
@@ -208,7 +214,24 @@ export class SchematicReader {
         // обработать все блоки палитры 1 раз
         for(let palette_index = 0; palette_index < palette.length; palette_index++) {
             const state_id = palette[palette_index] // элемент palette у них называется state_id, см. Schematic.getBlockStateId
-            const block : IMCBlock = schematic.Block.fromStateId(state_id, 0)
+            let block: IMCBlock
+            if (state_id >= 0) {
+                block = schematic.Block.fromStateId(state_id, 0)
+            } else {    // этого блока не было даже в mcData, но он есть в палитре в текстовом виде
+                for(let key in nbt.Palette) {
+                    if (nbt.Palette[key] === -state_id) {
+                        const tmp = parseBlockName(key)
+                        block = {
+                            name: tmp.name,
+                            _properties: Object.fromEntries(tmp.properties)
+                        }
+                        break
+                    }
+                }
+                if (!block) {
+                    throw Error() // этого не должно быть, ведь он был в палитре
+                }
+            }
             let new_block: DBItemBlock = null
             let fluidValue = 0
             let read_entity_props = false
@@ -508,9 +531,10 @@ export class SchematicReader {
             block.name = 'redstone_torch';
         } else if(block.name.endsWith('_sign')) {
             block.on_wall = block.name.endsWith('_wall_sign');
-            if(block.on_wall) {
-                block.name = block.name.replace('_wall_', '_');
-            }
+            block.wall_hanging = block.name.endsWith('_wall_hanging_sign')
+            block.hanging = block.name.endsWith('_hanging_sign')
+            block.name = block.name.replace('_wall_', '_')
+                .replace('_hanging_', '_')
         } else if(block.name.endsWith('_banner')) {
             block.on_wall = block.name.endsWith('_wall_banner');
             if(block.on_wall) {
@@ -574,21 +598,34 @@ export class SchematicReader {
                     new_block.extra_data = chest_extra_data;
                 }
             } else if(b.is_sign) {
+
+                const parseSignTextField = (index: int, value: string) => {
+                    let temp: Dict
+                    try {
+                        temp = JSON.parse(value)
+                    } catch(e) {
+                        temp = { text: value }
+                    }
+                    texts[index] = temp?.text || '';
+                    formatted_text[index] = temp;
+                }
+
                 // text
                 let texts = Array(4);
                 let formatted_text = [];
-                let text_names = ['Text1', 'Text2', 'Text3', 'Text4'];
-                for(let i in text_names) {
-                    const t = text_names[i];
-                    if(t in block.entities) {
-                        var temp;
-                        try {
-                            temp = JSON.parse(block.entities[t]);
-                        } catch(e) {
-                            temp = { text: block.entities[t] };
+                const {front_text} = block.entities
+                if (front_text?.messages) {
+                    for(let i = 0; i < texts.length; i++) {
+                        parseSignTextField(i, front_text.messages[i])
+                    }
+                    // еще в этом формате может быть block.entities.back_text
+                } else {
+                    let text_names = ['Text1', 'Text2', 'Text3', 'Text4'];
+                    for(let i = 0; i < text_names.length; i++) {
+                        const t = text_names[i];
+                        if(t in block.entities) {
+                            parseSignTextField(i, block.entities[t])
                         }
-                        texts[i] = temp?.text || '';
-                        formatted_text[i] = temp;
                     }
                 }
                 setExtraData('text', texts.join('\r'));
@@ -807,7 +844,11 @@ export class SchematicReader {
                     setExtraData('text', block.signText);
                 }
                 if(block.on_wall) {
-                    new_block.rotate.y = 0;
+                    new_block.rotate.y = SIGN_POSITION.WALL;
+                } else if (block.wall_hanging) {
+                    new_block.rotate.y = SIGN_POSITION.WALL_ALT;
+                } else if (block.hanging) {
+                    new_block.rotate.y = SIGN_POSITION.CEIL;
                 }
             }
             // torch
