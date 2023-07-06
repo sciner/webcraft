@@ -675,7 +675,7 @@ export class CompileData {
                 "tags": [
                     "banner",
                     "no_drop_ao",
-                    "rotate_x16",
+                    "rotate_x16_and_wall",
                     "mask_color"
                 ]
             };

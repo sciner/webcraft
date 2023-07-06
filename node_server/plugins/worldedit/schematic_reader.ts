@@ -793,11 +793,11 @@ export class SchematicReader {
                     }
                 }
                 //
-                if(props.rotation) {
+                if(props && ('rotation' in props)) {
                     if(b.tags.includes('rotate_x8')) {
                         new_block.rotate.x = Math.round(props.rotation / 8 * 360) % 360
                     } else if(b.tags.includes('rotate_x16')) {
-                        new_block.rotate.x = Math.round(props.rotation / 16 * 360) % 360
+                        new_block.rotate.x = (Math.round(props.rotation / 16 * 360 + 180) % 360)
                     } else if(b.tags.includes('rotate_sign')) {
                         new_block.rotate.x = (props.rotation / 16 * 4 + 2) % 4
                     }

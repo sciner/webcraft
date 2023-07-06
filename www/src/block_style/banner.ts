@@ -94,7 +94,7 @@ export default class style {
                 z + .5 + CLOTH_Z*mul/2,
             );
             const dist = -(.5 - aabb.depth / 2);
-            const dir = CubeSym.dirAdd(rotate.x, CubeSym.ROT_Y2);
+            const dir = (rotate.x + 2) % 4 // CubeSym.dirAdd(rotate.x, CubeSym.ROT_Y2);
             aabb.rotate(dir, aabb.center);
             aabb.translate(cubeSymAxis[dir][0] * dist, -(.2 + aabb.height) / 2, cubeSymAxis[dir][1] * dist);
         } else {
@@ -192,7 +192,7 @@ export default class style {
                 rot.y = ((block.rotate.x - 2) / 4) * -(Math.PI * 2);
                 trans.set(0, 0, 14.5)
             } else {
-                rot.y = ((block.rotate.x - 2) / 4) * (Math.PI * 2);
+                rot.y = (block.rotate.x / 360) * (Math.PI * 2) + Math.PI
             }
         }
 

@@ -1340,8 +1340,14 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
             }
             // Rotate block one of 16 poses
             if(mat_block.tags.includes('rotate_x16')) {
-                if(new_item.rotate.y != 0) {
-                    new_item.rotate.x = action_player_info.rotate.z / 90;
+                if(new_item.rotate.y == 0 && mat_block.tags.includes('rotate_x16_and_wall')) {
+                    for (let d in Vector.DIRECTIONS_BY_ROTATE) {
+                        if (Vector.DIRECTIONS_BY_ROTATE[d].equal(pos.n)) {
+                            new_item.rotate.x = +d
+                        }
+                    }
+                } else {
+                    new_item.rotate.x = (action_player_info.rotate.z) % 360
                 }
             }
             // Rotate block as sign

@@ -923,6 +923,10 @@ export class BLOCK {
         if(block.tags.includes('rotate_by_pos_n_xyz') || block.tags.includes('rotate_by_pos_n_6') || block.tags.includes('rotate_by_pos_n_12') || block.tags.includes('rotate_by_pos_n_hor')) {
             block.tags.push('rotate_by_pos_n');
         }
+        // rotate_x16
+        if(block.tags.includes('rotate_x16_and_wall')) {
+            block.tags.push('rotate_x16');
+        }
         //
         block.has_window        = !!block.window;
         block.power             = block.power ?? POWER_NO;
