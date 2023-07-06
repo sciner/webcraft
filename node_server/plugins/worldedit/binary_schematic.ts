@@ -230,7 +230,7 @@ export class BinarySchematic {
                     nbt.Data        = fake_data
                     nbt.AddBlocks   = fake_add_blocks
 
-                    // постпроцессинг тэгов через mcedit (sponge попробует запуститься первым, но будет исключение)
+                    // постпроцессинг тэгов через mcedit
                     this.schematic = Schematic.parseMcEdit(nbt)
 
                     // найти соответствие исходных блоков индексам палитре, посчитать число блоков каждого типа в палитре
