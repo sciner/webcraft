@@ -219,7 +219,7 @@ export class WorldInfoWindow extends BlankWindow {
 
         const test_1 = new Button(2 * this.line_height, 33 * this.line_height, 20 * this.zoom, 20 * this.zoom, 'gyt')
         test_1.onMouseDown = () => {
-            //ClipboardHelper//.copy(this.getWindow('lbl_seed')?.text)
+            ClipboardHelper.copy(this.getWindow('lbl_seed').text)
             vt.success(Lang.copied);
         }
         this.add(test_1)
@@ -271,7 +271,7 @@ export class WorldInfoWindow extends BlankWindow {
             title:       (info.title.length > 17) ? info.title.substring(0, 17) + '...' : info.title,
             gamemode:    Lang[`gamemode_${info.game_mode}`],
             generator:   info.generator,
-            cover:       `/worldcover/${info.guid}/screenshot/preview_${info.cover}`,
+            cover:       info.cover ? `/worldcover/${info.guid}/screenshot/preview_${info.cover}` : null,
             username:    info.username,
             is_admin:    info.user_id == player.session.user_id,
             time:        info.dt,
@@ -314,7 +314,6 @@ export class WorldInfoWindow extends BlankWindow {
 
         // cover
         if (data?.cover) {
-            lbl_preview.style.border.hidden = true
             lbl_preview.setText('')
             lbl_preview.setIcon(data.cover, 'centerstretch', 1.0)
         }
