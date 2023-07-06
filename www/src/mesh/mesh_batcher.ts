@@ -3,7 +3,7 @@ import type {TerrainMaterial} from "../renders/terrain_material.js";
 
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import {IvanArray, Vector} from "../helpers.js";
-import {TerrainGeometry15} from "../geom/terrain_geometry_15.js";
+import type {TerrainGeometry15} from "../geom/terrain_geometry_15.js";
 import type {Renderer} from "../render.js";
 import type {MeshDrawer} from "./mesh_drawer.js";
 import {MeshBuilder, MeshPart, TrivialMeshBuilder} from "./mesh_builder.js";
@@ -37,8 +37,8 @@ function meshSorter(mesh1: MeshBatcherEntry, mesh2: MeshBatcherEntry) {
 
 export class MeshBatcher implements IMeshDrawer {
     elements: IvanArray<MeshBatcherEntry>[] = [];
-    // frame_mesh_builder = new MeshBuilder();
-    frame_mesh_builder = new TrivialMeshBuilder<TerrainGeometry15>(TerrainGeometry15);
+    frame_mesh_builder = new MeshBuilder();
+    // frame_mesh_builder = new TrivialMeshBuilder<TerrainGeometry15>(TerrainGeometry15);
     constructor() {
         this.elements.push(null);
         for (let i = 1; i < RENDER_LIST_NEXT; i++) {
