@@ -4,7 +4,7 @@ import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH,  UI_THEME } from "../constant.js
 import { BlankWindow } from "./blank.js";
 import { Resources } from "../resources.js";
 import type { World } from "../world.js";
-import type { Player } from "player.js";
+import type { Player } from "../player.js";
 
 class PlayerItem extends Window {
     #data: any
