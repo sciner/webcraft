@@ -9,7 +9,7 @@ import { Mesh_Object_Base } from '../mesh/object/base.js';
 import Mesh_Object_Block_Drop from '../mesh/object/block_drop.js';
 import type {MeshBatcher} from "../mesh/mesh_batcher.js";
 import type {TerrainGeometry15} from "../geom/terrain_geometry_15.js";
-import {MeshPart} from "../mesh/mesh_builder.js";
+import {MeshPart, MeshPartCollection} from "../mesh/mesh_builder.js";
 
 const {mat4, vec3} = glMatrix;
 
@@ -60,7 +60,7 @@ export class BBModel_Group extends BBModel_Child {
         return this.model.bone_groups.has(this.name)
     }
 
-    drawBuffered(meshBatcher: MeshBatcher, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : imat4, bone_matrix: float[] = null, mesh_part: MeshPart = null, emmit_particles_func? : Function, replace : boolean = false) {
+    drawBuffered(meshBatcher: MeshBatcher, mesh: Mesh_Object_BBModel, pos : Vector, lm : IndexedColor, parent_matrix : imat4, bone_matrix: float[] = null, mesh_parts: MeshPartCollection = null, emmit_particles_func? : Function, replace : boolean = false) {
 
         // Hide some groups
         if(mesh.hide_groups.includes(this.name)) {
@@ -98,10 +98,10 @@ export class BBModel_Group extends BBModel_Child {
         }
         if(im_bone) {
             if (!mesh.geometries.has(this.name)) {
-                mesh_part = new MeshPart();
+                mesh_parts = new MeshPartCollection();
                 bone_matrix = mat4.create();
             } else {
-                mesh_part = null;
+                mesh_parts = null;
             }
         }
 
@@ -142,23 +142,25 @@ export class BBModel_Group extends BBModel_Child {
                 continue
             }
             if(part instanceof BBModel_Group) {
-                part.drawBuffered(meshBatcher, mesh, pos, lm, mx, bone_matrix, mesh_part, emmit_particles_func)
-            } else if(mesh_part && part instanceof BBModel_Cube) {
-                if(part.json.madcraft?.material) {
-                    // console.log(part.json.madcraft.material)
+                part.drawBuffered(meshBatcher, mesh, pos, lm, mx, bone_matrix, mesh_parts, emmit_particles_func)
+            } else if(mesh_parts && part instanceof BBModel_Cube) {
+                let mat = mesh.gl_material;
+                const mat_group = part.json.madcraft?.material;
+                if(mat_group) {
+                    mat = mesh.getPartMaterial(mat_group);
                 }
-                part.pushVertices(mesh_part.vertices, Vector.ZERO, lm, bone_matrix, emmit_particles_func)
+                part.pushVertices(mesh_parts.getOrCreate(mat).vertices, Vector.ZERO, lm, bone_matrix, emmit_particles_func)
             }
         }
 
         if(im_bone) {
-            let existing_part = mesh.geometries.get(this.name)
-            if(!existing_part) {
+            let existing_parts = mesh.geometries.get(this.name)
+            if(!existing_parts) {
                 // TODO: кешировать геомы с учетом использованных текстур (в т.ч. у вложенных групп) в bbmodel, а не в mesh_object
-                existing_part = mesh_part;
-                mesh.geometries.set(this.name, mesh_part)
+                existing_parts = mesh_parts;
+                mesh.geometries.set(this.name, mesh_parts)
             }
-            meshBatcher.drawPart(existing_part, mesh.gl_material, pos, mx)
+            meshBatcher.drawParts(existing_parts, mesh.gl_material, pos, mx)
         }
 
         // Draw appended groups

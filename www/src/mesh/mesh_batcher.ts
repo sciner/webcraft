@@ -6,7 +6,7 @@ import {IvanArray, Vector} from "../helpers.js";
 import type {TerrainGeometry15} from "../geom/terrain_geometry_15.js";
 import type {Renderer} from "../render.js";
 import type {MeshDrawer} from "./mesh_drawer.js";
-import {MeshBuilder, MeshPart, TrivialMeshBuilder} from "./mesh_builder.js";
+import {MeshBuilder, MeshPart, MeshPartCollection, TrivialMeshBuilder} from "./mesh_builder.js";
 const {mat4} = glMatrix;
 
 export enum MESH_RENDER_LIST {
@@ -113,6 +113,13 @@ export class MeshBatcher implements IMeshDrawer {
             this._renderListMode : this.getMaterialNumber(material);
 
         this.elements[renderListNum].push(entry);
+    }
+
+    drawParts(parts: MeshPartCollection, def_material: TerrainMaterial, pos: Vector, modelMatrix?: imat4) {
+        //TODO: maybe hardcode this thing?
+        for (let i = 0; i < parts.entries.length; i++) {
+            this.drawPart(parts.entries[i], parts.entries[i].material || def_material, pos, modelMatrix);
+        }
     }
 
     drawList(mode: MESH_RENDER_LIST)
