@@ -1115,14 +1115,15 @@ export class Player implements IPlayer {
             if (is_fire || is_lava) {
                 this.#timer_burn = performance.now() + PLAYER_BURNING_TIME * 1000
             }
+            // если в воде, то тушим огонь
             if (this.in_water || (this.#head_block && (this.#head_block.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) || this.getEffectLevel(Effect.FIRE_RESISTANCE)) {
                 this.#timer_burn = 0
             }
             // если в воде, то проверим еще высоту воды
-            if (this.#head_block.fluid > 0) {
-                const fluidLevel = this.#head_block.getFluidLevel(this.lerpPos.x, this.lerpPos.z)
+            if (this.headBlock.fluid > 0) {
+                const fluidLevel = this.headBlock.getFluidLevel(this.lerpPos.x, this.lerpPos.z)
                 if (eye_y < fluidLevel) {
-                    this.eyes_in_block = this.#head_block.getFluidBlockMaterial()
+                    this.eyes_in_block = this.headBlock.getFluidBlockMaterial()
                 }
             }
             //
