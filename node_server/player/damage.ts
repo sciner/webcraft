@@ -199,7 +199,8 @@ export class ServerPlayerDamage {
             }
         }
         // огонь/лава с эффектом защиты от огня
-        const is_lava = (legsId == 0 && (legsFluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) || (headId == 0 && (headFluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID ||(body_id == 0 && (body_fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID))
+        // проверяем ноги глаза и тело (для полублоков)
+        const is_lava = (legsId == 0 && (legsFluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) || (headId == 0 && (headFluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID || (body_id == 0 && (body_fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID))
         const is_fire = (legsId == bm.FIRE.id || legsId == bm.CAMPFIRE.id || headId == bm.FIRE.id || body_id == bm.FIRE.id)
         if (is_fire || is_lava) {
             this.fire_lost_timer++;

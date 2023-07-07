@@ -1110,6 +1110,7 @@ export class Player implements IPlayer {
             this.eyes_in_block_o    = this.eyes_in_block;
             this.eyes_in_block      = this.headBlock.material.is_portal ? this.headBlock.material : null;
             // если в огне, то поджигаем
+            // проверяем ноги глаза и тело (для полублоков)
             const is_fire = (this.#leg_block.id == this.bm.FIRE.id || this.#leg_block.id == this.bm.CAMPFIRE.id || this.#body_block.id == this.bm.FIRE.id  || this.headBlock.id == this.bm.FIRE.id)
             const is_lava = ((this.#leg_block.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) || ((this.#body_block.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID)
             if (is_fire || is_lava) {
