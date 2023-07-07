@@ -128,10 +128,13 @@ export class ServerPlayerDamage {
         }
         const eyePos = player.getEyePos()
         const head = world.getBlock(eyePos.floored(), tmpBlockHead)
+        const body = world.getBlock(legsPos.offset(0, 1, 0), tmpBlockHead)
         const legsId = legs.id  // добсуп к id медленный, лучше 1 раз запомнить в переменной
         const headId = head.id
+        const body_id = body.id
         const headFluid = head.fluid
-        if (headId < 0 || legsId < 0) {
+        const body_fluid = body.fluid
+        if (headId < 0 || legsId < 0 || body_id < 0) {
             return;
         }
         const legsNeighbours = legs.getNeighbours(player.world, blockCache)
@@ -196,8 +199,8 @@ export class ServerPlayerDamage {
             }
         }
         // огонь/лава с эффектом защиты от огня
-        const is_lava = (legsId == 0 && (legsFluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) || (headId == 0 && (headFluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID)
-        const is_fire = (legsId == bm.FIRE.id || legsId == bm.CAMPFIRE.id || headId == bm.FIRE.id)
+        const is_lava = (legsId == 0 && (legsFluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) || (headId == 0 && (headFluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID ||(body_id == 0 && (body_fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID))
+        const is_fire = (legsId == bm.FIRE.id || legsId == bm.CAMPFIRE.id || headId == bm.FIRE.id || body_id == bm.FIRE.id)
         if (is_fire || is_lava) {
             this.fire_lost_timer++;
             if (this.fire_lost_timer >= FIRE_LOST_TICKS) {
