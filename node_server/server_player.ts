@@ -812,7 +812,7 @@ export class ServerPlayer extends Player {
             this.damage.protectFallDamage()
             return
         }
-        this.damage.checkDamage()
+        //this.damage.checkDamage()
         if (this.live_level == 0 || this.state.indicators.live != this.live_level || this.state.indicators.food != this.food_level || this.state.indicators.oxygen != this.oxygen_level ) {
             const packets = [];
             if (this.state.indicators.live > this.live_level) {
