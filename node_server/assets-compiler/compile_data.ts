@@ -133,7 +133,8 @@ export class CompileData {
             {id: null, mat: this.getBlock('DARK_OAK_PLANKS')},
             {id: null, mat: this.getBlock('WARPED_PLANKS')},
             {id: null, mat: this.getBlock('STONE')},
-            {id: 1387, mat: this.getBlock('POLISHED_BLACKSTONE')}
+            {id: 1387, mat: this.getBlock('POLISHED_BLACKSTONE')},
+            {id: 949, mat: this.getBlock('CRIMSON_PLANKS')}
         ];
         for(const item of materials) {
             const mat = item.mat
