@@ -12,7 +12,7 @@ import {
     SERVER_UNCERTAINTY_SECONDS, SIMULATE_PLAYER_PHYSICS, WAKEUP_MOVEMENT_DISTANCE
 } from "../server_constant.js";
 import {ServerClient} from "@client/server_client.js";
-import {ArrayHelpers, MonotonicUTCDate, SimpleQueue, Vector} from "@client/helpers.js";
+import {ArrayHelpers, MonotonicUTCDate, Mth, SimpleQueue, Vector} from "@client/helpers.js";
 import {ServerPlayerTickData} from "./server_player_tick_data.js";
 import {PlayerControlCorrectionPacket, PlayerControlPacketReader, PlayerControlSessionPacket} from "@client/control/player_control_packets.js";
 import type {PlayerTickData} from "@client/control/player_tick_data.js";
@@ -322,7 +322,7 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
             if (clientData.inputEventIds) {
                 // в этих данных клиент ожидает внешнего изменения (и раз эта строка выполняется - то дождался). Не выполнять симуляцию.
                 newData.initOutputFrom(this.current)
-                this.onSimulation(this.lastData.outPos, newData)
+                this.onTicksSimulated(this.lastData.outPos, newData.outPos, 1)
                 this.updateLastData(newData)
                 simulatedSuccessfully = true
                 needResponse = true
@@ -581,7 +581,8 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
             // Either cheating or a bug detected. The previous output remains unchanged.
             newData.copyOutputFrom(lastData)
         }
-        this.onSimulation(lastData.outPos, newData)
+        const sane_physics_ticks = Mth.clamp(newData.physicsTicks, 1, PHYSICS_MAX_TICKS_PROCESSED)
+        this.onTicksSimulated(lastData.outPos, newData.outPos, sane_physics_ticks)
         this.updateLastData(newData)
         return accepted
     }
@@ -594,15 +595,22 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
         return res
     }
 
-    protected onSimulation(prevPos: Vector, data: PlayerTickData): void {
-        super.onSimulation(prevPos, data)
-
+    /**
+     * Вызывается после симуляции (или принятия без симуляции) каждого тика или нескольких тиков.
+     * Вызывать для нескольких тиков сразу нежелательно, т.к. {@link ServerPlayerDamage.checkDamage} не будет
+     * учитывать промежуточные позиции перемещения, и урон будет считаться неточно. Это открывает эксплоиты.
+     * Но пока так делается, это не критично.
+     */
+    protected onTicksSimulated(prevPos: Vector, pos: Vector, ticks_number: int): void {
         const player = this.serverPlayer
-        player.damage.checkDamage()
+        // тут можно соптимизировать - если в checkDamage передавать число тиков
+        for(let i = 0; i < ticks_number; i++) {
+            player.damage.checkDamage()
+        }
 
         const ps = player.state
         const sitsOrSleeps = ps.sitting || ps.sleep
-        const moved = !prevPos.equal(data.outPos)
+        const moved = !prevPos.equal(pos)
         if (!moved) {
             if (!sitsOrSleeps) {
                 this.accumulatedSleepSittingDistance = 0
@@ -610,7 +618,7 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
             return
         }
 
-        let distance = Math.min(data.outPos.distance(prevPos), MAX_ACCUMULATED_DISTANCE_INCREMENT)
+        let distance = Math.min(pos.distance(prevPos), MAX_ACCUMULATED_DISTANCE_INCREMENT)
 
         if (sitsOrSleeps) {
             // сразу после того как лег/сел, парктически не учитывать перемешение (оно может включать перемещение до кровати)
