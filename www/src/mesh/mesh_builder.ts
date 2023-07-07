@@ -1,5 +1,6 @@
 import {TerrainGeometry15} from "../geom/terrain_geometry_15.js";
 import {SimplePool} from "../helpers/simple_pool.js";
+import type {TerrainMaterial} from "../renders/terrain_material";
 
 interface IMeshInstanceGeometry {
     strideFloats: int;
@@ -21,6 +22,8 @@ export class MeshPart<T extends IMeshInstanceGeometry = TerrainGeometry15> {
     count: number = 0;
 
     vertices: float[] = [];
+
+    material?: TerrainMaterial = null;
 
     setGeom(geom: T, start: number, count: number) {
         this.geom = geom;
@@ -49,6 +52,28 @@ export class MeshPart<T extends IMeshInstanceGeometry = TerrainGeometry15> {
     }
 
     static pool = new SimplePool<MeshPart>(MeshPart);
+}
+
+export class MeshPartCollection<T extends IMeshInstanceGeometry = TerrainGeometry15> {
+    entries: MeshPart<T>[] = [];
+
+    getOrCreate(material: TerrainMaterial) {
+        for (let i = 0; i < this.entries.length; i++) {
+            if (this.entries[i].material === material) {
+                return this.entries[i];
+            }
+        }
+        let ret = new MeshPart<T>();
+        ret.material = material;
+        this.entries.push(ret);
+        return ret;
+    }
+
+    destroy() {
+        for (let i = 0; i < this.entries.length; i++) {
+            this.entries[i].destroy();
+        }
+    }
 }
 
 export class MeshInstanceBuilder<T extends IMeshInstanceGeometry> {
