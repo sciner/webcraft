@@ -50,7 +50,7 @@ export class ServerPlayerDamage {
     #ground = true              // находились ли мы на земле в прошлый раз
     #last_height = -Infinity    // высота, с которой отсчитывается нанесение урона при падении
     #timer_fire: number = 0
-    #protectFallDamage = 0      // если > 0 - защищает от урона при падении. Уменьшается в безопасном месте.
+    #protectFallDamage = 0      // если > 0 - защищает от урона при падении. Уменьшается в безопасном месте
 
     constructor(player : ServerPlayer) {
         this.player = player;

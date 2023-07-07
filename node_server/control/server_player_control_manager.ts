@@ -598,7 +598,7 @@ export class ServerPlayerControlManager extends PlayerControlManager<ServerPlaye
         super.onSimulation(prevPos, data)
 
         const player = this.serverPlayer
-        player.damage.checkDamage()
+        //player.damage.checkDamage()
 
         const ps = player.state
         const sitsOrSleeps = ps.sitting || ps.sleep
