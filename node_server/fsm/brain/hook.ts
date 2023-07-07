@@ -4,6 +4,7 @@ import { WorldAction } from "@client/world_action.js";
 import { PLAYER_STATUS } from "@client/constant.js";
 import { Weather } from "@client/block_type/weather.js";
 import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
+import { MOB_CONTROL, type MobControlParams } from "@client/control/player_control.js";
 
 // рыба
 const FISH = [
@@ -86,14 +87,10 @@ export class Brain extends FSMBrain {
         super(mob);
         this.prevPos        = new Vector(mob.pos);
         this.lerpPos        = new Vector(mob.pos);
-        this.pc             = this.createPlayerControl(this, {
-            playerHeight: .16,
-            playerHalfWidth: .08
-        });
         this.pc.player_state.flying = true
         mob.extra_data.play_death_animation = false
         
-        this.health = 1; // максимальное здоровье
+        // this.health = 1; // максимальное здоровье
         
         this.timer_in_ground = 0
         this.timer_catchable = 0
@@ -113,7 +110,7 @@ export class Brain extends FSMBrain {
 
     }
 
-    doStand(delta) {
+    doStand(delta : float): MobControlParams | null {
         const mob = this.mob
         const player = mob.parent
         if (!player) {
@@ -234,8 +231,7 @@ export class Brain extends FSMBrain {
         this.velocity.z *= acceleration
 
         this.pc.player_state.vel.addSelf(this.velocity)
-        this.applyControl(delta)
-        this.sendState()
+        return MOB_CONTROL.NO_CHANGE
     }
    
     // Если убили моба

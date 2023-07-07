@@ -44,13 +44,14 @@ export default class packet_reader {
 
         if (item.id == bm.FISHING_ROD.id) {
             if (!player.fishing) {
-                const params = {
-                    type: "hook",
-                    skin: "base",
-                    pos: player.getEyePos(),
-                    pos_spawn: player.getEyePos(),
-                    rotate: player.state.rotate
-                }
+                const params = new MobSpawnParams(
+                    player.getEyePos(),
+                    player.state.rotate,
+                    {
+                        model_name: MOB_TYPE.HOOK,
+                        texture_name: DEFAULT_MOB_TEXTURE_NAME
+                    }
+                )
                 player.fishing = player.world.mobs.create(params)
                 player.fishing.parent = player // @todo мб лучше передавать id
             } else {
