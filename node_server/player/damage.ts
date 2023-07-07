@@ -129,7 +129,9 @@ export class ServerPlayerDamage {
         const eyePos = player.getEyePos()
         const head = world.getBlock(eyePos.floored(), tmpBlockHead)
         const legsId = legs.id  // добсуп к id медленный, лучше 1 раз запомнить в переменной
-        if (head.id < 0 || legsId < 0) {
+        const headId = head.id
+        const headFluid = head.fluid
+        if (headId < 0 || legsId < 0) {
             return;
         }
         const legsNeighbours = legs.getNeighbours(player.world, blockCache)
@@ -194,8 +196,9 @@ export class ServerPlayerDamage {
             }
         }
         // огонь/лава с эффектом защиты от огня
-        const is_lava = (legsId == 0 && (legsFluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID);
-        if (legsId == bm.FIRE.id || legsId == bm.CAMPFIRE.id || is_lava) {
+        const is_lava = (legsId == 0 && (legsFluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) || (headId == 0 && (headFluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID)
+        const is_fire = (legsId == bm.FIRE.id || legsId == bm.CAMPFIRE.id || headId == bm.FIRE.id)
+        if (is_fire || is_lava) {
             this.fire_lost_timer++;
             if (this.fire_lost_timer >= FIRE_LOST_TICKS) {
                 this.fire_lost_timer = 0;
@@ -255,7 +258,7 @@ export class ServerPlayerDamage {
             isDamagePlanting(legsNeighbours.DOWN) ||
             isDamagePlanting(legsNeighbours.UP) ||
             isDamagePlanting(legsNeighbours.WEST) && sub.x < PLANTING_PADDING_DAMAGE ||
-            isDamagePlanting(legsNeighbours.EAST) && sub.x > 1.0 - PLANTING_PADDING_DAMAGE ||
+            isDamagePlanting(legsNeighbours.EAST) && sub.x > 1 - PLANTING_PADDING_DAMAGE ||
             isDamagePlanting(legsNeighbours.SOUTH) && sub.z < PLANTING_PADDING_DAMAGE ||
             isDamagePlanting(legsNeighbours.NORTH) && sub.z > 1 - PLANTING_PADDING_DAMAGE
         ) {
