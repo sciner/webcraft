@@ -196,8 +196,19 @@ export class WorldInfoWindow extends BlankWindow {
             {id: 'lbl_generator', title: Lang.world_generator_type},
             {id: 'lbl_seed', title: Lang.world_seed}
         ]) {
+            let right = 0
+            if (item.id == 'lbl_seed') {
+                const btn_copy = new Button(this.w / 2 - 2 * this.line_height - 16 * this.zoom, y, 16.2 * this.zoom, 16 * this.zoom, item.id + '_copy', '', '')
+                btn_copy.setIcon(hud_atlas.getSpriteFromMap('copy_button'), 'centerstretch', .8)
+                btn_copy.onMouseDown = () => {
+                    ClipboardHelper.copy(this.getWindow('lbl_seed').text)
+                    vt.success(Lang.copied);
+                }
+                this.add(btn_copy)
+                right = 20 * this.zoom
+            }
             const lbl_title = new Label(2 * this.line_height, y, 0, 0, item.id + '_title', item.title, item.title)
-            const lbl = new Label(this.w / 2 - 2 * this.line_height, y, 0, 0, item.id, item.title, item.title)
+            const lbl = new Label(this.w / 2 - 2 * this.line_height - right, y, 0, 0, item.id, item.title, item.title)
             lbl_title.style.font.size = UI_THEME.base_font.size
             lbl_title.style.font.weight = 'bold'
             lbl_title.style.font.color = UI_THEME.base_font.color
@@ -232,17 +243,17 @@ export class WorldInfoWindow extends BlankWindow {
 
         const btn_share_world = new Button(16 * this.line_height, 5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_share_world',  Lang.share_world, '')
         btn_share_world.onMouseDown = () => {
-            ClipboardHelper.copy(this.getWindow('lbl_seed').text)
+            ClipboardHelper.copy(location.protocol + '//' + location.host + '/worlds/' + Qubatch.world.info.guid)
             vt.success(Lang.copied);
         }
         this.add(btn_share_world)
 
-        const btn_copy_seed = new Button(16 * this.line_height, 7.8 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_copy_seed', Lang.copy_seed, '')
-        btn_copy_seed.onMouseDown = () => {
-            ClipboardHelper.copy(location.protocol + '//' + location.host + '/worlds/' + Qubatch.world.info.guid)
+        const btn_copy_coord = new Button(16 * this.line_height, 7.8 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_copy_coord', Lang.copy_coord, '')
+        btn_copy_coord.onMouseDown = () => {
+            ClipboardHelper.copy(this.player.pos.floored().toHash().replaceAll(',', ' '))
             vt.success(Lang.copied);
         }
-        this.add(btn_copy_seed)
+        this.add(btn_copy_coord)
 
         const btn_make_new_cover = new Button(16 * this.line_height, 10.5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_make_new_cover',  Lang.make_new_cover, '')
         btn_make_new_cover.onMouseDown = () => {
