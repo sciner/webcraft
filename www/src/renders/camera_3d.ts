@@ -2,7 +2,7 @@ import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import { Vector } from "../helpers.js";
 //import { GlobalUniformGroup } from "./renders/BaseRenderer.js";
 
-const {mat4} = glMatrix;
+const {mat4, vec3} = glMatrix;
 
 interface ICameraOptions {
     type?: string
@@ -15,6 +15,9 @@ interface ICameraOptions {
     scale?: number
 }
 
+const tmp1 = vec3.create();
+const tmp2 = vec3.create();
+
 export class Camera_3d {
     [key: string]: any;
     static PERSP_CAMERA = 'perspective';
@@ -26,6 +29,9 @@ export class Camera_3d {
     fov     : float
     width   : number
     height  : number
+
+    viewMatrix: imat4;
+    viewInverted: imat4;
 
     constructor (options: ICameraOptions = {
         type: 'perspective', // | 'ortho',
@@ -55,6 +61,7 @@ export class Camera_3d {
         this.projMatrix = mat4.create();
         this.viewMatrix = mat4.create();
         this.bobPrependMatrix = mat4.create();
+        this.viewInverted = mat4.create();
 
         // not fully required
         this._viewProjMatrix = null ;//mat4.create();
@@ -129,6 +136,25 @@ export class Camera_3d {
         }
 
         this.update();
+    }
+
+    /**
+     * -aspect<x<aspect, -1<=y<=1
+     */
+    calcNearPlanePosition(x, y, out?: Vector): Vector {
+        out = out || new Vector();
+
+        mat4.invert(this.viewInverted, this.viewMatrix);
+
+        tmp1[0] = x;
+        tmp1[1] = y;
+        tmp1[2] = 0;
+
+        vec3.transformMat4(tmp2, tmp1, this.viewInverted);
+
+        out.set(tmp2[0], tmp2[2], tmp2[1]);
+
+        return out;
     }
 
     shiftX = 0;

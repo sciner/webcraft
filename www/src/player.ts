@@ -1588,5 +1588,4 @@ export class Player implements IPlayer {
         }
         return hide_creative_mat
     }
-
 }

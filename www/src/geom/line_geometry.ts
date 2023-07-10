@@ -202,6 +202,9 @@ export class LineGeometry extends Geometry {
     }
 
     draw(render : BaseRenderer) {
+        if (this.instances === 0) {
+            return;
+        }
         render.batch.setObjectRenderer(render.line);
         render.line.draw(this);
     }
