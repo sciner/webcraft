@@ -198,7 +198,8 @@ export class WorldInfoWindow extends BlankWindow {
         ]) {
             let right = 0
             if (item.id == 'lbl_seed') {
-                const btn_copy = new Button(this.w / 2 - 2 * this.line_height - 16 * this.zoom, y, 16.2 * this.zoom, 16 * this.zoom, item.id + '_copy', '', '')
+                const btn_copy = new Button(this.w / 2 - 2 * this.line_height - 16 * this.zoom, y + 1 * this.zoom, 16 * this.zoom, 16 * this.zoom, item.id + '_copy', '', '')
+                btn_copy.tooltip = Lang.copy
                 btn_copy.setIcon(hud_atlas.getSpriteFromMap('copy_button'), 'centerstretch', .8)
                 btn_copy.onMouseDown = () => {
                     ClipboardHelper.copy(this.getWindow('lbl_seed').text)
@@ -242,6 +243,7 @@ export class WorldInfoWindow extends BlankWindow {
         this.add(lbl_public_description_2)
 
         const btn_share_world = new Button(16 * this.line_height, 5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_share_world',  Lang.share_world, '')
+        btn_share_world.tooltip = Lang.copy
         btn_share_world.onMouseDown = () => {
             ClipboardHelper.copy(location.protocol + '//' + location.host + '/worlds/' + Qubatch.world.info.guid)
             vt.success(Lang.copied);
@@ -249,6 +251,7 @@ export class WorldInfoWindow extends BlankWindow {
         this.add(btn_share_world)
 
         const btn_copy_coord = new Button(16 * this.line_height, 7.8 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_copy_coord', Lang.copy_coord, '')
+        btn_copy_coord.tooltip = Lang.copy
         btn_copy_coord.onMouseDown = () => {
             ClipboardHelper.copy(this.player.pos.floored().toHash().replaceAll(',', ' '))
             vt.success(Lang.copied);
@@ -256,6 +259,7 @@ export class WorldInfoWindow extends BlankWindow {
         this.add(btn_copy_coord)
 
         const btn_make_new_cover = new Button(16 * this.line_height, 10.5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_make_new_cover',  Lang.make_new_cover, '')
+        btn_make_new_cover.tooltip = Lang.make_new_cover
         btn_make_new_cover.onMouseDown = () => {
             Qubatch.hud.wm.getWindow('frmInGameMain').hide();
             Qubatch.hud.wm.getWindow('frmScreenshot').make({id: 'frmInGameMain', tab: 'frmWorldInfo'});

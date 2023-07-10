@@ -276,7 +276,8 @@
         "copy_seed": {"en": "Copy seed", "ru": "Копировать зерно", "fr": "","es":"","man":"","hind":""},
         "make_new_cover": {"en": "Make new cover", "ru": "Новая обложка", "fr": "","es":"","man":"","hind":""},
         "share_world": {"en": "Shared world", "ru": "Ссылка на мир", "fr": "","es":"","man":"","hind":""},
-        "no_world_cover_decription": {"en": "You can make one with F2 key", "ru": "Общий мир", "fr": "","es":"","man":"","hind":""},
-        "no_world_cover_decription_2": {"en": "Or click here to make it now", "ru": "Общий мир", "fr": "","es":"","man":"","hind":""}
+        "copy_coord": {"en": "Copy position", "ru": "Координаты", "fr": "","es":"","man":"","hind":""},
+        "no_world_cover_decription": {"en": "You can make one with F2 key", "ru": "Можно сделать кнопкой F2", "fr": "","es":"","man":"","hind":""},
+        "no_world_cover_decription_2": {"en": "Or click here to make it now", "ru": "Или если нажать здесь", "fr": "","es":"","man":"","hind":""}
     }
 }

@@ -61,6 +61,8 @@ export class ServerAPI {
                     } }
                 }
 
+                
+
                 const generator = WorldGenerators.validateAndFixOptions(params.generator);
 
                 // spawn pos
