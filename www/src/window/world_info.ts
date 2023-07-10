@@ -169,7 +169,21 @@ export class WorldInfoWindow extends BlankWindow {
         lbl_preview.style.textAlign.horizontal = 'center'
         lbl_preview.style.textAlign.vertical = 'middle'
         lbl_preview.setBackground(hud_atlas.getSpriteFromMap('cover_back'), 'centerstretch', 1.04)
-        lbl_preview.setText(Lang.no_cover)
+        //lbl_preview.setText(Lang.no_cover)
+        const no_world_cover = new Label(0, 25 * this.zoom, lbl_preview.w, 0, 'no_world_cover','', Lang.no_cover)
+        no_world_cover.style.textAlign.horizontal = 'center'
+        no_world_cover.style.font.size = 16
+        lbl_preview.add(no_world_cover)
+        const no_world_cover_decription = new Label(0, 50 * this.zoom, lbl_preview.w, 0, 'no_world_cover_decription','', Lang.no_world_cover_decription)
+        no_world_cover_decription.style.textAlign.horizontal = 'center'
+        no_world_cover_decription.style.font.size = 11
+        no_world_cover_decription.style.font.color = '#FFFFFFFF'
+        lbl_preview.add(no_world_cover_decription)
+        const no_world_cover_decription_2 = new Label(0, 68 * this.zoom, lbl_preview.w, 0, 'no_world_cover_decription_2','', Lang.no_world_cover_decription_2)
+        no_world_cover_decription_2.style.textAlign.horizontal = 'center'
+        no_world_cover_decription_2.style.font.size = 11
+        no_world_cover_decription_2.style.font.color = '#FFFFFFFF'
+        lbl_preview.add(no_world_cover_decription_2)
         this.add(lbl_preview)
 
         // список
@@ -180,8 +194,7 @@ export class WorldInfoWindow extends BlankWindow {
             {id: 'lbl_age', title: Lang.age},
             {id: 'lbl_creator', title: Lang.creator},
             {id: 'lbl_generator', title: Lang.world_generator_type},
-            {id: 'lbl_seed', title: Lang.seed},
-            {id: 'lbl_guid', title: Lang.guid},
+            {id: 'lbl_seed', title: Lang.world_seed}
         ]) {
             const lbl_title = new Label(2 * this.line_height, y, 0, 0, item.id + '_title', item.title, item.title)
             const lbl = new Label(this.w / 2 - 2 * this.line_height, y, 0, 0, item.id, item.title, item.title)
@@ -217,26 +230,26 @@ export class WorldInfoWindow extends BlankWindow {
         lbl_public_description_2.style.font.color = UI_THEME.second_text_color
         this.add(lbl_public_description_2)
 
-        const test_1 = new Button(16 * this.line_height, 5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'gyt')
-        test_1.onMouseDown = () => {
+        const btn_share_world = new Button(16 * this.line_height, 5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_share_world',  Lang.share_world, '')
+        btn_share_world.onMouseDown = () => {
             ClipboardHelper.copy(this.getWindow('lbl_seed').text)
             vt.success(Lang.copied);
         }
-        this.add(test_1)
+        this.add(btn_share_world)
 
-        const test_2 = new Button(16 * this.line_height, 7.8 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'gyasdt')
-        test_2.onMouseDown = () => {
+        const btn_copy_seed = new Button(16 * this.line_height, 7.8 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_copy_seed', Lang.copy_seed, '')
+        btn_copy_seed.onMouseDown = () => {
             ClipboardHelper.copy(location.protocol + '//' + location.host + '/worlds/' + Qubatch.world.info.guid)
             vt.success(Lang.copied);
         }
-        this.add(test_2)
+        this.add(btn_copy_seed)
 
-        const test_3 = new Button(16 * this.line_height, 10.5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'gyasd3t')
-        test_3.onMouseDown = () => {
+        const btn_make_new_cover = new Button(16 * this.line_height, 10.5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_make_new_cover',  Lang.make_new_cover, '')
+        btn_make_new_cover.onMouseDown = () => {
             Qubatch.hud.wm.getWindow('frmInGameMain').hide();
             Qubatch.hud.wm.getWindow('frmScreenshot').make({id: 'frmInGameMain', tab: 'frmWorldInfo'});
         }
-        this.add(test_3)
+        this.add(btn_make_new_cover)
 
         this.addCollection()
 
@@ -303,7 +316,6 @@ export class WorldInfoWindow extends BlankWindow {
         setWindowText('lbl_gamemode', data.gamemode)
         setWindowText('lbl_generator', data.generator.id)
         setWindowText('lbl_seed', data.seed)
-        setWindowText('lbl_guid', data.guid)
 
         btn_switch_public.setIcon(data.is_public ? hud_atlas.getSpriteFromMap('check2') : null)
         btn_switch_public.toggled = data.is_public

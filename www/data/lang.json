@@ -272,6 +272,11 @@
         "is_admin": {"en": "Admin", "ru": "Админ", "fr": "", "es": "", "man": ""},
         "pasting_schematic": {"en": "Pasting a schematic %0%", "ru": "Вставка схематики %0%", "fr": "", "es": "", "man": ""},
         "crosshair_style": {"en": "Crosshair style", "ru": "Стиль прицела", "fr": "", "es": "", "man":""},
-        "crosshair_size": {"en": "Crosshair size", "ru": "Размер прицела", "fr": "", "es": "", "man":""}
+        "crosshair_size": {"en": "Crosshair size", "ru": "Размер прицела", "fr": "", "es": "", "man":""},
+        "copy_seed": {"en": "Copy seed", "ru": "Копировать зерно", "fr": "","es":"","man":"","hind":""},
+        "make_new_cover": {"en": "Make new cover", "ru": "Новая обложка", "fr": "","es":"","man":"","hind":""},
+        "share_world": {"en": "Shared world", "ru": "Ссылка на мир", "fr": "","es":"","man":"","hind":""},
+        "no_world_cover_decription": {"en": "You can make one with F2 key", "ru": "Общий мир", "fr": "","es":"","man":"","hind":""},
+        "no_world_cover_decription_2": {"en": "Or click here to make it now", "ru": "Общий мир", "fr": "","es":"","man":"","hind":""}
     }
 }
