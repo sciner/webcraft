@@ -93,6 +93,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
 
         for (const piece of this.pieces) {
             const template = this.templates.get(piece.name)
+
             const coord = piece.pos
             const building = new BuildingBlocks(
                 this,
@@ -103,6 +104,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
                 null,
                 template
             )
+            
             this.appendBuilding(building)
         }
 
@@ -121,6 +123,9 @@ export class ClusterEndCity extends ClusterBuildingBase {
 
         // set blocks list for chunk
         this.blocks.list = this.chunks.get(chunk.addr) ?? []
+        
+        this.setChest(this.blocks.list)
+
         // draw chunk blocks
         this.blocks.draw(this, chunk, map)
         this.timers.stop()
@@ -283,4 +288,20 @@ export class ClusterEndCity extends ClusterBuildingBase {
         return true
     }
 
+    setChest(list) {
+        if (list.length > 0) {
+            for (const block of list) {
+                if (block.length > 0) {
+                    for (const bl of block) {
+                        if (bl.block_id == 1376) {
+                            if (this.random.double() < .7) {
+                                bl.block_id = 0
+                                delete(bl.extra_data)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
