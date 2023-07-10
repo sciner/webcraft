@@ -217,21 +217,21 @@ export class WorldInfoWindow extends BlankWindow {
         lbl_public_description_2.style.font.color = UI_THEME.second_text_color
         this.add(lbl_public_description_2)
 
-        const test_1 = new Button(2 * this.line_height, 33 * this.line_height, 20 * this.zoom, 20 * this.zoom, 'gyt')
+        const test_1 = new Button(16 * this.line_height, 5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'gyt')
         test_1.onMouseDown = () => {
             ClipboardHelper.copy(this.getWindow('lbl_seed').text)
             vt.success(Lang.copied);
         }
         this.add(test_1)
 
-        const test_2 = new Button(5 * this.line_height, 33 * this.line_height, 20 * this.zoom, 20 * this.zoom, 'gyasdt')
+        const test_2 = new Button(16 * this.line_height, 7.8 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'gyasdt')
         test_2.onMouseDown = () => {
             ClipboardHelper.copy(location.protocol + '//' + location.host + '/worlds/' + Qubatch.world.info.guid)
             vt.success(Lang.copied);
         }
         this.add(test_2)
 
-        const test_3 = new Button(7 * this.line_height, 33 * this.line_height, 20 * this.zoom, 20 * this.zoom, 'gyasd3t')
+        const test_3 = new Button(16 * this.line_height, 10.5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'gyasd3t')
         test_3.onMouseDown = () => {
             Qubatch.hud.wm.getWindow('frmInGameMain').hide();
             Qubatch.hud.wm.getWindow('frmScreenshot').make({id: 'frmInGameMain', tab: 'frmWorldInfo'});
