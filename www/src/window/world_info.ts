@@ -181,6 +181,12 @@ export class WorldInfoWindow extends BlankWindow {
         no_world_cover_decription_2.style.font.size = 11
         no_world_cover_decription_2.style.font.color = UI_THEME.second_text_color
         lbl_preview.add(no_world_cover_decription_2)
+        lbl_preview.onMouseDown = () => {
+            console.log(lbl_preview)
+            if (!lbl_preview._wmicon.visible) {
+                vt.success(Lang.copied)
+            }
+        }
         this.add(lbl_preview)
 
         // список
@@ -239,13 +245,13 @@ export class WorldInfoWindow extends BlankWindow {
         lbl_public_description_2.style.font.color = UI_THEME.second_text_color
         this.add(lbl_public_description_2)
 
-        const btn_share_world = new Button(16 * this.line_height, 5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_share_world',  Lang.share_world, '')
-        btn_share_world.tooltip = Lang.copy
-        btn_share_world.onMouseDown = () => {
+        const btn_invite_world = new Button(16 * this.line_height, 5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_invite_world',  Lang.invite_world, '')
+        btn_invite_world.tooltip = Lang.copy
+        btn_invite_world.onMouseDown = () => {
             ClipboardHelper.copy(location.protocol + '//' + location.host + '/worlds/' + Qubatch.world.info.guid)
             vt.success(Lang.copied);
         }
-        this.add(btn_share_world)
+        this.add(btn_invite_world)
 
         const btn_copy_coord = new Button(16 * this.line_height, 7.8 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_copy_coord', Lang.copy_coord, '')
         btn_copy_coord.tooltip = Lang.copy
@@ -338,7 +344,6 @@ export class WorldInfoWindow extends BlankWindow {
 
         // cover
         if (data?.cover) {
-            lbl_preview.setText('')
             lbl_preview.setIcon(data.cover, 'centerstretch', 1.0)
         }
 
