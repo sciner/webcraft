@@ -244,24 +244,27 @@ export class WorldInfoWindow extends BlankWindow {
         lbl_public_description_2.style.font.color = UI_THEME.second_text_color
         this.add(lbl_public_description_2)
 
+        // Copy invite URL
         const btn_invite_world = new Button(16 * this.line_height, 5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_invite_world',  Lang.invite_world, '')
         btn_invite_world.style.font.size = 13
-        btn_invite_world.tooltip = Lang.copy
+        btn_invite_world.tooltip = Lang.copy_invite_url_tooltip
         btn_invite_world.onMouseDown = () => {
             ClipboardHelper.copy(location.protocol + '//' + location.host + '/worlds/' + Qubatch.world.info.guid)
-            vt.success(Lang.copied);
+            vt.success(Lang.copy_invite_url_copied);
         }
         this.add(btn_invite_world)
 
+        // Copy current player position
         const btn_copy_coord = new Button(16 * this.line_height, 7.72 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_copy_coord', Lang.copy_coord, '')
         btn_copy_coord.style.font.size = 13
-        btn_copy_coord.tooltip = Lang.copy
+        btn_copy_coord.tooltip = Lang.copy_player_position_tooltip
         btn_copy_coord.onMouseDown = () => {
             ClipboardHelper.copy(this.player.pos.floored().toHash().replaceAll(',', ' '))
-            vt.success(Lang.copied);
+            vt.success(Lang.copy_player_position_copied);
         }
         this.add(btn_copy_coord)
 
+        // Make new cover
         const btn_make_new_cover = new Button(16 * this.line_height, 10.44 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_make_new_cover',  Lang.make_new_cover, '')
         btn_make_new_cover.style.font.size = 13
         btn_make_new_cover.tooltip = Lang.make_new_cover
@@ -270,6 +273,7 @@ export class WorldInfoWindow extends BlankWindow {
         }
         this.add(btn_make_new_cover)
 
+        //
         this.addCollection()
 
     }
