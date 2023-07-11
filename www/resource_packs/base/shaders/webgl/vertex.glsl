@@ -108,10 +108,8 @@ void main() {
 
     // Waves
     if(checkFlag(FLAG_WAVES_VERTEX)) {
-        v_chunk_pos.z += getWaveValue();
-        v_world_pos = v_chunk_pos + add_pos;
+        v_world_pos.z += getWaveValue();
     }
-    v_chunk_pos = v_chunk_pos - chunk_corner;
 
     v_position = (u_viewMatrix * vec4(v_world_pos, 1.0)). xyz;
     gl_Position = u_projMatrix * vec4(v_position, 1.0);
@@ -124,12 +122,10 @@ void main() {
 
     if (checkFlag(FLAG_LIGHT_GRID))
     {
-        if (a_chunkId < -0.5) {
-            v_chunk_pos = v_chunk_pos + chunk_corner - u_gridChunkOffset;
-        } else
-        {
-            v_chunk_pos = v_world_pos - u_gridChunkOffset;
-        }
+        v_chunk_pos = v_world_pos - u_grid_chunk_corner;
+    } else
+    {
+        v_chunk_pos = v_world_pos - chunk_corner;
     }
 
     #include_post<flat_encode>

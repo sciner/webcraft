@@ -643,6 +643,24 @@
         {
             "name": "building",
             "extends": "default"
+        },
+        {
+            "name": "shulker_box",
+            "items": [
+                {"name": "REINFORCED_CONCRETE", "count": [0, 0, 0, 1, 2, 2, 4, 4, 4, 4, 8, 8, 16]},
+                {"name": "JERSEY_BARRIER", "count": [0, 0, 0, 1, 2, 2, 4, 4, 4, 4, 8, 8, 16]},
+                {"name": "BILLBOARD1X2", "count": [0, 0, 0, 0, 1]},
+                {"name": "POPPED_CHORUS_FRUIT", "count": [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 4]},
+                {"name": "CHORUS_FRUIT", "count": [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 4]},
+                {"name": "END_ROD", "count": [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 4, 8]},
+                {"name": "PURPLE_BANNER", "count": [0, 0, 0, 0, 1]},
+                {"name": "PINK_BANNER", "count": [0, 0, 0, 0, 1]},
+                {"name": "MAGENTA_BANNER", "count": [0, 0, 0, 0, 1]},
+                {"name": "PURPLE_CANDLE", "count": [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 4, 8]},
+                {"name": "PINK_CANDLE", "count": [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 4, 8]},
+                {"name": "PURPLE_STAINED_GLASS", "count": [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 4, 8]},
+                {"name": "PURPUR_BLOCK", "count": [0, 0, 0, 0, 1, 2, 4, 8, 8, 8, 16]}
+            ]
         }
     ],
     "building_schemas_world_name": "BLDGFYT",

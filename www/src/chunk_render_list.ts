@@ -60,6 +60,7 @@ export class ChunkRenderList {
                 // testing mode, act like there's no multidraw support
                 render.renderBackend.multidrawBaseExt = null;
                 render.renderBackend.pixiRender.context.extensions.md_bvbi = null;
+                render.renderBackend.pixiRender.context.extensions.bvbi = null;
             }
         }
 

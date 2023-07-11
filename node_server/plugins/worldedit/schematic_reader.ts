@@ -10,6 +10,8 @@ import type {TSchematicInfo} from "../chat_worldedit.js";
 import type {ChunkGrid} from "@client/core/ChunkGrid.js";
 import type {TActionBlock} from "@client/world_action.js";
 import {BuildingTemplate} from "@client/terrain_generator/cluster/building_template.js";
+import {parseBlockName} from "madcraft-schematic-reader";
+import {SIGN_POSITION} from "@client/constant.js";
 
 const facings4 = ['north', 'west', 'south', 'east'];
 const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
@@ -73,12 +75,16 @@ const REPLACE_NAMES = {
 }
 
 declare type IMCBlock = {
+    /* Было объявлено, но используется, и не поределено если блока нет в mcData
     type:              int
+    */
     name:              string
     _properties?:      any
-    entities?:         any
+    entities?:         Dict     // поля одной entity, если она есть
     signText?:         any
     on_wall?:          any
+    hanging?:          boolean
+    wall_hanging?:     boolean
 }
 
 declare type IParseBlockResult = {
@@ -93,6 +99,7 @@ declare type IStateBlock = {
     fluidValue:         int,
     b:                  IBlockMaterial,
     read_entity_props:  boolean,
+    not_found_name:     string | null
 }
 
 /** Результат получения блоков, разделенный на чанки - готовый к вставке в мир */
@@ -135,14 +142,15 @@ export class SchematicReader {
     }
 
     /**
-     * Загружает бинаруную схематику, парсит палитру, общие данные схематики и blockEntities. Не парсит массив блоков.
+     * Загружает бинаруную схематику, парсит палитру, общие данные схематики и blockEntities.
+     * Частично парсит массив блоков - подготавливает последующее чтение из него, подсчитывает сколько блоков какого типа.
      * Чтобы получить блоки - см. {@link getBlocks}.
+     * Информация о загруженной схематике (для основного потока) доступна в {@link schematic}.
      * @param info - входной и выходной. Описывает что и как загружается. При повторном открытии того же файла - там
      *   информация о том, что и как получилось открыть в первый раз.
      * @param worldGUID - добавляется к имени временного файла. Зачем: если одну и ту же схематикиу открыли в двух мирах,
      *   они будт создавать/читать/удалять разыне файлы, не мешать друг другу, и можно понять какой файл из какого мира
      *   создавался.
-     * @return информацию о загруженой схематике (для основного потока)
      */
     async open(info: TSchematicInfo, max_memory_file_size: int, worldGUID: string): Promise<void> {
         this.info = info
@@ -172,7 +180,7 @@ export class SchematicReader {
         // read schematic
         this.binary_schematic = new BinarySchematic()
         const tmp_file_name = `${info.file_name}.${worldGUID}.tmp`
-        const schematic = await this.binary_schematic.open(info.file_name, tmp_file_name, max_memory_file_size, info.file_cookie)
+        const [schematic, nbt] = await this.binary_schematic.open(info.file_name, tmp_file_name, max_memory_file_size, info.file_cookie)
         let {palette, blockEntities} = schematic
         const sizeZ = schematic.size.z
 
@@ -195,7 +203,7 @@ export class SchematicReader {
 
         this.states                             = []
         const states                            = this.states
-        const not_found_blocks                  = new Map()
+        const not_found_blocks                  = new Map<string, int>()
         const cached_blocks                     = new Map()
         const FLOWER_POT_BLOCK_ID               = BLOCK.fromName('FLOWER_POT').id
         const TEST_BLOCK                        = new DBItemBlock(BLOCK.fromName('TEST').id)
@@ -206,7 +214,24 @@ export class SchematicReader {
         // обработать все блоки палитры 1 раз
         for(let palette_index = 0; palette_index < palette.length; palette_index++) {
             const state_id = palette[palette_index] // элемент palette у них называется state_id, см. Schematic.getBlockStateId
-            const block : IMCBlock = schematic.Block.fromStateId(state_id, 0)
+            let block: IMCBlock
+            if (state_id >= 0) {
+                block = schematic.Block.fromStateId(state_id, 0)
+            } else {    // этого блока не было даже в mcData, но он есть в палитре в текстовом виде
+                for(let key in nbt.Palette) {
+                    if (nbt.Palette[key] === -state_id) {
+                        const tmp = parseBlockName(key)
+                        block = {
+                            name: tmp.name,
+                            _properties: Object.fromEntries(tmp.properties)
+                        }
+                        break
+                    }
+                }
+                if (!block) {
+                    throw Error() // этого не должно быть, ведь он был в палитре
+                }
+            }
             let new_block: DBItemBlock = null
             let fluidValue = 0
             let read_entity_props = false
@@ -261,8 +286,9 @@ export class SchematicReader {
                 }
             }
             // If not implemented block
+            let not_found_name: string | null = null
             if(!new_block) {
-                not_found_blocks.set(name, (not_found_blocks.get(name) ?? 0) + 1);
+                not_found_name = name
                 // replace with TEST block and store original to his extra_data
                 new_block = DBItemBlock.cloneFrom(TEST_BLOCK)
                 new_block.extra_data = {n: name}
@@ -286,9 +312,16 @@ export class SchematicReader {
                     new_block = AIR_BLOCK;
                 }
             }
-            states[palette_index] = {fluidValue, new_block, b, read_entity_props, schematicBlock: block} as IStateBlock
+            states[palette_index] = {fluidValue, new_block, b, read_entity_props, schematicBlock: block, not_found_name}
         }
         //
+        for(let palette_index = 0; palette_index < states.length; palette_index++) {
+            const name = states[palette_index]?.not_found_name
+            const count = this.binary_schematic.count_by_palette[palette_index]
+            if (name && count) {
+                not_found_blocks.set(name, (not_found_blocks.get(name) ?? 0) + count)
+            }
+        }
         const not_found_blocks_arr = [];
         for(const [name, count] of not_found_blocks.entries()) {
             not_found_blocks_arr.push({name, count});
@@ -338,38 +371,46 @@ export class SchematicReader {
             schemChunkAABB_inWorld.setIntersect(requestedAABB_inWorld)
         }
 
+        const rotateBlocks = (blocks: IDBItemBlock[], rotation) => {
+            // преобразовать блоки, записать результат на в исходное место
+            const rotatedArrays: IDBItemBlock[][] = [[], [], [], []]
+            BuildingTemplate.rotateBlocksProperty(blocks, rotatedArrays, this.block_manager, [rotation])
+            let i = 0
+            const rotatedBlocks = rotatedArrays[rotation]
+            for(const block of blocks) {
+                Object.assign(block, rotatedBlocks[i++])
+            }
+        }
+
         const {states, schematic, grid} = this
         const {math} = grid
         const {blockEntities} = this
         const pos0 = this.info.pos
         const {read_air, rotate} = this.info
+        const rotatingBlocks: IDBItemBlock[] = []
 
         // повернуть все блоки паитры, если нужно
         if (rotate !== this.current_rotation) {
             const deltaRotation = (rotate - this.current_rotation + 4) % 4
             this.current_rotation = rotate
             // собрать все блоки, включая emitted, в массив
-            const srcBlocks: IDBItemBlock[] = []
             for(const state of this.states) {
                 if (state) {
+                    // (возможно, это не нужно) чтобы гарантировать что каждый блок повернулся ровно 1 раз, если есть ссылки на общие данные
+                    state.new_block = ObjectHelpers.deepClone(state.new_block)
+
                     const {new_block} = state
-                    srcBlocks.push(new_block)
+                    rotatingBlocks.push(new_block)
                     if (new_block.emit_blocks) {
                         for(const emitted of new_block.emit_blocks) {
-                            srcBlocks.push(emitted)
+                            rotatingBlocks.push(emitted)
                             emitted.move = new Vector(emitted.move).rotateByCardinalDirectionSelf(deltaRotation)
                         }
                     }
                 }
             }
-            // преобразовать блоки, записать результат на в исходное место
-            const rotatedArrays: IDBItemBlock[][] = [[], [], [], []]
-            BuildingTemplate.rotateBlocksProperty(srcBlocks, rotatedArrays, this.block_manager, [deltaRotation])
-            let i = 0
-            const rotatedBlocks = rotatedArrays[deltaRotation]
-            for(const block of srcBlocks) {
-                Object.assign(block, rotatedBlocks[i++])
-            }
+            rotateBlocks(rotatingBlocks, deltaRotation)
+            rotatingBlocks.length = 0
             // повернуть schematic.offset
             Object.assign(schematic.offset, new Vector(schematic.offset).rotateByCardinalDirectionSelf(deltaRotation))
         }
@@ -418,6 +459,9 @@ export class SchematicReader {
 
             if (st.read_entity_props) {
                 new_block = this.createBlockFromSchematic(st.schematicBlock, st.b, schematic, blockEntities, pos_inSchem, st.read_entity_props)
+                if (this.current_rotation) {
+                    rotatingBlocks.push(new_block)
+                }
             }
             // добавить сам блок и жидкости только если он входит в запрашиваемый AABB
             if (inRequestedAABB) {
@@ -441,6 +485,11 @@ export class SchematicReader {
                     map.set(posi, {posi, item})
                 }
             }
+        }
+
+        // повернуть точлько что созданные блоки (не взятые напрямую из палитры), если нужно
+        if (this.current_rotation) {
+            rotateBlocks(rotatingBlocks, this.current_rotation)
         }
 
         // Преобразовать реузльтат в массив
@@ -482,9 +531,10 @@ export class SchematicReader {
             block.name = 'redstone_torch';
         } else if(block.name.endsWith('_sign')) {
             block.on_wall = block.name.endsWith('_wall_sign');
-            if(block.on_wall) {
-                block.name = block.name.replace('_wall_', '_');
-            }
+            block.wall_hanging = block.name.endsWith('_wall_hanging_sign')
+            block.hanging = block.name.endsWith('_hanging_sign')
+            block.name = block.name.replace('_wall_', '_')
+                .replace('_hanging_', '_')
         } else if(block.name.endsWith('_banner')) {
             block.on_wall = block.name.endsWith('_wall_banner');
             if(block.on_wall) {
@@ -548,21 +598,34 @@ export class SchematicReader {
                     new_block.extra_data = chest_extra_data;
                 }
             } else if(b.is_sign) {
+
+                const parseSignTextField = (index: int, value: string) => {
+                    let temp: Dict
+                    try {
+                        temp = JSON.parse(value)
+                    } catch(e) {
+                        temp = { text: value }
+                    }
+                    texts[index] = temp?.text || '';
+                    formatted_text[index] = temp;
+                }
+
                 // text
                 let texts = Array(4);
                 let formatted_text = [];
-                let text_names = ['Text1', 'Text2', 'Text3', 'Text4'];
-                for(let i in text_names) {
-                    const t = text_names[i];
-                    if(t in block.entities) {
-                        var temp;
-                        try {
-                            temp = JSON.parse(block.entities[t]);
-                        } catch(e) {
-                            temp = { text: block.entities[t] };
+                const {front_text} = block.entities
+                if (front_text?.messages) {
+                    for(let i = 0; i < texts.length; i++) {
+                        parseSignTextField(i, front_text.messages[i])
+                    }
+                    // еще в этом формате может быть block.entities.back_text
+                } else {
+                    let text_names = ['Text1', 'Text2', 'Text3', 'Text4'];
+                    for(let i = 0; i < text_names.length; i++) {
+                        const t = text_names[i];
+                        if(t in block.entities) {
+                            parseSignTextField(i, block.entities[t])
                         }
-                        texts[i] = temp?.text || '';
-                        formatted_text[i] = temp;
                     }
                 }
                 setExtraData('text', texts.join('\r'));
@@ -730,11 +793,11 @@ export class SchematicReader {
                     }
                 }
                 //
-                if(props.rotation) {
+                if(props && ('rotation' in props)) {
                     if(b.tags.includes('rotate_x8')) {
                         new_block.rotate.x = Math.round(props.rotation / 8 * 360) % 360
                     } else if(b.tags.includes('rotate_x16')) {
-                        new_block.rotate.x = Math.round(props.rotation / 16 * 360) % 360
+                        new_block.rotate.x = (Math.round(props.rotation / 16 * 360 + 180) % 360)
                     } else if(b.tags.includes('rotate_sign')) {
                         new_block.rotate.x = (props.rotation / 16 * 4 + 2) % 4
                     }
@@ -781,7 +844,11 @@ export class SchematicReader {
                     setExtraData('text', block.signText);
                 }
                 if(block.on_wall) {
-                    new_block.rotate.y = 0;
+                    new_block.rotate.y = SIGN_POSITION.WALL;
+                } else if (block.wall_hanging) {
+                    new_block.rotate.y = SIGN_POSITION.WALL_ALT;
+                } else if (block.hanging) {
+                    new_block.rotate.y = SIGN_POSITION.CEIL;
                 }
             }
             // torch
@@ -863,6 +930,9 @@ export class SchematicReader {
                 setExtraData('ripe', !!props.berries)
             } else if(b.name == 'LIGHT') {
                 setExtraData('level', props.level | 0)
+            } else if(('layers' in props) && b.layering) {
+                const h = b.layering.height
+                setExtraData('height', h * props.layers)
             }
             if('waterlogged' in props && props.waterlogged) {
                 new_block.waterlogged = props.waterlogged;

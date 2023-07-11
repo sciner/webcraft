@@ -173,11 +173,11 @@ export class CubeTexturePool {
             // wtf
             return;
         }
-        if (tex.isRegion) {
+        if (tex.source?.resource?.useSubRegions) {
             // regions
             let found = null;
             for (let i = 0; i < pools.length; i++) {
-                if (pools[i].baseTexture === tex.baseTexture) {
+                if (pools[i].baseTexture === tex.source) {
                     found = this.pools[i];
                 }
             }
@@ -194,14 +194,16 @@ export class CubeTexturePool {
             }
             found.freeRegions.push(tex);
             this.totalRegions--;
-            tex.dispose();
+            // tex.destroy();
         } else {
             // singles
             const ind = singles.indexOf(tex);
             if (ind >= 0) {
                 singles.splice(ind, 1);
                 this.totalRegions--;
-                tex.destroy();
+                tex.source.destroy();
+                tex.source = null;
+                // tex.destroy();
             }
         }
     }

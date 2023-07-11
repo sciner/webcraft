@@ -125,19 +125,22 @@ export class CompileData {
     initButtons() {
         let i = 0;
         const materials = [
-            this.getBlock('OAK_PLANKS'),
-            this.getBlock('BIRCH_PLANKS'),
-            this.getBlock('SPRUCE_PLANKS'),
-            this.getBlock('ACACIA_PLANKS'),
-            this.getBlock('JUNGLE_PLANKS'),
-            this.getBlock('DARK_OAK_PLANKS'),
-            this.getBlock('WARPED_PLANKS'),
-            this.getBlock('STONE')
+            {id: null, mat: this.getBlock('OAK_PLANKS')},
+            {id: null, mat: this.getBlock('BIRCH_PLANKS')},
+            {id: null, mat: this.getBlock('SPRUCE_PLANKS')},
+            {id: null, mat: this.getBlock('ACACIA_PLANKS')},
+            {id: null, mat: this.getBlock('JUNGLE_PLANKS')},
+            {id: null, mat: this.getBlock('DARK_OAK_PLANKS')},
+            {id: null, mat: this.getBlock('WARPED_PLANKS')},
+            {id: null, mat: this.getBlock('STONE')},
+            {id: 1387, mat: this.getBlock('POLISHED_BLACKSTONE')},
+            {id: 949, mat: this.getBlock('CRIMSON_PLANKS')}
         ];
-        for(let mat of materials) {
+        for(const item of materials) {
+            const mat = item.mat
             let name_prefix = mat.name.replace('_PLANKS', '');
             const b = {
-                "id": START_BUTTON_ID + i,
+                "id": item.id ?? (START_BUTTON_ID + i),
                 "name": name_prefix + '_BUTTON',
                 "material": mat.material,
                 "sound": mat.sound,
@@ -193,7 +196,7 @@ export class CompileData {
                 "tags": [
                     BLOCK_GROUP_TAG.FURNITURE,
                     "bed",
-                    "rotate_by_pos_n",
+                    "rotate_by_pos_n_hor",
                     "mask_color"
                 ]
             };
@@ -673,7 +676,7 @@ export class CompileData {
                 "tags": [
                     "banner",
                     "no_drop_ao",
-                    "rotate_x16",
+                    "rotate_x16_and_wall",
                     "mask_color"
                 ]
             };

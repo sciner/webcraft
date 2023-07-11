@@ -5,6 +5,8 @@ import glMatrix from "@vendors/gl-matrix-3.3.min.js"
 import {IvanArray, Vector} from "../helpers.js";
 import type {TerrainGeometry15} from "../geom/terrain_geometry_15.js";
 import type {Renderer} from "../render.js";
+import type {MeshDrawer} from "./mesh_drawer.js";
+import {MeshBuilder, MeshPart, MeshPartCollection, TrivialMeshBuilder} from "./mesh_builder.js";
 const {mat4} = glMatrix;
 
 export enum MESH_RENDER_LIST {
@@ -35,6 +37,8 @@ function meshSorter(mesh1: MeshBatcherEntry, mesh2: MeshBatcherEntry) {
 
 export class MeshBatcher implements IMeshDrawer {
     elements: IvanArray<MeshBatcherEntry>[] = [];
+    frame_mesh_builder = new MeshBuilder();
+    // frame_mesh_builder = new TrivialMeshBuilder<TerrainGeometry15>(TerrainGeometry15);
     constructor() {
         this.elements.push(null);
         for (let i = 1; i < RENDER_LIST_NEXT; i++) {
@@ -86,10 +90,48 @@ export class MeshBatcher implements IMeshDrawer {
         this.elements[renderListNum].push(entry);
     }
 
+    drawPart(part: MeshPart, material: TerrainMaterial, pos: Vector, modelMatrix?: imat4) {
+        if (!part.geom) {
+            if (part.vertices.length === 0) {
+                return;
+            }
+            this.frame_mesh_builder.addPart(part);
+        }
+
+        const entry = MeshBatcherEntry.pool.alloc();
+        if (modelMatrix) {
+            entry.hasModelMatrix = true;
+            mat4.copy(entry.modelMatrix, modelMatrix);
+        }
+        entry.pos.copyFrom(pos);
+        entry.geom = part.geom;
+        entry.start = part.start;
+        entry.count = part.count;
+        entry.material = material;
+
+        const renderListNum = this._renderListMode > 0 ?
+            this._renderListMode : this.getMaterialNumber(material);
+
+        this.elements[renderListNum].push(entry);
+    }
+
+    drawParts(parts: MeshPartCollection, def_material: TerrainMaterial, pos: Vector, modelMatrix?: imat4) {
+        //TODO: maybe hardcode this thing?
+        for (let i = 0; i < parts.entries.length; i++) {
+            this.drawPart(parts.entries[i], parts.entries[i].material || def_material, pos, modelMatrix);
+        }
+    }
+
     drawList(mode: MESH_RENDER_LIST)
     {
+        if (this.frame_mesh_builder.vertices.length > 0)
+        {
+            this.frame_mesh_builder.buildGeom();
+            this.frame_mesh_builder = new MeshBuilder();
+        }
+
         const {pixiRender} = this.render.renderBackend;
-        const {mesh} = pixiRender.plugins;
+        const mesh: MeshDrawer = pixiRender.plugins.mesh;
         pixiRender.batch.setObjectRenderer(mesh);
         const elements = this.elements[mode];
 
@@ -105,13 +147,17 @@ export class MeshBatcher implements IMeshDrawer {
         for (let i = 0; i < elements.count; i++) {
             const entry = elements.arr[i];
             mesh.draw(entry.geom, entry.material, entry.pos,
-                entry.hasModelMatrix ? entry.modelMatrix : null);
+                entry.hasModelMatrix ? entry.modelMatrix : null, entry.count || entry.geom.size, entry.start);
         }
     }
 
     clear() {
         for (let i = 1; i < RENDER_LIST_NEXT; i++) {
-            this.elements[i].clear();
+            const list = this.elements[i];
+            for (let j = 0; j < list.count; j++) {
+                MeshBatcherEntry.pool.free(list.arr[j]);
+            }
+            list.clear();
         }
     }
 }
@@ -124,7 +170,7 @@ export class MeshBatcherEntry {
     hasModelMatrix = false;
     dist = 0;
     start = 0;
-    finish = 0;
+    count = 0;
 
     reset()
     {
@@ -136,6 +182,8 @@ export class MeshBatcherEntry {
         this.geom = null;
         this.hasModelMatrix = false;
         this.dist = 0;
+        this.start = 0;
+        this.count = 0;
     }
 
     static pool = new SimplePool(MeshBatcherEntry);

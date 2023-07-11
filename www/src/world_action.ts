@@ -130,6 +130,15 @@ function calcRotateByPosN(rot, pos_n) {
 
 }
 
+function fillPlateSides(pos_n : IVector, extra_data : any) {
+    if (pos_n.y == 1) extra_data.up = true
+    if (pos_n.y == -1) extra_data.down = true
+    if (pos_n.x == -1) extra_data.west = true
+    if (pos_n.x == 1) extra_data.east = true
+    if (pos_n.z == -1) extra_data.south = true
+    if (pos_n.z == 1) extra_data.north = true
+}
+
 class IPaintingSize {
     name : string
     move: {x?: int, y?: int, z?: int}
@@ -433,10 +442,13 @@ export function dropBlock(player : any = null, tblock : TBlock | FakeTBlock, act
         } else if(tblock.material.spawnable) {
             items.push(makeDropItem(tblock, {id: tblock.id, count: 1}));
         }
+        const drop_rows = []
         for(let item of items) {
-            actions.addDropItem({pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force});
+            const drop_row = {pos: tblock.posworld.clone().addScalarSelf(.5, 0, .5), items: [item], force: !!force}
+            actions.addDropItem(drop_row)
+            drop_rows.push(drop_row)
         }
-        return items
+        return drop_rows
     }
     return [];
 }
@@ -466,6 +478,14 @@ class DestroyBlocks {
         if(cv.has(tblock.posworld)) {
             return false;
         }
+        
+        // генерация содержимого сундуков, если они должны сгенерироваться
+        if(Qubatch.is_server) {
+            if(tblock.material.chest && tblock.extra_data && tblock.extra_data.generate) {
+                (this.world as any).chests.generateChest(tblock, tblock.posworld.clone())
+            }
+        }
+
         cv.add(tblock.posworld, true);
         const destroyed_block = {pos: tblock.posworld, item: {id: BLOCK.AIR.id}, destroy_block: {id: tblock.id} as IBlockItem, action_id: BLOCK_ACTION.DESTROY}
         if(tblock.extra_data) {
@@ -476,21 +496,21 @@ class DestroyBlocks {
         if(tblock.material.sound) {
             actions.addPlaySound({tag: tblock.material.sound, action: 'dig', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
-        const drop_items = [];
+        const drop_rows = [];
         //
         if(tblock.material.is_jukebox) {
             // If disc exists inside jukebox
             if(tblock.extra_data && tblock.extra_data.disc) {
                 const disc_id = tblock.extra_data.disc.id;
                 // Drop disc
-                drop_items.push(...dropBlock(player, new FakeTBlock(disc_id, null, tblock.posworld.clone(), null, null, null, null, null, null), actions, false, this.current_inventory_item));
+                drop_rows.push(...dropBlock(player, new FakeTBlock(disc_id, null, tblock.posworld.clone(), null, null, null, null, null, null), actions, false, this.current_inventory_item));
                 // Stop play disc
                 actions.stop_disc.push({pos: tblock.posworld.clone()});
             }
         }
         // Drop block if need
         if(!no_drop) {
-            drop_items.push(...dropBlock(player, tblock, actions, false, this.current_inventory_item));
+            drop_rows.push(...dropBlock(player, tblock, actions, false, this.current_inventory_item));
         }
         // удаляем капельники
         if (tblock.id == BLOCK.POINTED_DRIPSTONE.id && tblock?.extra_data) {
@@ -556,10 +576,12 @@ class DestroyBlocks {
         }
         //
         if(tblock.material.chest) {
-            const di = drop_items[0]
+            const drop_row = drop_rows[0]
+            const di = drop_row.items[0]
             if(tblock.hasTag('store_items_in_chest')) {
                 di.extra_data = {...tblock.extra_data}
                 di.entity_id = tblock.entity_id || randomUUID()
+                drop_row.force = true
             } else {
                 if('extra_data' in di) delete(di.extra_data)
                 if('entity_id' in di) delete(di.entity_id)
@@ -570,8 +592,10 @@ class DestroyBlocks {
         if(tblock.material.style_name == 'cover' && tblock.extra_data) {
             const existing_faces = Object.keys(tblock.extra_data).filter(value => COVER_STYLE_SIDES.includes(value));
             const dcount = existing_faces.length
-            if(dcount > 1 && drop_items.length == 1) {
-                drop_items[0].count = dcount
+            const drop_row = drop_rows[0]
+            if(dcount > 1 && drop_row.items.length == 1) {
+                const di = drop_row.items[0]
+                di.count = dcount
             }
         }
     }
@@ -1324,8 +1348,14 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
             }
             // Rotate block one of 16 poses
             if(mat_block.tags.includes('rotate_x16')) {
-                if(new_item.rotate.y != 0) {
-                    new_item.rotate.x = action_player_info.rotate.z / 90;
+                if(new_item.rotate.y == 0 && mat_block.tags.includes('rotate_x16_and_wall')) {
+                    for (let d in Vector.DIRECTIONS_BY_ROTATE) {
+                        if (Vector.DIRECTIONS_BY_ROTATE[d].equal(pos.n)) {
+                            new_item.rotate.x = +d
+                        }
+                    }
+                } else {
+                    new_item.rotate.x = (action_player_info.rotate.z) % 360
                 }
             }
             // Rotate block as sign
@@ -1393,21 +1423,32 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
 }
 
 //
-function calcBlockOrientation(mat_block, rotate, n) {
-    let resp = null;
-    const rotate_by_pos_n_5 = mat_block.tags.includes('rotate_by_pos_n_5');
-    if(mat_block.tags.includes('rotate_by_pos_n')) {
-        resp = calcRotateByPosN(rotate, n);
+function calcBlockOrientation(mat_block : IBlockMaterial, rotate : IVector, n) : Vector {
+    let resp = null
+    if(mat_block.tags.includes('rotate_by_pos_n_hor')) {
+        resp = new Vector(0, 1, 0)
+        if(n.y == 0) {
+            for (let d in Vector.DIRECTIONS_BY_ROTATE) {
+                if (Vector.DIRECTIONS_BY_ROTATE[d].equal(n)) {
+                    resp.x = (+d + 2) % 4
+                }
+            }
+        } else {
+            resp.x = BLOCK.getCardinalDirection(rotate)
+        }
+    } else if(mat_block.tags.includes('rotate_by_pos_n')) {
+        resp = calcRotateByPosN(rotate, n)
         if(mat_block.tags.includes('rotate_by_pos_n_xyz')) {
-            if(resp.y) resp.set(0, 1, 0);
-            if(resp.x == CD_ROT.SOUTH) resp.set(7, 0, 0);
-            if(resp.x == CD_ROT.EAST) resp.set(13, 0, 0);
+            if(resp.y) resp.set(0, 1, 0)
+            if(resp.x == CD_ROT.SOUTH) resp.set(7, 0, 0)
+            if(resp.x == CD_ROT.EAST) resp.set(13, 0, 0)
         }
     } else {
-        resp = calcRotate(rotate, n, rotate_by_pos_n_5);
+        const rotate_by_pos_n_5 = mat_block.tags.includes('rotate_by_pos_n_5')
+        resp = calcRotate(rotate, n, rotate_by_pos_n_5)
     }
-    return resp;
-};
+    return resp
+}
 
 // Set action block
 function setActionBlock(actions, world, pos, orientation, mat_block, new_item) : boolean {
@@ -2198,9 +2239,9 @@ async function openPortal(e, world, pos, player, world_block, world_material : I
         };
         //
         if(dir == DIRECTION.NORTH) {
-            portal.player_pos.addScalarSelf(frame.width / 2, 1, .5);
-        } else {
             portal.player_pos.addScalarSelf(.5, 1, frame.width / 2);
+        } else {
+            portal.player_pos.addScalarSelf(frame.width / 2, 1, .5);
         }
         // check restricts
         let restricted = false;
@@ -2381,51 +2422,20 @@ function putPlate(e, world, pos, player, world_block, world_material, mat_block,
         if (pos.n.y != 0) {
             block.extra_data.rotate = (orientation.x == DIRECTION.WEST || orientation.x == DIRECTION.EAST) ? true : false;
         }
-        if (pos.n.y == 1) {
-            block.extra_data.up = true;
-        }
-        if (pos.n.y == -1) {
-            block.extra_data.down = true;
-        }
-        if (pos.n.x == -1) {
-            block.extra_data.west = true;
-        }
-        if (pos.n.x == 1) {
-            block.extra_data.east = true;
-        }
-        if (pos.n.z == -1) {
-            block.extra_data.south = true;
-        }
-        if (pos.n.z == 1) {
-            block.extra_data.north = true;
-        }
+        fillPlateSides(pos.n, block.extra_data)
         actions.decrement = true;
         actions.addBlocks([{pos: block.posworld, item: {id: block.id, extra_data: block.extra_data}, action_id: BLOCK_ACTION.MODIFY}]);
-    } else if (world_block.id != mat_block.id){
-        const data : any = {};
-        if (pos.n.y == 1) {
-            data.up = true;
+    } else if(world_block.id != mat_block.id) {
+        const replaceBlock = BLOCK.canReplace(block.id, block.extra_data, current_inventory_item.id)
+        if(replaceBlock) {
+            extra_data = {}
+            fillPlateSides(pos.n, extra_data)
+            extra_data.rotate = (orientation.x == DIRECTION.WEST || orientation.x == DIRECTION.EAST) ? true : false
+            actions.decrement = true
+            actions.addBlocks([{pos: position, item: {id: mat_block.id, extra_data: extra_data}, action_id: BLOCK_ACTION.CREATE}])
         }
-        if (pos.n.y == -1) {
-            data.down = true;
-        }
-        if (pos.n.x == -1) {
-            data.west = true;
-        }
-        if (pos.n.x == 1) {
-            data.east = true;
-        }
-        if (pos.n.z == -1) {
-            data.south = true;
-        }
-        if (pos.n.z == 1) {
-            data.north = true;
-        }
-        data.rotate = (orientation.x == DIRECTION.WEST || orientation.x == DIRECTION.EAST) ? true : false;
-        actions.decrement = true;
-        actions.addBlocks([{pos: position, item: {id: mat_block.id, extra_data: data}, action_id: BLOCK_ACTION.MODIFY}]);
     }
-    return true;
+    return true
 }
 
 // Open fence gate

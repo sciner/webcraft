@@ -8,6 +8,7 @@ import type { World } from '../world.js';
 
 const CENTER_WIDTH      = 8 / 16;
 const CONNECT_X         = 6 / 16;
+const CONNECT_Z         = 8 / 16
 const CONNECT_HEIGHT    = 14 / 16;
 const CONNECT_BOTTOM    = 0 / 16;
 
@@ -30,11 +31,11 @@ export default class style {
 
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
         const bm                = style.block_manager
-        const CENTER_WIDTH      = 8 / 16
-        const CONNECT_HEIGHT    = 14 / 16
-        const CONNECT_BOTTOM    = 0 / 16
-        const CONNECT_X         = 6 / 16
-        const CONNECT_Z         = 8 / 16
+        // const CENTER_WIDTH      = 8 / 16
+        // const CONNECT_HEIGHT    = 14 / 16
+        // const CONNECT_BOTTOM    = 0 / 16
+        // const CONNECT_X         = 6 / 16
+        // const CONNECT_Z         = 8 / 16
         const height            = for_physic ? 1.5 : CONNECT_HEIGHT
         const shapes            = []
         //
@@ -94,6 +95,7 @@ export default class style {
 
         let zconnects = 0;
         let xconnects = 0;
+        const sz = 1024
 
         //
         const checkDiag = (n1, n2) => {
@@ -113,14 +115,14 @@ export default class style {
         // South
         if(ss) {
             let h = checkDiag('SOUTH', 'UP') ? 1 : CONNECT_HEIGHT;
-            const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
+            const c2 = [c[0], c[1] + ((1-h)/2) * 16 / sz, c[2], c[3]]
             push_part(vertices, c2, x + .5, y + CONNECT_BOTTOM, z + .25, CONNECT_X, .5, h);
             zconnects++;
         }
         // North
         if(sn) {
             let h = checkDiag('NORTH', 'UP') ? 1 : CONNECT_HEIGHT;
-            const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
+            const c2 = [c[0], c[1] + ((1-h)/2) * 16 / sz, c[2], c[3]]
             push_part(vertices, c2, x + .5, y + CONNECT_BOTTOM, z + .75, CONNECT_X, .5, h);
             zconnects++;
         }
@@ -131,14 +133,14 @@ export default class style {
         // West
         if(sw) {
             let h = checkDiag('WEST', 'UP') ? 1 : CONNECT_HEIGHT;
-            const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
+            const c2 = [c[0], c[1] + ((1-h)/2) * 16 / sz, c[2], c[3]]
             push_part(vertices, c2, x + .25, y + CONNECT_BOTTOM, z + .5, .5, CONNECT_X, h);
             xconnects++;
         }
         // East
         if(se) {
             let h = checkDiag('EAST', 'UP') ? 1 : CONNECT_HEIGHT;
-            const c2 = [c[0], c[1] + (1 - h) * 16 / 1024, c[2], c[3]];
+            const c2 = [c[0], c[1] + ((1-h)/2) * 16 / sz, c[2], c[3]]
             push_part(vertices, c2, x + .75, y + CONNECT_BOTTOM, z + .5, .5, CONNECT_X, h);
             xconnects++;
         }

@@ -24,6 +24,8 @@ export const DIRT_BLOCK_NAMES               = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB'
 export const OK_FOR_PLANT_BLOCK_NAMES       = ['GRASS_BLOCK', 'GRASS_BLOCK_SLAB', 'DIRT_PATH', 'DIRT', 'SNOW_DIRT', 'PODZOL', 'MYCELIUM', 'FARMLAND', 'FARMLAND_WET']
 export const REPLACEABLE_BLOCKS             = ['GRASS', 'STILL_WATER', 'FLOWING_WATER', 'STILL_LAVA', 'FLOWING_LAVA', 'CLOUD', 'TALL_GRASS', 'FIRE', 'LIGHT']
 export const LAYERING_MOVE_TO_DOWN_STYLES   = ['grass', 'tall_grass', 'wildflowers']
+export const FENCE_CONNECT_SIDES            = ['fence', 'fence_gate', 'wall', 'pane']
+export const WALL_CONNECT_SIDES             = ['wall', 'pane', 'fence', 'wall']
 
 export const AIR_BLOCK_SIMPLE = Object.freeze({id: 0})
 const AIR_BLOCK_STRINGIFIED = '{"id":0}' // JSON.stringify(AIR_BLOCK_SIMPLE)
@@ -283,7 +285,7 @@ export class BLOCK {
 
     static MAX_BLOCK_ID                     = 9999
 
-    static list                             = new Map();
+    static list : Map<int, IBlockMaterial>  = new Map()
     static styles                           = new Map();
     /** Sorted blocks, without null elements. Not by id. Not to be confused with {@link BLOCK_BY_ID} */
     static list_arr                         : IBlockMaterial[] = []; // see also getAll()
@@ -920,8 +922,12 @@ export class BLOCK {
         }
         block.tags              = block?.tags || [];
         // rotate_by_pos_n_xyz
-        if(block.tags.includes('rotate_by_pos_n_xyz') || block.tags.includes('rotate_by_pos_n_6') || block.tags.includes('rotate_by_pos_n_12')) {
+        if(block.tags.includes('rotate_by_pos_n_xyz') || block.tags.includes('rotate_by_pos_n_6') || block.tags.includes('rotate_by_pos_n_12') || block.tags.includes('rotate_by_pos_n_hor')) {
             block.tags.push('rotate_by_pos_n');
+        }
+        // rotate_x16
+        if(block.tags.includes('rotate_x16_and_wall')) {
+            block.tags.push('rotate_x16');
         }
         //
         block.has_window        = !!block.window;
@@ -1400,26 +1406,29 @@ export class BLOCK {
     }
 
     static canFenceConnect(block : TBlock) : boolean {
+        const mat = block.material
         return block.id > 0 &&
             (
-                !block.material.transparent ||
-                block.material.is_simple_qube ||
-                block.material.is_solid ||
-                ['fence', 'fence_gate', 'wall', 'pane'].includes(block.material.style_name)
+                !mat.transparent ||
+                mat.is_simple_qube ||
+                mat.is_solid ||
+                FENCE_CONNECT_SIDES.includes(mat.style_name)
             ) && (
-                block.material.material.id != 'leaves'
+                mat.material.id != 'leaves'
             )
     }
 
     static canWallConnect(block : TBlock) : boolean {
+        const mat = block.material
         return block.id > 0 &&
             (
-                !block.material.transparent ||
-                block.material.is_simple_qube ||
-                block.material.is_solid ||
-                ['wall', 'pane', 'fence', 'wall'].includes(block.material.style_name)
+                !mat.transparent ||
+                mat.is_simple_qube ||
+                mat.is_solid ||
+                (mat.style_name == 'cube' && !mat.width && !mat.height) ||
+                WALL_CONNECT_SIDES.includes(mat.style_name)
             ) && (
-                block.material.material.id != 'leaves'
+                mat.material.id != 'leaves'
             )
     }
 
@@ -1582,6 +1591,7 @@ export class BLOCK {
             block.interact_water = block.tags.includes('interact_water') || !!block.layering?.slab
             block.hide_in_creative = block.tags.includes('hide_in_creative')
             block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab || !!block.is_leaves || !!block.tags.includes('trapdoor')
+            block.is_shulker_box = block.name.endsWith('_SHULKER_BOX')
             if(!block.support_style && block.planting) {
                 block.support_style = 'planting'
             }

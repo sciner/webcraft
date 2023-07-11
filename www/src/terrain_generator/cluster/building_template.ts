@@ -5,7 +5,7 @@ import {Vector, VectorCollector, ShiftedMatrix, VectorCollector2D, ArrayHelpers,
 import { BASEMNET_DEPTHS_BY_DISTANCE, BASEMENT_ADDITIONAL_WIDTH, BASEMENT_MAX_PAD,
     BASEMENT_BOTTOM_BULGE_BLOCKS, BASEMENT_BOTTOM_BULGE_PERCENT, BASEMENT_SIDE_BULGE } from "./building.js";
 import { calcMinFloorYbyXZ } from './building_helpers.js';
-import { TREASURE_SOURCE } from "../../constant.js";
+import {SIGN_POSITION, TREASURE_SOURCE} from "../../constant.js";
 
 const DELETE_BLOCK_ID = 199; // this block is automatically removed from the templates
 
@@ -301,9 +301,14 @@ export class BuildingTemplate {
         for(const [pos, block] of all_blocks.entries()) {
             if(block.block_id == DELETE_BLOCK_ID) {
                 all_blocks.delete(pos)
-            } else if(block.block_id == CHEST_ID) {
-                if(!block.extra_data) block.extra_data = {};
-                block.extra_data = {...block.extra_data, generate: true, params: {source: TREASURE_SOURCE.BUILDING}}
+            } else if(block.block_id != 0) {
+                if(block.block_id == CHEST_ID) {
+                    if(!block.extra_data) block.extra_data = {}
+                    block.extra_data = {...block.extra_data, generate: true, params: {source: TREASURE_SOURCE.BUILDING}}
+                } else if(block.mat.is_shulker_box) {
+                    if(!block.extra_data) block.extra_data = {}
+                    block.extra_data = {...block.extra_data, generate: true, params: {source: TREASURE_SOURCE.SHULKER_BOX}}
+                }
             }
         }
 
@@ -738,10 +743,14 @@ export class BuildingTemplate {
         const ROT3      = ['armor_stand']
         const ROT_RAILS = ['rail', 'rails']
 
+        let mat: IBlockMaterial
+        let mat_air: IBlockMaterial = bm.fromId(0)
+
         //
         const rot_none = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i];
+                block.mat = mat
                 rot[direction].push(block);
             }
         };
@@ -758,6 +767,7 @@ export class BuildingTemplate {
                         rb.rotate.x = (rb.rotate.x + direction) % 4;
                     }
                 }
+                rb.mat = mat
                 rot[direction].push(rb);
             }
         }
@@ -768,6 +778,7 @@ export class BuildingTemplate {
                 const direction = directions[i];
                 const rb = ObjectHelpers.deepCloneObject(block);
                 rb.rotate.x = (rb.rotate.x + direction) % 4;
+                rb.mat = mat
                 rot[direction].push(rb);
             }
         }
@@ -778,6 +789,7 @@ export class BuildingTemplate {
                 const direction = directions[i];
                 const rb = ObjectHelpers.deepCloneObject(block);
                 rb.rotate.x = (rb.rotate.x + direction + 2) % 4;
+                rb.mat = mat
                 rot[direction].push(rb);
             }
         }
@@ -792,6 +804,7 @@ export class BuildingTemplate {
                 } else {
                     rb.rotate.x = (rb.rotate.x - direction + 4) % 4
                 }
+                rb.mat = mat
                 rot[direction].push(rb)
             }
         }
@@ -801,6 +814,7 @@ export class BuildingTemplate {
                 const direction = directions[i];
                 const rb = ObjectHelpers.deepCloneObject(block);
                 rb.rotate.x = (rb.rotate.x - direction * 90) % 360;
+                rb.mat = mat
                 rot[direction].push(rb);
             }
         }
@@ -808,7 +822,17 @@ export class BuildingTemplate {
         const rotx16 = rotx8
 
         const rot_sign = (block) => {
-            rotx16(block)
+            for(let i = 0; i < directions.length; i++) {
+                const direction = directions[i]
+                const rb = ObjectHelpers.deepCloneObject(block)
+                if(rb.rotate.y === SIGN_POSITION.WALL || rb.rotate.y === SIGN_POSITION.WALL_ALT) {
+                    rb.rotate.x = (rb.rotate.x + direction + 4) % 4
+                } else {
+                    rb.rotate.x = (rb.rotate.x - direction + 4) % 4
+                }
+                rb.mat = mat
+                rot[direction].push(rb)
+            }
         }
 
         const rot_rails = (block) => {
@@ -833,6 +857,7 @@ export class BuildingTemplate {
                     }
                 }
                 rb.extra_data.shape = new_shape
+                rb.mat = mat
                 rot[direction].push(rb)
             }
         }
@@ -864,6 +889,7 @@ export class BuildingTemplate {
                 } else if (block.rotate) {
                     rb.rotate.x = (rb.rotate.x + direction) % 4
                 }
+                rb.mat = mat
                 rot[direction].push(rb)
             }
         }
@@ -874,12 +900,12 @@ export class BuildingTemplate {
 
             // если это воздух, то просто прописываем его во все измерения
             if(id == 0) {
-                rot_none(block);
+                mat = mat_air
+                rot_none(block)
                 continue
             }
 
             // получаем материал
-            let mat: IBlockMaterial
             if(blockAny.mat) {
                 mat = blockAny.mat
                 delete(blockAny.mat);

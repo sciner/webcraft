@@ -1,6 +1,6 @@
 import {  Vector, VectorCollector} from "../../helpers.js";
 import { CLUSTER_PADDING } from "./base.js";
-import { VilageSchema } from "./vilage_schema.js";
+import { IVilageOptions, VilageSchema } from "./vilage_schema.js";
 import { BuildingPalettes } from "./building/palette.js";
 import { impl as alea } from '@vendors/alea.js';
 
@@ -66,15 +66,13 @@ export class ClusterVilage extends ClusterBuildingBase {
     }
 
     //
-    initVilageOptions(biome) {
+    initVilageOptions(biome) : {schema_options : IVilageOptions, building_palette_options: any} {
 
-        const clusterManager = this.clusterManager;
-
-        const schema_options = {
-            margin: CLUSTER_PADDING,
+        const schema_options : IVilageOptions = {
+            margin:             CLUSTER_PADDING,
             road_damage_factor: ROAD_DAMAGE_FACTOR, // this.flat ? 0 : ROAD_DAMAGE_FACTOR
-            size: this.clusterManager.size.x,
-            quant: 0
+            size:               this.clusterManager.size.x,
+            quant:              0
         }
 
         let building_palette_options = {};
@@ -83,7 +81,8 @@ export class ClusterVilage extends ClusterBuildingBase {
         if(this.clusterManager.layer) {
 
             // ширина ячеек между улицами под дома
-            schema_options.quant = 19;
+            schema_options.quant = 19
+            schema_options.house_intencity = 1
 
             // для каждой деревни по каким либо условиям можно генерировать собственный набор домов со своими правилами
             // например взять несколько рандомно разбросанных координат и посмотреть там биомы

@@ -6,15 +6,15 @@ import { Resources } from '../../resources.js';
 import type {TParsedAnimation} from '../../bbmodel/model.js';
 import {BBModel_Model} from '../../bbmodel/model.js';
 import type { BaseResourcePack } from '../../base_resource_pack.js';
-import { BBModel_Group } from '../../bbmodel/group.js';
+import type { BBModel_Group } from '../../bbmodel/group.js';
 import type Mesh_Object_Block_Drop from './block_drop.js';
-import type { Renderer } from '../../render.js';
 import { Mesh_Object_Asteroid } from './asteroid.js';
 import { BLOCK, DBItemBlock } from '../../blocks.js';
 import { default as default_style } from '../../block_style/default.js';
 import type { TerrainMaterial } from '../../renders/terrain_material.js';
 import type {World} from "../../world";
 import type {MeshBatcher} from "../mesh_batcher.js";
+import type {MeshPartCollection} from "../mesh_builder.js";
 
 export class MeshObjectCustomReplace {
     buffer: TerrainGeometry15
@@ -195,15 +195,11 @@ class MeshObjectModifiers {
         const mesh = this.mesh
         let group : any = mesh.model.groups.get(group_name)
         if(group && !group.isBone()) {
-            mesh.vertices_pushed.delete(group.path)
             while(true) {
                 group = group.parent
-                if(group) {
-                    mesh.vertices_pushed.delete(group.path)
-                    if(group.isBone()) {
-                        mesh.deleteGeometry(group.name)
-                        break
-                    }
+                if(group?.isBone()) {
+                    mesh.deleteGeometry(group.name)
+                    break
                 }
             }
         }
@@ -267,8 +263,7 @@ class MeshObjectModifiers {
 // Mesh_Object_BBModel
 export class Mesh_Object_BBModel extends Mesh_Object_Base {
     model:              BBModel_Model
-    geometries:         Map<string, TerrainGeometry15> = new Map()
-    vertices_pushed:    Map<string, boolean> = new Map()
+    geometries:         Map<string, MeshPartCollection> = new Map()
     resource_pack:      BaseResourcePack
     modifiers:          MeshObjectModifiers
     hide_groups:        string[]
@@ -326,7 +321,9 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         this.matrix         = mat4.create();
         this.start_time     = performance.now();
         this.resource_pack  = world.block_manager.resource_pack_manager.get('bbmodel');
-        this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${kmat}/terrain/${model.json._properties.texture_id}`);
+        this._mat_tex_id    = model.json._properties.texture_id;
+        this.gl_material    = this.resource_pack.getMaterial(`bbmodel/${kmat}/terrain/${this._mat_tex_id}`);
+
         this.buffer         = new TerrainGeometry15(this.vertices)
         this.modifiers      = new MeshObjectModifiers(this)
         this.hide_groups    = hide_groups ?? []
@@ -335,6 +332,12 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         this.redraw(0.)
         this.setAnimation(animation_name)
 
+    }
+
+    _mat_tex_id: string
+
+    getPartMaterial(material_group_key: string) {
+        return this.resource_pack.getMaterial(`bbmodel/${material_group_key}/terrain/${this._mat_tex_id}`);
     }
 
     /** @returns полное имя анимации (с параметрами) */
@@ -496,21 +499,6 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         if(geom) {
             geom.destroy()
             this.geometries.delete(group_name)
-        }
-        const group = this.model.groups.get(group_name)
-        if(group) {
-            const recvDeleteVertices = (group : BBModel_Group) => {
-                for(const g of group.children) {
-                    if(g instanceof BBModel_Group) {
-                        if(g.isBone()) {
-                            return
-                        }
-                        recvDeleteVertices(g)
-                    }
-                    this.vertices_pushed.delete(g.path)
-                }
-            }
-            recvDeleteVertices(group)
         }
     }
 

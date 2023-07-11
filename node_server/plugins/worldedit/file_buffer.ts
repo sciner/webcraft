@@ -188,7 +188,7 @@ export class FileBuffer {
         }
     }
 
-    readByte(): float {
+    readInt8(): float {
         const {_offset} = this
         if (_offset >= this.end) {
             this.read(1)
@@ -251,10 +251,22 @@ export class FileBuffer {
         const dataView = new DataView(this.buffer.buffer, _offset - this.start, length_bytes)
         return this.utf8decoder.decode(dataView)
     }
-    
+
     skip(length_bytes: int): void {
         this._offset += length_bytes
         if (this._offset > this.cookie.file_size) {
+            throw 'buffer_underflow'
+        }
+    }
+
+    /** Напрямую читает {@link length} байт с позиции {@link offset}. Не меняет {@link this.offset} */
+    getBytes(dst: Uint8Array, offset: int, length: int): void {
+        const {file} = this
+        const bytesRead = file
+            ? fs.readSync(file, dst, 0, length, offset)
+            : this.buffer.copy(dst, 0, offset, offset + length)
+        if (bytesRead !== length) {
+            this.close()
             throw 'buffer_underflow'
         }
     }

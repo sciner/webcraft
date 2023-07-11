@@ -35,7 +35,6 @@
         {"name": "fence"},
         {"name": "pot"},
         {"name": "stairs"},
-        {"name": "shulker"},
         {"name": "chest"},
         {"name": "anvil"},
         {"name": "tnt"},
@@ -261,30 +260,6 @@
                     "name": "idle"
                 }
             }
-        },
-        {
-            "id": 1370,
-            "name": "MAGENTA_SHULKER",
-            "max_in_stack": 1,
-            "sound": "madcraft:block.chest",
-            "can_rotate": true,
-            "is_entity": true,
-            "window": "frmChest",
-            "chest": {
-                "slots": 27,
-                "private": true
-            },
-            "material": {
-                "id": "stone"
-            },
-            "bb": {
-                "model": "shulker",
-                "behavior": "shulker",
-                "rotate": {"type": "six"}
-            },
-            "tags": [
-                "store_items_in_chest"
-            ]
         },
         {
             "id": 195,
@@ -1899,6 +1874,18 @@
         {
             "id": 491,
             "name": "RAFT",
+            "material": {
+                "id": "wood"
+            },
+            "max_in_stack": 1,
+            "texture": "block/stone.png",
+            "spawn_egg": {
+                "type": "transport/raft",
+                "skin": "base"
+            },
+            "tags": [
+                "set_on_water"
+            ],
             "bb": {
                 "model": "transport/raft",
                 "import_anyway": true
@@ -2471,6 +2458,380 @@
             ],
             "bb": {
                 "extends": "BIRCH_HOLLOW_LOG"
+            }
+        },
+        {
+            "id": 1370,
+            "name": "WHITE_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "model": "shulker_box",
+                "behavior": "shulker",
+                "rotate": {"type": "six"},
+                "import_anyway": true,
+                "select_texture": [
+                    {"name": "%block_name%"}
+                ]
+            }
+        },
+        {
+            "id": 1371,
+            "name": "ORANGE_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1372,
+            "name": "MAGENTA_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1373,
+            "name": "LIGHT_BLUE_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1374,
+            "name": "YELLOW_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1375,
+            "name": "LIME_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1376,
+            "name": "PINK_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1377,
+            "name": "GRAY_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1378,
+            "name": "LIGHT_GRAY_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1379,
+            "name": "CYAN_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1380,
+            "name": "PURPLE_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1381,
+            "name": "BLUE_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1382,
+            "name": "BROWN_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1383,
+            "name": "GREEN_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1384,
+            "name": "RED_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1385,
+            "name": "BLACK_SHULKER_BOX",
+            "max_in_stack": 1,
+            "sound": "madcraft:block.chest",
+            "can_rotate": true,
+            "is_entity": true,
+            "window": "frmChest",
+            "chest": {
+                "slots": 27,
+                "private": true
+            },
+            "material": {
+                "id": "stone"
+            },
+            "tags": [
+                "rotate_by_pos_n_6",
+                "store_items_in_chest"
+            ],
+            "bb": {
+                "extends": "WHITE_SHULKER_BOX"
             }
         }
     ]

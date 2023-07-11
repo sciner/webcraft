@@ -19,7 +19,8 @@ import type Terrain_Generator from "../index.js";
 import type { TerrainMapCell } from "../terrain/map_cell.js";
 import { MapsBlockResult, TerrainMapManager3 } from "../terrain/manager.js";
 import { CD_ROT } from "../../../core/CubeSym.js";
-import type { BLOCK } from "blocks.js";
+import type { BLOCK } from "../../../blocks.js";
+import type { Biome } from "../biomes.js";
 
 // import BottomCavesGenerator from "../../bottom_caves/index.js";
 
@@ -531,6 +532,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                 // const columnIndex = chunk.getColumnIndex(x, z)
 
                 const cell                      = map.getCell(x, z)
+                const biome : Biome             = cell.biome
                 const has_cluster               = !cluster.is_empty && cluster.cellIsOccupied(xyz.x, xyz.z, 2);
                 const cluster_cell              = has_cluster ? cluster.getCell(xyz.x, xyz.z) : null;
                 const big_stone_density         = this.calcBigStoneDensity(xyz, has_cluster)
@@ -623,28 +625,31 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
                         // убираем баг с полосой земли на границах чанков по высоте
                         if(y == chunk.size.y - 1) {
-                            xyz.y++
-                            map_manager.calcDensity(xyz, cell, over_density_params, map);
-                            xyz.y--
-                            not_air_count = 1
-                            if(over_density_params.density > DENSITY_AIR_THRESHOLD) {
-                                not_air_count++
-                                xyz.y += 2
-                                map_manager.calcDensity(xyz, cell, over2_density_params, map)
-                                xyz.y -= 2
-                                if(over2_density_params.density > DENSITY_AIR_THRESHOLD) {
-                                    not_air_count++
-                                }
-                            }
+                            not_air_count = 10
                         }
+                        // if(y == chunk.size.y - 1) {
+                        //     xyz.y++
+                        //     map_manager.calcDensity(xyz, cell, over_density_params, map);
+                        //     xyz.y--
+                        //     not_air_count = 1
+                        //     if(over_density_params.density > DENSITY_AIR_THRESHOLD) {
+                        //         not_air_count++
+                        //         xyz.y += 2
+                        //         map_manager.calcDensity(xyz, cell, over2_density_params, map)
+                        //         xyz.y -= 2
+                        //         if(over2_density_params.density > DENSITY_AIR_THRESHOLD) {
+                        //             not_air_count++
+                        //         }
+                        //     }
+                        // }
 
                         // get block
                         let {dirt_layer, block_id} = map_manager.getBlock(xyz, not_air_count, cell, density_params, block_result)
 
-                        if((block_id == grass_block_id || block_id == dirt_block_id) && !cell.biome.is_snowy) {
+                        if((block_id == grass_block_id || block_id == dirt_block_id) && !biome.is_snowy) {
                             if(xyz.y - WATER_LEVEL < 2 && !in_canyon) {
                                 if(d4 * .3 + d3 * .7 < 0) {
-                                    block_id = cell.biome.is_swamp ? podzol_block_id : sand_block_id
+                                    block_id = biome.is_swamp ? podzol_block_id : sand_block_id
                                 }
                             }
                         }
@@ -741,13 +746,13 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
                                     // draw big stones
                                     if(y < chunk.size.y - 2 && big_stone_density > .5) {
-                                        if(cell.biome.is_grassy_surface) {
+                                        if(biome.is_grassy_surface) {
                                             block_id = null
                                             // chunk.setGroundInColumIndirect(columnIndex, x, y, z, dirt_block_id)
                                             chunk.setBlockIndirect(x, y, z, dirt_block_id)
                                         }
                                         // chunk.setGroundInColumIndirect(columnIndex, x, y + 1, z, bm.MOSSY_COBBLESTONE.id);
-                                        let big_stone_block_id = cell.biome.getBigStoneBlock(density_params)
+                                        let big_stone_block_id = biome.getBigStoneBlock(density_params)
                                         chunk.setBlockIndirect(x, y + 1, z, big_stone_block_id)
                                         if(big_stone_density > BIG_STONE_DESNSITY) {
                                             // chunk.setGroundInColumIndirect(columnIndex, x, y + 2, z, big_stone_block_id);
@@ -777,10 +782,10 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                 // если это не пещера
                                 if(dcaves_over === 0) {
 
-                                    block_id = cell.biome.getRiverBottomBlock(density_params)
+                                    block_id = biome.getRiverBottomBlock(density_params)
 
                                     // ламинария | kelp
-                                    if((chunk.size.y - y == air_height + 1) && !cell.biome.is_snowy && !cell.biome.is_underworld) {
+                                    if((chunk.size.y - y == air_height + 1) && !biome.is_snowy && !biome.is_underworld) {
                                         if((block_id != gravel_id) && (rnd.double() < .15)) {
                                             if((d3 > 0)) {
                                                 for(let i = 0; i < air_height - d3 * 2; i++) {
@@ -842,15 +847,15 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                             }
 
                             // чтобы на самом нижнем уровне блоков чанка тоже росла трава
-                            if(y == 0 && !cell.biome.is_underworld) {
+                            if(y == 0 && !biome.is_underworld) {
                                 xyz.y--
                                 map_manager.calcDensity(xyz, cell, over_density_params, map)
                                 xyz.y++
                                 if(over_density_params.density > DENSITY_AIR_THRESHOLD) {
                                     // CATTAIL | РОГОЗ
-                                    if(!has_overfluid_block && chunk.addr.y == 2 && !cell.biome.is_snowy) {
+                                    if(!has_overfluid_block && chunk.addr.y == 2 && !biome.is_snowy) {
                                         if(d4 > .4 && d4 < .8) {
-                                            if(cell.biome.is_swamp || ((d1 < .1 && d2 < .1) && !cell.biome.is_snowy && !cell.biome.is_sand && !cell.biome.is_desert)) {
+                                            if(biome.is_swamp || ((d1 < .1 && d2 < .1) && !biome.is_snowy && !biome.is_sand && !biome.is_desert)) {
                                                 const r2 = rnd.double()
                                                 if(r2 < .25) {
                                                     chunk.setBlockIndirect(x, y, z, r2 < 0.125 ? bm.CATTAIL.id : bm.REED.id)
@@ -877,9 +882,14 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                 if(!cell.biome.is_sand) {
                                     if(d1 > .25) {
                                         if(d3 > .25) {
-                                            // chunk.setInitialGroundInColumnIndirect(columnIndex, y, bm.MOSS_BLOCK.id)
-                                            chunk.setBlockIndirect(x, y, z, (cell.biome.blocks.caves_second ?? bm.MOSS_BLOCK).id);
-                                            continue
+                                            // chunk.setBlockIndirect(x, y, z, (biome.blocks.caves_second ?? bm.MOSS_BLOCK).id)
+                                            // continue
+                                            const ceil_block_id = (biome.blocks.caves_second ?? (biome.temperature > 0 ? bm.MOSS_BLOCK : bm.AIR)).id
+                                            if(ceil_block_id) {
+                                                // chunk.setInitialGroundInColumnIndirect(columnIndex, y, bm.MOSS_BLOCK.id)
+                                                chunk.setBlockIndirect(x, y, z, ceil_block_id)
+                                                continue
+                                            }
                                         }
                                     }
                                 }

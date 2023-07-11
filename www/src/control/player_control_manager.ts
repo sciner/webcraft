@@ -192,8 +192,9 @@ export abstract class PlayerControlManager<TPlayer extends Player> {
         // подготовить симуляцию вождения (если оно есть)
         pc.drivingCombinedState = driving?.getSimulatedState(player_state as PrismarinePlayerState)
 
+        const simulated_state = pc.simulatedState
         // remember the state before the simulation
-        pc.copyPartialStateFromTo(pc.simulatedState, pc.backupState)
+        pc.copyPartialStateFromTo(simulated_state, pc.backupState)
 
         // simulate the steps
         for(let i = 0; i < data.physicsTicks; i++) {
@@ -201,29 +202,35 @@ export abstract class PlayerControlManager<TPlayer extends Player> {
             if (pc.requiresChunk) {
                 const chunk = this.player.world.chunkManager.getByPos(pos)
                 if (!chunk?.isReady()) {
-                    pc.copyPartialStateFromTo(pc.backupState, pc.simulatedState)
+                    pc.copyPartialStateFromTo(pc.backupState, simulated_state)
                     return false
                 }
             }
             this.onBeforeSimulatingTick(pc)
             if (!pc.simulatePhysicsTick(repeated)) {
-                pc.copyPartialStateFromTo(pc.backupState, pc.simulatedState)
+                pc.copyPartialStateFromTo(pc.backupState, simulated_state)
                 return false
             }
             // round the results between each step
             // It's necessary in case combined steps will be split (I'm not sure if it happens, but it's better be safe)
-            player_state.pos.roundSelf(PHYSICS_POS_DECIMALS)
-            player_state.vel.roundSelf(PHYSICS_VELOCITY_DECIMALS)
+            simulated_state.pos.roundSelf(PHYSICS_POS_DECIMALS)
+            simulated_state.vel.roundSelf(PHYSICS_VELOCITY_DECIMALS)
         }
         // обновить состояние водиеля, если это было вождение
         driving?.applyToParticipantControl(pc as PrismarinePlayerControl, DrivingPlace.DRIVER, false)
 
         data.initOutputFrom(pc)
-        this.onSimulation(prevPos, data)
+
+        // Тут проблема - не учитываются промежуточные позиции во время движения, неточно определяется урон от блоков для больших перемещений
+        // Мы не можем цчитывать промежуточные позиции потому что моделирование может прерваться из-за отсутсвия чанка, тогда надо делать отмену
+        // части изменений, и принятие части. Сейчас делается отмена всех изменений - это проще.
+        this.onTicksSimulated(prevPos, player_state.pos, data.physicsTicks)
+
         return true
     }
 
-    protected onSimulation(prevPos: Vector, data: PlayerTickData): void {
+    /** См. ServerPlayerControlManager.onTicksSimulated */
+    protected onTicksSimulated(prevPos: Vector, pos: Vector, ticks_number: int): void {
         // nothing, override it subclasses
     }
 

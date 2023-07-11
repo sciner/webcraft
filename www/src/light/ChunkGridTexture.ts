@@ -1,6 +1,7 @@
 import {Vector} from "../helpers/vector.js";
 import type {ChunkLight} from "./ChunkLight";
 import {BufferBaseTexture3D} from "../renders/BufferBaseTexture.js";
+import {WRAP_MODES} from "vauxcel";
 
 const SIZE_X = 32;
 const SIZE_Y = 8;
@@ -30,6 +31,7 @@ export class ChunkGridTexture {
             depth: SIZE_Y,
             magFilter: 'nearest',
             minFilter: 'nearest',
+            wrapMode: WRAP_MODES.REPEAT
         });
         return this.tex;
     }
