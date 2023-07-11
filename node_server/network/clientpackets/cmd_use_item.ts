@@ -21,7 +21,7 @@ export default class packet_reader {
     // use item
     static async read(player : ServerPlayer, packet) {
         const item = player.inventory.items[player.inventory.current.index]
-        if (!item) {
+        if (!item || player.state.sleep || player.state.attack || player.state.sitting || player?.driving) {
             return true
         }
         const bm = player.world.block_manager

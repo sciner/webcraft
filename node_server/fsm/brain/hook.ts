@@ -1,10 +1,12 @@
 import { FSMBrain } from "../brain.js";
 import { Vector } from "@client/helpers.js";
 import { WorldAction } from "@client/world_action.js";
-import { PLAYER_STATUS } from "@client/constant.js";
+import { MOB_TYPE, PLAYER_STATUS } from "@client/constant.js";
 import { Weather } from "@client/block_type/weather.js";
 import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID } from "@client/fluid/FluidConst.js";
 import { MOB_CONTROL, type MobControlParams } from "@client/control/player_control.js";
+
+const MAX_DISTANCE = 20
 
 // рыба
 const FISH = [
@@ -114,6 +116,15 @@ export class Brain extends FSMBrain {
         const mob = this.mob
         const player = mob.parent
         if (!player) {
+            mob.kill()
+            return
+        }
+        if (player.state.sleep || player.state.attack || player.state.sitting || player?.driving || player.state.pos.distance(mob.pos) > MAX_DISTANCE) {
+            player.fishing = null
+            mob.kill()
+            return
+        }
+        if (!player?.world.players.get(player.session.user_id)?.fishing) {
             mob.kill()
             return
         }
