@@ -469,6 +469,14 @@ class DestroyBlocks {
         if(cv.has(tblock.posworld)) {
             return false;
         }
+        
+        // генерация содержимого сундуков, если они должны сгенерироваться
+        if(Qubatch.is_server) {
+            if(tblock.material.chest && tblock.extra_data && tblock.extra_data.generate) {
+                (this.world as any).chests.generateChest(tblock, tblock.posworld.clone())
+            }
+        }
+
         cv.add(tblock.posworld, true);
         const destroyed_block = {pos: tblock.posworld, item: {id: BLOCK.AIR.id}, destroy_block: {id: tblock.id} as IBlockItem, action_id: BLOCK_ACTION.DESTROY}
         if(tblock.extra_data) {

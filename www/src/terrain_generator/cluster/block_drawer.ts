@@ -87,7 +87,6 @@ export class BlockDrawer {
                     blocks_setted++
                 }
             }
-            if(item.block_id > 0 && !item.mat) debugger
             if(cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, !!item.check_is_solid, true, !!item.candidate_for_cap_block, map, item.mat, block_set_callback)) {
                 blocks_setted++
             }
