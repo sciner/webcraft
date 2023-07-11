@@ -2,25 +2,63 @@ import {impl as alea} from '@vendors/alea.js';
 import {ClusterPoint} from './base.js';
 import {DIRECTION, Vector, VectorCollector} from "../../helpers.js";
 
-let randoms = new Array(1024);
-let a = new alea('random_road_damage');
+const randoms = new Array(1024);
+const a = new alea('random_road_damage');
 for(let i = 0; i < randoms.length; i++) {
     randoms[i] = a.double();
 }
 
 // Dev sandbox
-const DIR_HOR = 0;
-const DIR_VER = 1;
+const DIR_HOR = 0
+const DIR_VER = 1
+
+export declare type IVilageOptions = {
+    size?:               int,
+    road_dist?:          int,
+    margin?:             int,
+    quant?:              int,
+    init_depth?:         int,
+    road_margin?:        int,
+    house_margin?:       int,
+    road_ext_value?:     int, // Это значение расширения дороги, 0 = один пиксель
+    house_intencity?:    float,
+    road_damage_factor?: float,
+}
+
+export declare type IVilageHouseDoor = {
+    x:          int,
+    z:          int,
+    direction:  DIRECTION,
+}
+
+export declare type IVilageHouse = {
+    x:      int,
+    z:      int,
+    width:  int,
+    depth:  int,
+    door:  IVilageHouseDoor
+}
 
 export class VilageSchema {
-    [key: string]: any;
+    settings:               IVilageOptions
+    fill_house_map:         boolean
+    fill_house_door_path:   boolean
+    mask:                   ClusterPoint[]
+    crossroads:             VectorCollector<any>
+    complex_buildings:      Map<any, any>
+    house_list:             Map<any, any>
+    randoms:                alea
+    cb_cell_map:            int[]
+    cluster:                any
+    damage_road_index:      any
+    cell_map:               any
 
-    constructor(cluster, settings = {}) {
-        this.cluster = cluster;
-        this.fill_house_map = false;
-        this.fill_house_door_path = false;
+    constructor(cluster, settings : IVilageOptions = {}) {
+        this.cluster = cluster
+        this.fill_house_map = false
+        this.fill_house_door_path = false
         if(!settings) {
-            settings = {};
+            settings = {}
         }
         this.settings = {
             size:               128,
@@ -34,26 +72,26 @@ export class VilageSchema {
             house_intencity:    0.2,
             road_damage_factor: 0,
             ...settings
-        };
+        }
     }
 
-    generate(seed) {
-        this.randoms            = new alea(seed);
-        this.crossroads         = new VectorCollector();
-        this.mask               = new Array(this.settings.size * this.settings.size);
-        this.cell_map           = [];
-        this.cb_cell_map        = [];
-        this.complex_buildings  = new Map();
-        this.house_list         = new Map();
-        const center_x_corr = Math.floor(this.randoms.double() * 20 - 10);
-        const center_z_corr = Math.floor(this.randoms.double() * 20 - 10);
-        this.push_branch((this.settings.size / 2) + center_x_corr, (this.settings.size / 2) + center_z_corr, DIR_HOR, this.settings.init_depth);
-        this.push_branch((this.settings.size / 2) + center_x_corr, (this.settings.size / 2) + center_z_corr, DIR_VER, this.settings.init_depth);
+    generate(seed : string) {
+        this.randoms            = new alea(seed)
+        this.crossroads         = new VectorCollector()
+        this.mask               = new Array(this.settings.size * this.settings.size)
+        this.cell_map           = []
+        this.cb_cell_map        = []
+        this.complex_buildings  = new Map()
+        this.house_list         = new Map()
+        const center_x_corr = Math.floor(this.randoms.double() * 20 - 10)
+        const center_z_corr = Math.floor(this.randoms.double() * 20 - 10)
+        this.pushBranch((this.settings.size / 2) + center_x_corr, (this.settings.size / 2) + center_z_corr, DIR_HOR, this.settings.init_depth)
+        this.pushBranch((this.settings.size / 2) + center_x_corr, (this.settings.size / 2) + center_z_corr, DIR_VER, this.settings.init_depth)
         for(let cb_building of this.complex_buildings.values()) {
             // if it does not intersect with existing complex_building, then we send it to the map
-            let house = this.put_building_complex(cb_building.x, cb_building.z, cb_building.cell_count_x, cb_building.cell_count_z, cb_building.path_dir);
+            let house = this.putBuildingComplex(cb_building.x, cb_building.z, cb_building.cell_count_x, cb_building.cell_count_z, cb_building.path_dir)
             if(house !== null) {
-                this.house_list.set(cb_building.z * this.settings.size + cb_building.x, house);
+                this.house_list.set(cb_building.z * this.settings.size + cb_building.x, house)
             }
         }
         //
@@ -72,7 +110,7 @@ export class VilageSchema {
                     crossroad:  true,
                     door:       {x: vec.x, z: vec.z, direction: DIRECTION.NORTH}
                 };
-                this.house_list.set(vec.z * this.settings.size + vec.x, house);
+                this.house_list.set(vec.z * this.settings.size + vec.x, house)
             }
         }
         //
@@ -83,38 +121,38 @@ export class VilageSchema {
     }
 
     // Add crossroad point
-    addCrossRoad(x, z) {
-        let vec = new Vector(x, 0, z);
-        let cr = this.crossroads.get(vec);
+    addCrossRoad(x : int, z : int) : void {
+        let vec = new Vector(x, 0, z)
+        let cr = this.crossroads.get(vec)
         if(cr) {
-            cr.cnt++;
-            return;
+            cr.cnt++
+            return
         }
-        this.crossroads.set(vec, {cnt: 1});
+        this.crossroads.set(vec, {cnt: 1})
     }
 
     //
-    isDamagedRoad() {
+    isDamagedRoad() : boolean {
         if(!this.settings.road_damage_factor) {
-            return false;
+            return false
         }
         if(!this.damage_road_index) {
-            this.damage_road_index = 0;
+            this.damage_road_index = 0
         }
-        const r = randoms[this.damage_road_index++ % randoms.length];
-        return r <= this.settings.road_damage_factor;
+        const r = randoms[this.damage_road_index++ % randoms.length]
+        return r <= this.settings.road_damage_factor
     }
 
-    push_branch(x : int, z : int, axis : int, depth : int) {
+    pushBranch(x : int, z : int, axis : int, depth : int) : void {
         // One random per branch
-        let branch_rnd = this.randoms.double();
-        const settings = this.settings;
-        let ln = (depth + 1) * settings.quant + 25;
-        const is_x_mod = axis === DIR_HOR ? 1 : 0;
-        const is_z_mod = axis === DIR_VER ? 1 : 0;
-        var rnd = branch_rnd;
-        rnd = rnd > .25 ? rnd : .25;
-        rnd = rnd > .75 ? .75 : rnd;
+        let branch_rnd = this.randoms.double()
+        const settings = this.settings
+        let ln = (depth + 1) * settings.quant + 25
+        const is_x_mod = axis === DIR_HOR ? 1 : 0
+        const is_z_mod = axis === DIR_VER ? 1 : 0
+        var rnd = branch_rnd
+        rnd = rnd > .25 ? rnd : .25
+        rnd = rnd > .75 ? .75 : rnd
         const pre_part = Math.floor(rnd * ln / settings.quant) * settings.quant;
         const post_part = Math.floor((ln - pre_part) / settings.quant) * settings.quant;
         // const road_point = new ClusterPoint(1, this.cluster.road_block, 5, null);
@@ -161,7 +199,7 @@ export class VilageSchema {
                 }
                 let building_rnd = this.randoms.double(); // (branch_rnd * house_cell_z * house_cell_x) % 1;
                 if(building_rnd < settings.house_intencity || building_rnd > (1-settings.house_intencity)) {
-                    let house = this.put_building(house_cell_x, house_cell_z);
+                    let house = this.putBuilding(house_cell_x, house_cell_z);
                     if (house !== null) {
                         // Калькуляция точки начала и направления. Тропа всегда идет от дороги к двери
                         let dot_pos_x = house_cell_x, dot_pos_z = house_cell_z;
@@ -199,57 +237,57 @@ export class VilageSchema {
             if(post_part >= settings.quant) {
                 inc_amount = settings.quant * Math.floor(post_part / settings.quant);
                 // let new_branch_rnd = this.randoms.double(); // ((x + (inc_amount * is_x_mod)) * (z + (settings.quant * is_z_mod)) / 1000) % 1;
-                this.push_branch(x + (inc_amount * is_x_mod), z + (settings.quant * is_z_mod), next_dir, depth - 1) //, new_branch_rnd);
+                this.pushBranch(x + (inc_amount * is_x_mod), z + (settings.quant * is_z_mod), next_dir, depth - 1) //, new_branch_rnd);
             }
             if(pre_part >= settings.quant) {
                 inc_amount = settings.quant * Math.floor(pre_part / settings.quant);
-                this.push_branch(x - (inc_amount * is_x_mod), z - (settings.quant * is_z_mod), next_dir, depth - 1) //, branch_rnd);
+                this.pushBranch(x - (inc_amount * is_x_mod), z - (settings.quant * is_z_mod), next_dir, depth - 1) //, branch_rnd);
             }
         }
     }
 
     // Make road to door and return door object
-    putPathToDoor(x, z, x_dir, z_dir) {
+    putPathToDoor(x : int, z : int, x_dir : int, z_dir : int) : IVilageHouseDoor {
         let xprint = x, zprint = z, dest = this.settings.road_dist;
         for(var process = 0; process < dest; process++) {
             if(this.fill_house_door_path) {
-                this.put_dot(xprint, zprint, process == dest - 1 ? this.cluster.basement_block : this.cluster.road_block.next().id, 1, this.settings.road_margin);
+                this.putDot(xprint, zprint, process == dest - 1 ? this.cluster.basement_block : this.cluster.road_block.next().id, 1, this.settings.road_margin)
             }
-            xprint += x_dir;
-            zprint += z_dir;
+            xprint += x_dir
+            zprint += z_dir
         }
-        let door = {
+        const door : IVilageHouseDoor = {
             x:          x_dir === 0 ? x : x + dest * x_dir,
             z:          z_dir === 0 ? z : z + dest * z_dir,
-            direction:  this.get_door_front_direction(x_dir, z_dir),
+            direction:  this.getDoorFrontDirection(x_dir, z_dir),
         }
-        return door;
+        return door
     }
 
     // Returns the coordinate of the door and its direction
-    get_door_front_direction(x_dir, z_dir) {
+    getDoorFrontDirection(x_dir : int, z_dir : int) : DIRECTION {
         return x_dir === 0 ? (z_dir < 0 ? DIRECTION.SOUTH : DIRECTION.NORTH) : (x_dir < 0 ?  DIRECTION.WEST : DIRECTION.EAST)
     }
 
-    put_building(x, z) {
-        const settings = this.settings;
-        let key = z * settings.size + x;
+    putBuilding(x : int, z : int) : IVilageHouse | null {
+        const settings = this.settings
+        let key = z * settings.size + x
         if(this.cell_map[key] !== undefined) {
-            return null;
+            return null
         }
-        this.cell_map[key] = 1;
+        this.cell_map[key] = 1
         // Road margins
         x += settings.road_dist;
         z += settings.road_dist;
-        let x_size = settings.quant - settings.road_dist * 2 - settings.road_ext_value;
-        let z_size = x_size;
+        const x_size = settings.quant - settings.road_dist * 2 - settings.road_ext_value;
+        const z_size = x_size;
         // Проверка удаленности дома от границы кластера
         if(x >= settings.margin
             && (x + x_size) < (settings.size - settings.margin)
             && z >= settings.margin
             && (z + z_size) < (settings.size - settings.margin)
         ) {
-            let house = {
+            const house : IVilageHouse = {
                 x:      x + settings.road_ext_value,
                 z:      z + settings.road_ext_value,
                 width:  x_size + 1,
@@ -264,13 +302,13 @@ export class VilageSchema {
                     }
                 }
             }
-            return house;
+            return house
         } else {
-            return null;
+            return null
         }
     }
 
-    put_dot(x, z, block_id, height, margin) {
+    putDot(x : int, z : int, block_id : int, height : int, margin : int) : boolean {
         const settings = this.settings;
         if(x >= settings.margin
             && x < (settings.size - settings.margin)
@@ -278,33 +316,33 @@ export class VilageSchema {
             && z < (settings.size - settings.margin)
         ) {
             this.mask[z * settings.size + x] = new ClusterPoint(height, block_id, margin ? margin: 5, null);
-            return true;
+            return true
         } else {
-            return false;
+            return false
         }
     }
 
-    put_building_complex(x, z, cell_count_x, cell_count_z, path_dir) {
+    putBuildingComplex(x : int, z : int, cell_count_x : int, cell_count_z : int, path_dir_name : string) : IVilageHouse | null {
         // Настройки
         const settings = this.settings;
         // Начальные параметры
-        const x_init = x;
-        const z_init = z;
+        const x_init = x
+        const z_init = z
         // Проверяем на непересечение с другими complex_building, для обозначения cell берется стартовая координата ячейки
-        let local_cb_cell_map = [];
+        const local_cb_cell_map = []
         for (var cell_x = 0; cell_x < cell_count_x; cell_x++) {
             for (var cell_z = 0; cell_z < cell_count_z; cell_z++) {
                 let tmp_x = x + (cell_x * settings.quant);
                 let tmp_z = z + (cell_z * settings.quant);
                 let key = tmp_z * settings.size + tmp_x;
-                local_cb_cell_map[key] = 1;
+                local_cb_cell_map[key] = 1
             }
         }
         for(let lcm_key in local_cb_cell_map) {
             if(this.cb_cell_map[lcm_key] !== undefined) {
-                return null;
+                return null
             } else {
-                this.cb_cell_map[lcm_key] = 1;
+                this.cb_cell_map[lcm_key] = 1
             }
         }
         // Отступы от дорог
@@ -337,7 +375,7 @@ export class VilageSchema {
                     if(this.isDamagedRoad()) {
                         continue;
                     }
-                    this.put_dot((x_init + x_cursor), (z_init + settings.quant * cell_count_z + road_step), this.cluster.road_block.next().id, 1, this.settings.road_margin);
+                    this.putDot((x_init + x_cursor), (z_init + settings.quant * cell_count_z + road_step), this.cluster.road_block.next().id, 1, this.settings.road_margin);
                 }
             }
             // Отрисовка дороги вокруг сложного дома для обеспечения соединенности всех дорог
@@ -346,8 +384,8 @@ export class VilageSchema {
                     if(this.isDamagedRoad()) {
                         continue;
                     }
-                    this.put_dot((x_init + x_cursor), (z_init + settings.quant * cell_count_z + road_step), this.cluster.road_block.next().id, 1, this.settings.road_margin);
-                    this.put_dot((x_init + x_cursor), (z_init + road_step), this.cluster.road_block.next().id, 1, this.settings.road_margin);
+                    this.putDot((x_init + x_cursor), (z_init + settings.quant * cell_count_z + road_step), this.cluster.road_block.next().id, 1, this.settings.road_margin);
+                    this.putDot((x_init + x_cursor), (z_init + road_step), this.cluster.road_block.next().id, 1, this.settings.road_margin);
                 }
             }
             for (let z_cursor = 0; z_cursor <= settings.quant * cell_count_z + settings.road_ext_value; z_cursor++) {
@@ -355,14 +393,14 @@ export class VilageSchema {
                     if(this.isDamagedRoad()) {
                         continue;
                     }
-                    this.put_dot((x_init + road_step), (z_init + z_cursor), this.cluster.road_block.next().id, 1, this.settings.road_margin);
-                    this.put_dot((x_init + road_step + settings.quant * cell_count_x), (z_init + z_cursor), this.cluster.road_block.next().id, 1, this.settings.road_margin);
+                    this.putDot((x_init + road_step), (z_init + z_cursor), this.cluster.road_block.next().id, 1, this.settings.road_margin);
+                    this.putDot((x_init + road_step + settings.quant * cell_count_x), (z_init + z_cursor), this.cluster.road_block.next().id, 1, this.settings.road_margin);
                 }
             }
             // Отрисовка тропинки
-            let path_x = x_init;
-            let path_z = z_init;
-            if(path_dir === 'up') {
+            let path_x = x_init
+            let path_z = z_init
+            if(path_dir_name === 'up') {
                 path_x = x_init + (cell_count_x * settings.quant) / 2;
                 path_z += settings.road_ext_value;
             } else {
@@ -378,16 +416,16 @@ export class VilageSchema {
                 }
             }
             // Возвращаем дом
-            let house = {
+            const house : IVilageHouse = {
                 x:      x,
                 z:      z,
                 width:  x_size,
                 depth:  z_size,
-                door:   this.putPathToDoor(path_x, path_z, path_dir === 'up' ? 0 : 1, path_dir === 'up' ? 1 : 0),
-            };
-            return house;
+                door:   this.putPathToDoor(path_x, path_z, path_dir_name === 'up' ? 0 : 1, path_dir_name === 'up' ? 1 : 0),
+            }
+            return house
         } else {
-            return null;
+            return null
         }
     }
 

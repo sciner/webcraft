@@ -44,7 +44,7 @@ export interface IPlayerControlState {
     onGround    : boolean
     flying      : boolean
     isInWater   : boolean
-    isOnLadder? : boolean
+    isOnLadder? : float
     sneak?      : boolean
 }
 

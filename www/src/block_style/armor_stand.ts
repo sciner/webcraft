@@ -41,7 +41,7 @@ export default class style {
             return;
         }
         const bm = style.block_manager
-        const rot = Math.round((((block.rotate.x - 2) / 4) * (Math.PI * 2)) / 0.5233) * 0.5233;
+        const rot = Math.round(((block.rotate.x / 360) * (Math.PI * 2)) / 0.5233) * 0.5233;
         // const head_rot_index = Math.abs(Math.round()) % randoms.length;
         // const head_rot = randoms[head_rot_index] * .2 - .1;
         const head_rot = randoms.double(z * chunk.size.x + x) * .2 - .1;

@@ -522,7 +522,7 @@ export class Biomes {
             ]
         };
         this.addBiome(13, 'Заснеженные горы', -1, 0.5,    snow_dirt_layers, null, null, snow_grass, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, TAIGA_FOG_PRESET);
-        this.addBiome(140, 'Ледяные пики', -0.8, 0.5,     [new BiomeDirtLayer(['ICE'])], undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, TAIGA_FOG_PRESET);
+        this.addBiome(140, 'Ледяные пики', -0.8, 0.5,     [new BiomeDirtLayer(['ICE'])], null, null, null, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, TAIGA_FOG_PRESET);
         this.addBiome(12, 'Заснеженная тундра', 0, 0.5,   snow_dirt_layers, null, null, snow_grass)
         this.addBiome(30, 'Заснеженная тайга', -0.8, 0.4, snow_dirt_layers, {
             frequency: TREE_FREQUENCY / 2,
