@@ -179,9 +179,9 @@ export default class Mesh_Object_Clouds {
         const y = cam_pos.y > 512 ? 1024.1 : this.y_pos; // this.pos.y
         let x = Math.floor(cam_pos.x / size) * size
         let z = Math.floor(cam_pos.z / size) * size
-        // добавляем ветер
-        x += (performance.now() - this.pn) / 1000 * WIND_SPEED_X
-        z += (performance.now() - this.pn) / 1000 * WIND_SPEED_Y
+        // добавляем ветер, а также 0.17 блока для избежания Z - файтинга с небесными островами (в т.ч. с полублоками)
+        x += (performance.now() - this.pn) / 1000 * WIND_SPEED_X + 0.17
+        z += (performance.now() - this.pn) / 1000 * WIND_SPEED_Y + 0.17
         x = (((x - cam_pos.x) % size) - size) % size + cam_pos.x // удерживаем значение x от (cam_pos.x - size) до cam_pos.x
         z = (((z - cam_pos.z) % size) - size) % size + cam_pos.z
         return this.tmpCloudsChunkCoord.setScalar(x, y, z)
