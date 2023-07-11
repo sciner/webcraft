@@ -8,6 +8,8 @@ import type { Building } from "./building.js";
 let _depth_blocks_buffer = new Array(1)
 let draw_indexes = new Array(1)
 
+export declare type IClusterBlockDrawCallback = (chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_id : int, rotate? : IVector, extra_data? : any, mat? : IBlockMaterial) => boolean
+
 function ensureSize(sz) {
     if (_depth_blocks_buffer.length >= sz) {
         return;
@@ -26,7 +28,7 @@ export class BlockDrawer {
     constructor(object? : Building) {
     }
 
-    draw(cluster : ClusterBase, chunk : ChunkWorkerChunk, map? : any) {
+    draw(cluster : ClusterBase, chunk : ChunkWorkerChunk, map? : any, block_set_callback? : IClusterBlockDrawCallback) {
         let blocks_setted = 0
         const _chunk_default_aabb = chunk.chunkManager.grid.chunkDefaultAABB;
 
@@ -85,7 +87,8 @@ export class BlockDrawer {
                     blocks_setted++
                 }
             }
-            if(cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, !!item.check_is_solid, true, !!item.candidate_for_cap_block, map)) {
+            if(item.block_id > 0 && !item.mat) debugger
+            if(cluster.setBlock(chunk, pos.x, pos.y, pos.z, item.block_id, item.rotate, item.extra_data, !!item.check_is_solid, true, !!item.candidate_for_cap_block, map, item.mat, block_set_callback)) {
                 blocks_setted++
             }
             _pos2d.copyFrom(pos)

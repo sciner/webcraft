@@ -283,7 +283,7 @@ export class BLOCK {
 
     static MAX_BLOCK_ID                     = 9999
 
-    static list                             = new Map();
+    static list : Map<int, IBlockMaterial>  = new Map()
     static styles                           = new Map();
     /** Sorted blocks, without null elements. Not by id. Not to be confused with {@link BLOCK_BY_ID} */
     static list_arr                         : IBlockMaterial[] = []; // see also getAll()
@@ -1582,6 +1582,7 @@ export class BLOCK {
             block.interact_water = block.tags.includes('interact_water') || !!block.layering?.slab
             block.hide_in_creative = block.tags.includes('hide_in_creative')
             block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab || !!block.is_leaves || !!block.tags.includes('trapdoor')
+            block.is_shulker_box = block.name.endsWith('_SHULKER_BOX')
             if(!block.support_style && block.planting) {
                 block.support_style = 'planting'
             }
