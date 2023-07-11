@@ -7,6 +7,7 @@ import type { TerrainMap, TerrainMapManager } from "../terrain_map.js";
 import type { ClusterManager } from "./manager.js";
 import type { BLOCK } from "../../blocks.js";
 import { WATER_LEVEL } from "../biome3/terrain/manager_vars.js";
+import type { IClusterBlockDrawCallback } from "./block_drawer.js";
 
 export const NEAR_MASK_MAX_DIST = 10
 export const CLUSTER_PADDING    = 8
@@ -73,7 +74,7 @@ export class ClusterBase {
     /**
      * Set block
      */
-    setBlock(chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_id : int, rotate : Vector | null = null, extra_data : any | null = null, check_is_solid : boolean = false, destroy_fluid : boolean = false, candidate_for_cap_block : boolean = false, map? : Biome3TerrainMap) : boolean {
+    setBlock(chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_id : int, rotate : Vector | null = null, extra_data : any | null = null, check_is_solid : boolean = false, destroy_fluid : boolean = false, candidate_for_cap_block : boolean = false, map? : Biome3TerrainMap, mat? : IBlockMaterial, block_set_callback?: IClusterBlockDrawCallback) : boolean {
         if(x >= 0 && y >= 0 && z >= 0 && x < chunk.size.x && y < chunk.size.y && z < chunk.size.z) {
             // ok
         } else {
@@ -107,8 +108,12 @@ export class ClusterBase {
                 }
             }
         }
+        const allow_to_set = block_set_callback ? block_set_callback(chunk, x, y, z, block_id, rotate, extra_data, mat) : true
+        if(!allow_to_set) {
+            return false
+        }
         chunk.setBlockIndirect(x, y, z, block_id, rotate, extra_data, undefined, undefined, check_is_solid, destroy_fluid)
-        return true;
+        return true
     }
 
     /**

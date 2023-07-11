@@ -282,6 +282,7 @@ interface IBlockMaterial {
     power: number
     protection: number
     can_auto_drop: boolean
+    sort_index: number
     is_dummy: boolean
     previous_part: {
         id: int
@@ -421,6 +422,7 @@ interface IBlockMaterial {
     is_flower: boolean
     is_battery: boolean
     is_log: boolean
+    is_shulker_box: boolean
     always_waterlogged: boolean
     // boolean values that are automatically calculated by BLOCK, not from JSON
     has_window: boolean
