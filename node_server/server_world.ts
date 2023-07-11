@@ -1237,7 +1237,7 @@ export class ServerWorld implements IWorld {
                 for(const ticking_block of chunk.ticking_blocks.tickingBlocks()) {
                     if(ticking_block.ticking.type == 'bee_nest') {
                         const tblock = this.getBlock(ticking_block.pos);
-                        if(tblock && tblock.id > 0 && tblock.hasTag('bee_nest')) {
+                        if(tblock.id > 0 && tblock.hasTag('bee_nest')) {
                             const dist = tblock.posworld.distance(pos);
                             if(dist <= max_distance) {
                                 resp.push(tblock);
