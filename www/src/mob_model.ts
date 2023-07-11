@@ -552,6 +552,25 @@ export class MobModel extends NetworkPhysicObject {
 
     }
 
+    toGlobal(vec: Vector, out?: Vector) {
+        out = out || new Vector();
+
+        const tmp = vec3.create();
+        tmp[0] = vec.x;
+        tmp[1] = vec.y;
+        tmp[2] = vec.z;
+
+        let m = mat4.create()
+        mat4.copy(m, this._mesh.matrix)
+        mat4.rotateY(m, m, this._mesh.rotation[2])
+
+        vec3.transformMat4(tmp, tmp, m);
+        out.set(tmp[0], tmp[1], tmp[2]);
+        out.addSelf(this.pos);
+
+        return out;
+    }
+
     postLoad(render : Renderer) {}
 
 }

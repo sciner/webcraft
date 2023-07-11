@@ -430,7 +430,12 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
             first_person_camera.calcNearPlanePosition(1.5, 0.1, pos);
             pos.addSelf(line_geom.pos);
         } else {
-            pos.copyFrom(slot.item.pos);
+            // pos.copyFrom(slot.item.pos);
+            if (!this._mesh) {
+                pos.copyFrom(this.pos).addSelf(new Vector(0, 1.5, 0));
+            } else {
+                this.toGlobal(new Vector(0.33, 0.85, 0.65), pos);
+            }
         }
 
         line_geom.addFishString(hook.pos, pos, { lineWidth: 0.13, colorABGR: 0xff000000 });
