@@ -196,6 +196,25 @@ export class LineGeometry extends Geometry {
         }
     }
 
+    addFishString(vec1, vec2,  {
+        isLocal = false,
+        lineWidth = this.defLineWidth,
+        colorABGR = this.defLineColor
+    }) {
+        let dx = vec2.x - vec1.x, dy = vec2.y - vec1.y, dz = vec2.z - vec1.z;
+        let N = 64;
+        this.ensureCapacity(N);
+        for (let i = 0; i < N; i++)
+        {
+            let t = i / N, t2 = (i + 1) / N;
+            let px = vec1.x + dx * t, pz = vec1.z + dz * t;
+            let py = vec1.y + dy * (t * t + t) * 0.5;
+            let ny = vec1.y + dy * (t2 * t2 + t2) * 0.5;
+            this.addLineInner(px, py, pz, px + dx / N, ny, pz + dz / N,
+                isLocal, lineWidth, colorABGR);
+        }
+    }
+
     destroy() {
         // we not destroy it, it shared
         super.destroy();

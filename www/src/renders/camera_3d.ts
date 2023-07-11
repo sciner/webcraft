@@ -146,8 +146,8 @@ export class Camera_3d {
 
         mat4.invert(this.viewInverted, this.viewMatrix);
 
-        const near = this.min;
-        const h = Math.tan(this.fov * 0.5 * 180 / Math.PI);
+        const near = 0.8; //this.min;
+        const h = Math.tan(this.fov * 0.5 * Math.PI / 180);
         tmp1[0] = x * near * h;
         tmp1[1] = y * near * h;
         tmp1[2] = -near; //near
