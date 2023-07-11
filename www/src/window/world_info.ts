@@ -115,8 +115,6 @@ class PlayerCollection extends Window {
             item.setPlayer(all_items[i])
             sy += (this.line_height + this.item_height)
         }
-        //this.scrollY = 0
-        //this.container.h = this.h
         this.scrollbar.max = this.mul_scroll * (this.items_count - this.max_count)
         this.updateVisibleItems()
     }
@@ -169,7 +167,6 @@ export class WorldInfoWindow extends BlankWindow {
         lbl_preview.style.textAlign.horizontal = 'center'
         lbl_preview.style.textAlign.vertical = 'middle'
         lbl_preview.setBackground(hud_atlas.getSpriteFromMap('cover_back'), 'centerstretch', 1.04)
-        //lbl_preview.setText(Lang.no_cover)
         const no_world_cover = new Label(0, 25 * this.zoom, lbl_preview.w, 0, 'no_world_cover','', Lang.no_cover)
         no_world_cover.style.textAlign.horizontal = 'center'
         no_world_cover.style.font.size = 16
@@ -177,12 +174,12 @@ export class WorldInfoWindow extends BlankWindow {
         const no_world_cover_decription = new Label(0, 50 * this.zoom, lbl_preview.w, 0, 'no_world_cover_decription','', Lang.no_world_cover_decription)
         no_world_cover_decription.style.textAlign.horizontal = 'center'
         no_world_cover_decription.style.font.size = 11
-        no_world_cover_decription.style.font.color = '#FFFFFFFF'
+        no_world_cover_decription.style.font.color = UI_THEME.second_text_color
         lbl_preview.add(no_world_cover_decription)
         const no_world_cover_decription_2 = new Label(0, 68 * this.zoom, lbl_preview.w, 0, 'no_world_cover_decription_2','', Lang.no_world_cover_decription_2)
         no_world_cover_decription_2.style.textAlign.horizontal = 'center'
         no_world_cover_decription_2.style.font.size = 11
-        no_world_cover_decription_2.style.font.color = '#FFFFFFFF'
+        no_world_cover_decription_2.style.font.color = UI_THEME.second_text_color
         lbl_preview.add(no_world_cover_decription_2)
         this.add(lbl_preview)
 
@@ -261,8 +258,8 @@ export class WorldInfoWindow extends BlankWindow {
         const btn_make_new_cover = new Button(16 * this.line_height, 10.5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_make_new_cover',  Lang.make_new_cover, '')
         btn_make_new_cover.tooltip = Lang.make_new_cover
         btn_make_new_cover.onMouseDown = () => {
-            Qubatch.hud.wm.getWindow('frmInGameMain').hide();
-            Qubatch.hud.wm.getWindow('frmScreenshot').make({id: 'frmInGameMain', tab: 'frmWorldInfo'});
+            Qubatch.hud.wm.getWindow('frmInGameMain').hide()
+            Qubatch.hud.wm.getWindow('frmScreenshot').make({id: 'frmInGameMain', tab: 'frmWorldInfo'})
         }
         this.add(btn_make_new_cover)
 
