@@ -182,9 +182,8 @@ export class WorldInfoWindow extends BlankWindow {
         no_world_cover_decription_2.style.font.color = UI_THEME.second_text_color
         lbl_preview.add(no_world_cover_decription_2)
         lbl_preview.onMouseDown = () => {
-            console.log(lbl_preview)
-            if (!lbl_preview._wmicon.visible) {
-                vt.success(Lang.copied)
+            if (!lbl_preview._wmicon.style.background.scale) {
+                this.openWindowScreenshot()
             }
         }
         this.add(lbl_preview)
@@ -203,7 +202,7 @@ export class WorldInfoWindow extends BlankWindow {
             if (item.id == 'lbl_seed') {
                 const btn_copy = new Button(this.w / 2 - 2 * this.line_height - 16 * this.zoom, y + 1 * this.zoom, 16 * this.zoom, 16 * this.zoom, item.id + '_copy', '', '')
                 btn_copy.tooltip = Lang.copy
-                btn_copy.setIcon(hud_atlas.getSpriteFromMap('copy_button'), 'centerstretch', .8)
+                btn_copy.setIcon(hud_atlas.getSpriteFromMap('copy_button'), 'centerstretch', .6)
                 btn_copy.onMouseDown = () => {
                     ClipboardHelper.copy(this.getWindow('lbl_seed').text)
                     vt.success(Lang.copied);
@@ -246,6 +245,7 @@ export class WorldInfoWindow extends BlankWindow {
         this.add(lbl_public_description_2)
 
         const btn_invite_world = new Button(16 * this.line_height, 5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_invite_world',  Lang.invite_world, '')
+        btn_invite_world.style.font.size = 13
         btn_invite_world.tooltip = Lang.copy
         btn_invite_world.onMouseDown = () => {
             ClipboardHelper.copy(location.protocol + '//' + location.host + '/worlds/' + Qubatch.world.info.guid)
@@ -253,7 +253,8 @@ export class WorldInfoWindow extends BlankWindow {
         }
         this.add(btn_invite_world)
 
-        const btn_copy_coord = new Button(16 * this.line_height, 7.8 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_copy_coord', Lang.copy_coord, '')
+        const btn_copy_coord = new Button(16 * this.line_height, 7.72 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_copy_coord', Lang.copy_coord, '')
+        btn_copy_coord.style.font.size = 13
         btn_copy_coord.tooltip = Lang.copy
         btn_copy_coord.onMouseDown = () => {
             ClipboardHelper.copy(this.player.pos.floored().toHash().replaceAll(',', ' '))
@@ -261,11 +262,11 @@ export class WorldInfoWindow extends BlankWindow {
         }
         this.add(btn_copy_coord)
 
-        const btn_make_new_cover = new Button(16 * this.line_height, 10.5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_make_new_cover',  Lang.make_new_cover, '')
+        const btn_make_new_cover = new Button(16 * this.line_height, 10.44 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_make_new_cover',  Lang.make_new_cover, '')
+        btn_make_new_cover.style.font.size = 13
         btn_make_new_cover.tooltip = Lang.make_new_cover
         btn_make_new_cover.onMouseDown = () => {
-            Qubatch.hud.wm.getWindow('frmInGameMain').hide()
-            Qubatch.hud.wm.getWindow('frmScreenshot').make({id: 'frmInGameMain', tab: 'frmWorldInfo'})
+            this.openWindowScreenshot()
         }
         this.add(btn_make_new_cover)
 
@@ -373,6 +374,11 @@ export class WorldInfoWindow extends BlankWindow {
         const hours = date.getHours()
         const minutes = date.getMinutes()
         return ('0' + day.toString()).substr(-2) + '.' + ('0' + month.toString()).substr(-2) + '.' + date.getFullYear() + ' ' + ('0' + hours.toString()).substr(-2) + ':' + ('0' + minutes.toString()).substr(-2)
+    }
+
+    openWindowScreenshot() {
+        Qubatch.hud.wm.getWindow('frmInGameMain').hide()
+        Qubatch.hud.wm.getWindow('frmScreenshot').make({id: 'frmInGameMain', tab: 'frmWorldInfo'})
     }
 
 }
