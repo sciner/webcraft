@@ -359,8 +359,10 @@ export class HUD {
 
         // Draw windows
         if(this.wm.hasVisibleWindow()) {
+            this.underlay.crosshair_num = 0
             this.wm.style.background.color = Qubatch.player.isAlive ? '#00000077' : '#ff330027';
         } else {
+            this.underlay.crosshair_num = Qubatch.settings.crosshair_style
             this.wm.style.background.color = '#00000000';
         }
 

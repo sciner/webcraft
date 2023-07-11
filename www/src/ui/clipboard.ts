@@ -1,4 +1,4 @@
-export const ClipboardHelper : any = (function(window, document, navigator) {
+export const ClipboardHelper : any = (function() {
     var textArea : any, copy : any;
     function isOS() {
         return navigator.userAgent.match(/ipad|iphone/i);
@@ -34,4 +34,4 @@ export const ClipboardHelper : any = (function(window, document, navigator) {
     return {
         copy: copy
     };
-})(window, document, navigator);
+})();

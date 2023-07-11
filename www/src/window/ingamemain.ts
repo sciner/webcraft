@@ -128,6 +128,10 @@ export class InGameMain extends BlankWindow {
 
     // Обработчик открытия формы
     onShow(args) {
+        
+        if (args?.tab) {
+            this.openTab(args.tab)
+        }
 
         const is_creative = this.player.game_mode.isCreative()
 
