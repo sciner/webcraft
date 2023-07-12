@@ -1175,7 +1175,6 @@ export class Renderer {
             if(player_model.distance != null || player_model.itsMe()) {
                 if(player_model.itsMe()) {
                     this.lastDeltaForMeGui = 0
-                    player_model.drawFishing(this.solidLineGeom, this.camera.mode === CAMERA_MODE.SHOOTER ? this.camera: null);
                     if(this.camera.mode == CAMERA_MODE.SHOOTER || this.player.game_mode.isSpectator()) {
                         continue;
                     }
@@ -1210,6 +1209,15 @@ export class Renderer {
 
         let prev_chunk = null
         for(let mob of mobs_list.values()) {
+            if (mob.leash) {
+                const player = this.world.players.list.get(mob.leash);
+                if (!player) {
+                    return;
+                }
+                const fpc = player.itsMe() && this.camera.mode === CAMERA_MODE.SHOOTER ? this.camera : null;
+                player.drawFishing(this.solidLineGeom, mob, fpc);
+            }
+
             const ca = mob.chunk_addr
             if(!prev_chunk || !prev_chunk.addr.equal(ca)) {
                 prev_chunk = this.world.chunkManager.getChunk(ca)

@@ -406,22 +406,12 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         return true
     }
 
-    drawFishing(line_geom: LineGeometry, first_person_camera?: Camera_3d)
+    drawFishing(line_geom: LineGeometry, hook: MobModel, first_person_camera: Camera_3d)
     {
             //TODO: make multiplayer version!
             // if (item.id == bm.FISHING_ROD.id) {
         const slot = this.slots.get(KEY_SLOT_MAP.right);
         if (slot?.id !== this.world.block_manager.FISHING_ROD.id || !slot.item) {
-            return;
-        }
-        let hook: MobModel = null;
-        for (let [num, mob] of this.world.mobs.list) {
-            if (mob.type === 'mob/hook') {
-                hook = mob;
-                break;
-            }
-        }
-        if (!hook) {
             return;
         }
         let pos = new Vector();

@@ -318,18 +318,6 @@ export class MobModel extends NetworkPhysicObject {
             }
         }
 
-        if (this.leash) {
-            const pos_a = this.pos // точка а откуда рисуем
-            for (const [num, player] of this.world.players.list) {
-                if (num == this.leash) {
-                    const pos_b = player.pos // точка куда рисуем, можно доавить смещение на руку или на конец удочки
-                    console.log(pos_a)
-                    console.log(pos_b)
-                    break
-                }
-            }
-        }
-
         // Draw in fire
         if (this.fire || this.extra_data?.in_fire) {
             this.drawInFire(meshBatcher, delta);
