@@ -91,6 +91,7 @@ void main() {
 
     uint fluidId = a_fluidId & uint(3);
     v_cubeSide = int(a_fluidId >> 2) & 7;
+    int neib_state = int(a_fluidId >> 5) & 1;
     int blockIndex = int(a_blockId) & 0xffff;
     int iSize = chunkData0.w;
     ivec3 chunkSize = ivec3(iSize & 0xff, (iSize >> 8) & 0xff, (iSize >> 16) & 0xff);
@@ -138,7 +139,9 @@ void main() {
     v_world_pos = (vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos) + v_chunk_pos;
 
     // Waves
-    v_world_pos.z += getWaveValue();
+    if (subPos.z > 0.0 || neib_state == 0) {
+        v_world_pos.z += getWaveValue();
+    }
 
     v_position = (u_viewMatrix * vec4(v_world_pos, 1.0)).xyz;
     gl_Position = u_projMatrix * vec4(v_position, 1.0);
