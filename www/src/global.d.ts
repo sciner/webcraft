@@ -576,3 +576,7 @@ declare type IEnterWorld = {
         port?: string,
     }
 }
+
+declare type ISpriteAtlasOptions = {
+    scaleMode? : any
+}

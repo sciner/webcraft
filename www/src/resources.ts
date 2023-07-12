@@ -3,6 +3,7 @@ import { Helpers } from "./helpers.js";
 import { CLIENT_MUSIC_ROOT } from "./constant.js";
 import { SpriteAtlas } from "./core/sprite_atlas.js";
 import {ShaderPreprocessor} from "./renders/ShaderPreprocessor.js";
+import { SCALE_MODES } from "vauxcel";
 
 export const COLOR_PALETTE = {
     white: [0, 0],      // Белая - white_terracotta
@@ -145,7 +146,11 @@ export class Resources {
                 ])
                 const map = atlas_files[0];
                 const image = atlas_files[1];
-                const atlas = await SpriteAtlas.fromJSON(image, map)
+                const options: ISpriteAtlasOptions = {}
+                if (name === 'hud') {
+                    options.scaleMode = SCALE_MODES.LINEAR
+                }
+                const atlas = await SpriteAtlas.fromJSON(image, map, options)
                 Resources.atlas.set(name, atlas)
                 resolve(atlas)
             }))

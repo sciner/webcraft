@@ -30,7 +30,7 @@ export class SpriteAtlas {
         })
     }
 
-    static async fromJSON(image_or_url : HTMLImageElement | ImageBitmap | string, map_json : object) : Promise<SpriteAtlas> {
+    static async fromJSON(image_or_url : HTMLImageElement | ImageBitmap | string, map_json : object, options: any = {}) : Promise<SpriteAtlas> {
         let atlas = atlases.get(image_or_url)
         if(atlas) {
             return atlas
@@ -40,6 +40,7 @@ export class SpriteAtlas {
             await atlas.fromFile(image_or_url)
         } else {
             atlas.baseTex = new VAUX.BaseTexture(image_or_url, {
+                ...options,
                 resourceOptions: { alphaMode: image_or_url instanceof ImageBitmap ? 0 : 1 }
             })
         }

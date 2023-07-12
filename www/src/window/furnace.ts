@@ -1,20 +1,20 @@
 import { Vector } from "../helpers.js";
 import { Lang } from "../lang.js";
 import {BaseChestWindow, TChestWindowSlotInfo} from "./base_chest_window.js";
-import { Icon } from "../ui/wm.js";
+import { Icon, Label } from "../ui/wm.js";
 import type { PlayerInventory } from "../player_inventory.js";
-import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH } from "../constant.js";
+import { INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT } from "../constant.js";
 import type {TCmdChestContent} from "../chest.js";
 import {SpriteAtlas} from "../core/sprite_atlas.js";
 
 export class FurnaceWindow extends BaseChestWindow {
 
-    icon_arrow : Icon
-    icon_fire : Icon
+    icon_arrow : Label
+    icon_fire : Label
 
     constructor(inventory : PlayerInventory) {
 
-        const w = 420
+        const w = 600
         const h = 400
 
         super(0, 0, INGAME_MAIN_WIDTH, INGAME_MAIN_HEIGHT, 'frmFurnace', null, null, inventory, {
@@ -25,19 +25,20 @@ export class FurnaceWindow extends BaseChestWindow {
             }
         })
 
-        this.icon_arrow = new Icon(158, 68.5, 96, 68, 'iconArrow', this.zoom)
-        this.add(this.icon_arrow)
+        const z = this.zoom / (w / INGAME_MAIN_WIDTH) / 2
 
-        this.icon_fire = new Icon(112.5, 72, 58, 56, 'iconFire', this.zoom)
-        this.icon_fire.axis_x = false
+        this.icon_fire = new Label(156 * z, 188 * z, 58 * z, 56 * z, 'iconFire')
         this.add(this.icon_fire)
+
+        this.icon_arrow = new Label(214 * z, 184 * z, 96 * z, 68 * z, 'iconArrow')
+        this.add(this.icon_arrow)
 
         // Create sprite atlas
         this.atlas = new SpriteAtlas()
         this.atlas.fromFile('./media/gui/form-furnace.png').then(async (atlas : SpriteAtlas) => {
             this.setBackground(await atlas.getSprite(0, 0, w * 2, h * 2), 'none', this.zoom / 2.0)
-            this.icon_arrow.setBackground(await this.atlas.getSprite(840, 56, 96, 68), 'none', this.zoom / 2.0 )
-            this.icon_fire.setBackground(await this.atlas.getSprite(840, 0, 58, 56), 'none', this.zoom / 2.0 )
+            this.icon_fire.setBackground(await this.atlas.getSprite(0, 800, 58, 56), 'none', this.zoom / 2.0 )
+            this.icon_arrow.setBackground(await this.atlas.getSprite(0, 856, 96, 68), 'none', this.zoom / 2.0 )
         })
         
     }
@@ -45,23 +46,24 @@ export class FurnaceWindow extends BaseChestWindow {
     //
     prepareSlots(): TChestWindowSlotInfo[] {
         const resp = [];
-        resp.push({pos: new Vector(108, 31, 0).multiplyScalarSelf(this.zoom)});
-        resp.push({pos: new Vector(108, 104, 0).multiplyScalarSelf(this.zoom)});
-        resp.push({pos: new Vector(230, 68, 0).multiplyScalarSelf(this.zoom), readonly: true});
+        resp.push({pos: new Vector(100, 80, 0).multiplyScalarSelf(this.zoom)});
+        resp.push({pos: new Vector(100, 160, 0).multiplyScalarSelf(this.zoom)});
+        resp.push({pos: new Vector(200, 120, 0).multiplyScalarSelf(this.zoom), readonly: true});
         return resp;
     }
 
     // Пришло содержимое сундука от сервера
     protected setData(chest: TCmdChestContent): void {
         super.setData(chest)
+        let result_percent = 0
+        let fuel_percent = 0
         if (this.state) {
-            const fuel_percent = this.state.fuel_time / this.state.max_time
-            this.icon_arrow.scroll(this.state.result_percent)
-            this.icon_fire.scroll(fuel_percent)
+            result_percent = this.state.result_percent
+            fuel_percent = this.state.fuel_time / this.state.max_time
         } else {
-            this.icon_arrow.scroll(0)
-            this.icon_fire.scroll(0)
         }
+        this.icon_arrow.clip(0, 0, this.icon_arrow.w * result_percent, this.icon_arrow.h)
+        this.icon_fire.clip(0, this.icon_fire.h * (1 - fuel_percent), this.icon_fire.w, this.icon_fire.h)
     }
 
 }
