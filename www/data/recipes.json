@@ -1847,6 +1847,27 @@
         }
     },
     {
+        "id": "e2ac73aa-5cec-451a-8577-405c64cbe7f7",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "i i",
+            "ici",
+            " i "
+        ],
+        "key": {
+            "i": {
+                "item": "madcraft:iron_ingot"
+            },
+            "c": {
+                "item": "madcraft:chest"
+            }
+        },
+        "result": {
+            "item": "madcraft:hopper",
+            "count": 1
+        }
+    },
+    {
         "id": "0c4b64d1-2fea-46f5-b92b-829e1e31a667",
         "type": "madcraft:crafting_shaped",
         "pattern": [

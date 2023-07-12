@@ -286,8 +286,8 @@ export class Player implements IPlayer {
     /** значения, которые можно установить командой /debugplayer (и на клиенте, и на сервере) и использовать для любых целей */
     debugValues                 = new Map<string, string>()
     #leg_block:                 any = null
+    #body_block:                any = null
     #timer_burn:                number = 0
-    #timer_attack:              number = 0
     #distance:                  number = 0
     #old_distance:              number = 0
     #old_y:                     number = 0
@@ -1112,21 +1112,26 @@ export class Player implements IPlayer {
             const cam_pos           = this.getEyePos(true)
             const eye_y             = cam_pos.y;
             this.headBlock          = this.world.chunkManager.getBlock(Math.floor(cam_pos.x), eye_y | 0, Math.floor(cam_pos.z))
-            this.#leg_block         = this.world.chunkManager.getBlock(this.pos.floored());
+            this.#leg_block         = this.world.chunkManager.getBlock(this.pos.floored())
+            this.#body_block        = this.world.chunkManager.getBlock(this.pos.floored().offset(0, 1, 0))
             this.eyes_in_block_o    = this.eyes_in_block;
             this.eyes_in_block      = this.headBlock.material.is_portal ? this.headBlock.material : null;
             // если в огне, то поджигаем
-            if (this.#leg_block && (this.#leg_block.id == this.bm.FIRE.id || this.#leg_block.id == this.bm.CAMPFIRE.id || (this.#leg_block.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID)) {
+            // проверяем ноги глаза и тело (для полублоков)
+            const is_fire = (this.#leg_block.id == this.bm.FIRE.id || this.#leg_block.id == this.bm.CAMPFIRE.id || this.#body_block.id == this.bm.FIRE.id  || this.headBlock.id == this.bm.FIRE.id)
+            const is_lava = ((this.#leg_block.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) || ((this.#body_block.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID)
+            if (is_fire || is_lava) {
                 this.#timer_burn = performance.now() + PLAYER_BURNING_TIME * 1000
             }
-            if ( this.in_water || (this.headBlock && (this.headBlock.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) || this.getEffectLevel(Effect.FIRE_RESISTANCE)) {
+            // если в воде, то тушим огонь
+            if (this.in_water || (this.headBlock && (this.headBlock.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) || this.getEffectLevel(Effect.FIRE_RESISTANCE)) {
                 this.#timer_burn = 0
             }
             // если в воде, то проверим еще высоту воды
             if (this.headBlock.fluid > 0) {
-                const fluidLevel = this.headBlock.getFluidLevel(this.lerpPos.x, this.lerpPos.z);
+                const fluidLevel = this.headBlock.getFluidLevel(this.lerpPos.x, this.lerpPos.z)
                 if (eye_y < fluidLevel) {
-                    this.eyes_in_block = this.headBlock.getFluidBlockMaterial();
+                    this.eyes_in_block = this.headBlock.getFluidBlockMaterial()
                 }
             }
             //

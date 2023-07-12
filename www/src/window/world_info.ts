@@ -4,7 +4,8 @@ import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH,  UI_THEME } from "../constant.js
 import { BlankWindow } from "./blank.js";
 import { Resources } from "../resources.js";
 import type { World } from "../world.js";
-import type { Player } from "../player.js";
+import type { Player } from "player.js";
+import { ClipboardHelper } from "../ui/clipboard.js";
 
 class PlayerItem extends Window {
     #data: any
@@ -114,8 +115,6 @@ class PlayerCollection extends Window {
             item.setPlayer(all_items[i])
             sy += (this.line_height + this.item_height)
         }
-        //this.scrollY = 0
-        //this.container.h = this.h
         this.scrollbar.max = this.mul_scroll * (this.items_count - this.max_count)
         this.updateVisibleItems()
     }
@@ -168,7 +167,25 @@ export class WorldInfoWindow extends BlankWindow {
         lbl_preview.style.textAlign.horizontal = 'center'
         lbl_preview.style.textAlign.vertical = 'middle'
         lbl_preview.setBackground(hud_atlas.getSpriteFromMap('cover_back'), 'centerstretch', 1.04)
-        lbl_preview.setText(Lang.no_cover)
+        const no_world_cover = new Label(0, 25 * this.zoom, lbl_preview.w, 0, 'no_world_cover','', Lang.no_cover)
+        no_world_cover.style.textAlign.horizontal = 'center'
+        no_world_cover.style.font.size = 16
+        lbl_preview.add(no_world_cover)
+        const no_world_cover_decription = new Label(0, 50 * this.zoom, lbl_preview.w, 0, 'no_world_cover_decription','', Lang.no_world_cover_decription)
+        no_world_cover_decription.style.textAlign.horizontal = 'center'
+        no_world_cover_decription.style.font.size = 11
+        no_world_cover_decription.style.font.color = UI_THEME.second_text_color
+        lbl_preview.add(no_world_cover_decription)
+        const no_world_cover_decription_2 = new Label(0, 68 * this.zoom, lbl_preview.w, 0, 'no_world_cover_decription_2','', Lang.no_world_cover_decription_2)
+        no_world_cover_decription_2.style.textAlign.horizontal = 'center'
+        no_world_cover_decription_2.style.font.size = 11
+        no_world_cover_decription_2.style.font.color = UI_THEME.second_text_color
+        lbl_preview.add(no_world_cover_decription_2)
+        lbl_preview.onMouseDown = () => {
+            if (!lbl_preview._wmicon.style.background.scale) {
+                this.openWindowScreenshot()
+            }
+        }
         this.add(lbl_preview)
 
         // список
@@ -179,9 +196,22 @@ export class WorldInfoWindow extends BlankWindow {
             {id: 'lbl_age', title: Lang.age},
             {id: 'lbl_creator', title: Lang.creator},
             {id: 'lbl_generator', title: Lang.world_generator_type},
+            {id: 'lbl_seed', title: Lang.world_seed}
         ]) {
+            let right = 0
+            if (item.id == 'lbl_seed') {
+                const btn_copy = new Button(this.w / 2 - 2 * this.line_height - 16 * this.zoom, y + 1 * this.zoom, 16 * this.zoom, 16 * this.zoom, item.id + '_copy', '', '')
+                btn_copy.tooltip = Lang.copy
+                btn_copy.setIcon(hud_atlas.getSpriteFromMap('copy_button'), 'centerstretch', .6)
+                btn_copy.onMouseDown = () => {
+                    ClipboardHelper.copy(this.getWindow('lbl_seed').text)
+                    vt.success(Lang.copied);
+                }
+                this.add(btn_copy)
+                right = 20 * this.zoom
+            }
             const lbl_title = new Label(2 * this.line_height, y, 0, 0, item.id + '_title', item.title, item.title)
-            const lbl = new Label(this.w / 2 - 2 * this.line_height, y, 0, 0, item.id, item.title, item.title)
+            const lbl = new Label(this.w / 2 - 2 * this.line_height - right, y, 0, 0, item.id, item.title, item.title)
             lbl_title.style.font.size = UI_THEME.base_font.size
             lbl_title.style.font.weight = 'bold'
             lbl_title.style.font.color = UI_THEME.base_font.color
@@ -214,6 +244,36 @@ export class WorldInfoWindow extends BlankWindow {
         lbl_public_description_2.style.font.color = UI_THEME.second_text_color
         this.add(lbl_public_description_2)
 
+        // Copy invite URL
+        const btn_invite_world = new Button(16 * this.line_height, 5 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_invite_world',  Lang.invite_world, '')
+        btn_invite_world.style.font.size = 13
+        btn_invite_world.tooltip = Lang.copy_invite_url_tooltip
+        btn_invite_world.onMouseDown = () => {
+            ClipboardHelper.copy(location.protocol + '//' + location.host + '/worlds/' + Qubatch.world.info.guid)
+            vt.success(Lang.copy_invite_url_copied);
+        }
+        this.add(btn_invite_world)
+
+        // Copy current player position
+        const btn_copy_coord = new Button(16 * this.line_height, 7.72 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_copy_coord', Lang.copy_coord, '')
+        btn_copy_coord.style.font.size = 13
+        btn_copy_coord.tooltip = Lang.copy_player_position_tooltip
+        btn_copy_coord.onMouseDown = () => {
+            ClipboardHelper.copy(this.player.pos.floored().toHash().replaceAll(',', ' '))
+            vt.success(Lang.copy_player_position_copied);
+        }
+        this.add(btn_copy_coord)
+
+        // Make new cover
+        const btn_make_new_cover = new Button(16 * this.line_height, 10.44 * this.line_height, 131 * this.zoom, 22 * this.zoom, 'btn_make_new_cover',  Lang.make_new_cover, '')
+        btn_make_new_cover.style.font.size = 13
+        btn_make_new_cover.tooltip = Lang.make_new_cover
+        btn_make_new_cover.onMouseDown = () => {
+            this.openWindowScreenshot()
+        }
+        this.add(btn_make_new_cover)
+
+        //
         this.addCollection()
 
     }
@@ -247,7 +307,7 @@ export class WorldInfoWindow extends BlankWindow {
             title:       (info.title.length > 17) ? info.title.substring(0, 17) + '...' : info.title,
             gamemode:    Lang[`gamemode_${info.game_mode}`],
             generator:   info.generator,
-            cover:       `/worldcover/${info.guid}/screenshot/preview_${info.cover}`,
+            cover:       info.cover ? `/worldcover/${info.guid}/screenshot/preview_${info.cover}` : null,
             username:    info.username,
             is_admin:    info.user_id == player.session.user_id,
             time:        info.dt,
@@ -255,6 +315,7 @@ export class WorldInfoWindow extends BlankWindow {
             is_public:   false,
             is_official: true,
             players:     [],
+            seed:        info.seed
         }
         // fill players
         for(const p of world.players.values()) {
@@ -277,6 +338,7 @@ export class WorldInfoWindow extends BlankWindow {
         setWindowText('lbl_age', data.age)
         setWindowText('lbl_gamemode', data.gamemode)
         setWindowText('lbl_generator', data.generator.id)
+        setWindowText('lbl_seed', data.seed)
 
         btn_switch_public.setIcon(data.is_public ? hud_atlas.getSpriteFromMap('check2') : null)
         btn_switch_public.toggled = data.is_public
@@ -287,8 +349,6 @@ export class WorldInfoWindow extends BlankWindow {
 
         // cover
         if (data?.cover) {
-            lbl_preview.style.border.hidden = true
-            lbl_preview.setText('')
             lbl_preview.setIcon(data.cover, 'centerstretch', 1.0)
         }
 
@@ -318,6 +378,11 @@ export class WorldInfoWindow extends BlankWindow {
         const hours = date.getHours()
         const minutes = date.getMinutes()
         return ('0' + day.toString()).substr(-2) + '.' + ('0' + month.toString()).substr(-2) + '.' + date.getFullYear() + ' ' + ('0' + hours.toString()).substr(-2) + ':' + ('0' + minutes.toString()).substr(-2)
+    }
+
+    openWindowScreenshot() {
+        Qubatch.hud.wm.getWindow('frmInGameMain').hide()
+        Qubatch.hud.wm.getWindow('frmScreenshot').make({id: 'frmInGameMain', tab: 'frmWorldInfo'})
     }
 
 }

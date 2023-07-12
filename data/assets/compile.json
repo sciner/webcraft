@@ -9154,6 +9154,7 @@
             "transparent": true,
             "max_in_stack": 1,
             "style": "extruder",
+            "diagonal": true,
             "item": {"name": "tool", "instrument_id": "flint_and_steel"},
             "material": {
                 "id": "iron"
@@ -10364,6 +10365,7 @@
             "name": "PUFFERFISH",
             "item": {"name": "food"},
             "style": "extruder",
+            "diagonal": true,
             "material": {
                 "id": "food"
             },
@@ -13414,6 +13416,200 @@
             "drop_item": [
                 {
                     "name": "BLACKSTONE_STAIRS",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
+        },
+        {
+            "id": 941,
+            "name": "POLISHED_DEEPSLATE",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": {
+                "side": "block/polished_deepslate.png"
+            },
+            "drop_item": [
+                {
+                    "name": "POLISHED_DEEPSLATE",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
+        },
+        {
+            "id": 942,
+            "name": "POLISHED_DEEPSLATE_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "POLISHED_DEEPSLATE"
+            },
+            "texture": "block/polished_deepslate.png",
+            "drop_item": [
+                {
+                    "name": "POLISHED_DEEPSLATE_SLAB",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
+                }
+            ]
+        },
+        {
+            "id": 943,
+            "name": "EXPOSED_CUT_COPPER",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": {
+                "side": "block/exposed_cut_copper.png"
+            },
+            "drop_item": [
+                {
+                    "name": "EXPOSED_CUT_COPPER",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
+        },
+        {
+            "id": 944,
+            "name": "EXPOSED_CUT_COPPER_SLAB",
+            "transparent": true,
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "height": 0.5,
+            "layering": {
+                "height": 0.5,
+                "slab": true,
+                "full_block_name": "EXPOSED_CUT_COPPER"
+            },
+            "texture": "block/exposed_cut_copper.png",
+            "drop_item": [
+                {
+                    "name": "EXPOSED_CUT_COPPER_SLAB",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 1,
+                        "max": 3
+                    }
+                }
+            ]
+        },
+        {
+            "id": 945,
+            "name": "RED_NETHER_BRICK_STAIRS",
+            "style": "stairs",
+            "sound": "madcraft:block.stone",
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/red_nether_bricks.png",
+            "drop_item": [
+                {
+                    "name": "RED_NETHER_BRICK_STAIRS",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
+        },
+        {
+            "id": 946,
+            "name": "TINTED_GLASS",
+            "sound": "madcraft:block.glass",
+            "material": {
+                "id": "glass"
+            },
+            "transparent": true,
+            "tags": [
+                "is_solid_for_fluid",
+                "glass",
+                "no_drop_ao"
+            ],
+            "texture": {
+                "side": "block/tinted_glass.png"
+            }
+        },
+        {
+            "id": 947,
+            "name": "POLISHED_BLACKSTONE_WALL",
+            "sound": "madcraft:block.stone",
+            "style": "wall",
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/polished_blackstone.png",
+            "drop_item": [
+                {
+                    "name": "POLISHED_BLACKSTONE_WALL",
+                    "instrument": ["_PICKAXE"]
+                },
+                {
+                    "name": "SMALL_ROCK",
+                    "count": {
+                        "min": 3,
+                        "max": 5
+                    }
+                }
+            ]
+        },
+        {
+            "id": 948,
+            "name": "POLISHED_BLACKSTONE_BRICK_WALL",
+            "sound": "madcraft:block.stone",
+            "style": "wall",
+            "transparent": true,
+            "material": {
+                "id": "stone"
+            },
+            "texture": "block/polished_blackstone_bricks.png",
+            "drop_item": [
+                {
+                    "name": "POLISHED_BLACKSTONE_BRICK_WALL",
                     "instrument": ["_PICKAXE"]
                 },
                 {

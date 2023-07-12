@@ -95,7 +95,7 @@ export class Brain extends FSMBrain {
         if(spawn_distance < 1) {
             const world = mob.getWorld();
             const tblock = world.getBlock(mob.pos_spawn.floored());
-            if(tblock && tblock.hasTag('bee_nest')) {
+            if(tblock.id > 0 && tblock.hasTag('bee_nest')) {
                 // console.log('found BeeNest');
                 const nest = new BeeNest(tblock);
                 nest.appendMob(mob);

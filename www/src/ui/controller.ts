@@ -1,18 +1,18 @@
 /// <reference path="../global-client.d.ts" />
 
-import {CLIENT_MAX_SYNC_TIME_TWO_SIDED_LAG, Helpers, isMobileBrowser, MonotonicUTCDate, TApiSyncTimeResponse, Vector} from '../helpers.js';
-import { UIApp } from './app.js';
-import { TexturePackManager } from './texture_pack-manager.js';
-import { SkinManager } from './skin-manager.js';
-import { GameClass } from '../game.js';
-import {Player, PlayerOptions} from '../player.js';
+import {CLIENT_MAX_SYNC_TIME_TWO_SIDED_LAG, Helpers, isMobileBrowser, MonotonicUTCDate, TApiSyncTimeResponse, Vector} from "../helpers.js";
+import { UIApp } from "./app.js";
+import { TexturePackManager } from "./texture_pack-manager.js";
+import { SkinManager } from "./skin-manager.js";
+import { GameClass } from "../game.js";
+import {Player, PlayerOptions} from "../player.js";
 import { Lang } from "../lang.js";
 import { KEY, MOUSE } from "../constant.js";
-import  registerTextFilter from './angular/textfilter.js';
-import { Resources } from '../resources.js';
-import { ClipboardHelper } from './clipboard.js';
-import { HUD } from '../hud.js';
-import { msdf } from '../../data/font.js'
+import  registerTextFilter from "./angular/textfilter.js";
+import { Resources } from "../resources.js";
+import { ClipboardHelper } from "./clipboard.js";
+import { HUD } from "../hud.js";
+import { msdf } from "../../data/font.js";
 
 globalThis.alphabet = {msdf}
 

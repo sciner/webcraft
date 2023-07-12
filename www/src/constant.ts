@@ -324,7 +324,8 @@ export enum DAYLIGHT_VALUE {
 export enum TREASURE_SOURCE {
     TREASURE_ROOM = 'treasure_room',
     CAVE_MINES = 'cave_mines',
-    BUILDING = 'building'
+    BUILDING = 'building',
+    SHULKER_BOX = 'shulker_box'
 }
 
 export enum BLOCK_FLAG {

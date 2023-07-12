@@ -93,6 +93,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
 
         for (const piece of this.pieces) {
             const template = this.templates.get(piece.name)
+
             const coord = piece.pos
             const building = new BuildingBlocks(
                 this,
@@ -103,6 +104,7 @@ export class ClusterEndCity extends ClusterBuildingBase {
                 null,
                 template
             )
+            
             this.appendBuilding(building)
         }
 
@@ -121,8 +123,15 @@ export class ClusterEndCity extends ClusterBuildingBase {
 
         // set blocks list for chunk
         this.blocks.list = this.chunks.get(chunk.addr) ?? []
+
         // draw chunk blocks
-        this.blocks.draw(this, chunk, map)
+        const blocks_random = new alea(`chunk_cluster_blocks_${chunk.addr.toHash()}`)
+        this.blocks.draw(this, chunk, map, (chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_id : int, rotate? : IVector, extra_data? : any, mat?: IBlockMaterial) : boolean => {
+                if(block_id > 0 && mat.is_shulker_box) {
+                    return blocks_random.double() > .7
+                }
+                return true
+            })
         this.timers.stop()
         this.timers.count++;
     }

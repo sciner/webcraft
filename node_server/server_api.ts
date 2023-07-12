@@ -61,6 +61,8 @@ export class ServerAPI {
                     } }
                 }
 
+                
+
                 const generator = WorldGenerators.validateAndFixOptions(params.generator);
 
                 // spawn pos
@@ -210,7 +212,8 @@ export class ServerAPI {
                             screenshot_file_preview.mv(path + `preview_${filename}`);
                         }
                         const world = Qubatch.worlds.get(world_id)
-                        world.info.cover = `preview_${filename}`
+                        world.info.cover = filename
+                        world.sendUpdatedInfo()
                         return {'result':'ok'};
                     }
                 }
