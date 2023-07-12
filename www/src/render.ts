@@ -1211,11 +1211,10 @@ export class Renderer {
         for(let mob of mobs_list.values()) {
             if (mob.leash) {
                 const player = this.world.players.list.get(mob.leash);
-                if (!player) {
-                    return;
+                if (player) {
+                    const fpc = player.itsMe() && this.camera.mode === CAMERA_MODE.SHOOTER ? this.camera : null;
+                    player.drawFishing(this.solidLineGeom, mob, fpc);
                 }
-                const fpc = player.itsMe() && this.camera.mode === CAMERA_MODE.SHOOTER ? this.camera : null;
-                player.drawFishing(this.solidLineGeom, mob, fpc);
             }
 
             const ca = mob.chunk_addr
