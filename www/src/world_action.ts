@@ -2148,6 +2148,8 @@ async function openPortal(e, world, pos, player, world_block, world_material : I
 
     if(mat_block.name == 'FLINT_AND_STEEL') {
         actions.addPlaySound({tag: 'madcraft:fire', action: 'flint_and_steel_click', pos: position, except_players: [player.session.user_id]})
+    } else if(mat_block.name == 'FLOWING_WATER') {
+        actions.decrement = true
     }
 
     const frame_block_id = world_material.id
