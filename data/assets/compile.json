@@ -12650,20 +12650,6 @@
             ]
         },
         {
-            "id": 1093,
-            "name": "TURF_OF_GRASS",
-            "style": "extruder",
-            "sound": "madcraft:block.grass",
-            "item": {
-                "name": "powder"
-            },
-            "material": {
-                "id": "powder"
-            },
-            "texture": "block/seagrass.png",
-            "composter_chance": 0.3
-        },
-        {
             "id": 1094,
             "name": "BACKPACK_BASIC",
             "style": "extruder",
