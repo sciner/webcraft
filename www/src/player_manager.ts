@@ -90,6 +90,8 @@ export class PlayerManager extends AbstractPlayerManager<World, PlayerModel> {
         player.running = data.running
         player.attack = data.attack
         player.fire = data.fire
+        player.leash = data.leash
+        console.log(data.leash)
         if(data.pos) {
             player.applyNetState({
                 pos: data.pos,

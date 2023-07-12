@@ -63,6 +63,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
     swingProgressInt:   float = 0
     isSwingInProgress:  boolean = false
     scale:              float
+    leash:              number | null
     declare username:   string  // из props
     activeSlotsData
     head
@@ -361,7 +362,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
 
     setProps(pos: IVector | null, rotate: IVector | null, sneak: boolean, running: boolean,
         hands: PlayerHands, sitting: false | TSittingState,
-        sleep: false | TSleepState, anim : false | TAnimState, attack: false | TAnimState, fire: boolean, health?: number,
+        sleep: false | TSleepState, leash: number | null, anim : false | TAnimState, attack: false | TAnimState, fire: boolean, health?: number,
         on_ground: boolean = true, submergedPercent: float = 0,
     ): void {
         if (pos) {
@@ -380,6 +381,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.attack = attack
         this.fire = fire
         this.sleep = sleep
+        this.leash = leash
         this.ground = on_ground
         this.submergedPercent = submergedPercent
         this.health = health
@@ -416,7 +418,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         }
         let hook: MobModel = null;
         for (let [num, mob] of this.world.mobs.list) {
-            if (mob.type === 'mob/hook') {
+            if (mob.type === 'mob/hook' && num == this.leash) {
                 hook = mob;
                 break;
             }

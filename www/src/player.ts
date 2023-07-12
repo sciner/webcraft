@@ -115,6 +115,7 @@ type PlayerStateDynamicPart = {
     hands       : PlayerHands,
     anim?       : false | TAnimState
     fire?       : boolean,
+    leash?      : number | null,
     attack?     : false | TAnimState
 }
 
@@ -453,6 +454,9 @@ export class Player implements IPlayer {
         this.world.server.AddCmdListener([ServerClient.CMD_PLAYER_WORLD_DATA], (cmd) => {
             this.world_data = cmd.data
         });
+        this.world.server.AddCmdListener([ServerClient.CMD_USE_ITEM], (cmd) => {
+            this.state.leash = cmd.data.leash
+        });
         this.world.server.AddCmdListener([ServerClient.CMD_GAMEMODE_SET], (cmd) => {
             this.game_mode.applyMode(cmd.data.id, true);
             let pos = this.controlManager.getPos();
@@ -471,6 +475,7 @@ export class Player implements IPlayer {
             this.inventory.hud.refresh();
         });
         this.world.server.AddCmdListener([ServerClient.CMD_PLAYER_UPDATE_STATE], (cmd) => {
+            console.log(cmd.data)
             this.state.world = cmd.data.world
         });
         // pickAt
@@ -1310,6 +1315,7 @@ export class Player implements IPlayer {
                 this.state.hands,
                 this.state.sitting,
                 this.state.sleep,
+                this.state.leash,
                 this.state.anim,
                 this.state.attack,
                 this.state.fire,
