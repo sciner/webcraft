@@ -128,6 +128,7 @@ export class Brain extends FSMBrain {
             mob.kill()
             return
         }
+        mob.extra_data.leash = player.session.user_id
         const world = mob.getWorld()
         const item = player.inventory.items[player.inventory.current.index]
         if (player.status == PLAYER_STATUS.DEAD || !item || item.id != world.block_manager.FISHING_ROD.id || mob.pos.distance(player.state.pos) > 32) {

@@ -54,18 +54,19 @@ export default class packet_reader {
                 )
                 player.fishing = player.world.mobs.create(params)
                 player.fishing.parent = player // @todo мб лучше передавать id
-                player.state.leash = player.fishing.id
+               // player.state.leash = player.fishing.id
             } else {
-                player.state.leash = null
+                //player.state.leash = null
                 player.fishing.getBrain().onFishing()
             }
-            let packets = [{
+            /*let packets = [{
                 name: ServerClient.CMD_USE_ITEM,
                 data: {
                     "leash": player.state.leash,
                 }
             }];
             player.world.sendSelected(packets, player);
+            */
             return true
         }
         if (packet?.data?.cancel) {

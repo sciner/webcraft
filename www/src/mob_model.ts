@@ -66,6 +66,7 @@ export class MobModel extends NetworkPhysicObject {
 	currentChunk :      any = null
 	lightTex :          any = null
 	armor :             ArmorState = null
+    leash:             any = null
 	// sneak:              boolean = false
 	// body_rotate:        int = 0
 	// models:             Map<string, any> = new Map()
@@ -313,6 +314,18 @@ export class MobModel extends NetworkPhysicObject {
                         mx[13] += 0.5 - v[1]
                         mx[14] += - v[2]
                     }
+                }
+            }
+        }
+
+        if (this.leash) {
+            const pos_a = this.pos // точка а откуда рисуем
+            for (const [num, player] of this.world.players.list) {
+                if (num == this.leash) {
+                    const pos_b = player.pos // точка куда рисуем, можно доавить смещение на руку или на конец удочки
+                    console.log(pos_a)
+                    console.log(pos_b)
+                    break
                 }
             }
         }

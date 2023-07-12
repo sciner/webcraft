@@ -115,7 +115,6 @@ type PlayerStateDynamicPart = {
     hands       : PlayerHands,
     anim?       : false | TAnimState
     fire?       : boolean,
-    leash?      : number | null,
     attack?     : false | TAnimState
 }
 
@@ -453,9 +452,6 @@ export class Player implements IPlayer {
         });
         this.world.server.AddCmdListener([ServerClient.CMD_PLAYER_WORLD_DATA], (cmd) => {
             this.world_data = cmd.data
-        });
-        this.world.server.AddCmdListener([ServerClient.CMD_USE_ITEM], (cmd) => {
-            this.state.leash = cmd.data.leash
         });
         this.world.server.AddCmdListener([ServerClient.CMD_GAMEMODE_SET], (cmd) => {
             this.game_mode.applyMode(cmd.data.id, true);
@@ -1315,7 +1311,6 @@ export class Player implements IPlayer {
                 this.state.hands,
                 this.state.sitting,
                 this.state.sleep,
-                this.state.leash,
                 this.state.anim,
                 this.state.attack,
                 this.state.fire,
