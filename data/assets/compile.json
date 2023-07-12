@@ -13606,6 +13606,140 @@
                     }
                 }
             ]
+        },
+        {
+            "id": 1112,
+            "name": "FISHING_ROD",
+            "transparent": true,
+            "max_in_stack": 1,
+            "style": "extruder",
+            "diagonal": true,
+            "rotate": true,
+            "item": {"name": "instrument", "instrument_id": "fishing_rod"},
+            "power": 64,
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "item/fishing_rod.png"
+            }
+        },
+        {
+            "id": 1113,
+            "name": "COOKED_COD",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "food": {
+                "amount": 6,
+                "saturation": 0.3
+            },
+            "texture": "item/cooked_cod.png"
+        },
+        {
+            "id": 1114,
+            "name": "COD",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "tags": [
+                "can_put_into_pot"
+            ],
+            "food": {
+                "amount": 2,
+                "saturation": 0.3
+            },
+            "coocked_item": {
+                "name": "COOKED_COD",
+                "count": 1
+            },
+            "texture": "item/cod.png"
+        },
+        {
+            "id": 1115,
+            "name": "COOKED_SALMON",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "food": {
+                "amount": 6,
+                "saturation": 0.3
+            },
+            "texture": "item/cooked_salmon.png"
+        },
+        {
+            "id": 1116,
+            "name": "SALMON",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "tags": [
+                "can_put_into_pot"
+            ],
+            "food": {
+                "amount": 2,
+                "saturation": 0.3
+            },
+            "coocked_item": {
+                "name": "COOKED_SALMON",
+                "count": 1
+            },
+            "texture": "item/salmon.png"
+        },
+        {
+            "id": 1117,
+            "name": "TROPICAL_FISH",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "tags": [
+                "can_put_into_pot"
+            ],
+            "food": {
+                "amount": 2,
+                "saturation": 0.3
+            },
+            "texture": "item/tropical_fish.png"
+        },
+        {
+            "id": 1118,
+            "name": "BOWL",
+            "style": "extruder",
+            "max_in_stack": 1,
+            "item": {"name": "bowl"},
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "item/bowl.png"
+            }
+        },
+        {
+            "id": 1119,
+            "name": "INK_SAC",
+            "style": "extruder",
+            "texture": "item/ink_sac.png",
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            }
         }
     ]
 }

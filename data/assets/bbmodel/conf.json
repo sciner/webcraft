@@ -23,6 +23,7 @@
         {"name": "mob/snowball"},
         {"name": "mob/combat_dummy"},
         {"name": "mob/snow_golem"},
+        {"name": "mob/hook"},
 
         {"name": "mechanism/cogwheel"},
         {"name": "mechanism/windmill_bearing"},

@@ -26,18 +26,23 @@ void main() {
     vec4 screenPos2 = u_projMatrix * u_viewMatrix * vec4(a_point2 + u_add_pos, 1.0);
     
     // culling to frustrum
-    float dz = screenPos2.z - screenPos1.z;
+    float dz = (screenPos2.z - screenPos1.z + screenPos2.w - screenPos1.w);
     if (abs(dz) > 0.01) {
-        float t = (0.0 - screenPos1.z) / dz;
+        float t = (- screenPos1.w - screenPos1.z) / dz;
         if (t > 0.0 && t < 1.0) {
             vec4 zeroPoint = (screenPos2 - screenPos1) * t + screenPos1;
-            if (screenPos1.z < 0.0) {
+            if (screenPos1.z < screenPos2.z) {
                 screenPos1 = zeroPoint;
             } else {
                 screenPos2 = zeroPoint;
             }
         }
     }
+    
+    // NO
+    // -1 * ((w2 - w1) * t + w1) = ((z2-z1) * t + z1)
+    // PO
+    // same but without W
     
     vec2 pixelPos1 = (screenPos1.xy / screenPos1.w + 1.0) * 0.5 * u_resolution;
     vec2 pixelPos2 = (screenPos2.xy / screenPos2.w + 1.0) * 0.5 * u_resolution;

@@ -74,6 +74,7 @@ export class Renderer {
     meshes:                 MeshManager
     camera:                 GameCamera
     debugGeom:              LineGeometry
+    solidLineGeom:          LineGeometry
     inHandOverlay?:         InHandOverlay
     canvas:                 any
     drop_item_meshes:       any[]
@@ -292,6 +293,9 @@ export class Renderer {
 
         this.debugGeom = new LineGeometry();
         this.debugGeom.pos = this.camPos;
+
+        this.solidLineGeom = new LineGeometry();
+        this.solidLineGeom.pos = this.camPos;
 
         // this.HUD.wm.initRender(this)
         this.HUD.wm.loadFont()
@@ -905,6 +909,7 @@ export class Renderer {
         globalUniforms.update();
 
         this.debugGeom.clear();
+        this.solidLineGeom.clear();
 
         const framePass = renderBackend.beginPass({
             bgColor: this.env.interpolatedClearValue,
@@ -939,6 +944,9 @@ export class Renderer {
             for(let rp of BLOCK.resource_pack_manager.list.values()) {
                 // 2. Draw chunks
                 renderList.draw(this, rp, transparent);
+            }
+            if (transparent) {
+                this.solidLineGeom.draw(renderBackend);
             }
             renderBackend.batch.flush();
             if (this.defaultShader.texture) {
@@ -1201,6 +1209,14 @@ export class Renderer {
 
         let prev_chunk = null
         for(let mob of mobs_list.values()) {
+            if (mob.leash) {
+                const player = this.world.players.list.get(mob.leash);
+                if (player) {
+                    const fpc = player.itsMe() && this.camera.mode === CAMERA_MODE.SHOOTER ? this.camera : null;
+                    player.drawFishing(this.solidLineGeom, mob, fpc);
+                }
+            }
+
             const ca = mob.chunk_addr
             if(!prev_chunk || !prev_chunk.addr.equal(ca)) {
                 prev_chunk = this.world.chunkManager.getChunk(ca)

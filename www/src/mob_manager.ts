@@ -107,6 +107,7 @@ export class MobManager {
                                     mob.ground = ground
                                     mob.submergedPercent = inLiquid ? 1 : 0
                                     if (new_state?.extra_data) {
+                                        mob.leash = new_state.extra_data.leash
                                         mob.health = new_state.extra_data.health
                                     }
                                     // частицы смерти
