@@ -1,31 +1,29 @@
-import {ChunkDrawer} from "../batch/ChunkDrawer.js";
 import {DRAW_MODES, ExtensionType} from "vauxcel";
 import {MultiDrawBuffer} from "./multi_draw_buffer.js";
+import {ObjectDrawer} from "../batch/ObjectDrawer.js";
 
-export class GLChunkDrawer extends ChunkDrawer {
-    [key: string]: any;
-
+export class GLChunkDrawer extends ObjectDrawer {
     static extension = {
         name: 'chunk',
         type: ExtensionType.RendererPlugin,
     };
+
+    curMat: any = null;
+    curVao: any = null;
+    elements = [];
+    count = 0;
+
     constructor(context) {
         super(context);
-
-        this.curMat = null;
-        this.curVao = null;
-        this.elements = [];
-        this.count = 0;
     }
 
     mdb = new MultiDrawBuffer();
 
     draw(geom, material, chunk) {
-        const {context} = this;
+        const {context, renderer} = this;
         if (geom.size === 0 || geom.glCounts && geom.glCounts.length === 0) {
             return;
         }
-        const {pixiRender} = context;
 
         const baseGeom = geom.baseGeometry;
         if (baseGeom) {
@@ -45,7 +43,7 @@ export class GLChunkDrawer extends ChunkDrawer {
             material.shader.updatePos(chunk.coord, null);
             material.bind();
             geom.bind(material.shader);
-            pixiRender.geometry.draw(DRAW_MODES.TRIANGLES, 6, 0, geom.size);
+            renderer.geometry.draw(DRAW_MODES.TRIANGLES, 6, 0, geom.size);
             // stat
             context.stat.drawquads += geom.size;
             context.stat.drawcalls++;
