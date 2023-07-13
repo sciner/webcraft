@@ -126,14 +126,15 @@ export class WorldActionQueue {
                         // если это действие породило дочерние - не добавлять их (высокий шанс что они некорректны)
                         childActions.length = 0
                         continue // не бросать исключение, продолжать выполнять очередь
-                    }
-                    // ниже - действия, кторые должны выполниться даже если при обработке WorldAction возникло исключение
+                    } finally {
+                        // действия, кторые должны выполниться даже если при обработке WorldAction возникло исключение
 
-                    // синхронизировать управление с действием, если нужно (независимо от успешности действия)
-                    (item.actor as ServerPlayer)?.controlManager?.syncWithEvent(actions)
+                        // синхронизировать управление с действием, если нужно (независимо от успешности действия)
+                        (item.actor as ServerPlayer)?.controlManager?.syncWithEvent(actions)
 
-                    if (actions.callback) {
-                        actions.callback(actions)
+                        if (actions.callback) {
+                            actions.callback(actions)
+                        }
                     }
 
                     if(actions.notify) {

@@ -12,6 +12,7 @@ import type {TActionBlock} from "@client/world_action.js";
 import {BuildingTemplate} from "@client/terrain_generator/cluster/building_template.js";
 import {parseBlockName} from "madcraft-schematic-reader";
 import {SIGN_POSITION} from "@client/constant.js";
+import type {TQueryBlocksArgs} from "./schematic_job.js";
 
 const facings4 = ['north', 'west', 'south', 'east'];
 const facings6 = ['north', 'west', 'south', 'east', /*'up', 'down'*/];
@@ -354,9 +355,8 @@ export class SchematicReader {
     /**
      * Возвращает блоки и жидкости из AABB, разделенные по чанкам (подготовленные к вставке в мир),
      * похоже на {@link WorldEdit.cmd_paste}.
-     * @param requestedAabb_inSchem - читаемый AABB в СК схематики
      */
-    getByChunks(requestedAabb_inSchem: IAABB): TBlocksInChunk[] {
+    getByChunks({aabb_in_schem, blocks_line_increment}: TQueryBlocksArgs): TBlocksInChunk[] {
 
         const switchChunk = (pos: Vector) => {
             const addr = grid.toChunkAddr(pos, tmp_addr)
@@ -417,9 +417,9 @@ export class SchematicReader {
 
         // вычислить преобразования координат
         const schem_to_world = new VectorCardinalTransformer(new Vector(pos0).addSelf(schematic.offset), rotate)
-        const requestedAABB_inWorld = schem_to_world.transformAABB(requestedAabb_inSchem, new AABB())
+        const requestedAABB_inWorld = schem_to_world.transformAABB(aabb_in_schem, new AABB())
         // AABB больше запрашиваемного (чтобы учесть emit_blocks за границами), но не за границами схематики
-        const requestedAABBextended_inSchem = new AABB().copyFrom(requestedAabb_inSchem)
+        const requestedAABBextended_inSchem = new AABB().copyFrom(aabb_in_schem)
             .expand(MAX_EMIT_BLOCK_DISTANCE_XZ, MAX_EMIT_BLOCK_DISTANCE_Y, MAX_EMIT_BLOCK_DISTANCE_XZ)
             .setIntersect(this.binary_schematic.aabb)
         const pos = new Vector()
@@ -515,6 +515,10 @@ export class SchematicReader {
             }
             result.push(chunkResult)
         }
+        // Отсортировать чанки в том порядке, в котором их блоки записаны в схематике
+        result.sort((a, b) =>
+            (a.addr.x - b.addr.x) * blocks_line_increment.x + (a.addr.z - b.addr.z) * blocks_line_increment.z
+        )
         return result
     }
 

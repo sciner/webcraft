@@ -57,7 +57,7 @@ export const SCHEMATIC_JOB_OPTIONS: Dict<TSchematicJobOptions> = {
         max_dirty_blocks    : 200 * 1000,
         max_chunk_actors    : 20 * 1000,
         max_chunks_per_read : 32,
-        use_generator       : false
+        use_generator       : true
     },
     /** Опции для медленной вставки, не нарушающей процесс игры. */
     slow: {
@@ -66,7 +66,7 @@ export const SCHEMATIC_JOB_OPTIONS: Dict<TSchematicJobOptions> = {
         max_dirty_blocks    : 100 * 1000,
         max_chunk_actors    : 20 * 1000,
         max_chunks_per_read : 16,
-        use_generator       : false
+        use_generator       : true
     },
     /**
      * Опции "прочитать как можно быстрее, закинуть много в мир и пусть игра хоть падает".
@@ -78,7 +78,7 @@ export const SCHEMATIC_JOB_OPTIONS: Dict<TSchematicJobOptions> = {
         max_dirty_blocks    : 2 * 1000000,
         max_chunk_actors    : 40 * 1000,
         max_chunks_per_read : 32,
-        use_generator       : false
+        use_generator       : true
     }
 }
 
@@ -103,6 +103,7 @@ export type TSchematicJobState = {
 export type TQueryBlocksArgs = {
     job_id       : int
     aabb_in_schem : IAABB     // откуда читать из схематики
+    blocks_line_increment : IVector // в какую сторону увеличиваются индексы боков - для сортировка чанков
 
     // эти параметры нужны не воркеру чтобы найти блоки, а основному потоку чтобы понять какие чанки пришли
     first_chunk_index  : int
@@ -333,7 +334,7 @@ export class SchematicJob {
             return
         }
 
-        const {world, inserted_chunks, blocks_line_increment, options} = this
+        const {world, inserted_chunks, blocks_line_increment, options, addresses_size} = this
         const {grid} = this.world
         const {chunkSize} = grid
         const {CHUNK_SIZE} = grid.math
@@ -371,18 +372,40 @@ export class SchematicJob {
             while(inserted_chunks.has(this.next_query_chunk)) {
                 this.next_query_chunk++
             }
-            if (this.next_query_chunk >= chunks_count) {   // если мы заполнили дыры в нумерации и дошли до конца
+            const {next_query_chunk} = this
+            if (next_query_chunk >= chunks_count) {   // если мы заполнили дыры в нумерации и дошли до конца
                 break
             }
+
+            // относительный адрес 0-го чанка в запросе
+            let relative_addr: Vector
+            if (blocks_line_increment.x) { // запрашиваем вдоль X мира
+                relative_addr = new Vector(  // порядок координат тот же что в схематиках - Y, Z, X
+                    next_query_chunk % addresses_size.x,
+                    (next_query_chunk / (addresses_size.x * addresses_size.z)) | 0,
+                    (next_query_chunk / addresses_size.x | 0) % addresses_size.z
+                )
+                if (blocks_line_increment.x < 0) {
+                    relative_addr.x = addresses_size.x - 1 - relative_addr.x
+                }
+            } else { // запрашиваем вдоль Z мира
+                relative_addr = new Vector(
+                    (next_query_chunk / addresses_size.z | 0) % addresses_size.x,
+                    (next_query_chunk / (addresses_size.z * addresses_size.x)) | 0,
+                    next_query_chunk % addresses_size.z,
+                )
+                if (blocks_line_increment.z < 0) {
+                    relative_addr.z = addresses_size.z - 1 - relative_addr.z
+                }
+            }
             // определяем макс. серию запрашиваемых чанков вдоль X или Z (в зависимости от поворота)
-            const relative_addr = this.chunkIndexToRelativeAddr(this.next_query_chunk) // относительный адрес 0-го чанка в запросе
             let count = blocks_line_increment.x
-                ? (blocks_line_increment.x > 0 ? this.addresses_size.x - relative_addr.x : relative_addr.x + 1)
-                : (blocks_line_increment.z > 0 ? this.addresses_size.z - relative_addr.z : relative_addr.z + 1)
+                ? (blocks_line_increment.x > 0 ? addresses_size.x - relative_addr.x : relative_addr.x + 1)
+                : (blocks_line_increment.z > 0 ? addresses_size.z - relative_addr.z : relative_addr.z + 1)
             count = Math.min(count, max_query_chunks)
             // находим сколько можно запросить в непрерывной серии до ближайшего запрошенного (если есть дыры в нумерации)
             for(let i = 1; i < count; i++) {
-                if (inserted_chunks.has(this.next_query_chunk + i)) {
+                if (inserted_chunks.has(next_query_chunk + i)) {
                     count = i
                     break
                 }
@@ -412,6 +435,7 @@ export class SchematicJob {
             const args: TQueryBlocksArgs = {
                 job_id: this.job_id,
                 aabb_in_schem,
+                blocks_line_increment,
                 first_chunk_index: this.next_query_chunk,
                 chunks_count: count,
                 blocks_count: aabb_in_schem.volume
@@ -458,15 +482,6 @@ export class SchematicJob {
         this.world.chunks.fluidWorld.schematicAddressesAABB = addressesAABB
         this.addresses_size = addressesAABB.size
         this.blocks_line_increment = new Vector(1, 0, 0).rotateByCardinalDirectionSelf(rotate)
-    }
-
-    private chunkIndexToRelativeAddr(index: int): Vector {
-        const {addresses_size} = this
-        return new Vector(  // порядок координат тот же что в схематиках - Y, Z, X
-            index % addresses_size.x,
-            (index / (addresses_size.x * addresses_size.z)) | 0,
-            (index / addresses_size.x | 0) % addresses_size.z
-        )
     }
 
     /**
