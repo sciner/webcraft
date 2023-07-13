@@ -88,7 +88,7 @@ async function onMessageFunc(e) {
                     msg = `!lang... loaded (${size.volume()} blocks, size: ${size.toHash()}, offset: ${offset?.toHash()}, palette: ${schem.palette.length}, load time: ${p} sec). Version: ${schem.version}.`
                     if (info.file_cookie.use_external_parser) {
                         msg += '\nThe new parser has failed, using the old loader!'
-                    } else if (args.info.file_cookie.tmpFileCtimeMs) {
+                    } else if (args.info.file_cookie.tmp_file_ctimeMs) {
                         msg += ' Using a temporary file.'
                     }
                     msg += `\nPaste it with /paste`
@@ -104,7 +104,7 @@ async function onMessageFunc(e) {
             case 'schem_query_blocks': { // вернуть блоки схематики в заданном AABB для вставки в мир
                 const args: TQueryBlocksArgs = argsCopy
                 checkLoaded()
-                const chunks = currentReader.getByChunks(args.aabb_in_schem)
+                const chunks = currentReader.getByChunks(args)
                 const msg: TQueryBlocksReply = {args, chunks}
                 postMessage(['schem_blocks', msg])
                 break
