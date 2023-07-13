@@ -13740,6 +13740,38 @@
             "material": {
                 "id": "powder"
             }
+        },
+        {
+            "id": 1120,
+            "name": "MUSHROOM_STEW",
+            "item": {"name": "food"},
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "food"
+            },
+            "tags": [
+                "can_put_into_pot"
+            ],
+            "food": {
+                "amount": 6,
+                "saturation": 0.3
+            },
+            "texture": "item/mushroom_stew.png"
+        },
+        {
+            "id": 1121,
+            "name": "BOWL",
+            "transparent": true,
+            "max_in_stack": 1,
+            "style": "extruder",
+            "diagonal": true,
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "item/bowl.png"
+            }
         }
     ]
 }

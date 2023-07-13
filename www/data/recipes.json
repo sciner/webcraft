@@ -1868,6 +1868,48 @@
         }
     },
     {
+        "id": "bbdf2a95-b1d5-4d31-aa3f-bbb47f7b0be1",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "br ",
+            " i "
+        ],
+        "key": {
+            "i": {
+                "item": "madcraft:bowl"
+            },
+            "b": {
+                "item": "madcraft:brown_mushroom"
+            },
+            "r": {
+                "item": "madcraft:red_mushroom"
+            }
+        },
+        "result": {
+            "item": "madcraft:mushroom_stew",
+            "count": 1
+        }
+    },
+    {
+        "id": "805c7615-a0d6-4b02-aef3-469c9586d355",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "ss ",
+            "ss ",
+            "   "
+        ],
+        "key": {
+            "s": {
+                "item": "madcraft:sand"
+            }
+        },
+        "result": {
+            "item": "madcraft:sandstone",
+            "count": 1
+        }
+    },
+    {
         "id": "0c4b64d1-2fea-46f5-b92b-829e1e31a667",
         "type": "madcraft:crafting_shaped",
         "pattern": [
