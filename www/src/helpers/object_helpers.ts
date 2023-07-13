@@ -1,7 +1,7 @@
 // maybe move other related methods here
 import {Vector} from "./vector.js";
 
-const MAX_DEEP_CLONE_DEPTH = 100
+export const MAX_DEEP_CLONE_DEPTH = 100
 
 export class ObjectHelpers {
 

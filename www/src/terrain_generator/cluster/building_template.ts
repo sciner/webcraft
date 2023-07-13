@@ -1,7 +1,7 @@
 import type {BLOCK, IDBItemBlock} from "../../blocks.js";
 import { FLUID_LAVA_ID, FLUID_WATER_ID } from "../../fluid/FluidConst.js";
 import { AABB } from '../../core/AABB.js';
-import {Vector, VectorCollector, ShiftedMatrix, VectorCollector2D, ArrayHelpers, SimpleQueue, ObjectHelpers} from "../../helpers.js";
+import {Vector, VectorCollector, ShiftedMatrix, VectorCollector2D, ArrayHelpers, SimpleQueue, ObjectHelpers, MAX_DEEP_CLONE_DEPTH} from "../../helpers.js";
 import { BASEMNET_DEPTHS_BY_DISTANCE, BASEMENT_ADDITIONAL_WIDTH, BASEMENT_MAX_PAD,
     BASEMENT_BOTTOM_BULGE_BLOCKS, BASEMENT_BOTTOM_BULGE_PERCENT, BASEMENT_SIDE_BULGE } from "./building.js";
 import { calcMinFloorYbyXZ } from './building_helpers.js';
@@ -20,6 +20,23 @@ const PORCH_CRATER_RADIUS = 2;
 const PORCH_FLAT_CRATER_RADIUS = 1;
 const PORCH_MAX_HALF_WIDTH = 1;
 const PORCH_CRATER_HEIGHT = 8;
+
+class RotatedBlock {
+    #mat : IBlockMaterial
+
+    constructor(material : IBlockMaterial) {
+        this.#mat = material
+    }
+
+    set mat(value : IBlockMaterial) {
+        this.#mat = value
+    }
+
+    get mat() : IBlockMaterial {
+        return this.#mat
+    }
+
+}
 
 let tmpUint8Array: Uint8Array = new Uint8Array(1)
 const tmpQueue = new SimpleQueue()
@@ -748,10 +765,10 @@ export class BuildingTemplate {
 
         //
         const rot_none = (block) => {
+            const rb = ObjectHelpers.deepCloneObject(block, MAX_DEEP_CLONE_DEPTH, new RotatedBlock(mat))
             for(let i = 0; i < directions.length; i++) {
-                const direction = directions[i];
-                block.mat = mat
-                rot[direction].push(block);
+                const direction = directions[i]
+                rot[direction].push(rb)
             }
         };
 
@@ -759,7 +776,7 @@ export class BuildingTemplate {
         const rot1 = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i];
-                const rb = ObjectHelpers.deepCloneObject(block);
+                const rb = ObjectHelpers.deepCloneObject(block, MAX_DEEP_CLONE_DEPTH, new RotatedBlock(mat))
                 if(rb.rotate) {
                     if(rb.rotate.y == 0) {
                         rb.rotate.x = ROT_N[(ROT_N.indexOf(rb.rotate.x) + direction) % 4];
@@ -767,7 +784,6 @@ export class BuildingTemplate {
                         rb.rotate.x = (rb.rotate.x + direction) % 4;
                     }
                 }
-                rb.mat = mat
                 rot[direction].push(rb);
             }
         }
@@ -776,9 +792,8 @@ export class BuildingTemplate {
         const rotate_x = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i];
-                const rb = ObjectHelpers.deepCloneObject(block);
+                const rb = ObjectHelpers.deepCloneObject(block, MAX_DEEP_CLONE_DEPTH, new RotatedBlock(mat))
                 rb.rotate.x = (rb.rotate.x + direction) % 4;
-                rb.mat = mat
                 rot[direction].push(rb);
             }
         }
@@ -787,9 +802,8 @@ export class BuildingTemplate {
         const rot3 = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i];
-                const rb = ObjectHelpers.deepCloneObject(block);
+                const rb = ObjectHelpers.deepCloneObject(block, MAX_DEEP_CLONE_DEPTH, new RotatedBlock(mat))
                 rb.rotate.x = (rb.rotate.x + direction + 2) % 4;
-                rb.mat = mat
                 rot[direction].push(rb);
             }
         }
@@ -798,13 +812,12 @@ export class BuildingTemplate {
         const rot4 = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i]
-                const rb = ObjectHelpers.deepCloneObject(block)
+                const rb = ObjectHelpers.deepCloneObject(block, MAX_DEEP_CLONE_DEPTH, new RotatedBlock(mat))
                 if(rb.rotate.y == 0) {
                     rb.rotate.x = (rb.rotate.x + direction + 4) % 4
                 } else {
                     rb.rotate.x = (rb.rotate.x - direction + 4) % 4
                 }
-                rb.mat = mat
                 rot[direction].push(rb)
             }
         }
@@ -812,9 +825,8 @@ export class BuildingTemplate {
         const rotx8 = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i];
-                const rb = ObjectHelpers.deepCloneObject(block);
+                const rb = ObjectHelpers.deepCloneObject(block, MAX_DEEP_CLONE_DEPTH, new RotatedBlock(mat))
                 rb.rotate.x = (rb.rotate.x - direction * 90) % 360;
-                rb.mat = mat
                 rot[direction].push(rb);
             }
         }
@@ -824,13 +836,12 @@ export class BuildingTemplate {
         const rot_sign = (block) => {
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i]
-                const rb = ObjectHelpers.deepCloneObject(block)
+                const rb = ObjectHelpers.deepCloneObject(block, MAX_DEEP_CLONE_DEPTH, new RotatedBlock(mat))
                 if(rb.rotate.y === SIGN_POSITION.WALL || rb.rotate.y === SIGN_POSITION.WALL_ALT) {
                     rb.rotate.x = (rb.rotate.x + direction + 4) % 4
                 } else {
                     rb.rotate.x = (rb.rotate.x - direction + 4) % 4
                 }
-                rb.mat = mat
                 rot[direction].push(rb)
             }
         }
@@ -843,7 +854,7 @@ export class BuildingTemplate {
             ];
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i]
-                const rb = ObjectHelpers.deepCloneObject(block)
+                const rb = ObjectHelpers.deepCloneObject(block, MAX_DEEP_CLONE_DEPTH, new RotatedBlock(mat))
                 let new_shape = 0
                 rb.extra_data = rb.extra_data ?? {}
                 if('shape' in rb.extra_data) {
@@ -857,7 +868,6 @@ export class BuildingTemplate {
                     }
                 }
                 rb.extra_data.shape = new_shape
-                rb.mat = mat
                 rot[direction].push(rb)
             }
         }
@@ -867,7 +877,7 @@ export class BuildingTemplate {
             const sides = ['north', 'west', 'south', 'east']
             for(let i = 0; i < directions.length; i++) {
                 const direction = directions[i]
-                const rb = ObjectHelpers.deepCloneObject(block);
+                const rb = ObjectHelpers.deepCloneObject(block, MAX_DEEP_CLONE_DEPTH, new RotatedBlock(mat))
                 if(block.extra_data) {
                     rb.extra_data = {}
                     for(let k in block.extra_data) {
@@ -889,7 +899,6 @@ export class BuildingTemplate {
                 } else if (block.rotate) {
                     rb.rotate.x = (rb.rotate.x + direction) % 4
                 }
-                rb.mat = mat
                 rot[direction].push(rb)
             }
         }
