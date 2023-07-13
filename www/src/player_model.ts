@@ -12,6 +12,8 @@ import type { World } from "./world.js";
 import type { TMobProps } from "./mob_manager.js";
 import {TerrainBaseTexture} from "./renders/TerrainBaseTexture.js";
 import type {MeshBatcher} from "./mesh/mesh_batcher.js";
+import type {LineGeometry} from "./geom/line_geometry.js";
+import type {Camera_3d} from "./renders/camera_3d";
 
 const { quat, mat4 } = glMatrix
 const SWING_DURATION = 6
@@ -402,6 +404,31 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         this.prev_pos.copyFrom(this.pos);
         super.draw(meshBatcher, camPos, delta, draw_debug_grid)
         return true
+    }
+
+    drawFishing(line_geom: LineGeometry, hook: MobModel, first_person_camera: Camera_3d)
+    {
+            //TODO: make multiplayer version!
+            // if (item.id == bm.FISHING_ROD.id) {
+        const slot = this.slots.get(KEY_SLOT_MAP.right);
+        if (slot?.id !== this.world.block_manager.FISHING_ROD.id || !slot.item) {
+            return;
+        }
+        let pos = new Vector();
+
+        if (first_person_camera) {
+            first_person_camera.calcNearPlanePosition(1.5, 0.1, pos);
+            pos.addSelf(line_geom.pos);
+        } else {
+            // pos.copyFrom(slot.item.pos);
+            if (!this._mesh) {
+                pos.copyFrom(this.pos).addSelf(new Vector(0, 1.5, 0));
+            } else {
+                this.toGlobal(new Vector(0.33, 0.85, 0.65), pos);
+            }
+        }
+
+        line_geom.addFishString(hook.pos, pos, { lineWidth: 0.13, colorABGR: 0xff000000 });
     }
 
     get isAlive() : boolean {

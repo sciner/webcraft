@@ -21,7 +21,7 @@ export default class packet_reader {
     // use item
     static async read(player : ServerPlayer, packet) {
         const item = player.inventory.items[player.inventory.current.index]
-        if (!item) {
+        if (!item || player.state.sleep || player.state.attack || player.state.sitting || player?.driving) {
             return true
         }
         const bm = player.world.block_manager
@@ -39,6 +39,34 @@ export default class packet_reader {
             )
             const snowball = player.world.mobs.spawn(player, params)
             player.inventory.decrement()
+            return true
+        }
+
+        if (item.id == bm.FISHING_ROD.id) {
+            if (!player.fishing) {
+                const params = new MobSpawnParams(
+                    player.getEyePos(),
+                    player.state.rotate,
+                    {
+                        model_name: MOB_TYPE.HOOK,
+                        texture_name: DEFAULT_MOB_TEXTURE_NAME
+                    }
+                )
+                player.fishing = player.world.mobs.create(params)
+                player.fishing.parent = player // @todo мб лучше передавать id
+               // player.state.leash = player.fishing.id
+            } else {
+                //player.state.leash = null
+                player.fishing.getBrain().onFishing()
+            }
+            /*let packets = [{
+                name: ServerClient.CMD_USE_ITEM,
+                data: {
+                    "leash": player.state.leash,
+                }
+            }];
+            player.world.sendSelected(packets, player);
+            */
             return true
         }
         if (packet?.data?.cancel) {

@@ -247,6 +247,13 @@
             },
             "can_asphyxiate": false
         },
+        "mob/hook": {
+            "physics": {
+                "playerHeight": 0.16,
+                "playerHalfWidth": 0.08
+            },
+            "can_asphyxiate": false
+        },
         "mechanism/windmill_bearing": {
             "brain": "windmill_bearing",
             "physics": {

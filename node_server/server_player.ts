@@ -129,6 +129,8 @@ export class ServerPlayer extends Player {
     drivingId: int | null = null
     timer_immunity: number      // performance.now() когда последний раз включался таймер неуязвимости
 
+    fishing: any; // ссылка на сущность поплывка
+
     // These flags show what must be saved to DB
     static DB_DIRTY_FLAG_INVENTORY     = 0x1;
     static DB_DIRTY_FLAG_ENDER_CHEST   = 0x2;

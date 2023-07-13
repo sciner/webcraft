@@ -1191,7 +1191,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
             }
             const origFluidType = (world_block.fluid & FLUID_TYPE_MASK);
             const myFluidType = (isFluidId(mat_block.id) & FLUID_TYPE_MASK);
-            if (origFluidType > 0 && origFluidType !== myFluidType) {
+            if (origFluidType === FLUID_LAVA_ID && origFluidType !== myFluidType) {
                 return [actions, pos];
             }
             actions.addFluids([0, 0, 0, myFluidType], pos);

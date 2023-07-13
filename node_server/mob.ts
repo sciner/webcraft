@@ -105,6 +105,7 @@ export class Mob {
     _aabb: AABB;
     already_killed?: boolean | int;
     death_time?: number;
+    parent: any;
     driving?: ServerDriving | null = null
 
     /**

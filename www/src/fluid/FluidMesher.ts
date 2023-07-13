@@ -35,7 +35,7 @@ export class FluidMesher {
         }
     }
 
-    getInstanceBuffer(fluidChunk, material_key) {
+    getInstanceBuffer(fluidChunk, material_key): FluidInstanceBuffer {
         let ib = fluidChunk.instanceBuffers.get(material_key);
         if (!ib) {
             fluidChunk.instanceBuffers.set(material_key, ib = new FluidInstanceBuffer({

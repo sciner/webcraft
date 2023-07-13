@@ -1908,5 +1908,26 @@
             "item": "madcraft:sandstone",
             "count": 1
         }
+    },
+    {
+        "id": "0c4b64d1-2fea-46f5-b92b-829e1e31a667",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "  #",
+            " #S",
+            "# S"
+        ],
+        "key": {
+            "#": {
+                "item": "special:stick"
+            },
+            "S": {
+                "item": "special:string"
+            }
+        },
+        "result": {
+            "item": "madcraft:fishing_rod",
+            "count": 1
+        }
     }
 ]

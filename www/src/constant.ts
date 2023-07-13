@@ -312,7 +312,8 @@ export enum MOB_TYPE {
     COMBAT              = 'mob/combat_dummy',
     BOAT                = 'transport/boat',
     RAFT                = 'transport/raft',
-    WINDMILL_BEARING    = 'mechanism/windmill_bearing'
+    WINDMILL_BEARING    = 'mechanism/windmill_bearing',
+    HOOK                = 'mob/hook'
 }
 
 export enum DAYLIGHT_VALUE {

@@ -2,6 +2,7 @@ import {BLOCK} from "../blocks.js";
 import {DIRECTION, IndexedColor, QUAD_FLAGS} from "../helpers.js";
 import { FLUID_SOLID16, FLUID_OPAQUE16, FLUID_TYPE_MASK, FLUID_TYPE_SHIFT, PACKED_CELL_LENGTH, PACKET_CELL_WATER_COLOR_R, PACKET_CELL_WATER_COLOR_G, FLUID_LEVEL_MASK } from "./FluidConst.js";
 import type {FluidChunk} from "./FluidChunk.js";
+import type {FluidInstanceBuffer} from "./FluidInstanceBuffer.js";
 
 export const fluidMaterials = [];
 
@@ -191,7 +192,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
         initFluidMaterials();
     }
 
-    let buffers = [null, null];
+    let buffers: FluidInstanceBuffer[] = [null, null];
     let quads = 0;
     const bounds = fluidChunk.getLocalBounds();
     //for map
@@ -268,11 +269,16 @@ export function buildFluidVertices(mesher, fluidChunk) {
                         uint16View[index - cx + cz], uint16View[index - cx + cz + cy]);
                 }
 
+                /**
+                 * whether fluid block has solid block underneath
+                 */
+                let neib_state = neib[1] >= FLUID_OPAQUE16 ? 1 : 0;
+
                 if (hasNeib[SIMPLE_DIRECTION.UP]) {
                     quads++;
                     //U=X, V=Z
                     geom.push(fluidId, SIMPLE_DIRECTION.UP, clr,
-                        index, h01, h11, h10, h00
+                        index, neib_state, h01, h11, h10, h00
                     );
                 }
                 if (hasNeib[SIMPLE_DIRECTION.DOWN]) {
@@ -280,7 +286,7 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     //same as up
                     //U=X, V=Z
                     geom.push(fluidId, SIMPLE_DIRECTION.DOWN, clr,
-                        index, y0, y0, y0, y0,
+                        index, neib_state, y0, y0, y0, y0,
                     );
                 }
                 clr += (1 << 20); // flowing liquid, scroll
@@ -288,28 +294,28 @@ export function buildFluidVertices(mesher, fluidChunk) {
                     //U=Z, V=Y
                     quads++;
                     geom.push(fluidId, SIMPLE_DIRECTION.SOUTH, clr,
-                        index, h00, h10, y0, y0,
+                        index, neib_state, h00, h10, y0, y0,
                     );
                 }
                 if (hasNeib[SIMPLE_DIRECTION.NORTH]) {
                     //U=Z, V=Y
                     quads++;
                     geom.push(fluidId, SIMPLE_DIRECTION.NORTH, clr,
-                        index, h11, h01, y0, y0,
+                        index, neib_state, h11, h01, y0, y0,
                     );
                 }
                 if (hasNeib[SIMPLE_DIRECTION.EAST]) {
                     quads++;
                     //U=Z, V=Y
                     geom.push(fluidId, SIMPLE_DIRECTION.EAST, clr,
-                        index, h10, h11, y0, y0,
+                        index, neib_state, h10, h11, y0, y0,
                     );
                 }
                 if (hasNeib[SIMPLE_DIRECTION.WEST]) {
                     //U=Z, V=Y
                     quads++;
                     geom.push(fluidId, SIMPLE_DIRECTION.WEST, clr,
-                        index, h01, h00, y0, y0,
+                        index, neib_state, h01, h00, y0, y0,
                     );
                 }
             }

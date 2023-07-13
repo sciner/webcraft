@@ -458,7 +458,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         const xyz_temp                  = new Vector(0, 0, 0);
         const density_params            = new DensityParams(0, 0, 0, 0, 0, 0);
         const over_density_params       = new DensityParams(0, 0, 0, 0, 0, 0);
-        const over2_density_params      = new DensityParams(0, 0, 0, 0, 0, 0);
+        // const over2_density_params      = new DensityParams(0, 0, 0, 0, 0, 0);
         const cluster                   = chunk.cluster; // 3D clusters
         const dirt_block_id             = bm.DIRT.id
         const grass_block_id            = bm.GRASS_BLOCK.id
@@ -469,6 +469,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         const blockFlags                = bm.flags
         const block_result              = new MapsBlockResult()
         const rand_lava                 = new alea('random_lava_source_' + seed)
+        const rand_cave                 = new alea('random_cave_' + seed)
         const map_manager               = this.maps as TerrainMapManager3
         const {relativePosToFlatIndexInChunk_s} = chunk.chunkManager.grid.math;
 
@@ -562,6 +563,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                     // получает плотность в данном блоке (допом приходят коэффициенты, из которых посчитана данная плотность)
                     map_manager.calcDensity(xyz, cell, density_params, map)
                     let {d1, d2, d3, d4, density, in_aquifera, local_water_line} = density_params
+                    const is_moss_area = !biome.is_sand && d1 > .25 && d3 > .25
 
                     // Make canyon bridge
                     if(bridge_in_canyon && d4 < .7) {
@@ -643,6 +645,8 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                         //     }
                         // }
 
+                        const is_floor = not_air_count == 0
+
                         // get block
                         let {dirt_layer, block_id} = map_manager.getBlock(xyz, not_air_count, cell, density_params, block_result)
 
@@ -662,7 +666,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                         }
 
                         // если это самый первый слой поверхности
-                        if(not_air_count == 0) {
+                        if(is_floor) {
 
                             // нужно обязательно проверить ватерлинию над текущим блоком
                             // (чтобы не сажать траву в аквиферах)
@@ -799,6 +803,27 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                         }
                                     }
 
+                                } else {
+                                    if(is_moss_area && is_floor) {
+                                        const ceil_block_id = (biome.blocks.caves_second ?? (biome.temperature > 0 ? bm.MOSS_BLOCK : bm.AIR)).id
+                                        if(ceil_block_id) {
+                                            chunk.setBlockIndirect(x, y, z, ceil_block_id)
+                                            // растительность на поверхности пола пещеры
+                                            if(y < chunk.size.y - 1) {
+                                                const cfp = rand_cave.double()
+                                                if(cfp < .025) {
+                                                    chunk.setBlockIndirect(x, y + 1, z, bm.FLOWERING_AZALEA.id)
+                                                } else if(cfp < .05) {
+                                                    chunk.setBlockIndirect(x, y + 1, z, bm.AZALEA.id)
+                                                } else if(cfp < .25) {
+                                                    chunk.setBlockIndirect(x, y + 1, z, bm.GRASS.id)
+                                                    chunk.setBlockIndirect(x, y, z, bm.GRASS_BLOCK.id)
+                                                }
+                                            }
+                                            block_id = null
+                                            // continue
+                                        }
+                                    }
                                 }
 
                             }
@@ -878,19 +903,11 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                             // потолок и часть стен
                             if(is_ceil) {
 
-                                // если не песчаный
-                                if(!cell.biome.is_sand) {
-                                    if(d1 > .25) {
-                                        if(d3 > .25) {
-                                            // chunk.setBlockIndirect(x, y, z, (biome.blocks.caves_second ?? bm.MOSS_BLOCK).id)
-                                            // continue
-                                            const ceil_block_id = (biome.blocks.caves_second ?? (biome.temperature > 0 ? bm.MOSS_BLOCK : bm.AIR)).id
-                                            if(ceil_block_id) {
-                                                // chunk.setInitialGroundInColumnIndirect(columnIndex, y, bm.MOSS_BLOCK.id)
-                                                chunk.setBlockIndirect(x, y, z, ceil_block_id)
-                                                continue
-                                            }
-                                        }
+                                if(is_moss_area) {
+                                    const ceil_block_id = (biome.blocks.caves_second ?? (biome.temperature > 0 ? bm.MOSS_BLOCK : bm.AIR)).id
+                                    if(ceil_block_id) {
+                                        chunk.setBlockIndirect(x, y, z, ceil_block_id)
+                                        continue
                                     }
                                 }
 

@@ -23,6 +23,7 @@
         {"name": "mob/snowball"},
         {"name": "mob/combat_dummy"},
         {"name": "mob/snow_golem"},
+        {"name": "mob/hook"},
 
         {"name": "mechanism/cogwheel"},
         {"name": "mechanism/windmill_bearing"},
@@ -2832,6 +2833,47 @@
             ],
             "bb": {
                 "extends": "WHITE_SHULKER_BOX"
+            }
+        },
+        {
+            "id": 1093,
+            "name": "TURF_OF_GRASS",
+            "sound": "madcraft:block.grass",
+            "composter_chance": 0.3,
+            "item": {
+                "name": "powder"
+            },
+            "material": {
+                "id": "powder"
+            },
+            "bb": {
+                "import_anyway": true
+            }
+        },
+        {
+            "id": 173,
+            "name": "COAL",
+            "bb": {
+                "model": "coal"
+            }
+        },
+        {
+            "id": 130,
+            "name": "STICK",
+            "bb": {}
+        },
+        {
+            "id": 612,
+            "name": "CARROT",
+            "bb": {
+                "model": "item_carrot"
+            }
+        },
+        {
+            "id": 1419,
+            "name": "BONE",
+            "bb": {
+                "model": "item_bone"
             }
         }
     ]
