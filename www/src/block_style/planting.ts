@@ -96,10 +96,15 @@ export default class style {
                 aabb_size.y = Math.min(aabb_size.y, 16)
             }
         }
+
+        let sy = aabb_size.y / 2
+        if (material.tags.includes('is_hanging_plant')) {
+            sy = aabb_size.y
+        }
         
         aabb.set(0, 0, 0, 0, 0, 0)
         aabb
-            .translate(.5 * TX_SIZE, aabb_size.y/2, .5 * TX_SIZE)
+            .translate(.5 * TX_SIZE, sy, .5 * TX_SIZE)
             .expand(aabb_size.x/2, aabb_size.y/2, aabb_size.z/2)
             .div(TX_SIZE);
 
