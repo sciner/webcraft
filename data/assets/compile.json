@@ -13772,6 +13772,24 @@
             "texture": {
                 "side": "item/bowl.png"
             }
+        },
+        {
+            "id": 1122,
+            "name": "SPORE_BLOSSOM",
+            "style": "spore_blossom",
+            "transparent": true,
+            "material": {
+                "id": "plant"
+            },
+            "texture": {
+                "side": "block/spore_blossom.png",
+                "down": "./textures/spore_blossom_base.png"
+            },
+            "tags": [
+                "no_drop_ao",
+                "doubleface"
+            ],
+            "composter_chance": 1
         }
     ]
 }
