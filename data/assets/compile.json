@@ -64,6 +64,7 @@
             "id": 218,
             "name": "FLOOD_WATER",
             "is_fluid": true,
+            "spawnable": false,
             "material": {
                 "id": "water"
             },
@@ -75,6 +76,7 @@
             "id": 219,
             "name": "FLOOD_LAVA",
             "is_fluid": true,
+            "spawnable": false,
             "material": {
                 "id": "water"
             },
