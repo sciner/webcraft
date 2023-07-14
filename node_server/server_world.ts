@@ -351,7 +351,8 @@ export class ServerWorld implements IWorld {
 
     // Спавн враждебных мобов в тёмных местах (пока тёмное время суток)
     autoSpawnHostileMobs() {
-        const SPAWN_DISTANCE = 16;
+        const SPAWN_DISTANCE = 64
+        const SAFE_DISTANCE = 24
         const good_world_for_spawn = !this.isBuildingWorld();
         const auto_generate_mobs = this.getGeneratorOptions('auto_generate_mobs', true);
         // не спавним мобов в мире-конструкторе и в дневное время
@@ -363,12 +364,12 @@ export class ServerWorld implements IWorld {
         for (const player of this.players.values()) {
             if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS.DEAD) {
                 // количество мобов одного типа в радиусе спауна
-                const mobs = this.getMobsNear(player.state.pos, SPAWN_DISTANCE, [MOB_TYPE.ZOMBIE, MOB_TYPE.SKELETON]);
+                const mobs = this.getMobsNear(player.state.pos, 8, [MOB_TYPE.ZOMBIE, MOB_TYPE.SKELETON]);
                 if (mobs.length <= 4) {
                     // TODO: Вот тут явно проблема, поэтому зомби спавняться близко к игроку!
                     // выбираем рандомную позицию для спауна
                     const x = player.state.pos.x + SPAWN_DISTANCE * (Math.random() - Math.random());
-                    const y = player.state.pos.y + 2 * (Math.random());
+                    const y = player.state.pos.y + SPAWN_DISTANCE * (Math.random() - Math.random());
                     const z = player.state.pos.z + SPAWN_DISTANCE * (Math.random() - Math.random());
                     const spawn_pos = new Vector(x, y, z).flooredSelf();
                     // проверка места для спауна
@@ -378,25 +379,24 @@ export class ServerWorld implements IWorld {
                         const body = this.getBlock(spawn_pos);
                         const head = this.getBlock(spawn_pos.offset(0, 1, 0));
                         const lv = head.lightValue;
-                        // if ((lv & 0xFF) > 0) {
-                        //     continue;
-                        // }
-                        if ((lv & 0xff) > ambientLight) {
-                            continue;
+                        const cave_light = lv & 255
+                        const day_light = 255 - (lv >> 8) & 255
+                        if (cave_light > ambientLight) {
+                            continue
                         }
                         if (this.getLight() > 6) {
-                            if (0xFF - (lv >> 8) > ambientLight) {
-                                continue;
+                            if (day_light > ambientLight) {
+                                continue
                             }
                         }
                         // проверям что область для спауна это воздух или вода
                         if (body && head && body.id == 0 && head.id == 0) {
                             // не спавним рядом с игроком
-                            const players = this.getPlayersNear(spawn_pos, 10);
+                            const players = this.getPlayersNear(spawn_pos, SAFE_DISTANCE)
                             if (players.length == 0) {
                                 // тип мобов для спауна
-                                const model_name = (Math.random() < 0.5) ? MOB_TYPE.ZOMBIE : MOB_TYPE.SKELETON;
-                                spawn_pos.addScalarSelf(0.5, 0, 0.5)
+                                const model_name = (Math.random() < .5) ? MOB_TYPE.ZOMBIE : MOB_TYPE.SKELETON;
+                                spawn_pos.addScalarSelf(.5, 0, .5)
                                 const params = new MobSpawnParams(spawn_pos, Vector.ZERO.clone(), {model_name, texture_name: DEFAULT_MOB_TEXTURE_NAME})
                                 const actions = new WorldAction(null, this, false, false);
                                 actions.spawnMob(params);
