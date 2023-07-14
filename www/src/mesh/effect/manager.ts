@@ -12,6 +12,7 @@ import { default as Mesh_Effect_Emitter_VillagerHappy } from "./emitter/villager
 import { default as Mesh_Effect_Emitter_Cloud } from "./emitter/cloud.js";
 import { default as Mesh_Effect_Emitter_Bubble } from "./emitter/bubble.js";
 import { default as Mesh_Effect_Emitter_Dripping } from "./emitter/dripping.js";
+import { default as Mesh_Effect_Emitter_Spore } from "./emitter/spore.js";
 import type { MeshManager } from '../manager.js';
 import type { BaseEmitter } from './emitter/base.js';
 
@@ -46,6 +47,7 @@ export class Mesh_Effect_Manager {
         this.effects.set('cloud', Mesh_Effect_Emitter_Cloud);
         this.effects.set('bubble', Mesh_Effect_Emitter_Bubble);
 		this.effects.set('dripping', Mesh_Effect_Emitter_Dripping);
+        this.effects.set('spore', Mesh_Effect_Emitter_Spore);
         
         for(const item of this.effects.values()) {
             const tex = (item as any).textures

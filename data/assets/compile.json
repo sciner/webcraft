@@ -13776,20 +13776,22 @@
         {
             "id": 1122,
             "name": "SPORE_BLOSSOM",
-            "style": "spore_blossom",
+            "style": "planting",
             "transparent": true,
             "material": {
                 "id": "plant"
             },
             "texture": {
                 "side": "block/spore_blossom.png",
-                "down": "./textures/spore_blossom_base.png"
+                "up": "./textures/spore_blossom_base.png"
             },
             "tags": [
                 "no_drop_ao",
-                "doubleface"
+                "doubleface",
+                "no_need_dirt",
+                "is_hanging_plant"
             ],
-            "composter_chance": 1
+            "composter_chance": 0.65
         }
     ]
 }
