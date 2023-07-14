@@ -4,7 +4,7 @@ import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { StringHelpers } from "./helpers.js";
 import { Lang } from "./lang.js";
-import { BLOCK_FLAG, BLOCK_GROUP_TAG, DEFAULT_STYLE_NAME, LEAVES_TYPE } from "./constant.js";
+import { BLOCK_FLAG, BLOCK_GROUP_TAG, BLOCK_SUPPORT_STYLE, DEFAULT_STYLE_NAME, LEAVES_TYPE } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import type { World } from "./world.js";
 import type {BaseResourcePack} from "./base_resource_pack.js";
@@ -1593,7 +1593,7 @@ export class BLOCK {
             block.is_solid_for_fluid = block.is_solid_for_fluid || !!block.layering?.slab || !!block.is_leaves || !!block.tags.includes('trapdoor')
             block.is_shulker_box = block.name.endsWith('_SHULKER_BOX')
             if(!block.support_style && block.planting) {
-                block.support_style = 'planting'
+                block.support_style = block.tags.includes('is_hanging_plant') ? BLOCK_SUPPORT_STYLE.HANGING_PLANT : BLOCK_SUPPORT_STYLE.PLANTING
             }
             // if (block.bb) {
             //     if(!block.bb.behavior) {

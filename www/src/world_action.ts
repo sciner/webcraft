@@ -3070,7 +3070,7 @@ function setUpholstery(e, world, pos, player, world_block, world_material, mat_b
                 }])
                 actions.addPlaySound({tag: mat_block.sound, action: 'hit', pos: new Vector(pos), except_players: [player.session.user_id]})
                 actions.decrement = true
-                return resp
+                return true
             }
         }
     }
