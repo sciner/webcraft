@@ -284,6 +284,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
 
     private rotation_matrix?: imat4
     private _block_drawer: Mesh_Object_Asteroid
+    tint_color= Color.ZERO
 
     constructor(world: World, pos : Vector, rotate : Vector, model : BBModel_Model, animation_name : string = null, doubleface : boolean = false, transparent : boolean = false, rotation_matrix?: imat4, hide_groups?: string[], item_block? : DBItemBlock) {
         super(undefined)
@@ -519,19 +520,12 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         }
     }
 
-    _tintEnabled = false;
     enableTint(clr: Color) {
-        if (!this._tintEnabled) {
-            this._tintEnabled = true;
-            this.gl_material = this.gl_material.getSubMat();
-        }
-        this.gl_material.tintColor = clr;
+        this.tint_color = clr;
     }
 
     disableTint() {
-        if (this._tintEnabled) {
-            this.gl_material.tintColor = Color.ZERO;
-        }
+        this.tint_color = Color.ZERO;
     }
 
     /*

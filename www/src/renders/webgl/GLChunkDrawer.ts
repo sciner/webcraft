@@ -33,6 +33,7 @@ export class GLChunkDrawer extends ObjectDrawer {
                 this.flush();
                 this.curVao = vao;
                 this.curMat = material;
+                material.shader.updateTint(null);
                 material.shader.updatePos(null, null);
                 material.bind();
                 this.curVao.bind(material.shader);
@@ -40,6 +41,7 @@ export class GLChunkDrawer extends ObjectDrawer {
             this.elements[this.count++] = geom;
         } else {
             this.flush();
+            material.shader.updateTint(null);
             material.shader.updatePos(chunk.coord, null);
             material.bind();
             geom.bind(material.shader);

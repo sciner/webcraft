@@ -113,9 +113,12 @@ export class BBModel_Group extends BBModel_Child {
                 if(replace_modifier.texture_name) {
                     replace_modifier.mesh.model.selectTextureFromPalette(this.name, replace_modifier.texture_name)
                 }
+
                 // draw another mesh
+                replace_modifier.mesh.tint_color = mesh.tint_color;
                 replace_modifier.replacement_group.drawBuffered(meshBatcher, replace_modifier.mesh, pos, lm, mx, bone_matrix,
                     null, undefined, true);
+                replace_modifier.mesh.tint_color = null;
                 // restore specific texture
                 if(replace_modifier.texture_name) {
                     replace_modifier.mesh.model.selectTextureFromPalette(this.name, null)
@@ -160,7 +163,7 @@ export class BBModel_Group extends BBModel_Child {
                 existing_parts = mesh_parts;
                 mesh.geometries.set(this.name, mesh_parts)
             }
-            meshBatcher.drawParts(existing_parts, mesh.gl_material, pos, mx)
+            meshBatcher.drawParts(existing_parts, mesh.gl_material, pos, mx, mesh.tint_color)
         }
 
         // Draw appended groups

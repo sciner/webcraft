@@ -1,7 +1,7 @@
 import {ObjectDrawer} from "../renders/batch/ObjectDrawer.js";
 import {ExtensionType, Geometry, DRAW_MODES} from "vauxcel";
 import {MultiDrawBuffer} from "../renders/webgl/multi_draw_buffer.js";
-import {IvanArray} from "../helpers.js";
+import {Color, IvanArray} from "../helpers.js";
 import type {MeshPart} from "./mesh_builder.js";
 
 export class MeshDrawer extends ObjectDrawer {
@@ -14,7 +14,7 @@ export class MeshDrawer extends ObjectDrawer {
 
     mdb = new MultiDrawBuffer();
 
-    draw(geom, material?, a_pos = null, modelMatrix = null, instanceCount: number = geom.size, baseInstance: number = 0) {
+    draw(geom, material?, a_pos = null, modelMatrix = null, tint_color: Color = null, instanceCount: number = geom.size, baseInstance: number = 0) {
         if (this.parts.count) {
             this.flush();
         }
@@ -23,6 +23,7 @@ export class MeshDrawer extends ObjectDrawer {
             return;
         }
         material.shader.updatePos(a_pos, modelMatrix);
+        material.shader.updateTint(tint_color);
         material.bind();
         geom.bind(material.shader);
         if (baseInstance)
@@ -45,7 +46,7 @@ export class MeshDrawer extends ObjectDrawer {
         // if (this.curGeom && (this.curMat !== material || this.curGeom !== material)) {
         //     this.flush();
         // }
-        this.draw(part.geom, material, a_pos, modelMatrix, part.count, part.start)
+        this.draw(part.geom, material, a_pos, modelMatrix, null, part.count, part.start)
     }
 
     flush() {
