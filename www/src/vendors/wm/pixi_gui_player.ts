@@ -17,7 +17,10 @@ export class PixiGuiPlayer extends Container {
                 if(!player.itsMe()) {
                     continue;
                 }
+                const op = player.opacity;
+                player.opacity = 1;
                 player.drawInGui(qbRender.meshBatcher, qbRender.lastDeltaForMeGui);
+                player.opacity = op;
             }
         });
     }

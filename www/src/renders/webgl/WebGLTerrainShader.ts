@@ -3,6 +3,7 @@ import {UniformGroup} from "vauxcel";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
 import type {Vector} from "../../helpers/vector.js";
 import type {TerrainBaseTexture} from "../TerrainBaseTexture.js";
+import {Color} from "../../helpers/color.js";
 const {mat4} = glMatrix;
 
 
@@ -25,9 +26,15 @@ export class WebGLTerrainShader extends BaseTerrainShader {
     modelUniforms: {
         u_modelMatrix: Float32Array, u_modelMatrixMode: float
     }
+    tintUniforms: {
+        u_tintColor: number[]
+    }
     posUniformGroup: UniformGroup;
+    modelUniformGroup: UniformGroup;
+    tintUniformGroup: UniformGroup;
     texture: TerrainBaseTexture = null;
     texture_n: TerrainBaseTexture = null;
+    prev_tint_color = new Color(0, 0, 0, 0);
     /**
      *
      * @param {WebGLRenderer} context
@@ -47,13 +54,18 @@ export class WebGLTerrainShader extends BaseTerrainShader {
             u_modelMatrix: new Float32Array(16),
             u_modelMatrixMode: 0 as float,
         }
+        const tintUniforms = {
+            u_tintColor: [0, 0, 0, 0],
+        };
         const posUniformGroup = new UniformGroup(posUniforms);
         const modelUniformGroup = new UniformGroup(modelUniforms, true);
+        const tintUniformGroup = new UniformGroup(tintUniforms, true);
 
         options.uniforms = {...options.uniforms,
             terrainStatic, lightStatic: context.lightUniforms,
             pos: posUniformGroup,
-            model: modelUniformGroup};
+            model: modelUniformGroup,
+            tint: tintUniformGroup};
         super(context, options);
 
         this.posUniforms = posUniforms;
@@ -61,6 +73,9 @@ export class WebGLTerrainShader extends BaseTerrainShader {
 
         this.modelUniforms = modelUniforms;
         this.modelUniformGroup = modelUniformGroup;
+
+        this.tintUniforms = tintUniforms;
+        this.tintUniformGroup = tintUniformGroup;
 
         this.hasModelMatrix = false;
 
@@ -130,5 +145,18 @@ export class WebGLTerrainShader extends BaseTerrainShader {
             }
             this.hasModelMatrix = false;
         }
+    }
+
+    updateTint(tint_color?: Color) {
+        if (!tint_color) {
+            tint_color = Color.ZERO;
+        }
+        if (this.prev_tint_color.equals(tint_color)) {
+            return;
+        }
+        this.prev_tint_color.copyFrom(tint_color);
+
+        this.tintUniforms.u_tintColor = this.prev_tint_color.toArray();
+        this.tintUniformGroup.update();
     }
 }

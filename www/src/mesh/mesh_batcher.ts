@@ -2,7 +2,7 @@ import {SimplePool} from "../helpers/simple_pool.js";
 import type {TerrainMaterial} from "../renders/terrain_material.js";
 
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
-import {IvanArray, Vector} from "../helpers.js";
+import {Color, IvanArray, Vector} from "../helpers.js";
 import type {TerrainGeometry15} from "../geom/terrain_geometry_15.js";
 import type {Renderer} from "../render.js";
 import type {MeshDrawer} from "./mesh_drawer.js";
@@ -90,7 +90,7 @@ export class MeshBatcher implements IMeshDrawer {
         this.elements[renderListNum].push(entry);
     }
 
-    drawPart(part: MeshPart, material: TerrainMaterial, pos: Vector, modelMatrix?: imat4) {
+    drawPart(part: MeshPart, material: TerrainMaterial, pos: Vector, modelMatrix?: imat4, tint_color: Color = null) {
         if (!part.geom) {
             if (part.vertices.length === 0) {
                 return;
@@ -108,6 +108,7 @@ export class MeshBatcher implements IMeshDrawer {
         entry.start = part.start;
         entry.count = part.count;
         entry.material = material;
+        entry.tint_color = tint_color;
 
         const renderListNum = this._renderListMode > 0 ?
             this._renderListMode : this.getMaterialNumber(material);
@@ -115,10 +116,10 @@ export class MeshBatcher implements IMeshDrawer {
         this.elements[renderListNum].push(entry);
     }
 
-    drawParts(parts: MeshPartCollection, def_material: TerrainMaterial, pos: Vector, modelMatrix?: imat4) {
+    drawParts(parts: MeshPartCollection, def_material: TerrainMaterial, pos: Vector, modelMatrix?: imat4, tint_color?: Color) {
         //TODO: maybe hardcode this thing?
         for (let i = 0; i < parts.entries.length; i++) {
-            this.drawPart(parts.entries[i], parts.entries[i].material || def_material, pos, modelMatrix);
+            this.drawPart(parts.entries[i], parts.entries[i].material || def_material, pos, modelMatrix, tint_color);
         }
     }
 
@@ -147,7 +148,7 @@ export class MeshBatcher implements IMeshDrawer {
         for (let i = 0; i < elements.count; i++) {
             const entry = elements.arr[i];
             mesh.draw(entry.geom, entry.material, entry.pos,
-                entry.hasModelMatrix ? entry.modelMatrix : null, entry.count || entry.geom.size, entry.start);
+                entry.hasModelMatrix ? entry.modelMatrix : null, entry.tint_color, entry.count || entry.geom.size, entry.start);
         }
     }
 
@@ -171,6 +172,7 @@ export class MeshBatcherEntry {
     dist = 0;
     start = 0;
     count = 0;
+    tint_color: Color = null;
 
     reset()
     {
@@ -184,6 +186,7 @@ export class MeshBatcherEntry {
         this.dist = 0;
         this.start = 0;
         this.count = 0;
+        this.tint_color = null;
     }
 
     static pool = new SimplePool(MeshBatcherEntry);

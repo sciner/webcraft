@@ -11,7 +11,6 @@ export interface ITerrainMaterialOptions {
     shader?: BaseTerrainShader;
     texture?: TerrainBaseTexture;
     texture_n?: TerrainBaseTexture;
-    tintColor?: Color;
     group?: MaterialGroup | IMaterialGroupOptions;
     blendMode?: BLEND_MODES;
 }
@@ -21,7 +20,6 @@ export const defaultTerrainMaterial = {
     u_blockSize: 1 as float,
     u_pixelSize: 1 as float,
     u_mipmap: 0 as float,
-    u_tintColor: [0, 0, 0, 0],
 }
 
 export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
@@ -29,7 +27,6 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
     _texture: TerrainBaseTexture = undefined
     texture: TerrainBaseTexture = undefined;
     texture_n: TerrainBaseTexture;
-    _tintColor = new Color(0, 0, 0, 0);
     state = new State();
 
     context: BaseRenderer;
@@ -58,7 +55,6 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
 
         this.texture_n = options.texture_n || null;
         this.texture = options.texture || null;
-        this.tintColor = options.tintColor || new Color(0, 0, 0, 0);
         this.blendMode = options.blendMode || BLEND_MODES.NORMAL_NPM;
 
 
@@ -84,11 +80,6 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
     get opaque(){
         return this.group.opaque;
     }
-    set tintColor(val: Color)
-    {
-        this._tintColor.copyFrom(val);
-        this.terrainUniforms.u_tintColor = this._tintColor.toArray();
-    }
 
     get blendMode() {
         return this.state.blendMode;
@@ -96,11 +87,6 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
 
     set blendMode(val: BLEND_MODES) {
         this.state.blendMode = val;
-    }
-
-    get tintColor()
-    {
-        return this._tintColor;
     }
 
     initPixiShader() {

@@ -201,6 +201,7 @@ export default class Mesh_Object_Clouds {
         const context = render.renderBackend
         const gl = context.gl
         const {geom, pos} = this
+        material.shader.updateTint(null);
         material.shader.updatePos(pos, this.modelMatrix)
         material.bind()
         geom.bind(material.shader)
