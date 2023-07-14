@@ -4,7 +4,7 @@ import { DIRECTION, IndexedColor, SIX_VECS, Vector, VectorCollector } from "@cli
 import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "@client/block_helpers.js";
 import { newTypedBlocks, TBlock, TypedBlocks3 } from "@client/typed_blocks3.js";
 import {dropBlock, TActionBlock, WorldAction} from "@client/world_action.js";
-import { COVER_STYLE_SIDES, DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE } from "@client/constant.js";
+import { BLOCK_SUPPORT_STYLE, COVER_STYLE_SIDES, DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE } from "@client/constant.js";
 import { compressWorldModifyChunk } from "@client/compress/world_modify_chunk.js";
 import { FLUID_STRIDE, FLUID_TYPE_MASK, FLUID_LAVA_ID, OFFSET_FLUID, FLUID_WATER_ID, PACKED_CELL_LENGTH, PACKET_CELL_DIRT_COLOR_R, PACKET_CELL_DIRT_COLOR_G, PACKET_CELL_WATER_COLOR_R, PACKET_CELL_WATER_COLOR_G, PACKET_CELL_BIOME_ID } from "@client/fluid/FluidConst.js";
 import { DelayedCalls } from "./server_helpers.js";
@@ -839,7 +839,7 @@ export class ServerChunk {
         //
         const check = (tblock : TBlock, neighbour, previous_neighbour, min_solid_count : int = 5) => {
             const require_support = tblock.material.support_style || tblock.material.style_name;
-            if(require_support == 'uncertain_stone') {
+            if(require_support == BLOCK_SUPPORT_STYLE.UNCERTAIN_STONE) {
                 // определяем неопределенный камень
                 const item = {
                     id: bm.STONE.id
@@ -1070,31 +1070,38 @@ export class ServerChunk {
             }
 
             switch(require_support) {
-                case 'planting': // not a block style, but a name for a common type of support
-                case 'bottom':
-                case 'rails':
-                case 'candle':
-                case 'redstone':
-                case 'pebbles':
-                case 'skull_desert':
-                case 'small_cactus':
-                case 'small_stones_desert':
-                case 'sanded_stones':
-                case 'cactus': {
+                case BLOCK_SUPPORT_STYLE.PLANTING: // not a block style, but a name for a common type of support
+                case BLOCK_SUPPORT_STYLE.BOTTOM:
+                case BLOCK_SUPPORT_STYLE.RAILS:
+                case BLOCK_SUPPORT_STYLE.CANDLE:
+                case BLOCK_SUPPORT_STYLE.REDSTONE:
+                case BLOCK_SUPPORT_STYLE.PEBBLES:
+                case BLOCK_SUPPORT_STYLE.SKULL_DESERT:
+                case BLOCK_SUPPORT_STYLE.SMALL_CACTUS:
+                case BLOCK_SUPPORT_STYLE.SMALL_STONE_DESERT:
+                case BLOCK_SUPPORT_STYLE.SANDED_STONES:
+                case BLOCK_SUPPORT_STYLE.CACTUS: {
                     // only bottom
                     if(neighbourPos.y < pos.y) {
                         return createDrop(tblock)
                     }
                     break
                 }
-                case 'chorus': {
+                case BLOCK_SUPPORT_STYLE.CHORUS: {
                     // only bottom
                     if(neighbourPos.y <= pos.y) {
                         return createDrop(tblock);
                     }
                     break;
                 }
-                case 'lantern': {
+                case BLOCK_SUPPORT_STYLE.HANGING_PLANT: {
+                    // top
+                    if(neighbourPos.y > pos.y) {
+                        return createDrop(tblock)
+                    }
+                    break
+                }
+                case BLOCK_SUPPORT_STYLE.LANTERN: {
                     // top and bottom
                     if(neighbourPos.y < pos.y && roty == 1) {
                         return createDrop(tblock);
@@ -1103,8 +1110,8 @@ export class ServerChunk {
                     }
                     break;
                 }
-                case 'sign':
-                case 'torch': {
+                case BLOCK_SUPPORT_STYLE.SIGN:
+                case BLOCK_SUPPORT_STYLE.TORCH: {
                     // nesw + bottom
                     let drop = false;
                     if (roty == 0) {
@@ -1124,7 +1131,7 @@ export class ServerChunk {
                     }
                     break;
                 }
-                case 'item_frame': {
+                case BLOCK_SUPPORT_STYLE.ITEM_FRAME: {
                     // 6 sides
                     let drop = false;
                     // console.log(neighbourPos.z > pos.z, SIX_VECS.north, rot);
@@ -1146,7 +1153,7 @@ export class ServerChunk {
                     }
                     break;
                 }
-                case 'chest': {
+                case BLOCK_SUPPORT_STYLE.CHEST: {
                     // if a chest half is missing the other half, convert it to a normal chest
                     if (neighbourPos.y === pos.y && // a fast redundant check to eliminate 2 out of 6 slower checks
                         ChestHelpers.getSecondHalfPos(tblock)?.equal(neighbourPos)
@@ -1165,8 +1172,8 @@ export class ServerChunk {
                     }
                     break;
                 }
-                case 'painting':
-                case 'ladder': {
+                case BLOCK_SUPPORT_STYLE.PAINTING:
+                case BLOCK_SUPPORT_STYLE.LADDER: {
                     if (neighbourPos.y === pos.y) {
                         // 6 sides
                         let drop = false;
@@ -1185,7 +1192,7 @@ export class ServerChunk {
                     }
                     break;
                 }
-                case 'cover': {
+                case BLOCK_SUPPORT_STYLE.COVER: {
                     let drop = false;
                     if(tblock.extra_data) {
                         const removeCoverSide = (side_name : string) => {
@@ -1233,7 +1240,7 @@ export class ServerChunk {
                     }
                     break;
                 }
-                case 'pointed_dripstone': {
+                case BLOCK_SUPPORT_STYLE.POINTED_DRIPSTONE: {
                     delPointedDripstone();
                     break;
                 }

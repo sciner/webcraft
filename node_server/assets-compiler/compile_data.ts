@@ -1,4 +1,4 @@
-import { BLOCK_GROUP_TAG, DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE } from "@client/constant.js";
+import { BLOCK_GROUP_TAG, BLOCK_SUPPORT_STYLE, DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE } from "@client/constant.js";
 import {Color} from "@client/helpers.js";
 import { COLOR_PALETTE, Resources } from "@client/resources.js";
 
@@ -156,7 +156,7 @@ export class CompileData {
                     "rotate_by_pos_n_12",
                     "button"
                 ],
-                "support_style": "item_frame"
+                "support_style": BLOCK_SUPPORT_STYLE.ITEM_FRAME
             };
             this.blocks.push(b);
             i++;
@@ -263,7 +263,7 @@ export class CompileData {
                     "rotate_by_pos_n",
                     "no_drop_ao"
                 ],
-                "support_style": "item_frame"
+                "support_style": BLOCK_SUPPORT_STYLE.ITEM_FRAME
             };
             this.blocks.push(b);
             i++;
@@ -643,7 +643,7 @@ export class CompileData {
                     "set_only_fullface",
                     "no_drop_ao"
                 ],
-                "support_style": "bottom"
+                "support_style": BLOCK_SUPPORT_STYLE.BOTTOM
             });
         }
     }

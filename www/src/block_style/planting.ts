@@ -87,20 +87,24 @@ export default class style {
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
         const material = tblock.material
+        const mat_abbb = material.aabb
+
+        // if tblock has specific ABBB
+        if(mat_abbb) {
+            return [aabb.setArray(mat_abbb)]
+        }
+
         let aabb_size = (material.aabb_size ?? DEFAULT_AABB_SIZE) as Vector
 
         if(material.seeds && material.ticking?.type == 'stage') {
             if(tblock.extra_data?.stage != undefined) {
                 aabb_size = aabb_size.clone()
                 aabb_size.y *= (tblock.extra_data?.stage + 1) / (material.ticking.max_stage + 1)
-                aabb_size.y = Math.min(aabb_size.y, 16)
+                aabb_size.y = Math.min(aabb_size.y, TX_SIZE)
             }
         }
 
         let sy = aabb_size.y / 2
-        if (material.tags.includes('is_hanging_plant')) {
-            sy = aabb_size.y
-        }
         
         aabb.set(0, 0, 0, 0, 0, 0)
         aabb
