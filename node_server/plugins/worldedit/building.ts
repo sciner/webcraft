@@ -127,7 +127,7 @@ export class WorldEditBuilding {
         const fs = (globalThis as any).fs
 
         // append building_schemas        
-        const file_name = `./conf_world.json`
+        const file_name = `../data/building_schemas.json`
         let conf_world = fs.readFileSync(file_name)
         
         if(conf_world) {
@@ -135,7 +135,7 @@ export class WorldEditBuilding {
             if(!conf_world) {
                 throw 'error_conf_world_corrupted'
             }
-            conf_world.building_schemas.push(building)
+            conf_world.building_schemas.list.push(building)
             fs.writeFileSync(file_name, JSON.stringify(conf_world, null, 4))
         } else {
             throw 'error_conf_world_not_found'

@@ -3686,6 +3686,8 @@
             "name": "TEST",
             "sound": "madcraft:block.wood",
             "mining_time": 0,
+            "transparent": true,
+            "can_rotate": true,
             "material": {
                 "id": "wood"
             },
@@ -3696,8 +3698,7 @@
                 "west": "block/test_west.png",
                 "north": "block/test_north.png",
                 "east": "block/test_east.png"
-            },
-            "can_rotate": true
+            }
         },
         {
             "id": 2047,

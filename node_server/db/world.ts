@@ -171,7 +171,7 @@ export class DBWorld {
                 rules:          JSON.parse(row.rules),
                 state:          JSON.parse(row.state ?? '{}'),
                 add_time:       row.add_time,
-                world_type_id:  row.title == config.building_schemas_world_name ? WORLD_TYPE_BUILDING_SCHEMAS : WORLD_TYPE_NORMAL,
+                world_type_id:  row.title == config.building_world.name ? WORLD_TYPE_BUILDING_SCHEMAS : WORLD_TYPE_NORMAL,
                 recovery:       row.recovery,
                 tech_info:      {
                     ...tech_info,

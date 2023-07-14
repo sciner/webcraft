@@ -1,6 +1,10 @@
 import { Vector } from "@client/helpers.js";
-import conf from "./conf.json" assert { type: "json" };
-import conf_world from "./conf_world.json" assert { type: "json" };
+import conf from "../data/conf.json" assert { type: "json" };
+import conf_world_json from "../data/conf_world.json" assert { type: "json" };
+import conf_building_schemas from "../data/building_schemas.json" assert { type: "json" };
+
+const conf_world : any = conf_world_json;
+(conf_world as any).building_schemas = conf_building_schemas
 
 if(typeof process != 'undefined') {
     process.argv.forEach((e, i) => {
@@ -23,8 +27,8 @@ if(typeof process != 'undefined') {
 const all = []
 
 // 1. load building_schemas
-for(let k in conf_world.building_schemas) {
-    const item = conf_world.building_schemas[k]
+for(let k in conf_world.building_schemas.list) {
+    const item = conf_world.building_schemas.list[k]
     all.push(import(`../data/building_schema/${item.name}.js`).then(module => {
         const json = module.default
         json.name = item.name
@@ -34,7 +38,7 @@ for(let k in conf_world.building_schemas) {
         }
         item.entrance = new Vector(json.world.entrance)
         json.world = {...json.world, ...item}
-        conf_world.building_schemas[k] = json
+        conf_world.building_schemas.list[k] = json
     }))
 }
 

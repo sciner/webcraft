@@ -1,0 +1,1681 @@
+{
+    "mobs": {
+        "mob/combat_dummy": {
+            "physics": {
+                "baseSpeed": 0.5,
+                "playerHeight": 1.5,
+                "stepHeight": 1.5,
+                "playerHalfWidth": 0.45
+            },
+            "health": 29,
+            "distance_view": 6
+        },
+        "mob/chicken": {
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 0.65,
+                "stepHeight": 1.25,
+                "playerHalfWidth": 0.2
+            },
+            "health": 4,
+            "distance_view": 6
+        },
+        "mob/creeper": {
+            "physics": {
+                "baseSpeed": 0.5,
+                "playerHeight": 1.6,
+                "playerHalfWidth": 0.45
+            },
+            "health": 20,
+            "distance_view": 40
+        },
+        "mob/horse": {
+            "brain": "default",
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 1.4,
+                "playerHalfWidth": 0.7
+            },
+            "health": 20
+        },
+        "mob/fox": {
+            "brain": "default",
+            "physics": {
+                "baseSpeed": 0.5,
+                "playerHeight": 0.8,
+                "playerHalfWidth": 0.4
+            },
+            "health": 10
+        },
+        "mob/pig": {
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 1.125,
+                "playerHalfWidth": 0.45
+            },
+            "health": 10,
+            "distance_view": 6
+        },
+        "mob/snow_golem": {
+            "brain": "default",
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 1.9,
+                "playerHalfWidth": 0.35
+            },
+            "health": 20
+        },
+        "mob/cow": {
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 1.4,
+                "playerHalfWidth": 0.45
+            },
+            "health": 10,
+            "distance_view": 6
+        },
+        "mob/sheep": {
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 0.75,
+                "playerHalfWidth": 0.4
+            },
+            "driving": {
+                "physics": {
+                    "baseSpeed": 1,
+                    "jumpSpeed": 0.3
+                },
+                "offsets": [ { "x": 0, "y": 0.75, "z": -0.1 } ]
+            },
+            "health": 8,
+            "distance_view": 6
+        },
+        "mob/npc": {
+            "brain": "default",
+            "physics": {
+                "baseSpeed": 0.5,
+                "playerHeight": 1.8
+            },
+            "health": 20
+        },
+        "mob/zombie": {
+            "physics": {
+                "baseSpeed": 0.8,
+                "playerHeight": 1.6,
+                "playerHalfWidth": 0.45
+            },
+            "attack": {
+                "damage_easy":   [2, 3],
+                "damage_normal": [3, 3],
+                "damage_hard":   [4, 5]
+            },
+            "hasUse": true,
+            "health": 20,
+            "distance_view": 40
+        },
+        "mob/bee": {
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 0.6,
+                "playerHalfWidth": 0.3
+            },
+            "driving": {
+                "physics": {
+                    "baseSpeed": 1,
+                    "jumpSpeed": 0.3
+                },
+                "canFly": true,
+                "unloads": true,
+                "offsets": [ { "x": 0, "y": 0.25, "z": -0.1 } ]
+            },
+            "attack": {
+                "damage_easy":   [2, 2],
+                "damage_normal": [2, 2],
+                "damage_hard":   [2, 3],
+                "effect_normal": {
+                    "id": "POISON",
+                    "level": 1,
+                    "time": 10
+                },
+                "effect_hard": {
+                    "id": "POISON",
+                    "level": 2,
+                    "time": 18
+                }
+            },
+            "animations": {
+                "fly": "walk",
+                "flyIdle": "walk*0.5",
+                "flyDown": "walk*0.25"
+            },
+            "health": 10
+        },
+        "mob/parrot": {
+            "physics": {
+                "baseSpeed": 0.25,
+                "playerHeight": 0.6,
+                "playerHalfWidth": 0.3
+            },
+            "health": 10
+        },
+        "mob/skeleton": {
+            "physics": {
+                "baseSpeed": 0.8,
+                "playerHeight": 1.95,
+                "playerHalfWidth": 0.3
+            },
+            "attack": {
+                "damage_easy":   [2, 2],
+                "damage_normal": [2, 3],
+                "damage_hard":   [3, 3]
+            },
+            "hasUse": true,
+            "health": 20,
+            "distance_view": 16
+        },
+        "transport/boat": {
+            "physics": {
+                "baseSpeed": 0.4,
+                "playerHeight": 0.6,
+                "playerHalfWidth": 0.9,
+                "floatSubmergedHeight": 0.4,
+                "useBoatSpeed": true,
+                "jumpSpeed": 0,
+                "stepHeight": 0.75
+            },
+            "driving": {
+                "offsets": [
+                    { "x": 0, "y": 0.2, "z": 0.5 }
+                ],
+                "useAngularSpeed": true,
+                "maxYawDelta": 1.6,
+                "hideHandItem": true
+            },
+            "animations": {
+                "noAirborne": true
+            },
+            "drop_on_kill": "OAK_BOAT",
+            "timer_panic": 0,
+            "damageAddsVelocity": false,
+            "can_asphyxiate": false
+        },
+        "transport/raft": {
+            "brain": "boat",
+            "physics": {
+                "baseSpeed": 0.4,
+                "playerHeight": 0.25,
+                "playerHalfWidth": 0.6,
+                "floatSubmergedHeight": 0.24,
+                "useBoatSpeed": true,
+                "jumpSpeed": 0,
+                "stepHeight": 0.75
+            },
+            "driving": {
+                "offsets": [
+                    { "x": 0, "y": 0.28, "z": -0.03 }
+                ],
+                "vehicleAnimation": {
+                    "walk": "raft_walk",
+                    "walkBack": "-raft_walk",
+                    "rotateLeft": "-raft_walk",
+                    "rotateRight": "raft_walk",
+                    "idleNotEmpty": "raft_idle"
+                },
+                "driverAnimation": {
+                    "walk": "raft_move",
+                    "walkBack": "-raft_move",
+                    "rotateLeft": "-raft_move",
+                    "rotateRight": "raft_move",
+                    "idle": "raft_idle"
+                },
+                "useAngularSpeed": true,
+                "maxYawDelta": 1.6,
+                "hideHandItem": true
+            },
+            "animations": {
+                "noAirborne": true
+            },
+            "drop_on_kill": "RAFT",
+            "timer_panic": 0,
+            "damageAddsVelocity": false,
+            "can_asphyxiate": false
+        },
+        "mob/snowball": {
+            "physics": {
+                "playerHeight": 0.16,
+                "playerHalfWidth": 0.08
+            },
+            "can_asphyxiate": false
+        },
+        "mob/hook": {
+            "physics": {
+                "playerHeight": 0.16,
+                "playerHalfWidth": 0.08
+            },
+            "can_asphyxiate": false
+        },
+        "mechanism/windmill_bearing": {
+            "brain": "windmill_bearing",
+            "physics": {
+                "playerHeight": 0.16,
+                "playerHalfWidth": 0.08
+            },
+            "can_asphyxiate": false
+        }
+    },
+    "tickers": [
+        "bamboo",
+        "charging_station",
+        "spawnmob",
+        "stage",
+        "furnace",
+        "bee_nest",
+        "bn",
+        "fire",
+        "tnt",
+        "brewing",
+        "dripstone",
+        "chorus",
+        "hopper",
+        "coral"
+    ],
+    "random_tickers": [
+        "grass_block",
+        "algae"
+    ],
+    "chat_plugins": [
+        "chat_teleport",
+        "chat_time",
+        "chat_worldedit",
+        "gamerule",
+        "view_distance",
+        "chat_ping",
+        "chat_weather",
+        "chat_effects",
+        "chat_setworldspawn",
+        "chat_particle"
+    ],
+    "clientpackets": [
+        "cmd_block_clone",
+        "cmd_change_pos_spawn",
+        "cmd_change_render_dist",
+        "cmd_chat_send_message",
+        "cmd_chest_confirm",
+        "cmd_chunk_load",
+        "cmd_connect",
+        "cmd_drop_item",
+        "cmd_drop_item_pickup",
+        "cmd_gamemode_next",
+        "cmd_gamemode_set",
+        "cmd_inventory_new_state",
+        "cmd_inventory_select",
+        "cmd_load_chest",
+        "cmd_pickat_action",
+        "cmd_ping",
+        "cmd_queued_ping",
+        "cmd_player_control_session",
+        "cmd_player_control_update",
+        "cmd_quest_get_enabled",
+        "cmd_resurrection",
+        "cmd_standup_straight",
+        "cmd_stats",
+        "cmd_sync_time",
+        "cmd_teleport_request",
+        "cmd_modify_indicator_request",
+        "cmd_use_item",
+        "cmd_play_anim",
+        "cmd_use_weapon",
+        "cmd_billboard_files"
+    ],
+    "treasure_chests": [
+        {
+            "name": "initial_bonus",
+            "exact": true,
+            "items": [
+                {"name": "COPPER_PICKAXE",         "count": [1]},
+                {"name": "COPPER_SWORD",           "count": [1]},
+                {"name": "WHEAT_SEEDS",            "count": [8]},
+                {"name": "BREAD",                  "count": [5]},
+                {"name": "CRAFTING_TABLE",         "count": [1]},
+                {"name": "FURNACE",                "count": [1]},
+                {"name": "COAL",                   "count": [5]},
+                {"name": "FLINT_AND_STEEL",        "count": [1]},
+                {"name": "TORCH",                  "count": [3]},
+                {"name": "BUCKET",                 "count": [1]}
+            ]
+        },
+        {
+            "name": "default",
+            "items": [
+                {"name": "IRON_INGOT",              "count": [1, 1, 1, 1, 2, 2, 3, 5]},
+                {"name": "WHEAT_SEEDS",             "count": [0, 0, 1, 2, 3, 8]},
+                {"name": "CARROT_SEEDS",            "count": [0, 0, 0, 2, 2, 4, 4, 8]},
+                {"name": "STONE_SWORD",             "count": [0, 0, 0, 0, 0, 1]},
+                {"name": "STONE_SHOVEL",            "count": [0, 0, 0, 0, 1]},
+                {"name": "BREAD",                   "count": [1, 1, 2]},
+                {"name": "WHEAT",                   "count": [1, 1, 2, 2, 3]},
+                {"name": "APPLE",                   "count": [0, 0, 0, 0, 1]},
+                {"name": "OAK_SIGN",                "count": [0, 0, 0, 1, 1, 2, 2, 3]},
+                {"name": "COBBLESTONE",             "count": [0, 0, 0, 4, 4, 8, 8, 16]},
+                {"name": "MUSIC_DISC_3",            "count": [0, 0, 1]}
+            ]
+        },
+        {
+            "name": "treasure_room",
+            "extends": "default",
+            "items": [
+                {"name": "GOLD_INGOT",              "count": [0, 0, 1, 1, 2, 2, 3, 3, 4]},
+                {"name": "TITANIUM_SWORD",          "count": [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]},
+                {"name": "LAVA_BUCKET",             "count": [ 0, 0, 0, 1, 1]},
+                {"name": "SOUL_SAND",               "count": [ 0, 0, 0, 1, 2]},
+                {"name": "TNT",                     "count": [0, 0, 1, 2, 3, 3, 3, 4, 4, 4, 5, 6, 7, 8, 9, 10]},
+                {"name": "JUKEBOX",                 "count": [0, 0, 0, 1]},
+                {"name": "DIAMOND",                 "count": [0, 0, 0, 0, 1, 2]},
+                {"name": "IRON_BARS",               "count": [0, 0, 0, 2, 2, 4, 4, 8]},
+                {"name": "MUSIC_DISC_1",            "count": [0, 0, 0, 1]},
+                {"name": "MUSIC_DISC_2",            "count": [0, 0, 0, 1]},
+                {"name": "MUSIC_DISC_4",            "count": [0, 0, 0, 1]},
+                {"name": "MUSIC_DISC_5",            "count": [0,  0, 0, 1]},
+                {"name": "MUSIC_DISC_6",            "count": [0, 0, 1]},
+                {"name": "MUSIC_DISC_7",            "count": [0, 0, 0, 1]},
+                {"name": "MUSIC_DISC_8",            "count": [0, 0, 0, 0, 0, 0, 1]}
+            ]
+        },
+        {
+            "name": "cave_mines",
+            "extends": "treasure_room"
+        },
+        {
+            "name": "building",
+            "extends": "default"
+        },
+        {
+            "name": "shulker_box",
+            "items": [
+                {"name": "REINFORCED_CONCRETE",     "count": [0, 0, 0, 1, 2, 2, 4, 4, 4, 4, 8, 8, 16]},
+                {"name": "JERSEY_BARRIER",          "count": [0, 0, 0, 1, 2, 2, 4, 4, 4, 4, 8, 8, 16]},
+                {"name": "BILLBOARD1X2",            "count": [0, 0, 0, 0, 1]},
+                {"name": "POPPED_CHORUS_FRUIT",     "count": [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 4]},
+                {"name": "CHORUS_FRUIT",            "count": [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 4]},
+                {"name": "END_ROD",                 "count": [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 4, 8]},
+                {"name": "PURPLE_BANNER",           "count": [0, 0, 0, 0, 1]},
+                {"name": "PINK_BANNER",             "count": [0, 0, 0, 0, 1]},
+                {"name": "MAGENTA_BANNER",          "count": [0, 0, 0, 0, 1]},
+                {"name": "PURPLE_CANDLE",           "count": [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 4, 8]},
+                {"name": "PINK_CANDLE",             "count": [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 4, 8]},
+                {"name": "PURPLE_STAINED_GLASS",    "count": [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 4, 8]},
+                {"name": "PURPUR_BLOCK",            "count": [0, 0, 0, 0, 1, 2, 4, 8, 8, 8, 16]}
+            ]
+        }
+    ],
+    "building_world": {
+        "name": "BLDGFYT",
+        "game_mode": "creative",
+        "generator": {
+            "id": "flat",
+            "options": {
+                "auto_generate_mobs": false
+            }
+        },
+        "rules": {
+            "doDaylightCycle": false,
+            "doWeatherCycle": false,
+            "doMobSpawning": false,
+            "randomTickSpeed": 0
+        }
+    },
+    "building_schemas": [
+        {
+            "name": "church",
+            "pos1": {
+                "x": 5,
+                "y": 0,
+                "z": 1
+            },
+            "pos2": {
+                "x": -5,
+                "y": 26,
+                "z": -19
+            }
+        },
+        {
+            "name": "nico",
+            "pos1": {
+                "x": -17,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -29,
+                "y": 8,
+                "z": -10
+            }
+        },
+        {
+            "name": "e3290",
+            "pos1": {
+                "x": -57,
+                "y": 0,
+                "z": 1
+            },
+            "pos2": {
+                "x": -70,
+                "y": 13,
+                "z": -13
+            }
+        },
+        {
+            "name": "domikder",
+            "pos1": {
+                "x": -78,
+                "y": 0,
+                "z": 0
+            },
+            "pos2": {
+                "x": -86,
+                "y": 6,
+                "z": -7
+            }
+        },
+        {
+            "name": "domikkam",
+            "pos1": {
+                "x": -89,
+                "y": 0,
+                "z": 0
+            },
+            "pos2": {
+                "x": -97,
+                "y": 5,
+                "z": -7
+            }
+        },
+        {
+            "name": "domikkam2",
+            "pos1": {
+                "x": -102,
+                "y": 0,
+                "z": 0
+            },
+            "pos2": {
+                "x": -108,
+                "y": 5,
+                "z": -7
+            }
+        },
+        {
+            "name": "domsmall",
+            "pos1": {
+                "x": -112,
+                "y": -1,
+                "z": 0
+            },
+            "pos2": {
+                "x": -118,
+                "y": 5,
+                "z": -6
+            }
+        },
+        {
+            "name": "farmer_house",
+            "pos1": {
+                "x": -121,
+                "y": 0,
+                "z": 0
+            },
+            "pos2": {
+                "x": -136,
+                "y": 8,
+                "z": -10
+            }
+        },
+        {
+            "name": "tiny_house",
+            "pos1": {
+                "x": -140,
+                "y": -1,
+                "z": 0
+            },
+            "pos2": {
+                "x": -144,
+                "y": 6,
+                "z": -6
+            }
+        },
+        {
+            "name": "watch_tower",
+            "pos1": {
+                "x": -148,
+                "y": 1,
+                "z": 0
+            },
+            "pos2": {
+                "x": -157,
+                "y": 24,
+                "z": -10
+            }
+        },
+        {
+            "name": "medium_house",
+            "pos1": {
+                "x": -163,
+                "y": 0,
+                "z": 1
+            },
+            "pos2": {
+                "x": -171,
+                "y": 7,
+                "z": -7
+            }
+        },
+        {
+            "name": "tiny_house2",
+            "pos1": {
+                "x": -176,
+                "y": 1,
+                "z": 2
+            },
+            "pos2": {
+                "x": -182,
+                "y": 7,
+                "z": -6
+            }
+        },
+        {
+            "name": "tiny_mart",
+            "pos1": {
+                "x": -187,
+                "y": 0,
+                "z": 1
+            },
+            "pos2": {
+                "x": -201,
+                "y": 4,
+                "z": -10
+            }
+        },
+        {
+            "name": "sand_house",
+            "pos1": {
+                "x": -206,
+                "y": 0,
+                "z": 1
+            },
+            "pos2": {
+                "x": -212,
+                "y": 4,
+                "z": -5
+            }
+        },
+        {
+            "name": "underearth_tower",
+            "pos1": {
+                "x": -215,
+                "y": -80,
+                "z": 1
+            },
+            "pos2": {
+                "x": -221,
+                "y": 5,
+                "z": -5
+            }
+        },
+        {
+            "name": "structure1",
+            "pos1": {
+                "x": -215,
+                "y": 1,
+                "z": 16
+            },
+            "pos2": {
+                "x": -221,
+                "y": 8,
+                "z": 10
+            }
+        },
+        {
+            "name": "structure2",
+            "pos1": {
+                "x": -227,
+                "y": 1,
+                "z": 18
+            },
+            "pos2": {
+                "x": -232,
+                "y": 4,
+                "z": 8
+            }
+        },
+        {
+            "name": "mine",
+            "pos1": {
+                "x": -166,
+                "y": -11,
+                "z": 45
+            },
+            "pos2": {
+                "x": -184,
+                "y": 4,
+                "z": 17
+            }
+        },
+        {
+            "name": "broken_castle",
+            "pos1": {
+                "x": -122,
+                "y": 0,
+                "z": 41
+            },
+            "pos2": {
+                "x": -152,
+                "y": 20,
+                "z": 9
+            }
+        },
+        {
+            "name": "house_dwarf",
+            "pos1": {
+                "x": -46,
+                "y": -133,
+                "z": 78
+            },
+            "pos2": {
+                "x": -117,
+                "y": 5,
+                "z": 7
+            }
+        },
+        {
+            "name": "ornated_stone_tower_ruins",
+            "pos1": {
+                "x": -188,
+                "y": 0,
+                "z": 18
+            },
+            "pos2": {
+                "x": -199,
+                "y": 25,
+                "z": 7
+            }
+        },
+        {
+            "name": "test",
+            "pos1": {
+                "x": -205,
+                "y": 0,
+                "z": 41
+            },
+            "pos2": {
+                "x": -215,
+                "y": 14,
+                "z": 32
+            }
+        },
+        {
+            "name": "test2",
+            "pos1": {
+                "x": -226,
+                "y": 1,
+                "z": 36
+            },
+            "pos2": {
+                "x": -232,
+                "y": 4,
+                "z": 24
+            },
+            "entrance": {
+                "x": -229,
+                "y": 1,
+                "z": 30
+            },
+            "meta": {
+                "dt": "2023-01-11T18:01:03.046Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "streetlight",
+            "pos1": {
+                "x": -155,
+                "y": 0,
+                "z": 10
+            },
+            "pos2": {
+                "x": -157,
+                "y": 5,
+                "z": 8
+            },
+            "entrance": {
+                "x": -156,
+                "y": 1,
+                "z": 9
+            },
+            "meta": {
+                "dt": "2023-01-12T14:54:16.589Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "streetlight2",
+            "pos1": {
+                "x": -159,
+                "y": 0,
+                "z": 10
+            },
+            "pos2": {
+                "x": -161,
+                "y": 7,
+                "z": 8
+            },
+            "entrance": {
+                "x": -160,
+                "y": 1,
+                "z": 9
+            },
+            "meta": {
+                "dt": "2023-01-12T14:57:49.988Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "streetlight3",
+            "pos1": {
+                "x": -163,
+                "y": 0,
+                "z": 10
+            },
+            "pos2": {
+                "x": -165,
+                "y": 7,
+                "z": 8
+            },
+            "entrance": {
+                "x": -164,
+                "y": 1,
+                "z": 9
+            },
+            "meta": {
+                "dt": "2023-01-12T19:45:47.063Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "waterwell",
+            "pos1": {
+                "x": -52,
+                "y": -29,
+                "z": 1
+            },
+            "pos2": {
+                "x": -54,
+                "y": 6,
+                "z": -1
+            },
+            "entrance": {
+                "x": -53,
+                "y": 1,
+                "z": 0
+            },
+            "meta": {
+                "dt": "2023-01-12T19:55:37.709Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "waterwell2",
+            "pos1": {
+                "x": -48,
+                "y": -28,
+                "z": 1
+            },
+            "pos2": {
+                "x": -50,
+                "y": 6,
+                "z": -1
+            },
+            "entrance": {
+                "x": -49,
+                "y": 1,
+                "z": 0
+            },
+            "meta": {
+                "dt": "2023-01-12T20:20:58.317Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "underearth_rooms",
+            "pos1": {
+                "x": -236,
+                "y": -20,
+                "z": 55
+            },
+            "pos2": {
+                "x": -283,
+                "y": 7,
+                "z": 8
+            },
+            "entrance": {
+                "x": -259,
+                "y": 1,
+                "z": 55
+            },
+            "meta": {
+                "dt": "2023-01-14T19:24:39.057Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "sand_house_2",
+            "pos1": {
+                "x": -224,
+                "y": 0,
+                "z": 2
+            },
+            "pos2": {
+                "x": -232,
+                "y": 8,
+                "z": -6
+            },
+            "entrance": {
+                "x": -228,
+                "y": 1,
+                "z": 2
+            },
+            "meta": {
+                "dt": "2023-01-16T11:17:00.556Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "oak_house_small",
+            "pos1": {
+                "x": -235,
+                "y": 0,
+                "z": 0
+            },
+            "pos2": {
+                "x": -245,
+                "y": 13,
+                "z": -9
+            },
+            "entrance": {
+                "x": -240,
+                "y": 1,
+                "z": 0
+            },
+            "meta": {
+                "dt": "2023-01-17T10:32:23.654Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "stone_house_small",
+            "pos1": {
+                "x": -250,
+                "y": 0,
+                "z": 1
+            },
+            "pos2": {
+                "x": -260,
+                "y": 10,
+                "z": -5
+            },
+            "entrance": {
+                "x": -255,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-01-17T12:52:01.661Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "small_lake",
+            "pos1": {
+                "x": -287,
+                "y": -1,
+                "z": 16
+            },
+            "pos2": {
+                "x": -297,
+                "y": 4,
+                "z": 7
+            },
+            "entrance": {
+                "x": -292,
+                "y": 1,
+                "z": 16
+            },
+            "meta": {
+                "dt": "2023-02-03T12:06:38.256Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "structure3",
+            "pos1": {
+                "x": -302,
+                "y": -1,
+                "z": 20
+            },
+            "pos2": {
+                "x": -315,
+                "y": 10,
+                "z": 8
+            },
+            "entrance": {
+                "x": -308,
+                "y": 1,
+                "z": 20
+            },
+            "meta": {
+                "dt": "2023-02-03T12:10:59.860Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "structure4",
+            "pos1": {
+                "x": -318,
+                "y": -8,
+                "z": 37
+            },
+            "pos2": {
+                "x": -333,
+                "y": 6,
+                "z": 7
+            },
+            "entrance": {
+                "x": -325,
+                "y": 1,
+                "z": 37
+            },
+            "meta": {
+                "dt": "2023-02-03T12:16:07.751Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "structure5",
+            "pos1": {
+                "x": -336,
+                "y": -1,
+                "z": 25
+            },
+            "pos2": {
+                "x": -353,
+                "y": 8,
+                "z": 7
+            },
+            "entrance": {
+                "x": -344,
+                "y": 1,
+                "z": 25
+            },
+            "meta": {
+                "dt": "2023-02-03T12:19:27.485Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "structure6",
+            "pos1": {
+                "x": -356,
+                "y": 1,
+                "z": 16
+            },
+            "pos2": {
+                "x": -364,
+                "y": 8,
+                "z": 7
+            },
+            "entrance": {
+                "x": -360,
+                "y": 1,
+                "z": 16
+            },
+            "meta": {
+                "dt": "2023-02-03T12:20:58.559Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "endcity_base_floor",
+            "pos1": {
+                "x": -263,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -271,
+                "y": 4,
+                "z": -7
+            },
+            "entrance": {
+                "x": -267,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-16T17:09:09.272Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_second_floor",
+            "pos1": {
+                "x": -286,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -296,
+                "y": 7,
+                "z": -9
+            },
+            "entrance": {
+                "x": -291,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-16T17:48:43.887Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_third_floor",
+            "pos1": {
+                "x": -300,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -312,
+                "y": 7,
+                "z": -11
+            },
+            "entrance": {
+                "x": -306,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-16T18:08:30.477Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_third_roof",
+            "pos1": {
+                "x": -315,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -331,
+                "y": 2,
+                "z": -15
+            },
+            "entrance": {
+                "x": -323,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-16T18:36:44.170Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_tower_base",
+            "pos1": {
+                "x": -334,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -340,
+                "y": 7,
+                "z": -5
+            },
+            "entrance": {
+                "x": -337,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-16T18:50:53.082Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_tower_piece",
+            "pos1": {
+                "x": -344,
+                "y": 1,
+                "z": 0
+            },
+            "pos2": {
+                "x": -350,
+                "y": 4,
+                "z": -6
+            },
+            "entrance": {
+                "x": -347,
+                "y": 1,
+                "z": 0
+            },
+            "meta": {
+                "dt": "2023-02-16T18:58:24.822Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_bridge_end",
+            "pos1": {
+                "x": -354,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -358,
+                "y": 6,
+                "z": 0
+            },
+            "entrance": {
+                "x": -356,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-16T20:08:25.201Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_bridge_piece",
+            "pos1": {
+                "x": -361,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -365,
+                "y": 6,
+                "z": -2
+            },
+            "entrance": {
+                "x": -363,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-16T20:21:28.127Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_bridge_steep_stairs",
+            "pos1": {
+                "x": -367,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -371,
+                "y": 7,
+                "z": -2
+            },
+            "entrance": {
+                "x": -369,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-17T06:44:32.152Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_bridge_gentle_stairs",
+            "pos1": {
+                "x": -374,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -378,
+                "y": 7,
+                "z": -6
+            },
+            "entrance": {
+                "x": -376,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-17T06:53:13.547Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_tower_top",
+            "pos1": {
+                "x": -381,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -389,
+                "y": 5,
+                "z": -7
+            },
+            "entrance": {
+                "x": -385,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-17T09:23:51.802Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_base_roof",
+            "pos1": {
+                "x": -392,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -402,
+                "y": 2,
+                "z": -9
+            },
+            "entrance": {
+                "x": -397,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-17T10:04:57.305Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_second_floor_hard",
+            "pos1": {
+                "x": -406,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -416,
+                "y": 7,
+                "z": -9
+            },
+            "entrance": {
+                "x": -411,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-17T10:20:13.686Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_third_floor_hard",
+            "pos1": {
+                "x": -419,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -431,
+                "y": 8,
+                "z": -11
+            },
+            "entrance": {
+                "x": -425,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-17T10:52:05.943Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_second_roof",
+            "pos1": {
+                "x": -434,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -446,
+                "y": 2,
+                "z": -11
+            },
+            "entrance": {
+                "x": -440,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-17T12:48:52.025Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_fat_tower_base",
+            "pos1": {
+                "x": -449,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -461,
+                "y": 4,
+                "z": -11
+            },
+            "entrance": {
+                "x": -455,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-18T07:01:31.892Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_fat_tower_middle",
+            "pos1": {
+                "x": -464,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -476,
+                "y": 8,
+                "z": -11
+            },
+            "entrance": {
+                "x": -470,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-18T07:12:39.495Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "endcity_fat_tower_top",
+            "pos1": {
+                "x": -478,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -494,
+                "y": 5,
+                "z": -15
+            },
+            "entrance": {
+                "x": -486,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-02-18T07:34:03.573Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "nether_house",
+            "pos1": {
+                "x": -507,
+                "y": 0,
+                "z": -1
+            },
+            "pos2": {
+                "x": -518,
+                "y": 12,
+                "z": -18
+            },
+            "entrance": {
+                "x": -512,
+                "y": 1,
+                "z": -1
+            },
+            "meta": {
+                "dt": "2023-03-26T22:42:16.166Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "tiny_nether_house",
+            "pos1": {
+                "x": -522,
+                "y": 1,
+                "z": 2
+            },
+            "pos2": {
+                "x": -528,
+                "y": 8,
+                "z": -6
+            },
+            "entrance": {
+                "x": -525,
+                "y": 1,
+                "z": 2
+            },
+            "meta": {
+                "dt": "2023-03-26T22:46:54.552Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "nether_streetlight",
+            "pos1": {
+                "x": -536,
+                "y": 0,
+                "z": -3
+            },
+            "pos2": {
+                "x": -538,
+                "y": 7,
+                "z": -5
+            },
+            "entrance": {
+                "x": -537,
+                "y": 1,
+                "z": -3
+            },
+            "meta": {
+                "dt": "2023-03-26T23:32:43.775Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "nether_streetlight2",
+            "pos1": {
+                "x": -543,
+                "y": 0,
+                "z": -3
+            },
+            "pos2": {
+                "x": -545,
+                "y": 7,
+                "z": -5
+            },
+            "entrance": {
+                "x": -544,
+                "y": 1,
+                "z": -3
+            },
+            "meta": {
+                "dt": "2023-03-26T23:33:08.334Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "nether_tower",
+            "pos1": {
+                "x": -548,
+                "y": 0,
+                "z": 2
+            },
+            "pos2": {
+                "x": -562,
+                "y": 53,
+                "z": -11
+            },
+            "entrance": {
+                "x": -555,
+                "y": 1,
+                "z": 2
+            },
+            "meta": {
+                "dt": "2023-03-27T11:30:28.448Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "nether_portal",
+            "pos1": {
+                "x": -565,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -574,
+                "y": 15,
+                "z": -8
+            },
+            "entrance": {
+                "x": -569,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-03-27T11:33:28.904Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "nether_island",
+            "pos1": {
+                "x": -579,
+                "y": 1,
+                "z": 1
+            },
+            "pos2": {
+                "x": -597,
+                "y": 74,
+                "z": -20
+            },
+            "entrance": {
+                "x": -588,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-03-27T11:46:36.480Z",
+                "draw_natural_basement": false,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "nether_manor",
+            "pos1": {
+                "x": -601,
+                "y": 0,
+                "z": 0
+            },
+            "pos2": {
+                "x": -612,
+                "y": 8,
+                "z": -8
+            },
+            "entrance": {
+                "x": -606,
+                "y": 1,
+                "z": 0
+            },
+            "meta": {
+                "dt": "2023-03-27T21:39:45.854Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "pyramid",
+            "pos1": {
+                "x": -616,
+                "y": 0,
+                "z": 1
+            },
+            "pos2": {
+                "x": -646,
+                "y": 17,
+                "z": -29
+            },
+            "entrance": {
+                "x": -631,
+                "y": 1,
+                "z": 1
+            },
+            "meta": {
+                "dt": "2023-04-14T15:33:20.229Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        }
+    ]
+}

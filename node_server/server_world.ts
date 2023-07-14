@@ -63,6 +63,13 @@ export type TServerWorldState = {
     // может быть перенести сюда и другие поля мира из БД, например, dt
 }
 
+const DEFAULT_BUILDING_WORLD_RULES = {
+    doDaylightCycle:    false,
+    doWeatherCycle:     false,
+    doMobSpawning:      false,
+    randomTickSpeed:    0
+}
+
 export class ServerWorld implements IWorld {
     temp_vec: Vector;
     block_manager: typeof BLOCK;
@@ -217,12 +224,12 @@ export class ServerWorld implements IWorld {
         await this.chunks.initWorker();
         await this.chunks.initWorkers(world_guid, this.info.tech_info);
 
-        //
+        // Set building world rules
         if(this.isBuildingWorld()) {
-            await this.rules.setValue('doDaylightCycle', 'false')
-            await this.rules.setValue('doWeatherCycle', 'false')
-            await this.rules.setValue('doMobSpawning', 'false')
-            await this.rules.setValue('randomTickSpeed', '0')
+            const rules = config.building_world?.rules ?? DEFAULT_BUILDING_WORLD_RULES
+            for(const rule_name in rules) {
+                await this.rules.setValue(rule_name, `${rules[rule_name]}`)
+            }
         }
 
         await this.tick();
@@ -265,8 +272,6 @@ export class ServerWorld implements IWorld {
         const block_air = {id: 0}
         const block_road = {id: 98}
         const block_smooth_stone = {id: 70}
-        const block_num1 = {id: 209}
-        const block_num2 = {id: 210}
 
         const addBlock = (pos : Vector, item) => {
             blocks.push({pos, item})
@@ -282,8 +287,8 @@ export class ServerWorld implements IWorld {
 
         // each all buildings
         for(let schema of BuildingTemplate.schemas.values()) {
-            addBlock(new Vector(schema.world.pos1), block_num1)
-            addBlock(new Vector(schema.world.pos2), block_num2)
+            // addBlock(new Vector(schema.world.pos1), block_num1)
+            // addBlock(new Vector(schema.world.pos2), block_num2)
             // draw sign
             const sign_z = schema.world.pos1.z < 3 ? 3 : 5
             const sign_rot_x = schema.world.pos1.z < 3 ? 0 : 2
