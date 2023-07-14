@@ -2,6 +2,7 @@
 #include<constants>
 
 #include<terrain_attrs_frag>
+#include<terrain_varying_func>
 #include<normal_light_frag_varying>
 
 #include<global_uniforms>
@@ -179,7 +180,7 @@ void main() {
     #include<terrain_read_flags_frag>
 
     vec2 size = vec2(textureSize(u_texture, 0));
-    vec2 texClamped = clamp(v_texcoord0, v_texClamp0.xy, v_texClamp0.zw);
+    vec2 texClamped = clamp(v_texcoord0, v_texClamp0.xy + u_pixelSize * 0.5, v_texClamp0.zw - u_pixelSize * 0.5);
     vec4 mipData = vec4(0.0, 0.0, 1.0, 1.0);
     ivec2 biome = ivec2(0.0);
     vec4 color = vec4(0.0);

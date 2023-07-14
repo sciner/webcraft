@@ -2,6 +2,7 @@
 #include<constants>
 
 #include<terrain_attrs_vert>
+#include<terrain_varying_func>
 #include<normal_light_vert_varying>
 
 #include<global_uniforms>
@@ -79,13 +80,11 @@ void main() {
     v_texcoord0 = uvCenter0 + a_uvSize * a_quad;
     #include<normal_light_vert>
 
-    v_texClamp0 = vec4(uvCenter0 - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, uvCenter0 + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
+    v_texClamp0 = vec4(uvCenter0 - abs(a_uvSize * 0.5), uvCenter0 + abs(a_uvSize * 0.5));
     v_texcoord1_diff = uvCenter1 - uvCenter0;
 
-    if(u_fogOn) {
-        if (!checkFlag(FLAG_MASK_BIOME) && !checkFlag(FLAG_MASK_COLOR_ADD)) {
-            v_color.a = 0.0;
-        }
+    if (!checkFlag(FLAG_MASK_BIOME) && !checkFlag(FLAG_MASK_COLOR_ADD)) {
+        v_color.a = 0.0;
     }
 
     if (u_modelMatrixMode > 0) {

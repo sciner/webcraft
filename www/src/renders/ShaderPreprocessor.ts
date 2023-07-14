@@ -84,7 +84,7 @@ export class ShaderPreprocessor {
             out = out.replaceAll(r, `#define ${argkey} ${defines[argkey]} //default: `);
         }
 
-        console.debug('Preprocess result:\n', out);
+        // console.debug('Preprocess result:\n', out);
 
         return out;
     }

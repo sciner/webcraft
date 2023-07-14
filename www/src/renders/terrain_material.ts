@@ -16,7 +16,6 @@ export interface ITerrainMaterialOptions {
 }
 
 export const defaultTerrainMaterial = {
-    u_opaqueThreshold: 0.5 as float,
     u_blockSize: 1 as float,
     u_pixelSize: 1 as float,
     u_mipmap: 0 as float,
@@ -51,7 +50,7 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
 
         const terr = {...defaultTerrainMaterial};
         this.terrainUniforms = terr;
-        this.terrainUniformGroup = new UniformGroup(terr, false);
+        this.terrainUniformGroup = new UniformGroup(terr, false, true);
 
         this.texture_n = options.texture_n || null;
         this.texture = options.texture || null;
@@ -65,7 +64,6 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
     {
         const {terrainUniforms} = this;
         this.state.depthMask = this.group.opaque || !(this.shader as any).fluidStatic;
-        terrainUniforms.u_opaqueThreshold = this.opaque ? 0.5 : 0.0;
 
         const tex = this.texture || (this.shader as any).texture;
         if (tex && tex !== this._texture) {
@@ -91,7 +89,8 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
 
     initPixiShader() {
         this.pixiShader = new VAUX.Shader(this.shader.program,
-            {...this.shader.options.uniforms, globalUniforms: this.context.globalUniforms, terrain: this.terrainUniformGroup});
+            {...this.shader.options.uniforms, Glob: this.context.globalUniforms, Terrain_Texture: this.terrainUniformGroup,
+                u_opaqueThreshold: this.group.opaque ? 0.5 : 0.0});
     }
 
     destroy() {
