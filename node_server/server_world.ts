@@ -49,6 +49,7 @@ import type { ServerGame } from "server_game.js";
 import {ObjectUpdateType} from "./helpers/aware_players.js";
 import Billboard from "player/billboard.js";
 import type {TSchematicInfo} from "./plugins/chat_worldedit.js";
+import SpawnMobs from "world/spawn_mobs.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -112,6 +113,7 @@ export class ServerWorld implements IWorld {
     /** An immutable shared instance of {@link getDefaultPlayerIndicators} */
     defaultPlayerIndicators: Indicators
     physics?: Physics
+    spawn_mobs: SpawnMobs
 
     constructor(block_manager : typeof BLOCK) {
         this.temp_vec = new Vector();
@@ -178,6 +180,7 @@ export class ServerWorld implements IWorld {
         delete(this.info.ore_seed)
 
         //
+        this.spawn_mobs     = new SpawnMobs(this)
         this.packet_reader  = new PacketReader();
         this.models         = new ModelManager();
         this.chat           = new ServerChat(this);
@@ -351,6 +354,8 @@ export class ServerWorld implements IWorld {
 
     // Спавн враждебных мобов в тёмных местах (пока тёмное время суток)
     autoSpawnHostileMobs() {
+        //128 ,kjrj
+        // 24 - 32
         const SPAWN_DISTANCE = 64
         const SAFE_DISTANCE = 24
         const good_world_for_spawn = !this.isBuildingWorld();
@@ -538,7 +543,7 @@ export class ServerWorld implements IWorld {
                 this.chunks.checkDestroyMap();
                 this.ticks_stat.add('maps_clear');
                 // Auto spawn hostile mobs
-                this.autoSpawnHostileMobs();
+                this.spawn_mobs.autoSpawnHostileMobs()
                 this.ticks_stat.add('auto_spawn_hostile_mobs');
             } else if (!this.givePriorityToSavingFluids &&
                 await this.dbActor.saveWorldIfNecessary() // World transaction
