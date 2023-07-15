@@ -9,9 +9,9 @@ const RADIUS_DESPAWN = 128 // максимальное растояние про
 const SPAWN_DISTANCE = 32  // максимальное растояние спавна
 const SAFE_DISTANCE  = 24  // Безопасная зона, где не спанятся мобы
 const MAX_COUNT_MOBS = 70  // максимальное количество мобов в радиусе RADIUS_DESPAWN блоков
-const ATTEMPTS_COUNT = 12  // количество попыток найти подходящее место
+const FIND_SPAWN_POSITION_ATTEMPTS_COUNT = 12  // количество попыток найти подходящее место
 
-class SpawnMobs {
+export class SpawnMobs {
     private world: ServerWorld
     private ambient_light: number
 
@@ -23,11 +23,11 @@ class SpawnMobs {
     // Спавн враждебных мобов в тёмных местах (пока тёмное время суток)
     autoSpawnHostileMobs() {
         const world = this.world
-        const good_world_for_spawn = world.isBuildingWorld()
+        const bad_world_for_spawn = world.isBuildingWorld()
         const auto_generate_mobs = world.getGeneratorOptions('auto_generate_mobs', true)
         const do_mob_spawning = world.rules.getValue('doMobSpawning')
         // не спавним мобов в мире-конструкторе и с отключенными опциями
-        if (!auto_generate_mobs || good_world_for_spawn || !do_mob_spawning) {
+        if (!auto_generate_mobs || bad_world_for_spawn || !do_mob_spawning) {
             return
         }
         // тип мобов
@@ -57,7 +57,7 @@ class SpawnMobs {
             actions.spawnMob(new MobSpawnParams(spawn_pos, Vector.ZERO.clone(), {model_name, texture_name: DEFAULT_MOB_TEXTURE_NAME}))
             let count_in_group = 1
             // попытка заспавнеить группу мобов
-            for (let i = 0; i < ATTEMPTS_COUNT; i++) {
+            for (let i = 0; i < FIND_SPAWN_POSITION_ATTEMPTS_COUNT; i++) {
                 if (count_in_group > 4) {
                     break
                 }
@@ -75,7 +75,7 @@ class SpawnMobs {
         }
     }
 
-    isValidPosition(pos: Vector): Boolean {
+    isValidPosition(pos: Vector): boolean {
         const world = this.world
         const under = world.getBlock(pos.offset(0, -1, 0))
         if (!under?.material?.is_solid) {
@@ -108,19 +108,19 @@ class SpawnMobs {
         return true
     }
 
-    findPosition(pos: Vector) {
-        for (let i = 0; i < ATTEMPTS_COUNT; i++) {
+    findPosition(pos: Vector) : Vector | null {
+        const spawn_pos = new Vector(0, 0, 0)
+        for(let i = 0; i < FIND_SPAWN_POSITION_ATTEMPTS_COUNT; i++) {
             // выбираем рандомную позицию для спауна
             const x = pos.x + SPAWN_DISTANCE * (Math.random() - Math.random())
             const y = pos.y + SPAWN_DISTANCE * ((Math.random() > .6) ? (Math.random() - Math.random()) : - Math.random())
             const z = pos.z + SPAWN_DISTANCE * (Math.random() - Math.random())
-            const spawn_pos = new Vector(x, y, z).flooredSelf()
+            spawn_pos.set(x, y, z).flooredSelf()
             if (this.isValidPosition(spawn_pos)) {
                 return spawn_pos
             }
         }
         return null
     }
-}
 
-export default SpawnMobs
+}

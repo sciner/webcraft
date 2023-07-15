@@ -49,7 +49,7 @@ import type { ServerGame } from "server_game.js";
 import {ObjectUpdateType} from "./helpers/aware_players.js";
 import Billboard from "player/billboard.js";
 import type {TSchematicInfo} from "./plugins/chat_worldedit.js";
-import SpawnMobs from "world/spawn_mobs.js";
+import { SpawnMobs } from "world/spawn_mobs.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
