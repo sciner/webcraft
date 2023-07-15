@@ -9,15 +9,21 @@ const RADIUS_DESPAWN = 128 // максимальное растояние про
 const SPAWN_DISTANCE = 32  // максимальное растояние спавна
 const SAFE_DISTANCE  = 24  // Безопасная зона, где не спанятся мобы
 const MAX_COUNT_MOBS = 70  // максимальное количество мобов в радиусе RADIUS_DESPAWN блоков
-const FIND_SPAWN_POSITION_ATTEMPTS_COUNT = 12  // количество попыток найти подходящее место
+const FIND_SPAWN_POSITION_ATTEMPTS_COUNT = 15  // количество попыток найти подходящее место
 
 export class SpawnMobs {
     private world: ServerWorld
     private ambient_light: number
+    private stat: any
 
     constructor(world: ServerWorld) {
         this.world = world
         this.ambient_light = (this.world.info.rules.ambientLight || 0) * 255 / 15
+        this.stat = {
+            time: 100,
+            zombie: 0,
+            skeleton: 0
+        }
     }
 
     // Спавн враждебных мобов в тёмных местах (пока тёмное время суток)
@@ -70,15 +76,30 @@ export class SpawnMobs {
                     actions.spawnMob(new MobSpawnParams(spawn_pos_shift, Vector.ZERO.clone(), {model_name, texture_name: DEFAULT_MOB_TEXTURE_NAME}))
                 }
             }
+            if (model_name == MOB_TYPE.ZOMBIE) {
+                this.stat.zombie += count_in_group
+            } else {
+                this.stat.skeleton += count_in_group
+            }
             world.actions_queue.add(null, actions)
             console.log(`Auto spawn ${count_in_group} ${model_name} pos spawn: ${spawn_pos.toHash()}`)
+        }
+        if (this.stat.time == 0) {
+            console.log('zombie: ' + this.stat.zombie + ' skeleton: ' + this.stat.skeleton)
+            this.stat.zombie = 0
+            this.stat.skeleton = 0
+            this.stat.time = 100
+        }
+        if (this.stat.time > 0) {
+            this.stat.time--
         }
     }
 
     isValidPosition(pos: Vector): boolean {
         const world = this.world
         const under = world.getBlock(pos.offset(0, -1, 0))
-        if (!under?.material?.is_solid) {
+        const is_slab = under?.material?.layering?.slab
+        if (!under?.material?.is_solid && !is_slab) {
             return false
         }
         const legs = world.getBlock(pos)
@@ -92,12 +113,10 @@ export class SpawnMobs {
         const cave_light = lv & 255
         const day_light = 255 - (lv >> 8) & 255
         if (cave_light > this.ambient_light) {
-            //console.log('cave_light > this.ambient_light', cave_light , this.ambient_light)
             return false
         }
         if (world.getLight() > 6) {
             if (day_light > this.ambient_light) {
-                //console.log('day_light > this.ambient_light', day_light , this.ambient_light)
                 return false
             }
         }
