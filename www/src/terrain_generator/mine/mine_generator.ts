@@ -451,16 +451,16 @@ export class MineGenerator {
         const { tblocks } = chunk;
         if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
             if(force_replace || !tblocks.getBlockId(x, y, z)) {
-                // const is_solid = (block_item as IBlockMaterial).is_solid
+                const is_solid = (block_item as IBlockMaterial).is_solid
                 this.xyz_temp_coord.set(x, y, z).addSelf(chunk.coord);
                 const gen = this.generator as any
                 const has_voxel_buildings = !!gen.getVoxelBuilding
                 if(!has_voxel_buildings || !gen.getVoxelBuilding(this.xyz_temp_coord)) {
-                    // chunk.setBlockIndirect(x, y, z, block_item.id, rotate as Vector, extra_data, undefined, undefined, false, is_solid)
-                    tblocks.setBlockId(x, y, z, block_item.id);
-                    if(rotate || extra_data) {
-                        tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data)
-                    }
+                    chunk.setBlockIndirect(x, y, z, block_item.id, rotate as Vector, extra_data, undefined, undefined, false, is_solid)
+                    // tblocks.setBlockId(x, y, z, block_item.id);
+                    // if(rotate || extra_data) {
+                    //     tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data)
+                    // }
                 }
             }
         }
