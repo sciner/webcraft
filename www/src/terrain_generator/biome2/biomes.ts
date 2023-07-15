@@ -14,6 +14,31 @@ const biome_stat = {
     equator:    {min: 999999999, max: -99999},
 };
 
+export declare type IMineBlocks = {
+    main_block?:            string | IBlockMaterial | null
+    fence_block?:           string | IBlockMaterial | null
+    rails_block?:           string | IBlockMaterial | null
+    support_block_item?:    string | IBlockMaterial | null
+    ore_blocks?:            string[] | IBlockMaterial[] | null[]
+}
+
+export const MINE_BLOCKS : {default: IMineBlocks, ereb: IMineBlocks} = {
+    default: {
+        main_block: 'OAK_PLANKS',
+        fence_block: 'OAK_FENCE',
+        rails_block: 'RAIL',
+        support_block_item: null,
+        ore_blocks: ['POOR_COAL_ORE', 'POOR_IRON_ORE'],
+    },
+    ereb: {
+        main_block: 'NETHER_BRICKS',
+        fence_block: 'IRON_BARS',
+        rails_block: null,
+        support_block_item: 'NETHER_BRICKS',
+        ore_blocks: [],
+    }
+}
+
 export declare type IBiomeTree = {
     percent:            float,
     style:              string,
@@ -85,36 +110,85 @@ export class TREES {
 
 }
 
+export abstract class IBiome2Options {
+    block:               int
+    code:                string
+    color:               string
+    dirt_color:          IndexedColor
+    water_color:         IndexedColor
+    title:               string
+    max_height:          int
+    dirt_block:          int[]
+    no_smooth_heightmap: boolean
+    mine_blocks:         IMineBlocks
+    color_rgba:          Color
+    dirt_palette:        DirtPalette
+    grass_palette:       DirtPalette
+    trees: {
+        frequency: float,
+        list: any[]
+    }
+    plants: {
+        frequency: float,
+        list: any[]
+    }
+}
+
+export function initBiomeMineBlocks(options : IMineBlocks) : IMineBlocks {
+    const mine_blocks = {}
+    for(const [k, block_names] of Object.entries(options)) {
+        if(Array.isArray(block_names)) {
+            mine_blocks[k] = []
+            for(const bn of block_names) {
+                mine_blocks[k][bn] = bn ? BLOCK.fromName(bn as string) : null
+            }
+        } else {
+            mine_blocks[k] = block_names ? BLOCK.fromName(block_names as string) : null
+        }
+    }
+    return mine_blocks
+}
+
+export class Biome2 extends IBiome2Options {
+
+    constructor(options : IBiome2Options) {
+        super()
+        Object.assign(this, options)
+        this.mine_blocks = initBiomeMineBlocks(MINE_BLOCKS.default)
+    }
+
+}
+
 // 2. Biomes
 export class  BIOMES {
 
-    static OCEAN: any
-    static RIVER: any
-    static BEACH: any
-    static TEMPERATE_DESERT: any
-    static JUNGLE: any
-    static SUBTROPICAL_DESERT: any
-    static SCORCHED: any
-    static BARE: any
-    static TUNDRA: any
-    static TAIGA: any
-    static SNOW: any
-    static SHRUBLAND: any
-    static GRASSLAND: any
-    static TEMPERATE_DECIDUOUS_FOREST: any
-    static TEMPERATE_RAIN_FOREST: any
-    static TROPICAL_SEASONAL_FOREST: any
-    static TROPICAL_RAIN_FOREST: any
+    static OCEAN:                       Biome2
+    static RIVER:                       Biome2
+    static BEACH:                       Biome2
+    static TEMPERATE_DESERT:            Biome2
+    static JUNGLE:                      Biome2
+    static SUBTROPICAL_DESERT:          Biome2
+    static SCORCHED:                    Biome2
+    static BARE:                        Biome2
+    static TUNDRA:                      Biome2
+    static TAIGA:                       Biome2
+    static SNOW:                        Biome2
+    static SHRUBLAND:                   Biome2
+    static GRASSLAND:                   Biome2
+    static TEMPERATE_DECIDUOUS_FOREST:  Biome2
+    static TEMPERATE_RAIN_FOREST:       Biome2
+    static TROPICAL_SEASONAL_FOREST:    Biome2
+    static TROPICAL_RAIN_FOREST:        Biome2
 
     static init() {
 
         if(BIOMES.OCEAN) {
-            return false;
+            return false
         }
 
-        TREES.init();
+        TREES.init()
 
-        BIOMES.OCEAN = {
+        BIOMES.OCEAN = new Biome2({
             block:      BLOCK.STILL_WATER.id,
             code:       'OCEAN',
             color:      '#017bbb',
@@ -135,9 +209,9 @@ export class  BIOMES {
                     {percent: .2, blocks: [{id: BLOCK.SEAGRASS.id}, {id: BLOCK.SEAGRASS.id}]}
                 ]
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.RIVER = {
+        BIOMES.RIVER = new Biome2({
             block:      BLOCK.STILL_WATER.id,
             code:       'OCEAN',
             color:      '#017bbb',
@@ -155,10 +229,10 @@ export class  BIOMES {
                 frequency: 0,
                 list: []
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.BEACH = {
-            block: BLOCK.SAND.id,
+        BIOMES.BEACH = new Biome2({
+            block:      BLOCK.SAND.id,
             code:       'BEACH',
             color:      '#ffdc7f',
             dirt_color: new IndexedColor(1, 383, 0),
@@ -177,9 +251,9 @@ export class  BIOMES {
                     {percent: 1, blocks: [{id: BLOCK.DEAD_BUSH.id}]}
                 ]
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.TEMPERATE_DESERT = {
+        BIOMES.TEMPERATE_DESERT = new Biome2({
             block:      BLOCK.GRAVEL.id,
             code:       'TEMPERATE_DESERT',
             color:      '#f4a460',
@@ -201,9 +275,9 @@ export class  BIOMES {
                     {percent: 1, blocks: [{id: BLOCK.DEAD_BUSH.id}]}
                 ]
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.JUNGLE = {
+        BIOMES.JUNGLE = new Biome2({
             block:      BLOCK.OAK_PLANKS.id,
             code:       'JUNGLE',
             color:      '#4eb41c',
@@ -235,9 +309,9 @@ export class  BIOMES {
                     {percent: .005, blocks: [{id: BLOCK.DANDELION.id}]}
                 ]
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.SUBTROPICAL_DESERT = {
+        BIOMES.SUBTROPICAL_DESERT = new Biome2({
             block:      BLOCK.OAK_PLANKS.id,
             code:       'SUBTROPICAL_DESERT',
             color:      '#c19a6b',
@@ -263,9 +337,9 @@ export class  BIOMES {
                     {percent: .01, blocks: [{id: BLOCK.DANDELION.id}]}
                 ]
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.SCORCHED = {
+        BIOMES.SCORCHED = new Biome2({
             block:      BLOCK.STONE.id,
             code:       'SCORCHED',
             color:      '#ff5500',
@@ -287,9 +361,9 @@ export class  BIOMES {
                     {percent: 1, blocks: [{id: BLOCK.DEAD_BUSH.id}]}
                 ]
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.BARE = {
+        BIOMES.BARE = new Biome2({
             block:      BLOCK.OAK_LOG.id,
             code:       'BARE',
             color:      '#CCCCCC',
@@ -304,9 +378,9 @@ export class  BIOMES {
                 list: []
             },
             plants:     {frequency: 0}
-        };
+        } as IBiome2Options)
 
-        BIOMES.TUNDRA = {
+        BIOMES.TUNDRA = new Biome2({
             block: BLOCK.SPRUCE_LOG.id,
             code:       'TUNDRA',
             color:      '#74883c',
@@ -337,10 +411,10 @@ export class  BIOMES {
                     {percent: .011, blocks: [{id: BLOCK.LARGE_FERN.id}, {id: BLOCK.LARGE_FERN.id, extra_data: {is_head: true}}]},
                 ]
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.TAIGA = {
-            block: BLOCK.OAK_LOG.id,
+        BIOMES.TAIGA = new Biome2({
+            block:      BLOCK.OAK_LOG.id,
             code:       'TAIGA',
             dirt_color: new IndexedColor(116, 383, 0),
             water_color: new IndexedColor(255, 255, 0),
@@ -360,9 +434,9 @@ export class  BIOMES {
                 frequency: 0,
                 list: []
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.SNOW = {
+        BIOMES.SNOW = new Biome2({
             block:      BLOCK.POWDER_SNOW.id,
             code:       'SNOW',
             color:      '#f5f5ff',
@@ -383,10 +457,10 @@ export class  BIOMES {
                 frequency: 0,
                 list: []
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.SHRUBLAND = {
-            block: BLOCK.DIAMOND_ORE.id,
+        BIOMES.SHRUBLAND = new Biome2({
+            block:      BLOCK.DIAMOND_ORE.id,
             code:       'SHRUBLAND',
             color:      '#316033',
             dirt_color: new IndexedColor(56, 323, 0),
@@ -406,9 +480,9 @@ export class  BIOMES {
                     {percent: .142, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
                 ]
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.GRASSLAND = {
+        BIOMES.GRASSLAND = new Biome2({
             block:      BLOCK.GRASS_BLOCK.id,
             code:       'GRASSLAND',
             color:      '#98a136',
@@ -441,9 +515,9 @@ export class  BIOMES {
                     {percent: 0.99, ...TREES.OAK, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
                 ]
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.TEMPERATE_DECIDUOUS_FOREST = {
+        BIOMES.TEMPERATE_DECIDUOUS_FOREST = new Biome2({
             block:      BLOCK.GLASS.id,
             code:       'TEMPERATE_DECIDUOUS_FOREST',
             color:      '#228b22',
@@ -468,9 +542,9 @@ export class  BIOMES {
                     {percent: .025, blocks: [{id: BLOCK.RED_MUSHROOM.id}]}
                 ]
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.TEMPERATE_RAIN_FOREST = {
+        BIOMES.TEMPERATE_RAIN_FOREST = new Biome2({
             block: BLOCK.COBBLESTONE.id,
             code:       'TEMPERATE_RAIN_FOREST',
             color:      '#00755e',
@@ -491,9 +565,9 @@ export class  BIOMES {
                 frequency: 0,
                 list: []
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.TROPICAL_SEASONAL_FOREST = {
+        BIOMES.TROPICAL_SEASONAL_FOREST = new Biome2({
             block:      BLOCK.BRICKS.id,
             code:       'TROPICAL_SEASONAL_FOREST',
             color:      '#008456',
@@ -517,9 +591,9 @@ export class  BIOMES {
                     {percent: .145, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
                 ]
             }
-        };
+        } as IBiome2Options)
 
-        BIOMES.TROPICAL_RAIN_FOREST = {
+        BIOMES.TROPICAL_RAIN_FOREST = new Biome2({
             block:      BLOCK.GLOWSTONE.id,
             code:       'TROPICAL_RAIN_FOREST',
             color:      '#16994f',
@@ -546,10 +620,10 @@ export class  BIOMES {
                     {percent: .115, blocks: [{id: BLOCK.TALL_GRASS.id}, {id: BLOCK.TALL_GRASS.id, extra_data: {is_head: true}}]},
                 ]
             }
-        };
+        } as IBiome2Options)
 
         for(let k in BIOMES) {
-            const biome = BIOMES[k];
+            const biome = BIOMES[k] as Biome2
             biome.code = k;
             biome.color_rgba = Color.hexToColor(biome.color);
             if(!Array.isArray(biome.trees.list)) {

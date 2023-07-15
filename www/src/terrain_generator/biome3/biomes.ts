@@ -3,7 +3,7 @@ import { BLOCK_FLAG, DEFAULT_DIRT_PALETTE, GRASS_PALETTE_OFFSET, FAST } from '..
 import { Environment, IFogPreset } from '../../environment.js';
 import { IndexedColor, Mth, Vector } from '../../helpers.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
-import { BiomeTree, IBiomeTree, TREES } from '../biome2/biomes.js';
+import { BiomeTree, IBiomeTree, IMineBlocks, MINE_BLOCKS, TREES, initBiomeMineBlocks } from '../biome2/biomes.js';
 import { DensityParams, WATER_LEVEL } from './terrain/manager_vars.js';
 
 const CACTUS_MIN_HEIGHT         = 2;
@@ -213,6 +213,7 @@ export class Biome {
     is_underworld:              boolean
     hanging_foliage_block_id:   any
     fog_preset_name?:           string
+    mine_blocks:                IMineBlocks
 
     constructor(id : int, title : string, temperature : float, humidity : float, dirt_layers : any[], trees : any, plants : any, grass : any, dirt_color : IndexedColor, water_color : IndexedColor, ground_block_generators? : ChunkGroundBlockGenerator[], no_smooth_heightmap : boolean = false, building_options? : any, river_bottom_blocks ?: IRiverBottomBlocks, big_stone_blocks ?: IRiverBottomBlocks, blocks ?: { [key: string]: string; }, dirt_palette? : DirtPalette, fog_preset? : IFogPreset, underwater_trees? : ITreeList) {
         this.id                         = id
@@ -240,9 +241,10 @@ export class Biome {
         this.is_sand                    = this.is_desert || title.toLowerCase().indexOf('пляж') >= 0
         this.is_taiga                   = title.toLowerCase().indexOf('тайга') >= 0
         this.is_swamp                   = title.toLowerCase().indexOf('болото') >= 0
-        // calc is_snowy
-        this.is_snowy = title.toLowerCase().indexOf('заснеж') >= 0
-        this.is_grassy_surface = false
+        this.is_snowy                   = title.toLowerCase().indexOf('заснеж') >= 0
+        this.is_grassy_surface          = false
+        this.mine_blocks                = initBiomeMineBlocks(title == 'Эреб' ? MINE_BLOCKS.ereb : MINE_BLOCKS.default)
+        //
         for(let dl of dirt_layers) {
             for(let block_id of dl.blocks) {
                 if([BLOCK.SNOW_DIRT.id, BLOCK.ICE.id].includes(block_id)) {

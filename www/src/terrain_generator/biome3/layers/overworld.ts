@@ -563,7 +563,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                     // получает плотность в данном блоке (допом приходят коэффициенты, из которых посчитана данная плотность)
                     map_manager.calcDensity(xyz, cell, density_params, map)
                     let {d1, d2, d3, d4, density, in_aquifera, local_water_line} = density_params
-                    const is_moss_area = !biome.is_sand && d1 > .25 && d3 > .25
+                    const is_moss_area = !biome.is_sand && d1 > .25 && d3 > .0
 
                     // Make canyon bridge
                     if(bridge_in_canyon && d4 < .7) {
@@ -812,9 +812,13 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                             if(y < chunk.size.y - 1) {
                                                 const cfp = rand_cave.double()
                                                 if(cfp < .025) {
-                                                    chunk.setBlockIndirect(x, y + 1, z, bm.FLOWERING_AZALEA.id)
+                                                    if(!is_ereb) {
+                                                        chunk.setBlockIndirect(x, y + 1, z, bm.FLOWERING_AZALEA.id)
+                                                    }
                                                 } else if(cfp < .05) {
-                                                    chunk.setBlockIndirect(x, y + 1, z, bm.AZALEA.id)
+                                                    if(!is_ereb) {
+                                                        chunk.setBlockIndirect(x, y + 1, z, bm.AZALEA.id)
+                                                    }
                                                 } else if(cfp < .25) {
                                                     chunk.setBlockIndirect(x, y + 1, z, bm.GRASS.id)
                                                     chunk.setBlockIndirect(x, y, z, bm.GRASS_BLOCK.id)
@@ -912,8 +916,10 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                 }
 
                                 // рандомный светящийся лишайник на потолке
-                                if((xyz.y < local_water_line - 5) && (rand_lava.double() < .015)) {
-                                    chunk.setBlockIndirect(x, y, z, bm.GLOW_LICHEN.id, null, {down: true, rotate: false});
+                                if(!is_ereb) {
+                                    if((xyz.y < local_water_line - 5) && (rand_lava.double() < .015)) {
+                                        chunk.setBlockIndirect(x, y, z, bm.GLOW_LICHEN.id, null, {down: true, rotate: false})
+                                    }
                                 }
 
                             }
