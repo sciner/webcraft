@@ -149,31 +149,7 @@ export default class Biome3LayerBottomCaves extends Biome3LayerBase {
 
         // Generate chunk data
         chunk.timers.start('generate_chunk_data')
-        this.generateChunkData(chunk, maps, seed, rnd)
-
-        if(is_highest) {
-
-            const bm = this.generator.block_manager
-            const lava_id = bm.STILL_LAVA.id
-            const stone_id = bm.DRIPSTONE_BLOCK.id
-            const sz = chunk.size.y
-
-            for(let x = 0; x < chunk.size.x; x++) {
-                for(let z = 0; z < chunk.size.z; z++) {
-                    const hx = (chunk.coord.x + x)
-                    const hz = (chunk.coord.z + z)
-                    let n = this.noise2d(hx/32, hz/32) * .667
-                    let n2 = Math.ceil((n / .667 + 1) * 3)
-                    n += this.noise2d(hx/16, hz/16) * 0.333
-                    n += 1
-                    const h = Math.round(n * 10 + 3)
-                    for(let y = chunk.size.y - h; y < chunk.size.y; y++) {
-                        chunk.setBlockIndirect(x, y, z, 0)
-                        chunk.setBlockIndirect(x, y, z, y > sz - n2 ? lava_id : stone_id)
-                    }
-                }
-            }
-        }
+        this.generateChunkData(chunk, maps, seed, rnd, is_highest)
 
         chunk.timers.stop()
 
@@ -188,7 +164,7 @@ export default class Biome3LayerBottomCaves extends Biome3LayerBase {
 
     }
 
-    generateChunkData(chunk : ChunkWorkerChunk, maps : any[], seed : string, rnd : any) {
+    generateChunkData(chunk : ChunkWorkerChunk, maps : any[], seed : string, rnd : any, is_highest : boolean) {
 
         const grid                  = chunk.chunkManager.grid
         const map                   = chunk.map
@@ -214,6 +190,8 @@ export default class Biome3LayerBottomCaves extends Biome3LayerBase {
             return chunk.tblocks.getBlockId(x, y, z)
         };
 
+        const ypows = new Array(chunk.size.y).fill(1).map((k, index) => 1 - Math.pow(index / chunk.size.y, 2))
+
         //
         for(let x = 0; x < chunk.size.x; x++) {
 
@@ -233,10 +211,9 @@ export default class Biome3LayerBottomCaves extends Biome3LayerBase {
                         noise3d(xyz.x / (20 * DENSITY_COEFF), xyz.y / (20 * DENSITY_COEFF), xyz.z / (20 * DENSITY_COEFF)) / 2 + .5
                     ) / 2
 
-                    // if(xyz.y > -ABS_STONE) {
-                    //     const dist = xyz.y / -ABS_STONE + .2;
-                    //     density += dist;
-                    // }
+                    if(is_highest) {
+                        density /= ypows[y]
+                    }
 
                     // air
                     if(density < 0.5) {
@@ -427,30 +404,8 @@ export default class Biome3LayerBottomCaves extends Biome3LayerBase {
             }
         }
 
-        // if(generate_map) {
-
-        //     const cell = {
-        //         dirt_color: DEFAULT_DIRT_COLOR,
-        //         water_color: DEFAULT_WATER_COLOR,
-        //         biome: this.biome
-        //     }
-
-        //     return new Default_Terrain_Map(
-        //         chunk.addr,
-        //         chunk.size,
-        //         chunk.addr.mul(chunk.size),
-        //         {WATER_LEVEL: 63},
-        //         Array(chunk.size.x * chunk.size.z).fill(cell)
-        //     );
-
-        // }
-
-        // return null
-
         return map
 
     }
-
-    
 
 }

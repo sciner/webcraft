@@ -781,12 +781,18 @@ class GameController {
 
     // Start world
     async StartWorld(world_guid : string) {
+
         this.skin.stop()
         if(window.event) {
             window.event.preventDefault();
             window.event.stopPropagation();
             if(isMobileBrowser()) {
                 this.toggleFullscreen();
+            }
+            if((window.event as any).ctrlKey) {
+                ClipboardHelper.copy(world_guid)
+                vt.success(Lang.copied)
+                return    
             }
         }
         console.log(`StartWorld: ${world_guid}`);

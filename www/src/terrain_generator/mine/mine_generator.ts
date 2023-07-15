@@ -6,6 +6,7 @@ import { DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE, TREASURE_SOURCE } from '../../const
 import type { ChunkWorkerChunk } from "../../worker/chunk.js";
 import type { Biome3LayerBase } from "../biome3/layers/base.js";
 import type { Biome3TerrainMap } from 'terrain_generator/biome3/terrain/map.js';
+// import { EREB_OPTIONS } from '../../terrain_generator/biome3/terrain/manager.js';
 
 const BARREL_CHANCE     = 0.02
 const BARREL_EXTRA_DATA = {slots: {}}
@@ -76,7 +77,7 @@ export class MineGenerator {
             this.voxel_buildings    = []
             //
             this.nodes = new VectorCollector()
-            const bottom_y = Math.floor(this.random.double() * (this.node_count.y - 2));
+            const bottom_y = Math.max(Math.floor(this.random.double() * (this.node_count.y - 2)), 3) //  EREB_OPTIONS.ceil_noise_height)
             const x = Math.round(this.node_count.x / 2);
             const z = Math.round(this.node_count.z / 2);
             this.genNodeMine(x, bottom_y, z, DIRECTION.SOUTH)
@@ -450,10 +451,12 @@ export class MineGenerator {
         const { tblocks } = chunk;
         if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
             if(force_replace || !tblocks.getBlockId(x, y, z)) {
+                // const is_solid = (block_item as IBlockMaterial).is_solid
                 this.xyz_temp_coord.set(x, y, z).addSelf(chunk.coord);
                 const gen = this.generator as any
                 const has_voxel_buildings = !!gen.getVoxelBuilding
                 if(!has_voxel_buildings || !gen.getVoxelBuilding(this.xyz_temp_coord)) {
+                    // chunk.setBlockIndirect(x, y, z, block_item.id, rotate as Vector, extra_data, undefined, undefined, false, is_solid)
                     tblocks.setBlockId(x, y, z, block_item.id);
                     if(rotate || extra_data) {
                         tblocks.setBlockRotateExtra(x, y, z, rotate, extra_data)

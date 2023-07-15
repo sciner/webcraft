@@ -17,7 +17,7 @@ import type { Biome3TerrainMap } from "../terrain/map.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type Terrain_Generator from "../index.js";
 import type { TerrainMapCell } from "../terrain/map_cell.js";
-import { MapsBlockResult, TerrainMapManager3 } from "../terrain/manager.js";
+import { EREB_OPTIONS, MapsBlockResult, TerrainMapManager3 } from "../terrain/manager.js";
 import { CD_ROT } from "../../../core/CubeSym.js";
 import type { BLOCK } from "../../../blocks.js";
 import type { Biome } from "../biomes.js";
@@ -252,7 +252,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         chunk.timers.start('generate_chunk_data')
         this.slab_candidates = []
         this.fallen_tree = new FallenTree(rnd, chunk, chunk.chunkManager.block_manager)
-        this.generateChunkData(chunk, seed, rnd)
+        this.generateChunkData(chunk, seed, rnd, is_lowest, is_highest)
         chunk.timers.stop()
 
         chunk.timers.start('process_slab_candidates')
@@ -450,7 +450,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
     /**
      */
-    generateChunkData(chunk : ChunkWorkerChunk, seed : string, rnd : any) {
+    generateChunkData(chunk : ChunkWorkerChunk, seed : string, rnd : any, is_lowest : boolean, is_highest : boolean) {
 
         const bm                        = chunk.chunkManager.block_manager
         const map                       = chunk.map as Biome3TerrainMap;
@@ -476,6 +476,8 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
         const cell = map.getCell(0, 0)
         const is_ice_picks = cell.biome.title == 'Ледяные пики'
         const is_ereb = cell.biome.title == 'Эреб'
+
+        const {ceil_noise_height} = EREB_OPTIONS
 
         const bridge_blocks = {
             TORCH:   bm.TORCH.id, // is_ereb ? bm.SHROOMLIGHT.id : bm.TORCH.id,
@@ -629,21 +631,6 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                         if(y == chunk.size.y - 1) {
                             not_air_count = 10
                         }
-                        // if(y == chunk.size.y - 1) {
-                        //     xyz.y++
-                        //     map_manager.calcDensity(xyz, cell, over_density_params, map);
-                        //     xyz.y--
-                        //     not_air_count = 1
-                        //     if(over_density_params.density > DENSITY_AIR_THRESHOLD) {
-                        //         not_air_count++
-                        //         xyz.y += 2
-                        //         map_manager.calcDensity(xyz, cell, over2_density_params, map)
-                        //         xyz.y -= 2
-                        //         if(over2_density_params.density > DENSITY_AIR_THRESHOLD) {
-                        //             not_air_count++
-                        //         }
-                        //     }
-                        // }
 
                         const is_floor = not_air_count == 0
 
@@ -820,8 +807,10 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                                         chunk.setBlockIndirect(x, y + 1, z, bm.AZALEA.id)
                                                     }
                                                 } else if(cfp < .25) {
-                                                    chunk.setBlockIndirect(x, y + 1, z, bm.GRASS.id)
-                                                    chunk.setBlockIndirect(x, y, z, bm.GRASS_BLOCK.id)
+                                                    if(!is_ereb || xyz.y > ceil_noise_height) {
+                                                        chunk.setBlockIndirect(x, y + 1, z, bm.GRASS.id)
+                                                        chunk.setBlockIndirect(x, y, z, bm.GRASS_BLOCK.id)
+                                                    }
                                                 }
                                             }
                                             block_id = null
@@ -904,22 +893,30 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
 
                             // внутренность пещеры
 
-                            // потолок и часть стен
-                            if(is_ceil) {
+                            if(is_ereb && xyz.y < ceil_noise_height) {
 
-                                if(is_moss_area) {
-                                    const ceil_block_id = (biome.blocks.caves_second ?? (biome.temperature > 0 ? bm.MOSS_BLOCK : bm.AIR)).id
-                                    if(ceil_block_id) {
-                                        chunk.setBlockIndirect(x, y, z, ceil_block_id)
-                                        continue
-                                    }
-                                }
+                                chunk.fluid.setFluidIndirect(x, y, z, bm.STILL_LAVA.id)
 
-                                // рандомный светящийся лишайник на потолке
-                                if(!is_ereb) {
-                                    if((xyz.y < local_water_line - 5) && (rand_lava.double() < .015)) {
-                                        chunk.setBlockIndirect(x, y, z, bm.GLOW_LICHEN.id, null, {down: true, rotate: false})
+                            } else {
+
+                                // потолок и часть стен
+                                if(is_ceil) {
+
+                                    if(is_moss_area) {
+                                        const ceil_block_id = (biome.blocks.caves_second ?? (biome.temperature > 0 ? bm.MOSS_BLOCK : bm.AIR)).id
+                                        if(ceil_block_id) {
+                                            chunk.setBlockIndirect(x, y, z, ceil_block_id)
+                                            continue
+                                        }
                                     }
+
+                                    // рандомный светящийся лишайник на потолке
+                                    if(!is_ereb) {
+                                        if((xyz.y < local_water_line - 5) && (rand_lava.double() < .015)) {
+                                            chunk.setBlockIndirect(x, y, z, bm.GLOW_LICHEN.id, null, {down: true, rotate: false})
+                                        }
+                                    }
+
                                 }
 
                             }
