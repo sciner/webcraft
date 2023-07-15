@@ -52,16 +52,16 @@ export class ServerAPI {
             case '/api/Game/CreateWorld': {
 
                 // check admin rights for specific world
-                if([config.building_schemas_world_name].includes(params.title)) {
+                const bw_config = config.building_world
+                if(!bw_config) {
+                    throw 'error_empty_building_world config'
+                }
+                if([bw_config.name].includes(params.title)) {
                     const session = await ServerAPI.getDb().GetPlayerSession(session_id)
                     ServerAPI.requireSessionFlag(session, PLAYER_FLAG.SYSTEM_ADMIN)
-                    params.game_mode = 'creative'
-                    params.generator = { id: 'flat', options: {
-                        auto_generate_mobs: false
-                    } }
+                    params.game_mode = bw_config.game_mode ?? 'creative'
+                    params.generator = bw_config.generator
                 }
-
-                
 
                 const generator = WorldGenerators.validateAndFixOptions(params.generator);
 

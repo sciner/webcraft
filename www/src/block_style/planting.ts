@@ -53,6 +53,12 @@ const ANGLE_PLANES = [
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [-Math.PI / 2, Math.PI / 6, -Math.PI / 2],  "translate": {"x": 6.7, "y": 4, "z": 0}}
 ]
 
+const SPORE_BLOSSOM = [
+    ...ANGLE_PLANES,
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, -Math.PI / 2], "translate": {"x": 7, "y": 0, "z": 0}, "dir" : DIRECTION.UP},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0, -Math.PI / 2], "translate": {"x": 7.5, "y": 0, "z": 0}, "dir" : DIRECTION.UP}
+]
+
 const DEFAULT_AABB_SIZE = new Vector(12, 12, 12);
 const aabb = new AABB();
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
@@ -81,19 +87,28 @@ export default class style {
     static computeAABB(tblock : TBlock | FakeTBlock, for_physic : boolean, world : World = null, neighbours : any = null, expanded: boolean = false) : AABB[] {
 
         const material = tblock.material
+        const mat_abbb = material.aabb
+
+        // if tblock has specific ABBB
+        if(mat_abbb) {
+            return [aabb.setArray(mat_abbb)]
+        }
+
         let aabb_size = (material.aabb_size ?? DEFAULT_AABB_SIZE) as Vector
 
         if(material.seeds && material.ticking?.type == 'stage') {
             if(tblock.extra_data?.stage != undefined) {
                 aabb_size = aabb_size.clone()
                 aabb_size.y *= (tblock.extra_data?.stage + 1) / (material.ticking.max_stage + 1)
-                aabb_size.y = Math.min(aabb_size.y, 16)
+                aabb_size.y = Math.min(aabb_size.y, TX_SIZE)
             }
         }
+
+        let sy = aabb_size.y / 2
         
         aabb.set(0, 0, 0, 0, 0, 0)
         aabb
-            .translate(.5 * TX_SIZE, aabb_size.y/2, .5 * TX_SIZE)
+            .translate(.5 * TX_SIZE, sy, .5 * TX_SIZE)
             .expand(aabb_size.x/2, aabb_size.y/2, aabb_size.z/2)
             .div(TX_SIZE);
 
@@ -242,6 +257,14 @@ export default class style {
         } else if (material.name == 'SUNFLOWER') {
             flag = flag | QUAD_FLAGS.FLAG_NO_CAN_TAKE_AO
             planes = SUNFLOWER_PLANES
+        } else if (material.name == 'SPORE_BLOSSOM') {
+            flag = flag | QUAD_FLAGS.FLAG_NO_CAN_TAKE_AO
+            planes = SPORE_BLOSSOM
+            if(!matrix) {
+                matrix = mat4.create()
+            }
+            mat4.rotateZ(matrix, matrix, Math.PI)
+            style.postBehavior(block, null)
         } else if(block.hasTag('angle_facet')) {
             planes = ANGLE_PLANES
         }
@@ -277,6 +300,20 @@ export default class style {
             }
         }
 
+    }
+
+    static postBehavior(tblock : TBlock | FakeTBlock, extra_data : any) {
+        // анимация спор
+        if (typeof QubatchChunkWorker != 'undefined') {
+            QubatchChunkWorker.postMessage(['delete_animated_block', tblock.posworld]);
+        }
+        if (typeof QubatchChunkWorker != 'undefined') {
+            QubatchChunkWorker.postMessage(['create_block_emitter', {
+                block_pos:  tblock.posworld,
+                pos:        [tblock.posworld.clone()],
+                type:       'spore'
+            }])
+        }
     }
 
 }

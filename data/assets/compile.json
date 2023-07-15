@@ -3686,6 +3686,8 @@
             "name": "TEST",
             "sound": "madcraft:block.wood",
             "mining_time": 0,
+            "transparent": true,
+            "can_rotate": true,
             "material": {
                 "id": "wood"
             },
@@ -3696,8 +3698,7 @@
                 "west": "block/test_west.png",
                 "north": "block/test_north.png",
                 "east": "block/test_east.png"
-            },
-            "can_rotate": true
+            }
         },
         {
             "id": 2047,
@@ -5095,6 +5096,7 @@
             "_spawnable": false,
             "style": "planting",
             "sound": "madcraft:block.cave_vine",
+            "aabb": [0.25, 0, 0.25, 0.75, 1, 0.75],
             "material": {
                 "id": "plant"
             },
@@ -12466,9 +12468,9 @@
             "name": "GLOWING_HANGING_LIANA",
             "passable": 1,
             "transparent": true,
-            "_spawnable": false,
             "style": "planting",
             "sound": "madcraft:block.cave_vine",
+            "aabb": [0.25, 0, 0.25, 0.75, 1, 0.75],
             "material": {
                 "id": "plant"
             },
@@ -13774,6 +13776,27 @@
             "texture": {
                 "side": "item/bowl.png"
             }
+        },
+        {
+            "id": 1122,
+            "name": "SPORE_BLOSSOM",
+            "style": "planting",
+            "transparent": true,
+            "material": {
+                "id": "plant"
+            },
+            "texture": {
+                "side": "block/spore_blossom.png",
+                "up": "./textures/spore_blossom_base.png"
+            },
+            "tags": [
+                "no_drop_ao",
+                "doubleface",
+                "no_need_dirt",
+                "is_hanging_plant"
+            ],
+            "aabb": [0, 0.5, 0, 1, 1, 1],
+            "composter_chance": 0.65
         }
     ]
 }

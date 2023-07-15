@@ -195,7 +195,7 @@ export class ServerGame {
      * Load building template schemas
      */
     async initBuildings(config) {
-        for(let json of config.building_schemas) {
+        for(const json of config.building_schemas.list) {
             BuildingTemplate.addSchema(json)
         }
     }
