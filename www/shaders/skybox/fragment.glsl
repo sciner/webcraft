@@ -18,6 +18,7 @@ out vec4 outColor;
 const vec3 sunColor = vec3(0.95, 0.88, 0.25);
 const vec3 moonColor = vec3(0.9);
 
+#include<color_define_func>
 #include<vignetting_define_func>
 
 float rect(vec3 w, vec3 d, float s){
@@ -79,6 +80,9 @@ void main() {
     overlay += vec4(moonColor, moonDisk * fogFade2);
     //overlay += stars(v_texCoord) * (1. - u_brightness) * fogFade2;
 
+    //TODO: move to linear RGB
+    vec3 fogColor = encodeRGB(u_fogColor.rgb);
+
     // fog
     color =  mix(u_fogColor.rgb, color * max(u_brightness, moodGlow), fogFade);
 
@@ -86,10 +90,10 @@ void main() {
     color = mix(color, overlay.rgb * 0.5, overlay.a * u_nightshift);
 
     // fog tint
-    color = mix(color, u_fogColor.rgb, (1. - pow(1. - u_fogAddColor.a, 2.0)) * u_nightshift + (1.0 - u_nightshift));
+    color = mix(color, fogColor, (1. - pow(1. - u_fogAddColor.a, 2.0)) * u_nightshift + (1.0 - u_nightshift));
 
     // special effect for sunrise 
-    color = mix(color, u_fogColor.rgb, u_fogColor.a);
+    color = mix(color, fogColor, u_fogColor.a);
 
     // // vintage sepia
     // vec3 sepia = vec3(1.2, 1.0, 0.8);

@@ -117,5 +117,33 @@ export class Color {
         return this.r === color.r && this.g === color.g && this.b === color.b && this.a === color.a;
     }
 
+    static encodeRGB_component(x: number) {
+        if (x < 0.0031308) {
+            return x * 12.92;
+        }
+        return 1.055 * Math.pow(x, 1.0 / 2.4) - 0.055;
+    }
+
+    static encodeSRGB(linearRGB: tupleFloat3 | tupleFloat4, out: tupleFloat3 | tupleFloat4)
+    {
+        out[0] = Color.encodeRGB_component(linearRGB[0]);
+        out[1] = Color.encodeRGB_component(linearRGB[1]);
+        out[2] = Color.encodeRGB_component(linearRGB[2]);
+    }
+
+    static decodeRGB_component(x: number) {
+        if (x < 0.04045) {
+            return x / 12.92;
+        }
+        return Math.pow((x + 0.055) / 1.055, 2.4);
+    }
+
+    static decodeSRGB(screenRGB: tupleFloat3 | tupleFloat4, out: tupleFloat3 | tupleFloat4)
+    {
+        out[0] = Color.decodeRGB_component(screenRGB[0]);
+        out[1] = Color.decodeRGB_component(screenRGB[1]);
+        out[2] = Color.decodeRGB_component(screenRGB[2]);
+    }
+
     static ZERO = new Color(0, 0, 0, 0);
 }

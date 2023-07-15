@@ -32,6 +32,7 @@ export class TerrainBaseTexture extends BaseTexture<TerrainTextureSource>
             wrapMode: options.wrapMode || WRAP_MODES.CLAMP,
             mipmap: 0,
             alphaMode: 0,
+            format: 'rgba8unorm-srgb',
         });
         this.minFilter = this.resource.minFilter;
     }

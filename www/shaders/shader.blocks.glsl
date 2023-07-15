@@ -93,6 +93,42 @@
     uniform vec3 u_gridChunkSize;
 #endif
 
+#ifdef color_define_func
+    ////////////////////////
+    //float GAMMA = 1.2;
+    //vec3 gamma(vec3 color, float g) {
+    //    return pow(color, vec3(g));
+    //}
+
+    //SRGB code taken from https://www.shadertoy.com/view/lscSzl
+    vec3 encodeSRGB(vec3 linearRGB)
+    {
+        vec3 a = 12.92 * linearRGB;
+        vec3 b = 1.055 * pow(linearRGB, vec3(1.0 / 2.4)) - 0.055;
+        vec3 c = step(vec3(0.0031308), linearRGB);
+        return mix(a, b, c);
+    }
+    vec3 decodeSRGB(vec3 screenRGB)
+    {
+        vec3 a = screenRGB / 12.92;
+        vec3 b = pow((screenRGB + 0.055) / 1.055, vec3(2.4));
+        vec3 c = step(vec3(0.04045), screenRGB);
+        return mix(a, b, c);
+    }
+    //vec3 linearToScreen(vec3 linearRGB) {
+    //    return gamma(linearRGB, 1.0 / GAMMA);
+    //    // return (iMouse.z < 0.5) ? encodeSRGB(linearRGB) : gamma(linearRGB, 1.0 / GAMMA);
+    //}
+    //vec3 screenToLinear(vec3 screenRGB) {
+    //    return gamma(screenRGB, GAMMA);
+    //    // return (iMouse.z < 0.5) ? decodeSRGB(screenRGB) : gamma(screenRGB, GAMMA);
+    //}
+    vec3 colorCorrection(vec3 color) {
+        color = encodeSRGB(color);
+        return color;
+    }
+#endif
+
 #ifdef global_uniforms_vert
     // global uniforms vertex part
     uniform mat4 u_projMatrix;

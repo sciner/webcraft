@@ -6,6 +6,7 @@
 
 #include<global_uniforms>
 #include<global_uniforms_frag>
+#include<color_define_func>
 
 #include<vignetting_define_func>
 
@@ -129,30 +130,6 @@ float median(vec4 p) {
     return max(min(p.r, p.g), min(max(p.r, p.g), p.b));
 }
 
-////////////////////////
-//float GAMMA = 1.2;
-//vec3 gamma(vec3 color, float g) {
-//    return pow(color, vec3(g));
-//}
-//vec3 encodeSRGB(vec3 linearRGB) {
-//    vec3 a = 12.92 * linearRGB;
-//    vec3 b = 1.055 * pow(linearRGB, vec3(1.0 / 2.4)) - 0.055;
-//    vec3 c = step(vec3(0.0031308), linearRGB);
-//    return mix(a, b, c);
-//}
-//vec3 linearToScreen(vec3 linearRGB) {
-//    return gamma(linearRGB, 1.0 / GAMMA);
-//    // return (iMouse.z < 0.5) ? encodeSRGB(linearRGB) : gamma(linearRGB, 1.0 / GAMMA);
-//}
-//vec3 screenToLinear(vec3 screenRGB) {
-//    return gamma(screenRGB, GAMMA);
-//    // return (iMouse.z < 0.5) ? decodeSRGB(screenRGB) : gamma(screenRGB, GAMMA);
-//}
-vec3 colorCorrection(vec3 color) {
-    // color = linearToScreen(color);
-    return color;
-}
-
 float hash(vec3 p)  // replace this by something better
 {
     p  = fract( p*0.3183099+.1 );
@@ -253,6 +230,7 @@ void main() {
             color.a = .0;
         } else if(checkFlag(FLAG_TORCH_FLAME)) {
             #include<torch_flame>
+            color.rgb = decodeSRGB(color.rgb);
             if(color.a < 0.7) discard;
         } else {
             // text not allow to discard in this place
@@ -316,9 +294,10 @@ void main() {
     // // color.rgb += vec3((noise((v_world_pos + getCamPeriod()) / 2.) - .5) / 1.);
     // color.rgb += vec3(fog * 0.2, fog * 0.6, fog * .2);
     outColor = color;
-    // outColor.rgb = colorCorrection(outColor.rgb);
 
     #include<fog_frag>
+
+    outColor.rgb = colorCorrection(outColor.rgb);
 
     // // vintage sepia
     // vec3 sepia = vec3(1.2, 1.0, 0.8);

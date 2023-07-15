@@ -1,6 +1,7 @@
 import * as VAUX from "vauxcel";
 import {Vector} from "../helpers/vector.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js";
+import {Color} from "../helpers/color.js";
 const {mat4} = glMatrix;
 
 export let defaultGlobalUniforms = {
@@ -111,7 +112,8 @@ export class GlobalUniformGroup extends VAUX.UniformGroup<typeof defaultGlobalUn
 
     set fogAddColor(val)
     {
-        this.uniforms.u_fogAddColor = val
+        this.uniforms.u_fogAddColor[3] = val[3];
+        Color.decodeSRGB(val, this.uniforms.u_fogAddColor);
     }
 
     get fogColor(): tupleFloat4 {
@@ -120,7 +122,8 @@ export class GlobalUniformGroup extends VAUX.UniformGroup<typeof defaultGlobalUn
 
     set fogColor(val)
     {
-        this.uniforms.u_fogColor = val
+        this.uniforms.u_fogColor[3] = val[3];
+        Color.decodeSRGB(val, this.uniforms.u_fogColor);
     }
 
     get time(): number {

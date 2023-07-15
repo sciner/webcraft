@@ -20,6 +20,7 @@ out vec4 outColor;
 
 #include<global_uniforms>
 #include<global_uniforms_frag>
+#include<color_define_func>
 
 #include<vignetting_define_func>
 
@@ -187,7 +188,7 @@ void main() {
 
     outColor = color;
 
-    #include<fog_frag>
+    outColor.rgb = colorCorrection(outColor.rgb);
     #include<vignetting_call_func>
 
 }
