@@ -187,7 +187,7 @@ void main() {
     // // vintage sepia
 
     outColor = color;
-
+    #include<fog_frag>
     outColor.rgb = colorCorrection(outColor.rgb);
     #include<vignetting_call_func>
 

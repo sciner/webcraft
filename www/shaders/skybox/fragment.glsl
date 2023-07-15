@@ -81,10 +81,10 @@ void main() {
     //overlay += stars(v_texCoord) * (1. - u_brightness) * fogFade2;
 
     //TODO: move to linear RGB
-    vec3 fogColor = encodeRGB(u_fogColor.rgb);
+    vec3 fogColor = encodeSRGB(u_fogColor.rgb);
 
     // fog
-    color =  mix(u_fogColor.rgb, color * max(u_brightness, moodGlow), fogFade);
+    color =  mix(fogColor, color * max(u_brightness, moodGlow), fogFade);
 
     // overlay
     color = mix(color, overlay.rgb * 0.5, overlay.a * u_nightshift);
