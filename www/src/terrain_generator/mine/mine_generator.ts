@@ -483,22 +483,38 @@ export class MineGenerator {
 
     genFloor(chunk : ChunkWorkerChunk, node : MineNode, random : alea, minX : int, minY : int, minZ : int, maxX : int, maxY : int, maxZ : int, dir: DIRECTION = DIRECTION.NORTH, block_item : IBlockItem = DEFAULT_BLOCK_AIR, support_block_item : IBlockItem = DEFAULT_BLOCK_AIR, chance = 1, only_if_air : boolean = false, block_rotate : Vector = null) {
         this.genBox(chunk, node, random, minX, minY, minZ, maxX, maxY, maxZ, dir, block_item, chance, only_if_air, block_rotate)
+        const per = 6
+        const per2 = per * 2
         if(support_block_item) {
-            let y = -node.bottom_y
-            // const csz2 = chunk.size.div(new Vector(2, 2, 2))
-            // if(minX < csz2.x && minZ < csz2.z) {
-            // }
+            const calcY = (x : int) : int => {
+                let y = -node.bottom_y
+                const x2 = x
+                if(x2 % per2 != 0) {
+                    y = (x2 % per2) / per2
+                    y = Math.round((1 - Math.sin(y * Math.PI)) * per) + 1
+                    y *= -1
+                }
+                return y
+            }
             if((maxX - minX) > (maxZ - minZ)) {
                 // over X
                 const z = minZ + Math.floor((maxZ - minZ) / 2)
-                for(let x = minX; x < maxX; x += 5) {
+                for(let x = minX; x <= maxX; x++) {
+                    const y = calcY(x)
                     this.genBox(chunk, node, random, x, y, z, x, minY, z, dir, support_block_item, chance, only_if_air, block_rotate)
+                    if(y == -1) {
+                        this.genBox(chunk, node, random, x, y - 1, z, x, y, z, dir, BLOCK.IRON_BARS, chance, only_if_air, block_rotate)
+                    }
                 }
             } else {
                 // over Z
                 const x = minX + Math.floor((maxX - minX) / 2)
-                for(let z = minZ; z < maxZ; z += 5) {
+                for(let z = minZ; z <= maxZ; z++) {
+                    const y = calcY(z)
                     this.genBox(chunk, node, random, x, y, z, x, minY, z, dir, support_block_item, chance, only_if_air, block_rotate)
+                    if(y == -1) {
+                        this.genBox(chunk, node, random, x, y - 1, z, x, y, z, dir, BLOCK.IRON_BARS, chance, only_if_air, block_rotate)
+                    }
                 }
             }
         }
