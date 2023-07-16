@@ -1,5 +1,5 @@
 import { DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE, PLAYER_STATUS } from "@client/constant.js"
-import { FLUID_LAVA_ID, FLUID_TYPE_MASK } from "@client/fluid/FluidConst.js"
+import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID } from "@client/fluid/FluidConst.js"
 import { Vector } from "@client/helpers.js"
 import { WorldAction } from "@client/world_action.js"
 import { MobSpawnParams } from "mob.js"
@@ -9,7 +9,8 @@ const RADIUS_DESPAWN = 128 // максимальное растояние про
 const SPAWN_DISTANCE = 32  // максимальное растояние спавна
 const SAFE_DISTANCE  = 24  // Безопасная зона, где не спанятся мобы
 const MAX_COUNT_MOBS = 70  // максимальное количество мобов в радиусе RADIUS_DESPAWN блоков
-const FIND_SPAWN_POSITION_ATTEMPTS_COUNT = 15  // количество попыток найти подходящее место
+const FIND_SPAWN_POSITION_ATTEMPTS_COUNT = 120 // количество попыток найти подходящее место
+const MAX_COUNT_IN_GROUP = 1 // количество мобов в группе
 
 export class SpawnMobs {
     private world: ServerWorld
@@ -42,14 +43,9 @@ export class SpawnMobs {
             if (!spawn_pos) {
                 continue
             }
-            // не спавним рядом с игроком
-            const players = world.getPlayersNear(spawn_pos, SAFE_DISTANCE)
-            if (players.length > 0) {
-                continue
-            }
             // количество мобов не должно превышать максимума
             const mobs = world.getMobsNear(spawn_pos, RADIUS_DESPAWN, [model_name])
-            if (mobs.length > MAX_COUNT_MOBS) {
+            if (mobs.length >= MAX_COUNT_MOBS) {
                 continue
             }
             // спавним центрального моба
@@ -57,7 +53,7 @@ export class SpawnMobs {
             actions.spawnMob(new MobSpawnParams(spawn_pos, Vector.ZERO.clone(), {model_name, texture_name: DEFAULT_MOB_TEXTURE_NAME}))
             let count_in_group = 1
             // попытка заспавнеить группу мобов
-            for (let i = 0; i < FIND_SPAWN_POSITION_ATTEMPTS_COUNT; i++) {
+            for (let i = 0; i < MAX_COUNT_IN_GROUP - 1; i++) {
                 if (count_in_group > 4) {
                     break
                 }
@@ -89,6 +85,9 @@ export class SpawnMobs {
         if ((legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
             return false
         }
+        if ((legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
+            return false
+        }
         const lv = legs.lightValue
         const cave_light = lv & 255
         const day_light = 255 - (lv >> 8) & 255
@@ -104,19 +103,36 @@ export class SpawnMobs {
         if (!head || (head.id != 0 && head.material.style_name != 'planting')) {
             return false
         }
+        if ((head.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
+            return false
+        }
+        if ((head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
+            return false
+        }
         return true
     }
 
+    // случайна координата между двух сфер
+    getRandomPosition(in_radius: number, out_radius: number) {
+        const r = Math.random() * (out_radius - in_radius + 1) + in_radius
+        const pi = Math.random() * 2 * Math.PI
+        const fi = Math.random() * 2 * Math.PI
+        const x = r * Math.sin(pi) * Math.cos(fi)
+        const y = r * Math.sin(pi) * Math.sin(fi)
+        const z = r * Math.cos(pi)
+        return new Vector(x, y, z)
+    }
+
     findPosition(pos: Vector) : Vector | null {
-        const spawn_pos = new Vector(0, 0, 0)
         for(let i = 0; i < FIND_SPAWN_POSITION_ATTEMPTS_COUNT; i++) {
             // выбираем рандомную позицию для спауна
-            const x = pos.x + SPAWN_DISTANCE * (Math.random() - Math.random())
-            const y = pos.y + SPAWN_DISTANCE * ((Math.random() > .6) ? (Math.random() - Math.random()) : - Math.random())
-            const z = pos.z + SPAWN_DISTANCE * (Math.random() - Math.random())
-            spawn_pos.set(x, y, z).flooredSelf()
+            const spawn_pos = this.getRandomPosition(SAFE_DISTANCE, SPAWN_DISTANCE)
+            spawn_pos.addSelf(pos).flooredSelf()
             if (this.isValidPosition(spawn_pos)) {
-                return spawn_pos
+                const players = this.world.getPlayersNear(spawn_pos, SAFE_DISTANCE)
+                if (players.length == 0) {
+                    return spawn_pos
+                } 
             }
         }
         return null
