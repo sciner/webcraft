@@ -1251,6 +1251,29 @@
                 "draw_natural_basement": true,
                 "air_column_from_basement": true
             }
+        },
+        {
+            "name": "jungle_temple",
+            "pos1": {
+                "x": -366,
+                "y": -15,
+                "z": 76
+            },
+            "pos2": {
+                "x": -435,
+                "y": 34,
+                "z": 7
+            },
+            "entrance": {
+                "x": -400,
+                "y": 1,
+                "z": 76
+            },
+            "meta": {
+                "dt": "2023-07-16T15:19:43.811Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
         }
     ]
 }

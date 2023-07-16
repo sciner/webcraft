@@ -15,7 +15,8 @@ export declare type IStructureList = {
 }[]
 
 const DEFAULT_STRUCTURE_LIST = [
-    {chance: .333, schemas: ['house_dwarf'], is_big: true, move: new Vector(128, -10, 128)},
+    {chance: .166, schemas: ['house_dwarf'], is_big: true, move: new Vector(128, -10, 128)},
+    {chance: .333, schemas: ['jungle_temple'], is_big: true, move: new Vector(128, 0, 128)},
     {chance: .667, schemas: ['underearth_rooms'], is_big: true, move: new Vector(128, 0, 128)},
     {chance: 1, schemas: [
         'structure1', 'structure2', 'mine', 'underearth_tower',
@@ -48,6 +49,7 @@ export class ClusterStructures extends ClusterBuildingBase {
             const item = structure_list[i]
             if(r < item.chance) {
                 structures = item
+                break
             }
         }
 
@@ -56,6 +58,8 @@ export class ClusterStructures extends ClusterBuildingBase {
         }
 
         if(structures.is_big) {
+
+            console.log(987)
 
             const schemas = structures.schemas
 
