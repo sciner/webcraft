@@ -385,7 +385,7 @@ export class InHandOverlay {
             if(bb_display && bbmodel_hand) {
                 base.position[0] -= 1.75 // право/лево
                 base.position[1] += 0.85 // вниз/вверх
-                base.position[2] += 0.5  // на себя/от себя
+                base.position[2] -= 0.9  // на себя/от себя
                 if(block.diagonal) {
                     base.position[1] += .25
                 }
@@ -410,6 +410,7 @@ export class InHandOverlay {
                 }
                 quat.fromEuler(q, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
                 mat4.fromRotationTranslationScaleOrigin(m, q, base.position, base.scale, base.pivot)
+                invertMatrixZ(modelMatrix);
                 mat4.multiply(modelMatrix, modelMatrix, m)
 
                 return
