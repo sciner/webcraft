@@ -108,7 +108,7 @@ export class ClusterBase {
                 }
             }
         }
-        const allow_to_set = block_set_callback ? block_set_callback(chunk, x, y, z, block_id, rotate, extra_data, mat) : true
+        const allow_to_set = block_set_callback ? block_set_callback(chunk, x, y, z, block_id, rotate, extra_data, mat, check_is_solid, destroy_fluid) : true
         if(!allow_to_set) {
             return false
         }

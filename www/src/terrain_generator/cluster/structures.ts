@@ -21,7 +21,8 @@ const DEFAULT_STRUCTURE_LIST = [
     {chance: 1, schemas: [
         'structure1', 'structure2', 'mine', 'underearth_tower',
         'broken_castle', 'ornated_stone_tower_ruins',
-        'structure3', 'structure4', 'structure5', 'structure6', 'small_lake', 'temple1'
+        'structure3', 'structure4', 'structure5', 'structure6', 'small_lake', 'temple1',
+        'dungeons_tree'
     ]},
 ]
 

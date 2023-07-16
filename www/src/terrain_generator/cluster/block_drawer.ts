@@ -8,7 +8,7 @@ import type { Building } from "./building.js";
 let _depth_blocks_buffer = new Array(1)
 let draw_indexes = new Array(1)
 
-export declare type IClusterBlockDrawCallback = (chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_id : int, rotate? : IVector, extra_data? : any, mat? : IBlockMaterial) => boolean
+export declare type IClusterBlockDrawCallback = (chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_id : int, rotate? : IVector, extra_data? : any, mat? : IBlockMaterial, check_is_solid? : boolean, destroy_fluid? : boolean) => boolean
 
 function ensureSize(sz) {
     if (_depth_blocks_buffer.length >= sz) {
