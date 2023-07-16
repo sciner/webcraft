@@ -22,7 +22,7 @@ const DEFAULT_STRUCTURE_LIST = [
         'structure1', 'structure2', 'mine', 'underearth_tower',
         'broken_castle', 'ornated_stone_tower_ruins',
         'structure3', 'structure4', 'structure5', 'structure6', 'small_lake', 'temple1',
-        'dungeons_tree'
+        'dungeons_tree', 'jungle_base', 'campsite'
     ]},
 ]
 
