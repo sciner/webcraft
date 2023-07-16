@@ -185,7 +185,15 @@ export class ClusterBuildingBase extends ClusterBase {
         }
         // draw building
         if (buildingIntersects) {
-            building.draw(this, chunk, map)
+            building.draw(this, chunk, map, (chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_id: int, rotate? : IVector, extra_data? : any, mat : IBlockMaterial = null) => {
+                if(mat?.name == 'VINE') {
+                    const cell = chunk.map.getCell(x, z)
+                    if(cell?.biome?.is_snowy) {
+                        return false
+                    }
+                }
+                return true
+            })
         }
     }
 

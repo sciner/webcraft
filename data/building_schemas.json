@@ -1274,6 +1274,29 @@
                 "draw_natural_basement": true,
                 "air_column_from_basement": true
             }
+        },
+        {
+            "name": "temple1",
+            "pos1": {
+                "x": -437,
+                "y": -12,
+                "z": 26
+            },
+            "pos2": {
+                "x": -456,
+                "y": 9,
+                "z": 8
+            },
+            "entrance": {
+                "x": -446,
+                "y": 1,
+                "z": 26
+            },
+            "meta": {
+                "dt": "2023-07-16T17:04:46.702Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
         }
     ]
 }

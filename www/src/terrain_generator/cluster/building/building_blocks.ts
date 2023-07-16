@@ -2,6 +2,7 @@ import { AABB } from "../../../core/AABB.js";
 import { Vector, VectorCardinalTransformer, VectorCollector } from "../../../helpers.js";
 import type { ChunkWorkerChunk } from "../../../worker/chunk.js";
 import type { ClusterBase } from "../base.js";
+import type { IClusterBlockDrawCallback } from "../block_drawer.js";
 import { Building } from "../building.js";
 
 //
@@ -82,12 +83,12 @@ export class BuildingBlocks extends Building {
 
     }
 
-    draw(cluster : ClusterBase, chunk : ChunkWorkerChunk, map : any) {
+    draw(cluster : ClusterBase, chunk : ChunkWorkerChunk, map : any, block_set_callback? : IClusterBlockDrawCallback) {
         super.draw(cluster, chunk, this.building_template.getMeta('draw_natural_basement', true))
         // set blocks list for chunk
         this.blocks.list = this.chunks.get(chunk.addr) ?? []
         // draw chunk blocks
-        this.blocks.draw(cluster, chunk, map)
+        this.blocks.draw(cluster, chunk, map, block_set_callback)
     }
 
 }
