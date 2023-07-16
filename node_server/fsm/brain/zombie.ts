@@ -104,7 +104,9 @@ export class Brain extends FSMBrain {
             this.stack.replaceState(this.doStand);
             return MOB_CONTROL.STAND
         }
-        const dist = mob.pos.distance(this.target.state.pos);
+        const dist = mob.pos.distance(this.target.state.pos)
+        const hor_dist = this.mob.pos.horizontalDistance(this.target.state.pos)
+        const forward = hor_dist > 1
         if (mob.playerCanBeAtacked(this.target) || dist > this.distance_view) {
             this.target = null;
             this.stack.replaceState(this.doStand);
@@ -114,9 +116,11 @@ export class Brain extends FSMBrain {
             this.stack.replaceState(this.doAttack);
             return MOB_CONTROL.NO_CHANGE
         }
-        mob.rotate.z = this.angleTo(this.target.state.pos);
+        // if(forward) {
+            mob.rotate.z = this.angleTo(this.target.state.pos)
+        // }
         return {
-            forward: true, //!(this.is_abyss | this.is_well),
+            forward: forward, //!(this.is_abyss | this.is_well),
             jump: this.in_water
         }
     }
