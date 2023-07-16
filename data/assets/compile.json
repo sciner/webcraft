@@ -3344,6 +3344,7 @@
             "window": "frmBrewing",
             "style": "planting",
             "is_entity": true,
+            "aabb": [5, 0, 5, 10, 16, 10],
             "material": {
                 "id": "stone"
             },
@@ -5096,7 +5097,7 @@
             "_spawnable": false,
             "style": "planting",
             "sound": "madcraft:block.cave_vine",
-            "aabb": [0.25, 0, 0.25, 0.75, 1, 0.75],
+            "aabb": [4, 0, 4, 12, 16, 12],
             "material": {
                 "id": "plant"
             },
@@ -5388,6 +5389,12 @@
             "style": "planting",
             "transparent": true,
             "passable": 0,
+            "sound": "madcraft:block.stone",
+            "aabb": [5.75, 0, 5.75, 10.25, 16, 10.25],
+            "can_rotate": true,
+            "material": {
+                "id": "iron"
+            },
             "planes": [
                 {"size": {"x": 3, "y": 16, "z": 3}, "uv": [1.5, 8], "rot": [0, 0.7853975, 0]},
                 {"size": {"x": 3, "y": 16, "z": 3}, "uv": [4.5, 8], "rot": [0, -0.7853975, 0]}
@@ -5396,19 +5403,12 @@
                 "style": "extruder",
                 "texture": "item/chain.png"
             },
-            "_aabb_size": {"x": 4.5, "y": 16, "z": 4.5},
-            "aabb": [5.75, 0, 5.75, 10.25, 16, 10.25],
-            "sound": "madcraft:block.stone",
-            "material": {
-                "id": "iron"
-            },
             "tags": [
                 "no_drop_ao",
                 "no_random_pos",
                 "rotate_by_pos_n"
             ],
-            "texture": "block/chain.png",
-            "can_rotate": true
+            "texture": "block/chain.png"
         },
         {
             "id": 618,
@@ -6422,7 +6422,7 @@
                 "style": "extruder",
                 "texture": "item/cake.png"
             },
-            "aabb": [0, 0, 0, 1, 0.5, 1],
+            "aabb": [0, 0, 0, 16, 8, 16],
             "extra_data": {"pieces": 7},
             "sound": "madcraft:block.cloth",
             "material": {
@@ -12470,7 +12470,7 @@
             "transparent": true,
             "style": "planting",
             "sound": "madcraft:block.cave_vine",
-            "aabb": [0.25, 0, 0.25, 0.75, 1, 0.75],
+            "aabb": [4, 0, 4, 12, 16, 12],
             "material": {
                 "id": "plant"
             },
@@ -12940,7 +12940,6 @@
             "width": 0.375,
             "height": 0.1875,
             "depth": 0.5,
-            "_aabb_size": {"x": 6, "y": 10, "z": 8},
             "aabb": [5, 0, 4, 11, 8, 12],
             "can_rotate": true,
             "transparent": true,
@@ -12966,7 +12965,7 @@
             "group": "creative_regular",
             "mining_time": 0,
             "extra_data": {"level": 15},
-            "aabb": [0, 0, 0, 1, 1, 1],
+            "aabb": [0, 0, 0, 16, 16, 16],
             "tags": [
                 "hide_in_creative",
                 "no_drop_ao"
@@ -13795,7 +13794,7 @@
                 "no_need_dirt",
                 "is_hanging_plant"
             ],
-            "aabb": [0, 0.5, 0, 1, 1, 1],
+            "aabb": [0, 8, 0, 16, 16, 16],
             "composter_chance": 0.65
         }
     ]

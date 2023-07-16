@@ -305,7 +305,6 @@ interface IBlockMaterial {
     resource_pack: any
     extra_data: any
     aabb: tupleFloat6
-    aabb_size: IVector
     item: {
         indicator? : any
         name: string
