@@ -8,6 +8,7 @@ import type { BulkDropItemsRow } from "./db/world.js"
 import { InventoryComparator } from "@client/inventory_comparator.js";
 import type {World} from "@client/world.js";
 import type {ServerChunk} from "./server_chunk.js";
+import { FLUID_LAVA_ID, FLUID_TYPE_MASK } from "@client/fluid/FluidConst.js";
 
 export const MOTION_MOVED = 0;  // It moved OR it lacks a chunk
 export const MOTION_JUST_STOPPED = 1;
@@ -218,6 +219,9 @@ export class DropItem {
             if(this.motion === MOTION_MOVED) {
                 this.motion = MOTION_JUST_STOPPED;
                 this.#world.chunks.itemWorld.chunksItemMergingQueue.add(chunk);
+                if (this.isInLava()) {
+                    return
+                }
                 this.putIntoHopper()
             } else {
                 this.motion = MOTION_STAYED;
@@ -270,6 +274,28 @@ export class DropItem {
             list.push(row);
             this.dirty = DropItem.DIRTY_CLEAR;
         }
+    }
+
+    isInLava(resultBlock = null): boolean {
+        const block = this.inChunk.getBlock(this.pos, null, null, resultBlock)
+        if (block?.id == 0 && (block.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
+            const world = this.getWorld()
+            world.chunks.itemWorld.delete(this, true)
+            const packet = [
+                {
+                    name: ServerClient.CMD_DROP_ITEM_DELETED,
+                    data: [this.entity_id]
+                },
+                {
+                    name: ServerClient.CMD_PLAY_SOUND,
+                    data: {tag: 'madcraft:fire', action: 'extinguished'}
+                }
+            ]
+            this.inChunk.sendAll(packet)
+            world.saveSendExtraData(block)
+            return true
+        }
+        return false
     }
 
     putIntoHopper(resultBlock = null) {
