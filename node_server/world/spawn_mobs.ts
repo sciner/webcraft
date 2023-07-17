@@ -1,15 +1,16 @@
 import { DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE, PLAYER_STATUS } from "@client/constant.js"
 import { FLUID_LAVA_ID, FLUID_TYPE_MASK, FLUID_WATER_ID } from "@client/fluid/FluidConst.js"
 import { Vector } from "@client/helpers.js"
+import type { TBlock } from "@client/typed_blocks3"
 import { WorldAction } from "@client/world_action.js"
 import { MobSpawnParams } from "mob.js"
 import type { ServerWorld } from "server_world.js"
 
 const RADIUS_DESPAWN = 128 // максимальное растояние проверки мобов
-const SPAWN_DISTANCE = 32  // максимальное растояние спавна
+const SPAWN_DISTANCE = 81  // максимальное растояние спавна
 const SAFE_DISTANCE  = 24  // Безопасная зона, где не спанятся мобы
 const MAX_COUNT_MOBS = 70  // максимальное количество мобов в радиусе RADIUS_DESPAWN блоков
-const FIND_SPAWN_POSITION_ATTEMPTS_COUNT = 120 // количество попыток найти подходящее место
+const FIND_SPAWN_POSITION_ATTEMPTS_COUNT = 50 // количество попыток найти подходящее место
 const MAX_COUNT_IN_GROUP = 1 // количество мобов в группе
 
 export class SpawnMobs {
@@ -36,21 +37,24 @@ export class SpawnMobs {
         // находим игроков
         for (const player of world.players.values()) {
             if (player.game_mode.isSpectator() || player.status === PLAYER_STATUS.DEAD) {
+                // console.log('spawn: PLAYER_STATUS.DEAD')
                 continue
             }
             // находим позицию для спавна
             const spawn_pos = this.findPosition(player.state.pos)
             if (!spawn_pos) {
+                // console.log('spawn: !spawn_pos')
                 continue
             }
             // количество мобов не должно превышать максимума
             const mobs = world.getMobsNear(spawn_pos, RADIUS_DESPAWN, [model_name])
             if (mobs.length >= MAX_COUNT_MOBS) {
+                // console.log('spawn: MAX_COUNT_MOBS')
                 continue
             }
             // спавним центрального моба
             const actions = new WorldAction(null, this, false, false)
-            actions.spawnMob(new MobSpawnParams(spawn_pos, Vector.ZERO.clone(), {model_name, texture_name: DEFAULT_MOB_TEXTURE_NAME}))
+            actions.spawnMob(new MobSpawnParams(spawn_pos.offset(.5, 0, .5), Vector.ZERO.clone(), {model_name, texture_name: DEFAULT_MOB_TEXTURE_NAME}))
             let count_in_group = 1
             // попытка заспавнеить группу мобов
             for (let i = 0; i < MAX_COUNT_IN_GROUP - 1; i++) {
@@ -63,7 +67,7 @@ export class SpawnMobs {
                 const spawn_pos_shift = new Vector(x, y, z).flooredSelf()
                 if (this.isValidPosition(spawn_pos_shift)) {
                     count_in_group++
-                    actions.spawnMob(new MobSpawnParams(spawn_pos_shift, Vector.ZERO.clone(), {model_name, texture_name: DEFAULT_MOB_TEXTURE_NAME}))
+                    actions.spawnMob(new MobSpawnParams(spawn_pos_shift.offset(.5, 0, .5), Vector.ZERO.clone(), {model_name, texture_name: DEFAULT_MOB_TEXTURE_NAME}))
                 }
             }
             world.actions_queue.add(null, actions)
@@ -73,21 +77,22 @@ export class SpawnMobs {
 
     isValidPosition(pos: Vector): boolean {
         const world = this.world
+        // check under block
         const under = world.getBlock(pos.offset(0, -1, 0))
-        const is_slab = under?.material?.layering?.slab
-        if (!under?.material?.is_solid && !is_slab) {
+        if (!under || (!under.material.is_solid && !under.material.layering)) {
             return false
         }
+        //
+        const checkBodyBlock = (tblock? : TBlock) : boolean => {
+            if (!tblock || (tblock.id != 0 && tblock.material.style_name != 'planting')) return false
+            if ((tblock.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) return false
+            if ((tblock.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) return false
+            return true
+        }
+        // legs
         const legs = world.getBlock(pos)
-        if (!legs || (legs.id != 0 && legs.material.style_name != 'planting')) {
-            return false
-        }
-        if ((legs.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
-            return false
-        }
-        if ((legs.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
-            return false
-        }
+        if(!checkBodyBlock(legs)) return false
+        // check legs light value
         const lv = legs.lightValue
         const cave_light = lv & 255
         const day_light = 255 - (lv >> 8) & 255
@@ -99,16 +104,9 @@ export class SpawnMobs {
                 return false
             }
         }
-        const head = world.getBlock(pos.offset(0, 1, 0))
-        if (!head || (head.id != 0 && head.material.style_name != 'planting')) {
-            return false
-        }
-        if ((head.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
-            return false
-        }
-        if ((head.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
-            return false
-        }
+        // check over block
+        if(!checkBodyBlock(world.getBlock(pos.offset(0, 1, 0)))) return false
+        //
         return true
     }
 
