@@ -86,7 +86,7 @@ export class Brain extends FSMBrain {
             return MOB_CONTROL.STAND
         }
         return {
-            forward: false,
+            forward: true,
             jump: false,
             sneak: false
         }

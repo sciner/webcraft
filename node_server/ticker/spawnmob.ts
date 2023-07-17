@@ -6,6 +6,7 @@ import { MOB_TYPE, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
 import type { PlayerSkin } from "@client/player.js";
 import type { MobSpawnParams } from "mob.js";
 import type { ServerWorld } from "server_world.js";
+import type { TBlock } from "@client/typed_blocks3.js";
 
 const SPAWN_PLAYER_DISTANCE     = 16;
 const SPAWN_RAD_HOR             = 4;
@@ -17,7 +18,7 @@ export default class Ticker {
     static type = 'spawnmob'
 
     //
-    static func(this: TickingBlockManager, tick_number : int, world : ServerWorld, chunk, v) {
+    static func(this: TickingBlockManager, tick_number : int, world : ServerWorld, chunk, v : {pos: Vector, tblock : TBlock}) {
         if (world.info.world_type_id == WORLD_TYPE_BUILDING_SCHEMAS) {
             return
         }
@@ -68,12 +69,12 @@ export default class Ticker {
                 return;
             }
 
-            // Место спауна моба, 4 попытки. Если на координатак моб, игрок или блок, то не спауним
+            // Место спауна моба, 4 попытки. Если на координатак моб, игрок или блок, то не спавним
             for(let i = 0; i < SPAWN_ATTEMPTS - mobs.length; i++) {
                 const x = Math.floor(Math.random() * (SPAWN_RAD_HOR * 2 + 1) + -SPAWN_RAD_HOR);
                 const z = Math.floor(Math.random() * (SPAWN_RAD_HOR * 2 + 1) + -SPAWN_RAD_HOR);
-                const y = Math.random() * SPAWN_RAD_VERT | 0;
-                const spawn_pos = pos.clone().addScalarSelf(x, y, z).floored()
+                const y = (Math.random() * SPAWN_RAD_VERT) | 0
+                const spawn_pos = pos.clone().addScalarSelf(x, y, z).flooredSelf()
                 let spawn_disabled = false;
                 //
                 for(const player of players) {
@@ -98,13 +99,14 @@ export default class Ticker {
                     if (body.id != 0) {
                         spawn_disabled = true;
                     }
-                    // проверяем освещенность для нежети
+                    // проверяем освещенность для нежити
                     if ((body.lightValue & 0xFF) > 160 || ((body.lightValue >> 8) < 100)) {
                         if (extra_data.type == MOB_TYPE.ZOMBIE || extra_data.type == MOB_TYPE.SKELETON) {
                             spawn_disabled = true
                         }
                     }
                     if(!spawn_disabled) {
+                        spawn_pos.addScalarSelf(.5, 0, .5)
                         const params = {
                             skin:       Ticker.hotFixSkin(world, extra_data),
                             pos:        spawn_pos,
