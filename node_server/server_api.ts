@@ -63,6 +63,17 @@ export class ServerAPI {
                     params.generator = bw_config.generator
                 }
 
+                // random map noise shift
+                const alea_random = new alea(params.seed)
+                const mns_rad = 50000
+                const mns_min = 2000
+                params.generator.options['map_noise_shift'] = new Vector(
+                        Math.max(Math.round(alea_random.double() * mns_rad * 2), mns_min),
+                        Math.max(Math.round(alea_random.double() * mns_rad * 2), mns_min),
+                        Math.max(Math.round(alea_random.double() * mns_rad * 2), mns_min),
+                    ).addScalarSelf(-mns_rad, -mns_rad, -mns_rad)
+
+                //
                 const generator = WorldGenerators.validateAndFixOptions(params.generator);
 
                 // spawn pos
@@ -79,15 +90,6 @@ export class ServerAPI {
                     }
                 }
 
-                // random map noise shift
-                const alea_random = new alea(params.seed)
-                const map_noise_shift_rad = 50000
-                const map_noise_shift_min = 2000
-                generator.options['map_noise_shift'] = new Vector(
-                    Math.max(Math.round(alea_random.double() * map_noise_shift_rad * 2), map_noise_shift_min),
-                    Math.max(Math.round(alea_random.double() * map_noise_shift_rad * 2), map_noise_shift_min),
-                    Math.max(Math.round(alea_random.double() * map_noise_shift_rad * 2), map_noise_shift_min),
-                ).addScalarSelf(-map_noise_shift_rad, -map_noise_shift_rad, -map_noise_shift_rad)
                 //
                 const title       = params.title;
                 const seed        = params.seed;

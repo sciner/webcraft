@@ -1,5 +1,12 @@
 import { Vector } from "@client/helpers.js";
 
+export enum GENERATOR_OPTION_STRICT_TYPE {
+    int     = 'int',
+    float   = 'float',
+    boolean = 'boolean',
+    vec3    = 'vec3',
+}
+
 const DEFAULT_OPTIONS = {
     "auto_generate_mobs": {
         "title": "Spawn mobs",
@@ -90,25 +97,40 @@ const DEFAULT_OPTIONS = {
             {"value": "24", "title": "24×24"},
             {"value": "32", "title": "32×32"},
         ]
+    },
+    "map_noise_shift": {
+        "title": "Map noise shift",
+        "type": "vec3",
+        "strict_type": "vec3",
+        "default_value": {"x": 0, "y": 0 ,"z": 0}
     }
 }
 
 export class WorldGenerators {
 
     //
-    static strictType(value, strict_type) {
+    static strictType(value : any, strict_type : GENERATOR_OPTION_STRICT_TYPE) {
         switch(strict_type) {
-            case 'int': {
+            case GENERATOR_OPTION_STRICT_TYPE.int: {
                 return Math.round(value);
             }
-            case 'float': {
+            case GENERATOR_OPTION_STRICT_TYPE.float: {
                 return parseFloat(value);
             }
-            case 'boolean': {
+            case GENERATOR_OPTION_STRICT_TYPE.boolean: {
                 return !!value;
             }
+            case GENERATOR_OPTION_STRICT_TYPE.vec3: {
+                if(typeof value === 'object' && value !== null) {
+                    if(('x' in value) && ('y' in value) && ('z' in value)) {
+                        return new Vector(0, 0, 0).copyFrom(value)
+                    }
+                }
+                console.log(value, strict_type)
+                throw 'invalid_generator_option_value'
+            }
             default: {
-                throw `invalid_generator_option_type|${strict_type}`;
+                throw `invalid_generator_option_type|${strict_type}`
             }
         }
     }
@@ -156,15 +178,16 @@ export class WorldGenerators {
         if('options' in params) {
             for(let name in params.options) {
                 if(!(name in generator.options)) {
-                    console.error('error_unknown_generator_option ' + name);
-                    continue;
+                    console.error(`error_unknown_generator_option|${name}`)
+                    continue
                 }
                 const option = generator.options[name];
                 const value = WorldGenerators.strictType(params.options[name], option.strict_type);
                 //
                 switch(option.type) {
+                    case 'vec3':
                     case 'checkbox': {
-                        // do notning
+                        // do nothing
                         break;
                     }
                     case 'select': {
