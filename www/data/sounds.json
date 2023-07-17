@@ -26,7 +26,7 @@
     {
         "type": "madcraft:fire",
         "extinguished": [
-            "fizz"
+            "fizz|volume=.15;pitch=.75"
         ],
         "crackles": [
             "fire"
