@@ -18,7 +18,7 @@ import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
 import type { PlayerStateWorld, TSittingState, TSleepState} from "./player.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
-import type {TChestInfo} from "./block_helpers.js";
+import {BACK_NEIGBOUR_BY_DIRECTION, type TChestInfo} from "./block_helpers.js";
 import type { GameMode } from "./game_mode.js";
 
 /** A type that is as used as player in actions. */
@@ -1154,7 +1154,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.useItem1 ??= [useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setUpholstery, setPointedDripstone]) {
+        for(let func of FUNCS.useItem1 ??= [addRopeLadder, useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setUpholstery, setPointedDripstone]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 const affectedPos = (func === chSpawnMob) ? null : pos // мобы не меняют блок. И chSpawnMob также портит pos
                 return [actions, affectedPos]
@@ -3138,4 +3138,34 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
     }
 
     return true
+}
+
+function addRopeLadder(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+    const bm = world.block_manager
+
+    if (!world_block || !mat_block || mat_block.id != bm.ROPE_LADDER.id || world_block.id != bm.ROPE_LADDER.id) {
+        return false
+    }
+
+    const position = new Vector(pos)
+    // находим конец лесенки
+    let block_ladder = null
+    for (let h = 0; h < 256; h++) {
+        block_ladder = world.getBlock(position)
+        if (block_ladder?.id != world_block.id) {
+            break
+        }
+        position.y--
+    }
+    // если место свободно, то ставим блок
+    if (block_ladder?.id == 0 && block_ladder.fluid == 0) {
+        const dir = BACK_NEIGBOUR_BY_DIRECTION[rotate.x]
+        const block = world.getBlock(position.add(dir))
+        if (block?.material?.is_solid) {
+            actions.addBlocks([{pos: position, item: {id: world_block.id, rotate}, action_id: BLOCK_ACTION.CREATE}])
+            return true
+        }
+    } 
+
+    return false
 }

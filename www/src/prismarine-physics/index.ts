@@ -182,7 +182,7 @@ export class Physics {
         for (const block of [bm.COBWEB, bm.SWEET_BERRY_BUSH]) {
             this.cobwebLikePassable[block.id] = block.passable
         }
-        this.ladderIds      = [bm.LADDER].map(mat => mat.id)
+        this.ladderIds      = [bm.LADDER, bm.ROPE_LADDER].map(mat => mat.id)
         this.ladderLikeIds  = [bm.VINE].map(mat => mat.id)
         this.bubbleColumnId = bm.BUBBLE_COLUMN?.id ?? BLOCK_NOT_EXISTS // 1.13+
         this.iceIds         = [bm.ICE, ...bm.bySuffix['_ICE']].map(mat => mat.id)

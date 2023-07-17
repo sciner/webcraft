@@ -1929,5 +1929,26 @@
             "item": "madcraft:fishing_rod",
             "count": 1
         }
+    },
+    {
+        "id": "8bcad442-e3b8-4d14-a3fb-aa4ecbb0df42",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "@-@",
+            "@-@",
+            "@-@"
+        ],
+        "key": {
+            "-": {
+                "item": "special:stick"
+            },
+            "@": {
+                "item": "special:string"
+            }
+        },
+        "result": {
+            "item": "madcraft:rope_ladder",
+            "count": 1
+        }
     }
 ]

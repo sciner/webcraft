@@ -1067,6 +1067,8 @@ export class ServerChunk {
 
             if (bm.SNOW.id == tblock.id  && neighbourPos.y < pos.y) {
                 return createDrop(tblock, true);
+            } else  if (bm.ROPE_LADDER.id == tblock.id  && neighbourPos.y > pos.y) {
+                return createDrop(tblock, true);
             }
 
             switch(require_support) {
