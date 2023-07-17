@@ -2148,6 +2148,7 @@ async function openPortal(e, world, pos, player, world_block, world_material : I
 
     if(mat_block.name == 'FLINT_AND_STEEL') {
         actions.addPlaySound({tag: 'madcraft:fire', action: 'flint_and_steel_click', pos: position, except_players: [player.session.user_id]})
+        actions.decrement = true
     } else if(mat_block.name == 'FLOWING_WATER') {
         actions.decrement = true
     }
@@ -2320,6 +2321,7 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
     if (!e.shiftKey && world_block.id == BLOCK.TNT.id) {
         actions.addPlaySound({tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(pos), except_players: [player.session.user_id]});
         actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.TNT.id, extra_data:{explode: true, fuse: 0}}, action_id: BLOCK_ACTION.REPLACE}]);
+        actions.decrement = true
         return true;
     }
 
@@ -2338,6 +2340,7 @@ async function useFlintAndSteel(e, world, pos, player, world_block, world_materi
         block = world.getBlock(position.offset(0, -1, 0));
         extra_data.up = (block.id != BLOCK.AIR.id && block.id != BLOCK.FIRE.id) ? true : false;
         actions.addBlocks([{pos: position, item: {id: BLOCK.FIRE.id, extra_data: extra_data}, action_id: BLOCK_ACTION.CREATE}]);
+        actions.decrement = true
         return true;
     }
 

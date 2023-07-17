@@ -9158,6 +9158,7 @@
             "transparent": true,
             "max_in_stack": 1,
             "style": "extruder",
+            "power": 65,
             "diagonal": true,
             "item": {"name": "tool", "instrument_id": "flint_and_steel"},
             "material": {
