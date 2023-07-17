@@ -278,7 +278,7 @@ export class DropItem {
 
     isInLava(resultBlock = null): boolean {
         const block = this.inChunk.getBlock(this.pos, null, null, resultBlock)
-        if (block?.id == 0 && (block.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
+        if ((block.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
             const world = this.getWorld()
             world.chunks.itemWorld.delete(this, true)
             const packet = [
