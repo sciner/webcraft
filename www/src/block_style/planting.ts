@@ -91,26 +91,23 @@ export default class style {
 
         // if tblock has specific ABBB
         if(mat_abbb) {
-            return [aabb.setArray(mat_abbb)]
-        }
-
-        let aabb_size = (material.aabb_size ?? DEFAULT_AABB_SIZE) as Vector
-
-        if(material.seeds && material.ticking?.type == 'stage') {
-            if(tblock.extra_data?.stage != undefined) {
-                aabb_size = aabb_size.clone()
-                aabb_size.y *= (tblock.extra_data?.stage + 1) / (material.ticking.max_stage + 1)
-                aabb_size.y = Math.min(aabb_size.y, TX_SIZE)
+            aabb.setArray(mat_abbb).div(16)
+        } else {
+            let aabb_size = DEFAULT_AABB_SIZE as Vector
+            if(material.seeds && material.ticking?.type == 'stage') {
+                if(tblock.extra_data?.stage != undefined) {
+                    aabb_size = aabb_size.clone()
+                    aabb_size.y *= (tblock.extra_data?.stage + 1) / (material.ticking.max_stage + 1)
+                    aabb_size.y = Math.min(aabb_size.y, TX_SIZE)
+                }
             }
+            const sy = aabb_size.y / 2
+            aabb.set(0, 0, 0, 0, 0, 0)
+            aabb
+                .translate(.5 * TX_SIZE, sy, .5 * TX_SIZE)
+                .expand(aabb_size.x/2, aabb_size.y/2, aabb_size.z/2)
+                .div(TX_SIZE)
         }
-
-        let sy = aabb_size.y / 2
-        
-        aabb.set(0, 0, 0, 0, 0, 0)
-        aabb
-            .translate(.5 * TX_SIZE, sy, .5 * TX_SIZE)
-            .expand(aabb_size.x/2, aabb_size.y/2, aabb_size.z/2)
-            .div(TX_SIZE);
 
         // Rotate
         if(tblock.getCardinalDirection) {
@@ -125,7 +122,8 @@ export default class style {
             aabb.applyMatrix(matrix, pivotObj);
         }
 
-        return [aabb];
+        return [aabb]
+
     }
 
     //

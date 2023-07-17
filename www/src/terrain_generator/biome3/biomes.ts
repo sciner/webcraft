@@ -3,7 +3,7 @@ import { BLOCK_FLAG, DEFAULT_DIRT_PALETTE, GRASS_PALETTE_OFFSET, FAST } from '..
 import { Environment, IFogPreset } from '../../environment.js';
 import { IndexedColor, Mth, Vector } from '../../helpers.js';
 import type { ChunkWorkerChunk } from '../../worker/chunk.js';
-import { BiomeTree, IBiomeTree, TREES } from '../biome2/biomes.js';
+import { BiomeTree, IBiomeTree, IMineBlocks, MINE_BLOCKS, TREES, initBiomeMineBlocks } from '../biome2/biomes.js';
 import { DensityParams, WATER_LEVEL } from './terrain/manager_vars.js';
 
 const CACTUS_MIN_HEIGHT         = 2;
@@ -213,6 +213,7 @@ export class Biome {
     is_underworld:              boolean
     hanging_foliage_block_id:   any
     fog_preset_name?:           string
+    mine_blocks:                IMineBlocks
 
     constructor(id : int, title : string, temperature : float, humidity : float, dirt_layers : any[], trees : any, plants : any, grass : any, dirt_color : IndexedColor, water_color : IndexedColor, ground_block_generators? : ChunkGroundBlockGenerator[], no_smooth_heightmap : boolean = false, building_options? : any, river_bottom_blocks ?: IRiverBottomBlocks, big_stone_blocks ?: IRiverBottomBlocks, blocks ?: { [key: string]: string; }, dirt_palette? : DirtPalette, fog_preset? : IFogPreset, underwater_trees? : ITreeList) {
         this.id                         = id
@@ -240,9 +241,10 @@ export class Biome {
         this.is_sand                    = this.is_desert || title.toLowerCase().indexOf('пляж') >= 0
         this.is_taiga                   = title.toLowerCase().indexOf('тайга') >= 0
         this.is_swamp                   = title.toLowerCase().indexOf('болото') >= 0
-        // calc is_snowy
-        this.is_snowy = title.toLowerCase().indexOf('заснеж') >= 0
-        this.is_grassy_surface = false
+        this.is_snowy                   = title.toLowerCase().indexOf('заснеж') >= 0
+        this.is_grassy_surface          = false
+        this.mine_blocks                = initBiomeMineBlocks(title == 'Эреб' ? MINE_BLOCKS.ereb : MINE_BLOCKS.default)
+        //
         for(let dl of dirt_layers) {
             for(let block_id of dl.blocks) {
                 if([BLOCK.SNOW_DIRT.id, BLOCK.ICE.id].includes(block_id)) {
@@ -678,37 +680,72 @@ export class Biomes {
         this.addBiome(149, 'Рельефные джунгли', 0.95, 0.9);
         this.addBiome(22, 'Холмистые джунгли', 0.95, 0.9);
         this.addBiome(23, 'Окраина джунглей', 0.95, 0.8, undefined, {
-                frequency: TREE_FREQUENCY,
-                list: [
-                    // {...TREES.JUNGLE, percent: 1, height: {min: 9, max: 14}},
-                    {...TREES.JUNGLE, percent: .025, height: {min: 16, max: 22}},
-                    {...TREES.JUNGLE, percent: .1, height: {min: 9, max: 14}},
-                    {...TREES.JUNGLE, percent: .4, height: {min: 3, max: 8}},
-                    {...TREES.JUNGLE, percent: .375, height: {min: 1, max: 1}},
-                    // bamboo
-                    {percent: .1, trunk: BLOCK.BAMBOO.id, leaves: null, style: 'bamboo', height: {min: 6, max: 20}}
-                ]
-            }, {
-                frequency: PLANTS_FREQUENCY * .8,
-                list: [
-                    {percent: .1, blocks: [{name: 'RED_TULIP'}]},
-                    {percent: .4, blocks: [{name: 'MELON', not_transparent: true}]},
-                    {percent: .5, blocks: [{name: 'DANDELION'}]}
-                ]
-            }, {
-                frequency: GRASS_FREQUENCY * 100,
-                list: [
-                    {percent: .2, blocks: [{name: 'OAK_LEAVES'}]},
-                    {percent: .3, blocks: [{name: 'GRASS'}]},
-                    {percent: .5, blocks: [{name: 'TALL_GRASS'}, {name: 'TALL_GRASS', extra_data: {is_head: true}}]},
-                ]
-            },
-            new IndexedColor(16, 300, 0), new IndexedColor(20, 140, 0), undefined, {
+            frequency: TREE_FREQUENCY,
+            list: [
+                {...TREES.JUNGLE, percent: .025, height: {min: 16, max: 22}},
+                {...TREES.JUNGLE, percent: .1, height: {min: 9, max: 14}},
+                {...TREES.JUNGLE, percent: .4, height: {min: 3, max: 8}},
+                {...TREES.JUNGLE, percent: .375, height: {min: 1, max: 1}},
+                // bamboo
+                {percent: .1, trunk: BLOCK.BAMBOO.id, leaves: null, style: 'bamboo', height: {min: 6, max: 20}}
+            ]
+        }, {
+            frequency: GRASS_FREQUENCY * 5.8,
+            list: [
+                {percent: .600, blocks: [{name: 'OAK_LEAVES'}]},
+                {percent: .327, blocks: [{name: 'GRASS'}]},
+                {percent: .053, blocks: [{name: 'TALL_GRASS'}, {name: 'TALL_GRASS', extra_data: {is_head: true}}]},
+                {percent: .010, blocks: [{name: 'RED_TULIP'}]},
+                {percent: .005, blocks: [{name: 'MELON', not_transparent: true}]},
+                {percent: .005, blocks: [{name: 'DANDELION'}]}
+            ]
+        }, {
+            frequency: GRASS_FREQUENCY * 100,
+            list: [
+                {percent: .500, blocks: [{name: 'GRASS'}]},
+                {percent: .400, blocks: [{name: 'TALL_GRASS'}, {name: 'TALL_GRASS', extra_data: {is_head: true}}]},
+                {percent: .027, blocks: [{name: 'OAK_LEAVES'}]},
+                {percent: .010, blocks: [{name: 'RED_TULIP'}]},
+                {percent: .005, blocks: [{name: 'MELON', not_transparent: true}]},
+                {percent: .005, blocks: [{name: 'DANDELION'}]}
+            ]
+        }, new IndexedColor(16, 300, 0), new IndexedColor(20, 140, 0), undefined, {
                 frequency: GRASS_FREQUENCY * 10,
                 list: [
                     new BambooGenerator(1)
                 ]
-            });
+        });
+            //     frequency: TREE_FREQUENCY,
+            //     list: [
+            //         // {...TREES.JUNGLE, percent: 1, height: {min: 9, max: 14}},
+            //         {...TREES.JUNGLE, percent: .025, height: {min: 16, max: 22}},
+            //         {...TREES.JUNGLE, percent: .1, height: {min: 9, max: 14}},
+            //         {...TREES.JUNGLE, percent: .4, height: {min: 3, max: 8}},
+            //         {...TREES.JUNGLE, percent: .375, height: {min: 1, max: 1}},
+            //         // bamboo
+            //         {percent: .1, trunk: BLOCK.BAMBOO.id, leaves: null, style: 'bamboo', height: {min: 6, max: 20}}
+            //     ]
+            // }, {
+            //     frequency: PLANTS_FREQUENCY * .8,
+            //     list: [
+            //         {percent: .1, blocks: [{name: 'RED_TULIP'}]},
+            //         {percent: .4, blocks: [{name: 'MELON', not_transparent: true}]},
+            //         {percent: .5, blocks: [{name: 'DANDELION'}]}
+            //     ]
+            // }, {
+            //     frequency: GRASS_FREQUENCY * 100,
+            //     list: [
+            //         {percent: .2, blocks: [{name: 'OAK_LEAVES'}]},
+            //         {percent: .3, blocks: [{name: 'GRASS'}]},
+            //         {percent: .5, blocks: [{name: 'TALL_GRASS'}, {name: 'TALL_GRASS', extra_data: {is_head: true}}]},
+            //     ]
+            // },
+            // new IndexedColor(16, 300, 0), new IndexedColor(20, 140, 0), undefined, {
+            //     frequency: GRASS_FREQUENCY * 10,
+            //     list: [
+            //         new BambooGenerator(1)
+            //     ]
+            // });
         this.addBiome(151, 'Рельефная окраина джунглей', 0.95, 0.8);
         this.addBiome(168, 'Бамбуковые джунгли', 0.95, 0.9);
         this.addBiome(169, 'Холмистые бамбуковые джунгли', 0.95, 0.9);

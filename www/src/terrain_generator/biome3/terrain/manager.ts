@@ -24,6 +24,11 @@ export declare interface ISImplifiedCell {
     preset: MapCellPresetResult
 }
 
+export const EREB_OPTIONS = {
+    ceil_noise_height: 10,
+    ceil_noise_scale: 16,
+}
+
 // Water
 const WATER_START                       = 0;
 const WATER_STOP                        = 1.5;
@@ -373,8 +378,22 @@ export class TerrainMapManager3 extends TerrainMapManagerBase {
                 //
                 const cave_density_threshold = DENSITY_AIR_THRESHOLD * (d1 > .05 && (xyz.y > (WATER_LEVEL + Math.abs(d3) * 4)) ? 1 : 1.5)
                 if(density > cave_density_threshold + canyon_density) {
-                    const caveDensity = map.caves.getPoint(xyz, cell, false, res);
+                    let caveDensity = map.caves.getPoint(xyz, cell, false, res)
+                    // заполняем породой самый низ слоя
                     if(caveDensity !== null) {
+                        const {ceil_noise_height, ceil_noise_scale} = EREB_OPTIONS
+                        if(xyz.y < ceil_noise_height) {
+                            if(cell.biome.title == 'Эреб') {
+                                if(xyz.y == 0) {
+                                    caveDensity = 1
+                                } else {
+                                    const n2 = Math.ceil(10 * (this.noise2d(xyz.x / ceil_noise_scale, xyz.z / ceil_noise_scale) / 2 + .5))
+                                    if(xyz.y < n2) {
+                                        caveDensity /= (1 - xyz.y / ceil_noise_height)
+                                    }
+                                }
+                            }
+                        }
                         density = caveDensity
                         res.dcaves = density
                     }

@@ -502,52 +502,11 @@ export class HUD {
 
             const desc = Qubatch.player.pickAt.targetDescription;
             const {relativePosToFlatIndexInChunk, relativePosToChunkIndex} = world.chunkManager.grid.math
-            this.block_text = null;
-            if (this.draw_block_info && desc) {
-                this.block_text = 'Targeted block Id: ' + desc.block.id +
-                    '\nName: ' + desc.material.name +
-                    '\nStyle: ' + desc.material.style_name +
-                    '\nWorld pos.: ' + desc.worldPos.toString() +
-                    `\nPos. in chunk: ${desc.posInChunk.toString()}, flat=${relativePosToFlatIndexInChunk(desc.posInChunk)},\n               ind=${relativePosToChunkIndex(desc.posInChunk)}` +
-                    '\nChunk addr.: ' + desc.chunkAddr.toString();
-                if (desc.material.ticking) {
-                    this.block_text += '\nTicking: ' + desc.material.ticking.type;
-                }
-                if (desc.block.rotate) {
-                    this.block_text += `\nrotate: ` + new Vector(desc.block.rotate);
-                }
-                if (desc.block.entity_id) {
-                    this.block_text += '\nentity_id: ' + desc.block.entity_id;
-                }
-                if (desc.caveLight !== undefined) {
-                    this.block_text += `\nCave light: ${desc.caveLight}`
-                    this.block_text += `\nDay light: ${desc.dayLight}`
-                }
-                const ed = desc.block.extra_data
-                if (ed) {
-                    this.block_text += '\nextra_data: ' + JSON.stringify(ed, null, 2)
-                }
-                if (desc.fluid) { // maybe unpack it
-                    this.block_text += '\nFluid: ' + desc.fluid;
-                    if ((desc.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
-                        this.block_text += ' water';
-                    }
-                    if ((desc.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
-                        this.block_text += ' lava';
-                    }
-                }
-                this.block_text += '\n'
-                if (desc?.material?.is_solid) {
-                    this.block_text += ' is_solid ';
-                }
-                if (desc?.material?.layering?.slab) {
-                    this.block_text += ' slab ';
-                }
-                this.block_text += '\n'
-            }
-
+            this.block_text = ''
             if (this.draw_block_info) {
-                this.block_text += '\n\nPlayer info: '
+
+                // Player info
+                this.block_text += 'Player info: '
                 const state = player.controlManager.prismarine.player_state
                 this.block_text += '\nvel: ' + state.vel
                 this.block_text += '\nGround: ' + state.onGround
@@ -555,7 +514,52 @@ export class HUD {
                 this.block_text += '\nisCollidedVertically: ' + state.isCollidedVertically
                 this.block_text += '\nsubmergedHeight: ' + state.submergedHeight
                 this.block_text += '\nLava: ' + state.isInLava + ' Water: ' + state.isInWater + ' Liquid: ' + state.isInLiquid
+
+                // Targeted block
+                if(desc) {
+                    this.block_text += '\n\nTargeted block Id: ' + desc.block.id +
+                        '\nName: ' + desc.material.name +
+                        '\nStyle: ' + desc.material.style_name +
+                        '\nWorld pos.: ' + desc.worldPos.toString() +
+                        `\nPos. in chunk: ${desc.posInChunk.toString()}, flat=${relativePosToFlatIndexInChunk(desc.posInChunk)},\n               ind=${relativePosToChunkIndex(desc.posInChunk)}` +
+                        '\nChunk addr.: ' + desc.chunkAddr.toString();
+                    if (desc.material.ticking) {
+                        this.block_text += '\nTicking: ' + desc.material.ticking.type;
+                    }
+                    if (desc.block.rotate) {
+                        this.block_text += `\nrotate: ` + new Vector(desc.block.rotate);
+                    }
+                    if (desc.block.entity_id) {
+                        this.block_text += '\nentity_id: ' + desc.block.entity_id;
+                    }
+                    if (desc.caveLight !== undefined) {
+                        this.block_text += `\nCave light: ${desc.caveLight}`
+                        this.block_text += `\nDay light: ${desc.dayLight}`
+                    }
+                    const ed = desc.block.extra_data
+                    if (ed) {
+                        this.block_text += '\nextra_data: ' + JSON.stringify(ed, null, 2)
+                    }
+                    if (desc.fluid) { // maybe unpack it
+                        this.block_text += '\nFluid: ' + desc.fluid;
+                        if ((desc.fluid & FLUID_TYPE_MASK) === FLUID_WATER_ID) {
+                            this.block_text += ' water';
+                        }
+                        if ((desc.fluid & FLUID_TYPE_MASK) === FLUID_LAVA_ID) {
+                            this.block_text += ' lava';
+                        }
+                    }
+                    this.block_text += '\n'
+                    if (desc?.material?.is_solid) {
+                        this.block_text += ' is_solid ';
+                    }
+                    if (desc?.material?.layering?.slab) {
+                        this.block_text += ' slab ';
+                    }
+                    this.block_text += '\n'
+                }
             }
+
         }
 
         // My XYZ

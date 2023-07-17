@@ -14,7 +14,9 @@ const _temp_chunk = {
     chunkManager: {
         grid: null
     }
-};
+}
+
+declare type IFunctionNoise2D = any // (x: float, z: float) => {}
 
 export class TerrainMapManagerBase implements ITerrainMapManager {
 
@@ -23,7 +25,7 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
     biomes:                 Biomes
     seed:                   string
     world_id:               string
-    noise2d:                any
+    noise2d:                IFunctionNoise2D
     noise3d:                any
     generator_options:      any
     float_seed:             any
@@ -37,8 +39,8 @@ export class TerrainMapManagerBase implements ITerrainMapManager {
         this.world = world;
         this.seed = seed;
         this.world_id = world_id;
-        this.noise2d = noise2d;
-        this.noise3d = noise3d;
+        this.noise2d = noise2d as IFunctionNoise2D
+        this.noise3d = noise3d
         this.block_manager = block_manager;
         this.layer = layer;
         this.maps_cache = new VectorCollector();

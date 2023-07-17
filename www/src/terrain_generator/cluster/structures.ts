@@ -15,12 +15,14 @@ export declare type IStructureList = {
 }[]
 
 const DEFAULT_STRUCTURE_LIST = [
-    {chance: .333, schemas: ['house_dwarf'], is_big: true, move: new Vector(128, -10, 128)},
+    {chance: .166, schemas: ['house_dwarf'], is_big: true, move: new Vector(128, -10, 128)},
+    {chance: .333, schemas: ['jungle_temple'], is_big: true, move: new Vector(128, 0, 128)},
     {chance: .667, schemas: ['underearth_rooms'], is_big: true, move: new Vector(128, 0, 128)},
     {chance: 1, schemas: [
         'structure1', 'structure2', 'mine', 'underearth_tower',
         'broken_castle', 'ornated_stone_tower_ruins',
-        'structure3', 'structure4', 'structure5', 'structure6', 'small_lake'
+        'structure3', 'structure4', 'structure5', 'structure6', 'small_lake', 'temple1',
+        'dungeons_tree', 'jungle_base', 'campsite'
     ]},
 ]
 
@@ -48,6 +50,7 @@ export class ClusterStructures extends ClusterBuildingBase {
             const item = structure_list[i]
             if(r < item.chance) {
                 structures = item
+                break
             }
         }
 

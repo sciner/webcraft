@@ -128,4 +128,78 @@ export class StringHelpers {
         return resp
     }
 
+    //
+    static objectToASCIITable(data : {}) : string {
+        const fields = {}
+        const fields_arr = []
+        let rows_count = 0
+        for(const [_, row] of Object.entries(data)) {
+            for(const [field_name, value] of Object.entries(row)) {
+                let field = fields[field_name]
+                if(!field) {
+                    field = {len: 0, name: field_name}
+                    fields[field_name] = field
+                    fields_arr.push(field)
+                }
+                const value_string = `${value}`
+                if(field.len < value_string.length) field.len = value_string.length
+                if(field.len < field_name.length) field.len = field_name.length
+            }
+            rows_count++
+        }
+        //
+        let table_width = 1
+        // | aaa | bbb | ccc | ddd |
+        for(const field of fields_arr) {
+            table_width += field.len + 3
+        }
+        const line_first = '.' + ('—'.repeat(table_width - 2)) + '.'
+        const line_last = '\'' + ('—'.repeat(table_width - 2)) + '\''
+        let line_middle = '|'
+            for(const field of fields_arr) {
+                line_middle += '—'.repeat(field.len + 2) + '|'
+            }
+        const lines = []
+        lines.push(line_first)
+        let fields_buf = []
+        function joinValue(value : string, field? : any, clear: boolean = false, right: boolean = false) {
+            if(clear) {
+                fields_buf = []
+            }
+            if(field) {
+                const spaces = ' '.repeat(Math.max(field.len + 2 - value.length, 0))
+                if(right) {
+                    value = spaces + value
+                } else {
+                    value = value + spaces
+                }
+            }
+            fields_buf.push(value)
+        }
+        // head
+        joinValue('|', undefined, true)
+        for(const field of fields_arr) {
+            joinValue(` ${field.name} `, field)
+            joinValue('|')
+        }
+        lines.push(fields_buf.join(''))
+        lines.push(line_middle)
+        // rows
+        let index = 0
+        for(const [_, row] of Object.entries(data)) {
+            joinValue('|', undefined, true)
+            for(const field of fields_arr) {
+                const value = `${row[field.name]}`
+                joinValue(` ${value} `, field, false, field.name != 'name')
+                joinValue('|')    
+            }
+            lines.push(fields_buf.join(''))
+            if(index++ < rows_count - 1) {
+                lines.push(line_middle)
+            }
+        }
+        lines.push(line_last)
+        return lines.join('\n')
+    }
+
 }

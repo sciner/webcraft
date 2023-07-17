@@ -1112,7 +1112,7 @@ export class Player implements IPlayer {
             // Внутри какого блока находится глаза
             const cam_pos           = this.getEyePos(true)
             const eye_y             = cam_pos.y;
-            this.headBlock          = this.world.chunkManager.getBlock(Math.floor(cam_pos.x), eye_y | 0, Math.floor(cam_pos.z))
+            this.headBlock          = this.world.chunkManager.getBlock(cam_pos.floored())
             this.#leg_block         = this.world.chunkManager.getBlock(this.pos.floored())
             this.#body_block        = this.world.chunkManager.getBlock(this.pos.floored().offset(0, 1, 0))
             this.eyes_in_block_o    = this.eyes_in_block;

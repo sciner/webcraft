@@ -1251,6 +1251,270 @@
                 "draw_natural_basement": true,
                 "air_column_from_basement": true
             }
+        },
+        {
+            "name": "jungle_temple",
+            "pos1": {
+                "x": -366,
+                "y": -15,
+                "z": 76
+            },
+            "pos2": {
+                "x": -435,
+                "y": 34,
+                "z": 7
+            },
+            "entrance": {
+                "x": -400,
+                "y": 1,
+                "z": 76
+            },
+            "meta": {
+                "dt": "2023-07-16T15:19:43.811Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true,
+                "draw": [
+                    {
+                        "when": {
+                            "biome_is_sand": true
+                        },
+                        "replace_blocks": [
+                            {
+                                "from": [
+                                    "MYCELIUM",
+                                    "POLISHED_ANDESITE",
+                                    "STONE_BRICKS"
+                                ],
+                                "to": {
+                                    "name": "CUT_SANDSTONE"
+                                }
+                            },
+                            {
+                                "from": [
+                                    "STONE",
+                                    "MOSSY_STONE_BRICKS"
+                                ],
+                                "to": {
+                                    "name": "SANDSTONE"
+                                }
+                            },
+                            {
+                                "from": [
+                                    "STONE_BRICK_STAIRS"
+                                ],
+                                "to": {
+                                    "name": "SANDSTONE_STAIRS"
+                                }
+                            },
+                            {
+                                "from": [
+                                    "MOSSY_COBBLESTONE_WALL",
+                                    "COBBLESTONE_WALL"
+                                ],
+                                "to": {
+                                    "name": "SANDSTONE_WALL"
+                                }
+                            },
+                            {
+                                "from": [
+                                    "DARK_PRISMARINE",
+                                    "MOSSY_COBBLESTONE"
+                                ],
+                                "to": {
+                                    "name": "RED_SANDSTONE"
+                                }
+                            },
+                            {
+                                "from": [
+                                    "NETHER_BRICK_FENCE"
+                                ],
+                                "to": {
+                                    "name": "JUNGLE_FENCE"
+                                }
+                            },
+                            {
+                                "from": [
+                                    "STONE_BRICK_SLAB"
+                                ],
+                                "to": {
+                                    "name": "SANDSTONE_SLAB"
+                                }
+                            },
+                            {
+                                "from": [
+                                    "STONE_SLAB"
+                                ],
+                                "to": {
+                                    "name": "CUT_SANDSTONE_SLAB"
+                                }
+                            },
+                            {
+                                "from": [
+                                    "VINE"
+                                ],
+                                "to": null
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "temple1",
+            "pos1": {
+                "x": -437,
+                "y": -12,
+                "z": 26
+            },
+            "pos2": {
+                "x": -456,
+                "y": 9,
+                "z": 8
+            },
+            "entrance": {
+                "x": -446,
+                "y": 1,
+                "z": 26
+            },
+            "meta": {
+                "dt": "2023-07-16T17:04:46.702Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
+        },
+        {
+            "name": "dungeons_tree",
+            "pos1": {
+                "x": -460,
+                "y": -4,
+                "z": 55
+            },
+            "pos2": {
+                "x": -505,
+                "y": 72,
+                "z": 8
+            },
+            "entrance": {
+                "x": -482,
+                "y": 1,
+                "z": 55
+            },
+            "meta": {
+                "dt": "2023-07-16T19:26:54.832Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true,
+                "draw": [
+                    {
+                        "when": {
+                            "biome_is_snowy": true
+                        },
+                        "replace_blocks": [
+                            {
+                                "from": [
+                                    "OAK_LOG"
+                                ],
+                                "to": {
+                                    "name": "SPRUCE_LOG"
+                                }
+                            },
+                            {
+                                "from": [
+                                    "OAK_LEAVES"
+                                ],
+                                "to": {
+                                    "name": "SPRUCE_LEAVES"
+                                }
+                            },
+                            {
+                                "from": [
+                                    "OAK_PLANKS"
+                                ],
+                                "to": {
+                                    "name": "SPRUCE_PLANKS"
+                                }
+                            },
+                            {
+                                "from": [
+                                    "OAK_SLAB"
+                                ],
+                                "to": {
+                                    "name": "SPRUCE_SLAB"
+                                }
+                            },
+                            {
+                                "from": [
+                                    "OAK_FENCE"
+                                ],
+                                "to": {
+                                    "name": "SPRUCE_FENCE"
+                                }
+                            },
+                            {
+                                "from": [
+                                    "OAK_STAIRS"
+                                ],
+                                "to": {
+                                    "name": "SPRUCE_STAIRS"
+                                }
+                            },
+                            {
+                                "from": [
+                                    "OAK_PRESSURE_PLATE"
+                                ],
+                                "to": {
+                                    "name": "SPRUCE_PRESSURE_PLATE"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "jungle_base",
+            "pos1": {
+                "x": -507,
+                "y": -32,
+                "z": 35
+            },
+            "pos2": {
+                "x": -541,
+                "y": 5,
+                "z": 7
+            },
+            "entrance": {
+                "x": -524,
+                "y": 1,
+                "z": 35
+            },
+            "meta": {
+                "dt": "2023-07-16T22:12:42.534Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": false
+            }
+        },
+        {
+            "name": "campsite",
+            "pos1": {
+                "x": -543,
+                "y": 0,
+                "z": 21
+            },
+            "pos2": {
+                "x": -556,
+                "y": 7,
+                "z": 7
+            },
+            "entrance": {
+                "x": -549,
+                "y": 1,
+                "z": 21
+            },
+            "meta": {
+                "dt": "2023-07-16T23:20:34.969Z",
+                "draw_natural_basement": true,
+                "air_column_from_basement": true
+            }
         }
     ]
 }

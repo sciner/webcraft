@@ -765,10 +765,10 @@ export class SchematicReader {
                     // vine
                     if(b.name == 'VINE') {
                         // _properties: { west: false, up: false, south: false, north: true, east: false }
-                        new_block.rotate = new Vector(0, 0, 0);
-                        for(let f of facings6) {
-                            if(f in props && props[f]) {
-                                new_block.rotate.x = (facings6.indexOf(f) + 2) % 4;
+                        setExtraData('rotate', false)
+                        for(const [side_name, value] of Object.entries(props)) {
+                            if(value) {
+                                setExtraData(facings4[(facings4.indexOf(side_name) + 2) % 4], value)
                             }
                         }
                     } else {

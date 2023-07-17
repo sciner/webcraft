@@ -171,6 +171,8 @@ export class ClusterBuildingBase extends ClusterBase {
             return
         }
 
+        const that = this
+
         // если строение частично или полностью находится в этом чанке
         const buildingIntersects = building.aabb.intersect(chunk.aabb)
 
@@ -185,7 +187,88 @@ export class ClusterBuildingBase extends ClusterBase {
         }
         // draw building
         if (buildingIntersects) {
-            building.draw(this, chunk, map)
+            building.draw(this, chunk, map, (chunk : ChunkWorkerChunk, x : int, y : int, z : int, block_id: int, rotate? : Vector, extra_data? : any, mat : IBlockMaterial = null, check_is_solid? : boolean, destroy_fluid? : boolean) => {
+                const {biome, building_template} = building
+                const building_template_name = building_template.name
+                const bm = chunk.chunkManager.block_manager
+                const draws = building.building_template.meta?.draw
+                let replace = false
+
+                // Замены указанные в структуре
+                // TODO: Вынести в отдельный класс и вообще это нужно отрефакторить, сделано, чтобы просто работало
+                if(mat && draws) {
+                    for(const draw of draws) {
+                        const when = draw.when
+                        if((when.biome_is_sand && biome.is_sand) || (when.biome_is_snowy && biome.is_snowy)) {
+                            if(draw.replace_blocks) {
+                                for(const rb of draw.replace_blocks) {
+                                    if(!rb.from_id) {
+                                        rb.from_id = []
+                                        for(const replace_block_name of rb.from) {
+                                            const block = bm.fromName(replace_block_name)
+                                            if(block) {
+                                                rb.from_id.push(block.id)
+                                            } else {
+                                                console.error(`error_replace_block_not_found|${building_template_name}`, replace_block_name)
+                                            }
+                                        }
+                                        // 
+                                        if(rb.to) {
+                                            const block_to = bm.fromName(rb.to.name)
+                                            if(block_to) {
+                                                rb.to.id = block_to.id
+                                            } else {
+                                                throw(`error_replace_block_not_found|${rb.to.name}`)
+                                            }
+                                        }
+                                    }
+                                    if(rb.from_id.length > 0) {
+                                        if(rb.from_id.includes(mat.id)) {
+                                            replace = true
+                                            if(!rb.to) {
+                                                return false
+                                            }
+                                            block_id = rb.to.id
+                                            break
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if(replace) {
+                        chunk.setBlockIndirect(x, y, z, block_id, rotate, extra_data, undefined, undefined, check_is_solid, destroy_fluid)
+                        return false
+                    }
+                }
+
+                // Общие замены
+                if(biome?.is_snowy) {
+                    let replace = false
+                    switch(mat?.name) {
+                        case 'VINE': {
+                            chunk.setBlockIndirect(x, y, z, bm.fromName('ICE').id, null, null, undefined, undefined, check_is_solid, destroy_fluid)
+                            return false
+                        }
+                        case 'JUNGLE_LOG': {
+                            replace = true
+                            block_id = bm.fromName('SPRUCE_LOG').id
+                            break
+                        }
+                        case 'JUNGLE_LEAVES': {
+                            replace = true
+                            block_id = bm.fromName('SPRUCE_LEAVES').id
+                            break
+                        }
+                    }
+                    if(replace) {
+                        chunk.setBlockIndirect(x, y, z, block_id, rotate, extra_data, undefined, undefined, check_is_solid, destroy_fluid)
+                        return false
+                    }
+                }
+
+                return true
+            })
         }
     }
 

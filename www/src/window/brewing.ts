@@ -4,7 +4,6 @@ import { BaseChestWindow } from "./base_chest_window.js";
 import { INGAME_MAIN_HEIGHT, INGAME_MAIN_WIDTH } from "../constant.js";
 
 export class BrewingWindow extends BaseChestWindow {
-    [key: string]: any;
 
     constructor(inventory) {
 
@@ -26,6 +25,10 @@ export class BrewingWindow extends BaseChestWindow {
         resp.push({pos: new Vector(204 * this.zoom, 101 * this.zoom, 0)});
         resp.push({pos: new Vector(157 * this.zoom, 115 * this.zoom, 0)});
         resp.push({pos: new Vector(110 * this.zoom, 101 * this.zoom, 0)});
+        for(const slot of resp) {
+            slot.pos.x += 100
+            slot.pos.y += 100
+        }
         return resp;
     }
 

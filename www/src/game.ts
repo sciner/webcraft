@@ -1,7 +1,7 @@
 import { World } from "./world.js";
 import { Renderer } from "./render.js";
 import { DEFAULT_FOV_NORMAL, ZOOM_FACTOR } from "./game_camera.js";
-import { AverageClockTimer, isMobileBrowser, Mth, Vector} from "./helpers.js";
+import { AverageClockTimer, isMobileBrowser, Mth, StringHelpers, Vector} from "./helpers.js";
 import { BLOCK } from "./blocks.js";
 import { Resources } from "./resources.js";
 import { Sounds } from "./sounds.js";
@@ -921,14 +921,13 @@ export class GameClass {
         }
         for(var name in timers) {
             const tim = timers[name];
-            delete(tim.name)
             tim.avg = tim.cnt_more_zero > 0 ? round(tim.total / tim.cnt_more_zero) : -1;
             tim.total = round(tim.total)
             tim.min = round(tim.min)
             tim.max = round(tim.max)
             tim.cnt = cnt;
         }
-        console.table(timers);
+        console.log(StringHelpers.objectToASCIITable(timers))
     }
 
     //

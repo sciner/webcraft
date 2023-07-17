@@ -959,8 +959,10 @@ export class BLOCK {
                 block.tags.push('swinging_in_the_wind')
             }
         }
-        if(block.aabb_size) {
-            block.aabb_size = new Vector().copyFrom(block.aabb_size)
+        if(block.aabb) {
+            if(!Array.isArray(block.aabb) || block.aabb.length != 6) {
+                throw 'error_block_aabb'
+            }
         }
         if (block.chest) {
             /* Properties:
