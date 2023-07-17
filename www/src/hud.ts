@@ -532,9 +532,6 @@ export class HUD {
                     if (desc.block.entity_id) {
                         this.block_text += '\nentity_id: ' + desc.block.entity_id;
                     }
-                    if (desc.material.is_solid) {
-                        this.block_text += ' is_solid ';
-                    }
                     if (desc.caveLight !== undefined) {
                         this.block_text += `\nCave light: ${desc.caveLight}`
                         this.block_text += `\nDay light: ${desc.dayLight}`
@@ -552,6 +549,14 @@ export class HUD {
                             this.block_text += ' lava';
                         }
                     }
+                    this.block_text += '\n'
+                    if (desc?.material?.is_solid) {
+                        this.block_text += ' is_solid ';
+                    }
+                    if (desc?.material?.layering?.slab) {
+                        this.block_text += ' slab ';
+                    }
+                    this.block_text += '\n'
                 }
             }
 
