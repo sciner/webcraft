@@ -156,7 +156,7 @@ export class WorldGenerators {
         if('options' in params) {
             for(let name in params.options) {
                 if(!(name in generator.options)) {
-                    console.error('error_unknown_generator_option');
+                    console.error('error_unknown_generator_option ' + name);
                     continue;
                 }
                 const option = generator.options[name];
