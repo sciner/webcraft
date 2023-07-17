@@ -3,7 +3,7 @@ import { Button, Label, Window, TextEdit } from "../ui/wm.js";
 // import { SpriteAtlas } from "../core/sprite_atlas.js";
 import { BlankWindow } from "./blank.js";
 import { getBlockImage } from "./tools/blocks.js";
-import type { RecipeManager } from "../recipes.js";
+import type { Recipe, RecipeManager } from "../recipes.js";
 import { Resources } from "../resources.js";
 import { UI_THEME } from "../constant.js";
 import { Lang } from "../lang.js";
@@ -13,6 +13,7 @@ import type {BaseCraftWindow} from "./base_craft_window.js";
 export class RecipeSlot extends Window {
 
     hud_atlas : SpriteAtlas
+    can_make: boolean
     declare ct? : RecipeWindow
 
     constructor(x : int, y : int, w : int, h : int, id : string, title : string | null, text : string | null, recipe : any, block : any, ct : RecipeWindow) {
@@ -54,7 +55,7 @@ export class RecipeSlot extends Window {
         ct.craft_window.onInventoryChange('autoRecipe')
     }
 
-    canMake(recipe) {
+    canMake(recipe : Recipe) {
         // TODO: Mayby need to replace Qubatch.player.inventory to this.ct?
         return Qubatch.player.inventory.hasResources(recipe.need_resources,
             this.ct.craft_window.craft.slots.length).missing.length == 0
@@ -141,6 +142,8 @@ export class RecipeWindow extends BlankWindow {
         // кнопки пагинатора
         this.addPaginatorButtons()
 
+        // this.addToggleButton()
+
     }
 
     onShow(args) {
@@ -155,26 +158,21 @@ export class RecipeWindow extends BlankWindow {
         this.craft_window = w;
     }
 
-    async addToggleButton() {
+    addToggleButton() {
 
         const self = this
-        const btnFilter = new Button(220 * this.zoom, 22 * this.zoom, 50 * this.zoom, 30 * this.zoom, 'btnFilter', Lang.only_can)
+        const btnFilter = new Button(190 * this.zoom, 35 * this.zoom, 50 * this.zoom, 20 * this.zoom, 'btnFilter', Lang.only_can)
+        btnFilter.style.border.hidden = true
+        btnFilter.style.font.size = 10
 
-        // this.atlas.getSprite(608, 162, 106, 67).then(image => {
+        btnFilter.onMouseDown = async function(e) {
+            self.only_can = !self.only_can
+            // btnFilter.setBackground(await self.atlas.getSprite(self.only_can ? 719 : 608, 162, 106, 67), 'none', self.zoom / 2)
+            self.createRecipes();
+            self.paginator.update()
+        }
 
-            // btnFilter.setBackground(image, 'none', self.zoom / 2)
-            btnFilter.style.border.hidden = true
-
-            btnFilter.onMouseDown = async function(e) {
-                self.only_can = !self.only_can
-                // btnFilter.setBackground(await self.atlas.getSprite(self.only_can ? 719 : 608, 162, 106, 67), 'none', self.zoom / 2)
-                self.createRecipes();
-                self.paginator.update()
-            }
-
-            this.add(btnFilter)
-
-        // })
+        this.add(btnFilter)
 
     }
 
@@ -255,7 +253,7 @@ export class RecipeWindow extends BlankWindow {
             }
         }
 
-        const canMake = (recipes) => {
+        const canMake = (recipes) : boolean => {
             for(const recipe of [recipes, ...recipes.subrecipes]) {
                 // TODO: Mayby need to replace Qubatch.player.inventory to ct?
                 if(Qubatch.player.inventory.hasResources(recipe.need_resources,
@@ -294,10 +292,14 @@ export class RecipeWindow extends BlankWindow {
             }
         }
 
+        const can_makes = []
+        const not_can_makes = []
+
         const tmp_recipes = [];
         for(const index in list) {
             const recipe = list[index];
-            if (!canMake(recipe) && this.only_can) {
+            const can_make = canMake(recipe)
+            if (!can_make && this.only_can) {
                 continue;
             }
             if (!recipe.adaptivePatterns[size].length) {
@@ -309,8 +311,14 @@ export class RecipeWindow extends BlankWindow {
                     continue;
                 }
             }
-            tmp_recipes.push(recipe);
+            if(can_make) {
+                can_makes.push(recipe)
+            } else {
+                not_can_makes.push(recipe)
+            }
         }
+        
+        tmp_recipes.push(...can_makes, ...not_can_makes)
 
         this.items_count = tmp_recipes.length;
 
