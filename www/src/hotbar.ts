@@ -21,6 +21,67 @@ for(let i = 0; i < LIVE_SHIFT_RANDOM.length; i++) {
     LIVE_SHIFT_RANDOM[i] = Math.round(Math.random());
 }
 
+class Effects {
+    private windows = []
+    private effects = {}
+    private wm
+    constructor(wm) {
+        this.wm = wm
+        this.wm.style.background.color = '#ff0000ff'
+    }
+    setEffect(effects) {
+        let count = 0
+        for (const effect of effects) {
+            if (!this.windows[count])  {
+                const test = new Label(100, 1, 100, 100, 'wndEffect'+effect.id, effect.id + ' ' + effect.time, effect.id + ' ' + effect.time)
+                test.style.background.color = '#ff0000ff'
+                test.move(-250, 50)
+                this.windows.push(test)
+                this.wm.add(test)
+            }  else {
+                this.windows[count].setText(effect.id + ' ' + effect.time)
+            }
+            count++
+        }
+        // удаляем ненужные
+        for (let i = count; i < this.windows.length; i++) {
+            //console.log()
+        }
+
+        //for (const window of this.windows) {
+            
+        //}
+            /*let finded = null
+            for (const effect of effects) {
+                if (effect.id == i) {
+                    const window = this.wm.getWindow('lblEffect'+i)
+                    if (window) {
+                        window.setText(effect.id + ' ' + effect.)
+                    }
+                }
+            }*/
+    
+       // console.log(effects)
+       // for (const effect of effects) {
+            //if ()
+       // }
+       /* if (this.effects[id] ) {
+            this.effects[id].setText('test' + id + ' ' + time)
+        } else {
+            this.effects[id] = new Label(1, 1, 100, 100, 'frmMainMenu11', 'fghfhfh', 'fghfhfghfgh')
+            this.wm.add(this.effects[id]) 
+        }*/
+    }
+    update() {
+        let sx = 0
+        this.wm.visible = true
+        for (const id in this.windows) {
+            this.windows[id].visible = true
+            this.windows[id].move(50, 50)
+        }
+    }
+}
+
 //
 class Strings {
 
@@ -115,6 +176,7 @@ export class Hotbar {
         this.hud                = hud
         this.last_damage_time   = null
         this.strings            = new Strings()
+        this.effects            = new Effects(this.hud.test)
         this.sprite_zoom        = .3 * this.zoom
 
         // Load hotbar atlases
@@ -182,6 +244,8 @@ export class Hotbar {
             this.sprite_effect_bg = new MySprite(bn_atlas.getSpriteFromMap('button_black'), 1 * this.zoom)
 
             this.hud.add(this, 0)
+
+            //this.addEffect()
 
         })
 
@@ -529,7 +593,7 @@ export class Hotbar {
             hotbar_height = sy
         }
 
-        this.drawEffects(hud)
+        this.effects.update()
 
         // Draw strings
         this.lblHotbarText.w = hud.width
@@ -546,7 +610,7 @@ export class Hotbar {
 
 
     drawEffects(hud) {
-        const margin = 4 * this.zoom
+        /*const margin = 4 * this.zoom
         let pos = margin
         const bg = this.sprite_effect_bg
         for(let effect of this.inventory.player.effects.effects) {
@@ -558,11 +622,18 @@ export class Hotbar {
             this.tilemap.drawImage(bg, x, y)
             this.tilemap.drawImage(sprite, x + paddingx, y + paddingy)
             pos += margin + bg.width
-        }
+        }*/
     }
 
     onInventoryChange(context?: string): void {
         // ничего - для совместимости с другими окнами, содержащими слоты
+    }
+
+    addEffect() {
+        const bn_atlas = Resources.atlas.get('bn')
+        const test = new Label(1, 1, 100, 100, 'frmMainMenu11', 'fghfhfh', 'fghfhfghfgh')
+        test.setBackground(bn_atlas.getSpriteFromMap('button_black'))
+        this.hud.wm.add(test)
     }
 
 }

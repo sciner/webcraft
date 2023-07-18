@@ -246,6 +246,7 @@ export class HUD {
 
         // Init Window Manager
         const wm = this.wm = new WindowManager(this.canvas, 0, 0, this.canvas.width, this.canvas.height)
+        this.test = new WindowManager(this.canvas, 0, 0, 40, this.canvas.height)
 
         this.underlay = new HUD_Underlay();
         this.underlay.crosshair_num = Qubatch.settings.crosshair_style
@@ -267,7 +268,6 @@ export class HUD {
 
         // Splash screen (Loading...)
         this.splash = new Splash(this, hudwindow)
-
     }
 
     get width() : float {
