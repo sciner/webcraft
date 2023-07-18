@@ -18,7 +18,7 @@ import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
 import type { PlayerStateWorld, TSittingState, TSleepState} from "./player.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
-import {BACK_NEIGBOUR_BY_DIRECTION, type TChestInfo} from "./block_helpers.js";
+import type { TChestInfo } from "./block_helpers.js";
 import type { GameMode } from "./game_mode.js";
 
 /** A type that is as used as player in actions. */
@@ -3149,22 +3149,18 @@ function addRopeLadder(e, world, pos, player, world_block, world_material, mat_b
 
     const position = new Vector(pos)
     // находим конец лесенки
-    let block_ladder = null
-    for (let h = 0; h < 256; h++) {
-        block_ladder = world.getBlock(position)
-        if (block_ladder?.id != world_block.id) {
+    let block = null
+    for (let h = 0; h < 255; h++) {
+        block = world.getBlock(position)
+        if (block?.id != world_block.id) {
             break
         }
         position.y--
     }
     // если место свободно, то ставим блок
-    if (block_ladder?.id == 0 && block_ladder.fluid == 0) {
-        const dir = BACK_NEIGBOUR_BY_DIRECTION[rotate.x]
-        const block = world.getBlock(position.add(dir))
-        if (block?.material?.is_solid) {
-            actions.addBlocks([{pos: position, item: {id: world_block.id, rotate}, action_id: BLOCK_ACTION.CREATE}])
-            return true
-        }
+    if (block?.id == 0 && block.fluid == 0) {
+        actions.addBlocks([{pos: position, item: {id: world_block.id, rotate}, action_id: BLOCK_ACTION.CREATE}])
+        return true
     } 
 
     return false

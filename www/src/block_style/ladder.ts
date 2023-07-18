@@ -27,7 +27,7 @@ export default class style {
         const cardinal_direction = tblock.getCardinalDirection()
         const width = 3 / 15.9
         return [
-            new AABB(0, 0, 0, 1, 1, width).rotate(cardinal_direction, Vector.SHAPE_PIVOT)
+            new AABB(0, 0, for_physic ? 0.3 : 0, 1, 1, width).rotate(cardinal_direction, Vector.SHAPE_PIVOT)
         ]
     }
 
