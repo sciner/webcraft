@@ -3160,6 +3160,7 @@ function addRopeLadder(e, world, pos, player, world_block, world_material, mat_b
     // если место свободно, то ставим блок
     if (block?.id == 0 && block.fluid == 0) {
         actions.addBlocks([{pos: position, item: {id: world_block.id, rotate}, action_id: BLOCK_ACTION.CREATE}])
+        actions.decrement = true
         return true
     } 
 

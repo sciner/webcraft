@@ -1070,7 +1070,7 @@ export class ServerChunk {
             } else  if (bm.ROPE_LADDER.id == tblock.id && neighbourPos.y > pos.y) {
                 const dir = BACK_NEIGBOUR_BY_DIRECTION[tblock.rotate.x]
                 const base = this.getBlock(tblock.posworld.add(dir), null, null, null, true)
-                if (base.id == 0 && base.fluid == 0) {
+                if (base && !base?.material?.is_solid) {
                     return createDrop(tblock, true);
                 }
             }
