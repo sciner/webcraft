@@ -833,6 +833,10 @@ export class ChunkWorkerChunk implements IChunk {
                         const relIndex = block.extra_data?.relindex
                         if (relIndex >= 0) {
                             relIndexToPos(relIndex, tmpRelVector);
+                            const rot = block.rotate
+                            if (rot) {
+                                tmpRelVector.rotateByCardinalDirectionSelf(rot.x);
+                            }
                             tmpRelVector.addScalarSelf(x, y, z);
                             const ind = grid.getNeibChunkDeltaIndex(tmpRelVector);
                             if (ind !== SAME_CHUNK)
