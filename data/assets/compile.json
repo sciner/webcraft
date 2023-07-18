@@ -13797,6 +13797,29 @@
             ],
             "aabb": [0, 8, 0, 16, 16, 16],
             "composter_chance": 0.65
+        },
+        {
+            "id": 1123,
+            "name": "ROPE_LADDER",
+            "width": 0.0625,
+            "align": [
+                "back"
+            ],
+            "style": "ladder",
+            "inventory_style": "extruder",
+            "transparent": true,
+            "sound": "madcraft:block.wood",
+            "material": {
+                "id": "wood"
+            },
+            "texture": {
+                "side": "./textures/rope_ladder.png"
+            },
+            "tags": [
+                "ladder",
+                "rotate_by_pos_n_5"
+            ],
+            "can_rotate": true
         }
     ]
 }

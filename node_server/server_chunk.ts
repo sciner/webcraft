@@ -1,7 +1,7 @@
 import { CHUNK_STATE } from "@client/chunk_const.js";
 import { BLOCK_ACTION, ServerClient } from "@client/server_client.js";
 import { DIRECTION, IndexedColor, SIX_VECS, Vector, VectorCollector } from "@client/helpers.js";
-import { ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "@client/block_helpers.js";
+import { BACK_NEIGBOUR_BY_DIRECTION, ChestHelpers, RIGHT_NEIGBOUR_BY_DIRECTION } from "@client/block_helpers.js";
 import { newTypedBlocks, TBlock, TypedBlocks3 } from "@client/typed_blocks3.js";
 import {dropBlock, TActionBlock, WorldAction} from "@client/world_action.js";
 import { BLOCK_SUPPORT_STYLE, COVER_STYLE_SIDES, DEFAULT_MOB_TEXTURE_NAME, MOB_TYPE } from "@client/constant.js";
@@ -1067,6 +1067,12 @@ export class ServerChunk {
 
             if (bm.SNOW.id == tblock.id  && neighbourPos.y < pos.y) {
                 return createDrop(tblock, true);
+            } else  if (bm.ROPE_LADDER.id == tblock.id && neighbourPos.y > pos.y) {
+                const dir = BACK_NEIGBOUR_BY_DIRECTION[tblock.rotate.x]
+                const base = this.getBlock(tblock.posworld.add(dir), null, null, null, true)
+                if (base && !base?.material?.is_solid) {
+                    return createDrop(tblock, true);
+                }
             }
 
             switch(require_support) {
