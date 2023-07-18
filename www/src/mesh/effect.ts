@@ -52,6 +52,7 @@ export class Mesh_Effect {
         this.add_index      = 0;
         this.vertices       = new Array(this.max_count * STRIDE_FLOATS);
         this.buffer         = new TerrainGeometry15(new Float32Array(this.vertices));
+        this.buffer.buffer.static = false;
         this.p_count        = 0;
 
     }
@@ -168,6 +169,7 @@ export class Mesh_Effect {
         //}
 
         //
+        let maxIndex = 0;
         for(let i = 0; i < vertices.length; i += STRIDE_FLOATS) {
 
             const particle = vertices[i + particle_offset];
@@ -191,11 +193,10 @@ export class Mesh_Effect {
             // data[i + 8] = this.vertices[i + 8];
             data[i + 3] = this.vertices[i + 3] * scale;
             data[i + 8] = this.vertices[i + 8] * scale;
-
+            maxIndex = i;
         }
 
-        this.buffer.updateInternal(data);
-
+        this.buffer.updateInternal(data, maxIndex / STRIDE_FLOATS + 1);
     }
 
     /**
