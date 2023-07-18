@@ -13812,7 +13812,7 @@
                 "id": "wood"
             },
             "texture": {
-                "side": "block/ladder.png"
+                "side": "./textures/rope_ladder.png"
             },
             "tags": [
                 "ladder",
