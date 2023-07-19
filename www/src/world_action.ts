@@ -13,10 +13,10 @@ import {
     FLUID_WATER_ID,
     FLUID_TYPE_MASK, isFluidId
 } from "./fluid/FluidConst.js";
-import { BLOCK_FLAG, COVER_STYLE_SIDES, DEFAULT_STYLE_NAME, SIGN_POSITION, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR } from "./constant.js";
+import { BLOCK_FLAG, COVER_STYLE_SIDES, DEFAULT_STYLE_NAME, INDICATOR_MAX_VALUE, SIGN_POSITION, VOLUMETRIC_SOUND_ANGLE_TO_SECTOR } from "./constant.js";
 import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
-import type { PlayerStateWorld, TSittingState, TSleepState} from "./player.js";
+import type { Indicators, PlayerStateWorld, TSittingState, TSleepState} from "./player.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
 import type { TChestInfo } from "./block_helpers.js";
 import type { GameMode } from "./game_mode.js";
@@ -33,7 +33,8 @@ export type ActionPlayerInfo = {
     world           : PlayerStateWorld,
     session: {
         user_id: number
-    }
+    },
+    indicators      : Indicators
 }
 
 declare type PlaySoundParams = {
@@ -2021,6 +2022,7 @@ function goToBed(e, world, pos, player, world_block, world_material, mat_block, 
 
 // Eat cake
 function eatCake(e, world, pos, player, world_block, world_material, mat_block, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+
     const eatCake = !e.shiftKey && world_material && (world_material.tags.includes('cake'));
     if(!eatCake) {
         return false;
@@ -2028,7 +2030,7 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
     if(!extra_data || typeof extra_data.pieces == 'undefined') {
         extra_data = {...world_material.extra_data};
     }
-    if(extra_data?.pieces) {
+    if(extra_data?.pieces && player.indicators.food < INDICATOR_MAX_VALUE) {
         extra_data.pieces--;
         if(extra_data.pieces == 0) {
             actions.addBlocks([{pos: new Vector(pos), item: {id: BLOCK.AIR.id}, destroy_block: {id: world_material.id}, action_id: BLOCK_ACTION.DESTROY}]);
@@ -2038,12 +2040,13 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
             actions.reset_mouse_actions = true;
             actions.addPlaySound({tag: 'madcraft:block.player', action: 'eat', pos: new Vector(pos), except_players: [player.session.user_id]});
         }
-        const server_player = world.players.get(player.session.user_id);
-        if (server_player.damage) {
+        if (Qubatch.is_server) {
+            const server_player = world.players.get(player.session.user_id)
             server_player.setFoodLevel(world_material.food.amount, world_material.food.saturation)
         }
+        return true
     }
-    return true;
+    return false
 }
 
 /**

@@ -4,7 +4,7 @@ import { Resources } from "./resources.js";
 
 import { Effect } from "./block_type/effect.js";
 import { CraftTableInventorySlot } from "./window/base_craft_window.js";
-import { BAG_LINE_COUNT, HOTBAR_LENGTH_MAX, PAPERDOLL_BOOTS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, PAPERDOLL_LEGGINGS } from "./constant.js";
+import { BAG_LINE_COUNT, HOTBAR_LENGTH_MAX, INDICATOR_MAX_VALUE, PAPERDOLL_BOOTS, PAPERDOLL_CHESTPLATE, PAPERDOLL_HELMET, PAPERDOLL_LEGGINGS } from "./constant.js";
 import type { SpriteAtlas } from "./core/sprite_atlas.js";
 import type { HUD } from "./hud.js";
 import type { PlayerInventory } from "./player_inventory.js";
@@ -441,14 +441,14 @@ export class Hotbar {
             const live = player.indicators.live
             if(this.bars.hp.prev_value !== live) {
                 this.bars.hp.prev_value = live
-                this.bars.hp.clip(0, 0, this.bars.hp.w * (live / 20.))
+                this.bars.hp.clip(0, 0, this.bars.hp.w * (live / INDICATOR_MAX_VALUE))
             }
 
             // еда
             const food = player.indicators.food
             if(this.bars.hunger.prev_value !== food) {
                 this.bars.hunger.prev_value = food
-                this.bars.hunger.clip(0, 0, this.bars.hunger.w * (food / 20.))
+                this.bars.hunger.clip(0, 0, this.bars.hunger.w * (food / INDICATOR_MAX_VALUE))
             }
 
             // const x = MARGIN * this.zoom
@@ -475,7 +475,7 @@ export class Hotbar {
 
             // кислород
             const oxygen = player.indicators.oxygen
-            const oxygen_max = 20
+            const oxygen_max = INDICATOR_MAX_VALUE
             this.oxygen_bar.visible = oxygen < oxygen_max
             if (this.oxygen_bar.visible) {
                 // this.drawStrip(hud.width / 2 + right,  hud.height - bottom_two_line, oxygen, this.sprites.oxygen, this.sprites.oxygen_half, null, null, false, false, true)

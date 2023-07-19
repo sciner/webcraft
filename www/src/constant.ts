@@ -474,6 +474,9 @@ export const WORLD_TYPE_BUILDING_SCHEMAS    = 2;
 // attack
 export const ATTACK_COOLDOWN                = 500
 
+// indicator
+export const INDICATOR_MAX_VALUE            = 20
+
 // demo media files
 export const DEMO_PATH                     = `../www/media/demo/`
 

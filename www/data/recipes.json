@@ -1943,28 +1943,7 @@
                 "item": "special:stick"
             },
             "@": {
-                "item": "special:string"
-            }
-        },
-        "result": {
-            "item": "madcraft:rope_ladder",
-            "count": 2
-        }
-    },
-    {
-        "id": "8afbc944-a246-4f81-ae30-c08f420e3c97",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "@-@",
-            "@-@",
-            "@-@"
-        ],
-        "key": {
-            "-": {
-                "item": "special:stick"
-            },
-            "@": {
-                "item": "special:vine"
+                "item": ["special:string", "special:vine"]
             }
         },
         "result": {
