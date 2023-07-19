@@ -544,7 +544,8 @@ export class InHandOverlay {
                         }
                         case ItemUseAnimation.EAT:
                         case ItemUseAnimation.DRINK: {
-                            this.applyFoodAnimation(modelMatrix, matInHand, pSwingProgress);
+                            this.applyItemArmTransform(modelMatrix, humanoidarm, pEquippedProgress);
+                            this.applyFoodAnimation(modelMatrix, humanoidarm, matInHand, pSwingProgress);
                             isEating = true;
                             break;
                         }
@@ -743,15 +744,26 @@ export class InHandOverlay {
     }
     */
 
-    applyFoodAnimation(modelMatrix, matInHand, pSwingProgress) {
+    applyFoodAnimation(modelMatrix, hand: HumanoidArm, matInHand, pSwingProgress: float): void {
+        // параметры анимации
+        const MOVE_TO_CENTER    = 0.15
+        const MOVE_UP           = 0.2
+        const BITES_PER_SECOND  = 5
+        const BITES_AMPLITUDE   = 0.15
+
+        const sign = hand === HumanoidArm.RIGHT ? 1 : -1
         const duration = matInHand.getUseDuration();
-        const haslfPeriods = Math.round(6 * (duration / 1000));
-        const absSine = Math.abs(Math.sin(pSwingProgress * Math.PI * haslfPeriods));
+        const halfPeriods = Math.round(BITES_PER_SECOND * (duration / 1000));
+        const absSine = Math.abs(Math.sin(pSwingProgress * Math.PI * halfPeriods));
         const absSineWithStops = Math.max(absSine - 0.1, 0);
-        const fade = Math.pow(Math.min(1, Math.min(pSwingProgress, 1 - pSwingProgress) * 10), 0.5);
-        const trig = 1 - Math.pow(Math.max(pSwingProgress, 1 - pSwingProgress), 10);
-        mat4.translate(modelMatrix, modelMatrix, [fade * 1.8 * (1 - trig), 0, absSineWithStops * 0.2 - 0.6 * fade]);
-        mat4.rotateZ(modelMatrix, modelMatrix, Math.PI / 4 * (1 + trig));
+        const fade = Math.pow(Math.min(1, Math.min(pSwingProgress, 1 - pSwingProgress) * 6), 0.5);
+        const trig = 1 - Math.pow(Math.max(pSwingProgress, 1 - pSwingProgress), 8);
+        mat4.translate(modelMatrix, modelMatrix, [
+            -MOVE_TO_CENTER * sign * trig,
+            -MOVE_UP * trig,
+            BITES_AMPLITUDE * (absSineWithStops - 1) * fade
+        ])
+        mat4.rotateZ(modelMatrix, modelMatrix, sign * Math.PI / 4 * (1 + trig));
     }
 
     // /**
