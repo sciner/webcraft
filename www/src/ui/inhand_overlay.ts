@@ -358,10 +358,8 @@ export class InHandOverlay {
     }
 
     postModelMatrix(modelMatrix) {
-        //mat4.scale(modelMatrix, modelMatrix, scale.toArray());
 
         let q = quat.create()
-        let q2 = quat.create()
         let m = mat4.create()
         const block = this.inHandItemMesh?.block_material
 
@@ -374,7 +372,7 @@ export class InHandOverlay {
 
         if(block) {
             const bb_display         = block.bb?.model?.json?.display
-            const bbmodel_hand       = (false ? bb_display?.firstperson_lefthand : bb_display?.firstperson_righthand) ?? null // {}
+            const bbmodel_hand       = (false ? bb_display?.firstperson_lefthand : bb_display?.firstperson_righthand) ?? null
             if(bb_display && bbmodel_hand) {
 
                 if(bbmodel_hand.translation) {
@@ -412,10 +410,7 @@ export class InHandOverlay {
         base.position[1] = .5
         base.position[2] = 0
         mat4.translate(modelMatrix, modelMatrix, base.position)
-        // swapMatrixYZ(modelMatrix)
         invertMatrixZ(modelMatrix)
-
-        // mat4.fromRotationTranslationScaleOrigin(modelMatrix, q, base.position, base.scale, base.pivot);
 
     }
 
