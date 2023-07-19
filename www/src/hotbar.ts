@@ -23,29 +23,41 @@ for(let i = 0; i < LIVE_SHIFT_RANDOM.length; i++) {
 
 class Effects {
     private windows = []
-    private effects = {}
-    private wm
+    private panel: Window = null
+    private wm: any
     constructor(wm) {
+        this.panel = new Window(0, 0, wm.w, 64, 'top_panel')
+        this.panel.catchEvents = false
+        this.panel.auto_center = false
+        wm.add(this.panel)
         this.wm = wm
-        this.wm.style.background.color = '#ff0000ff'
     }
     setEffect(effects) {
+        const bn_atlas = Resources.atlas.get('bn')
+        const st = 10 * this.panel.zoom
         let count = 0
         for (const effect of effects) {
             if (!this.windows[count])  {
-                const test = new Label(100, 1, 100, 100, 'wndEffect'+effect.id, effect.id + ' ' + effect.time, effect.id + ' ' + effect.time)
-                test.style.background.color = '#ff0000ff'
-                test.move(-250, 50)
-                this.windows.push(test)
-                this.wm.add(test)
+                const item = new Window(0, 0, this.panel.h  - st, this.panel.h, 'itemEffect' + effect.id, '', '')
+                item.setBackground(bn_atlas.getSpriteFromMap('button_black'))
+                const icon = new Label(0, 0, item.w, item.w, 'icon', '', '')
+                icon.setIcon(bn_atlas.getSpriteFromMap(Effect.get()[effect.id].icon), 'centerstretch', .7)
+                item.add(icon)
+                const time = new Label(0, item.h - 20 * this.panel.zoom, item.w, st, 'time', '', '')
+                time.style.textAlign.horizontal = 'center'
+                time.setText(this.getTime(effect.time))
+                item.add(time)
+                this.windows.push(item)
+                this.panel.add(item)
             }  else {
-                this.windows[count].setText(effect.id + ' ' + effect.time)
+                this.windows[count].getWindow('time').setText(this.getTime(effect.time))
             }
             count++
         }
         // удаляем ненужные
         for (let i = count; i < this.windows.length; i++) {
-            //console.log()
+            this.panel.delete(this.windows[i].id)
+            delete(this.windows[i])
         }
 
         //for (const window of this.windows) {
@@ -74,11 +86,18 @@ class Effects {
     }
     update() {
         let sx = 0
-        this.wm.visible = true
+        this.panel.width = this.wm.w
+        this.panel.visible = true
         for (const id in this.windows) {
-            this.windows[id].visible = true
-            this.windows[id].move(50, 50)
+            sx -= this.panel.h
+            this.windows[id].x = this.panel.w - sx
         }
+    }
+
+    getTime(time) {
+        const m = Math.floor(time / 60)
+        const s = time % 60
+        return m + ':' + s
     }
 }
 
@@ -176,7 +195,7 @@ export class Hotbar {
         this.hud                = hud
         this.last_damage_time   = null
         this.strings            = new Strings()
-        this.effects            = new Effects(this.hud.test)
+        this.effects            = new Effects(this.hud.wm)
         this.sprite_zoom        = .3 * this.zoom
 
         // Load hotbar atlases
