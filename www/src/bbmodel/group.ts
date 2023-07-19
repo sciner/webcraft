@@ -1,15 +1,14 @@
 import { BBModel_Child } from './child.js';
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
-import { IndexedColor, Vector } from '../helpers.js';
+import { IndexedColor, Vector, VectorQuat } from '../helpers.js';
 import { BBModel_Cube } from './cube.js';
-import type { Renderer } from '../render.js';
 import type { BBModel_Model } from './model.js';
 import { MeshObjectCustomReplace, Mesh_Object_BBModel } from '../mesh/object/bbmodel.js';
 import { Mesh_Object_Base } from '../mesh/object/base.js';
 import Mesh_Object_Block_Drop from '../mesh/object/block_drop.js';
 import type {MeshBatcher} from "../mesh/mesh_batcher.js";
 import type {TerrainGeometry15} from "../geom/terrain_geometry_15.js";
-import {MeshPart, MeshPartCollection} from "../mesh/mesh_builder.js";
+import { MeshPartCollection } from "../mesh/mesh_builder.js";
 
 const {mat4, vec3} = glMatrix;
 
@@ -20,7 +19,7 @@ export class BBModel_Group extends BBModel_Child {
     _mx:                imat4 = mat4.create()
     update:             boolean = true
     children:           any[] = []
-    rot_orig:           Vector
+    rot_orig:           VectorQuat
     axe:                Mesh_Object_BBModel
     animation_changed: boolean;
 
@@ -30,7 +29,7 @@ export class BBModel_Group extends BBModel_Child {
         this.name = name
         this.pivot = pivot
         this.rot = rot
-        this.rot_orig = rot.clone()
+        this.rot_orig = new VectorQuat().copyFrom(rot).updateQuat();
         this.visibility = !!visibility
         this.orig_visibility = this.visibility
     }

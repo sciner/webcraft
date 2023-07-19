@@ -2,6 +2,9 @@ import {CubeSym} from "../core/CubeSym.js";
 import {Mth} from "./mth.js";
 import { DIRECTION } from "./helper_const.js";
 
+import glMatrix from "@vendors/gl-matrix-3.3.min.js"
+const {quat} = glMatrix
+
 const RELINDEX_MARGIN = 32
 
 export class Vector implements IVector {
@@ -120,7 +123,7 @@ export class Vector implements IVector {
     /**
      * Much faster than set() if we know the soure type.
      */
-    copyFrom(vec : IVector) : Vector {
+    copyFrom(vec : IVector) : this {
         this.x = vec.x;
         this.y = vec.y;
         this.z = vec.z;
@@ -761,4 +764,33 @@ export function relIndexToPos(index : int, out : Vector) : Vector {
     out.x -= mg
     out.z -= mg
     return out
+}
+
+export class VectorQuat extends Vector {
+    quat: tupleFloat4 = null
+
+    static ZERO = new VectorQuat().updateQuat();
+
+    clone(): VectorQuat {
+        return new VectorQuat().copyFrom(this);
+    }
+
+    copyFrom(v: Vector): this {
+        super.copyFrom(v);
+        if ((v as VectorQuat).quat) {
+            if (!this.quat) {
+                this.quat = quat.create();
+            }
+            quat.copy(this.quat, (v as VectorQuat).quat);
+        }
+        return this;
+    }
+
+    updateQuat() {
+        if (!this.quat) {
+            this.quat = quat.create();
+        }
+        this.quat = quat.fromEuler(this.quat, this.x, this.y, this.z, 'zyx');
+        return this;
+    }
 }
