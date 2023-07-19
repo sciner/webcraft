@@ -2044,9 +2044,8 @@ function eatCake(e, world, pos, player, world_block, world_material, mat_block, 
             const server_player = world.players.get(player.session.user_id)
             server_player.setFoodLevel(world_material.food.amount, world_material.food.saturation)
         }
-        return true
     }
-    return false
+    return true
 }
 
 /**

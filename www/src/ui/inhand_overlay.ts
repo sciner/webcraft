@@ -204,9 +204,9 @@ export class InHandOverlay {
         this.update(render, delta);
 
         mat4.identity(camera.bobPrependMatrix);
-        this.bobViewItem(player, camera.bobPrependMatrix);
+        this.bobViewItem(player, camera.bobPrependMatrix)
 
-        camera.pos.set(1.5, -.2, .008)
+        camera.pos.set(1.5, -.5, .016)
 
         // const animFrame = Math.cos(this.changAnimationTime * Math.PI * 2);
         // camera.pos.set(0, 0.5, -1.5 * animFrame);
@@ -384,17 +384,13 @@ export class InHandOverlay {
                 }
 
                 if(bbmodel_hand.rotation) {
-                    base.rotation[0] -= bbmodel_hand.rotation[0]
+                    base.rotation[0] += bbmodel_hand.rotation[0]
                     base.rotation[1] += bbmodel_hand.rotation[1]
                     base.rotation[2] += bbmodel_hand.rotation[2]
                 }
 
                 if(bbmodel_hand.scale) {
                     base.scale.set(bbmodel_hand.scale)
-                }
-
-                if(block.diagonal) {
-                    base.position[1] += 4.8/16
                 }
 
             } else {
@@ -408,9 +404,10 @@ export class InHandOverlay {
         }
 
         quat.fromEuler(q, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
-        mat4.translate(modelMatrix, modelMatrix, base.position)
+        mat4.translate(modelMatrix, modelMatrix, [base.position[0], base.position[1] - .5, base.position[2]])
         mat4.scale(modelMatrix, modelMatrix, base.scale)
         mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, q))
+        mat4.translate(modelMatrix, modelMatrix, [0, .5, 0])
         // swapMatrixYZ(modelMatrix)
         invertMatrixZ(modelMatrix)
 
