@@ -6,7 +6,7 @@ import { BBModel_Locator } from "./locator.js";
 import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js";
 import type { Renderer } from "../render.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
-import { getEuler } from "../components/Transform.js";
+import {getEuler, getEulerZYX} from "../components/Transform.js";
 import { BBMODEL_ATLAS_SIZE } from "../constant.js";
 import type { BBModel_Child } from "./child.js";
 import { BBModel_Display } from "./display.js";
@@ -346,10 +346,7 @@ export class BBModel_Model {
                             quat.fromEuler(q_prev, prev_point.x, prev_point.y, prev_point.z, 'zyx')
                             quat.fromEuler(q_next, next_point.x, next_point.y, next_point.z, 'zyx')
                             quat.slerp(q_prev, q_prev, q_next, t2)
-                            getEuler(prev_point, q_prev)
-                            const temp = prev_point.x
-                            prev_point.x = 180 - prev_point.y
-                            prev_point.y = -temp
+                            getEulerZYX(prev_point, q_prev)
                         } else {
                             prev_point.lerpFrom(prev_point, next_point, t2)
                         }
