@@ -50,7 +50,7 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
 
         const terr = {...defaultTerrainMaterial};
         this.terrainUniforms = terr;
-        this.terrainUniformGroup = new UniformGroup(terr, false, true);
+        this.terrainUniformGroup = new UniformGroup(terr, true, true);
 
         this.texture_n = options.texture_n || null;
         this.texture = options.texture || null;
