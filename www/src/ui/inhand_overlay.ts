@@ -141,13 +141,13 @@ export class InHandOverlay {
         f1 /= player.scale
         f2 /= player.scale
 
-        let RotateAngleX = Math.sin(f1 * Math.PI) * f2 * 1.0
-        let RotateAngleY = -Math.abs(Math.cos(f1 * Math.PI) * f2) * 1;
+        let RotateAngleX = Math.sin(f1 * Math.PI) * f2 * 0.5
+        let RotateAngleY = -Math.abs(Math.cos(f1 * Math.PI) * f2)
 
         // Движение при дыхании
         const ageInTicks = Math.sin(performance.now() / 1000) * 2;
         RotateAngleX += Math.sin(ageInTicks * 0.067) * 0.15;
-        RotateAngleY += Math.cos(ageInTicks * 0.09) * 0.15 + 0.15;
+        RotateAngleY += Math.cos(ageInTicks * 0.09) * 0.15 - 0.125
 
         mat4.translate(viewMatrix, viewMatrix, [
             RotateAngleX,
@@ -206,11 +206,7 @@ export class InHandOverlay {
         mat4.identity(camera.bobPrependMatrix);
         this.bobViewItem(player, camera.bobPrependMatrix);
 
-        camera.pos.set(
-            -.5, // тут было 0, но помоему -.5 подходит больше
-            1,
-            -1,
-        );
+        camera.pos.set(1.5, -.2, .008)
 
         // const animFrame = Math.cos(this.changAnimationTime * Math.PI * 2);
         // camera.pos.set(0, 0.5, -1.5 * animFrame);
@@ -370,53 +366,40 @@ export class InHandOverlay {
         const block = this.inHandItemMesh?.block_material
 
         const base = {
-            scale:      new Float32Array([1, 1, 1]),
+            scale:      new Float32Array([.4, .4, .4]),
             position:   new Float32Array([0, 0, 0]), // внутрь туловища / от туловища; вдоль руки; над рукой
             pivot:      new Float32Array([0, 0, 0]),
             rotation:   new Float32Array([0, 0, 0]),
         }
 
-        // let translation = new Vector(0.5, 0, 0)
-        // let rotate = new Vector(0, -45 - 180, 0)
-
         if(block) {
             const bb_display         = block.bb?.model?.json?.display
             const bbmodel_hand       = (false ? bb_display?.firstperson_lefthand : bb_display?.firstperson_righthand) ?? null // {}
             if(bb_display && bbmodel_hand) {
-                base.position[0] -= 1.75 // право/лево
-                base.position[1] += 0.85 // вниз/вверх
-                base.position[2] -= 0.9  // на себя/от себя
-                if(block.diagonal) {
-                    base.position[1] += .25
-                }
-                // rotation
-                //base.rotation[1] += 180 // поворот
-                // 1. position (1 = 1/16)
+
                 if(bbmodel_hand.translation) {
                     base.position[0] += bbmodel_hand.translation[0] / 16
                     base.position[1] += bbmodel_hand.translation[1] / 16
-                    base.position[2] -= bbmodel_hand.translation[2] / 16
+                    base.position[2] += bbmodel_hand.translation[2] / 16
                 }
-                // 2. pivot
-                // 3. rotation (в градусах -180...180)
+
                 if(bbmodel_hand.rotation) {
                     base.rotation[0] -= bbmodel_hand.rotation[0]
-                    base.rotation[1] -= bbmodel_hand.rotation[1]
+                    base.rotation[1] += bbmodel_hand.rotation[1]
                     base.rotation[2] += bbmodel_hand.rotation[2]
                 }
-                // 4. scale
+
                 if(bbmodel_hand.scale) {
                     base.scale.set(bbmodel_hand.scale)
                 }
-                quat.fromEuler(q, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
-                mat4.fromRotationTranslationScaleOrigin(m, q, base.position, base.scale, base.pivot)
-                invertMatrixZ(modelMatrix);
-                mat4.multiply(modelMatrix, modelMatrix, m)
 
-                return
+                if(block.diagonal) {
+                    base.position[1] += 4.8/16
+                }
+
             } else {
-                base.position.set([.5, 0, 0])
-                base.rotation.set([0, -45 - 180, 0])
+                base.position.set([1/16, -4/16, 0])
+                base.rotation.set([0, 45, 0])
                 if (block.diagonal) {
                     base.rotation[1] = -65 - 180
                     base.rotation[2] = 30
@@ -425,9 +408,9 @@ export class InHandOverlay {
         }
 
         quat.fromEuler(q, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
-        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, q))
-        mat4.scale(modelMatrix, modelMatrix, base.scale)
         mat4.translate(modelMatrix, modelMatrix, base.position)
+        mat4.scale(modelMatrix, modelMatrix, base.scale)
+        mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, q))
         // swapMatrixYZ(modelMatrix)
         invertMatrixZ(modelMatrix)
 
