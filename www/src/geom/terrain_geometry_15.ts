@@ -37,8 +37,9 @@ export class TerrainGeometry15 extends Geometry {
     [key: string]: any;
     strideFloats: int;
     parts_counter = 0;
-    constructor(vertices?, chunkId? : int) {
+    constructor(vertices?) {
         super();
+        this.instanceCount = 0;
         // убрал, для уменьшения объема оперативной памяти
         // this.vertices = vertices;
         this.updateID = 0;
@@ -55,9 +56,11 @@ export class TerrainGeometry15 extends Geometry {
          */
         this.uint32Data;
 
+        this.dataSub = null;
+
         this.size = -1;
         this.chunkIds = null;
-        this.setVertices(vertices || [], chunkId);
+        this.setVertices(vertices || []);
         /**
          *
          * @type {BaseBuffer}
@@ -88,7 +91,7 @@ export class TerrainGeometry15 extends Geometry {
         this.initGeom();
     }
 
-    setVertices(vertices, chunkId = -1) {
+    setVertices(vertices) {
         if (vertices instanceof ArrayBuffer) {
             this.data = new Float32Array(vertices);
             this.uint32Data = new Uint32Array(this.data.buffer);
@@ -105,9 +108,7 @@ export class TerrainGeometry15 extends Geometry {
         }
         const oldSize = this.size;
         this.size = vertices.length / this.strideFloats
-        if (oldSize !== this.size) {
-            this.setChunkId(chunkId);
-        }
+        this.setChunkId();
         this.updateID++;
     }
 
@@ -167,36 +168,52 @@ export class TerrainGeometry15 extends Geometry {
         }
         if (this.uploadID !== this.updateID) {
             this.uploadID = this.updateID;
-            this.buffer.update(this.data);
+            this.buffer.update(this.dataSub || this.data);
         }
         this.context.pixiRender.geometry.bind(this);
     }
 
-    setChunkId(chunkId) {
-        if (!this.chunkIds || this.chunkIds.length !== this.size) {
-            this.chunkIds = new Float32Array(this.size);
+    setChunkId() {
+        if (this.chunkIds && this.chunkIds.length === this.size) {
+            return;
         }
+        this.chunkIds = new Float32Array(this.size);
         const {chunkIds} = this;
-        if (chunkId !== undefined) {
-            for (let i = 0; i < chunkIds.length; i++) {
-                chunkIds[i] = chunkId;
-            }
+        for (let i = 0; i < chunkIds.length; i++) {
+            chunkIds[i] = -1;
         }
         this.bufferChunkIds?.update(chunkIds);
     }
 
-    updateInternal(data = null, chunkId = -1) {
-        if (data) {
+    updateInternal(data = null, instanceCount = 0) {
+        const STRIDE_FLOATS = this.strideFloats;
+
+        if (data && data !== this.data) {
             if (data instanceof Array) {
                 this.data = new Float32Array(data);
             } else {
                 this.data = data;
             }
-        }
-        this.size = this.data.length / this.strideFloats;
-        this.updateID++;
+            this.size = this.data.length / STRIDE_FLOATS;
+            this.dataSub = null;
 
-        this.setChunkId(chunkId);
+            this.setChunkId();
+        }
+        if (instanceCount > 0) {
+            const oldInstances = this.dataSub ? this.dataSub.length / STRIDE_FLOATS : this.size;
+            if (oldInstances < instanceCount || oldInstances - 10 > instanceCount * 2)
+            {
+                const newInstances = Math.min(this.size, instanceCount + 10);
+
+                if (newInstances === this.size) {
+                    this.dataSub = null;
+                } else {
+                    this.dataSub = this.data.subarray(0, newInstances * STRIDE_FLOATS);
+                }
+            }
+        }
+        this.instanceCount = instanceCount;
+        this.updateID++;
     }
 
     /**

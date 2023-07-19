@@ -6,6 +6,7 @@ export class GeometryTerrain16 extends Geometry {
     [key: string]: any;
     constructor(vertices) {
         super();
+        this.instanceCount = 0;
         // убрал, для уменьшения объема оперативной памяти
         // this.vertices = vertices;
         this.updateID = 0;

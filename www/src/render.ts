@@ -410,7 +410,7 @@ export class Renderer {
         const camera = new Camera_3d({
             type: Camera_3d.ORTHO_CAMERA,
             max: 100,
-            min: 0.01,
+            min: 0.1,
             fov: 60,
             renderType: this.renderBackend.gl ? 'webgl' : 'webgpu',
             width: GRID_X * 2, // block size is 2

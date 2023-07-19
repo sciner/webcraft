@@ -44,66 +44,63 @@
 #endif
 
 #ifdef global_uniforms
-    // global uniform block base
+
+uniform Glob {
+    uniform mat4 u_projMatrix;
+    uniform mat4 u_viewMatrix;
     uniform vec3 u_camera_pos;
     uniform ivec3 u_camera_posi; // absolute camera position
-    // Fog
-    uniform vec4 u_fogColor;
-    uniform vec4 u_tintColor;
-    uniform vec4 u_fogAddColor;
-    uniform bool u_fogOn;
-    uniform float u_chunkBlockDist;
 
-    uniform float u_brightness;
     uniform float u_time;
+    uniform vec3 u_gridChunkSize;
+
+    uniform float u_useNormalMap;
+    uniform float u_eyeinwater;
+    uniform vec4 u_fogColor;
+    uniform vec4 u_fogAddColor;
+    uniform float u_chunkBlockDist;
+    uniform float u_brightness;
     uniform float u_rain_strength;
     uniform vec2 u_resolution;
-    uniform float u_eyeinwater;
-    uniform vec3 u_shift;
     uniform vec4 u_sunDir;
     uniform float u_localLightRadius;
-    uniform float u_aoDisaturateFactor;
+};
 
     vec3 getCamPeriod() {
         return vec3(u_camera_posi % ivec3(2500)) + u_camera_pos;
     }
-
-    bool checkFlag(int flag) {
-        return (v_flags & (1 << flag)) != 0;
-    }
-
 #endif
 
 #ifdef global_uniforms_frag
-    // global uniforms fragment part
-    uniform sampler2D u_texture;
-    uniform sampler2D u_texture_n;
     uniform highp isampler3D u_lightTex[2];
     uniform vec3 u_lightOverride;
     uniform int u_lightMode;
 
-    uniform float u_mipmap;
-    uniform float u_blockSize;
+uniform Terrain_Texture {
+    float u_mipmap;
+    float u_blockSize;
+    float u_pixelSize;
+};
+    uniform sampler2D u_texture;
+    uniform sampler2D u_texture_n;
+
     uniform float u_opaqueThreshold;
-    uniform float u_useNormalMap;
+
     uniform sampler2D u_blockDayLightSampler;
     uniform sampler2D u_maskColorSampler;
+
+    uniform vec4 u_tintColor;
     //--
     uniform highp isampler3D u_gridChunkSampler;
-    uniform vec3 u_gridChunkSize;
 #endif
 
 #ifdef global_uniforms_vert
     // global uniforms vertex part
-    uniform mat4 u_projMatrix;
-    uniform mat4 u_viewMatrix;
     uniform mat4 u_modelMatrix;
     uniform int u_modelMatrixMode;
     uniform vec3 u_add_pos;
-    uniform float u_pixelSize;
     uniform highp isampler2D u_chunkDataSampler;
     uniform highp isampler3D u_gridChunkSampler;
-    uniform vec3 u_gridChunkSize;
     uniform vec3 u_grid_chunk_corner;
     //--
 #endif
@@ -136,8 +133,6 @@
 
     // quad flags
     flat out int v_flags;
-
-    //--
 #endif
 
 #ifdef terrain_attrs_frag
@@ -159,6 +154,12 @@
     float v_lightMode;
 
     out vec4 outColor;
+#endif
+
+#ifdef terrain_varying_func
+    bool checkFlag(int flag) {
+        return (v_flags & (1 << flag)) != 0;
+    }
 #endif
 
 #ifdef sample_texture_define_func

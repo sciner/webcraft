@@ -5,12 +5,8 @@ import {ExtensionType} from 'vauxcel';
 const vertex = `#version 300 es
 precision highp float;
 
-uniform mat4 u_projMatrix;
-uniform mat4 u_viewMatrix;
+#include<global_uniforms>
 uniform vec3 u_add_pos;
-
-uniform vec2 u_resolution;
-uniform float u_time;
 
 in vec3 a_point1;
 in vec3 a_point2;

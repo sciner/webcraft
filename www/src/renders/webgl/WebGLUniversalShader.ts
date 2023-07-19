@@ -25,7 +25,7 @@ export class WebGLUniversalShader extends BaseShader {
 
 
         if (!this.uniShader) {
-            this.uniShader = new VAUX.Shader(this.program, {...uniforms, globalUniforms: this.context.globalUniforms})
+            this.uniShader = new VAUX.Shader(this.program, {...uniforms, Glob: this.context.globalUniforms})
         } else {
             Object.assign(this.uniShader.uniforms, uniforms);
         }

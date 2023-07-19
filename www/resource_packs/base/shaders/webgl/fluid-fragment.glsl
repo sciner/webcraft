@@ -18,6 +18,8 @@ flat in int v_cubeSide;
 
 out vec4 outColor;
 
+#include<terrain_varying_func>
+
 #include<global_uniforms>
 #include<global_uniforms_frag>
 

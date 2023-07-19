@@ -36,7 +36,9 @@ export class AABB extends BaseAABB {
     }
 
     computeOffsetX(other: AABB, offsetX: number): number {
-        if (other.y_max > this.y_min && other.y_min < this.y_max && other.z_max > this.z_min && other.z_min < this.z_max) {
+        if (other.y_max > this.y_min + EPS && other.y_min < this.y_max - EPS &&
+            other.z_max > this.z_min + EPS && other.z_min < this.z_max - EPS
+        ) {
             if (offsetX > 0.0 && other.x_max - this.x_min <= EPS) {
                 offsetX = Math.min(this.x_min - other.x_max, offsetX)
             } else if (offsetX < 0.0 && other.x_min - this.x_max >= -EPS) {
@@ -47,7 +49,9 @@ export class AABB extends BaseAABB {
     }
 
     computeOffsetY(other: AABB, offsetY: number): number {
-        if (other.x_max > this.x_min && other.x_min < this.x_max && other.z_max > this.z_min && other.z_min < this.z_max) {
+        if (other.x_max > this.x_min + EPS && other.x_min < this.x_max - EPS &&
+            other.z_max > this.z_min + EPS && other.z_min < this.z_max - EPS
+        ) {
             if (offsetY > 0.0 && other.y_max - this.y_min <= EPS) {
                 offsetY = Math.min(this.y_min - other.y_max, offsetY)
             } else if (offsetY < 0.0 && other.y_min - this.y_max >= -EPS) {
@@ -58,7 +62,9 @@ export class AABB extends BaseAABB {
     }
 
     computeOffsetZ(other: AABB, offsetZ: number): number {
-        if (other.x_max > this.x_min && other.x_min < this.x_max && other.y_max > this.y_min && other.y_min < this.y_max) {
+        if (other.x_max > this.x_min + EPS && other.x_min < this.x_max - EPS &&
+            other.y_max > this.y_min + EPS && other.y_min < this.y_max - EPS
+        ) {
             if (offsetZ > 0.0 && other.z_max - this.z_min <= EPS) {
                 offsetZ = Math.min(this.z_min - other.z_max, offsetZ)
             } else if (offsetZ < 0.0 && other.z_min - this.z_max >= -EPS) {
