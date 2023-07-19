@@ -3,7 +3,7 @@ import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
-import {DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE, MIN_STEP_PLAY_SOUND, MIN_HEIGHT_PLAY_SOUND, PLAYER_BURNING_TIME, PLAYER_FLAG, PLAYER_PHYSICS_HALF_WIDTH} from "./constant.js";
+import {DEFAULT_SOUND_MAX_DIST, PLAYER_STATUS, ATTACK_COOLDOWN, MOB_TYPE, MIN_STEP_PLAY_SOUND, MIN_HEIGHT_PLAY_SOUND, PLAYER_BURNING_TIME, PLAYER_FLAG, PLAYER_PHYSICS_HALF_WIDTH, INDICATOR_MAX_VALUE} from "./constant.js";
 import {ClientPlayerControlManager, PlayerControlManager} from "./control/player_control_manager.js";
 import {PlayerControl, PlayerControls} from "./control/player_control.js";
 import {PlayerInventory} from "./player_inventory.js";
@@ -1349,7 +1349,7 @@ export class Player implements IPlayer {
         switch(item_name) {
             case 'bottle':
             case 'food': {
-                if (this.indicators.food >= 20 && item_name == 'food') {
+                if (this.indicators.food >= INDICATOR_MAX_VALUE && item_name == 'food') {
                     return false
                 }
                 const itsme = this.getModel()
