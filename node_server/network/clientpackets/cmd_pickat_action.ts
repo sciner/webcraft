@@ -58,6 +58,7 @@ export default class packet_reader {
                 game_mode:      player.game_mode,
                 is_admin:       world.admins.checkIsAdmin(player),
                 world:          player.state.world,
+                indicators:     player.state.indicators,
                 session: {
                     user_id: player.session.user_id
                 }

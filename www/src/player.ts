@@ -890,6 +890,7 @@ export class Player implements IPlayer {
             game_mode:      this.game_mode,
             is_admin:       this.checkIsAdmin(),
             world:          this.state.world,
+            indicators:     this.indicators,
             session: {
                 user_id: this.session.user_id
             }
