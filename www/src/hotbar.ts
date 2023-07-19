@@ -21,23 +21,39 @@ for(let i = 0; i < LIVE_SHIFT_RANDOM.length; i++) {
     LIVE_SHIFT_RANDOM[i] = Math.round(Math.random());
 }
 
-class Effects {
-    private windows = []
+class EffectPanel {
+    private items = {}
     private panel: Window = null
     private wm: any
+    private atlas: any
+    private prev = []
     constructor(wm) {
-        this.panel = new Window(0, 0, wm.w, 64, 'top_panel')
+        this.panel = new Window(0, 0, wm.w, 64 * wm.zoom, 'top_panel')
         this.panel.catchEvents = false
         this.panel.auto_center = false
         wm.add(this.panel)
         this.wm = wm
+        this.atlas = Resources.atlas.get('bn')
+    }
+    addItem(id: number, time: number) {
+        const item = new Window(0, 0, this.panel.h, this.panel.h, 'itemEffect' + id, '', '')
+        item.setBackground(this.atlas.getSpriteFromMap('button_black'))
+        const icon = new Label(0, 0, item.w, item.w, 'icon', '', '')
+        icon.setIcon(this.atlas.getSpriteFromMap(Effect.get()[id].icon), 'centerstretch', .7)
+        item.add(icon)
+        const lbl_time = new Label(0, item.h - 20 * this.panel.zoom, item.w, 0, 'lbl_time', '', '')
+        lbl_time.style.textAlign.horizontal = 'center'
+        lbl_time.setText(this.getTime(time))
+        item.add(lbl_time)
+        this.panel.add(item)
     }
     setEffect(effects) {
         const bn_atlas = Resources.atlas.get('bn')
         const st = 10 * this.panel.zoom
-        let count = 0
+
+        // создаем новые иконки или обновляем существующие
         for (const effect of effects) {
-            if (!this.windows[count])  {
+            if (!this.items[effect.id])  {
                 const item = new Window(0, 0, this.panel.h  - st, this.panel.h, 'itemEffect' + effect.id, '', '')
                 item.setBackground(bn_atlas.getSpriteFromMap('button_black'))
                 const icon = new Label(0, 0, item.w, item.w, 'icon', '', '')
@@ -47,50 +63,100 @@ class Effects {
                 time.style.textAlign.horizontal = 'center'
                 time.setText(this.getTime(effect.time))
                 item.add(time)
-                this.windows.push(item)
+                this.items[effect.id] = item
                 this.panel.add(item)
             }  else {
-                this.windows[count].getWindow('time').setText(this.getTime(effect.time))
-            }
-            count++
+                this.items[effect.id].getWindow('icon').setIcon(bn_atlas.getSpriteFromMap(Effect.get()[effect.id].icon), 'centerstretch', .7)
+                this.items[effect.id].getWindow('time').setText(this.getTime(effect.time))
+            }  
         }
-        // удаляем ненужные
-        for (let i = count; i < this.windows.length; i++) {
-            this.panel.delete(this.windows[i].id)
-            delete(this.windows[i])
-        }
-
-        //for (const window of this.windows) {
-            
-        //}
-            /*let finded = null
+        // удаляем отработаные
+        for (const el of Effect.get()) {
+            let finded = false
             for (const effect of effects) {
-                if (effect.id == i) {
-                    const window = this.wm.getWindow('lblEffect'+i)
-                    if (window) {
-                        window.setText(effect.id + ' ' + effect.)
-                    }
+                if (effect.id == el.id) {
+                    finded = true
+                    break
                 }
-            }*/
-    
-       // console.log(effects)
-       // for (const effect of effects) {
-            //if ()
+            }
+            if (!finded) {
+                delete(this.items[el.id])
+                this.panel.delete('itemEffect' + el.id)
+            }
+        }
+        /*let count = 0
+        const getEffect = (id) => {
+            for (const effect of effects) {
+                if (effect.id == id) {
+                    return effect
+                }
+            }
+            return null
+        }
+        const list = Effect.get()
+        for (const el of list) {
+            const effect = getEffect(el.id)
+            if (!effect) {
+                this.panel.delete('itemEffect' + el.id)
+            } else {
+                const item = this.panel.getWindow('itemEffect' + el.id)
+                if (item) {
+                    item.getWindow('icon').setIcon(bn_atlas.getSpriteFromMap(Effect.get()[effect.id].icon), 'centerstretch', .7)
+                    item.getWindow('time').setText(this.getTime(effect.time))
+                } else {
+                    const item = new Window(0, 0, this.panel.h  - st, this.panel.h, 'itemEffect' + el.id, '', '')
+                    item.setBackground(bn_atlas.getSpriteFromMap('button_black'))
+                    const icon = new Label(0, 0, item.w, item.w, 'icon', '', '')
+                    icon.setIcon(bn_atlas.getSpriteFromMap(Effect.get()[effect.id].icon), 'centerstretch', .7)
+                    item.add(icon)
+                    const time = new Label(0, item.h - 20 * this.panel.zoom, item.w, st, 'time', '', '')
+                    time.style.textAlign.horizontal = 'center'
+                    time.setText(this.getTime(effect.time))
+                    item.add(time)
+                    this.panel.add(item)
+                }
+            }
+            */
        // }
-       /* if (this.effects[id] ) {
-            this.effects[id].setText('test' + id + ' ' + time)
-        } else {
-            this.effects[id] = new Label(1, 1, 100, 100, 'frmMainMenu11', 'fghfhfh', 'fghfhfghfgh')
-            this.wm.add(this.effects[id]) 
-        }*/
+
+        //for (const effect of effects) {
+
+            /*if (!this.items[count])  {
+                const item = new Window(0, 0, this.panel.h  - st, this.panel.h, 'itemEffect' + count, '', '')
+                item.setBackground(bn_atlas.getSpriteFromMap('button_black'))
+                const icon = new Label(0, 0, item.w, item.w, 'icon', '', '')
+                icon.setIcon(bn_atlas.getSpriteFromMap(Effect.get()[effect.id].icon), 'centerstretch', .7)
+                item.add(icon)
+                const time = new Label(0, item.h - 20 * this.panel.zoom, item.w, st, 'time', '', '')
+                time.style.textAlign.horizontal = 'center'
+                time.setText(this.getTime(effect.time))
+                item.add(time)
+                this.items.push(item)
+                this.panel.add(item)
+            }  else {
+                this.items[count].getWindow('icon').setIcon(bn_atlas.getSpriteFromMap(Effect.get()[effect.id].icon), 'centerstretch', .7)
+                this.items[count].getWindow('time').setText(this.getTime(effect.time))
+            }
+            count++*/
+       // }
+        // удаляем ненужные
+        /*console.log(this.items)
+        const len = this.items.length
+        for (let i = count; i < len; i++) {
+            if (this.items[i]?.id) {
+                this.panel.delete(this.items[i].id)
+                this.items.slice(count, 1)
+            }
+        }
+        console.log(this.items)*/
     }
     update() {
         let sx = 0
         this.panel.width = this.wm.w
         this.panel.visible = true
-        for (const id in this.windows) {
+        for (const id in this.items) {
             sx -= this.panel.h
-            this.windows[id].x = this.panel.w - sx
+            this.items[id].x = this.panel.w - sx
         }
     }
 
@@ -195,7 +261,7 @@ export class Hotbar {
         this.hud                = hud
         this.last_damage_time   = null
         this.strings            = new Strings()
-        this.effects            = new Effects(this.hud.wm)
+        this.effect_panel       = new EffectPanel(this.hud.wm)
         this.sprite_zoom        = .3 * this.zoom
 
         // Load hotbar atlases
@@ -612,7 +678,7 @@ export class Hotbar {
             hotbar_height = sy
         }
 
-        this.effects.update()
+        this.effect_panel.update()
 
         // Draw strings
         this.lblHotbarText.w = hud.width
