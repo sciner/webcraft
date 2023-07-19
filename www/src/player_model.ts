@@ -417,7 +417,7 @@ export class PlayerModel extends MobModel implements IPlayerOrModel {
         let pos = new Vector();
 
         if (first_person_camera) {
-            first_person_camera.calcNearPlanePosition(1.5, 0.1, pos);
+            first_person_camera.calcNearPlanePosition(1.27, -0.3, pos);
             pos.addSelf(line_geom.pos);
         } else {
             // pos.copyFrom(slot.item.pos);
