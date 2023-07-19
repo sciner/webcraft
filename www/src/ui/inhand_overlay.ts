@@ -404,10 +404,14 @@ export class InHandOverlay {
         }
 
         quat.fromEuler(q, base.rotation[0], base.rotation[1], base.rotation[2], 'xyz')
-        mat4.translate(modelMatrix, modelMatrix, [base.position[0], base.position[1] - .5, base.position[2]])
+        base.position[1] -= .5
+        mat4.translate(modelMatrix, modelMatrix, base.position)
         mat4.scale(modelMatrix, modelMatrix, base.scale)
         mat4.multiply(modelMatrix, modelMatrix, mat4.fromQuat(m, q))
-        mat4.translate(modelMatrix, modelMatrix, [0, .5, 0])
+        base.position[0] = 0
+        base.position[1] = .5
+        base.position[2] = 0
+        mat4.translate(modelMatrix, modelMatrix, base.position)
         // swapMatrixYZ(modelMatrix)
         invertMatrixZ(modelMatrix)
 
