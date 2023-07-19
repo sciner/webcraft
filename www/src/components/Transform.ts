@@ -48,6 +48,49 @@ export function getEuler(out, quat) {
     return out;
 }
 
+export function getEulerZYX(out: Vector, quat) {
+    let x = quat[0],
+        y = quat[1],
+        z = quat[2],
+        w = quat[3],
+        x2 = x * x,
+        y2 = y * y,
+        z2 = z * z,
+        w2 = w * w;
+
+    let unit = x2 + y2 + z2 + w2;
+    let test = x * w - y * z;
+
+    if (test > (0.5 - glMatrix.EPSILON) * unit) {
+        // singularity at the north pole
+        out.x = Math.PI / 2;
+        out.y = 2 * Math.atan2(y, x);
+        out.z = 0;
+    } else if (test < -(0.5 - glMatrix.EPSILON) * unit) { //TODO: Use glmatrix.EPSILON
+        // singularity at the south pole
+        out.x = -Math.PI / 2;
+        out.y = 2 * Math.atan2(y, x);
+        out.z = 0;
+    } else {
+        out.x = Math.asin(2 * (x * z - w * y));
+        out.y = Math.atan2(2 * (x * w + y * z), 1 - 2 * (z2 + w2));
+        out.z = Math.atan2(2 * (x * y + z * w), 1 - 2 * (y2 + z2));
+    }
+
+    const TO_DEG = 180 / Math.PI;
+
+    out.x *= TO_DEG;
+    out.y *= TO_DEG;
+    out.z *= TO_DEG;
+
+
+    const temp = out.x
+    out.x = 180 - out.y
+    out.y = -temp
+
+    return out;
+}
+
 /**
  * Tmp store, used for copy from vector object to gl-matrix and back
  */

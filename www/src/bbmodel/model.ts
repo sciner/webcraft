@@ -1,12 +1,11 @@
-import { IndexedColor, isScalar, Vector } from "../helpers.js";
+import { IndexedColor, isScalar, Vector, VectorQuat } from "../helpers.js";
 import { EasingType } from "./easing_type.js";
 import { BBModel_Cube } from "./cube.js";
 import { BBModel_Group } from "./group.js";
 import { BBModel_Locator } from "./locator.js";
 import type { Mesh_Object_BBModel } from "../mesh/object/bbmodel.js";
-import type { Renderer } from "../render.js";
 import glMatrix from "@vendors/gl-matrix-3.3.min.js"
-import { getEuler } from "../components/Transform.js";
+import {getEulerZYX} from "../components/Transform.js";
 import { BBMODEL_ATLAS_SIZE } from "../constant.js";
 import type { BBModel_Child } from "./child.js";
 import { BBModel_Display } from "./display.js";
@@ -333,9 +332,13 @@ export class BBModel_Model {
 
                     // TODO: Need to optimize
                     // const point : Vector = current_keyframe.point || (current_keyframe.point = new Vector(0, 0, 0))
-                    const point = new Vector()
+                    const point = new VectorQuat()
                     const t = func(percent, args || EMPTY_ARGS)
                     point.lerpFrom(current_point, next_point, t)
+                    if (channel_name === 'rotation') {
+                        //TODO: slerp quats!
+                        point.updateQuat()
+                    }
                     mesh.animations.get(group.name).set(channel_name, point)
                     group.animation_changed = true
 
@@ -350,7 +353,7 @@ export class BBModel_Model {
             const diff = performance.now() / 1000 - mesh.trans_animations.start
             // const func = EasingType.get('linear')
             if(diff < mesh.trans_animations.duration) {
-                const next_point = new Vector(0, 0, 0)
+                const next_point = VectorQuat.ZERO.clone();
                 const percent = diff / mesh.trans_animations.duration
                 const t2 = percent // func(percent, EMPTY_ARGS)
                 //
@@ -371,15 +374,10 @@ export class BBModel_Model {
                         }
 
                         if(channel_name == 'rotation') {
-                            const q_prev = quat.create()
-                            const q_next = quat.create()
-                            quat.fromEuler(q_prev, prev_point.x, prev_point.y, prev_point.z, 'zyx')
-                            quat.fromEuler(q_next, next_point.x, next_point.y, next_point.z, 'zyx')
+                            const q_prev = (prev_point as VectorQuat).quat
+                            const q_next = next_point.quat
                             quat.slerp(q_prev, q_prev, q_next, t2)
-                            getEuler(prev_point, q_prev)
-                            const temp = prev_point.x
-                            prev_point.x = 180 - prev_point.y
-                            prev_point.y = -temp
+                            getEulerZYX(prev_point, q_prev)
                         } else {
                             prev_point.lerpFrom(prev_point, next_point, t2)
                         }
@@ -392,7 +390,7 @@ export class BBModel_Model {
                 const fix_duration = .3
                 if(diff < fix_duration) {
                     const t2 = diff / fix_duration
-                    const current_point = new Vector()
+                    const current_point = new VectorQuat()
                     for(const group of this.groups.values()) {
                         if(group.animation_changed) {
                             group.animation_changed = false
@@ -537,7 +535,7 @@ export class BBModel_Model {
                     // pase data points
                     for(let i = 0; i < keyframe.data_points.length; i++) {
                         const dp = keyframe.data_points[i] =
-                            new Vector(
+                            new VectorQuat(
                                 +keyframe.data_points[i].x,
                                 +keyframe.data_points[i].y,
                                 +keyframe.data_points[i].z,
@@ -550,6 +548,7 @@ export class BBModel_Model {
                             dp.x = -dp.x;
                             dp.y = -dp.y;
                             dp.z = -dp.z;
+                            dp.updateQuat();
                         }
                     }
                     channel.push(keyframe);
