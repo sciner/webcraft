@@ -24,6 +24,26 @@ export type TParsedAnimation = {
     mul:        float
 }
 
+const _parsed_animation_names = new Map()
+
+declare type AnimationKeyFrame = {
+    time: float
+}
+
+// KeyFrame result
+class KeyFrameResult {
+    current_keyframe: any
+    next_keyframe: any
+    percent: float
+    set(current_keyframe : AnimationKeyFrame, next_keyframe : AnimationKeyFrame, percent : float) {
+        this.current_keyframe = current_keyframe
+        this.next_keyframe = next_keyframe
+        this.percent = percent
+        return this
+    }
+}
+const _keyFrameResult = new KeyFrameResult()
+
 //
 export class BBModel_Model {
     [key: string]: any;
@@ -167,8 +187,14 @@ export class BBModel_Model {
         if ((animation as TParsedAnimation).name) {
             return animation as TParsedAnimation
         }
+
         const full_name = animation as string
         let animation_name = full_name
+
+        const cached = _parsed_animation_names.get(animation_name)
+        if(cached) {
+            return cached
+        }
 
         const reverse = animation_name.startsWith('-')
         let mul = 1.
@@ -184,8 +210,31 @@ export class BBModel_Model {
             }
         }
 
-        return {full_name, name: animation_name, reverse, mul}
+        const resp = {full_name, name: animation_name, reverse, mul} as TParsedAnimation
 
+        _parsed_animation_names.set(animation_name, resp)
+
+        return resp
+
+    }
+
+    //
+    calcKeyFrame(keyframes : AnimationKeyFrame[], time : float) : KeyFrameResult {
+        let begin_keyframe_index = null
+        for(let i = 0; i < keyframes.length; i++) {
+            const keyframe = keyframes[i]
+            if(time >= keyframe.time) {
+                begin_keyframe_index = i
+            }
+        }
+        if(begin_keyframe_index === null) {
+            begin_keyframe_index = keyframes.length - 1
+        }
+        const current_keyframe  = keyframes[begin_keyframe_index]
+        const next_keyframe     = keyframes[(begin_keyframe_index + 1) % keyframes.length]
+        const diff              = next_keyframe.time - current_keyframe.time
+        const percent           = diff == 0 ? diff : (time - current_keyframe.time) / diff
+        return _keyFrameResult.set(current_keyframe, next_keyframe, percent)
     }
 
     /**
@@ -246,25 +295,6 @@ export class BBModel_Model {
 
         const time = reverse ? animation.length - (dt % animation.length) : (dt % animation.length)
 
-        //
-        const calcKeyFrame = (keyframes, time) => {
-            let begin_keyframe_index = null;
-            for(let i = 0; i < keyframes.length; i++) {
-                const keyframe = keyframes[i];
-                if(time >= keyframe.time) {
-                    begin_keyframe_index = i;
-                }
-            }
-            if(begin_keyframe_index === null) {
-                begin_keyframe_index = keyframes.length - 1
-            }
-            const current_keyframe  = keyframes[begin_keyframe_index];
-            const next_keyframe     = keyframes[(begin_keyframe_index + 1) % keyframes.length];
-            const diff              = next_keyframe.time - current_keyframe.time;
-            const percent           = diff == 0 ? diff : (time - current_keyframe.time) / diff;
-            return {current_keyframe, next_keyframe, percent}
-        }
-
         for(let k in animation.animators) {
 
             const animator = animation.animators[k];
@@ -279,7 +309,7 @@ export class BBModel_Model {
 
                     if(keyframes.length == 0) continue
 
-                    const {current_keyframe, next_keyframe, percent} = calcKeyFrame(keyframes, time)
+                    const {current_keyframe, next_keyframe, percent} = this.calcKeyFrame(keyframes, time)
 
                     if(!current_keyframe || !next_keyframe) continue
                     const current_point = current_keyframe.data_points[0]
