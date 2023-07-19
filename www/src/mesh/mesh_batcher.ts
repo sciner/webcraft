@@ -83,6 +83,7 @@ export class MeshBatcher implements IMeshDrawer {
         entry.pos.copyFrom(pos);
         entry.geom = geom;
         entry.material = material;
+        entry.count = geom.instanceCount;
 
         const renderListNum = this._renderListMode > 0 ?
             this._renderListMode : this.getMaterialNumber(material);
