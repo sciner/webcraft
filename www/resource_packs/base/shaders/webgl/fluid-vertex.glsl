@@ -24,6 +24,7 @@ flat out vec4 v_lightOffset;
 flat out int v_flags;
 flat out int v_cubeSide;
 
+#include<terrain_varying_func>
 #include<global_uniforms>
 #include<global_uniforms_vert>
 

@@ -722,7 +722,6 @@ export class Environment {
         this.skyBox = renderBackend.createCubeMap({
             code: Resources.codeSky,
             uniforms: {
-                u_brightness: 1.0,
                 u_nightshift: 0,
                 u_baseColor: [0, 0, 0]
                 // u_textureOn: true

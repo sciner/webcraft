@@ -24,7 +24,7 @@ export class BaseShader {
         // context.createProgram({vertex, fragment,
         this.initProgram();
         this.globalUniforms = context.globalUniforms;
-        this.defShader = new Shader(this.program, { globalUniforms: context.globalUniforms, ...options.uniforms });
+        this.defShader = new Shader(this.program, { Glob: context.globalUniforms, ...options.uniforms });
         /**
          * @type {{vertex: string, fragment: string}}
          */

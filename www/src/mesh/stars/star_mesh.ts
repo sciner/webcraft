@@ -91,7 +91,11 @@ export class Mesh_Object_Stars {
             return;
         }
 
-        this.shader.uniforms.globalUniforms = render.globalUniforms;
+        //TODO: use camera uniform struct
+        this.shader.uniforms.u_projMatrix = render.globalUniforms.uniforms.u_projMatrix;
+        this.shader.uniforms.u_viewMatrix = render.globalUniforms.uniforms.u_viewMatrix;
+        this.shader.uniforms.u_resolution = render.globalUniforms.uniforms.u_resolution;
+
         this.shader.uniforms.u_sky_rotate = -this.world?.getTime().time_visible / GAME_DAY_SECONDS * (Math.PI * 2);
         const { pixiRender } = render.renderBackend;
 

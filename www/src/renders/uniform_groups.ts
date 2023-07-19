@@ -12,7 +12,6 @@ export let defaultGlobalUniforms = {
     u_fogAddColor: [0, 0, 0, 0] as tupleFloat4,
     u_fogColor: [1, 1, 1, 1] as tupleFloat4,
     u_time: performance.now() as float,
-    u_testLightOn: 0 as float,
     u_sunDir: [0, 0, 0, 0] as tupleFloat4,
     u_useNormalMap: 0 as float,
     u_gridChunkSize: [0, 0, 0] as tupleFloat3,
@@ -22,7 +21,6 @@ export let defaultGlobalUniforms = {
     u_camera_posi: [0, 0, 0] as tupleInt3,
     u_eyeinwater: 0 as float,
     u_localLightRadius: 0 as float,
-    u_fogOn: true
 }
 
 export class GlobalUniformGroup extends VAUX.UniformGroup<typeof defaultGlobalUniforms> {
@@ -32,7 +30,7 @@ export class GlobalUniformGroup extends VAUX.UniformGroup<typeof defaultGlobalUn
     gridTexSize = new Vector();
     declare dirtyId: number;
     constructor() {
-        super(Object.assign({}, defaultGlobalUniforms), true);
+        super(Object.assign({}, defaultGlobalUniforms), true, true);
 
         this.projMatrix         = mat4.create();
         this.viewMatrix         = mat4.create();
@@ -43,8 +41,6 @@ export class GlobalUniformGroup extends VAUX.UniformGroup<typeof defaultGlobalUn
         this.fogAddColor = [0,0,0,0];
         this.fogColor = [1,1,1,1];
         this.time = performance.now();
-
-        this.testLightOn = 0;
 
         this.sunDir = [0, 0, 0];
         this.useSunDir = false;
@@ -130,15 +126,6 @@ export class GlobalUniformGroup extends VAUX.UniformGroup<typeof defaultGlobalUn
     set time(val)
     {
         this.uniforms.u_time = val
-    }
-
-    get testLightOn(): number {
-        return this.uniforms.u_testLightOn;
-    }
-
-    set testLightOn(val)
-    {
-        this.uniforms.u_testLightOn = val
     }
 
     get sunDir(): tupleFloat3 {

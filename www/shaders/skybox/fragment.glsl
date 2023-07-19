@@ -1,16 +1,11 @@
 #include<header>
 
 // noise factor for rediuce gradinet banding issues
-#define BANDING_NOISE 0.01 
-//
-//uniform samplerCube u_texture;
-uniform float u_brightness;
+#define BANDING_NOISE 0.01
+
+#include<global_uniforms>
 uniform float u_nightshift;
 uniform vec3 u_baseColor;
-uniform vec4 u_fogColor; // global
-uniform vec4 u_fogAddColor; // global
-uniform vec3 u_sunDir; // global
-uniform vec2 u_resolution; // global
 
 in vec3 v_texCoord;
 out vec4 outColor;
