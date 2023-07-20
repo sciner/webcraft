@@ -742,8 +742,8 @@ export class InHandOverlay {
 
     applyFoodAnimation(modelMatrix, hand: HumanoidArm, matInHand, pSwingProgress: float): void {
         // параметры анимации
-        const MOVE_TO_CENTER    = 0.15
-        const MOVE_UP           = 0.2
+        const MOVE_TO_CENTER    = 0.45
+        const MOVE_DOWN         = 0.45
         const BITES_PER_SECOND  = 5
         const BITES_AMPLITUDE   = 0.15
 
@@ -756,7 +756,7 @@ export class InHandOverlay {
         const trig = 1 - Math.pow(Math.max(pSwingProgress, 1 - pSwingProgress), 8);
         mat4.translate(modelMatrix, modelMatrix, [
             -MOVE_TO_CENTER * sign * trig,
-            -MOVE_UP * trig,
+            -MOVE_DOWN * trig,
             BITES_AMPLITUDE * (absSineWithStops - 1) * fade
         ])
         mat4.rotateZ(modelMatrix, modelMatrix, sign * Math.PI / 4 * (1 + trig));
