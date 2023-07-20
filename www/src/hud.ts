@@ -246,7 +246,7 @@ export class HUD {
 
         // Init Window Manager
         const wm = this.wm = new WindowManager(this.canvas, 0, 0, this.canvas.width, this.canvas.height)
-
+        
         this.underlay = new HUD_Underlay();
         this.underlay.crosshair_num = Qubatch.settings.crosshair_style
         wm.untypedParent.addChildAt(this.underlay, 0);
@@ -267,7 +267,6 @@ export class HUD {
 
         // Splash screen (Loading...)
         this.splash = new Splash(this, hudwindow)
-
     }
 
     get width() : float {
@@ -353,9 +352,8 @@ export class HUD {
         }
 
         // Draw game technical info
-        this.drawInfo()
-        this.drawAverageFPS()
-        this.drawCompas(this.wm.w / 2, 20 * this.zoom, 1850/4 * this.zoom, 80/4 * this.zoom)
+        
+        
 
         // Draw windows
         if(this.wm.hasVisibleWindow()) {
@@ -364,6 +362,9 @@ export class HUD {
         } else {
             this.underlay.crosshair_num = Qubatch.settings.crosshair_style
             this.wm.style.background.color = '#00000000';
+            this.drawCompas(this.wm.w / 2, 20 * this.zoom, 1850/4 * this.zoom, 80/4 * this.zoom)
+            this.drawInfo()
+            this.drawAverageFPS()
         }
 
         this.wm.draw()

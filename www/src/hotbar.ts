@@ -21,6 +21,86 @@ for(let i = 0; i < LIVE_SHIFT_RANDOM.length; i++) {
     LIVE_SHIFT_RANDOM[i] = Math.round(Math.random());
 }
 
+class EffectPanel {
+
+    private items : Window[] = []
+    private panel: Window = null
+    private atlas: any
+    private iw: number = 50
+    private ih: number = 50
+    private padding: number = 5
+    private zoom: number = 1
+    private wm
+
+    constructor(wm) {
+        this.wm = wm
+        this.zoom = wm.zoom
+        this.iw *= wm.zoom
+        this.ih *= wm.zoom
+        this.padding *= wm.zoom
+        this.panel = new Window(0, this.padding, wm.w, this.ih, 'top_panel')
+        this.panel.catchEvents = false
+        this.panel.auto_center = false
+        wm.add(this.panel)
+        this.atlas = Resources.atlas.get('bn')
+    }
+
+    setEffect(effects) {
+        if (effects.length < this.items.length) {
+            for (let i = 0; i < this.items.length; i++) {
+                this.panel.removeChild(this.items[i])
+                this.items[i] = null
+            }
+        }
+        for(let i = 0; i < effects.length; i++) {
+            let item = this.items[i]
+            const effect = effects[i]
+            if(!item) {
+                const CHAT_INPUT_FONT = 'UbuntuMono-Regular'
+                item = this.items[i] = new Window(0, 0, this.iw, this.ih, 'itemEffect' + i, '', '')
+                item.setBackground(this.atlas.getSpriteFromMap('button_black'))
+                const lbl_icon = new Label(0, 0, item.w, item.w, 'lbl_icon', '', '')
+                lbl_icon.y = -7 * this.zoom
+                item.add(lbl_icon)
+                const lbl_time = new Label(0, item.h - 18 * this.zoom, item.w, 18 * this.zoom, 'lbl_time', '', '')
+                lbl_time.style.textAlign.horizontal = 'center'
+                lbl_time.style.font.size = 10
+                lbl_time.style.font.family = CHAT_INPUT_FONT
+                lbl_time.style.font.color = '#ffffff55'
+                item.add(lbl_time)
+                this.panel.add(item)
+            }
+            item.getWindow('lbl_icon').setIcon(this.atlas.getSpriteFromMap(Effect.get()[effect.id].icon), 'centerstretch', .7)
+            item.getWindow('lbl_time').setText(this.PearToTime(effect.time))
+        }
+    }
+
+    set visible(visible: boolean) {
+        this.panel.visible = visible
+        if (!visible) {
+            return
+        }
+        let sx = this.wm.w
+        for (let i = 0; i < this.items.length; i++) {
+            if (this.items[i]) {
+                sx -= (this.iw + this.padding)
+                this.items[i].x = sx
+            }
+        }
+    }
+
+    PearToTime(pear: number) {
+        const val = Math.round(pear / 20)
+        if (val > 99*60) {
+            return '∞'
+        }  
+        const m = Math.floor(val / 60)
+        const s = val % 60
+        return ('0' + m.toString()).substr(-2) + ':' + ('0' + s.toString()).substr(-2)
+    }
+
+}
+
 //
 class Strings {
 
@@ -115,12 +195,11 @@ export class Hotbar {
         this.hud                = hud
         this.last_damage_time   = null
         this.strings            = new Strings()
+        this.effect_panel       = new EffectPanel(this.hud.wm)
         this.sprite_zoom        = .3 * this.zoom
 
         // Load hotbar atlases
         const all = []
-
-        this.icons_atlas = Resources.atlas.get('icons')
 
         Promise.all(all).then(_ => {
 
@@ -129,35 +208,6 @@ export class Hotbar {
 
             this.addHotbarText()
 
-            // Init sprites
-            const spriteScale: Dict<number> = {
-
-                slot:               1,
-                selector:           1,
-
-                live:               0.9,
-                live_half:          0.9,
-                live_bg_black:      0.9,
-                live_bg_white:      0.9,
-                live_poison:        0.9,
-                live_poison_half:   0.9,
-
-                food_bg_black:      0.9,
-                food:               0.9,
-                food_half:          0.9,
-                food_poison:        0.9,
-                food_poison_half:   0.9,
-
-                oxygen:             0.9,
-                oxygen_half:        0.9,
-
-                armor_bg_black:     0.9,
-                armor:              0.9,
-                armor_half:         0.9
-            }
-
-            this.hotbar_atlas = Resources.atlas.get('hotbar')
-            
             // HUD sprites
             this.hud_atlas = Resources.atlas.get('hud')
             for(let name of Object.keys(this.hud_atlas.sheet.data.frames)) {
@@ -165,21 +215,6 @@ export class Hotbar {
             }
             this.sx = this.hud_sprites.slot_empty.width
             this.sy = this.hud_sprites.slot_empty.height
-
-            // Hotbar
-            for(const [name, scale] of Object.entries(spriteScale)) {
-                this.sprites[name] = new MySprite(this.hotbar_atlas.getSpriteFromMap(name), scale * this.zoom)
-            }
-
-            const bn_atlas = Resources.atlas.get('bn')
-
-            // Effects sprites
-            this.effect_sprites = {}
-            for(let effect of Effect.get()) {
-                this.effect_sprites[effect.id] = new MySprite(bn_atlas.getSpriteFromMap(effect.icon), 1 * this.zoom)
-            }
-
-            this.sprite_effect_bg = new MySprite(bn_atlas.getSpriteFromMap('button_black'), 1 * this.zoom)
 
             this.hud.add(this, 0)
 
@@ -373,7 +408,7 @@ export class Hotbar {
         const player  = this.inventory.player;
         const mayGetDamaged = player.game_mode.mayGetDamaged()
         const visible_window = hud.wm.hasVisibleWindow()
-        const anythingVisible = (visible_window?.id != 'frmInGameMain')
+        const anythingVisible = (visible_window?.id != 'frmInGameMain' && visible_window?.id != 'frmMainMenu')
         const gameplayVisible = anythingVisible && !player.game_mode.isSpectator() && hud.isActive()
         const {progress_bar, progress_bar_percent} = this
 
@@ -383,6 +418,7 @@ export class Hotbar {
         // this.armor_base_window.alpha = alpha
         // this.oxygen_bar.alpha = alpha
 
+        this.effect_panel.visible = gameplayVisible
         this.inventory_slots_window.visible = gameplayVisible
         this.bars_base_window.visible = gameplayVisible && mayGetDamaged
         this.armor_base_window.visible = gameplayVisible && mayGetDamaged
@@ -529,8 +565,6 @@ export class Hotbar {
             hotbar_height = sy
         }
 
-        this.drawEffects(hud)
-
         // Draw strings
         this.lblHotbarText.w = hud.width
         this.lblHotbarText.h = hud.height
@@ -541,25 +575,8 @@ export class Hotbar {
         this.lblHotbarTextShadow.style.padding.bottom = hotbar_height + 10 * this.zoom
 
         this.strings.draw(this.lblHotbarText, this.lblHotbarTextShadow)
-
     }
 
-
-    drawEffects(hud) {
-        const margin = 4 * this.zoom
-        let pos = margin
-        const bg = this.sprite_effect_bg
-        for(let effect of this.inventory.player.effects.effects) {
-            const sprite = this.effect_sprites[effect.id]
-            const paddingx = bg.width / 2 - sprite.width / 2
-            const paddingy = bg.height / 2 - sprite.height / 2
-            const x = hud.width - pos - bg.width
-            const y = margin
-            this.tilemap.drawImage(bg, x, y)
-            this.tilemap.drawImage(sprite, x + paddingx, y + paddingy)
-            pos += margin + bg.width
-        }
-    }
 
     onInventoryChange(context?: string): void {
         // ничего - для совместимости с другими окнами, содержащими слоты

@@ -468,6 +468,7 @@ export class Player implements IPlayer {
         });
         this.world.server.AddCmdListener([ServerClient.CMD_EFFECTS_STATE], (cmd) => {
             this.effects.effects = cmd.data.effects;
+            Qubatch.hotbar.effect_panel.setEffect(cmd.data.effects)
             this.inventory.hud.refresh();
         });
         this.world.server.AddCmdListener([ServerClient.CMD_PLAYER_UPDATE_STATE], (cmd) => {
