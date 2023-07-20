@@ -56,6 +56,7 @@ class EffectPanel {
             let item = this.items[i]
             const effect = effects[i]
             if(!item) {
+                const CHAT_INPUT_FONT = 'UbuntuMono-Regular'
                 item = this.items[i] = new Window(0, 0, this.iw, this.ih, 'itemEffect' + i, '', '')
                 item.setBackground(this.atlas.getSpriteFromMap('button_black'))
                 const lbl_icon = new Label(0, 0, item.w, item.w, 'lbl_icon', '', '')
@@ -63,6 +64,9 @@ class EffectPanel {
                 item.add(lbl_icon)
                 const lbl_time = new Label(0, item.h - 18 * this.zoom, item.w, 18 * this.zoom, 'lbl_time', '', '')
                 lbl_time.style.textAlign.horizontal = 'center'
+                lbl_time.style.font.size = 10
+                lbl_time.style.font.family = CHAT_INPUT_FONT
+                lbl_time.style.font.color = '#ffffff55'
                 item.add(lbl_time)
                 this.panel.add(item)
             }
