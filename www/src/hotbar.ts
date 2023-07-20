@@ -87,6 +87,9 @@ class EffectPanel {
 
     PearToTime(pear: number) {
         const val = Math.round(pear / 20)
+        if (val > 99*60) {
+            return '∞'
+        }  
         const m = Math.floor(val / 60)
         const s = val % 60
         return ('0' + m.toString()).substr(-2) + ':' + ('0' + s.toString()).substr(-2)
