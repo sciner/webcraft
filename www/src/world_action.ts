@@ -18,7 +18,7 @@ import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
 import type { Indicators, PlayerStateWorld, TSittingState, TSleepState} from "./player.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
-import type { TChestInfo } from "./block_helpers.js";
+import { BACK_NEIGBOUR_BY_DIRECTION, type TChestInfo } from "./block_helpers.js";
 import type { GameMode } from "./game_mode.js";
 
 /** A type that is as used as player in actions. */
@@ -3146,6 +3146,7 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
 }
 
 function addNodeLadder(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+    const MAX_HEIGHT = 20
     const bm = world.block_manager
 
     const is_ladder = (world_block && mat_block && mat_block.id == bm.LADDER.id && world_block.id == bm.LADDER.id) 
@@ -3155,25 +3156,29 @@ function addNodeLadder(e, world, pos, player, world_block, world_material, mat_b
         return false
     }
     
-    const position = new Vector(pos)
-    // находим конец лесенки
     let block = null
-    const height = is_rope_ladder ? 255 : 20
-    let h = 0
-    for (h = 0; h < 255; h++) {
-        block = world.getBlock(position)
+    // находим точку крепления
+    const start = new Vector(pos)
+    const dir = BACK_NEIGBOUR_BY_DIRECTION[rotate.x]
+    for (let i = 0; i < 255; i++) {
+        block = world.getBlock(start.add(dir))
+        if (block && block.material?.is_solid) {
+            break
+        }
+        start.y = is_rope_ladder ? start.y + 1 : start.y - 1
+    }
+    // находим конец лесенки
+    const end = new Vector(pos)
+    for (let i = 0; i < 255; i++) {
+        block = world.getBlock(end)
         if (block?.id != world_block.id) {
             break
         }
-        if (is_rope_ladder) {
-            position.y--
-        } else {
-            position.y++
-        }
+        end.y = is_rope_ladder ? end.y - 1 : end.y + 1
     }
     // если место свободно, то ставим блок
-    if (block?.id == 0 && block.fluid == 0 && h < height) {
-        actions.addBlocks([{pos: position, item: {id: world_block.id, rotate}, action_id: BLOCK_ACTION.CREATE}])
+    if (block?.id == 0 && block.fluid == 0 && Math.abs(start.y - end.y) < MAX_HEIGHT) {
+        actions.addBlocks([{pos: end, item: {id: world_block.id, rotate}, action_id: BLOCK_ACTION.CREATE}])
         actions.decrement = true
         return true
     } 
