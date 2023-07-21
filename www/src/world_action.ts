@@ -1168,7 +1168,7 @@ export async function doBlockAction(e, world, action_player_info: ActionPlayerIn
         }
 
         // Проверка выполняемых действий с блоками в мире
-        for(let func of FUNCS.useItem1 ??= [addRopeLadder, useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setUpholstery, setPointedDripstone]) {
+        for(let func of FUNCS.useItem1 ??= [addNodeLadder, useCauldron, useShears, chSpawnMob, putInBucket, noSetOnTop, putPlate, setUpholstery, setPointedDripstone]) {
             if(func(e, world, pos, action_player_info, world_block, world_material, mat_block, current_inventory_item, extra_data, world_block_rotate, null, actions)) {
                 const affectedPos = (func === chSpawnMob) ? null : pos // мобы не меняют блок. И chSpawnMob также портит pos
                 return [actions, affectedPos]
@@ -3158,25 +3158,30 @@ function setPointedDripstone(e, world, pos, player, world_block, world_material,
     return true
 }
 
-function addRopeLadder(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+function addNodeLadder(e, world, pos, player, world_block, world_material, mat_block : IBlockMaterial, current_inventory_item, extra_data, rotate, replace_block, actions): boolean {
+    const MAX_HEIGHT = 20
     const bm = world.block_manager
 
-    if (!world_block || !mat_block || mat_block.id != bm.ROPE_LADDER.id || world_block.id != bm.ROPE_LADDER.id) {
+    const is_ladder = (world_block && mat_block && mat_block.id == bm.LADDER.id && world_block.id == bm.LADDER.id) 
+    const is_rope_ladder = (world_block && mat_block && mat_block.id == bm.ROPE_LADDER.id && world_block.id == bm.ROPE_LADDER.id) 
+
+    if (!is_ladder && !is_rope_ladder) {
         return false
     }
-
-    const position = new Vector(pos)
-    // находим конец лесенки
+    
     let block = null
-    for (let h = 0; h < 255; h++) {
+    // находим конец лесенки
+    let height = 0
+    const position = new Vector(pos)
+    for (height = 0; height < MAX_HEIGHT + 1; height++) {
         block = world.getBlock(position)
         if (block?.id != world_block.id) {
             break
         }
-        position.y--
+        position.y = is_rope_ladder ? position.y - 1 : position.y + 1
     }
     // если место свободно, то ставим блок
-    if (block?.id == 0 && block.fluid == 0) {
+    if (block?.id == 0 && block.fluid == 0 && height <= MAX_HEIGHT) {
         actions.addBlocks([{pos: position, item: {id: world_block.id, rotate}, action_id: BLOCK_ACTION.CREATE}])
         actions.decrement = true
         return true
