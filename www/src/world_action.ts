@@ -18,7 +18,7 @@ import type { TBlock } from "./typed_blocks3.js";
 import { Lang } from "./lang.js";
 import type { Indicators, PlayerStateWorld, TSittingState, TSleepState} from "./player.js";
 import { MechanismAssembler } from "./mechanism_assembler.js";
-import { BACK_NEIGBOUR_BY_DIRECTION, type TChestInfo } from "./block_helpers.js";
+import type { TChestInfo } from "./block_helpers.js";
 import type { GameMode } from "./game_mode.js";
 
 /** A type that is as used as player in actions. */
@@ -3157,28 +3157,19 @@ function addNodeLadder(e, world, pos, player, world_block, world_material, mat_b
     }
     
     let block = null
-    // находим точку крепления
-    const start = new Vector(pos)
-    const dir = BACK_NEIGBOUR_BY_DIRECTION[rotate.x]
-    for (let i = 0; i < 255; i++) {
-        block = world.getBlock(start.add(dir))
-        if (block && block.material?.is_solid) {
-            break
-        }
-        start.y = is_rope_ladder ? start.y + 1 : start.y - 1
-    }
     // находим конец лесенки
-    const end = new Vector(pos)
-    for (let i = 0; i < 255; i++) {
-        block = world.getBlock(end)
+    let height = 0
+    const position = new Vector(pos)
+    for (height = 0; height < MAX_HEIGHT + 1; height++) {
+        block = world.getBlock(position)
         if (block?.id != world_block.id) {
             break
         }
-        end.y = is_rope_ladder ? end.y - 1 : end.y + 1
+        position.y = is_rope_ladder ? position.y - 1 : position.y + 1
     }
     // если место свободно, то ставим блок
-    if (block?.id == 0 && block.fluid == 0 && Math.abs(start.y - end.y) < MAX_HEIGHT) {
-        actions.addBlocks([{pos: end, item: {id: world_block.id, rotate}, action_id: BLOCK_ACTION.CREATE}])
+    if (block?.id == 0 && block.fluid == 0 && height <= MAX_HEIGHT) {
+        actions.addBlocks([{pos: position, item: {id: world_block.id, rotate}, action_id: BLOCK_ACTION.CREATE}])
         actions.decrement = true
         return true
     } 
