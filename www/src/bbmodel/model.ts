@@ -23,7 +23,7 @@ export type TParsedAnimation = {
     mul:        float
 }
 
-const _parsed_animation_names = new Map()
+const _parsed_animation_names = new Map<string, TParsedAnimation>()
 
 declare type AnimationKeyFrame = {
     time: float
@@ -190,7 +190,7 @@ export class BBModel_Model {
         const full_name = animation as string
         let animation_name = full_name
 
-        const cached = _parsed_animation_names.get(animation_name)
+        const cached = _parsed_animation_names.get(full_name)
         if(cached) {
             return cached
         }
@@ -211,7 +211,7 @@ export class BBModel_Model {
 
         const resp = {full_name, name: animation_name, reverse, mul} as TParsedAnimation
 
-        _parsed_animation_names.set(animation_name, resp)
+        _parsed_animation_names.set(full_name, resp)
 
         return resp
 
@@ -238,6 +238,7 @@ export class BBModel_Model {
 
     /**
      * Play animations
+     * @param animation_name - имя анимации, или результат парсинга этого имени
      */
     playAnimation(animation_name : string | TParsedAnimation | null, dt : float, mesh : Mesh_Object_BBModel = null) : boolean {
 

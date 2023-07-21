@@ -341,7 +341,12 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
         return this.resource_pack.getMaterial(`bbmodel/${material_group_key}/terrain/${this._mat_tex_id}`);
     }
 
-    /** @returns полное имя анимации (с параметрами) */
+    /**
+     * @returns полное имя анимации (с параметрами).
+     *
+     * В {@link playAnimation} для ускорения желательно использовать {@link parsed_animation} вместо этого значения,
+     * чтобы не пытаться повторно парсить.
+     */
     get animation_name(): string | null | undefined {
         return this.parsed_animation?.full_name
     }
@@ -474,7 +479,7 @@ export class Mesh_Object_BBModel extends Mesh_Object_Base {
             }
         }
 
-        this.model.playAnimation(this.animation_name, (performance.now() - this.start_time) / 1000, this)
+        this.model.playAnimation(this.parsed_animation, (performance.now() - this.start_time) / 1000, this)
         this.model.drawBuffered(meshBatcher, this, this.apos, lm, m)
 
     }
