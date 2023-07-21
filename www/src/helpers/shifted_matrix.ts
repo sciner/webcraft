@@ -330,12 +330,12 @@ export class ShiftedMatrix {
                     add(row, col, ind)
                 }
             } else {    // it's a cell with known 0 distance; spread from some of them
-                const hasNonZeroNeigbours =
+                const hasNonZeroNeighbours =
                     row          && arr[ind - cols] ||
                     row < rowsM1 && arr[ind + cols] ||
                     col          && arr[ind - 1] ||
                     col < colsM1 && arr[ind + 1]
-                if (hasNonZeroNeigbours) {
+                if (hasNonZeroNeighbours) {
                     spread(row, col, ind, v)
                 }
             }

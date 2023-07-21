@@ -6066,7 +6066,8 @@
                 "sign",
                 "rotate_sign",
                 "no_drop_ao",
-                "rotate_by_pos_n_5"
+                "rotate_by_pos_n_5",
+                "is_solid_for_fluid"
             ],
             "material": {
                 "id": "wood"
@@ -6091,7 +6092,8 @@
                 "sign",
                 "rotate_sign",
                 "no_drop_ao",
-                "rotate_by_pos_n_5"
+                "rotate_by_pos_n_5",
+                "is_solid_for_fluid"
             ],
             "material": {
                 "id": "wood"
@@ -6116,7 +6118,8 @@
                 "sign",
                 "rotate_sign",
                 "no_drop_ao",
-                "rotate_by_pos_n_5"
+                "rotate_by_pos_n_5",
+                "is_solid_for_fluid"
             ],
             "material": {
                 "id": "wood"
@@ -6141,7 +6144,8 @@
                 "sign",
                 "rotate_sign",
                 "no_drop_ao",
-                "rotate_by_pos_n_5"
+                "rotate_by_pos_n_5",
+                "is_solid_for_fluid"
             ],
             "material": {
                 "id": "wood"
@@ -6166,7 +6170,8 @@
                 "sign",
                 "rotate_sign",
                 "no_drop_ao",
-                "rotate_by_pos_n_5"
+                "rotate_by_pos_n_5",
+                "is_solid_for_fluid"
             ],
             "material": {
                 "id": "wood"
@@ -6191,7 +6196,8 @@
                 "sign",
                 "rotate_sign",
                 "no_drop_ao",
-                "rotate_by_pos_n_5"
+                "rotate_by_pos_n_5",
+                "is_solid_for_fluid"
             ],
             "material": {
                 "id": "wood"

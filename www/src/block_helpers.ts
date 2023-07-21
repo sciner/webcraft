@@ -31,7 +31,7 @@ export class ChestHelpers {
             return null;
         }
         const dir = BLOCK.getCardinalDirection(block.rotate);
-        const dxz = RIGHT_NEIGBOUR_BY_DIRECTION[dir];
+        const dxz = RIGHT_NEIGHBOUR_BY_DIRECTION[dir];
         switch (block.extra_data?.type) {
             case 'left':    return block.posworld.clone().subSelf(dxz);
             case 'right':   return block.posworld.clone().addSelf(dxz);
@@ -83,17 +83,17 @@ const CHEST_HALF_OTHER_TYPE = {
     'right': 'left',
 };
 
-export const RIGHT_NEIGBOUR_BY_DIRECTION = {};
-RIGHT_NEIGBOUR_BY_DIRECTION[ROTATE.S] = new Vector(1, 0, 0);
-RIGHT_NEIGBOUR_BY_DIRECTION[ROTATE.W] = new Vector(0, 0, -1);
-RIGHT_NEIGBOUR_BY_DIRECTION[ROTATE.N] = new Vector(-1, 0, 0);
-RIGHT_NEIGBOUR_BY_DIRECTION[ROTATE.E] = new Vector(0, 0, 1);
+export const RIGHT_NEIGHBOUR_BY_DIRECTION = {};
+RIGHT_NEIGHBOUR_BY_DIRECTION[ROTATE.S] = new Vector(1, 0, 0);
+RIGHT_NEIGHBOUR_BY_DIRECTION[ROTATE.W] = new Vector(0, 0, -1);
+RIGHT_NEIGHBOUR_BY_DIRECTION[ROTATE.N] = new Vector(-1, 0, 0);
+RIGHT_NEIGHBOUR_BY_DIRECTION[ROTATE.E] = new Vector(0, 0, 1);
 
-export const BACK_NEIGBOUR_BY_DIRECTION = {}
-BACK_NEIGBOUR_BY_DIRECTION[ROTATE.S] = Vector.ZP
-BACK_NEIGBOUR_BY_DIRECTION[ROTATE.W] = Vector.XP
-BACK_NEIGBOUR_BY_DIRECTION[ROTATE.N] = Vector.ZN
-BACK_NEIGBOUR_BY_DIRECTION[ROTATE.E] = Vector.XN
+export const BACK_NEIGHBOUR_BY_DIRECTION = {}
+BACK_NEIGHBOUR_BY_DIRECTION[ROTATE.S] = Vector.ZP
+BACK_NEIGHBOUR_BY_DIRECTION[ROTATE.W] = Vector.XP
+BACK_NEIGHBOUR_BY_DIRECTION[ROTATE.N] = Vector.ZN
+BACK_NEIGHBOUR_BY_DIRECTION[ROTATE.E] = Vector.XN
 
 /**
  * It tests whether a player is to far away to interct with a block, or both blocks.
