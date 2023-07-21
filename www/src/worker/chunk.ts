@@ -54,7 +54,7 @@ class MaterialBuf {
 // ChunkManager
 export class ChunkWorkerChunkManager {
 
-    DUMMY:          { id: any; properties: any; material: any; getProperties: () => any; canReplace: () => boolean; }
+    DUMMY:          { id: any; properties: any; material: any; getProperties: () => any; canReplace: () => boolean; getResistance: () => number; }
     block_manager:  BLOCK
     world:          WorkerWorld
     destroyed:      boolean
@@ -70,6 +70,7 @@ export class ChunkWorkerChunkManager {
         this.destroyed = false;
         this.block_manager = BLOCK
         this.tech_info = world.tech_info
+        // TODO: need to refact
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
             properties: BLOCK.DUMMY,
@@ -79,6 +80,9 @@ export class ChunkWorkerChunkManager {
             },
             canReplace: function() {
                 return false;
+            },
+            getResistance(): number {
+                return -100
             }
         };
         this.grid = world.grid

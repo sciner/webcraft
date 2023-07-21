@@ -1222,6 +1222,14 @@ export class TBlock {
         return null
     }
 
+    getResistance(): number {
+        if(this.id > 0) {
+            return this.material.material.mining.blast_resistance
+        } else {
+            return -100
+        }
+    }
+
 }
 
 // It's declared here because it ca'be be declared befpre TBlock

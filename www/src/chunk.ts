@@ -391,7 +391,6 @@ export class Chunk {
         y -= this.coord.y;
         z -= this.coord.z;
         if (x < 0 || y < 0 || z < 0 || x >= this.size.x || y >= this.size.y || z >= this.size.z) {
-            console.log(888)
             return this.getChunkManager().DUMMY;
         }
         if (v instanceof Vector) {

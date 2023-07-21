@@ -224,7 +224,7 @@ export class ChunkManager {
             this.setChunkFluidDelta(new Vector(cmd.data.addr), Uint8Array.from(atob(cmd.data.buf), c => c.charCodeAt(0)));
         });
 
-        //
+        // TODO: need to refact
         const dummy = BLOCK.DUMMY
         this.DUMMY = {
             id:             dummy.id,
@@ -233,6 +233,9 @@ export class ChunkManager {
             fluid:          0,
             getProperties: function() {
                 return this.material;
+            },
+            getResistance(): number {
+                return -100
             }
         }
 

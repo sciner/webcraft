@@ -808,6 +808,10 @@ export class WorldAction {
         const block_pos = new Vector();
         const extruded_blocks = new VectorCollector();
 
+        const grid = world.grid
+        const {worldPosToChunkIndex} = grid.math
+        const tmpChunkAddr = new Vector(0, 0, 0)
+
         drop_blocks_chance = parseFloat(drop_blocks_chance);
 
         //
@@ -843,11 +847,32 @@ export class WorldAction {
         const vec                   = new Vector(0, 0, 0);
         const strength              = power; // (power + 1.) * .97;
         const bePresentBlock        = new VectorCollector(); // Массив присутствующих блоков в кэше, для оптимизации повторного изъятия данных блока
+        const str_extruded          = 'extruded'
 
-        let repeat = false;
-        let rays = 0;
+        let repeat = false
+        let rays = 0
 
-        // const p = performance.now();
+        let p = performance.now()
+
+        let chunk : any
+        let chunk_block_ids : int[]
+        const dummy = world.chunks.DUMMY
+
+        const getBlock = (pos : Vector) : any | null => {
+            grid.toChunkAddr(pos, tmpChunkAddr)
+            if(!chunk || !chunk.addr.equal(tmpChunkAddr)) {
+                chunk = world.chunks.getChunk(tmpChunkAddr)
+                if(!chunk?.tblocks) {
+                    return dummy
+                }
+                chunk_block_ids = chunk.tblocks.id
+            }
+            const index = worldPosToChunkIndex(pos)
+            const block_id = chunk_block_ids[index]
+            return block_id > 0 ? chunk.getBlock(pos.x, pos.y, pos.z, null) : dummy
+        }
+
+        let whiles = 0
 
         for(let x = -maxDistance; x <= maxDistance; ++x) {
             for(let y = -maxDistance; y <= maxDistance; ++y) {
@@ -864,39 +889,33 @@ export class WorldAction {
                         // Сила x * 0.7 ... x * 1.3
                         let res = strength * (.7 + Math.random() * .6);
 
-                        let fx = vec_center.x;
-                        let fy = vec_center.y;
-                        let fz = vec_center.z;
+                        let fx = vec_center.x
+                        let fy = vec_center.y
+                        let fz = vec_center.z
                         let dis0 = 0;
-                        let resistance = 0;
 
                         while(dis0 < dis && res > 0) {
-                            repeat = false;
-                            block_pos.set(fx, fy, fz).flooredSelf();
-                            let block = bePresentBlock.get(block_pos);
-                            if(block) {
-                                repeat = true;
-                                resistance = block.resistance;
+                            whiles++
+                            repeat = false
+                            block_pos.set(fx, fy, fz).flooredSelf()
+                            let tblock = bePresentBlock.get(block_pos)
+                            if(tblock) {
+                                repeat = true
                             } else {
-                                let tblock = world.getBlock(block_pos);
-                                if(tblock.id > 0) {
-                                    resistance = tblock.material.material.mining.blast_resistance;
-                                } else {
-                                    resistance = -100;
-                                }
-                                block = {resistance, tblock};
-                                bePresentBlock.set(block_pos, block);
+                                tblock = getBlock(block_pos)
+                                bePresentBlock.set(block_pos, tblock)
                             }
+                            const resistance = tblock.getResistance()
                             if (resistance >= 0) {
-                                res -= (resistance + .3) * .3;
+                                res -= (resistance + .3) * .3
                                 if (!repeat && res > 0) {
-                                    listBlockDestruction.set(block_pos, block);
+                                    listBlockDestruction.set(block_pos, tblock)
                                 }
                             }
-                            fx += vec.x;
-                            fy += vec.y;
-                            fz += vec.z;
-                            dis0++;
+                            fx += vec.x
+                            fy += vec.y
+                            fz += vec.z
+                            dis0++
                         }
 
                     }
@@ -905,54 +924,48 @@ export class WorldAction {
             }
         }
 
-        /*console.log({
-            rays,
-            max_distance:       maxDistance,
-            destroyed_blocks:   listBlockDestruction.size,
-            get_blocks:         bePresentBlock.size,
-            elapsed: performance.now() - p
-        });
-        */
+        // console.log({
+        //     whiles,
+        //     rays,
+        //     max_distance:       maxDistance,
+        //     destroyed_blocks:   listBlockDestruction.size,
+        //     get_blocks:         bePresentBlock.size,
+        //     elapsed: performance.now() - p
+        // })
 
         // Уничтожаем блоки
         if (listBlockDestruction.size > 0) {
-            for(const [pos, block] of listBlockDestruction.entries()) {
+            for(const [pos, tblock] of listBlockDestruction.entries()) {
                 if (pos.equal(vec_center)) { // просто удаляем центральный блок ( это tnt)
-                    this.addBlocks([
-                        {
+                    this.addBlock({
+                        pos: pos.clone(),
+                        item: air,
+                        action_id: BLOCK_ACTION.REPLACE
+                    })
+                } else if (tblock.id == BLOCK.TNT.id) {
+                    if (!(tblock.extra_data?.explode ?? false)) {
+                        this.addBlock({
                             pos: pos.clone(),
-                            item: air,
-                            action_id: BLOCK_ACTION.REPLACE
-                        }
-                    ]);
-                } else if (block.tblock.id == BLOCK.TNT.id) {
-                    if (!block.tblock.extra_data.explode) {
-                        this.addBlocks([
-                            {
-                                pos: pos.clone(),
-                                item: {
-                                    id: BLOCK.TNT.id,
-                                    extra_data: {
-                                        explode: true,
-                                        fuse: 8
-                                    }
-                                },
-                                action_id: BLOCK_ACTION.MODIFY
-                            }
-                        ]);
+                            item: {
+                                id: BLOCK.TNT.id,
+                                extra_data: {
+                                    explode: true,
+                                    fuse: 8
+                                }
+                            },
+                            action_id: BLOCK_ACTION.MODIFY
+                        })
                     }
                 } else {
-                    this.addBlocks([
-                        {
-                            pos: pos.clone(),
-                            item: air,
-                            action_id: BLOCK_ACTION.REPLACE
-                        }
-                    ]);
-                    extruded_blocks.set(pos, 'extruded');
+                    this.addBlock({
+                        pos: pos.clone(),
+                        item: air,
+                        action_id: BLOCK_ACTION.REPLACE
+                    })
+                    extruded_blocks.set(pos, str_extruded);
                     // не вся часть блоков при взрыве динамита дропается
                     if (Math.random() <= 0.7) {
-                        createAutoDrop(block.tblock);
+                        createAutoDrop(tblock)
                     }
                 }
             }
@@ -964,22 +977,22 @@ export class WorldAction {
             const check_under_poses = [
                 vec.clone().addSelf(Vector.YP),
                 vec.clone().addSelf(new Vector(0, 2, 0))
-            ];
+            ]
             for(let i = 0; i < check_under_poses.length; i++) {
-                const pos_under = check_under_poses[i];
+                const pos_under = check_under_poses[i]
                 if(extruded_blocks.has(pos_under)) {
-                    continue;
+                    continue
                 }
-                const tblock = world.getBlock(pos_under);
+                const tblock = world.getBlock(pos_under)
                 if(!tblock) {
-                    continue;
+                    continue
                 }
-                createAutoDrop(tblock);
+                createAutoDrop(tblock)
             }
         }
         //
         if(add_particles) {
-            this.addParticles([{type: 'explosion', pos: vec_center.clone()}]);
+            this.addParticles([{type: 'explosion', pos: vec_center.clone()}])
         }
     }
 

@@ -44,7 +44,7 @@ export class ServerChunkManager {
     unloading_subset_index: int;
     unloading_state_count: int;
     ticks_stat: WorldTickStat;
-    DUMMY: { id: any; name: any; properties: any; material: any; fluid: any, getProperties: () => any; };
+    DUMMY: { id: any; name: any; properties: any; material: any; fluid: any, getProperties: () => any; getResistance: () => any; };
     dataWorld: DataWorld;
     itemWorld: ItemWorld;
     use_light: boolean = true;
@@ -78,7 +78,7 @@ export class ServerChunkManager {
         this.unloading_state_count      = 0 // the number of chunks with CHUNK_STATE.UNLOADING
         this.ticks_stat                 = new WorldTickStat(ServerChunkManager.STAT_NAMES)
         this.tech_info                  = world.info.tech_info
-        //
+        // TODO: need to refact
         const dummy = world.block_manager.DUMMY
         this.DUMMY = {
             id:         dummy.id,
@@ -88,6 +88,9 @@ export class ServerChunkManager {
             fluid:      0,
             getProperties: function() {
                 return this.material
+            },
+            getResistance(): number {
+                return -100
             }
         };
         this.lightProps = {
