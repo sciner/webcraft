@@ -673,13 +673,30 @@ export class Physics {
                 Math.abs(Mth.radians_to_minus_PI_PI_range(triedSpeed.getYaw() - desiredSpeed.getYaw())) < Mth.PI_DIV2
             ) {
                 // код бывший в функции doesNotCollide(). Перенесен сюда чтобы было ясно видно где вызвается getSurroundingBBs()
-                const liquidImpulseTestY = vel.y + 0.6 - pos.y + lastY + (options.floatSubmergedHeight ?? 0)
-                const posBB = pos.offset(vel.x, liquidImpulseTestY, vel.z)
-                const pBB = this.getPlayerBB(entity, posBB, this.tmpPlayerBB)
-                const desNotCollide = !this.getSurroundingBBs(pBB).some(x => pBB.intersect(x))
-                    && this.getLiquidInBB(pBB, null, null, true) == null
-
-                if (desNotCollide) {
+                const test_dy = vel.y + 0.6 - pos.y + lastY + (options.floatSubmergedHeight ?? 0)
+                // Небольшие пробные смещения чтобы проверить, есть ли свободное место выше на берегу
+                const test_dx = Math.sign(desiredSpeed.x) * 0.2
+                const test_dz = Math.sign(desiredSpeed.z) * 0.2
+                // AABB включающий все интересующие нас позиции, чтобы найти препятствия 1 раз
+                const surrounding_BBs = this.getSurroundingBBs(
+                    this.getPlayerBB(entity, pos, this.tmpPlayerBB).extend(test_dx, test_dy, test_dz)
+                )
+                // Проверяем сдвинутую позицию отдельно по X и Z, чтобы если игрок по диагонали упирается в стенку
+                // с одной стороны, а d берег с другой - то мог запрыгнуть на берег.
+                const test_BB = this.getPlayerBB(entity, pos, this.tmpPlayerBB).translate(test_dx, 0, 0)
+                let collides_now = surrounding_BBs.some(bb => test_BB.intersect(bb))
+                test_BB.translate(0, test_dy, 0)
+                let collides_above = surrounding_BBs.some(bb => test_BB.intersect(bb))
+                if (!(collides_now && !collides_above)) {
+                    this.getPlayerBB(entity, pos, test_BB).translate(0, 0, test_dz)
+                    collides_now = surrounding_BBs.some(bb => test_BB.intersect(bb))
+                    test_BB.translate(0, test_dy, 0)
+                    collides_above = surrounding_BBs.some(bb => test_BB.intersect(bb))
+                }
+                if (collides_now && !collides_above &&
+                    // Не уверен что эта проверка нужна. Она была раньше
+                    this.getLiquidInBB(test_BB, null, null, true) == null
+                ) {
                     vel.y = this.outOfLiquidImpulse // jump out of liquid
                 }
             }
