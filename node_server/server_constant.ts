@@ -7,6 +7,7 @@ import { MAX_PACKET_LAG_SECONDS } from "@client/constant.js"
 export const SPECTATOR_BOTS_ENABLED = true
 
 export const WORLD_TTL_SECONDS = 60     // Сколько остается в памяти мир без игроков в котором все важное сохранено
+export const WORLD_KILL_TIMEOUT_SECONDS = 10 * 60   // Через сколько секунд воркер будет убит если от него не поступают сообщения
 
 // =================================== сеть ===================================
 

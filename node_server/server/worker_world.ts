@@ -1,6 +1,7 @@
 import { SERVER_WORLD_WORKER_MESSAGE } from "@client/constant.js"
 import { ServerWorkerPlayer } from "./worker_player.js"
 import type {ServerGame} from "../server_game.js";
+import {WORLD_KILL_TIMEOUT_SECONDS} from "../server_constant.js";
 
 const REMOVED_PLAYER_TTL = 60 * 1000    // Только для обнаружения ошибок, не влияет на игру.
 
@@ -12,6 +13,8 @@ export class ServerWorkerWorld {
     removed_players_time = new Map<string, number>()
     game: ServerGame
     guid: string
+    private last_message_received_time: number
+    private kill_timeout: any = null
 
     constructor(game: ServerGame) {
         this.game = game
@@ -24,6 +27,7 @@ export class ServerWorkerWorld {
         const that = this
 
         const onmessage = (data) => {
+            this.last_message_received_time = performance.now()
             data = data.data ?? data
             const cmd = data[0]
             const args = data[1]
@@ -59,7 +63,6 @@ export class ServerWorkerWorld {
                     // Сейчас мир находится в ожидании что его убьют. Если за это время не появилось новых игроков, так и сделаем.
                     if (this.players.size === 0) {
                         this.game.deleteWorld(this)
-                        this.worker.terminate()
                     } else {
                         // За это время появились игроки, говорим миру опять ожить
                         this.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.no_need_to_unload])
@@ -69,15 +72,38 @@ export class ServerWorkerWorld {
             }
         }
 
+        this.last_message_received_time = performance.now()
+
+        this.kill_timeout = setInterval(() => {
+            if (this.last_message_received_time < performance.now() - WORLD_KILL_TIMEOUT_SECONDS * 1000) {
+                console.error(`World ${this.guid} is terminated by timeout`)
+                this.game.deleteWorld(this)
+            }
+        }, WORLD_KILL_TIMEOUT_SECONDS * 1000 / 10)
+
+        const onerror = (e) => {
+            console.error(`World ${this.guid} is terminated due to error: ${JSON.stringify(e)}`)
+            this.game.deleteWorld(this)
+        }
+
         if('onmessage' in this.worker) {
             this.worker.onmessage = onmessage;
-            // this.worker.onerror = onerror;
+            this.worker.onerror = onerror;
         } else {
             this.worker.on('message', onmessage);
-            // this.worker.on('error', onerror);
+            this.worker.on('error', onerror);
         }
         
         this.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.init, world_row, performance.now()])
+    }
+
+    onDelete(): void {
+        this.worker.terminate()
+        clearInterval(this.kill_timeout)
+        // При нормальном закрытии игроков не должно быть. TODO: посылать им команду, переводящую их в главное меню.
+        for(const player of this.players.values()) {
+            player.conn.close(1000)
+        }
     }
 
     broadcastSystemChatMessage(msg: string) {

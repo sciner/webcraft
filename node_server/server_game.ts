@@ -130,6 +130,7 @@ export class ServerGame {
 
     deleteWorld(world: ServerWorkerWorld): void {
         this.worlds.delete(world.guid)
+        world.onDelete()
     }
 
     // Start websocket server
