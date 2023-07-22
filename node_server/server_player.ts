@@ -709,8 +709,13 @@ export class ServerPlayer extends Player {
                     let quality = 0
                     if (dy >= 0 && dy <= 1) quality++  // лучше на одном уровне с игроком, чтобы он заметил
                     const block = world.getBlock(pos)
-                    if (block.id === 0) quality += 4    // не заменять существующий блок и не ставить в воду
-                    if (block.fluid === 0) quality += 4
+                    const {material} = block
+                    if (material.id === 0) {
+                        quality += 4    // не заменять существующий блок
+                    } else if (!material.is_solid || material.height < 0.5) {
+                        quality += 3     // можно заменить траву, снежный покров, и т.п.
+                    }
+                    if (block.fluid === 0) quality += 4 // не ставить в воду
                     if (world.getMaterial(pos.addScalarSelf(0, 1, 0)).id === 0) quality++ // над сундуком пусто
                     if (world.getMaterial(pos.addScalarSelf(0, -2, 0)).is_solid) quality += 2 // под сундуком есть опора
                     if (bestQuality < quality) {
