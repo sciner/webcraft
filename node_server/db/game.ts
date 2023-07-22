@@ -210,6 +210,11 @@ export class DBGame {
             `UPDATE world SET generator = replace(generator, '"generate_big_caves":false', '"generate_big_caves":true') WHERE _rowid_ = 1000001`,
         ]});
 
+        migrations.push({version: 15, queries: [
+            `ALTER TABLE world ADD COLUMN "public" integer NOT NULL DEFAULT 0`,
+            `UPDATE world set public = 0`
+        ]})
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.conn.get('begin transaction');
@@ -334,7 +339,7 @@ export class DBGame {
     // Возвращает все сервера созданные мной и те, которые я себе добавил
     async MyWorlds(user_id) {
         const result = [];
-        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
+        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode, w.public FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id OR w.public = 1 WHERE wp.user_id = :user_id ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
             ':user_id': user_id
         });
         if(rows) {
@@ -353,7 +358,8 @@ export class DBGame {
                     'game_mode':    row.game_mode,
                     'generator':    JSON.parse(row.generator),
                     'pos_spawn':    null,
-                    'state':        null
+                    'state':        null,
+                    'public':       row.public
                 };
                 result.push(world);
             }

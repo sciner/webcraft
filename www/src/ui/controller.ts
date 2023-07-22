@@ -432,7 +432,11 @@ class GameController {
                 instance.syncTime();
                 instance.App.MyWorlds({}, (worlds) => {
                     $timeout(() => {
+                        for (const world of worlds) {
+                            
+                        }
                         that.list = worlds;
+                        that.public_list = worlds
                         for(let w of worlds) {
                             w.game_mode_title = Lang[`gamemode_${w.game_mode}`];
                         }

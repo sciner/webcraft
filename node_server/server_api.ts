@@ -118,6 +118,7 @@ export class ServerAPI {
                 return {server_url, world_guid}
             }
             case '/api/Game/MyWorlds': {
+                const params = req.body
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);
                 const resp = await ServerAPI.getDb().MyWorlds(session.user_id);
                 for(let item of resp) {
