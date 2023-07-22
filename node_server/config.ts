@@ -70,6 +70,7 @@ export class Config {
     SSLCertFile: string
     SSLKeyFile: string
     Debug: boolean
+    building_schemas: any;
 
     constructor() {
         Object.assign(this, conf)

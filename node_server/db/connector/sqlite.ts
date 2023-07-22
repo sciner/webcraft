@@ -6,8 +6,8 @@ import {open} from 'sqlite'
 export class SQLiteServerConnector {
 
     // Connect to database and return provider
-    static async connect(filename) {
-        const dir = path.dirname(filename);
+    static async connect(filename: string) {
+        const dir = path.dirname(filename)
         console.log(dir);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, {recursive: true});

@@ -1,5 +1,5 @@
 import {Mth, ObjectHelpers, ROTATE, Vector} from "@client/helpers.js";
-import {Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps} from "@client/player.js";
+import {Player, PlayerHands, PlayerStateUpdate, PlayerSharedProps, PlayerSkin} from "@client/player.js";
 import {GAME_MODE, GameMode} from "@client/game_mode.js";
 import {BLOCK_ACTION, ServerClient} from "@client/server_client.js";
 import {Raycaster, RaycasterResult} from "@client/Raycaster.js";
@@ -29,6 +29,7 @@ import type {TChestSlots} from "@client/block_helpers.js";
 import type {PrismarinePlayerState} from "@client/prismarine-physics/index.js";
 import {WorldAction} from "@client/world_action.js";
 import type {TWorldEditCopy} from "./plugins/chat_worldedit.js";
+import type { WorldWorker } from "world/worker.js";
 
 export class NetworkMessage<DataT = any> implements INetworkMessage<DataT> {
     time?: number;
@@ -119,7 +120,7 @@ export class ServerPlayer extends Player {
     live_level: number;
     food_level: number;
     oxygen_level: number;
-    conn: any;
+    world_worker: WorldWorker;
     savingPromise?: Promise<void>
     lastSentPacketTime = Infinity   // performance.now()
     _world_edit_copy?: TWorldEditCopy
@@ -230,9 +231,9 @@ export class ServerPlayer extends Player {
 
     /** Closes the player's session after encountering an unrecoverable error. */
     terminate(error: any): void {
-        if (this.conn) {
+        if (this.world_worker) {
             console.log(`Player ${this.session.username} connection is closed due to ${error}`)
-            this.conn.close(1000)
+            this.world_worker.terminatePlayerConnection(this.session)
         }
     }
 
@@ -269,33 +270,25 @@ export class ServerPlayer extends Player {
         });
     }
 
-    async onJoin(session_id : string, skin_id : string, conn : any, world : ServerWorld) {
+    async onJoin(session : PlayerSession, skin: PlayerSkin, world_worker : WorldWorker, world : ServerWorld) {
 
         if (EMULATED_PING) {
             console.log('Connect user with emulated ping:', EMULATED_PING);
         }
 
-        // TODO: Maybe set the session here, and not in cmd_connect? (to avoid redundant select)
-        const session = await Qubatch.db.GetPlayerSession(session_id);
-
-        this.conn               = conn;
+        this.world_worker       = world_worker
         this.world              = world;
         this.raycaster          = new Raycaster(world)
         this.vision             = new ServerPlayerVision(this)
         this.damage             = new ServerPlayerDamage(this)
-        this.session_id         = session_id
-        this.skin               = await Qubatch.db.skins.getUserSkin(session.user_id, skin_id)
-        //
-        conn.player = this;
-        conn.on('message', this.onMessage.bind(this));
-        //
-        conn.on('close', async (e) => {
-            this.world.onLeave(this)
-        });
+        this.session_id         = session.session_id
+        this.session            = session
+        this.skin               = skin
+
         //
         this.sendPackets([{
             name: ServerClient.CMD_HELLO,
-            data: `Welcome to MadCraft ver. 0.0.4 (${world.info.guid})`
+            data: `Welcome to MadCraft ver. 0.0.5 (${world.info.guid})`
         }]);
 
         //
@@ -306,16 +299,16 @@ export class ServerPlayer extends Player {
             }
         }]);
 
-        this.sendWorldInfo(false);
+        this.sendWorldInfo(false)
     }
 
     // Send world info
     sendWorldInfo(update : boolean) {
-        this.sendPackets([{name: update ? ServerClient.CMD_WORLD_UPDATE_INFO : ServerClient.CMD_WORLD_INFO, data: this.world.getInfo()}]);
+        this.sendPackets([{name: update ? ServerClient.CMD_WORLD_UPDATE_INFO : ServerClient.CMD_WORLD_INFO, data: this.world.getInfo()}])
     }
 
     // on message
-    async onMessage(message) {
+    async onMessage(message: any) {
         if (EMULATED_PING) {
             await waitPing();
         }
@@ -323,7 +316,7 @@ export class ServerPlayer extends Player {
             const ns = this.world.network_stat
             ns.in += message.length;
             ns.in_count++;
-            const packet = JSON.parse(message);
+            const packet = message
             if (ns.in_count_by_type) {
                 const name  = packet.name
                 ns.in_count_by_type[name] = (ns.in_count_by_type[name] ?? 0) + 1
@@ -333,7 +326,8 @@ export class ServerPlayer extends Player {
             }
             await this.world.packet_reader.read(this, packet);
         } catch(e) {
-            this.sendError('error_invalid_command');
+            console.error(e, message)
+            this.sendError('error_invalid_command')
         }
     }
 
@@ -349,15 +343,15 @@ export class ServerPlayer extends Player {
 
     // onLeave...
     async onLeave() {
-        if(!this.conn) {
+        if(!this.world_worker) {
             return false;
         }
         this.vision?.leave()
         // remove events handler
         PlayerEvent.removeHandler(this.session.user_id)
         // close previous connection
-        this.conn.close(1000, 'error_multiconnection')
-        delete(this.conn)
+        this.world_worker.terminatePlayerConnection(this.session, 'error_multiconnection')
+        delete(this.world_worker)
     }
 
     // Нанесение урона игроку
@@ -376,9 +370,9 @@ export class ServerPlayer extends Player {
         if (packets.length) {
             packets[0].time = this.world.serverTime;
         }
-        const json = JSON.stringify(packets)
+        const json_string : string = JSON.stringify(packets)
 
-        ns.out += json.length;
+        ns.out += json_string.length;
         ns.out_count++;
         if (ns.out_count_by_type && packets.length) {
             // check if we need to stringify individual packets to add their sizes to stats
@@ -392,7 +386,7 @@ export class ServerPlayer extends Player {
                     }
                 }
                 if (!hasDifferentTpes) {
-                    ns.out_size_by_type[name] = (ns.out_size_by_type[name] ?? 0) + json.length
+                    ns.out_size_by_type[name] = (ns.out_size_by_type[name] ?? 0) + json_string.length
                 }
             }
             // for each packet
@@ -409,12 +403,12 @@ export class ServerPlayer extends Player {
 
         if (!EMULATED_PING) {
             // it's possible that the connection was just closed (now it's null), but the game is still trying to send data
-            this.conn?.send(json);
+            this.world_worker?.sendJSONString(this.session, json_string)
             return;
         }
 
         setTimeout(() => {
-            this.conn?.send(json);
+            this.world_worker?.sendJSONString(this.session, json_string)
         }, EMULATED_PING);
     }
 

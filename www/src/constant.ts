@@ -357,6 +357,19 @@ export enum WORKER_MESSAGE {
     SOUND_WORKER_FLOWING_DIFF = 'flowing_diff',
 }
 
+
+export enum SERVER_WORLD_WORKER_MESSAGE {
+    init = 'init',
+    broadcast_chat_message = 'broadcast_chat_message',
+    player_leave = "player_leave",
+    player_command = "player_command",
+    on_player = "on_player",
+    player_terminate_connection = "player_terminate_connection",
+    player_send_json_string = "player_send_json_string",
+    need_to_unload = "need_to_unload",
+    add_building_schema = "add_building_schema"
+}
+
 export enum PLAYER_FLAG {
     SYSTEM_ADMIN = 256
 }

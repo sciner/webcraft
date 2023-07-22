@@ -257,14 +257,7 @@ export class WorldEditBuilding {
         BuildingTemplate.addSchema(building)
 
         // Notify all players in all worlds
-        for(let w of Qubatch.worlds.values()) {
-            w.sendAll([{
-                name: ServerClient.CMD_BUILDING_SCHEMA_ADD,
-                data: {
-                    list: [building]
-                }
-            }]);
-        }
+        Qubatch.addBuildingSchema(building)
 
         // message to player chat
         const msg = `${copy_data.blocks.size} building block(s) saved`;

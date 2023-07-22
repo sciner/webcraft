@@ -475,7 +475,7 @@ export class DBGame {
     }
 
     // getWorld... Возвращает мир по его GUID
-    async getWorld(world_guid)  {
+    async getWorld(world_guid : string) : Promise<IWorldDBRow> {
         const row = await this.conn.get("SELECT w.*, u.username FROM world as w LEFT JOIN user as u ON u.id = w.user_id WHERE w.guid = ?", [world_guid]);
         if(!row) {
             throw 'error_world_not_found';
@@ -492,7 +492,7 @@ export class DBGame {
             generator:  JSON.parse(row.generator),
             pos_spawn:  JSON.parse(row.pos_spawn),
             state:      null
-        };
+        }
     }
 
     // Increase world play count by user

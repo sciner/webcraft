@@ -207,7 +207,7 @@ export class ServerChunkManager {
 
     async initWorkers(world_id : string, tech_info: TWorldTechInfo) {
         this.worldId = world_id;
-        this.lightWorker = Qubatch.lightWorker;
+        this.lightWorker = this.world.lightWorker
         this.postLightWorkerMessage([
             'initWorld',
             {

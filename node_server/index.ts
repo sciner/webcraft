@@ -47,20 +47,13 @@ try {
 }
 
 import { Config } from './config.js';
-
-//
 import {Lang} from "@client/lang.js";
 import {BLOCK} from "@client/blocks.js";
-import {Resources} from "@client/resources.js";
 import {ServerGame} from "./server_game.js";
 import {ServerAPI} from "./server_api.js";
 import {PluginManager} from "./plugin_manager.js";
 
 import type { GameSettings } from '@client/game.js';
-import type { DBGame } from 'db/game.js';
-import { md5 } from '@client/helpers.js';
-import type { PlayerSkin } from '@client/player.js';
-// const features = {}
 
 Config.init().then(async (config) => {
 
@@ -218,25 +211,6 @@ Config.init().then(async (config) => {
 
     // Start express
     const server = app.listen(config.Port)
-
-    for(const bbmodel of (await Resources.loadBBModels()).values()) {
-        if(bbmodel.name.startsWith('mob/')) {
-            bbmodel.makeTexturePalette()
-            // console.log(Qubatch.db)
-            for(const texture_name of bbmodel.all_textures.keys()) {
-                if(isNaN(Number(texture_name))) {
-                    const id = md5(`${bbmodel.name}|${texture_name}`);
-                    (Qubatch.db as DBGame).skins.list.push({
-                        id,
-                        can_select_by_player: bbmodel.name.startsWith('mob/humanoid'),
-                        model_name: bbmodel.name,
-                        texture_name,
-                    } as PlayerSkin)
-                    console.log(bbmodel.name, texture_name)
-                }
-            }
-        }
-    }
 
     // Pair with websocket server
     server.on('upgrade', (request, socket, head) => {

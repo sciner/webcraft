@@ -145,13 +145,13 @@ export class DBWorld {
      * @returns {DBWorld}
      */
     static async openDB(conn: DBConnection, world: ServerWorld): Promise<DBWorld> {
-        return await new DBWorld(conn, world).init();
+        return await new DBWorld(conn, world).init()
     }
 
     /**
      * Возвращает мир по его GUID либо создает и возвращает его
      */
-    async getWorld(world_guid : string) : Promise<TWorldInfo> {
+    async getWorld(world_guid : string, worldRow: IWorldDBRow) : Promise<TWorldInfo> {
         const row = await this.conn.get("SELECT w.*, u.username FROM world as w LEFT JOIN user as u ON u.id = w.user_id WHERE w.guid = ?", [world_guid]);
         if(row) {
             const tech_info = JSON.parse(row.tech_info)
@@ -183,7 +183,7 @@ export class DBWorld {
             return resp;
         }
         // Insert new world to Db
-        const world = await Qubatch.db.getWorld(world_guid);
+        const world = worldRow
 
         // tech info
         const xz = world.generator.options?.chunk_size_xz ?? OLD_CHUNK_SIZE.x
@@ -204,7 +204,7 @@ export class DBWorld {
             ':game_mode':   world.game_mode,
             ':tech_info':   JSON.stringify(tech_info),
         });
-        return this.getWorld(world_guid);
+        return this.getWorld(worldRow.guid, worldRow)
     }
 
     async updateAddTime(world_guid : string, add_time : int) {

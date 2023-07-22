@@ -25,8 +25,6 @@ export default class packet_reader {
             }
             player.is_spectator_bot = true
         }
-
-        player.session = await Qubatch.db.GetPlayerSession(player.session_id);
         Log.append('CmdConnect', {world_guid, session: player.session});
         await player.world.onPlayer(player, player.skin);
         return true;

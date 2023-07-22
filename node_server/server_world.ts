@@ -18,11 +18,11 @@ import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
 import { ArrayHelpers, Vector, VectorCollector, PerformanceTimer, Helpers } from "@client/helpers.js";
 import { AABB } from "@client/core/AABB.js";
-import { AIR_BLOCK_SIMPLE, BLOCK, DBItemBlock } from "@client/blocks.js";
+import { BLOCK, DBItemBlock } from "@client/blocks.js";
 import { BLOCK_ACTION, ServerClient } from "@client/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { DEFAULT_MOB_TEXTURE_NAME, DEMO_PATH, GAME_DAY_SECONDS, GAME_ONE_SECOND, MOB_TYPE, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
+import { GAME_DAY_SECONDS, GAME_ONE_SECOND, PLAYER_STATUS, SERVER_WORLD_WORKER_MESSAGE, WORKER_MESSAGE, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
 import { Weather } from "@client/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
@@ -34,7 +34,7 @@ import { WorldOreGenerator } from "./world/ore_generator.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
 import { shallowCloneAndSanitizeIfPrivate } from "@client/compress/world_modify_chunk.js";
 import { Effect } from "@client/block_type/effect.js";
-import { Mob, MobSpawnParams } from "./mob.js";
+import { Mob } from "./mob.js";
 import type { DBWorld } from "./db/world.js";
 import type { TBlock } from "@client/typed_blocks3.js";
 import type { ServerPlayer } from "./server_player.js";
@@ -50,6 +50,7 @@ import {ObjectUpdateType} from "./helpers/aware_players.js";
 import Billboard from "player/billboard.js";
 import type {TSchematicInfo} from "./plugins/chat_worldedit.js";
 import { SpawnMobs } from "world/spawn_mobs.js";
+import type { WorldWorker } from "world/worker.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -121,9 +122,14 @@ export class ServerWorld implements IWorld {
     defaultPlayerIndicators: Indicators
     physics?: Physics
     spawn_mobs: SpawnMobs
+    world_row : IWorldDBRow
+    lightWorker: any = null
+    world_worker: WorldWorker
 
-    constructor(block_manager : typeof BLOCK) {
-        this.temp_vec = new Vector();
+    constructor(block_manager : typeof BLOCK, world_row : IWorldDBRow, world_worker: WorldWorker) {
+        this.temp_vec = new Vector()
+        this.world_row = world_row
+        this.world_worker = world_worker
 
         this.block_manager = block_manager;
         this.raycaster = new Raycaster(this)
@@ -137,6 +143,7 @@ export class ServerWorld implements IWorld {
         if (SERVER_TIME_LAG) {
             console.log('[World] Server time lag ', SERVER_TIME_LAG);
         }
+        await this.initWorkers()
         const newTitlePromise = title ? db_world.setTitle(title) : Promise.resolve();
         var t = performance.now();
         // Tickers
@@ -170,7 +177,7 @@ export class ServerWorld implements IWorld {
         this.db             = db_world;
         this.db.removeDeadDrops();
         await newTitlePromise;
-        this.info           = await this.db.getWorld(world_guid);
+        this.info           = await this.db.getWorld(world_guid, this.world_row)
         this.grid           = new ChunkGrid({chunkSize: new Vector().copyFrom(this.info.tech_info.chunk_size)})
         this.worldChunkFlags = new WorldChunkFlags(this);
         this.dbActor        = new WorldDBActor(this);
@@ -260,6 +267,40 @@ export class ServerWorld implements IWorld {
         return this.info.world_type_id == WORLD_TYPE_BUILDING_SCHEMAS
     }
 
+    initWorkers() : Promise<number> {
+        return new Promise((resolve, reject) => {
+            let workerCounter = 1;
+
+            this.lightWorker = new Worker(globalThis.__dirname + '/../www/js/light_worker.js')
+            this.lightWorker.postMessage(['SERVER', WORKER_MESSAGE.LIGHT_WORKER_INIT, null])
+
+            this.lightWorker.on('message', (data : any) => {
+                if (data instanceof MessageEvent) {
+                    data = data.data
+                }
+                // const worldId = data[0]
+                const cmd = data[1]
+                const args = data[2]
+                switch (cmd) {
+                    case 'worker_inited': {
+                        --workerCounter;
+                        if (workerCounter === 0) {
+                            resolve(workerCounter)
+                        }
+                        break;
+                    }
+                    default: {
+                        this.chunkManager.onLightWorkerMessage([cmd, args])
+                    }
+                }
+            })
+            const onerror = (e) => {
+                debugger
+            }
+            this.lightWorker.on('error', onerror)
+        });
+    }
+
     async makeBuildingsWorld(info : TWorldInfo) : Promise<boolean> {
 
         if(!this.isBuildingWorld()) {
@@ -342,7 +383,7 @@ export class ServerWorld implements IWorld {
         console.log('Building: compress chunks in db ...', performance.now() - t)
 
         // reread info
-        this.info = await this.db.getWorld(this.info.guid)
+        this.info = await this.db.getWorld(this.info.guid, this.world_row)
 
         return true
 
@@ -667,7 +708,7 @@ export class ServerWorld implements IWorld {
     }
 
     // onLeave
-    async onLeave(player) {
+    async onLeave(player : ServerPlayer) {
         if (this.players.exists(player?.session?.user_id)) {
             this.players.delete(player.session.user_id);
             player.onLeave();
@@ -678,22 +719,21 @@ export class ServerWorld implements IWorld {
                     id: player.session.user_id
                 }
             }];
-            this.sendAll(packets, [player.session.user_id]);
+            this.sendAll(packets, [player.session.user_id])
         }
     }
 
     /**
      * Send commands for all except player id list
-     * @param {Object[]} packets
-     * @param {?number[]} except_players  ID of players
-     * @return {void}
+     * @param packets
+     * @param except_players  ID of players
      */
-    sendAll(packets, except_players = null) {
+    sendAll(packets: INetworkMessage[], except_players = null) : void {
         for (const player of this.players.values()) {
             if (except_players?.includes(player.session.user_id)) {
                 continue;
             }
-            player.sendPackets(packets);
+            player.sendPackets(packets)
         }
     }
 
