@@ -1,3 +1,4 @@
+import skiaCanvas from 'skia-canvas';
 import type { BBModel_Model } from "@client/bbmodel/model.js";
 import { unixTime, md5 } from "@client/helpers.js";
 import type { PlayerSkin } from "@client/player.js";

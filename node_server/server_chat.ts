@@ -25,7 +25,7 @@ export class ServerChat {
     constructor(world : ServerWorld) {
         this.world = world;
         this.onCmdCallbacks = [];
-        plugins.initPlugins('chat', this);
+        world.worker_world.plugins.initPlugins('chat', this)
     }
 
     /**
@@ -319,7 +319,7 @@ export class ServerChat {
                     break
                 }
                 const msg = 'shutdown_initiated_by|' + player.session.username
-                const res = this.world.game.shutdown(msg, gentle)
+                const res = this.world.worker_world.shutdown(msg, gentle)
                 if (!res) {
                     this.sendSystemChatMessageToSelectedPlayers('!langThe game is already in the process of shutting down.', player)
                 }

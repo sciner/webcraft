@@ -17,7 +17,6 @@ import fileUpload from "express-fileupload";
 import { renderFile } from "ejs";
 
 import { Buffer } from 'node:buffer';
-import skiaCanvas from 'skia-canvas';
 
 // Check version of modules
 const required_versions = {
@@ -47,11 +46,10 @@ try {
 }
 
 import { Config } from './config.js';
-import {Lang} from "@client/lang.js";
-import {BLOCK} from "@client/blocks.js";
-import {ServerGame} from "./server_game.js";
-import {ServerAPI} from "./server_api.js";
-import {PluginManager} from "./plugin_manager.js";
+import { Lang } from "@client/lang.js";
+import { BLOCK } from "@client/blocks.js";
+import { ServerGame } from "./server_game.js";
+import { ServerAPI } from "./server_api.js";
 
 import type { GameSettings } from '@client/game.js';
 
@@ -71,11 +69,9 @@ Config.init().then(async (config) => {
     globalAny.__dirname        = path.resolve();
     globalAny.Worker           = Worker;
     globalAny.fs               = fs;
-    globalAny.Buffer          = Buffer;
-    globalAny.skiaCanvas      = skiaCanvas;
-    globalAny.mkdirp          = mkdirp;
-    globalAny.plugins          = new PluginManager(globalAny.config);
-    globalAny.Qubatch          = new ServerGame();
+    globalAny.Buffer           = Buffer;
+    globalAny.mkdirp           = mkdirp;
+    globalAny.Qubatch          = new ServerGame(config)
     globalAny.randomUUID       = () => {
         return uuid();
     };

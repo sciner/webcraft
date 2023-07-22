@@ -4,7 +4,7 @@ import { ServerChat } from "./server_chat.js";
 import { ModelManager } from "./model_manager.js";
 import { PlayerEvent } from "./player_event.js";
 import { QuestManager } from "./quest/manager.js";
-import { TickerHelpers, BlockListeners } from "./ticker/ticker_helpers.js";
+import { BlockListeners } from "./ticker/ticker_helpers.js";
 
 import { WorldTickStat } from "./world/tick_stat.js";
 import { WorldPacketQueue } from "./world/packet_queue.js";
@@ -26,7 +26,7 @@ import { GAME_DAY_SECONDS, GAME_ONE_SECOND, PLAYER_STATUS, SERVER_WORLD_WORKER_M
 import { Weather } from "@client/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
-import {COMMANDS_IN_ACTIONS_QUEUE, SHUTDOWN_ADDITIONAL_TIMEOUT, WORLD_TTL_SECONDS} from "./server_constant.js"
+import { COMMANDS_IN_ACTIONS_QUEUE } from "./server_constant.js"
 
 import {TActionBlock, WorldAction} from "@client/world_action.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
@@ -77,7 +77,7 @@ export class ServerWorld implements IWorld {
     block_manager: typeof BLOCK;
     blocksUpdatedByListeners: TActionBlock[] = []
     shuttingDown: any;
-    game: ServerGame;
+    worker_world: WorldWorker;
     tickers: Map<string, TTickerFunction>;
     random_tickers: Map<string, TRandomTickerFunction>;
     blockListeners: BlockListeners;
@@ -139,8 +139,8 @@ export class ServerWorld implements IWorld {
         this.shuttingDown = null;
     }
 
-    async initServer(world_guid : string, db_world : DBWorld, title: string, game) {
-        this.game = game;
+    async initServer(world_guid : string, db_world : DBWorld, title: string, worker_world: WorldWorker) {
+        this.worker_world = worker_world
         if (SERVER_TIME_LAG) {
             console.log('[World] Server time lag ', SERVER_TIME_LAG);
         }
@@ -399,69 +399,6 @@ export class ServerWorld implements IWorld {
         return this.info;
     }
 
-    // Спавн враждебных мобов в тёмных местах (пока тёмное время суток)
-    // autoSpawnHostileMobs() {
-    //     //128 ,kjrj
-    //     // 24 - 32
-    //     const SPAWN_DISTANCE = 64
-    //     const SAFE_DISTANCE = 24
-    //     const good_world_for_spawn = !this.isBuildingWorld();
-    //     const auto_generate_mobs = this.getGeneratorOptions('auto_generate_mobs', true);
-    //     // не спавним мобов в мире-конструкторе и в дневное время
-    //     if(!auto_generate_mobs || !good_world_for_spawn || !this.rules.getValue('doMobSpawning')) {
-    //         return;
-    //     }
-    //     const ambientLight = (this.info.rules.ambientLight || 0) * 255/15;
-    //     // находим игроков
-    //     for (const player of this.players.values()) {
-    //         if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS.DEAD) {
-    //             // количество мобов одного типа в радиусе спауна
-    //             const mobs = this.getMobsNear(player.state.pos, 8, [MOB_TYPE.ZOMBIE, MOB_TYPE.SKELETON]);
-    //             if (mobs.length <= 4) {
-    //                 // TODO: Вот тут явно проблема, поэтому зомби спавняться близко к игроку!
-    //                 // выбираем рандомную позицию для спауна
-    //                 const x = player.state.pos.x + SPAWN_DISTANCE * (Math.random() - Math.random());
-    //                 const y = player.state.pos.y + SPAWN_DISTANCE * (Math.random() - Math.random());
-    //                 const z = player.state.pos.z + SPAWN_DISTANCE * (Math.random() - Math.random());
-    //                 const spawn_pos = new Vector(x, y, z).flooredSelf();
-    //                 // проверка места для спауна
-    //                 const under = this.getBlock(spawn_pos.offset(0, -1, 0));
-    //                 // под ногами только твердый, целый блок
-    //                 if (under && (under.id != 0 || under.material.style_name == 'planting')) {
-    //                     const body = this.getBlock(spawn_pos);
-    //                     const head = this.getBlock(spawn_pos.offset(0, 1, 0));
-    //                     const lv = head.lightValue;
-    //                     const cave_light = lv & 255
-    //                     const day_light = 255 - (lv >> 8) & 255
-    //                     if (cave_light > ambientLight) {
-    //                         continue
-    //                     }
-    //                     if (this.getLight() > 6) {
-    //                         if (day_light > ambientLight) {
-    //                             continue
-    //                         }
-    //                     }
-    //                     // проверям что область для спауна это воздух или вода
-    //                     if (body && head && body.id == 0 && head.id == 0) {
-    //                         // не спавним рядом с игроком
-    //                         const players = this.getPlayersNear(spawn_pos, SAFE_DISTANCE)
-    //                         if (players.length == 0) {
-    //                             // тип мобов для спауна
-    //                             const model_name = (Math.random() < .5) ? MOB_TYPE.ZOMBIE : MOB_TYPE.SKELETON;
-    //                             spawn_pos.addScalarSelf(.5, 0, .5)
-    //                             const params = new MobSpawnParams(spawn_pos, Vector.ZERO.clone(), {model_name, texture_name: DEFAULT_MOB_TEXTURE_NAME})
-    //                             const actions = new WorldAction(null, this, false, false);
-    //                             actions.spawnMob(params);
-    //                             this.actions_queue.add(null, actions);
-    //                             console.log(`Auto spawn ${model_name} pos spawn: ${spawn_pos.toHash()}`);
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-
     // Update world wather
     updateWorldWeather() {
         const MIN_TIME_RAIN = 30;
@@ -509,7 +446,7 @@ export class ServerWorld implements IWorld {
         await this.db.fluid.flushAll()
         await this.dbActor.forceSaveWorld()
         // resolve the promise of this world shutting down after an additional timeout
-        setTimeout(this.shuttingDown.resolve, SHUTDOWN_ADDITIONAL_TIMEOUT)
+        setTimeout(this.shuttingDown.resolve, this.world_worker.config.world_transaction.shutdown_additional_timeout)
         await new Promise(() => {}) // await forever
     }
 
@@ -580,13 +517,13 @@ export class ServerWorld implements IWorld {
             this.packets_queue.send();
             this.ticks_stat.add('packets_queue_send');
 
-            // отложеная смена ночи на день
+            // отложенная смена ночи на день
             this.skipNight()
 
             this.can_unload_time = this.dbActor.canUnload()
                 ? Math.min(this.can_unload_time, performance.now())
                 : Infinity
-            if (performance.now() > this.can_unload_time + WORLD_TTL_SECONDS * 1000) { // если довольно давно может выгрузиться
+            if (performance.now() > this.can_unload_time + this.worker_world.config.world.ttl_seconds * 1000) { // если довольно давно может выгрузиться
                 await this.db.fluid.savingDirtyChunksPromise // подождать окончания сохранения жидкостей (если оно есть)
                 this.world_worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.need_to_unload])
                 this.pause_ticks = true

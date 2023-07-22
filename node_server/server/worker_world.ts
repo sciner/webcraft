@@ -1,18 +1,18 @@
 import { SERVER_WORLD_WORKER_MESSAGE } from "@client/constant.js"
 import { ServerWorkerPlayer } from "./worker_player.js"
 import type {ServerGame} from "../server_game.js";
-import {WORLD_KILL_TIMEOUT_SECONDS} from "../server_constant.js";
 
 const REMOVED_PLAYER_TTL = 60 * 1000    // Только для обнаружения ошибок, не влияет на игру.
 
 export class ServerWorkerWorld {
-    worker: any
-    shuttingDown: any = null
-    players: Map<string, ServerWorkerPlayer> = new Map()
+    worker:                 any
+    shuttingDown:           any = null
+    players:                Map<string, ServerWorkerPlayer> = new Map()
     // Время удаления недавно удаленных игроков. Нужно только для отладки. Можно убрать.
-    removed_players_time = new Map<string, number>()
-    game: ServerGame
-    guid: string
+    removed_players_time:   Map<string, number> = new Map<string, number>()
+    game:                   ServerGame
+    guid:                   string
+
     private last_message_received_time: number
     private kill_timeout: any = null
 
@@ -33,16 +33,16 @@ export class ServerWorkerWorld {
             const args = data[1]
             switch(cmd) {
                 case SERVER_WORLD_WORKER_MESSAGE.player_terminate_connection: {
-                    const player_item = that.players.get(args.session.session_id)
-                    if(player_item) {
-                        player_item.conn.close(1000, args.message)
+                    const worker_player = that.players.get(args.session.session_id)
+                    if(worker_player) {
+                        worker_player.conn.close(1000, args.message)
                     }
                     break
                 }
                 case SERVER_WORLD_WORKER_MESSAGE.player_send_json_string: {
-                    const player_item = that.players.get(args.session.session_id)
-                    if(player_item) {
-                        player_item.conn.send(args.json_string)
+                    const worker_player = that.players.get(args.session.session_id)
+                    if(worker_player) {
+                        worker_player.conn.send(args.json_string)
                     } else {
                         // Недавно удаленным игрокам еще приходят сообщения. Может, так не должно быть.
                         // Но пока игнорируем такие сообщения, считаем что ок.
@@ -75,11 +75,11 @@ export class ServerWorkerWorld {
         this.last_message_received_time = performance.now()
 
         this.kill_timeout = setInterval(() => {
-            if (this.last_message_received_time < performance.now() - WORLD_KILL_TIMEOUT_SECONDS * 1000) {
+            if (this.last_message_received_time < performance.now() - this.game.config.world.kill_timeout_seconds * 1000) {
                 console.error(`World ${this.guid} is terminated by timeout`)
                 this.game.deleteWorld(this)
             }
-        }, WORLD_KILL_TIMEOUT_SECONDS * 1000 / 10)
+        }, this.game.config.world.kill_timeout_seconds * 1000 / 10)
 
         const onerror = (e) => {
             console.error(`World ${this.guid} is terminated due to error: ${JSON.stringify(e)}`)
@@ -93,8 +93,10 @@ export class ServerWorkerWorld {
             this.worker.on('message', onmessage);
             this.worker.on('error', onerror);
         }
+
+        const skin_list = this.game.db.skins.list
         
-        this.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.init, world_row, performance.now()])
+        this.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.init, {world_row, skin_list}, performance.now()])
     }
 
     onDelete(): void {
@@ -113,13 +115,13 @@ export class ServerWorkerWorld {
     async addPlayer(conn, session_id: string, skin_id: string) {
         const session = await this.game.db.GetPlayerSession(session_id)
         const skin = await this.game.db.skins.getUserSkin(session.user_id, skin_id)
-        const player_item = new ServerWorkerPlayer(this, conn, session)
-        this.players.set(session_id, player_item)
+        const worker_player = new ServerWorkerPlayer(this, conn, session)
+        this.players.set(session_id, worker_player)
         this.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.on_player, {session, skin}])
     }
 
-    onLeave(player_item: ServerWorkerPlayer) {
-        const session = player_item.session
+    onLeave(worker_player: ServerWorkerPlayer) {
+        const session = worker_player.session
         this.players.delete(session.session_id)
         this.removed_players_time.set(session.session_id, performance.now()) // запомним что его удалили - сообщения ему в течение некоторого времени не считаются ошибкой
         this.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.player_leave, {session}])
@@ -132,8 +134,8 @@ export class ServerWorkerWorld {
         }
     }
 
-    onPlayerCommand(player_item: ServerWorkerPlayer, cmd: any) {
-        const session = player_item.session
+    onPlayerCommand(worker_player: ServerWorkerPlayer, cmd: any) {
+        const session = worker_player.session
         this.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.player_command, {session, cmd}])
     }
 

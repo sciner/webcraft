@@ -27,8 +27,10 @@ export class ServerGame {
     timerLoadWorld:     NodeJS.Timeout
     db:                 DBGame
     wsServer:           WebSocketServer
+    config:             Config
 
-    constructor() {
+    constructor(config: Config) {
+        this.config = config
         this.dt_started = new Date();
         this.is_server = true;
         // Worlds
@@ -131,6 +133,7 @@ export class ServerGame {
     deleteWorld(world: ServerWorkerWorld): void {
         this.worlds.delete(world.guid)
         world.onDelete()
+        console.log(`World unloaded: ${world.guid}`)
     }
 
     // Start websocket server
@@ -140,19 +143,9 @@ export class ServerGame {
             this.db = db;
             (global as any).Log = new GameLog(this.db)
         });
-        // await this.initBuildings(config)
         await this.initWs()
         await this.db.skins.load()
     }
-
-    // /**
-    //  * Load building template schemas
-    //  */
-    // async initBuildings(config) {
-    //     for(const json of config.building_schemas.list) {
-    //         BuildingTemplate.addSchema(json)
-    //     }
-    // }
 
     /**
      * Create websocket server

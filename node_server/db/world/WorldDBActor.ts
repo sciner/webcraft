@@ -1,8 +1,7 @@
 import {ObjectHelpers, unixTime, Vector, VectorCollector} from "@client/helpers.js";
 import { TransactionMutex } from "../db_helpers.js";
 import { ChunkDBActor, BLOCK_DIRTY, DirtyBlock } from "./ChunkDBActor.js";
-import { WORLD_TRANSACTION_PERIOD, CLEANUP_WORLD_MODIFY_PER_TRANSACTION,
-    WORLD_MODIFY_CHUNKS_PER_TRANSACTION } from "../../server_constant.js";
+import { CLEANUP_WORLD_MODIFY_PER_TRANSACTION } from "../../server_constant.js";
 import { WorldTickStat } from "../../world/tick_stat.js";
 import type { ServerWorld } from "../../server_world";
 import type { DBWorld, PlayerUpdateRow } from "../world";
@@ -168,7 +167,7 @@ export class WorldDBActor {
     async saveWorldIfNecessary() {
         // if the previous transaction hasn't ended, don't start the new one, so the game loop isn't paused wait
         if (!this.savingWorldNow &&
-            this.lastWorldTransactionStartTime + WORLD_TRANSACTION_PERIOD < performance.now()
+            this.lastWorldTransactionStartTime + this.world.worker_world.config.world_transaction.world_transaction_period < performance.now()
         ) {
             this.totalDirtyBlocks = 0;
             await this.saveWorld();
@@ -236,7 +235,7 @@ export class WorldDBActor {
             const unloadingCount = uc.worldModifyChunksHighPriority.length + uc.worldModifyChunksMidPriority.length
             let remainingCanSave = speedup
                 ? unloadingCount // save everything that wants to unload, and nothing else
-                : WORLD_MODIFY_CHUNKS_PER_TRANSACTION +
+                : world.worker_world.config.world_transaction.world_modify_chunks_per_transaction +
                 // to help in situations where the queue grows faster than we can write it,
                 // e.g. when teleporting a lot and tickers modify many of the chunks
                     0.02 * unloadingCount | 0;

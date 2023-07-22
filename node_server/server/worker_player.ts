@@ -1,13 +1,13 @@
 import type { ServerWorkerWorld } from "./worker_world.js"
 
 export class ServerWorkerPlayer {
-    world_item: ServerWorkerWorld
+    worker_world: ServerWorkerWorld
     conn: any
     session: PlayerSession
 
-    constructor(world_item: ServerWorkerWorld, conn, session: PlayerSession) {
+    constructor(worker_world: ServerWorkerWorld, conn, session: PlayerSession) {
 
-        this.world_item = world_item
+        this.worker_world = worker_world
         this.session = session
         this.conn = conn
 
@@ -17,7 +17,7 @@ export class ServerWorkerPlayer {
 
         // When close connection
         conn.on('close', async (e) => {
-            this.world_item.onLeave(this)
+            this.worker_world.onLeave(this)
         })
 
     }
@@ -25,7 +25,7 @@ export class ServerWorkerPlayer {
     // When message received from player by websocket
     async onMessage(cmd : any) {
         cmd = JSON.parse(cmd)
-        this.world_item.onPlayerCommand(this, cmd)
+        this.worker_world.onPlayerCommand(this, cmd)
     }
 
 }

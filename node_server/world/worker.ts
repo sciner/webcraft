@@ -16,23 +16,25 @@ import mkdirp from 'mkdirp';
 import { Worker } from "worker_threads";
 import { v4 as uuid } from 'uuid';
 import { Buffer } from 'node:buffer';
-import skiaCanvas from 'skia-canvas';
 import { Config } from "config.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 import { ServerClient } from "@client/server_client.js";
 
 declare type IQubatch = {
-    is_server: boolean
-    world_worker: WorldWorker
+    is_server:      boolean
+    world_worker:   WorldWorker
 }
 
 export class WorldWorker extends QubatchWorker {
     bm:             typeof BLOCK
     guid:           string
     world:          ServerWorld
+    plugins:        PluginManager
     db_conn:        any = null
     db_world:       DBWorld = null
     players:        Map<int, ServerPlayer> = new Map()
+    config:         Config
+    skin_list:      any[]
 
     constructor() {
         super(SERVER_WORLD_WORKER_MESSAGE.init)
@@ -43,16 +45,19 @@ export class WorldWorker extends QubatchWorker {
         switch(cmd) {
             case SERVER_WORLD_WORKER_MESSAGE.init: {
                 const p = performance.now()
-                const worldRow : IWorldDBRow = args
+                const world_row : IWorldDBRow = args.world_row
                 const config = await Config.init()
-                this.guid = worldRow.guid
+                this.skin_list = args.skin_list
+                this.guid = world_row.guid
+                this.config = config
                 this.initGlobal(config)
                 await Lang.init()
+                this.plugins = new PluginManager(config)
                 this.initBuildings(config)
-                this.world = new ServerWorld(await this.initBlockManager(), worldRow, this)
+                this.world = new ServerWorld(await this.initBlockManager(), world_row, this)
                 const db_world = await this.openDB()
-                await this.world.initServer(this.guid, db_world, worldRow.title, this)
-                this.world.info.cover = worldRow.cover
+                await this.world.initServer(this.guid, db_world, world_row.title, this)
+                this.world.info.cover = world_row.cover
                 console.log('World started', (Math.round((performance.now() - p) * 1000) / 1000) + 'ms')
                 break
             }
@@ -83,7 +88,7 @@ export class WorldWorker extends QubatchWorker {
             }
             case SERVER_WORLD_WORKER_MESSAGE.no_need_to_unload:
                 this.world.pause_ticks = false
-                this.world.can_unload_time = Infinity // очистить таймер; пройдет как минимум WORLD_TTL_SECONDS до слудующей попытки выгрузки
+                this.world.can_unload_time = Infinity // очистить таймер; пройдет как минимум WORLD_TTL_SECONDS до следующей попытки выгрузки
                 break
             case SERVER_WORLD_WORKER_MESSAGE.add_building_schema: {
                 this.world.sendAll([{
@@ -123,7 +128,7 @@ export class WorldWorker extends QubatchWorker {
         return this.db_world = await DBWorld.openDB(this.db_conn, this.world)
     }
 
-    initGlobal(config) {
+    initGlobal(config: Config) {
         // Set global variables
         let globalAny = global as any
         globalAny.__dirname     = path.resolve()
@@ -131,8 +136,8 @@ export class WorldWorker extends QubatchWorker {
         globalAny.Buffer        = Buffer
         globalAny.Worker        = Worker
         globalAny.Log           = {append:() => {}}
-        globalAny.skiaCanvas    = skiaCanvas
         globalAny.mkdirp        = mkdirp
+        globalAny.config        = config
         // TODO:
         globalAny.Qubatch = {
             is_server: true,
@@ -141,8 +146,6 @@ export class WorldWorker extends QubatchWorker {
                 this.world_worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.add_building_schema, building])
             }
         } as IQubatch
-        globalAny.config        = config
-        globalAny.plugins       = new PluginManager(globalAny.config)
         // for debugging client time offset
         globalAny.SERVER_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0
         globalAny.EMULATED_PING = config.Debug ? Math.random() * 100 : 0
