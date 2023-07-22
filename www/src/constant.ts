@@ -366,7 +366,8 @@ export enum SERVER_WORLD_WORKER_MESSAGE {
     on_player = "on_player",
     player_terminate_connection = "player_terminate_connection",
     player_send_json_string = "player_send_json_string",
-    need_to_unload = "need_to_unload",
+    need_to_unload = "need_to_unload",  // worker->root, мир сообщает что готов безопасно закрыться и перестал выполнять тики
+    no_need_to_unload = "no_need_to_unload", // root->worker, говорит миру продолжить выполнение
     add_building_schema = "add_building_schema"
 }
 

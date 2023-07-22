@@ -94,7 +94,7 @@ export class ServerGame {
             try {
                 console.log(`>>>>>>> BEFORE LOAD WORLD ${world_guid} <<<<<<<`)
                 const worldRow = await this.db.getWorld(world_guid)
-                const world = new ServerWorkerWorld()
+                const world = new ServerWorkerWorld(this)
                 await world.init(worldRow)
                 this.worlds.set(world_guid, world)
                 worlds_loading_resolve(world)
@@ -126,6 +126,10 @@ export class ServerGame {
         const promise = new Promise<ServerWorkerWorld>(  res => resolve = res )
         this.worlds_loading.set(world_guid, [promise, resolve])
         return promise
+    }
+
+    deleteWorld(world: ServerWorkerWorld): void {
+        this.worlds.delete(world.guid)
     }
 
     // Start websocket server

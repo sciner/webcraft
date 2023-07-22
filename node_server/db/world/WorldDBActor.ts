@@ -90,54 +90,58 @@ export class WorldDBActor {
     worldSavingPromise: Promise<any>;
     world: ServerWorld;
     db: DBWorld;
-    dirtyActors: Set<ChunkDBActor>;
-    chunklessActors: VectorCollector;
+    /** Множесто {@link ChunkDBActor} в которых есть что сохранять. Оно меняется из {@link ChunkDBActor}. */
+    dirtyActors = new Set<ChunkDBActor>()
+    chunklessActors = new VectorCollector<ChunkDBActor>()
     transactionMutex: TransactionMutex
-    savingWorldNow: Promise<any>;
-    underConstruction: WorldTransactionUnderConstruction;
-    lastWorldTransactionStartTime: number;
-    totalDirtyBlocks: int;
-    cleanupAddrByRowId: Map<int, Vector>;
-    cleanupWorldModifyPerTransaction: int;
-    asyncStats: WorldTickStat;
-    _worldSavingResolve: Function;
+    /**
+     * If it's not null, it's a promise that fullfills when the world is saved.
+     * Don't confuse it with {@link worldSavingPromise}
+     */
+    savingWorldNow: Promise<any> | null = null
+    /** When it's not null, it's the data of the world-saving transaction currently being built */
+    underConstruction: WorldTransactionUnderConstruction | null = null
+    lastWorldTransactionStartTime = performance.now() // To determine when to start a new transaction
+    totalDirtyBlocks: int = 0
+    /**
+     * Chunk addresses that are queued for deleting old records from world_modify.
+     * The Map is used as a FIFO queue, because elements of a Map are iterated in the insertion order.
+     */
+    cleanupAddrByRowId = new Map<int, Vector>()
+    cleanupWorldModifyPerTransaction: int = 0
+    asyncStats = new WorldTickStat(['world_transaction'])
+    private _worldSavingResolve: Function;
     // флаги - что надо сохранить в мире
     worldGeneratorDirty = false
+    private can_unload = false
 
     constructor(world : ServerWorld) {
         this.world = world;
         this.db = world.db;
         this.transactionMutex = new TransactionMutex(this.db.conn)
-
-        // ChunkDBActor that have any changes to be saved. It's managed by ChunkDBActor.
-        this.dirtyActors = new Set();
-
-        this.chunklessActors = new VectorCollector();
-
         this._createWorldSavingPromise();
-        /**
-         * If it's not null, it's a promise that fullfills when the world is saved.
-         * Don't confuse it with {@link worldSavingPromise}
-         */
-        this.savingWorldNow = null;
-
-        // When it's not null, it's the data of the world-saving transaction currntly being built
-        this.underConstruction = null;
-
-        // To determine when to start a new transaction
-        this.lastWorldTransactionStartTime = performance.now();
-        this.totalDirtyBlocks = 0;
-
-        // Chunk addresses that are queued for deleting old records from world_modify.
-        // The Map is used as a FIFO queue, becuase elements of a Map are iterated in the insertion order.
-        this.cleanupAddrByRowId = new Map();
-
-        this.cleanupWorldModifyPerTransaction = 0;
-        this.asyncStats = new WorldTickStat(['world_transaction']);
     }
 
     get chunkActorsCount(): int {
         return this.chunklessActors.size + this.world.chunks.totalChunksCount
+    }
+
+    /**
+     * @return true если безопасно прервать мир прямо сейчас.
+     * Чтобы результат был коректный, этот метод нужно вызывать в каждом тике!
+     *
+     * В каких случаях мы НЕ можем завершиь мир:
+     * - есть игроки сейчас, или были с момента старта прошлой транзакции
+     * - пишется транзакция
+     * - есть несохраненные чанки, на которые могли повляить игроки
+     * Наличие несохраненных чанков сейчас не влияет. Почему: если все вышеперечисленные усливия выполнились,
+     * то эти чанки изменены без участия игроков, и не страшно потерять эти изменения.
+     * Исходя из этого, {@link can_unload} устанавливается в true или false в соответствующих местах.
+     */
+    canUnload(): boolean {
+        // если есть игроки - сделать завершение невозможным (пока этот флаг не будет очищен)
+        this.can_unload &&= this.world.players.list.size === 0
+        return this.can_unload && !this.savingWorldNow
     }
 
     getOrCreateChunkActor(chunk) {
@@ -356,6 +360,9 @@ export class WorldDBActor {
 
         // no one should be able to add anything to this ransaction after that
         this.underConstruction = null;
+
+        // если нет ни игрков, ни грязных чанков, то сразу после сохранения этой транзакции можно будет завершить мир
+        this.can_unload ||= (this.dirtyActors.size === 0) && (world.players.list.size === 0)
 
         // now we can safely return
         Promise.all(uc.promises).then(

@@ -26,7 +26,7 @@ import { GAME_DAY_SECONDS, GAME_ONE_SECOND, PLAYER_STATUS, SERVER_WORLD_WORKER_M
 import { Weather } from "@client/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
-import {COMMANDS_IN_ACTIONS_QUEUE, SHUTDOWN_ADDITIONAL_TIMEOUT} from "./server_constant.js"
+import {COMMANDS_IN_ACTIONS_QUEUE, SHUTDOWN_ADDITIONAL_TIMEOUT, WORLD_TTL_SECONDS} from "./server_constant.js"
 
 import {TActionBlock, WorldAction} from "@client/world_action.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
@@ -116,7 +116,8 @@ export class ServerWorld implements IWorld {
     players: ServerPlayerManager;
     all_drop_items: any;
     pn: any;
-    pause_ticks: any;
+    pause_ticks = false
+    can_unload_time = Infinity // минимальное время, когда мир стало безопасно выгрузить
     givePriorityToSavingFluids: any;
     /** An immutable shared instance of {@link getDefaultPlayerIndicators} */
     defaultPlayerIndicators: Indicators
@@ -524,9 +525,9 @@ export class ServerWorld implements IWorld {
             delta = (performance.now() - this.pn) / 1000;
         }
         this.pn = performance.now();
-        this.updateWorldCalendar();
-        this.updateWorldWeather();
         if(!this.pause_ticks) {
+            this.updateWorldCalendar();
+            this.updateWorldWeather();
             //
             this.ticks_stat.number++;
             // добавить в статистику насколько опоздал тик
@@ -582,8 +583,14 @@ export class ServerWorld implements IWorld {
             // отложеная смена ночи на день
             this.skipNight()
 
-            // Do different periodic tasks in different ticks to reduce lag spikes
-            if(this.ticks_stat.number % 20 == 0) {
+            this.can_unload_time = this.dbActor.canUnload()
+                ? Math.min(this.can_unload_time, performance.now())
+                : Infinity
+            if (performance.now() > this.can_unload_time + WORLD_TTL_SECONDS * 1000) { // если довольно давно может выгрузиться
+                await this.db.fluid.savingDirtyChunksPromise // подождать окончания сохранения жидкостей (если оно есть)
+                this.world_worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.need_to_unload])
+                this.pause_ticks = true
+            } if(this.ticks_stat.number % 20 == 0) { // Do different periodic tasks in different ticks to reduce lag spikes
                 //
                 this.chunks.checkDestroyMap();
                 this.ticks_stat.add('maps_clear');

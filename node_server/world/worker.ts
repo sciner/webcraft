@@ -67,9 +67,6 @@ export class WorldWorker extends QubatchWorker {
                 if(player) {
                     this.players.delete(player.session.user_id)
                     this.world.onLeave(player)
-                    if(this.players.size == 0) {
-                        this.postMessage(SERVER_WORLD_WORKER_MESSAGE.need_to_unload)
-                    }
                 }
                 break
             }
@@ -84,6 +81,10 @@ export class WorldWorker extends QubatchWorker {
                 this.world.chat.broadcastSystemChatMessage(args)
                 break
             }
+            case SERVER_WORLD_WORKER_MESSAGE.no_need_to_unload:
+                this.world.pause_ticks = false
+                this.world.can_unload_time = Infinity // очистить таймер; пройдет как минимум WORLD_TTL_SECONDS до слудующей попытки выгрузки
+                break
             case SERVER_WORLD_WORKER_MESSAGE.add_building_schema: {
                 this.world.sendAll([{
                     name: ServerClient.CMD_BUILDING_SCHEMA_ADD,

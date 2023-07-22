@@ -1,12 +1,24 @@
 import { SERVER_WORLD_WORKER_MESSAGE } from "@client/constant.js"
 import { ServerWorkerPlayer } from "./worker_player.js"
+import type {ServerGame} from "../server_game.js";
+
+const REMOVED_PLAYER_TTL = 60 * 1000    // Только для обнаружения ошибок, не влияет на игру.
 
 export class ServerWorkerWorld {
     worker: any
     shuttingDown: any = null
     players: Map<string, ServerWorkerPlayer> = new Map()
+    // Время удаления недавно удаленных игроков. Нужно только для отладки. Можно убрать.
+    removed_players_time = new Map<string, number>()
+    game: ServerGame
+    guid: string
+
+    constructor(game: ServerGame) {
+        this.game = game
+    }
 
     async init(world_row: IWorldDBRow) {
+        this.guid = world_row.guid
         this.worker = new Worker(globalThis.__dirname + '/world/worker.js')
 
         const that = this
@@ -28,18 +40,30 @@ export class ServerWorkerWorld {
                     if(player_item) {
                         player_item.conn.send(args.json_string)
                     } else {
-                        debugger
+                        // Недавно удаленным игрокам еще приходят сообщения. Может, так не должно быть.
+                        // Но пока игнорируем такие сообщения, считаем что ок.
+                        const time = this.removed_players_time.get(args.session.session_id)
+                        if (time == null || time < performance.now() - REMOVED_PLAYER_TTL) {
+                            debugger
+                        }
                     }
                     break
                 }
                 case SERVER_WORLD_WORKER_MESSAGE.add_building_schema: {
-                    for(const world of Qubatch.worlds.values() as ServerWorkerWorld[]) {
+                    for(const world of this.game.worlds.values()) {
                         world.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.add_building_schema, args])
                     }
                     break
                 }
                 case SERVER_WORLD_WORKER_MESSAGE.need_to_unload: {
-                    // TODO: unload after time and if no any active saving tasks
+                    // Сейчас мир находится в ожидании что его убьют. Если за это время не появилось новых игроков, так и сделаем.
+                    if (this.players.size === 0) {
+                        this.game.deleteWorld(this)
+                        this.worker.terminate()
+                    } else {
+                        // За это время появились игроки, говорим миру опять ожить
+                        this.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.no_need_to_unload])
+                    }
                     break
                 }
             }
@@ -61,8 +85,8 @@ export class ServerWorkerWorld {
     }
 
     async addPlayer(conn, session_id: string, skin_id: string) {
-        const session = await Qubatch.db.GetPlayerSession(session_id)
-        const skin = await Qubatch.db.skins.getUserSkin(session.user_id, skin_id)
+        const session = await this.game.db.GetPlayerSession(session_id)
+        const skin = await this.game.db.skins.getUserSkin(session.user_id, skin_id)
         const player_item = new ServerWorkerPlayer(this, conn, session)
         this.players.set(session_id, player_item)
         this.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.on_player, {session, skin}])
@@ -70,7 +94,16 @@ export class ServerWorkerWorld {
 
     onLeave(player_item: ServerWorkerPlayer) {
         const session = player_item.session
+        this.players.delete(session.session_id)
+        this.removed_players_time.set(session.session_id, performance.now()) // запомним что его удалили - сообщения ему в течение некоторого времени не считаются ошибкой
         this.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.player_leave, {session}])
+        // периодически забываем удаленных игроков
+        const min_time = performance.now() - REMOVED_PLAYER_TTL
+        for(const [key, time] of this.removed_players_time) {
+            if (time < min_time) {
+                this.removed_players_time.delete(key)
+            }
+        }
     }
 
     onPlayerCommand(player_item: ServerWorkerPlayer, cmd: any) {

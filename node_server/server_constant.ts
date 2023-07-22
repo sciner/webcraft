@@ -6,6 +6,8 @@ import { MAX_PACKET_LAG_SECONDS } from "@client/constant.js"
  */
 export const SPECTATOR_BOTS_ENABLED = true
 
+export const WORLD_TTL_SECONDS = 60     // Сколько остается в памяти мир без игроков в котором все важное сохранено
+
 // =================================== сеть ===================================
 
 /** The server sends a command to each player at least once per this interval of time. */
