@@ -103,11 +103,21 @@ uniform Terrain_Texture {
     uniform highp isampler3D u_gridChunkSampler;
     uniform vec3 u_grid_chunk_corner;
     //--
+
+uniform Batch_Pos {
+    vec4[1 * 512] u_batch_pos;
+};
+uniform Batch_Bone {
+    vec4[3 * 128] u_batch_bone;
+};
+uniform Batch_Tint {
+    vec4[1 * 128] u_batch_tint;
+};
 #endif
 
 #ifdef terrain_attrs_vert
     // terrain shader attributes and varyings
-    in float a_chunkId;
+    in int a_element;
     in vec3 a_position;
     in vec3 a_axisX;
     in vec3 a_axisY;
@@ -437,7 +447,18 @@ uniform Terrain_Texture {
 #ifdef ao_light_pass_vertex
     ivec4 chunkData0 = ivec4(0, 0, 0, 0);
     ivec4 chunkData1 = ivec4(1 << 16, 1 << 16, 1 << 16, 0);
-    if (a_chunkId < -0.5) {
+    if (a_element >= 0) {
+        int size = textureSize(u_chunkDataSampler, 0).x;
+        int chunkId = a_element;
+        int dataX = chunkId * 2 % size;
+        int dataY = (chunkId * 2 - dataX) / size;
+        chunkData0 = texelFetch(u_chunkDataSampler, ivec2(dataX, dataY), 0);
+        chunkData1 = texelFetch(u_chunkDataSampler, ivec2(dataX + 1, dataY), 0);
+
+        add_pos = vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos;
+        chunk_corner = add_pos;
+    } else
+    if (a_element == -1) {
         vec3 localPos = a_position;
         if (u_modelMatrixMode > 0) {
             localPos = (u_modelMatrix *  vec4(localPos.xzy, 1.0)).xzy;
@@ -453,15 +474,29 @@ uniform Terrain_Texture {
         chunkData1.w = (chunkIntData >> 27) & 0xf;
         v_flags = v_flags | (1 << FLAG_NO_AO);
     } else {
-        int size = textureSize(u_chunkDataSampler, 0).x;
-        int chunkId = int(a_chunkId);
-        int dataX = chunkId * 2 % size;
-        int dataY = (chunkId * 2 - dataX) / size;
-        chunkData0 = texelFetch(u_chunkDataSampler, ivec2(dataX, dataY), 0);
-        chunkData1 = texelFetch(u_chunkDataSampler, ivec2(dataX + 1, dataY), 0);
-
-        add_pos = vec3(chunkData0.xzy - u_camera_posi) - u_camera_pos;
-        chunk_corner = add_pos;
+        int batch_id = -a_element - 2;
+        vec3 localPos = a_position;
+        int pos_id = batch_id * 0x3ff;
+        int bone_id = (batch_id >> 10) * 0x3ff;
+        int tint_id = (batch_id >> 20) * 0x3ff;
+        if (bone_id > 0) {
+            localPos = (u_batch_bone[bone_id - 1] * vec4(localPos.xzy, 1.0)).xzy;
+        }
+        if (pos_id > 0) {
+            add_pos = u_batch_pos[pos_id - 1].xyz;
+        } else {
+            add_pos = vec3(0.0);
+        }
+        vec3 chunkCoord = floor((localPos + add_pos - u_grid_chunk_corner) / u_gridChunkSize);
+        chunk_corner = chunkCoord * u_gridChunkSize + u_grid_chunk_corner;
+        //TODO: use "-" here, 0 <= chunkCoord < 2 * gridTexSize
+        ivec3 ts = textureSize(u_gridChunkSampler, 0);
+        int chunkIntData = texelFetch(u_gridChunkSampler, ivec3(chunkCoord) % ts, 0).r;
+        chunkData1.x = chunkIntData & 0x1ff;
+        chunkData1.y = (chunkIntData >> 9) & 0x1ff;
+        chunkData1.z = (chunkIntData >> 18) & 0x1ff;
+        chunkData1.w = (chunkIntData >> 27) & 0xf;
+        v_flags = v_flags | (1 << FLAG_NO_AO);
     }
     ivec3 lightRegionSize = chunkData1.xyz >> 16;
     ivec3 lightRegionOffset = chunkData1.xyz & 0xffff;

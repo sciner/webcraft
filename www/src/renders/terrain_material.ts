@@ -63,6 +63,8 @@ export class TerrainMaterial implements Required<ITerrainMaterialOptions> {
     beforeBind()
     {
         const {terrainUniforms} = this;
+
+        this.shader.beforeBind();
         this.state.depthMask = this.group.opaque || !(this.shader as any).fluidStatic;
 
         const tex = this.texture || (this.shader as any).texture;

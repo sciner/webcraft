@@ -110,7 +110,7 @@ export class WorkerSubGeometry {
         data[ind + 12] = arg12;
         uint32Data[ind + 13] = arg13;
         uint32Data[ind + 14] = arg14;
-        data[ind + 15] = this.chunkDataId;
+        uint32Data[ind + 15] = this.chunkDataId;
         // if (arg15) {
         //     console.log('old build logic');
         // }

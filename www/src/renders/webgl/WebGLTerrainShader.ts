@@ -61,11 +61,18 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         const modelUniformGroup = new UniformGroup(modelUniforms, true);
         const tintUniformGroup = new UniformGroup(tintUniforms, true);
 
+        const batch_groups = {
+            Batch_Pos: new UniformGroup({ u_batch_pos: new Float32Array(0) }, true, true),
+            Batch_Bone: new UniformGroup({ u_batch_pos: new Float32Array(0) }, true, true),
+            Batch_Tint: new UniformGroup({ u_batch_pos: new Float32Array(0) }, true, true),
+        }
+
         options.uniforms = {...options.uniforms,
             terrainStatic, lightStatic: context.lightUniforms,
             pos: posUniformGroup,
             model: modelUniformGroup,
-            tint: tintUniformGroup};
+            tint: tintUniformGroup,
+            ...batch_groups};
         super(context, options);
 
         this.posUniforms = posUniforms;
@@ -77,14 +84,34 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.tintUniforms = tintUniforms;
         this.tintUniformGroup = tintUniformGroup;
 
+        this.batch_groups = batch_groups;
+
         this.hasModelMatrix = false;
 
         this._material = null;
         this.globalID = -1;
+        this.batch_detected = false;
     }
 
     bind(force = false) {
+        this.beforeBind();
         this.context.pixiRender.shader.bind(this.defShader);
+    }
+
+    beforeBind() {
+        if (this.batch_detected) {
+            return;
+        }
+        this.batch_detected = true;
+        const { pixiRender } = this.context;
+        const buffer_set = pixiRender.plugins.bone.zero_bone_group;
+
+        this.batch_groups.Batch_Pos.buffer = buffer_set.pos_buffer;
+        this.batch_groups.Batch_Bone.buffer = buffer_set.bone_buffer;
+        this.batch_groups.Batch_Tint.buffer = buffer_set.tint_buffer;
+        this.batch_groups.Batch_Pos.autoManage = false;
+        this.batch_groups.Batch_Bone.autoManage = false;
+        this.batch_groups.Batch_Tint.autoManage = false;
     }
 
     unbind() {

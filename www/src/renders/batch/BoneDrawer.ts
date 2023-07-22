@@ -1,15 +1,22 @@
-import {ViewableBuffer, Renderer} from "vauxcel";
+import {ViewableBuffer, Renderer, ExtensionType} from "vauxcel";
 import {ObjectDrawer} from "./ObjectDrawer.js";
 import {nextPow2} from "./ObjectDrawer.js";
+import {BoneBufferSet, IBoneBatcherSettings} from "./BoneBatcher.js";
 
 export class BoneDrawer extends ObjectDrawer {
+    static extension = {
+        name: 'bone',
+        type: ExtensionType.RendererPlugin,
+    };
+
     elements = [];
     elementCount = 0;
     batches = [];
     batchCount = 0;
 
     _aBuffers: Record<number, ViewableBuffer> = {};
-    settings: any;
+    settings: IBoneBatcherSettings;
+    zero_bone_group: BoneBufferSet;
 
     constructor(renderer: Renderer) {
         super(renderer);
@@ -17,9 +24,16 @@ export class BoneDrawer extends ObjectDrawer {
         this._aBuffers = {};
 
         this.settings = {
-            maxLightTextures: 1,
-            maxChunks: 16
+            // 12 floats
+            bone_count: 128,
+            // 3 floats
+            pos_count: 512,
+            // 4 floats
+            tint_count: 128,
+            multiplier: 10
         }
+
+        this.zero_bone_group = new BoneBufferSet({...this.settings, multiplier: 1});
     }
 
     getAttributeBuffer(size)

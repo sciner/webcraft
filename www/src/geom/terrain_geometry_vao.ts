@@ -21,7 +21,7 @@ export class TerrainGeometryVao extends BaseGeometryVao {
         this.addAttribute('a_uvSize', this.buffer, 2, false, undefined, stride, 11 * 4, true);
         this.addAttribute('a_color', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 13 * 4, true);
         this.addAttribute('a_flags', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 14 * 4, true);
-        this.addAttribute('a_chunkId', this.buffer, 1, false, undefined, stride, 15 * 4, true);
+        this.addAttribute('a_element', this.buffer, 1, false, TYPES.INT, stride, 15 * 4, true);
         this.addAttribute('a_quad', TerrainGeometry15.quadBuf, 2, false, undefined, 2 * 4, 0);
     }
 }

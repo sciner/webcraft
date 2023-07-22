@@ -6,6 +6,7 @@ import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
 import {GLCubeDrawer} from "./GLCubeDrawer.js";
 import {GLChunkDrawer} from "./GLChunkDrawer.js";
 import {GLLineDrawer} from "./GLLineDrawer.js";
+import {BoneDrawer} from "../batch/BoneDrawer.js";
 import {MeshDrawer} from "../../mesh/mesh_drawer.js";
 import {WebGLFluidShader} from "./WebGLFluidShader.js";
 import * as VAUX from 'vauxcel';
@@ -15,7 +16,7 @@ const {mat4} = glMatrix;
 
 const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
 
-VAUX.extensions.add(GLChunkDrawer, GLLineDrawer, GLCubeDrawer, MeshDrawer);
+VAUX.extensions.add(GLChunkDrawer, GLLineDrawer, GLCubeDrawer, MeshDrawer, BoneDrawer);
 
 export class WebGLCubeShader extends WebGLUniversalShader {
     constructor(context, options) {

@@ -150,7 +150,7 @@ export class TerrainGeometry15 extends Geometry {
 
     initGeom() {
         const { stride } = this;
-        this.addAttribute('a_chunkId', this.bufferChunkIds, 1, false, undefined, 4, 0, true);
+        this.addAttribute('a_element', this.bufferChunkIds, 1, false, TYPES.INT, 4, 0, true);
         this.addAttribute('a_position', this.buffer, 3, false, undefined, stride, 0, true);
         this.addAttribute('a_axisX', this.buffer, 3, false, undefined, stride, 3 * 4, true);
         this.addAttribute('a_axisY', this.buffer, 3, false, undefined, stride, 6 * 4, true);
@@ -159,7 +159,7 @@ export class TerrainGeometry15 extends Geometry {
         this.addAttribute('a_color', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 13 * 4, true);
         this.addAttribute('a_flags', this.buffer, 1, false, TYPES.UNSIGNED_INT, stride, 14 * 4, true);
         this.addAttribute('a_quad', TerrainGeometry15.quadBuf, 2, false, undefined, 2 * 4, 0);
-        this.attributes['a_chunkId'].hasSingleValue = true;
+        this.attributes['a_element'].hasSingleValue = true;
     }
 
     bind(shader: BaseShader) {
@@ -177,7 +177,7 @@ export class TerrainGeometry15 extends Geometry {
         if (this.chunkIds && this.chunkIds.length === this.size) {
             return;
         }
-        this.chunkIds = new Float32Array(this.size);
+        this.chunkIds = new Int32Array(this.size);
         const {chunkIds} = this;
         for (let i = 0; i < chunkIds.length; i++) {
             chunkIds[i] = -1;
