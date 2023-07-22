@@ -242,7 +242,7 @@
         <!-- Public -->
         <div class="content worlds-page animate__animated animate__fadeIn" ng-if="current_window.id == 'public'">
             <div class="grid">
-                <div class="item card __animate__animated __animate__zoomIn" ng-repeat="item in mygames.public_list track by item.id" ng-if="!item.hidden">
+                <div class="item card __animate__animated __animate__zoomIn" ng-repeat="item in mygames.shared_worlds track by item.id" ng-if="!item.hidden">
                     <div class="card-body">
                         <div class="img-cover" ng-class="{with_cover: !!item.cover}">
                             <h2 ng-if="!item.cover">{{Lang.no_cover}}</h2>
