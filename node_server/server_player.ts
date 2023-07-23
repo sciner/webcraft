@@ -1132,8 +1132,8 @@ export class ServerPlayer extends Player {
         this.dbDirtyFlags = 0;
     }
 
-    isAdmin() : boolean {
-        return this.world.admins.checkIsAdmin(this)
+    isWorldAdmin() : boolean {
+        return this.world.admins.isAdmin(this)
     }
 
     setAnimation(animation_name : string, speed : float = 1, time : float = 1) {

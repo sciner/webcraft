@@ -357,7 +357,6 @@ export enum WORKER_MESSAGE {
     SOUND_WORKER_FLOWING_DIFF = 'flowing_diff',
 }
 
-
 export enum SERVER_WORLD_WORKER_MESSAGE {
     init = 'init',
     broadcast_chat_message = 'broadcast_chat_message',
@@ -366,9 +365,11 @@ export enum SERVER_WORLD_WORKER_MESSAGE {
     on_player = "on_player",
     player_terminate_connection = "player_terminate_connection",
     player_send_json_string = "player_send_json_string",
-    need_to_unload = "need_to_unload",  // worker->root, мир сообщает что готов безопасно закрыться и перестал выполнять тики
+    need_to_unload = "need_to_unload", // worker->root, мир сообщает что готов безопасно закрыться и перестал выполнять тики
     no_need_to_unload = "no_need_to_unload", // root->worker, говорит миру продолжить выполнение
-    add_building_schema = "add_building_schema"
+    add_building_schema = "add_building_schema",
+    admin_list_updated = "admin_list_updated",
+    change_cover = "change_cover"
 }
 
 export enum PLAYER_FLAG {

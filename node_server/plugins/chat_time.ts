@@ -1,4 +1,5 @@
 import { GAME_DAY_SECONDS } from "@client/constant.js";
+import type { ServerPlayer } from "server_player";
 
 const DAY_TIMES = {
     day: 7000,
@@ -23,15 +24,13 @@ export default class Chat_Time {
     onWorld(world) {}
 
     onChat(chat) {
-        chat.onCmd(async (player, cmd, args) => {
+        chat.onCmd(async (player: ServerPlayer, cmd, args) => {
             switch(cmd) {
                 case '/time': {
                     args = chat.parseCMD(args, ['string', 'string', 'string|float']);
                     if(args.length == 3) {
                         const world = player.world;
-                        if(!world.admins.checkIsAdmin(player)) {
-                            throw 'error_not_permitted';
-                        }
+                        world.throwIfNotWorldAdmin(player)
                         if(args[1] == 'add') {
                             let value = args[2];
                             if(!isNaN(value)) {

@@ -300,7 +300,7 @@ export class DBGame {
     }
 
     // GetPlayerSession...
-    async GetPlayerSession(session_id) {
+    async GetPlayerSession(session_id : string) : Promise<PlayerSession> {
         const row = await this.conn.get('SELECT u.id, u.username, u.guid, u.flags FROM user_session s LEFT JOIN user u ON u.id = s.user_id WHERE token = :session_id LIMIT 1', {':session_id': session_id})
         if(!row) {
             throw 'error_invalid_session';
@@ -311,7 +311,7 @@ export class DBGame {
             username:       row.username,
             flags:          row.flags,
             session_id:     session_id
-        };
+        } as PlayerSession
     }
 
     // Регистрация новой сессии пользователя
@@ -332,7 +332,7 @@ export class DBGame {
     }
 
     // Возвращает все сервера созданные мной и те, которые я себе добавил
-    async MyWorlds(user_id) {
+    async MyWorlds(user_id: int) : Promise<any[]> {
         const result = [];
         const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
             ':user_id': user_id

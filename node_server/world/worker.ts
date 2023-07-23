@@ -99,6 +99,12 @@ export class WorldWorker extends QubatchWorker {
                 }])
                 break
             }
+            case SERVER_WORLD_WORKER_MESSAGE.change_cover: {
+                const world = this.world
+                world.info.cover = args.filename
+                world.sendUpdatedInfo()
+                break
+            }
         }
 
     }
@@ -160,6 +166,10 @@ export class WorldWorker extends QubatchWorker {
 
     sendJSONString(session : PlayerSession, json_string: string) {
         this.postMessage([SERVER_WORLD_WORKER_MESSAGE.player_send_json_string, {session, json_string}])
+    }
+
+    adminListUpdated(list: string[]) {
+        this.postMessage([SERVER_WORLD_WORKER_MESSAGE.admin_list_updated, {list}])
     }
 
 }

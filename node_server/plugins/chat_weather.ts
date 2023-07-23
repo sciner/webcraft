@@ -12,10 +12,7 @@ export default class Chat_Weather {
         chat.onCmd(async (player, cmd, args) => {
             switch(cmd) {
                 case '/weather': {
-                    const world = player.world;
-                    // if(!world.admins.checkIsAdmin(player)) {
-                    //     throw 'error_not_permitted';
-                    // }
+                    const world = player.world
                     args = chat.parseCMD(args, ['string', 'string']);
                     if(args.length == 2) {
                         const name = args[1].trim().toLowerCase();

@@ -45,9 +45,8 @@ import { ChunkGrid } from "@client/core/ChunkGrid.js";
 import {ServerDrivingManager} from "./control/server_driving_manager.js";
 import {preprocessMobConfigs, TMobConfig} from "./mob/mob_config.js";
 import {Raycaster} from "@client/Raycaster.js";
-import type { ServerGame } from "server_game.js";
 import {ObjectUpdateType} from "./helpers/aware_players.js";
-import Billboard from "player/billboard.js";
+import { Billboard } from "player/billboard.js";
 import type {TSchematicInfo} from "./plugins/chat_worldedit.js";
 import { SpawnMobs } from "world/spawn_mobs.js";
 import type { WorldWorker } from "world/worker.js";
@@ -1414,6 +1413,12 @@ export class ServerWorld implements IWorld {
 
     getPlayerFile(id: number, file: string, demo: boolean) {
         return Billboard.getPlayerFile(id, file, demo)
+    }
+
+    throwIfNotWorldAdmin(player: ServerPlayer) : void {
+        if (!player.isWorldAdmin()) {
+            throw 'error_not_permitted'
+        }
     }
 
 }

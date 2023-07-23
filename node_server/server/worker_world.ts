@@ -12,6 +12,8 @@ export class ServerWorkerWorld {
     removed_players_time:   Map<string, number> = new Map<string, number>()
     game:                   ServerGame
     guid:                   string
+    world_admins:           string[] = []
+    world_row:              IWorldDBRow
 
     private last_message_received_time: number
     private kill_timeout: any = null
@@ -21,6 +23,7 @@ export class ServerWorkerWorld {
     }
 
     async init(world_row: IWorldDBRow) {
+        this.world_row = world_row
         this.guid = world_row.guid
         this.worker = new Worker(globalThis.__dirname + '/world/worker.js')
 
@@ -67,6 +70,10 @@ export class ServerWorkerWorld {
                         // За это время появились игроки, говорим миру опять ожить
                         this.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.no_need_to_unload])
                     }
+                    break
+                }
+                case SERVER_WORLD_WORKER_MESSAGE.admin_list_updated: {
+                    this.world_admins = args.list as string[]
                     break
                 }
             }
@@ -137,6 +144,15 @@ export class ServerWorkerWorld {
     onPlayerCommand(worker_player: ServerWorkerPlayer, cmd: any) {
         const session = worker_player.session
         this.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.player_command, {session, cmd}])
+    }
+
+    isWorldAdmin(session: PlayerSession): boolean {
+        return this.world_admins.includes(session.username) ||
+            (session.user_id == this.world_row.user_id)
+    }
+
+    changeCover(filename: string) {
+        this.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.change_cover, {filename}])
     }
 
 }

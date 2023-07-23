@@ -350,7 +350,7 @@ export class DBWorld {
                 game_mode:          row.game_mode || world.info.game_mode,
                 stats:              JSON.parse(row.stats),
                 world: {
-                    is_admin: world.admins.checkIsAdmin(player)
+                    is_admin: player.isWorldAdmin()
                 }
             });
 
@@ -476,17 +476,17 @@ export class DBWorld {
     }
 
     // Return admin list
-    async loadAdminList(world_id)  {
-        const resp = [];
-        const rows = await this.conn.all('SELECT username FROM user WHERE is_admin = ?', [world_id]);
+    async loadAdminList(world_id: int) : Promise<string[]> {
+        const list : string[] = []
+        const rows = await this.conn.all('SELECT username FROM user WHERE is_admin = ?', [1])
         for(let row of rows) {
-            resp.push(row.username);
+            list.push(row.username)
         }
-        return resp;
+        return list
     }
 
     // findPlayer...
-    async findPlayer(world_id, username : string) {
+    async findPlayer(world_id: int, username : string) {
         const row = await this.conn.get("SELECT id, username FROM user WHERE username = ?", [username]);
         if(!row) {
             return null;
