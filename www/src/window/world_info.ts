@@ -235,15 +235,9 @@ export class WorldInfoWindow extends BlankWindow {
         chk_public.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
         chk_public.visible = false
         chk_public.onMouseDown = () => {
-            if (!this.data.is_public) {
-                this.data.is_public = true
-                this.player.world.info.public = 1
-                chk_public.setIcon(hud_atlas.getSpriteFromMap('check2'))
-            } else {
-                this.data.is_public = false
-                this.player.world.info.public = 0
-                chk_public.setIcon(null) 
-            }
+            const is_public = this.data.is_public = !this.data.is_public
+            this.player.world.info.public = is_public ? 1 : 0
+            chk_public.setIcon(is_public ? hud_atlas.getSpriteFromMap('check2') : null)
             this.player.world.server.Send({
                 name: ServerClient.CMD_WORLD_INFO, 
                 data: {
