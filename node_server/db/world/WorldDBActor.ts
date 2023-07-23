@@ -16,7 +16,6 @@ export class WorldTransactionUnderConstruction {
     dt          : number
     promises    : Promise<any>[] = [] // all the pomises of async actions in this transaction
     shutdown    : boolean
-    speedup     : boolean
     // world_modify
     insertBlocks                    : DirtyBlock[] = []
     updateBlocksWithUnknownRowId    : DirtyBlock[] = []
@@ -61,10 +60,9 @@ export class WorldTransactionUnderConstruction {
     recoveryInsertUnsavedChunkXYZs  : int[] = []    // if we don't know rowId of a chunk - put its (x, y, z) here
     recoveryUpdateUnsavedChunkXYZs  : int[] = []    // for chunkless changes - the chunks exist, but we don't know their rowIds
 
-    constructor(dt: number, shutdown: boolean, speedup: boolean) {
+    constructor(dt: number, shutdown: boolean) {
         this.dt = dt
         this.shutdown = shutdown
-        this.speedup = speedup
     }
 
     pushPromises(...args : (Promise<any> | null | 0)[]): void {
@@ -186,20 +184,14 @@ export class WorldDBActor {
      * It saves all the changes the world state in one transaction.
      * @param { boolean } shutdown - if it's true, all changes must be written, and
      *   the game will stop after that.
-     *   It's different from world.shuttingDown. When world.shuttingDown is not null,
-     *   the game may continue for some time:
-     *   - we can't apply and flush pending actions in loading chunks, it'd cause bugs
-     *   - it doesn't make sense to force all mobs to be saved right now
      * @return {Promise} - it fullfills when the game data can be safely modified
      *  by the next game loop iteration, while writing to DB may till be going.
      */
-    async saveWorld(shutdown = false) {
+    private async saveWorld(shutdown = false) {
         const that = this;
         const world = this.world;
         const { getFlatIndexInChunk } = world.chunks.grid.math;
         const db = world.db;
-        // It may be different from shutdown. Its main effect is to cause chunkless changes to be saved ASAP.
-        const speedup = shutdown || world.shuttingDown;
 
         // await for the previous ongoing transaction, then start a new one
         const transaction = await this.transactionMutex.beginTransaction()
@@ -219,7 +211,7 @@ export class WorldDBActor {
         this._createWorldSavingPromise();
 
         // temporary data used during this transaction
-        this.underConstruction = new WorldTransactionUnderConstruction(dt, shutdown, speedup)
+        this.underConstruction = new WorldTransactionUnderConstruction(dt, shutdown)
         const uc = this.underConstruction; // accessible in closure after this.underConstruction is cleared
 
         // execute all independent queires and gather their promises
@@ -233,7 +225,7 @@ export class WorldDBActor {
 
             // Write some of the chunks modifiers, and remeber the rest in the recovery blob
             const unloadingCount = uc.worldModifyChunksHighPriority.length + uc.worldModifyChunksMidPriority.length
-            let remainingCanSave = speedup
+            let remainingCanSave = shutdown
                 ? unloadingCount // save everything that wants to unload, and nothing else
                 : world.worker_world.config.world_transaction.world_modify_chunks_per_transaction +
                 // to help in situations where the queue grows faster than we can write it,
@@ -286,7 +278,7 @@ export class WorldDBActor {
                         db.chunks.bulkUpdateWorldModifyExtraData(uc.updateBlocksExtraData, dt)
                     ]).then(async () => {
                         // delete some old modifiers after the new ones have been inserted
-                        if (!speedup) {
+                        if (!shutdown) {
                             await this.cleanupWorldModify()
                         }
                     })

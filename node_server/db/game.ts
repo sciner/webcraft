@@ -2,6 +2,14 @@ import {Vector, unixTime} from '@client/helpers.js';
 import {DBGameSkins, UPLOAD_STARTING_ID} from './game/skin.js';
 import {TransactionMutex} from "./db_helpers.js";
 
+export type TUserRow = {
+    id: int
+    username: string
+    guid: string
+    password: string
+    flags: int
+}
+
 export class DBGame {
     conn: DBConnection;
     skins: DBGameSkins;
@@ -247,8 +255,11 @@ export class DBGame {
         });
     }
 
-    // Создание нового мира (сервера)
-    async Registration(username, password) {
+    /**
+     * Создание нового игрока
+     * @return id игрока
+     */
+    async Registration(username: string, password: string): Promise<int> {
         const transaction = await this.transactionMutex.beginTransaction()
         try {
             if(await this.conn.get("SELECT id, username, guid, password FROM user WHERE username = ?", [username])) {
@@ -291,8 +302,8 @@ export class DBGame {
     }
 
     // Login...
-    async Login(username, password) {
-        const result = await this.conn.get("SELECT id, username, guid, password FROM user WHERE username = ? and password = ?", [username, password]);
+    async Login(username: string, password: string): Promise<PlayerSession> {
+        const result = await this.conn.get("SELECT id, username, guid, password, flags FROM user WHERE username = ? and password = ?", [username, password]);
         if(!result) {
             throw 'error_invalid_login_or_password';
         }
@@ -315,7 +326,7 @@ export class DBGame {
     }
 
     // Регистрация новой сессии пользователя
-    async CreatePlayerSession(user_row) {
+    async CreatePlayerSession(user_row: TUserRow): Promise<PlayerSession> {
         const session_id = randomUUID();
         const allowTransactionCb = await this.transactionMutex.noTransaction()
         await this.conn.run('INSERT INTO user_session(dt, user_id, token) VALUES (:dt, :user_id, :session_id)', {
@@ -327,6 +338,7 @@ export class DBGame {
             user_id:        user_row.id,
             user_guid:      user_row.guid,
             username:       user_row.username,
+            flags:          user_row.flags,
             session_id:     session_id
         };
     }

@@ -5,6 +5,7 @@ import { GameLog } from './game_log.js';
 import { SQLiteServerConnector } from './db/connector/sqlite.js';
 import { ServerWorkerWorld } from 'server/worker_world.js';
 import type { Config } from 'config.js';
+import {SERVER_WORLD_WORKER_MESSAGE} from "@client/constant.js";
 
 class FakeHUD {
     add() {}
@@ -20,8 +21,7 @@ export class ServerGame {
     is_server:          boolean
     worlds:             Map<string, ServerWorkerWorld> = new Map<string, ServerWorkerWorld>()
     worlds_loading:     Map<string, [Promise<ServerWorkerWorld | null>, Function]> = new Map<string, [Promise<ServerWorkerWorld | null>, Function]>() // 2-й член - resolve от этого промиса
-    shutdownPromise:    Promise<any>
-    shutdownGentle:     boolean
+    shutting_down:      boolean = false // ture если сейчас в процесе выключения
     hud:                FakeHUD
     hotbar:             FakeHotbar
     timerLoadWorld:     NodeJS.Timeout
@@ -33,62 +33,35 @@ export class ServerGame {
         this.config = config
         this.dt_started = new Date();
         this.is_server = true;
-        // Worlds
-        this.shutdownPromise = null;
-        this.shutdownGentle = false;
         // Placeholder
         this.hud = new FakeHUD();
         this.hotbar = new FakeHotbar();
         // load world queue
         this.timerLoadWorld = setTimeout(this.processWorldQueue.bind(this), 10);
         process.on('SIGTERM', () => {
-            this.shutdown('!langShutdown by SIGTERM', false)
+            this.shutdown('!langShutdown by SIGTERM')
         })
     }
 
     /**
      * @param msg - broadcasted to all players in all worlds
-     * @param gentle - if it's true, each world will start its shutdown only after its
-     *   actions_queue is empty
      * @return true if success
      */
-    shutdown(msg : string, gentle : boolean) : boolean {
-        if (this.shutdownPromise) {
-            // speed up shutdown, if posible
-            if (this.shutdownGentle && !gentle) {
-                this.shutdownGentle = false
-                for(const world of this.worlds.values()) {
-                    if (world.shuttingDown) { // skip worlds that were created after shutdown order
-                        world.shuttingDown.gentle = false
-                    }
-                }
-                return true
+    shutdown(msg : string) : void {
+        if (!this.shutting_down) {
+            this.shutting_down = true
+            console.warn(msg)
+            this.checkShutdown()
+            for(const world of this.worlds.values()) {
+                world.broadcastSystemChatMessage(msg)
+                world.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.shutdown])
             }
-            return false
         }
-        console.warn(msg)
-        const promises = []
-        for(const world of this.worlds.values()) {
-            world.broadcastSystemChatMessage(msg)
-            const promise = new Promise(resolve => {
-                world.shuttingDown = {
-                    resolve,
-                    gentle
-                }
-            })
-            promises.push(promise)
-        }
-        this.shutdownGentle = gentle
-        this.shutdownPromise = Promise.all(promises).then(() => {
-            console.log('Shutdown complete.')
-            process.exit()
-        })
-        return true
     }
 
     //
     async processWorldQueue() {
-        if (this.shutdownPromise) {
+        if (this.shutting_down) {
             return // don't load new worlds when shutting down
         }
         for(const world_guid of this.worlds_loading.keys()) {
@@ -134,6 +107,7 @@ export class ServerGame {
         this.worlds.delete(world.guid)
         world.onDelete()
         console.log(`World unloaded: ${world.guid}`)
+        this.checkShutdown()
     }
 
     // Start websocket server
@@ -176,7 +150,7 @@ export class ServerGame {
 
         // New player connection
         this.wsServer.on('connection', (conn, req) => {
-            if (this.shutdownPromise) {
+            if (this.shutting_down) {
                 return // don't accept connections when shutting down
             }
             console.log('New player connection');
@@ -186,7 +160,7 @@ export class ServerGame {
             const session_id    = Array.isArray(query.session_id) ? query.session_id[0] : query.session_id
             // Get loaded world
             this.getWorld(world_guid).then(async (world: ServerWorkerWorld | null) => {
-                if (this.shutdownPromise) {
+                if (this.shutting_down) {
                     return // don't join players when shutting down
                 }
                 if (world == null) {
@@ -207,4 +181,11 @@ export class ServerGame {
 
     }
 
+    /** Если ждали завершения, и не осталось миров - то завершить работу */
+    private checkShutdown(): void {
+        if (this.shutting_down && this.worlds.size === 0) {
+            console.log('Shutdown complete.')
+            process.exit()
+        }
+    }
 }

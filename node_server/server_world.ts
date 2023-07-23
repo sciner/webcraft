@@ -75,7 +75,7 @@ export class ServerWorld implements IWorld {
     temp_vec: Vector;
     block_manager: typeof BLOCK;
     blocksUpdatedByListeners: TActionBlock[] = []
-    shuttingDown: any;
+    shutting_down = false // если true, то мир завершается
     worker_world: WorldWorker;
     tickers: Map<string, TTickerFunction>;
     random_tickers: Map<string, TRandomTickerFunction>;
@@ -133,9 +133,6 @@ export class ServerWorld implements IWorld {
 
         this.block_manager = block_manager;
         this.raycaster = new Raycaster(this)
-
-        // An object with fields { resolve, gentle }. Gentle means to wait unil the action queue is empty
-        this.shuttingDown = null;
     }
 
     async initServer(world_guid : string, db_world : DBWorld, title: string, worker_world: WorldWorker) {
@@ -441,18 +438,16 @@ export class ServerWorld implements IWorld {
         this.info.calendar.day_time = Math.round((age - this.info.calendar.age) * GAME_DAY_SECONDS);
     }
 
-    async shutdown() {
-        await this.db.fluid.flushAll()
-        await this.dbActor.forceSaveWorld()
-        // resolve the promise of this world shutting down after an additional timeout
-        setTimeout(this.shuttingDown.resolve, this.world_worker.config.world_transaction.shutdown_additional_timeout)
-        await new Promise(() => {}) // await forever
-    }
-
     // World tick
     async tick() {
-        if (this.shuttingDown && !this.shuttingDown.gentle) {
-            await this.shutdown()
+        if (this.shutting_down) { // Все сохраним, сообщим главному потоку об окончнии и "повиснем"
+            await this.db.fluid.flushAll()
+            await this.dbActor.forceSaveWorld()
+            // resolve the promise of this world shutting down after an additional timeout
+            setTimeout(() => {
+                this.world_worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.shutdown_complete])
+            }, this.world_worker.config.world_transaction.shutdown_additional_timeout)
+            await new Promise(() => {}) // await forever
         }
         const started = performance.now();
         this.nextTickScheduledTime ??= started
@@ -509,9 +504,6 @@ export class ServerWorld implements IWorld {
             //
             await this.actions_queue.run();
             this.ticks_stat.add('actions_queue');
-            if (this.shuttingDown?.gentle && this.actions_queue.length === 0) {
-                await this.shutdown()
-            }
             //
             this.packets_queue.send();
             this.ticks_stat.add('packets_queue_send');
@@ -1417,6 +1409,12 @@ export class ServerWorld implements IWorld {
 
     throwIfNotWorldAdmin(player: ServerPlayer) : void {
         if (!player.isWorldAdmin()) {
+            throw 'error_not_permitted'
+        }
+    }
+
+    throwIfNotSystemAdmin(player: ServerPlayer) : void {
+        if (!player.isSystemAdmin()) {
             throw 'error_not_permitted'
         }
     }

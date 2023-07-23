@@ -7,7 +7,7 @@ import { PlayerEvent } from "./player_event.js";
 import { QuestPlayer } from "./quest/player.js";
 import { ServerPlayerInventory } from "./server_player_inventory.js";
 import { ALLOW_NEGATIVE_Y, MAX_RENDER_DIST_IN_BLOCKS } from "@client/chunk_const.js";
-import { MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, PLAYER_HEIGHT, PLAYER_STATUS, DEFAULT_RENDER_DISTANCE, PLAYER_SKIN_TYPES, PLAYER_PHYSICS_HALF_WIDTH } from "@client/constant.js";
+import {MAX_PORTAL_SEARCH_DIST, PLAYER_MAX_DRAW_DISTANCE, PORTAL_USE_INTERVAL, PLAYER_HEIGHT, PLAYER_STATUS, DEFAULT_RENDER_DISTANCE, PLAYER_SKIN_TYPES, PLAYER_PHYSICS_HALF_WIDTH, PLAYER_FLAG} from "@client/constant.js";
 import { WorldPortal, WorldPortalWait } from "@client/portal.js";
 import { ServerPlayerDamage } from "./player/damage.js";
 import { ServerPlayerEffects } from "./player/effects.js";
@@ -1134,6 +1134,10 @@ export class ServerPlayer extends Player {
 
     isWorldAdmin() : boolean {
         return this.world.admins.isAdmin(this)
+    }
+
+    isSystemAdmin(): boolean {
+        return (this.session.flags & PLAYER_FLAG.SYSTEM_ADMIN) != 0
     }
 
     setAnimation(animation_name : string, speed : float = 1, time : float = 1) {

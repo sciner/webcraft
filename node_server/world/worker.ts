@@ -25,6 +25,7 @@ declare type IQubatch = {
     world_worker:   WorldWorker
 }
 
+/** Существует внутри воркера мира. Предоставляет миру доступ к основному потоку */
 export class WorldWorker extends QubatchWorker {
     bm:             typeof BLOCK
     guid:           string
@@ -105,6 +106,9 @@ export class WorldWorker extends QubatchWorker {
                 world.sendUpdatedInfo()
                 break
             }
+            case SERVER_WORLD_WORKER_MESSAGE.shutdown:
+                this.world.shutting_down = true
+                break
         }
 
     }

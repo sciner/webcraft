@@ -4,9 +4,9 @@ import type {ServerGame} from "../server_game.js";
 
 const REMOVED_PLAYER_TTL = 60 * 1000    // Только для обнаружения ошибок, не влияет на игру.
 
+/** Существует в главном потоке. Общается с одним воркером мира. */
 export class ServerWorkerWorld {
-    worker:                 any
-    shuttingDown:           any = null
+    worker:                 Worker // может быть тип другой (или не может?), но объявим тип Worker чтобы работала проверка синтаксиса, например, postMessage
     players:                Map<string, ServerWorkerPlayer> = new Map()
     // Время удаления недавно удаленных игроков. Нужно только для отладки. Можно убрать.
     removed_players_time:   Map<string, number> = new Map<string, number>()
@@ -76,6 +76,12 @@ export class ServerWorkerWorld {
                     this.world_admins = args.list as string[]
                     break
                 }
+                case SERVER_WORLD_WORKER_MESSAGE.shutdown:
+                    this.game.shutdown(args)
+                    break
+                case SERVER_WORLD_WORKER_MESSAGE.shutdown_complete:
+                    this.game.deleteWorld(this)
+                    break
             }
         }
 
@@ -93,12 +99,13 @@ export class ServerWorkerWorld {
             this.game.deleteWorld(this)
         }
 
-        if('onmessage' in this.worker) {
+        const worker_any = this.worker as any
+        if('onmessage' in worker_any) {
             this.worker.onmessage = onmessage;
             this.worker.onerror = onerror;
         } else {
-            this.worker.on('message', onmessage);
-            this.worker.on('error', onerror);
+            worker_any.on('message', onmessage);
+            worker_any.on('error', onerror);
         }
 
         const skin_list = this.game.db.skins.list

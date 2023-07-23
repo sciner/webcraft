@@ -36,9 +36,9 @@ export class ServerAPI {
                 return Array.from(BuildingTemplate.schemas.values())
             }
             case '/api/User/Registration': {
-                const session = await ServerAPI.getDb().Registration(params.username, params.password);
+                const user_id = await ServerAPI.getDb().Registration(params.username, params.password);
                 Log.append('Registration', {username: params.username});
-                return session;
+                return user_id;
             }
             case '/api/User/Login': {
                 const session = await ServerAPI.getDb().Login(params.username, params.password);
@@ -167,7 +167,7 @@ export class ServerAPI {
                     const file = path + md5 + ext
                     await req.files.file.mv(file)
                     await req.files.preview.mv(path + md5 + '_' + ext)
-                    const files = await Billboard.getPlayerFiles(session.user_id)
+                    const files = await Billboard.getPlayerFiles(session)
                     return {
                         ...RESULT_OK,
                         'files': files, 

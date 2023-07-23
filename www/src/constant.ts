@@ -359,7 +359,7 @@ export enum WORKER_MESSAGE {
 
 export enum SERVER_WORLD_WORKER_MESSAGE {
     init = 'init',
-    broadcast_chat_message = 'broadcast_chat_message',
+    broadcast_chat_message = 'broadcast_chat_message', // root -> worker: разослать всем игрокам в этом мире
     player_leave = "player_leave",
     player_command = "player_command",
     on_player = "on_player",
@@ -369,7 +369,13 @@ export enum SERVER_WORLD_WORKER_MESSAGE {
     no_need_to_unload = "no_need_to_unload", // root->worker, говорит миру продолжить выполнение
     add_building_schema = "add_building_schema",
     admin_list_updated = "admin_list_updated",
-    change_cover = "change_cover"
+    change_cover = "change_cover",
+    /**
+     * worker -> root: просит остановить все миры, параметр - строка сообщения игрокам
+     * root -> worker: просит мир остановиться
+     */
+    shutdown = 'shutdown',
+    shutdown_complete = 'shutdown_complete' // worker -> root, сообщает что завершился
 }
 
 export enum PLAYER_FLAG {

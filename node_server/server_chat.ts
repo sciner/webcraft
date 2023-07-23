@@ -6,7 +6,7 @@ import { MobSpawnParams } from "./mob.js";
 import type { ServerWorld } from "./server_world.js";
 import type { WorldTickStat } from "./world/tick_stat.js";
 import type { ServerPlayer } from "./server_player.js";
-import { BLOCK_FLAG, DEFAULT_MOB_TEXTURE_NAME } from "@client/constant.js";
+import {BLOCK_FLAG, DEFAULT_MOB_TEXTURE_NAME, SERVER_WORLD_WORKER_MESSAGE} from "@client/constant.js";
 import {EnumDamage} from "@client/enums/enum_damage.js";
 import type WorldEdit from "./plugins/chat_worldedit.js";
 
@@ -233,7 +233,7 @@ export class ServerChat {
                         '  /sysstat',
                         '  /netstat (in|out|all) [off|count|size|reset]',
                         '  /astat [recent]',
-                        '/shutdown [gentle|force]',
+                        '/shutdown',
                         '/resetinventory [username]',
                         ServerChat.XYZ_HELP
                     ]
@@ -287,27 +287,9 @@ export class ServerChat {
                 }
                 break;
             case '/shutdown': {
-                world.throwIfNotWorldAdmin(player)
-                let gentle = false
-                if (args[1] === 'gentle') {
-                    gentle = true
-                } else if (args[1] === 'force') {
-                    // continue
-                } else if (world.actions_queue.length === 0) {
-                    // The action queue is empty, so we can proceed without bothering the user with questions.
-                    // Choose "gentle" in case a lot of actions suddenly happen, to be conpletely safe.
-                    gentle = true
-                } else {
-                    this.sendSystemChatMessageToSelectedPlayers('Usage: /shutdown (gentle | force)]\n' +
-                        '"gentle" delays starting of shutdown until the actions queue is empty.\n' +
-                        `There are ${world.actions_queue.length} actions queued.`, player)
-                    break
-                }
+                world.throwIfNotSystemAdmin(player)
                 const msg = 'shutdown_initiated_by|' + player.session.username
-                const res = world.worker_world.shutdown(msg, gentle)
-                if (!res) {
-                    this.sendSystemChatMessageToSelectedPlayers('!langThe game is already in the process of shutting down.', player)
-                }
+                world.worker_world.postMessage([SERVER_WORLD_WORKER_MESSAGE.shutdown, msg])
                 break
             }
             case '/resetinventory': {
