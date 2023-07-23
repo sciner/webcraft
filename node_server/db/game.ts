@@ -210,7 +210,7 @@ export class DBGame {
             `UPDATE world SET generator = replace(generator, '"generate_big_caves":false', '"generate_big_caves":true') WHERE _rowid_ = 1000001`,
         ]});
 
-        migrations.push({version: 16, queries: [
+        migrations.push({version: 15, queries: [
             `ALTER TABLE world_player ADD COLUMN "public" integer NOT NULL DEFAULT 0`,
             `UPDATE world_player set public = 0`
         ]})
@@ -336,18 +336,12 @@ export class DBGame {
         };
     }
 
-    // Возвращает все сервера созданные мной и те, которые я себе добавил
+    // Возвращает все сервера созданные мной и те, которые я себе добавил, и публичные
     async MyWorlds(user_id) {
         const result = [];
         const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode, wp.public, wp.user_id AS uid FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id OR wp.public = 1 ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
             ':user_id': user_id
         });
-        const rows2 = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode, wp.public FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id != :user_id AND wp.public = 1 ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
-            ':user_id': user_id
-        });
-       // console.log(rows)
-        //console.log(rows2)
-    
         if(rows) {
             for(let row of rows) {
                 const cover = row.cover ? (row.cover + (row.cover.indexOf('.') > 0 ? '' : '.webp')) : null

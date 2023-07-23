@@ -13,9 +13,10 @@ export default class packet_reader {
     }
 
     static async read(player, packet) {
-
         const world = player.world
-        console.log(world.info)
+        if(!world.admins.checkIsAdmin(player)) {
+            throw 'error_not_permitted'
+        }
         if (packet?.data) {
             world.info.public = packet.data?.public ? 1 : 0
             world.game.db.setWorldPublic(world.info.user_id, world.info.gid, world.info.public)
