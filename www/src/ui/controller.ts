@@ -106,7 +106,7 @@ class GameController {
     mygames: {
         list: any[]; shared_worlds: any[]; loading: boolean; toMain: () => void; load: () => any;
         // @deprecated
-        save: () => void; add: (form: any) => void; enterWorld: { windowMod: string; worldInfo: any; getWorldGuid: () => string; joinAfterApproving: () => void; joinToWorldIfNeed: () => void; showWorldInfo: (worldInfo: any, mode: any) => void; handleNoWorldOrOtherError: (error: any) => void; checkIsWorldUrl: () => void; };
+        save: () => void; add: (form: any) => void; enterWorld: { windowMod: string; worldInfo: any; getWorldGuid: () => string; joinWorld: (guid: string) => void; joinAfterApproving: () => void; joinToWorldIfNeed: () => void; showWorldInfo: (worldInfo: any, mode: any) => void; handleNoWorldOrOtherError: (error: any) => void; checkIsWorldUrl: () => void; };
     };
     newgame: { loading: boolean; form: {game_mode?: any; title: string; seed: string; generator: { id: any; options: any; }; }; reset(): void; init(): void; gamemodes: { index: number; list: any[]; current: any; select(game_mode: any): void; }; generators: { index: number; list: any[]; current: any; next(): void; select(generator: any): void; }; submit(): void; open(): void; close(): void; };
     modalWindow: { show: (modalId: string) => void; hide: (modalId: string) => void; };
@@ -432,17 +432,27 @@ class GameController {
                 instance.syncTime();
                 instance.App.MyWorlds({}, (worlds) => {
                     $timeout(() => {
+                        console.log(worlds)
                         that.shared_worlds = []
                         that.list = []
                         for(let w of worlds) {
                             w.game_mode_title = Lang[`gamemode_${w.game_mode}`];
                             w.my = w.user_id == session.user_id;
-                            if(!w.my) {
+                           // if(w.public) {
+                           //     that.shared_worlds.push(w)
+                            //} else if (w.my) {
+                               // that.list.push(w)  
+                                //that.shared_worlds.push(w)
+                            //}
+
+                            if (w.my) {
+                                that.list.push(w)
+                            } else if (w.public == 1) {
                                 that.shared_worlds.push(w)
-                            } else {
-                                that.list.push(w)  
                             }
                         }
+                        console.log(that.list)
+                        console.log(that.shared_worlds)
                         /*
                         that.shared_worlds = [];
                         for(let w of worlds) {
@@ -471,6 +481,11 @@ class GameController {
                         return pathName.substr(8);
                     }
                     return null;
+                },
+                joinWorld: function(guid: string) {
+                    instance.App.JoinWorld({ world_guid: guid}, () => {
+                        $timeout(() => instance.StartWorld(guid), error => this.handleNoWorldOrOtherError(error));
+                    });
                 },
                 joinAfterApproving: function(){
                     let worldGuid = this.getWorldGuid();

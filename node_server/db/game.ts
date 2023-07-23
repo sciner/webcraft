@@ -339,9 +339,18 @@ export class DBGame {
     // Возвращает все сервера созданные мной и те, которые я себе добавил
     async MyWorlds(user_id) {
         const result = [];
-        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode, wp.public FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id OR wp.public = 1 ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
+        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
             ':user_id': user_id
         });
+        const rows2 = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode, wp.public FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id != :user_id AND wp.public = 1 ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
+            ':user_id': user_id
+        });
+        console.log("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode, wp.public FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
+            ':user_id': user_id
+        })
+        console.log(rows)
+        //console.log(rows2)
+    
         if(rows) {
             for(let row of rows) {
                 const cover = row.cover ? (row.cover + (row.cover.indexOf('.') > 0 ? '' : '.webp')) : null
@@ -359,7 +368,7 @@ export class DBGame {
                     'generator':    JSON.parse(row.generator),
                     'pos_spawn':    null,
                     'state':        null,
-                    'public':       row.public == 1
+                    'public':       row.public
                 };
                 result.push(world);
             }
@@ -482,7 +491,7 @@ export class DBGame {
 
     // getWorld... Возвращает мир по его GUID
     async getWorld(world_guid)  {
-        const row = await this.conn.get("SELECT w.*, u.username FROM world as w LEFT JOIN user as u ON u.id = w.user_id WHERE w.guid = ?", [world_guid]);
+        const row = await this.conn.get("SELECT w.*, u.username, wp.public FROM world as w LEFT JOIN user as u ON (u.id = w.user_id) LEFT JOIN world_player as wp ON (wp.user_id = w.user_id AND wp.world_id = w.id) WHERE w.guid = ?", [world_guid]);
         if(!row) {
             throw 'error_world_not_found';
         }
@@ -497,7 +506,9 @@ export class DBGame {
             cover:      row.cover,
             generator:  JSON.parse(row.generator),
             pos_spawn:  JSON.parse(row.pos_spawn),
-            state:      null
+            state:      null,
+            public:     row.public,
+            username:   row.username
         };
     }
 
@@ -544,6 +555,14 @@ export class DBGame {
             ':file': filename
         }).finally(allowTransactionCb)
         return filename;
+    }
+
+    async setWorldPublic(user_id: number, world_id: number, shared: number = 1) {
+        await this.conn.run('UPDATE world_player SET public = :shared WHERE user_id = :user_id AND world_id = :world_id', {
+            ':shared':   shared,
+            ':user_id':  user_id,
+            ':world_id': world_id
+        })
     }
 
 }

@@ -82,6 +82,8 @@ declare interface TWorldInfo {
     id:             int
     user_id:        int
     username:       string
+    public?:        int
+    gid?:           int
     dt:             any
     cover:          string
     guid:           string

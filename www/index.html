@@ -147,7 +147,7 @@
             </div>
             <div ng-if="mygames.enterWorld.windowMod == 'approve-join'" class="flex0 flex-column">
                 <div class="flex0 flex-column">
-                    <img ng-src="{{mygames.enterWorld.worldInfo.cover}}" ng-if="mygames.enterWorld.worldInfo.cover" style="margin: 0 !important;" />
+                    <img ng-src="{{Lang.no_cover}}" ng-if="mygames.enterWorld.worldInfo.cover" style="margin: 0 !important;" />
                     <img src="/media/design/no-logo.svg" ng-if="!mygames.enterWorld.worldInfo.cover" />
                 </div>
                 <label ng-bind-html="Lang.accept_join_to_world_message|textfilter:mygames.enterWorld.worldInfo.title|trust"></label>
@@ -262,13 +262,11 @@
                             </div>
                         </div>
                         <div class="buttons">
-                            <button class="primary" ng-click="StartWorld(item.guid)">
+                            <button class="primary" ng-click="mygames.enterWorld.joinWorld(item.guid)">
                                 <span>{{Lang.play}}</span>
                                 <i class="icon-arrows-right"></i>
                             </button>
-                            <!-- <button class="secondary">Edit</button> -->
                         </div>
-
                     </div>
                 </div>
             </div>
