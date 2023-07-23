@@ -432,35 +432,15 @@ class GameController {
                 instance.syncTime();
                 instance.App.MyWorlds({}, (worlds) => {
                     $timeout(() => {
-                        console.log(worlds)
-                        that.shared_worlds = []
-                        that.list = []
-                        for(let w of worlds) {
-                            w.game_mode_title = Lang[`gamemode_${w.game_mode}`];
-                            w.my = w.user_id == session.user_id;
-                           // if(w.public) {
-                           //     that.shared_worlds.push(w)
-                            //} else if (w.my) {
-                               // that.list.push(w)  
-                                //that.shared_worlds.push(w)
-                            //}
-
+                        for(const w of worlds) {
+                            w.game_mode_title = Lang[`gamemode_${w.game_mode}`]
+                            w.my = w.uid == session.user_id
                             if (w.my) {
                                 that.list.push(w)
                             } else if (w.public == 1) {
                                 that.shared_worlds.push(w)
                             }
                         }
-                        console.log(that.list)
-                        console.log(that.shared_worlds)
-                        /*
-                        that.shared_worlds = [];
-                        for(let w of worlds) {
-                            w.my = w.user_id == session.user_id;
-                            if(!w.my) {
-                                that.shared_worlds.push(w);
-                            }
-                        }*/
                         that.enterWorld.joinToWorldIfNeed();
                         that.loading = false;
                         instance.onMyGamesLoadedOrTimeSynchronized();

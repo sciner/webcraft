@@ -292,6 +292,12 @@ export class WorldInfoWindow extends BlankWindow {
         //
         this.addCollection()
 
+        player.world.server.AddCmdListener([ServerClient.CMD_WORLD_INFO], (cmd : IChatCommand) => {
+            console.log(cmd)
+            player.world.setInfo(cmd)
+            this.updateInfo()
+        })
+
     }
 
     // Обработчик открытия формы

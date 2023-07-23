@@ -339,16 +339,13 @@ export class DBGame {
     // Возвращает все сервера созданные мной и те, которые я себе добавил
     async MyWorlds(user_id) {
         const result = [];
-        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
+        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode, wp.public, wp.user_id AS uid FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id OR wp.public = 1 ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
             ':user_id': user_id
         });
         const rows2 = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode, wp.public FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id != :user_id AND wp.public = 1 ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
             ':user_id': user_id
         });
-        console.log("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode, wp.public FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
-            ':user_id': user_id
-        })
-        console.log(rows)
+       // console.log(rows)
         //console.log(rows2)
     
         if(rows) {
@@ -357,6 +354,7 @@ export class DBGame {
                 const cover_preview = cover ? (cover.startsWith('scr') ? `preview_${cover}` : null) : null
                 const world = {
                     'id':           row.id,
+                    'uid':          row.uid,
                     'user_id':      row.user_id,
                     'dt':           new Date(row.dt * 1000).toISOString(), // '2021-10-06T19:20:04+02:00',
                     'guid':         row.guid,

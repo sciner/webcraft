@@ -134,6 +134,7 @@ export class World implements IWorld {
             });
 
             this.server.AddCmdListener([ServerClient.CMD_WORLD_INFO], (cmd : IChatCommand) => {
+                console.log('cmd')
                 this.setInfo(cmd);
                 res(cmd);
             });
