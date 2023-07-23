@@ -200,7 +200,7 @@ export class SchematicJob {
      * Если нужно, сравнивает их с чанком или запрашивает результат генератора, чтобы не вставлять совпадающие блоки.
      */
     onBlocksReceived({chunks, args}: TQueryBlocksReply): void {
-        if (this.world_edit.schematic_job !== this) {
+        if (this.world_edit.schematic_job !== this || this.world.shutting_down) {
             return  // значит, эту задачу отменили до ее завершения
         }
         if (args.job_id !== this.job_id) {
@@ -302,7 +302,7 @@ export class SchematicJob {
 
     /** Если пришли блоки из генератора - сравнить с ними вставляемые блоки. */
     onBlocksGenerated({for_schematic, tblocks}: TChunkWorkerMessageBlocksGenerated): void {
-        if (this.world_edit.schematic_job !== this || for_schematic.job_id !== this.job_id) {
+        if (this.world_edit.schematic_job !== this || for_schematic.job_id !== this.job_id || this.world.shutting_down) {
             return  // значит, эту задачу отменили до ее завершения
         }
         const action = this.chunks_in_generator.get(for_schematic.index)
@@ -330,7 +330,7 @@ export class SchematicJob {
 
     /** Добавить новые чанки в обработку, если лимит позволяет. */
     tick(): void {
-        if (this.paused) {
+        if (this.paused || this.world.shutting_down) {
             return
         }
 

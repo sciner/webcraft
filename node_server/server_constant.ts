@@ -1,11 +1,5 @@
 import { MAX_PACKET_LAG_SECONDS } from "@client/constant.js"
 
-/**
- * Если true, клиент может при входе в мир сказать что он бот, и сразу использовать режим наблюдателя не будучи админом.
- * TODO отключить в релизе
- */
-export const SPECTATOR_BOTS_ENABLED = true
-
 // =================================== сеть ===================================
 
 /** The server sends a command to each player at least once per this interval of time. */
@@ -37,23 +31,6 @@ export const DONT_VALIDATE_AFTER_MODE_CHANGE_MS = 2000
  */
 export const SERVER_UNCERTAINTY_SECONDS = MAX_PACKET_LAG_SECONDS
 
-// ================================= вождние ==================================
-
-/**
- * Если моб-учстник движения отсутсвует на сервере (может не загружен из-за тормозов, или нарушилась целостность
- * данных из-за бага), но числится в вождении - через сколько секунд его выкидывать из вождения.
- */
-export const DRIVING_ABSENT_MOB_TTL_SECONDS = 30
-
-/**
- * Если игрок-учстник движения отсутсвует на сервере (вышел из игры), но числится в вождении, он будет из него удален,
- * если транспортное средство сместится более чем на это расстояние от того места, где он участник был последний раз.
- */
-export const DRIVING_ABSENT_PLAYER_DISTANCE = 20
-
-/** Через сколько секунд после временного исчезновения из игры игрока-водителя начинает работать ИИ моба. */
-export const DRIVING_ABSENT_PLAYER_MOB_BRAIN_DELAY_SECONDS = 10
-
 // ==================================== БД ====================================
 
 /**
@@ -64,18 +41,6 @@ export const DRIVING_ABSENT_PLAYER_MOB_BRAIN_DELAY_SECONDS = 10
  * TODO change it to false after a few months.
  */
 export const SAVE_BACKWARDS_COMPATIBLE_INDICATOTRS = true;
-
-// world transaction
-
-export let WORLD_TRANSACTION_PERIOD = 2000;  // the time (in ms) between world-saving transactions
-
-// Max. chunks saved to world_modify_chunks per transaction
-// Increasing this number allows them to unload faster.
-export const WORLD_MODIFY_CHUNKS_PER_TRANSACTION = 10;
-
-// Additional timeout after World Transaction and fluids write everything, before exiting the process.
-// It's to allow any other async queries (not included in world transaction or fluids) to finish.
-export const SHUTDOWN_ADDITIONAL_TIMEOUT = 1000
 
 // chunks
 

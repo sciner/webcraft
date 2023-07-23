@@ -1,4 +1,4 @@
-import {Helpers, Vector, ObjectHelpers, CAMERA_MODE} from "./helpers.js";
+import { Vector, ObjectHelpers, CAMERA_MODE } from "./helpers.js";
 import {ServerClient} from "./server_client.js";
 import {ICmdPickatData, PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
@@ -889,16 +889,16 @@ export class Player implements IPlayer {
             pos:            this.lerpPos,
             rotate:         this.rotateDegree.clone(),
             game_mode:      this.game_mode,
-            is_admin:       this.checkIsAdmin(),
+            is_admin:       this.isSystemAdmin(),
             world:          this.state.world,
             indicators:     this.indicators,
             session: {
                 user_id: this.session.user_id
             }
-        }
+        } as ActionPlayerInfo
     }
 
-    checkIsAdmin() : boolean {
+    isSystemAdmin() : boolean {
         return this.checkFlag(PLAYER_FLAG.SYSTEM_ADMIN)
     }
 

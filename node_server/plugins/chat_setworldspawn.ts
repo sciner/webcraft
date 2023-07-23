@@ -1,4 +1,5 @@
 import { Vector } from "@client/helpers.js";
+import type { ServerPlayer } from "server_player";
 
 export default class Chat_SetWorldSpawn {
 
@@ -9,13 +10,11 @@ export default class Chat_SetWorldSpawn {
     onWorld(world) {}
 
     onChat(chat) {
-        chat.onCmd(async (player, cmd, args) => {
+        chat.onCmd(async (player : ServerPlayer, cmd, args) => {
             switch(cmd) {
                 case '/setworldspawn': {
                     const world = player.world;
-                    if(!world.admins.checkIsAdmin(player)) {
-                        throw 'error_not_permitted';
-                    }
+                    world.throwIfNotWorldAdmin(player)
                     args = chat.parseCMD(args, ['string', 'int', 'int', 'int']);
                     if(args.length == 4) {
                         const x = parseFloat(args[1]);

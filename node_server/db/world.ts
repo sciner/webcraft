@@ -145,13 +145,13 @@ export class DBWorld {
      * @returns {DBWorld}
      */
     static async openDB(conn: DBConnection, world: ServerWorld): Promise<DBWorld> {
-        return await new DBWorld(conn, world).init();
+        return await new DBWorld(conn, world).init()
     }
 
     /**
      * Возвращает мир по его GUID либо создает и возвращает его
      */
-    async getWorld(world_guid : string) : Promise<TWorldInfo> {
+    async getWorld(world_guid : string, worldRow: IWorldDBRow) : Promise<TWorldInfo> {
         const row = await this.conn.get("SELECT w.*, u.username FROM world as w LEFT JOIN user as u ON u.id = w.user_id WHERE w.guid = ?", [world_guid]);
         if(row) {
             const tech_info = JSON.parse(row.tech_info)
@@ -183,7 +183,7 @@ export class DBWorld {
             return resp;
         }
         // Insert new world to Db
-        const world = await Qubatch.db.getWorld(world_guid);
+        const world = worldRow
 
         // tech info
         const xz = world.generator.options?.chunk_size_xz ?? OLD_CHUNK_SIZE.x
@@ -204,7 +204,7 @@ export class DBWorld {
             ':game_mode':   world.game_mode,
             ':tech_info':   JSON.stringify(tech_info),
         });
-        return this.getWorld(world_guid);
+        return this.getWorld(worldRow.guid, worldRow)
     }
 
     async updateAddTime(world_guid : string, add_time : int) {
@@ -350,7 +350,7 @@ export class DBWorld {
                 game_mode:          row.game_mode || world.info.game_mode,
                 stats:              JSON.parse(row.stats),
                 world: {
-                    is_admin: world.admins.checkIsAdmin(player)
+                    is_admin: player.isWorldAdmin()
                 }
             });
 
@@ -476,17 +476,17 @@ export class DBWorld {
     }
 
     // Return admin list
-    async loadAdminList(world_id)  {
-        const resp = [];
-        const rows = await this.conn.all('SELECT username FROM user WHERE is_admin = ?', [world_id]);
+    async loadAdminList(world_id: int) : Promise<string[]> {
+        const list : string[] = []
+        const rows = await this.conn.all('SELECT username FROM user WHERE is_admin = ?', [1])
         for(let row of rows) {
-            resp.push(row.username);
+            list.push(row.username)
         }
-        return resp;
+        return list
     }
 
     // findPlayer...
-    async findPlayer(world_id, username : string) {
+    async findPlayer(world_id: int, username : string) {
         const row = await this.conn.get("SELECT id, username FROM user WHERE username = ?", [username]);
         if(!row) {
             return null;

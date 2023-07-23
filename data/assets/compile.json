@@ -6241,6 +6241,7 @@
             },
             "drop_item": {"name": "DIRT", "count": 0, "chance": 0},
             "extra_data": {
+                "max_ticks": 100,
                 "limit": {}
             },
             "texture_animations": {

@@ -2,6 +2,14 @@ import {Vector, unixTime} from '@client/helpers.js';
 import {DBGameSkins, UPLOAD_STARTING_ID} from './game/skin.js';
 import {TransactionMutex} from "./db_helpers.js";
 
+export type TUserRow = {
+    id: int
+    username: string
+    guid: string
+    password: string
+    flags: int
+}
+
 export class DBGame {
     conn: DBConnection;
     skins: DBGameSkins;
@@ -247,8 +255,11 @@ export class DBGame {
         });
     }
 
-    // Создание нового мира (сервера)
-    async Registration(username, password) {
+    /**
+     * Создание нового игрока
+     * @return id игрока
+     */
+    async Registration(username: string, password: string): Promise<int> {
         const transaction = await this.transactionMutex.beginTransaction()
         try {
             if(await this.conn.get("SELECT id, username, guid, password FROM user WHERE username = ?", [username])) {
@@ -291,8 +302,8 @@ export class DBGame {
     }
 
     // Login...
-    async Login(username, password) {
-        const result = await this.conn.get("SELECT id, username, guid, password FROM user WHERE username = ? and password = ?", [username, password]);
+    async Login(username: string, password: string): Promise<PlayerSession> {
+        const result = await this.conn.get("SELECT id, username, guid, password, flags FROM user WHERE username = ? and password = ?", [username, password]);
         if(!result) {
             throw 'error_invalid_login_or_password';
         }
@@ -300,7 +311,7 @@ export class DBGame {
     }
 
     // GetPlayerSession...
-    async GetPlayerSession(session_id) {
+    async GetPlayerSession(session_id : string) : Promise<PlayerSession> {
         const row = await this.conn.get('SELECT u.id, u.username, u.guid, u.flags FROM user_session s LEFT JOIN user u ON u.id = s.user_id WHERE token = :session_id LIMIT 1', {':session_id': session_id})
         if(!row) {
             throw 'error_invalid_session';
@@ -311,11 +322,11 @@ export class DBGame {
             username:       row.username,
             flags:          row.flags,
             session_id:     session_id
-        };
+        } as PlayerSession
     }
 
     // Регистрация новой сессии пользователя
-    async CreatePlayerSession(user_row) {
+    async CreatePlayerSession(user_row: TUserRow): Promise<PlayerSession> {
         const session_id = randomUUID();
         const allowTransactionCb = await this.transactionMutex.noTransaction()
         await this.conn.run('INSERT INTO user_session(dt, user_id, token) VALUES (:dt, :user_id, :session_id)', {
@@ -327,12 +338,13 @@ export class DBGame {
             user_id:        user_row.id,
             user_guid:      user_row.guid,
             username:       user_row.username,
+            flags:          user_row.flags,
             session_id:     session_id
         };
     }
 
     // Возвращает все сервера созданные мной и те, которые я себе добавил
-    async MyWorlds(user_id) {
+    async MyWorlds(user_id: int) : Promise<any[]> {
         const result = [];
         const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
             ':user_id': user_id
@@ -475,7 +487,7 @@ export class DBGame {
     }
 
     // getWorld... Возвращает мир по его GUID
-    async getWorld(world_guid)  {
+    async getWorld(world_guid : string) : Promise<IWorldDBRow> {
         const row = await this.conn.get("SELECT w.*, u.username FROM world as w LEFT JOIN user as u ON u.id = w.user_id WHERE w.guid = ?", [world_guid]);
         if(!row) {
             throw 'error_world_not_found';
@@ -492,7 +504,7 @@ export class DBGame {
             generator:  JSON.parse(row.generator),
             pos_spawn:  JSON.parse(row.pos_spawn),
             state:      null
-        };
+        }
     }
 
     // Increase world play count by user

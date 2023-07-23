@@ -1,5 +1,8 @@
+import skiaCanvas from 'skia-canvas';
+import type { BBModel_Model } from "@client/bbmodel/model.js";
 import { unixTime, md5 } from "@client/helpers.js";
 import type { PlayerSkin } from "@client/player.js";
+import { Resources } from "@client/resources.js";
 import type { DBGame } from "../game.js";
 
 const SKIN_ROOT = '../www/media/models/player_skins/'
@@ -18,6 +21,12 @@ type SkinFileNames = {
     fullFileName: string
 }
 
+export declare type IBBModelSkin = {
+    bbmodel: BBModel_Model
+    skin: PlayerSkin
+    texture_name: string
+}
+
 // const STATIC_SKINS_BY_ID: Map<int, DBSkin> = new Map(skins_json.player_skins.map(it => [it.id, it]))
 
 export class DBGameSkins {
@@ -28,6 +37,28 @@ export class DBGameSkins {
     constructor(db: DBGame) {
         this.db = db;
         this.conn = db.conn;
+    }
+
+    async load() : Promise<PlayerSkin[]> {
+        for(const bbmodel of (await Resources.loadBBModels()).values()) {
+            if(bbmodel.name.startsWith('mob/')) {
+                bbmodel.makeTexturePalette()
+                for(const texture_name of bbmodel.all_textures.keys()) {
+                    if(isNaN(Number(texture_name))) {
+                        const id = md5(`${bbmodel.name}|${texture_name}`);
+                        const skin = {
+                            id,
+                            can_select_by_player: bbmodel.name.startsWith('mob/humanoid'),
+                            model_name: bbmodel.name,
+                            texture_name,
+                        } as PlayerSkin
+                        this.list.push(skin)
+                        console.log(bbmodel.name, texture_name)
+                    }
+                }
+            }
+        }
+        return this.list
     }
 
     hashImage(img): string {

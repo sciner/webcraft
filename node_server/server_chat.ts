@@ -6,7 +6,7 @@ import { MobSpawnParams } from "./mob.js";
 import type { ServerWorld } from "./server_world.js";
 import type { WorldTickStat } from "./world/tick_stat.js";
 import type { ServerPlayer } from "./server_player.js";
-import { BLOCK_FLAG, DEFAULT_MOB_TEXTURE_NAME } from "@client/constant.js";
+import {BLOCK_FLAG, DEFAULT_MOB_TEXTURE_NAME, SERVER_WORLD_WORKER_MESSAGE} from "@client/constant.js";
 import {EnumDamage} from "@client/enums/enum_damage.js";
 import type WorldEdit from "./plugins/chat_worldedit.js";
 
@@ -25,7 +25,7 @@ export class ServerChat {
     constructor(world : ServerWorld) {
         this.world = world;
         this.onCmdCallbacks = [];
-        plugins.initPlugins('chat', this);
+        world.worker_world.plugins.initPlugins('chat', this)
     }
 
     /**
@@ -115,21 +115,10 @@ export class ServerChat {
         }
     }
 
-    checkIsAdmin(player: ServerPlayer): void {
-        if (!this.world.admins.checkIsAdmin(player)) {
-            throw 'error_not_permitted'
-        }
-    }
-
     // runCmd
     async runCmd(player: ServerPlayer, original_text: string) {
-        const {fromFlatChunkIndex} = this.world.chunks.grid.math;
-        const that = this
-        function checkIsAdmin() {
-            that.checkIsAdmin(player)
-        }
-
         const world = this.world
+        const {fromFlatChunkIndex} = world.chunks.grid.math
         let text = original_text.replace(/  +/g, ' ').trim();
         let args = text.split(' ') as any[]; // any[] - because after they are parsed, args also contain int and null
         let cmd = args[0].toLowerCase();
@@ -138,8 +127,8 @@ export class ServerChat {
                 args = this.parseCMD(args, ['string', 'string'])
                 switch (args[1]) {
                     case 'mobs':
-                        checkIsAdmin()
-                        this.world.mobs.kill()
+                        world.throwIfNotWorldAdmin(player)
+                        world.mobs.kill()
                         break
                     case 'me':
                         player.setDamage(999999, EnumDamage.OTHER, player)
@@ -153,12 +142,10 @@ export class ServerChat {
                 if (args.length < 2) {
                     throw 'Invalid arguments count';
                 }
-                if(!this.world.admins.checkIsAdmin(player)) {
-                    throw 'error_not_permitted';
-                }
+                world.throwIfNotWorldAdmin(player)
                 switch (args[1]) {
                     case 'list': {
-                        const admin_list = this.world.admins.getList().join(', ');
+                        const admin_list = world.admins.getList().join(', ');
                         this.sendSystemChatMessageToSelectedPlayers(`admin_list|${admin_list}`, player);
                         break;
                     }
@@ -166,7 +153,7 @@ export class ServerChat {
                         if (args.length < 3) {
                             throw 'Invalid arguments count';
                         }
-                        await this.world.admins.add(player, args[2]);
+                        await world.admins.add(player, args[2]);
                         this.sendSystemChatMessageToSelectedPlayers('admin_added', player);
                         break;
                     }
@@ -174,7 +161,7 @@ export class ServerChat {
                         if (args.length < 3) {
                             throw 'Invalid arguments count';
                         }
-                        await this.world.admins.remove(player, args[2]);
+                        await world.admins.remove(player, args[2]);
                         this.sendSystemChatMessageToSelectedPlayers('admin_removed', player);
                         break;
                     }
@@ -185,11 +172,11 @@ export class ServerChat {
                 break;
             }
             case '/seed': {
-                this.sendSystemChatMessageToSelectedPlayers(`generator_seed|${this.world.info.seed}`, player);
+                this.sendSystemChatMessageToSelectedPlayers(`generator_seed|${world.info.seed}`, player);
                 break;
             }
             case '/give': {
-                const is_admin = this.world.admins.checkIsAdmin(player)
+                const is_admin = player.isWorldAdmin()
                 if(!player.game_mode.isCreative()) {
                     if(!is_admin) {
                         throw 'error_command_not_working_in_this_game_mode'
@@ -205,14 +192,14 @@ export class ServerChat {
                     name = args[1];
                     cnt = args[2] as any;
                 }
-                const bm = this.world.block_manager
+                const bm = world.block_manager
                 cnt = Math.max(cnt | 0, 1);
                 const b = bm.fromName(name.toUpperCase())
                 if(!b.is_dummy) {
                     // TODO: check admin rights
                     if(!is_admin) {
                         const blockFlags = bm.flags
-                        if(!this.world.isBuildingWorld() && (blockFlags[b.id] & BLOCK_FLAG.NOT_CREATABLE)) {
+                        if(!world.isBuildingWorld() && (blockFlags[b.id] & BLOCK_FLAG.NOT_CREATABLE)) {
                             this.sendSystemChatMessageToSelectedPlayers(`error_unknown_item|${name}`, player)
                             return true
                         }
@@ -234,7 +221,7 @@ export class ServerChat {
             case '/help': {
                 let commands
                 if (args[1] === 'admin') {
-                    checkIsAdmin()
+                    world.throwIfNotWorldAdmin(player)
                     commands = [
                         '/admin (list | add <username> | remove <username>)',
                         '/time (add <int> | set (<int>|day|midnight|night|noon))',
@@ -246,7 +233,7 @@ export class ServerChat {
                         '  /sysstat',
                         '  /netstat (in|out|all) [off|count|size|reset]',
                         '  /astat [recent]',
-                        '/shutdown [gentle|force]',
+                        '/shutdown',
                         '/resetinventory [username]',
                         ServerChat.XYZ_HELP
                     ]
@@ -268,9 +255,7 @@ export class ServerChat {
                 break;
             }
             case '/gamemode':
-                if(!this.world.admins.checkIsAdmin(player)) {
-                    throw 'error_not_permitted';
-                }
+                world.throwIfNotWorldAdmin(player)
                 args = this.parseCMD(args, ['string', 'string', 'string']);
                 if (args.length < 2 || args.length > 3) {
                     throw 'Invalid arguments count';
@@ -285,8 +270,8 @@ export class ServerChat {
                     if (target == '') {
                         player.game_mode.applyMode(game_mode_id, true);
                     } else if (target == 'world') {
-                        this.world.info.game_mode = game_mode_id;
-                        await this.world.db.setWorldGameMode(this.world.info.guid, game_mode_id);
+                        world.info.game_mode = game_mode_id;
+                        await world.db.setWorldGameMode(world.info.guid, game_mode_id);
                         this.sendSystemChatMessageToSelectedPlayers('Done', player);
                     } else {
                         throw 'Invalid target';
@@ -295,47 +280,29 @@ export class ServerChat {
                     if (target == '') {
                         this.sendSystemChatMessageToSelectedPlayers('Player game mode id: ' + player.game_mode.current.id, player);
                     } else if (target == 'world') {
-                        this.sendSystemChatMessageToSelectedPlayers('World game mode id: ' + this.world.info.game_mode, player);
+                        this.sendSystemChatMessageToSelectedPlayers('World game mode id: ' + world.info.game_mode, player);
                     } else {
                         throw 'Invalid target';
                     }
                 }
                 break;
             case '/shutdown': {
-                checkIsAdmin()
-                let gentle = false
-                if (args[1] === 'gentle') {
-                    gentle = true
-                } else if (args[1] === 'force') {
-                    // continue
-                } else if (this.world.actions_queue.length === 0) {
-                    // The action queue is empty, so we can proceed without bothering the user with questions.
-                    // Choose "gentle" in case a lot of actions suddenly happen, to be conpletely safe.
-                    gentle = true
-                } else {
-                    this.sendSystemChatMessageToSelectedPlayers('Usage: /shutdown (gentle | force)]\n' +
-                        '"gentle" delays starting of shutdown until the actions queue is empty.\n' +
-                        `There are ${this.world.actions_queue.length} actions queued.`, player)
-                    break
-                }
+                world.throwIfNotSystemAdmin(player)
                 const msg = 'shutdown_initiated_by|' + player.session.username
-                const res = this.world.game.shutdown(msg, gentle)
-                if (!res) {
-                    this.sendSystemChatMessageToSelectedPlayers('!langThe game is already in the process of shutting down.', player)
-                }
+                world.worker_world.postMessage([SERVER_WORLD_WORKER_MESSAGE.shutdown, msg])
                 break
             }
             case '/resetinventory': {
-                checkIsAdmin()
+                world.throwIfNotWorldAdmin(player)
                 let target = player
                 if (args[1]) {
-                    target = this.world.players.getByName(args[1])
+                    target = world.players.getByName(args[1])
                     if (target == null) {
                         this.sendSystemChatMessageToSelectedPlayers(`!langPlayer not found: ${args[1]}`, player)
                         return
                     }
                 }
-                target.inventory.items = this.world.db.getDefaultInventory().items
+                target.inventory.items = world.db.getDefaultInventory().items
                 target.inventory.refresh(true)
                 break
             }
@@ -357,9 +324,7 @@ export class ServerChat {
                     }
                 } else if (args.length == 3) {
                     // teleport to another player
-                    if(!this.world.admins.checkIsAdmin(player)) {
-                        throw 'error_not_permitted';
-                    }
+                    world.throwIfNotWorldAdmin(player)
                     args = this.parseCMD(args, ['string', 'string', 'string']);
                     if(args[1].startsWith('@') && args[2].startsWith('@')) {
                         player.teleport({p2p: {from: args[1].substring(1), to: args[2].substring(1)}, pos: null, safe: safe});
@@ -406,7 +371,7 @@ export class ServerChat {
                 let table: object
                 if (statsName === 'mobtype' || statsName === 'mobtypes') {
                     table = {}
-                    for(const [name, stats] of this.world.mobs.ticks_stat_by_mob_type.entries()) {
+                    for(const [name, stats] of world.mobs.ticks_stat_by_mob_type.entries()) {
                         table[name] = stats.sum(recent).toFixed(3).padStart(11)
                     }
                 } else {
@@ -418,9 +383,9 @@ export class ServerChat {
             }
             case '/astat': { // async stats. They show what's happeing with DB queries and other async stuff
                 const recent = args.includes('recent')
-                const dbActor = this.world.dbActor
+                const dbActor = world.dbActor
                 const table = dbActor.asyncStats.toTable(recent)
-                Object.assign(table, this.world.db.fluid.asyncStats.toTable(recent))
+                Object.assign(table, world.db.fluid.asyncStats.toTable(recent))
                 table['World transaction now'] = dbActor.savingWorldNow
                     ? `running for ${(performance.now() - dbActor.lastWorldTransactionStartTime | 0) * 0.001} sec`
                     : 'not running';
@@ -429,7 +394,7 @@ export class ServerChat {
                 break;
             }
             case '/netstat': {
-                checkIsAdmin()
+                world.throwIfNotWorldAdmin(player)
                 const USAGE = '!langUsage: /netstat (in|out|all) [off|count|size|reset]' +
                     '\n  Network stats by packet type.' +
                     '\n  - with 2 arguments: the command prints the stats' +
@@ -578,7 +543,7 @@ export class ServerChat {
                 break;
             }
             case '/spawnmob': {
-                checkIsAdmin()
+                world.throwIfNotWorldAdmin(player)
                 if (args.length < 5) {
                     const spawnMobHelp = '!lang/spawnmob <x> <y> <z> <type> [<skin>]\n' +
                         `  <type> values: ${world.brains.getArrayOfNames().join(', ')}\n` +
@@ -609,9 +574,9 @@ export class ServerChat {
                 break;
             }
             case '/stairs': {
-                checkIsAdmin()
+                world.throwIfNotWorldAdmin(player)
                 const pos = player.state.pos.floored();
-                const bm = this.world.block_manager
+                const bm = world.block_manager
                 const cd = bm.getCardinalDirection(player.rotateDegree.clone());
                 let ax = 0, az = 0;
                 switch(cd) {
@@ -632,7 +597,7 @@ export class ServerChat {
                         break;
                     }
                 }
-                const actions = new WorldAction(null, this.world, false, false);
+                const actions = new WorldAction(null, world, false, false);
                 const item = {id: bm.STONE.id};
                 const action_id = BLOCK_ACTION.CREATE;
                 pos.x += 1 * ax;
@@ -646,7 +611,7 @@ export class ServerChat {
                     ]);
                     pos.y++;
                 }
-                this.world.actions_queue.add(null, actions);
+                world.actions_queue.add(null, actions);
                 break;
             }
             case '/clear':

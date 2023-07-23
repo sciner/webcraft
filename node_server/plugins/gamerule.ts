@@ -1,3 +1,4 @@
+import type { ServerWorld } from "server_world.js";
 import type {ServerChat} from "../server_chat.js";
 import type {ServerPlayer} from "../server_player.js";
 
@@ -7,14 +8,14 @@ export default class Chat_Gamerule {
 
     onGame(game) {}
 
-    onWorld(world) {}
+    onWorld(world: ServerWorld) {}
 
     onChat(chat: ServerChat) {
         chat.onCmd(async (player: ServerPlayer, cmd: string, args: string[]) => {
             switch(cmd) {
                 case '/gamerule': {
                     const world = player.world;
-                    chat.checkIsAdmin(player)
+                    world.throwIfNotWorldAdmin(player)
                     //
                     args = chat.parseCMD(args, ['string', 'string', 'string']);
                     if(args.length > 1) {
