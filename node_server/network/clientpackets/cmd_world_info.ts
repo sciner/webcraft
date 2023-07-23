@@ -15,18 +15,14 @@ export default class packet_reader {
     static async read(player, packet) {
 
         const world = player.world
+        console.log(world.info)
         if (packet?.data) {
             world.info.public = packet.data?.public ? 1 : 0
             world.game.db.setWorldPublic(world.info.user_id, world.info.gid, world.info.public)
         }
         
-        player.world.sendSelected({
-            name:ServerClient.CMD_WORLD_INFO, 
-            data: world.getInfo()
-        }, player)
-        console.log('send')
         return true
-    
+
     }
 
 }

@@ -236,11 +236,14 @@ export class WorldInfoWindow extends BlankWindow {
         chk_public.visible = false
         chk_public.onMouseDown = () => {
             if (!this.data.is_public) {
+                this.data.is_public = true
+                this.player.world.info.public = 1
                 chk_public.setIcon(hud_atlas.getSpriteFromMap('check2'))
             } else {
+                this.data.is_public = false
+                this.player.world.info.public = 0
                 chk_public.setIcon(null) 
             }
-            this.data.is_public = !this.data.is_public
             this.player.world.server.Send({
                 name: ServerClient.CMD_WORLD_INFO, 
                 data: {
@@ -291,13 +294,6 @@ export class WorldInfoWindow extends BlankWindow {
 
         //
         this.addCollection()
-
-        player.world.server.AddCmdListener([ServerClient.CMD_WORLD_INFO], (cmd : IChatCommand) => {
-            console.log(cmd)
-            player.world.setInfo(cmd)
-            this.updateInfo()
-        })
-
     }
 
     // Обработчик открытия формы
