@@ -20,7 +20,6 @@ export default class packet_reader {
         if (packet?.data) {
             world.info.is_public = packet.data?.is_public ? 1 : 0
             world.game.db.setWorldPublic(world.info.user_id, world.info.gid, world.info.is_public)
-            console.log('server is_public ' + packet.data?.is_public)
         }
         
         return true

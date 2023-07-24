@@ -339,9 +339,7 @@ export class DBGame {
     // Возвращает публичные сервера
     async PublicWorlds(user_id: number) {
         const result = []
-        const rows = await this.conn.all("SELECT * FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id <> :user_id AND is_public = 1 ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
-            ':user_id': user_id
-        })
+        const rows = await this.conn.all("SELECT * FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.is_public = 1 ORDER BY wp.dt_last_visit DESC, wp.id DESC", {})
         if(rows) {
             for(const row of rows) {
                 const cover = row.cover ? (row.cover + (row.cover.indexOf('.') > 0 ? '' : '.webp')) : null
@@ -351,9 +349,9 @@ export class DBGame {
                     'user_id':      row.user_id,
                     'guid':         row.guid,
                     'title':        row.title,
+                    'cover':        cover,
                     'cover_preview':cover_preview,
-                    'game_mode':    row.game_mode,
-                    'username':     null
+                    'game_mode':    row.game_mode
                 }
                 result.push(world)
             }

@@ -225,7 +225,7 @@
 					<!-- <button class="tab">{{Lang.servers}}</button>
 					<button class="tab">{{Lang.friends}}</button> -->
 					<button class="tab" ng-class="{ active: current_window.id == 'main'}" href="#" ng-click="current_window.show('main')">{{Lang.worlds}}</button>
-                    <button class="tab" ng-class="{ active: current_window.id == 'shared'}" href="#" ng-click="current_window.show('shared')">{{Lang.shared}}</button>
+                    <button class="tab" ng-class="{ active: current_window.id == 'shared'}" href="#" ng-click="current_window.show('shared')" ng-if="mygames.shared_worlds.length > 0">{{Lang.shared}}</button>
                 </div>
 				<div class="user-block">
 					<button class="tab user" ng-class="{ active: current_window.id == 'skin'}" ng-click="skin.toggle()">
