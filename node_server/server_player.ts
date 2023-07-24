@@ -699,9 +699,10 @@ export class ServerPlayer extends Player {
             for(let dy = -1; dy <= 2; dy++) {
                 for(let dir = 0; dir < 4; dir++) {
                     const pos = safePos.floored().addSelf(Vector.DIRECTIONS_BY_ROTATE[dir]).addScalarSelf(0, dy, 0)
-                    // оценить насколько "хоррша" позиция
+                    // оценить насколько "хороша" позиция
                     let quality = 0
                     if (dy >= 0 && dy <= 1) quality++  // лучше на одном уровне с игроком, чтобы он заметил
+                    // блок сундука
                     const block = world.getBlock(pos)
                     const {material} = block
                     if (material.id === 0) {
@@ -709,9 +710,16 @@ export class ServerPlayer extends Player {
                     } else if (!material.is_solid || material.height < 0.5) {
                         quality += 3     // можно заменить траву, снежный покров, и т.п.
                     }
-                    if (block.fluid === 0) quality += 4 // не ставить в воду
-                    if (world.getMaterial(pos.addScalarSelf(0, 1, 0)).id === 0) quality++ // над сундуком пусто
-                    if (world.getMaterial(pos.addScalarSelf(0, -2, 0)).is_solid) quality += 2 // под сундуком есть опора
+                    if (block.fluid === 0) quality += 2 // не ставить в воду
+                    // блок выше
+                    const block_above = world.getBlock(pos.addScalarSelf(0, 1, 0))
+                    if (block_above.id === 0) quality++ // над сундуком пусто
+                    if (block_above.fluid == 0) quality += 2 // не ставить под воду
+                    // блок ниже
+                    const mat_below = world.getMaterial(pos.addScalarSelf(0, -2, 0))
+                    if (mat_below.is_solid) {
+                        quality += (mat_below.height ?? 1) > 0.9 ? 5 : 1 // под сундуком есть опора
+                    }
                     if (bestQuality < quality) {
                         bestQuality = quality
                         bestDir = dir
