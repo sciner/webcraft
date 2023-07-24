@@ -127,6 +127,15 @@ export class ServerAPI {
                 }
                 return resp;
             }
+            case '/api/Game/PublicWorlds': {
+                const session = await ServerAPI.getDb().GetPlayerSession(session_id);
+                const resp = await ServerAPI.getDb().PublicWorlds(session.user_id);
+                for(let item of resp) {
+                    const world = Qubatch.worlds.get(item.guid);
+                    item.players_online = world ? world.players.count : 0;
+                }
+                return resp;
+            }
             case '/api/Game/DeleteWorld': {
                 const world_guid = params.world_guid;
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);

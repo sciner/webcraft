@@ -172,9 +172,9 @@ export class ServerWorld implements IWorld {
         await newTitlePromise;
         this.info           = await this.db.getWorld(world_guid);
         this.info.cover     = row_world.cover
-        this.info.public    = row_world.public
+        this.info.is_public = row_world.is_public
         this.info.username  = row_world.username
-        this.info.gid        = row_world.id
+        this.info.gid       = row_world.id
         this.grid           = new ChunkGrid({chunkSize: new Vector().copyFrom(this.info.tech_info.chunk_size)})
         this.worldChunkFlags = new WorldChunkFlags(this);
         this.dbActor        = new WorldDBActor(this);

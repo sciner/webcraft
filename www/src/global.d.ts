@@ -82,7 +82,7 @@ declare interface TWorldInfo {
     id:             int
     user_id:        int
     username:       string
-    public?:        int
+    is_public?:        int
     gid?:           int
     dt:             any
     cover:          string

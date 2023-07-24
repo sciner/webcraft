@@ -326,7 +326,7 @@
         "cmd_play_anim",
         "cmd_use_weapon",
         "cmd_billboard_files",
-        "cmd_world_info"
+        "cmd_world_set_info"
     ],
     "treasure_chests": [
         {

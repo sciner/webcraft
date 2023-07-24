@@ -225,7 +225,7 @@
 					<!-- <button class="tab">{{Lang.servers}}</button>
 					<button class="tab">{{Lang.friends}}</button> -->
 					<button class="tab" ng-class="{ active: current_window.id == 'main'}" href="#" ng-click="current_window.show('main')">{{Lang.worlds}}</button>
-                    <button class="tab" ng-class="{ active: current_window.id == 'public'}" href="#" ng-click="current_window.show('public')">{{Lang.public}}</button>
+                    <button class="tab" ng-class="{ active: current_window.id == 'shared'}" href="#" ng-click="current_window.show('shared')">{{Lang.shared}}</button>
                 </div>
 				<div class="user-block">
 					<button class="tab user" ng-class="{ active: current_window.id == 'skin'}" ng-click="skin.toggle()">
@@ -239,8 +239,8 @@
 			</nav>
 		</header>
 
-        <!-- Public -->
-        <div class="content worlds-page animate__animated animate__fadeIn" ng-if="current_window.id == 'public'">
+        <!-- Shared -->
+        <div class="content worlds-page animate__animated animate__fadeIn" ng-if="current_window.id == 'shared'">
             <div class="grid">
                 <div class="item card __animate__animated __animate__zoomIn" ng-repeat="item in mygames.shared_worlds track by item.id" ng-if="!item.hidden">
                     <div class="card-body">

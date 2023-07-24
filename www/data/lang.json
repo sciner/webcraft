@@ -283,6 +283,6 @@
         "copy_invite_url_tooltip": {"en": "Copy invite URL", "ru": "Скопировать ссылку-приглашение в мир", "fr": "","es":"","man":"","hind":""},
         "copy_player_position_copied": {"en": "Current player position copied to clipboard", "ru": "Текущие координаты игрока скопированы в буфер обмена", "fr": "","es":"","man":"","hind":""},
         "copy_invite_url_copied": {"en": "Invite URL copied to clipboard", "ru": "Ссылка-приглашение в мир скопирована в буфер обмена", "fr": "","es":"","man":"","hind":""},
-        "public": {"en": "Public worlds", "ru": "Публичные миры", "fr": "","es":"","man":"","hind":""}
+        "shared": {"en": "Public worlds", "ru": "Публичные миры", "fr": "","es":"","man":"","hind":""}
     }
 }

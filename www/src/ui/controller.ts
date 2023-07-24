@@ -432,25 +432,22 @@ class GameController {
                 instance.syncTime();
                 instance.App.MyWorlds({}, (worlds) => {
                     $timeout(() => {
-                        const guids = []
+                        that.list = worlds
                         for(const w of worlds) {
                             w.game_mode_title = Lang[`gamemode_${w.game_mode}`]
                             w.my = w.uid == session.user_id
-                            if (w.my) {
-                                guids.push(w.guid)
-                                that.list.push(w)
-                            }
-                        }
-                        for(const w of worlds) {
-                            if (!guids.includes(w.guid)) {
-                                that.shared_worlds.push(w)
-                            }
                         }
                         that.enterWorld.joinToWorldIfNeed();
                         that.loading = false;
                         instance.onMyGamesLoadedOrTimeSynchronized();
                     });
                 });
+                instance.App.PublicWorlds({}, (worlds) => {
+                    that.shared_worlds = worlds
+                    for(const w of worlds) {
+                        w.game_mode_title = Lang[`gamemode_${w.game_mode}`]
+                    }
+                })
             },
             // @deprecated
             save: function() {},

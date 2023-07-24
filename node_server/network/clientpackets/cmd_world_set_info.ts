@@ -9,7 +9,7 @@ export default class packet_reader {
 
     // which command can be parsed with this class
     static get command() {
-        return ServerClient.CMD_WORLD_INFO;
+        return ServerClient.CMD_WORLD_SET_INFO;
     }
 
     static async read(player, packet) {
@@ -18,8 +18,9 @@ export default class packet_reader {
             throw 'error_not_permitted'
         }
         if (packet?.data) {
-            world.info.public = packet.data?.public ? 1 : 0
-            world.game.db.setWorldPublic(world.info.user_id, world.info.gid, world.info.public)
+            world.info.is_public = packet.data?.is_public ? 1 : 0
+            world.game.db.setWorldPublic(world.info.user_id, world.info.gid, world.info.is_public)
+            console.log('server is_public ' + packet.data?.is_public)
         }
         
         return true

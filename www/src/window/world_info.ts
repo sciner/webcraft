@@ -236,12 +236,12 @@ export class WorldInfoWindow extends BlankWindow {
         chk_public.visible = false
         chk_public.onMouseDown = () => {
             const is_public = this.data.is_public = !this.data.is_public
-            this.player.world.info.public = is_public ? 1 : 0
+            this.player.world.info.is_public = is_public ? 1 : 0
             chk_public.setIcon(is_public ? hud_atlas.getSpriteFromMap('check2') : null)
             this.player.world.server.Send({
-                name: ServerClient.CMD_WORLD_INFO, 
+                name: ServerClient.CMD_WORLD_SET_INFO, 
                 data: {
-                    public: this.data.is_public
+                    is_public: this.data.is_public
                 }
             })
         }
@@ -325,7 +325,7 @@ export class WorldInfoWindow extends BlankWindow {
             is_admin:    info.user_id == player.session.user_id,
             time:        info.dt,
             age:         time.string_full,
-            is_public:   info.public == 1,
+            is_public:   info.is_public == 1,
             is_official: true,
             players:     [],
             seed:        info.seed

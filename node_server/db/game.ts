@@ -211,8 +211,8 @@ export class DBGame {
         ]});
 
         migrations.push({version: 15, queries: [
-            `ALTER TABLE world_player ADD COLUMN "public" integer NOT NULL DEFAULT 0`,
-            `UPDATE world_player set public = 0`
+            `ALTER TABLE world_player ADD COLUMN "is_public" integer NOT NULL DEFAULT 0`,
+            `UPDATE world_player set is_public = 0`
         ]})
 
         for(let m of migrations) {
@@ -336,10 +336,35 @@ export class DBGame {
         };
     }
 
+    // Возвращает публичные сервера
+    async PublicWorlds(user_id: number) {
+        const result = []
+        const rows = await this.conn.all("SELECT * FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id <> :user_id AND is_public = 1 ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
+            ':user_id': user_id
+        })
+        if(rows) {
+            for(const row of rows) {
+                const cover = row.cover ? (row.cover + (row.cover.indexOf('.') > 0 ? '' : '.webp')) : null
+                const cover_preview = cover ? (cover.startsWith('scr') ? `preview_${cover}` : null) : null
+                const world = {
+                    'id':           row.id,
+                    'user_id':      row.user_id,
+                    'guid':         row.guid,
+                    'title':        row.title,
+                    'cover_preview':cover_preview,
+                    'game_mode':    row.game_mode,
+                    'username':     null
+                }
+                result.push(world)
+            }
+        }
+        return result
+    }
+
     // Возвращает все сервера созданные мной и те, которые я себе добавил, и публичные
     async MyWorlds(user_id) {
         const result = [];
-        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode, wp.public, wp.user_id AS uid FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id OR wp.public = 1 ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
+        const rows = await this.conn.all("SELECT w.id, w.dt, w.user_id, w.guid, w.title, w.seed, w.generator, w.cover, w.game_mode FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = :user_id ORDER BY wp.dt_last_visit DESC, wp.id DESC", {
             ':user_id': user_id
         });
         if(rows) {
@@ -348,7 +373,6 @@ export class DBGame {
                 const cover_preview = cover ? (cover.startsWith('scr') ? `preview_${cover}` : null) : null
                 const world = {
                     'id':           row.id,
-                    'uid':          row.uid,
                     'user_id':      row.user_id,
                     'dt':           new Date(row.dt * 1000).toISOString(), // '2021-10-06T19:20:04+02:00',
                     'guid':         row.guid,
@@ -360,7 +384,6 @@ export class DBGame {
                     'generator':    JSON.parse(row.generator),
                     'pos_spawn':    null,
                     'state':        null,
-                    'public':       row.public
                 };
                 result.push(world);
             }
@@ -483,7 +506,7 @@ export class DBGame {
 
     // getWorld... Возвращает мир по его GUID
     async getWorld(world_guid)  {
-        const row = await this.conn.get("SELECT w.*, u.username, wp.public FROM world as w LEFT JOIN user as u ON (u.id = w.user_id) LEFT JOIN world_player as wp ON (wp.user_id = w.user_id AND wp.world_id = w.id) WHERE w.guid = ?", [world_guid]);
+        const row = await this.conn.get("SELECT w.*, u.username, wp.is_public FROM world as w LEFT JOIN user as u ON (u.id = w.user_id) LEFT JOIN world_player as wp ON (wp.user_id = w.user_id AND wp.world_id = w.id) WHERE w.guid = ?", [world_guid]);
         if(!row) {
             throw 'error_world_not_found';
         }
@@ -499,7 +522,7 @@ export class DBGame {
             generator:  JSON.parse(row.generator),
             pos_spawn:  JSON.parse(row.pos_spawn),
             state:      null,
-            public:     row.public,
+            is_public:  row.is_public,
             username:   row.username
         };
     }
@@ -549,11 +572,11 @@ export class DBGame {
         return filename;
     }
 
-    async setWorldPublic(user_id: number, world_id: number, shared: number = 1) {
-        await this.conn.run('UPDATE world_player SET public = :shared WHERE user_id = :user_id AND world_id = :world_id', {
-            ':shared':   shared,
-            ':user_id':  user_id,
-            ':world_id': world_id
+    async setWorldPublic(user_id: number, world_id: number, is_public: number = 1) {
+        await this.conn.run('UPDATE world_player SET is_public = :is_public WHERE user_id = :user_id AND world_id = :world_id', {
+            ':is_public': is_public,
+            ':user_id':   user_id,
+            ':world_id':  world_id
         })
     }
 
