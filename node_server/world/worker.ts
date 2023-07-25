@@ -58,7 +58,6 @@ export class WorldWorker extends QubatchWorker {
                 this.world = new ServerWorld(await this.initBlockManager(), world_row, this)
                 const db_world = await this.openDB()
                 await this.world.initServer(this.guid, db_world, world_row.title, this)
-                this.world.info.cover = world_row.cover
                 console.log('World started', (Math.round((performance.now() - p) * 1000) / 1000) + 'ms')
                 break
             }
