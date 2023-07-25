@@ -337,9 +337,9 @@ export class DBGame {
     }
 
     // Возвращает публичные сервера
-    async PublicWorlds(user_id: number) {
+    async PublicWorlds() {
         const result = []
-        const rows = await this.conn.all("SELECT w.* FROM world AS w JOIN world_player wp ON wp.world_id = w.id AND wp.user_id = w.user_id AND w.is_public = 1 ORDER BY wp.dt_last_visit DESC, wp.id DESC", {})
+        const rows = await this.conn.all("SELECT * FROM world WHERE is_public = 1", {})
         if(rows) {
             for(const row of rows) {
                 const cover = row.cover ? (row.cover + (row.cover.indexOf('.') > 0 ? '' : '.webp')) : null

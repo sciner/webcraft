@@ -132,12 +132,12 @@ export class ServerWorld implements IWorld {
         this.shuttingDown = null;
     }
 
-    async initServer(world_guid : string, db_world : DBWorld, row_world, game: ServerGame) {
+    async initServer(world_guid : string, db_world : DBWorld, world_row, game: ServerGame) {
         this.game = game;
         if (SERVER_TIME_LAG) {
             console.log('[World] Server time lag ', SERVER_TIME_LAG);
         }
-        const newTitlePromise = row_world?.title ? db_world.setTitle(row_world.title) : Promise.resolve();
+        const newTitlePromise = world_row?.title ? db_world.setTitle(world_row.title) : Promise.resolve();
         var t = performance.now();
         // Tickers
         this.tickers = new Map();
@@ -171,10 +171,10 @@ export class ServerWorld implements IWorld {
         this.db.removeDeadDrops();
         await newTitlePromise;
         this.info           = await this.db.getWorld(world_guid);
-        this.info.cover     = row_world.cover
-        this.info.is_public = row_world.is_public
-        this.info.username  = row_world.username
-        this.info.gid       = row_world.id
+        this.info.cover     = world_row.cover
+        this.info.is_public = world_row.is_public
+        this.info.username  = world_row.username
+        this.info.gid       = world_row.id
         this.grid           = new ChunkGrid({chunkSize: new Vector().copyFrom(this.info.tech_info.chunk_size)})
         this.worldChunkFlags = new WorldChunkFlags(this);
         this.dbActor        = new WorldDBActor(this);

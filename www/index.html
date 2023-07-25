@@ -147,7 +147,7 @@
             </div>
             <div ng-if="mygames.enterWorld.windowMod == 'approve-join'" class="flex0 flex-column">
                 <div class="flex0 flex-column">
-                    <img ng-src="{{Lang.no_cover}}" ng-if="mygames.enterWorld.worldInfo.cover" style="margin: 0 !important;" />
+                    <img ng-src="{{mygames.enterWorld.worldInfo.cover}}" ng-if="mygames.enterWorld.worldInfo.cover" style="margin: 0 !important;" />
                     <img src="/media/design/no-logo.svg" ng-if="!mygames.enterWorld.worldInfo.cover" />
                 </div>
                 <label ng-bind-html="Lang.accept_join_to_world_message|textfilter:mygames.enterWorld.worldInfo.title|trust"></label>
@@ -225,7 +225,7 @@
 					<!-- <button class="tab">{{Lang.servers}}</button>
 					<button class="tab">{{Lang.friends}}</button> -->
 					<button class="tab" ng-class="{ active: current_window.id == 'main'}" href="#" ng-click="current_window.show('main')">{{Lang.worlds}}</button>
-                    <button class="tab" ng-class="{ active: current_window.id == 'shared'}" href="#" ng-click="current_window.show('shared')" ng-if="mygames.shared_worlds.length > 0">{{Lang.shared}}</button>
+                    <button class="tab" ng-class="{ active: current_window.id == 'public_worlds'}" href="#" ng-click="current_window.show('public_worlds')" ng-if="mygames.public_worlds.length > 0">{{Lang.public_worlds}}</button>
                 </div>
 				<div class="user-block">
 					<button class="tab user" ng-class="{ active: current_window.id == 'skin'}" ng-click="skin.toggle()">
@@ -240,9 +240,9 @@
 		</header>
 
         <!-- Shared -->
-        <div class="content worlds-page animate__animated animate__fadeIn" ng-if="current_window.id == 'shared'">
+        <div class="content worlds-page animate__animated animate__fadeIn" ng-if="current_window.id == 'public_worlds'">
             <div class="grid">
-                <div class="item card __animate__animated __animate__zoomIn" ng-repeat="item in mygames.shared_worlds track by item.id" ng-if="!item.hidden">
+                <div class="item card __animate__animated __animate__zoomIn" ng-repeat="item in mygames.public_worlds track by item.id" ng-if="!item.hidden">
                     <div class="card-body">
                         <div class="img-cover" ng-class="{with_cover: !!item.cover}">
                             <h2 ng-if="!item.cover">{{Lang.no_cover}}</h2>

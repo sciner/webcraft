@@ -129,7 +129,7 @@ export class ServerAPI {
             }
             case '/api/Game/PublicWorlds': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);
-                const resp = await ServerAPI.getDb().PublicWorlds(session.user_id);
+                const resp = await ServerAPI.getDb().PublicWorlds()
                 for(let item of resp) {
                     const world = Qubatch.worlds.get(item.guid);
                     item.players_online = world ? world.players.count : 0;

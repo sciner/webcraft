@@ -103,13 +103,13 @@ export class ServerGame {
             try {
                 console.log(`>>>>>>> BEFORE LOAD WORLD ${world_guid} <<<<<<<`);
                 const p = performance.now();
-                const [worldRow, conn] = await Promise.all([
+                const [world_row, conn] = await Promise.all([
                     this.db.getWorld(world_guid),
                     SQLiteServerConnector.connect(`../world/${world_guid}/world.sqlite`)
                 ])
                 const world = new ServerWorld(BLOCK);
                 const db_world = await DBWorld.openDB(conn, world);
-                await world.initServer(world_guid, db_world, worldRow, this);
+                await world.initServer(world_guid, db_world, world_row, this);
                 this.worlds.set(world_guid, world);
                 console.log('World started', (Math.round((performance.now() - p) * 1000) / 1000) + 'ms');
                 worlds_loading_resolve(world)

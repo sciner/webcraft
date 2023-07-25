@@ -104,7 +104,7 @@ class GameController {
     boot: { loading: boolean; latest_save: boolean; init(): void; };
     DeleteWorld: { world_guid: string; world_title: string; showModal(world_guid: any): void; delete(): any; };
     mygames: {
-        list: any[]; shared_worlds: any[]; loading: boolean; toMain: () => void; load: () => any;
+        list: any[]; public_worlds: any[]; loading: boolean; toMain: () => void; load: () => any;
         // @deprecated
         save: () => void; add: (form: any) => void; enterWorld: { windowMod: string; worldInfo: any; getWorldGuid: () => string; joinWorld: (guid: string) => void; joinAfterApproving: () => void; joinToWorldIfNeed: () => void; showWorldInfo: (worldInfo: any, mode: any) => void; handleNoWorldOrOtherError: (error: any) => void; checkIsWorldUrl: () => void; };
     };
@@ -417,7 +417,7 @@ class GameController {
         // My games
         this.mygames = {
             list: [],
-            shared_worlds: [],
+            public_worlds: [],
             loading: false,
             toMain: function(){
                 location.href = '/';
@@ -443,7 +443,7 @@ class GameController {
                     });
                 });
                 instance.App.PublicWorlds({}, (worlds) => {
-                    that.shared_worlds = worlds
+                    that.public_worlds = worlds
                     for(const w of worlds) {
                         w.game_mode_title = Lang[`gamemode_${w.game_mode}`]
                     }
@@ -465,6 +465,12 @@ class GameController {
                     return null;
                 },
                 joinWorld: function(guid: string) {
+                    for (const world of instance.mygames.list) {
+                        if(world.guid == guid) {
+                            instance.StartWorld(guid)
+                            return
+                        }
+                    }
                     instance.App.JoinWorld({ world_guid: guid}, () => {
                         $timeout(() => instance.StartWorld(guid), error => this.handleNoWorldOrOtherError(error));
                     });
