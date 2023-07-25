@@ -220,7 +220,12 @@ export class DBGame {
 
         migrations.push({version: 15, queries: [
             `ALTER TABLE world ADD COLUMN "is_public" integer NOT NULL DEFAULT 0`,
-            `UPDATE world set is_public = 0`
+        ]})
+
+        migrations.push({version: 16, queries: [
+            `ALTER TABLE world ADD COLUMN "is_official" integer NOT NULL DEFAULT 0`,
+            `UPDATE world SET is_public = 1 WHERE id IN(1, 1000000)`,
+            `UPDATE world SET is_official = 1 WHERE id IN(1, 1000000, 1000001)`
         ]})
 
         for(let m of migrations) {
@@ -351,7 +356,7 @@ export class DBGame {
     // Возвращает публичные сервера
     async PublicWorlds() {
         const result = []
-        const rows = await this.conn.all("SELECT * FROM world WHERE is_public = 1", {})
+        const rows = await this.conn.all("SELECT * FROM world WHERE is_public = 1 ORDER BY is_official DESC, (CASE WHEN is_official THEN id ELSE play_count END) DESC", {})
         if(rows) {
             for(const row of rows) {
                 const cover = row.cover ? (row.cover + (row.cover.indexOf('.') > 0 ? '' : '.webp')) : null
@@ -361,6 +366,8 @@ export class DBGame {
                     'user_id':      row.user_id,
                     'guid':         row.guid,
                     'title':        row.title,
+                    'is_official':  row.is_official == 1,
+                    'is_public':    row.is_public == 1,
                     'cover':        cover,
                     'cover_preview':cover_preview,
                     'game_mode':    row.game_mode
@@ -392,6 +399,8 @@ export class DBGame {
                     'cover_preview':cover_preview,
                     'game_mode':    row.game_mode,
                     'generator':    JSON.parse(row.generator),
+                    'is_official':  row.is_official == 1,
+                    'is_public':    row.is_public == 1,
                     'pos_spawn':    null,
                     'state':        null,
                 };
@@ -521,19 +530,20 @@ export class DBGame {
             throw 'error_world_not_found';
         }
         return {
-            id:         row.id,
-            user_id:    row.user_id,
-            dt:         row.dt,
-            guid:       row.guid,
-            title:      row.title,
-            seed:       row.seed,
-            game_mode:  row.game_mode,
-            cover:      row.cover,
-            generator:  JSON.parse(row.generator),
-            pos_spawn:  JSON.parse(row.pos_spawn),
-            state:      null,
-            is_public:  row.is_public,
-            username:   row.username
+            id:             row.id,
+            user_id:        row.user_id,
+            dt:             row.dt,
+            guid:           row.guid,
+            title:          row.title,
+            seed:           row.seed,
+            game_mode:      row.game_mode,
+            cover:          row.cover,
+            generator:      JSON.parse(row.generator),
+            pos_spawn:      JSON.parse(row.pos_spawn),
+            state:          null,
+            is_public:      row.is_public == 1,
+            is_official:    row.is_official == 1,
+            username:       row.username
         };
     }
 

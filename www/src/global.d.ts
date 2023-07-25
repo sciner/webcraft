@@ -78,11 +78,11 @@ declare interface TWorldTechInfo {
 }
 
 declare interface TWorldInfo {
-
     id:             int
     user_id:        int
     username:       string
-    is_public?:     int
+    is_public:      boolean
+    is_official:    boolean
     dt:             any
     cover:          string
     guid:           string
@@ -102,7 +102,23 @@ declare interface TWorldInfo {
         day_time: any,
         age: any
     }
+}
 
+declare type IWorldDBRow = {
+    id:             int,
+    user_id:        int,
+    username:       string,
+    dt:             string,
+    is_public:      boolean,
+    is_official:    boolean,
+    guid:           string,
+    title:          string,
+    seed:           string,
+    game_mode:      string,
+    cover:          string,
+    generator:      any,
+    pos_spawn:      IVector,
+    state:          any,
 }
 
 /** A subset of the game settings needed for the chunk worker and BLOCK class */
@@ -580,21 +596,4 @@ declare type IEnterWorld = {
 
 declare type ISpriteAtlasOptions = {
     scaleMode? : any
-}
-
-
-declare type IWorldDBRow = {
-    id:         int,
-    user_id:    int,
-    username:   string,
-    dt:         string,
-    is_public:  int,
-    guid:       string,
-    title:      string,
-    seed:       string,
-    game_mode:  string,
-    cover:      string,
-    generator:  any,
-    pos_spawn:  IVector,
-    state:      any,
 }

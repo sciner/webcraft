@@ -115,7 +115,6 @@ export class ServerWorkerWorld {
         }
 
         const skin_list = this.game.db.skins.list
-        
         this.worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.init, {world_row, skin_list}, performance.now()])
     }
 

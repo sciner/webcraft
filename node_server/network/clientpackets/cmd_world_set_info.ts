@@ -21,7 +21,7 @@ export default class packet_reader {
             throw 'error_not_permitted'
         }
         if (packet?.data) {
-            world.info.is_public = packet.data?.is_public ? 1 : 0
+            world.info.is_public = packet.data?.is_public
             const is_public = world.info.is_public
             const world_guid = world.info.guid
             const user_id = world.info.user_id

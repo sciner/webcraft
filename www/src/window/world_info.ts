@@ -235,13 +235,12 @@ export class WorldInfoWindow extends BlankWindow {
         chk_public.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
         chk_public.visible = false
         chk_public.onMouseDown = () => {
-            const is_public = this.data.is_public = !this.data.is_public
-            this.player.world.info.is_public = is_public ? 1 : 0
+            const is_public = this.player.world.info.is_public = this.data.is_public = !this.data.is_public
             chk_public.setIcon(is_public ? hud_atlas.getSpriteFromMap('check2') : null)
             this.player.world.server.Send({
                 name: ServerClient.CMD_WORLD_SET_INFO, 
                 data: {
-                    is_public: this.data.is_public
+                    is_public
                 }
             })
         }
@@ -303,7 +302,6 @@ export class WorldInfoWindow extends BlankWindow {
         const info : TWorldInfo = world.info
         const time = world.getTime()
 
-        console.log(info)
         //
         const setWindowText = (id : string, value : string) => {
             this.getWindow(id).text = value
@@ -325,10 +323,10 @@ export class WorldInfoWindow extends BlankWindow {
             is_admin:    info.user_id == player.session.user_id,
             time:        info.dt,
             age:         time.string_full,
-            is_public:   info.is_public == 1,
-            is_official: true,
+            is_public:   info.is_public,
+            is_official: info.is_official,
+            seed:        info.seed,
             players:     [],
-            seed:        info.seed
         }
         // fill players
         for(const p of world.players.values()) {

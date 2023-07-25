@@ -175,13 +175,12 @@ export class ServerWorld implements IWorld {
         this.db = db_world;
         this.db.removeDeadDrops()
         await newTitlePromise
-        this.info           = await this.db.getWorld(world_guid, world_row)
-        this.info.cover     = world_row.cover
-        this.info.is_public = world_row.is_public
-        this.info.username  = world_row.username
-        this.grid           = new ChunkGrid({chunkSize: new Vector().copyFrom(this.info.tech_info.chunk_size)})
-        this.worldChunkFlags = new WorldChunkFlags(this);
-        this.dbActor        = new WorldDBActor(this);
+        this.info               = await this.db.getWorld(world_guid, world_row)
+        this.info.cover         = world_row.cover
+        this.info.username      = world_row.username
+        this.grid               = new ChunkGrid({chunkSize: new Vector().copyFrom(this.info.tech_info.chunk_size)})
+        this.worldChunkFlags    = new WorldChunkFlags(this);
+        this.dbActor            = new WorldDBActor(this);
 
         const madeBuildings = await this.makeBuildingsWorld(this.info);
 

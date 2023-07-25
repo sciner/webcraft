@@ -665,7 +665,8 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                             if(xyz.y >= over_density_params.local_water_line) {
 
                                 // random joke sign
-                                if(d3 >= .2 && d3 <= .20005 && xyz.y > 100 && y < chunk.size.y -2) {
+                                const hello_world = d3 >= .2 && d3 <= .20005 && xyz.y > 100 && y < chunk.size.y -2
+                                if(hello_world) {
                                     chunk.setBlockIndirect(x, y + 1, z, bm.SPRUCE_SIGN.id, new Vector(Math.PI*2*rnd.double(), 1, 0), {"text":'Hello,\rWorld!',"username":"username","dt":"2022-11-25T18:01:52.715Z"});
                                 }
 
@@ -681,7 +682,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                                     // chunk.setGroundInColumIndirect(columnIndex, x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id[yy]);
                                                     chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, block_id)
                                                     //
-                                                    if(yy == cluster_cell.height - 1) {
+                                                    if(!hello_world && yy == cluster_cell.height - 1) {
                                                         const slab_block_id = bm.REPLACE_TO_SLAB[block_id]
                                                         if(slab_block_id) {
                                                             xyz_temp.copyFrom(xyz)
@@ -696,7 +697,7 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                                     // chunk.setGroundInColumIndirect(columnIndex, x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id);
                                                     chunk.setBlockIndirect(x, y + yy + cluster_cell.y_shift, z, cluster_cell.block_id)
                                                     //
-                                                    if(yy == cluster_cell.height - 1) {
+                                                    if(!hello_world && yy == cluster_cell.height - 1) {
                                                         const slab_block_id = bm.REPLACE_TO_SLAB[block_id]
                                                         if(slab_block_id) {
                                                             xyz_temp.copyFrom(xyz)
@@ -730,9 +731,11 @@ export default class Biome3LayerOverworld extends Biome3LayerBase {
                                         this.fallen_tree.processPos(x, y, z)
                                     }
 
-                                    const slab_block_id = bm.REPLACE_TO_SLAB[block_id]
-                                    if(slab_block_id) {
-                                        this.addSlabCandidate(xyz, block_id, slab_block_id)
+                                    if(!hello_world) {
+                                        const slab_block_id = bm.REPLACE_TO_SLAB[block_id]
+                                        if(slab_block_id) {
+                                            this.addSlabCandidate(xyz, block_id, slab_block_id)
+                                        }
                                     }
 
                                     // draw big stones

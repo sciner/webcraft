@@ -42,6 +42,8 @@ import {BufferBaseTexture} from "./renders/BufferBaseTexture.js";
 import {GameCamera, DEFAULT_FOV_NORMAL} from "./game_camera.js";
 import {MESH_RENDER_LIST, MeshBatcher} from "./mesh/mesh_batcher.js";
 import {MATERIAL_GROUPS} from "./renders/material/shared.js";
+import type { ChunkManager } from "./chunk_manager.js";
+import type { GameSettings } from "./game.js";
 
 const {mat3, mat4, quat, vec3} = glMatrix;
 
@@ -78,7 +80,7 @@ export class Renderer {
     inHandOverlay?:         InHandOverlay
     canvas:                 any
     drop_item_meshes:       any[]
-    settings:               any
+    settings:               GameSettings
     videoCardInfoCache:     any
     defaultShader:          any
     defaultFluidShader:     any
@@ -95,7 +97,7 @@ export class Renderer {
     player:                 Player
     _base_texture:          any
     _base_texture_n:        any
-    make_screenshot:        any
+    make_screenshot:        Function = null
     timeKillRain:           any
     weather_name:           string
     material_shadow:        any
@@ -153,10 +155,10 @@ export class Renderer {
      * Request animation frame
      * This method depend of mode which we runs
      * for XR raf will be provided from session
-     * @param {(time, ...args) => void} callback
+     * @param callback
      * @returns {number}
      */
-    requestAnimationFrame(callback) {
+    requestAnimationFrame(callback: (time: float, ...args) => void) {
         if (this.xrMode) {
             console.log('Not supported yet');
         }
@@ -164,13 +166,13 @@ export class Renderer {
         return self.requestAnimationFrame(callback);
     }
 
-    get gl() {
+    get gl() : WebGL2RenderingContext {
         return this.renderBackend.gl;
     }
 
     // todo
     // GO TO PROMISE
-    async init(world, settings) {
+    async init(world: World, settings: GameSettings) {
         this.setWorld(world);
         this.settings = settings;
         this.meshes = new MeshManager(world);
@@ -1131,17 +1133,15 @@ export class Renderer {
 
     /**
      * Set weather
-     * @param {Weather} weather
-     * @param {ChunkManager} chunkManager
      */
-    setWeather(weather, chunkManager) {
+    setWeather(weather_id: int, chunkManager: ChunkManager) : void {
         if(this.timeKillRain) {
             clearInterval(this.timeKillRain)
             this.timeKillRain = null
         }
         let rain = this.meshes.get('weather');
-        this.weather_name = Weather.getName(weather)
-        if((!rain || rain.type != this.weather_name) && weather != Weather.CLEAR) {
+        this.weather_name = Weather.getName(weather_id)
+        if((!rain || rain.type != this.weather_name) && weather_id != Weather.CLEAR) {
             if(rain) {
                 rain.destroy();
             }
@@ -1152,7 +1152,7 @@ export class Renderer {
         if(!rain) {
             return
         }
-        const enabled_val = weather != Weather.CLEAR
+        const enabled_val = weather_id != Weather.CLEAR
         if(enabled_val) {
             rain.enabled = enabled_val;
         }
@@ -1520,7 +1520,7 @@ export class Renderer {
         this.nightVision = val;
     }
 
-    screenshot(callback) {
+    screenshot(callback: Function) {
         this.make_screenshot = callback;
     }
 

@@ -151,7 +151,7 @@ export class DBWorld {
     /**
      * Возвращает мир по его GUID либо создает и возвращает его
      */
-    async getWorld(world_guid : string, worldRow: IWorldDBRow) : Promise<TWorldInfo> {
+    async getWorld(world_guid : string, world_row: IWorldDBRow) : Promise<TWorldInfo> {
         const row = await this.conn.get("SELECT w.*, u.username FROM world as w LEFT JOIN user as u ON u.id = w.user_id WHERE w.guid = ?", [world_guid]);
         if(row) {
             const tech_info = JSON.parse(row.tech_info)
@@ -171,6 +171,8 @@ export class DBWorld {
                 rules:          JSON.parse(row.rules),
                 state:          JSON.parse(row.state ?? '{}'),
                 add_time:       row.add_time,
+                is_public:      world_row.is_public,
+                is_official:    world_row.is_official,
                 world_type_id:  row.title == config.building_world.name ? WORLD_TYPE_BUILDING_SCHEMAS : WORLD_TYPE_NORMAL,
                 recovery:       row.recovery,
                 tech_info:      {
@@ -183,7 +185,7 @@ export class DBWorld {
             return resp;
         }
         // Insert new world to Db
-        const world = worldRow
+        const world = world_row
 
         // tech info
         const xz = world.generator.options?.chunk_size_xz ?? OLD_CHUNK_SIZE.x
@@ -204,7 +206,7 @@ export class DBWorld {
             ':game_mode':   world.game_mode,
             ':tech_info':   JSON.stringify(tech_info),
         });
-        return this.getWorld(worldRow.guid, worldRow)
+        return this.getWorld(world_row.guid, world_row)
     }
 
     async updateAddTime(world_guid : string, add_time : int) {

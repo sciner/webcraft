@@ -100,6 +100,9 @@ export class GameSettings implements TWorldSettings {
     _resource_packs_url?:   string
     only_bbmodel:           boolean
 
+    generate_prev_callback?: Function
+    disable_env?:           boolean = false
+
     constructor() {
         this.load()
     }

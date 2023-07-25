@@ -69,9 +69,9 @@ export class ServerGame {
             try {
                 console.log(`>>>>>>> BEFORE LOAD WORLD ${world_guid} <<<<<<<`)
                 const p = performance.now();
-                const worldRow = await this.db.getWorld(world_guid)
+                const world_row = await this.db.getWorld(world_guid)
                 const world = new ServerWorkerWorld(this)
-                await world.init(worldRow)
+                await world.init(world_row)
                 this.worlds.set(world_guid, world)
                 console.log('World started', (Math.round((performance.now() - p) * 1000) / 1000) + 'ms');
                 worlds_loading_resolve(world)
