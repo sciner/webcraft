@@ -82,6 +82,7 @@ declare interface TWorldInfo {
     id:             int
     user_id:        int
     username:       string
+    is_public?:     int
     dt:             any
     cover:          string
     guid:           string
@@ -585,7 +586,9 @@ declare type ISpriteAtlasOptions = {
 declare type IWorldDBRow = {
     id:         int,
     user_id:    int,
+    username:   string,
     dt:         string,
+    is_public:  int,
     guid:       string,
     title:      string,
     seed:       string,
@@ -593,5 +596,5 @@ declare type IWorldDBRow = {
     cover:      string,
     generator:  any,
     pos_spawn:  IVector,
-    state:      any
+    state:      any,
 }

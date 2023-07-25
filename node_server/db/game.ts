@@ -218,6 +218,11 @@ export class DBGame {
             `UPDATE world SET generator = replace(generator, '"generate_big_caves":false', '"generate_big_caves":true') WHERE _rowid_ = 1000001`,
         ]});
 
+        migrations.push({version: 15, queries: [
+            `ALTER TABLE world ADD COLUMN "is_public" integer NOT NULL DEFAULT 0`,
+            `UPDATE world set is_public = 0`
+        ]})
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.conn.get('begin transaction');
@@ -343,6 +348,29 @@ export class DBGame {
         };
     }
 
+    // Возвращает публичные сервера
+    async PublicWorlds() {
+        const result = []
+        const rows = await this.conn.all("SELECT * FROM world WHERE is_public = 1", {})
+        if(rows) {
+            for(const row of rows) {
+                const cover = row.cover ? (row.cover + (row.cover.indexOf('.') > 0 ? '' : '.webp')) : null
+                const cover_preview = cover ? (cover.startsWith('scr') ? `preview_${cover}` : null) : null
+                const world = {
+                    'id':           row.id,
+                    'user_id':      row.user_id,
+                    'guid':         row.guid,
+                    'title':        row.title,
+                    'cover':        cover,
+                    'cover_preview':cover_preview,
+                    'game_mode':    row.game_mode
+                }
+                result.push(world)
+            }
+        }
+        return result
+    }
+
     // Возвращает все сервера созданные мной и те, которые я себе добавил
     async MyWorlds(user_id: int) : Promise<any[]> {
         const result = [];
@@ -365,7 +393,7 @@ export class DBGame {
                     'game_mode':    row.game_mode,
                     'generator':    JSON.parse(row.generator),
                     'pos_spawn':    null,
-                    'state':        null
+                    'state':        null,
                 };
                 result.push(world);
             }
@@ -503,8 +531,10 @@ export class DBGame {
             cover:      row.cover,
             generator:  JSON.parse(row.generator),
             pos_spawn:  JSON.parse(row.pos_spawn),
-            state:      null
-        }
+            state:      null,
+            is_public:  row.is_public,
+            username:   row.username
+        };
     }
 
     // Increase world play count by user
@@ -550,6 +580,14 @@ export class DBGame {
             ':file': filename
         }).finally(allowTransactionCb)
         return filename;
+    }
+
+    async setWorldPublic(user_id: number, world_guid: number, is_public: boolean) {
+        await this.conn.run('UPDATE world SET is_public = :is_public WHERE user_id = :user_id AND guid = :world_guid', {
+            ':is_public': is_public ? 1 : 0,
+            ':user_id':   user_id,
+            ':world_guid':  world_guid
+        })
     }
 
 }

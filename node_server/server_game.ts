@@ -68,10 +68,12 @@ export class ServerGame {
             const worlds_loading_resolve = this.worlds_loading.get(world_guid)[1]
             try {
                 console.log(`>>>>>>> BEFORE LOAD WORLD ${world_guid} <<<<<<<`)
+                const p = performance.now();
                 const worldRow = await this.db.getWorld(world_guid)
                 const world = new ServerWorkerWorld(this)
                 await world.init(worldRow)
                 this.worlds.set(world_guid, world)
+                console.log('World started', (Math.round((performance.now() - p) * 1000) / 1000) + 'ms');
                 worlds_loading_resolve(world)
             } catch(e) { // чтобы не было unhandled rejection
                 console.error(`World ${world_guid} can't start: ${e}`)

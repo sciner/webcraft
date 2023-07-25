@@ -6,6 +6,7 @@ import { Resources } from "../resources.js";
 import type { World } from "../world.js";
 import type { Player } from "player.js";
 import { ClipboardHelper } from "../ui/clipboard.js";
+import { ServerClient } from "../server_client.js";
 
 class PlayerItem extends Window {
     #data: any
@@ -124,6 +125,7 @@ export class WorldInfoWindow extends BlankWindow {
 
     private collection: PlayerCollection
     private player: any
+    private data: any
 
     constructor(player) {
 
@@ -232,6 +234,17 @@ export class WorldInfoWindow extends BlankWindow {
         const chk_public = new CheckBox(this.w / 2 - 2 * this.line_height - 17 * this.zoom, 28 * this.line_height + 2 * this.zoom, 17 * this.zoom, 17 * this.zoom, 'btn_switch_public')
         chk_public.setBackground(hud_atlas.getSpriteFromMap('check_bg'))
         chk_public.visible = false
+        chk_public.onMouseDown = () => {
+            const is_public = this.data.is_public = !this.data.is_public
+            this.player.world.info.is_public = is_public ? 1 : 0
+            chk_public.setIcon(is_public ? hud_atlas.getSpriteFromMap('check2') : null)
+            this.player.world.server.Send({
+                name: ServerClient.CMD_WORLD_SET_INFO, 
+                data: {
+                    is_public: this.data.is_public
+                }
+            })
+        }
         this.add(chk_public)
 
         const lbl_public_description = new Label(2 * this.line_height, 30 * this.line_height, 0, 0, 'lbl_public_description', '', Lang.make_public_description)
@@ -275,7 +288,6 @@ export class WorldInfoWindow extends BlankWindow {
 
         //
         this.addCollection()
-
     }
 
     // Обработчик открытия формы
@@ -291,6 +303,7 @@ export class WorldInfoWindow extends BlankWindow {
         const info : TWorldInfo = world.info
         const time = world.getTime()
 
+        console.log(info)
         //
         const setWindowText = (id : string, value : string) => {
             this.getWindow(id).text = value
@@ -302,7 +315,7 @@ export class WorldInfoWindow extends BlankWindow {
         const btn_switch_public = this.getWindow('btn_switch_public')
         const btn_switch_official = this.getWindow('btn_switch_official')
         const lbl_preview = this.getWindow('lbl_preview')
-        const data = {
+        const data = this.data = {
             guid:        info.guid,
             title:       (info.title.length > 17) ? info.title.substring(0, 17) + '...' : info.title,
             gamemode:    Lang[`gamemode_${info.game_mode}`],
@@ -312,7 +325,7 @@ export class WorldInfoWindow extends BlankWindow {
             is_admin:    info.user_id == player.session.user_id,
             time:        info.dt,
             age:         time.string_full,
-            is_public:   false,
+            is_public:   info.is_public == 1,
             is_official: true,
             players:     [],
             seed:        info.seed

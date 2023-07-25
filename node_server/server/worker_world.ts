@@ -76,12 +76,18 @@ export class ServerWorkerWorld {
                     this.world_admins = args.list as string[]
                     break
                 }
-                case SERVER_WORLD_WORKER_MESSAGE.shutdown:
+                case SERVER_WORLD_WORKER_MESSAGE.shutdown: {
                     this.game.shutdown(args)
                     break
-                case SERVER_WORLD_WORKER_MESSAGE.shutdown_complete:
+                }
+                case SERVER_WORLD_WORKER_MESSAGE.shutdown_complete: {
                     this.game.deleteWorld(this)
                     break
+                }
+                case SERVER_WORLD_WORKER_MESSAGE.change_world_is_public: {
+                    this.game.db.setWorldPublic(args.user_id, args.world_guid, args.is_public)
+                    break
+                }
             }
         }
 
@@ -95,7 +101,7 @@ export class ServerWorkerWorld {
         }, this.game.config.world.kill_timeout_seconds * 1000 / 10)
 
         const onerror = (e) => {
-            console.error(`World ${this.guid} is terminated due to error: ${JSON.stringify(e)}`)
+            console.error(`World ${this.guid} is terminated due to error: `, e)
             this.game.deleteWorld(this)
         }
 

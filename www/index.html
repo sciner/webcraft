@@ -225,7 +225,8 @@
 					<!-- <button class="tab">{{Lang.servers}}</button>
 					<button class="tab">{{Lang.friends}}</button> -->
 					<button class="tab" ng-class="{ active: current_window.id == 'main'}" href="#" ng-click="current_window.show('main')">{{Lang.worlds}}</button>
-				</div>
+                    <button class="tab" ng-class="{ active: current_window.id == 'public_worlds'}" href="#" ng-click="current_window.show('public_worlds')" ng-if="mygames.public_worlds.length > 0">{{Lang.public_worlds}}</button>
+                </div>
 				<div class="user-block">
 					<button class="tab user" ng-class="{ active: current_window.id == 'skin'}" ng-click="skin.toggle()">
 						<img ng-src="media/design/icon-head.png" alt="">
@@ -238,6 +239,38 @@
 			</nav>
 		</header>
 
+        <!-- Shared -->
+        <div class="content worlds-page animate__animated animate__fadeIn" ng-if="current_window.id == 'public_worlds'">
+            <div class="grid">
+                <div class="item card __animate__animated __animate__zoomIn" ng-repeat="item in mygames.public_worlds track by item.id" ng-if="!item.hidden">
+                    <div class="card-body">
+                        <div class="img-cover" ng-class="{with_cover: !!item.cover}">
+                            <h2 ng-if="!item.cover">{{Lang.no_cover}}</h2>
+                            <p ng-if="!item.cover">{{Lang.no_cover_note}}</p>
+                            <img ng-if="item.cover" class="world_cover" ng-src="/worldcover/{{item.guid}}/screenshot/{{item.cover_preview ? item.cover_preview : item.cover}}" alt="cover" />
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="animated-mask">
+                            <h2 class="m-0">{{item.title}}</h2>
+                            <div class="flex">
+                                <p class="game-mode">{{item.game_mode_title}}</p>
+                                <div class="users-online" title="{{Lang.players_online}}">
+                                    <i class="icon-bx-user" style="font-size: 14px; color: #AEEA00;"></i>
+                                    <span>{{item.players_online}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="buttons">
+                            <button class="primary" ng-click="mygames.enterWorld.joinWorld(item.guid)">
+                                <span>{{Lang.play}}</span>
+                                <i class="icon-arrows-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Worlds -->
 		<div class="content worlds-page animate__animated animate__fadeIn" ng-if="current_window.id == 'main'">
             <div class="modal-wrapper" id="modal-delete-world">
