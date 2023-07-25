@@ -6,6 +6,7 @@ export let MATERIAL_GROUPS = {
     doubleface: new MaterialGroup({ cullFace: false, opaque: true}),
     decal1: new MaterialGroup({ cullFace: true, opaque: true, decalOffset: 1}),
     decal2: new MaterialGroup({ cullFace: true, opaque: true, decalOffset: 2}),
+    doubleface_decal: new MaterialGroup({ cullFace: false, opaque: true, decalOffset: 3}),
     transparent: new MaterialGroup({ cullFace: true, opaque: false}),
     doubleface_transparent: new MaterialGroup({ cullFace: false, opaque: false}),
     label: new MaterialGroup({ cullFace: false, ignoreDepth: true}),

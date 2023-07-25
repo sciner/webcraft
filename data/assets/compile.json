@@ -235,6 +235,7 @@
             "sound": "madcraft:block.wood",
             "style": "fire",
             "spawnable": false,
+            "group": "doubleface_decal",
             "mining_time": 0,
             "material": {
                 "id": "wood"
