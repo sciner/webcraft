@@ -1,4 +1,4 @@
-import { Vector } from "@client/helpers.js";
+import {deepAssign, Vector} from "@client/helpers.js";
 import conf from "../data/conf.json" assert { type: "json" };
 import conf_world_json from "../data/conf_world.json" assert { type: "json" };
 import conf_building_schemas from "../data/building_schemas.json" assert { type: "json" };
@@ -112,8 +112,9 @@ export class Config {
     }
 
     constructor() {
-        Object.assign(this, conf)
-        Object.assign(this, conf_world)
+        const assign = deepAssign({})
+        assign(this, conf)
+        assign(this, conf_world)
     }
 
     static init() : Promise<Config> {
