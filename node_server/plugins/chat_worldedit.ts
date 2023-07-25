@@ -217,19 +217,21 @@ export default class WorldEdit {
     onWorld(world) {}
 
     onChat(chat: ServerChat) {
+
+        let world = this.world
         
-        if(!this.world) {
+        if(!world) {
             this.chat = chat
-            this.world = chat.world
+            this.world = world = chat.world
             this.chat.world_edit = this
             // авто-возобновление вставки схематики
-            const info = this.world.state.schematic_job
+            const info = world.state.schematic_job
             if (info) {
                 info.resume = true
                 info.state = SchematicState.INITIAL_TIMEOUT
                 setTimeout(() => {
                     // если за это время не загрузили другую схематику и не очистили
-                    if (this.world.state.schematic_job === info) {
+                    if (world.state.schematic_job === info) {
                         info.state = SchematicState.LOADING
                         this.postWorkerMessage(['schem_load', {
                             info,
@@ -274,9 +276,7 @@ export default class WorldEdit {
             }
             const f = this.commands.get(cmd);
             if(f) {
-                if(!chat.world.admins.checkIsAdmin(player)) {
-                    throw 'error_not_permitted';
-                }
+                world.throwIfNotWorldAdmin(player)
                 try {
                     await f.call(this, chat, player, cmd, args);
                 } catch(e) {
@@ -484,13 +484,11 @@ export default class WorldEdit {
     }
 
     //
-    async cmd_building(chat, player, cmd, args) {
+    async cmd_building(chat: ServerChat, player: ServerPlayer, cmd, args) {
         if (this.checkSchematic(player, { pasting: true })) {
             return
         }
-        if(!chat.world.admins.checkIsAdmin(player)) {
-            throw 'error_not_permitted';
-        }
+        chat.world.throwIfNotWorldAdmin(player)
         args = chat.parseCMD(args, ['string', 'string|float', 'string|float']);
         await this.building.onCmd(chat, player, cmd, args);
     }

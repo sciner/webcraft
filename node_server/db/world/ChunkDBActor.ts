@@ -395,7 +395,7 @@ export class ChunkDBActor {
                 // Save the chunkless changes and free memory.
                 // But don't do it immediately, in case more changes are incoming.
                 // It frees not a lot of memory, so it has a mid priority.
-                if (uc.speedup ||
+                if (uc.shutdown ||
                     this.lastUnsavedChangeTime < performance.now() - STABLE_WORLD_MODIFY_CHUNKLESS_TTL
                 ) {
                     uc.worldModifyChunksMidPriority.push(this);

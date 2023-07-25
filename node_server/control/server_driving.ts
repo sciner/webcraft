@@ -10,7 +10,6 @@ import {ServerClient} from "@client/server_client.js";
 import type {ServerDrivingManager} from "./server_driving_manager.js";
 import {Mth} from "@client/helpers/mth.js";
 import type {WorldTransactionUnderConstruction} from "../db/world/WorldDBActor.js";
-import {DRIVING_ABSENT_MOB_TTL_SECONDS, DRIVING_ABSENT_PLAYER_DISTANCE, DRIVING_ABSENT_PLAYER_MOB_BRAIN_DELAY_SECONDS} from "../server_constant.js";
 
 /** См. {@link Driving} */
 export class ServerDriving extends Driving<ServerDrivingManager> implements IAwarenessObject {
@@ -106,11 +105,14 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
         const mobIds = state.mobIds
         const playerIds = state.playerIds
 
+        // driving config
+        const driving_config = this.manager.world.worker_world.config.driving
+
         for (let place = 0; place < mobIds.length; place++) {
             if (mobIds[place] != null && this.mobs[place] == null) {
                 const missingTime = this.missingParticipantTime[place] ??= performance.now()
                 // удалить моба, который числятся в вождении, но давно отсутствует в игре
-                if (missingTime < performance.now() - DRIVING_ABSENT_MOB_TTL_SECONDS * 1000) {
+                if (missingTime < performance.now() - driving_config.absent_mob_ttl_seconds * 1000) {
                     this.removeMobId(mobIds[place], false)
                     if (this._deleted) {
                         return
@@ -120,7 +122,7 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
             } else if (playerIds[place] != null && this.players[place] == null) {
                 const missingPos = this.missingParticipantPos[place] ??= this.combinedPhysicsState.pos.clone()
                 // удалить игрока, который числятся в вождении, но отсутствуют в игре и транспорт сместился слишком далеко от его последнего положения
-                if (this.combinedPhysicsState.pos.distanceSqr(missingPos) > DRIVING_ABSENT_PLAYER_DISTANCE * DRIVING_ABSENT_PLAYER_DISTANCE) {
+                if (this.combinedPhysicsState.pos.distanceSqr(missingPos) > driving_config.absent_player_distance * driving_config.absent_player_distance) {
                     this.removePlayerId(playerIds[place], false)
                     if (this._deleted) {
                         return
@@ -136,7 +138,7 @@ export class ServerDriving extends Driving<ServerDrivingManager> implements IAwa
             mobVehicle.getBrain().enabled =
                 state.playerIds[DrivingPlace.DRIVER] == null ||
                 this.players[DrivingPlace.DRIVER] == null &&
-                performance.now() - this.missingParticipantTime[DrivingPlace.DRIVER] > DRIVING_ABSENT_PLAYER_MOB_BRAIN_DELAY_SECONDS * 1000
+                performance.now() - this.missingParticipantTime[DrivingPlace.DRIVER] > driving_config.absent_player_mob_brain_delay_seconds * 1000
         }
 
         if (this.isTerminated()) {

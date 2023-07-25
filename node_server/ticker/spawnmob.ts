@@ -139,8 +139,7 @@ export default class Ticker {
             texture_name: extra_data.skin
         }
         let exists_skin = null
-        const skins = world.game.db.skins.list
-        for(const skin_item of skins) {
+        for(const skin_item of world.worker_world.skin_list) {
             if([skin.model_name, `mob/${skin.model_name}`].includes(skin_item.model_name)) {
                 if(!exists_skin) {
                     exists_skin = skin_item

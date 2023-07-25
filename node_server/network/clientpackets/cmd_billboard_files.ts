@@ -1,7 +1,8 @@
 import { DEMO_PATH } from "@client/constant.js";
 import { BLOCK_ACTION, ServerClient } from "@client/server_client.js";
 import { WorldAction } from "@client/world_action.js";
-import Billboard from "player/billboard.js";
+import { Billboard } from "player/billboard.js";
+import type { ServerPlayer } from "server_player";
 
 export default class packet_reader {
 
@@ -15,10 +16,11 @@ export default class packet_reader {
         return ServerClient.CMD_BILLBOARD_MEDIA;
     }
 
-    static async read(player, packet) {
+    static async read(player: ServerPlayer, packet) {
         const id = player.session.user_id
         if (packet?.delete && !packet.delete.demo) {
-            const small = player.world.getPlayerFile(id, packet.delete.file, false)
+            // TODO: getPlayerFile может вернуть false!
+            const small = player.world.getPlayerFile(id, packet.delete.file, false) as string
             const big = small.replace('_', '')
             fs.unlinkSync(small)
             fs.unlinkSync(big)
@@ -41,7 +43,7 @@ export default class packet_reader {
                 world.actions_queue.add(player, actions);
             } 
         }
-        const files = await Billboard.getPlayerFiles(id)
+        const files = await Billboard.getPlayerFiles(player.session)
         const packets = [{
             name: ServerClient.CMD_BILLBOARD_MEDIA,
             data: {

@@ -189,6 +189,7 @@ interface IPlayerSharedProps {
 }
 
 declare type PlayerSession = {
+    session_id: string
     flags       : int
     username    : string
     user_id     : int
@@ -580,4 +581,19 @@ declare type IEnterWorld = {
 
 declare type ISpriteAtlasOptions = {
     scaleMode? : any
+}
+
+
+declare type IWorldDBRow = {
+    id:         int,
+    user_id:    int,
+    dt:         string,
+    guid:       string,
+    title:      string,
+    seed:       string,
+    game_mode:  string,
+    cover:      string,
+    generator:  any,
+    pos_spawn:  IVector,
+    state:      any
 }

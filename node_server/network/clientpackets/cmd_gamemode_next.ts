@@ -1,4 +1,5 @@
 import { ServerClient } from "@client/server_client.js";
+import type { ServerPlayer } from "server_player";
 
 export default class packet_reader {
 
@@ -13,10 +14,8 @@ export default class packet_reader {
     }
 
     // Next game mode
-    static async read(player, packet) {
-        if(!player.world.admins.checkIsAdmin(player)) {
-            throw 'error_not_permitted';
-        }
+    static async read(player : ServerPlayer, packet) : Promise<boolean> {
+        player.world.throwIfNotWorldAdmin(player)
         player.game_mode.next();
         return true;
     }

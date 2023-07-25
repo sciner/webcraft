@@ -1,29 +1,26 @@
+import type { Config } from "config";
+
 export class PluginManager {
     targets: Map<any, any>;
 
-    constructor(config) {
+    constructor(config: Config) {
         // Load plugins
         this.targets = new Map();
         this.targets.set('game', []);
         this.targets.set('world',  []);
         this.targets.set('chat',  []);
-        for(const [file, plugin] of Object.entries(config.chat_plugins)) {
+        for(const [filename, plugin] of Object.entries(config.chat_plugins)) {
             for(let target of (plugin as any).targets) {
                 if(!this.targets.has(target)) {
-                    throw 'invalid_plugin_target|' + file + ':' + target;
+                    throw 'invalid_plugin_target|' + filename + ':' + target;
                 }
                 this.targets.get(target).push(plugin);
-                console.debug('Plugin loaded: ' + file);
+                console.debug('Plugin loaded: ' + filename);
             }
         }
     }
 
-    /**
-     * @param {string} target 
-     * @param {object} instance 
-     * @returns 
-     */
-    initPlugins(target, instance) {
+    initPlugins(target: string, instance: object) {
         const resp = [];
         const targets = this.targets.get(target);
         if(targets) {

@@ -22,6 +22,7 @@ package-lock.json
 .DS_Store
 *.schematic
 *.schem
+*.litematic
 www/js/**/*
 www/resource_packs/base/blocks.json
 www/resource_packs/base/textures/*.*

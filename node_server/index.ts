@@ -17,7 +17,6 @@ import fileUpload from "express-fileupload";
 import { renderFile } from "ejs";
 
 import { Buffer } from 'node:buffer';
-import skiaCanvas from 'skia-canvas';
 
 // Check version of modules
 const required_versions = {
@@ -47,20 +46,12 @@ try {
 }
 
 import { Config } from './config.js';
-
-//
-import {Lang} from "@client/lang.js";
-import {BLOCK} from "@client/blocks.js";
-import {Resources} from "@client/resources.js";
-import {ServerGame} from "./server_game.js";
-import {ServerAPI} from "./server_api.js";
-import {PluginManager} from "./plugin_manager.js";
+import { Lang } from "@client/lang.js";
+import { BLOCK } from "@client/blocks.js";
+import { ServerGame } from "./server_game.js";
+import { ServerAPI } from "./server_api.js";
 
 import type { GameSettings } from '@client/game.js';
-import type { DBGame } from 'db/game.js';
-import { md5 } from '@client/helpers.js';
-import type { PlayerSkin } from '@client/player.js';
-// const features = {}
 
 Config.init().then(async (config) => {
 
@@ -78,11 +69,9 @@ Config.init().then(async (config) => {
     globalAny.__dirname        = path.resolve();
     globalAny.Worker           = Worker;
     globalAny.fs               = fs;
-    globalAny.Buffer          = Buffer;
-    globalAny.skiaCanvas      = skiaCanvas;
-    globalAny.mkdirp          = mkdirp;
-    globalAny.plugins          = new PluginManager(globalAny.config);
-    globalAny.Qubatch          = new ServerGame();
+    globalAny.Buffer           = Buffer;
+    globalAny.mkdirp           = mkdirp;
+    globalAny.Qubatch          = new ServerGame(config)
     globalAny.randomUUID       = () => {
         return uuid();
     };
@@ -185,7 +174,7 @@ Config.init().then(async (config) => {
             const resp = await ServerAPI.call(req.originalUrl, req.body, req.get('x-session-id'), req);
             res.status(200).json(resp);
         } catch(e) {
-            console.debug('> API: ' + e);
+            console.error('> API: ', e);
             let message = e.code || e;
             let code = 950;
             if(message == 'error_invalid_session') {
@@ -218,25 +207,6 @@ Config.init().then(async (config) => {
 
     // Start express
     const server = app.listen(config.Port)
-
-    for(const bbmodel of (await Resources.loadBBModels()).values()) {
-        if(bbmodel.name.startsWith('mob/')) {
-            bbmodel.makeTexturePalette()
-            // console.log(Qubatch.db)
-            for(const texture_name of bbmodel.all_textures.keys()) {
-                if(isNaN(Number(texture_name))) {
-                    const id = md5(`${bbmodel.name}|${texture_name}`);
-                    (Qubatch.db as DBGame).skins.list.push({
-                        id,
-                        can_select_by_player: bbmodel.name.startsWith('mob/humanoid'),
-                        model_name: bbmodel.name,
-                        texture_name,
-                    } as PlayerSkin)
-                    console.log(bbmodel.name, texture_name)
-                }
-            }
-        }
-    }
 
     // Pair with websocket server
     server.on('upgrade', (request, socket, head) => {

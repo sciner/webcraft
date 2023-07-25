@@ -4,7 +4,7 @@ import { ServerChat } from "./server_chat.js";
 import { ModelManager } from "./model_manager.js";
 import { PlayerEvent } from "./player_event.js";
 import { QuestManager } from "./quest/manager.js";
-import { TickerHelpers, BlockListeners } from "./ticker/ticker_helpers.js";
+import { BlockListeners } from "./ticker/ticker_helpers.js";
 
 import { WorldTickStat } from "./world/tick_stat.js";
 import { WorldPacketQueue } from "./world/packet_queue.js";
@@ -18,15 +18,15 @@ import { BLOCK_DIRTY } from "./db/world/ChunkDBActor.js";
 
 import { ArrayHelpers, Vector, VectorCollector, PerformanceTimer, Helpers } from "@client/helpers.js";
 import { AABB } from "@client/core/AABB.js";
-import { AIR_BLOCK_SIMPLE, BLOCK, DBItemBlock } from "@client/blocks.js";
+import { BLOCK, DBItemBlock } from "@client/blocks.js";
 import { BLOCK_ACTION, ServerClient } from "@client/server_client.js";
 import { ServerChunkManager } from "./server_chunk_manager.js";
 import { PacketReader } from "./network/packet_reader.js";
-import { DEFAULT_MOB_TEXTURE_NAME, DEMO_PATH, GAME_DAY_SECONDS, GAME_ONE_SECOND, MOB_TYPE, PLAYER_STATUS, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
+import { GAME_DAY_SECONDS, GAME_ONE_SECOND, PLAYER_STATUS, SERVER_WORLD_WORKER_MESSAGE, WORKER_MESSAGE, WORLD_TYPE_BUILDING_SCHEMAS } from "@client/constant.js";
 import { Weather } from "@client/block_type/weather.js";
 import { TreeGenerator } from "./world/tree_generator.js";
 import { GameRule } from "./game_rule.js";
-import {COMMANDS_IN_ACTIONS_QUEUE, SHUTDOWN_ADDITIONAL_TIMEOUT} from "./server_constant.js"
+import { COMMANDS_IN_ACTIONS_QUEUE } from "./server_constant.js"
 
 import {TActionBlock, WorldAction} from "@client/world_action.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
@@ -34,7 +34,7 @@ import { WorldOreGenerator } from "./world/ore_generator.js";
 import { ServerPlayerManager } from "./server_player_manager.js";
 import { shallowCloneAndSanitizeIfPrivate } from "@client/compress/world_modify_chunk.js";
 import { Effect } from "@client/block_type/effect.js";
-import { Mob, MobSpawnParams } from "./mob.js";
+import { Mob } from "./mob.js";
 import type { DBWorld } from "./db/world.js";
 import type { TBlock } from "@client/typed_blocks3.js";
 import type { ServerPlayer } from "./server_player.js";
@@ -45,11 +45,11 @@ import { ChunkGrid } from "@client/core/ChunkGrid.js";
 import {ServerDrivingManager} from "./control/server_driving_manager.js";
 import {preprocessMobConfigs, TMobConfig} from "./mob/mob_config.js";
 import {Raycaster} from "@client/Raycaster.js";
-import type { ServerGame } from "server_game.js";
 import {ObjectUpdateType} from "./helpers/aware_players.js";
-import Billboard from "player/billboard.js";
+import { Billboard } from "player/billboard.js";
 import type {TSchematicInfo} from "./plugins/chat_worldedit.js";
 import { SpawnMobs } from "world/spawn_mobs.js";
+import type { WorldWorker } from "world/worker.js";
 
 export const NEW_CHUNKS_PER_TICK = 50;
 
@@ -75,8 +75,8 @@ export class ServerWorld implements IWorld {
     temp_vec: Vector;
     block_manager: typeof BLOCK;
     blocksUpdatedByListeners: TActionBlock[] = []
-    shuttingDown: any;
-    game: ServerGame;
+    shutting_down = false // если true, то мир завершается
+    worker_world: WorldWorker;
     tickers: Map<string, TTickerFunction>;
     random_tickers: Map<string, TRandomTickerFunction>;
     blockListeners: BlockListeners;
@@ -115,29 +115,33 @@ export class ServerWorld implements IWorld {
     players: ServerPlayerManager;
     all_drop_items: any;
     pn: any;
-    pause_ticks: any;
+    pause_ticks = false
+    can_unload_time = Infinity // минимальное время, когда мир стало безопасно выгрузить
     givePriorityToSavingFluids: any;
     /** An immutable shared instance of {@link getDefaultPlayerIndicators} */
     defaultPlayerIndicators: Indicators
     physics?: Physics
     spawn_mobs: SpawnMobs
+    world_row : IWorldDBRow
+    lightWorker: any = null
+    world_worker: WorldWorker
 
-    constructor(block_manager : typeof BLOCK) {
-        this.temp_vec = new Vector();
+    constructor(block_manager : typeof BLOCK, world_row : IWorldDBRow, world_worker: WorldWorker) {
+        this.temp_vec = new Vector()
+        this.world_row = world_row
+        this.world_worker = world_worker
 
         this.block_manager = block_manager;
         this.raycaster = new Raycaster(this)
-
-        // An object with fields { resolve, gentle }. Gentle means to wait unil the action queue is empty
-        this.shuttingDown = null;
     }
 
-    async initServer(world_guid : string, db_world : DBWorld, world_row, game: ServerGame) {
-        this.game = game;
+    async initServer(world_guid : string, db_world : DBWorld, title: string, worker_world: WorldWorker) {
+        this.worker_world = worker_world
         if (SERVER_TIME_LAG) {
             console.log('[World] Server time lag ', SERVER_TIME_LAG);
         }
-        const newTitlePromise = world_row?.title ? db_world.setTitle(world_row.title) : Promise.resolve();
+        await this.initWorkers()
+        const newTitlePromise = title ? db_world.setTitle(title) : Promise.resolve();
         var t = performance.now();
         // Tickers
         this.tickers = new Map();
@@ -170,7 +174,7 @@ export class ServerWorld implements IWorld {
         this.db             = db_world;
         this.db.removeDeadDrops();
         await newTitlePromise;
-        this.info           = await this.db.getWorld(world_guid);
+        this.info           = await this.db.getWorld(world_guid, this.world_row)
         this.info.cover     = world_row.cover
         this.info.is_public = world_row.is_public
         this.info.username  = world_row.username
@@ -264,6 +268,40 @@ export class ServerWorld implements IWorld {
         return this.info.world_type_id == WORLD_TYPE_BUILDING_SCHEMAS
     }
 
+    initWorkers() : Promise<number> {
+        return new Promise((resolve, reject) => {
+            let workerCounter = 1;
+
+            this.lightWorker = new Worker(globalThis.__dirname + '/../www/js/light_worker.js')
+            this.lightWorker.postMessage(['SERVER', WORKER_MESSAGE.LIGHT_WORKER_INIT, null])
+
+            this.lightWorker.on('message', (data : any) => {
+                if (data instanceof MessageEvent) {
+                    data = data.data
+                }
+                // const worldId = data[0]
+                const cmd = data[1]
+                const args = data[2]
+                switch (cmd) {
+                    case 'worker_inited': {
+                        --workerCounter;
+                        if (workerCounter === 0) {
+                            resolve(workerCounter)
+                        }
+                        break;
+                    }
+                    default: {
+                        this.chunkManager.onLightWorkerMessage([cmd, args])
+                    }
+                }
+            })
+            const onerror = (e) => {
+                debugger
+            }
+            this.lightWorker.on('error', onerror)
+        });
+    }
+
     async makeBuildingsWorld(info : TWorldInfo) : Promise<boolean> {
 
         if(!this.isBuildingWorld()) {
@@ -346,7 +384,7 @@ export class ServerWorld implements IWorld {
         console.log('Building: compress chunks in db ...', performance.now() - t)
 
         // reread info
-        this.info = await this.db.getWorld(this.info.guid)
+        this.info = await this.db.getWorld(this.info.guid, this.world_row)
 
         return true
 
@@ -360,69 +398,6 @@ export class ServerWorld implements IWorld {
     getInfo() : TWorldInfo {
         return this.info;
     }
-
-    // Спавн враждебных мобов в тёмных местах (пока тёмное время суток)
-    // autoSpawnHostileMobs() {
-    //     //128 ,kjrj
-    //     // 24 - 32
-    //     const SPAWN_DISTANCE = 64
-    //     const SAFE_DISTANCE = 24
-    //     const good_world_for_spawn = !this.isBuildingWorld();
-    //     const auto_generate_mobs = this.getGeneratorOptions('auto_generate_mobs', true);
-    //     // не спавним мобов в мире-конструкторе и в дневное время
-    //     if(!auto_generate_mobs || !good_world_for_spawn || !this.rules.getValue('doMobSpawning')) {
-    //         return;
-    //     }
-    //     const ambientLight = (this.info.rules.ambientLight || 0) * 255/15;
-    //     // находим игроков
-    //     for (const player of this.players.values()) {
-    //         if (!player.game_mode.isSpectator() && player.status !== PLAYER_STATUS.DEAD) {
-    //             // количество мобов одного типа в радиусе спауна
-    //             const mobs = this.getMobsNear(player.state.pos, 8, [MOB_TYPE.ZOMBIE, MOB_TYPE.SKELETON]);
-    //             if (mobs.length <= 4) {
-    //                 // TODO: Вот тут явно проблема, поэтому зомби спавняться близко к игроку!
-    //                 // выбираем рандомную позицию для спауна
-    //                 const x = player.state.pos.x + SPAWN_DISTANCE * (Math.random() - Math.random());
-    //                 const y = player.state.pos.y + SPAWN_DISTANCE * (Math.random() - Math.random());
-    //                 const z = player.state.pos.z + SPAWN_DISTANCE * (Math.random() - Math.random());
-    //                 const spawn_pos = new Vector(x, y, z).flooredSelf();
-    //                 // проверка места для спауна
-    //                 const under = this.getBlock(spawn_pos.offset(0, -1, 0));
-    //                 // под ногами только твердый, целый блок
-    //                 if (under && (under.id != 0 || under.material.style_name == 'planting')) {
-    //                     const body = this.getBlock(spawn_pos);
-    //                     const head = this.getBlock(spawn_pos.offset(0, 1, 0));
-    //                     const lv = head.lightValue;
-    //                     const cave_light = lv & 255
-    //                     const day_light = 255 - (lv >> 8) & 255
-    //                     if (cave_light > ambientLight) {
-    //                         continue
-    //                     }
-    //                     if (this.getLight() > 6) {
-    //                         if (day_light > ambientLight) {
-    //                             continue
-    //                         }
-    //                     }
-    //                     // проверям что область для спауна это воздух или вода
-    //                     if (body && head && body.id == 0 && head.id == 0) {
-    //                         // не спавним рядом с игроком
-    //                         const players = this.getPlayersNear(spawn_pos, SAFE_DISTANCE)
-    //                         if (players.length == 0) {
-    //                             // тип мобов для спауна
-    //                             const model_name = (Math.random() < .5) ? MOB_TYPE.ZOMBIE : MOB_TYPE.SKELETON;
-    //                             spawn_pos.addScalarSelf(.5, 0, .5)
-    //                             const params = new MobSpawnParams(spawn_pos, Vector.ZERO.clone(), {model_name, texture_name: DEFAULT_MOB_TEXTURE_NAME})
-    //                             const actions = new WorldAction(null, this, false, false);
-    //                             actions.spawnMob(params);
-    //                             this.actions_queue.add(null, actions);
-    //                             console.log(`Auto spawn ${model_name} pos spawn: ${spawn_pos.toHash()}`);
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
 
     // Update world wather
     updateWorldWeather() {
@@ -467,18 +442,16 @@ export class ServerWorld implements IWorld {
         this.info.calendar.day_time = Math.round((age - this.info.calendar.age) * GAME_DAY_SECONDS);
     }
 
-    async shutdown() {
-        await this.db.fluid.flushAll()
-        await this.dbActor.forceSaveWorld()
-        // resolve the promise of this world shutting down after an additional timeout
-        setTimeout(this.shuttingDown.resolve, SHUTDOWN_ADDITIONAL_TIMEOUT)
-        await new Promise(() => {}) // await forever
-    }
-
     // World tick
     async tick() {
-        if (this.shuttingDown && !this.shuttingDown.gentle) {
-            await this.shutdown()
+        if (this.shutting_down) { // Все сохраним, сообщим главному потоку об окончнии и "повиснем"
+            await this.db.fluid.flushAll()
+            await this.dbActor.forceSaveWorld()
+            // resolve the promise of this world shutting down after an additional timeout
+            setTimeout(() => {
+                this.world_worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.shutdown_complete])
+            }, this.world_worker.config.world_transaction.shutdown_additional_timeout)
+            await new Promise(() => {}) // await forever
         }
         const started = performance.now();
         this.nextTickScheduledTime ??= started
@@ -487,9 +460,9 @@ export class ServerWorld implements IWorld {
             delta = (performance.now() - this.pn) / 1000;
         }
         this.pn = performance.now();
-        this.updateWorldCalendar();
-        this.updateWorldWeather();
         if(!this.pause_ticks) {
+            this.updateWorldCalendar();
+            this.updateWorldWeather();
             //
             this.ticks_stat.number++;
             // добавить в статистику насколько опоздал тик
@@ -535,18 +508,21 @@ export class ServerWorld implements IWorld {
             //
             await this.actions_queue.run();
             this.ticks_stat.add('actions_queue');
-            if (this.shuttingDown?.gentle && this.actions_queue.length === 0) {
-                await this.shutdown()
-            }
             //
             this.packets_queue.send();
             this.ticks_stat.add('packets_queue_send');
 
-            // отложеная смена ночи на день
+            // отложенная смена ночи на день
             this.skipNight()
 
-            // Do different periodic tasks in different ticks to reduce lag spikes
-            if(this.ticks_stat.number % 20 == 0) {
+            this.can_unload_time = this.dbActor.canUnload()
+                ? Math.min(this.can_unload_time, performance.now())
+                : Infinity
+            if (performance.now() > this.can_unload_time + this.worker_world.config.world.ttl_seconds * 1000) { // если довольно давно может выгрузиться
+                await this.db.fluid.savingDirtyChunksPromise // подождать окончания сохранения жидкостей (если оно есть)
+                this.world_worker.postMessage([SERVER_WORLD_WORKER_MESSAGE.need_to_unload])
+                this.pause_ticks = true
+            } if(this.ticks_stat.number % 20 == 0) { // Do different periodic tasks in different ticks to reduce lag spikes
                 //
                 this.chunks.checkDestroyMap();
                 this.ticks_stat.add('maps_clear');
@@ -671,7 +647,7 @@ export class ServerWorld implements IWorld {
     }
 
     // onLeave
-    async onLeave(player) {
+    async onLeave(player : ServerPlayer) {
         if (this.players.exists(player?.session?.user_id)) {
             this.players.delete(player.session.user_id);
             player.onLeave();
@@ -682,22 +658,21 @@ export class ServerWorld implements IWorld {
                     id: player.session.user_id
                 }
             }];
-            this.sendAll(packets, [player.session.user_id]);
+            this.sendAll(packets, [player.session.user_id])
         }
     }
 
     /**
      * Send commands for all except player id list
-     * @param {Object[]} packets
-     * @param {?number[]} except_players  ID of players
-     * @return {void}
+     * @param packets
+     * @param except_players  ID of players
      */
-    sendAll(packets, except_players = null) {
+    sendAll(packets: INetworkMessage[], except_players = null) : void {
         for (const player of this.players.values()) {
             if (except_players?.includes(player.session.user_id)) {
                 continue;
             }
-            player.sendPackets(packets);
+            player.sendPackets(packets)
         }
     }
 
@@ -1434,6 +1409,18 @@ export class ServerWorld implements IWorld {
 
     getPlayerFile(id: number, file: string, demo: boolean) {
         return Billboard.getPlayerFile(id, file, demo)
+    }
+
+    throwIfNotWorldAdmin(player: ServerPlayer) : void {
+        if (!player.isWorldAdmin()) {
+            throw 'error_not_permitted'
+        }
+    }
+
+    throwIfNotSystemAdmin(player: ServerPlayer) : void {
+        if (!player.isSystemAdmin()) {
+            throw 'error_not_permitted'
+        }
     }
 
 }

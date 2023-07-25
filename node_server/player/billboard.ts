@@ -1,17 +1,22 @@
 import { DEMO_PATH } from "@client/constant.js"
 
-class Billboard {
+declare type IBillboardFile = {
+    file: string
+    demo: boolean
+}
+
+export class Billboard {
+
     /**
-    * Возравщает спискок файлов игрока (медиа)
-    * @param id id игрока
+    * Возвращает список файлов игрока (медиа)
     */
-    static async getPlayerFiles(id: number) {
+    static async getPlayerFiles(session: PlayerSession) : Promise<IBillboardFile[]> {
         const demo = await fs.promises.readdir(DEMO_PATH)
-        const files = []
+        const files : IBillboardFile[] = []
         for (const file of demo) {
             files.push({ file: file, demo: true })
         }
-        const path = `../www/upload/${id}/`
+        const path = `../www/upload/${session.user_id}/`
         if (fs.existsSync(path)) {
             const upload = await fs.promises.readdir(path)
             for (const file of upload) {
@@ -22,14 +27,14 @@ class Billboard {
         }
         return files
     }
+
     /**
      * Проверяет принадлежность файла игроку и его наличие
      * @param id id игрока
      * @param file имя файла
-     * @param demo это демо фалй или файлы игрока
-     * @returns 
+     * @param demo это демо файл или файл игрока
      */
-    static getPlayerFile(id: number, file: string, demo: boolean) {
+    static getPlayerFile(id: number, file: string, demo: boolean) : boolean | string {
         file = file.replace(/\\|\/|\*|\?|/g, '')
         const path = demo ? DEMO_PATH + file : `../www/upload/${id}/${file}`
         try {
@@ -39,6 +44,5 @@ class Billboard {
         }
         return path
     }
-}
 
-export default Billboard
+}

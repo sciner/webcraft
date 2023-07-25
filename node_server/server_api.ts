@@ -2,11 +2,15 @@ import { GameMode } from "@client/game_mode.js";
 import { BuildingTemplate } from "@client/terrain_generator/cluster/building_template.js";
 import { WorldGenerators } from "./world/generators.js";
 import { Vector } from "@client/helpers.js";
-import {MonotonicUTCDate, TApiSyncTimeRequest, TApiSyncTimeResponse} from "@client/helpers/monotonic_utc_date.js";
-import type { DBGame } from "db/game.js";
-import Billboard from "player/billboard.js";
+import { MonotonicUTCDate, TApiSyncTimeRequest, TApiSyncTimeResponse } from "@client/helpers/monotonic_utc_date.js";
+import { Billboard } from "./player/billboard.js";
 import { PLAYER_FLAG } from "@client/constant.js";
 import { impl as alea } from '@vendors/alea.js';
+import type { DBGame } from "db/game.js";
+import type { ServerWorkerWorld } from "server/worker_world.js";
+
+const RESULT_OK = {result: 'ok'}
+const RESULT_ERROR = {result: 'error'}
 
 // JSON API
 export class ServerAPI {
@@ -15,34 +19,26 @@ export class ServerAPI {
         return Qubatch.db
     }
 
-    //
-    static isWorldAdmin(world_guid, session) {
-        const world = Qubatch.worlds.get(world_guid);
-        if(!world) {
-            return false;
-        }
-        return world.admins.checkIsAdmin({session});
-    }
-
     static async call(method, params, session_id, req) {
         console.debug('!> API:' + method);
         switch(method) {
-            case '/api/Game/getWorldPublicInfo':
+            case '/api/Game/getWorldPublicInfo': {
                 const world = await ServerAPI.getDb().getWorld(params.worldGuid);
                 // mapping
-                const woldPublicInfo = {
+                return {
                     title: world.title,
                     guid: world.guid,
                     // [TO DO] image of world should be put here
                     cover: world.cover ? `/worldcover/${world.guid}/screenshot/${world.cover}` : null
-                };
-                return woldPublicInfo;
-            case '/api/Game/loadSchemas':
+                }
+            }
+            case '/api/Game/loadSchemas': {
                 return Array.from(BuildingTemplate.schemas.values())
+            }
             case '/api/User/Registration': {
-                const session = await ServerAPI.getDb().Registration(params.username, params.password);
+                const user_id = await ServerAPI.getDb().Registration(params.username, params.password);
                 Log.append('Registration', {username: params.username});
-                return session;
+                return user_id;
             }
             case '/api/User/Login': {
                 const session = await ServerAPI.getDb().Login(params.username, params.password);
@@ -149,22 +145,23 @@ export class ServerAPI {
                     dt_started: Qubatch.dt_started,
                     players_online: 0,
                     worlds: []
-                };
-                for(let world of Qubatch.worlds.values()) {
-                    if(world.info) {
-                        const info = {...world.info, players: []};
-                        for(const player of world.players.values()) {
-                            info.players.push({
-                                user_id: player.session.user_id,
-                                username: player.session.username,
-                                ...player.state,
-                                dt_connect: player.dt_connect
-                            });
-                            resp.players_online++;
-                        }
-                        resp.worlds.push(info);
-                    }
                 }
+                // TODO: Need to refactoring after move worlds into workers
+                // for(let world of Qubatch.worlds.values()) {
+                //     if(world.info) {
+                //         const info = {...world.info, players: []};
+                //         for(const player of world.players.values()) {
+                //             info.players.push({
+                //                 user_id: player.session.user_id,
+                //                 username: player.session.username,
+                //                 ...player.state,
+                //                 dt_connect: player.dt_connect
+                //             });
+                //             resp.players_online++;
+                //         }
+                //         resp.worlds.push(info);
+                //     }
+                // }
                 return resp;
             }
             case '/api/Game/UploadBillboardImage': {
@@ -180,9 +177,9 @@ export class ServerAPI {
                     const file = path + md5 + ext
                     await req.files.file.mv(file)
                     await req.files.preview.mv(path + md5 + '_' + ext)
-                    const files = await Billboard.getPlayerFiles(session.user_id)
+                    const files = await Billboard.getPlayerFiles(session)
                     return {
-                        'result':'ok', 
+                        ...RESULT_OK,
                         'files': files, 
                         'last': {
                             'file': md5 + ext,
@@ -190,7 +187,7 @@ export class ServerAPI {
                         }
                     }
                 }
-                return {'result':'error'}
+                return RESULT_ERROR
             }
             case '/api/Game/UploadScreenshot': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);
@@ -223,13 +220,12 @@ export class ServerAPI {
                             screenshot_file.mv(path + filename);
                             screenshot_file_preview.mv(path + `preview_${filename}`);
                         }
-                        const world = Qubatch.worlds.get(world_id)
-                        world.info.cover = filename
-                        world.sendUpdatedInfo()
-                        return {'result':'ok'};
+                        const worker_world = Qubatch.worlds.get(world_id) as ServerWorkerWorld
+                        worker_world.changeCover(filename)
+                        return RESULT_OK
                     }
                 }
-                return {'result':'error'};
+                return RESULT_ERROR
             }
             case '/api/Game/Generators': {
                 return WorldGenerators.list;
@@ -274,7 +270,7 @@ export class ServerAPI {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);
                 const params = req.body;
                 await ServerAPI.getDb().skins.deleteFromUser(session.user_id, params.skin_id);
-                return {'result': 'ok'};
+                return RESULT_OK
             }
             case '/api/Skin/UpdateStatic': {
                 const session = await ServerAPI.getDb().GetPlayerSession(session_id);
@@ -287,12 +283,21 @@ export class ServerAPI {
         }
     }
 
-    // requireSessionFlag...
-    static requireSessionFlag(session, flag) {
-        if((session.flags & flag) != flag) {
-            throw 'error_require_permission';
+    //
+    static isWorldAdmin(world_guid : string, session : PlayerSession) : boolean {
+        const worker_world = Qubatch.worlds.get(world_guid) as ServerWorkerWorld
+        if(!worker_world) {
+            return false
         }
-        return true;
+        return worker_world.isWorldAdmin(session)
+    }
+
+    //
+    static requireSessionFlag(session: PlayerSession, flag: int) : boolean {
+        if((session.flags & flag) != flag) {
+            throw 'error_require_permission'
+        }
+        return true
     }
 
 }
