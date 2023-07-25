@@ -582,11 +582,11 @@ export class DBGame {
         return filename;
     }
 
-    async setWorldPublic(user_id: number, world_id: number, is_public: number = 1) {
-        await this.conn.run('UPDATE world SET is_public = :is_public WHERE user_id = :user_id AND id = :world_id', {
-            ':is_public': is_public,
+    async setWorldPublic(user_id: number, world_guid: number, is_public: boolean) {
+        await this.conn.run('UPDATE world SET is_public = :is_public WHERE user_id = :user_id AND guid = :world_guid', {
+            ':is_public': is_public ? 1 : 0,
             ':user_id':   user_id,
-            ':world_id':  world_id
+            ':world_guid':  world_guid
         })
     }
 

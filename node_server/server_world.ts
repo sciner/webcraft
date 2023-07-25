@@ -171,14 +171,14 @@ export class ServerWorld implements IWorld {
             console.log('Importing tickers, listeners & brains: ' + t + ' ms');
         }
         //
-        this.db             = db_world;
-        this.db.removeDeadDrops();
-        await newTitlePromise;
-        this.info           = await this.db.getWorld(world_guid, this.world_row)
+        const world_row = this.world_row
+        this.db = db_world;
+        this.db.removeDeadDrops()
+        await newTitlePromise
+        this.info           = await this.db.getWorld(world_guid, world_row)
         this.info.cover     = world_row.cover
         this.info.is_public = world_row.is_public
         this.info.username  = world_row.username
-        this.info.gid       = world_row.id
         this.grid           = new ChunkGrid({chunkSize: new Vector().copyFrom(this.info.tech_info.chunk_size)})
         this.worldChunkFlags = new WorldChunkFlags(this);
         this.dbActor        = new WorldDBActor(this);
