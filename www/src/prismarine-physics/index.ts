@@ -121,7 +121,7 @@ export class Physics {
         maxUp: 0.5,
         friction: 0.4
     }
-    // Особые значения для лодки в воде. Не подогнано точно как в майне. См. https://minecraft.fandom.com/wiki/Boat#Speed
+    // Особые значения для лодки в воде. Не подогнано точно как в майне. См. https://minecraft.wiki/w/Boat#Speed
     private readonly boatLiquidAcceleration = 0.08
     private readonly boatLiquidInertia = 0.9
     // Особые значения для лодки на льду. Не подогнано точно как в майне.

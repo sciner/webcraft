@@ -32,7 +32,7 @@ export class Enchantments {
 
         ids are strings because it's the easist way to store them as keys of extra_data.enchantments.
 
-        The original list: https://minecraft.fandom.com/wiki/Anvil_mechanics#Combining_items
+        The original list: https://minecraft.wiki/w/Anvil_mechanics#Combining_items
     */
     static byId = {
         0: {

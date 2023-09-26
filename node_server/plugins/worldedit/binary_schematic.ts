@@ -502,7 +502,7 @@ export class BinarySchematic {
                 readStingLength = readSignedVarInt
                 readArrayLength = readSignedVarInt
             }
-            // типы тэгов: https://minecraft.fandom.com/wiki/NBT_format#TAG_definition
+            // типы тэгов: https://minecraft.wiki/w/NBT_format#TAG_definition
             readers[1] = () => file_buffer.readInt8()
             readers[2] = () => file_buffer.readInt16()
             readers[3] = () => file_buffer.readInt32()

@@ -35,7 +35,7 @@ export type TPrismarineOptions = {
     /** If it's defined, the object floats, and this value is its height below the surface. */
     floatSubmergedHeight? : float
 
-    /** Если это определено, то применяется специальный режим вычсления скорости, см. https://minecraft.fandom.com/wiki/Boat#Speed */
+    /** Если это определено, то применяется специальный режим вычсления скорости, см. https://minecraft.wiki/w/Boat#Speed */
     useBoatSpeed        ? : boolean
 
     airborneInertia     ? : float // 0.91 in Minecraft (default), 0.546 in typical old bugged jumps
